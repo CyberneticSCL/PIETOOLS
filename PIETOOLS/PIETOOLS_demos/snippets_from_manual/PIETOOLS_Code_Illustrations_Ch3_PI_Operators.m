@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
 %
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 12/30/2024: Initial coding;
+% DJ, 11/08/2026: Declare the 2D operators D, E and F (3.2.1, 3.2.2) as
+%                   copvar objects, with int2copvar and int2sopvar;
 clear
 
 %% 3.1.1 Declaring 3-PI Operators
@@ -94,20 +96,16 @@ C = pi4_copvar_sop(P,Q1,Q2,{R0,R1,R2},[1 2; 2 1],s,s_dum,[0,3]);            % DB
 
 %% 3.2.1 Declaring 9-PI Operators
 
-% Declare an opvar2d object representing the 9-PI operator
+% Declare a copvar object representing the 9-PI operator
 % D: L2^2[[0,1]x[1,2]] --> L2^2[[0,1]x[1,2]] defined by
 %   D*v(x,y) = int_{0}^{x} int_{y}^{2} [x^2*v1(th,nu) +x*y*v2(th,nu)] dnu dth 
 %                                      [x*y*v1(th,nu) +y^2*v2(th,nu)]
 % for v = (v1,v2) in L2^2[[0,1]x[1,2]]
 pvar s1 s2
 N12 = [s1^2, s1*s2; s1*s2, s2^2];
-opvar2d D;
-D.var1 = [s1;s2];
-D.I = [0,1; 1,2];
-D.R22{2,3} = N12;
-D = op2copvar_sop(D);     % convert the opvar2d to a copvar                 % DB, 11/06/2026
+D = int2copvar(N12,{'s1','s2'},[0,1; 1,2],[0,s1; s2,2]);
 
-% Declare an opvar2d object representing the 9-PI operator
+% Declare a copvar object representing the 9-PI operator
 % E: L2[[0,1]x[-1,1]] --> L2[[0,1]x[-1,1]] defined by
 %   E*v(x,y) = x^2*y^2*v(x,y) +int_{-1}^{y}x*(y-nu)*v(x,nu) dnu
 %               +int_{x}^{1}(x-th)*y*v(th,y)dth
@@ -120,17 +118,13 @@ D = op2copvar_sop(D);     % convert the opvar2d to a copvar                 % DB
 pvar s1 s2 s1_dum s2_dum                                                    % DB, 11/06/2026
 N00 = s1^2 * s2^2;      N01 = s1*(s2-s2_dum);                               % DB, 11/06/2026
 N20 = (s1-s1_dum)*s2;   N21 = (s1-s1_dum)*(s2-s2_dum);                      % DB, 11/06/2026
-opvar2d E;
-% E.var1 = [s1;s2]; E.var2 = [th1; th2];                                    % DB, 11/06/2026 (was)
-E.var1 = [s1;s2]; E.var2 = [s1_dum; s2_dum];                                % DB, 11/06/2026
-E.I = [0,1; -1,1];
-E.R22{1,1} = N00; E.R22{1,2} = N01;
-E.R22{3,1} = N20; E.R22{3,2} = N21;
-E = op2copvar_sop(E);     % convert the opvar2d to a copvar                 % DB, 11/06/2026
+vE = {'s1','s2'};       domE = [0,1; -1,1];
+E = int2copvar(N00,vE,domE,[s1,s1; s2,s2]) + int2copvar(N01,vE,domE,[s1,s1; -1,s2]) ...
+    + int2copvar(N20,vE,domE,[s1,1; s2,s2]) + int2copvar(N21,vE,domE,[s1,1; -1,s2]);
 
 
 %% 3.2.2 Declaring General 2D PI Operators
-% Declare an opvar2d object representing the 2D PI operator
+% Declare a copvar object representing the 2D PI operator
 % F: R x L2[0,2] x L2[[0,2]x[2,3]] --> L2^2[0,2] x L2[[0,2]x[2,3]] defined by
 %   F*v(x,y) 
 %   = [v0 +x*v1(x) +int_{x}^{2}v1(th) dth +int_{0}^{x}int_{2}^{3}y*v(th,y) dy dth] 
@@ -151,13 +145,14 @@ Rxx_0 = [x; x^2]; Rxx_2 = [1; x_dum-x];                                     % DB
 Rx2_1 = [y; y^2 * (x-x_dum)];                                               % DB, 11/06/2026
 R2x_0 = y^2; R2x_1 = y;                                                     % DB, 11/06/2026
 R22_11 = x_dum*y_dum;                                                       % DB, 11/06/2026
-opvar2d F;
-% F.var1 = [x; y]; F.var2 = [theta; nu];                                    % DB, 11/06/2026 (was)
-F.var1 = [x; y]; F.var2 = [x_dum; y_dum];                                   % DB, 11/06/2026
-F.I = [0,2; 2,3];
-F.Rx0 = Rx0;
-F.Rxx{1} = Rxx_0; F.Rxx{3} = Rxx_2;
-F.Rx2{2} = Rx2_1;
-F.R2x{1} = R2x_0; F.R2x{2} = R2x_1;
-F.R22{2,2} = R22_11;
-F = op2copvar_sop(F);     % convert the opvar2d to a copvar                 % DB, 11/06/2026
+dx = [0,2];     dy = [2,3];
+sp = @(vin,vout) struct('in',{vin},'out',{vout});       % variables of the input and output space
+dm = @(din,dout) struct('in',din,'out',dout);           % their domains
+F11 = int2sopvar(Rx0,sp({},{'x'}),dm(zeros(0,2),dx));                                   % R --> L2^2[x]
+F12 = int2sopvar(Rxx_0,sp({'x'},{'x'}),dm(dx,dx),[x,x]) ...
+    + int2sopvar(Rxx_2,sp({'x'},{'x'}),dm(dx,dx),[x,2]);                                % L2[x] --> L2^2[x]
+F13 = int2sopvar(Rx2_1,sp({'x','y'},{'x'}),dm([dx;dy],dx),[0,x; 2,3]);                  % L2[x,y] --> L2^2[x]
+F22 = int2sopvar(R2x_0,sp({'x'},{'x','y'}),dm(dx,[dx;dy]),[x,x]) ...
+    + int2sopvar(R2x_1,sp({'x'},{'x','y'}),dm(dx,[dx;dy]),[0,x]);                       % L2[x] --> L2[x,y]
+F23 = int2sopvar(R22_11,sp({'x','y'},{'x','y'}),dm([dx;dy],[dx;dy]),[0,x; 2,y]);        % L2[x,y] --> L2[x,y]
+F = copvar({F11, F12, F13; [], F22, F23});

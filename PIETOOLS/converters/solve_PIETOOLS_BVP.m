@@ -110,12 +110,16 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 %                       location loc and elements sel that it is (see
 %                       Dmap), and the BC right-hand sides they enter,
 %                       see compose_Tmaps;
+%           - input_maps: struct with fields w, u, true if the inputs enter
+%                       the states (Tops.w, Tops.u), false if these are
+%                       zero operators, as no inputs are in the BCs;
 %           - Gops:     struct with fields w, u: operators mapping wf
 %                       (uf) to the right-hand sides of the BCs with
 %                       such inputs (fundamental inputs only, [] else),
 %                       and with 'all_inputs' fields Iw, Iu: cells with
 %                       Iw{r} the operator wf --> w_r for the input w_r
-%                       that is not in the BCs ([] for those that are);
+%                       that is its own fundamental input ([] for those
+%                       decomposed in the BCs);
 % NOTES
 % - See compose_Tmaps for the construction, and conditions for support.
 % - The number of BCs along a direction should be at least the order of the
@@ -137,8 +141,10 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 %   the user need not enforce any compatibility. This requires all
 %   directions of the group of BCs to be admissible: inputs in the BCs of a
 %   group with a rank-deficient (e.g. periodic) direction, in a direction
-%   with rank-deficient or no conditions, or in the BCs of a group that
-%   also involves a state of lower dimension, raise an error (the states of
+%   with rank-deficient or no conditions, or in the BCs of a group of
+%   several variables that also involves a state of lower dimension (in a
+%   group of one variable, with a scalar source, the inputs in the BC of the
+%   source are lifted into it), raise an error (the states of
 %   lower dimension themselves may enter along admissible directions of a
 %   group with rank-deficient directions). 
 % - The fundamental inputs are derivatives of the PDE inputs (see Dmap),
@@ -177,6 +183,10 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding;
+% DJ (CC), 11/08/2026: Lift the inputs in a BC with a state of lower dimension
+%                   into its source, as fundamental inputs, and map each
+%                   input that is its own fundamental input to the PDE input
+%                   (Iin), also if in the BCs; add info.input_maps;
 
 % % % Check the inputs
 msg = "Options should be specified as 'no_decouple', 'all_inputs', 'blocks' or 'nonlinear'.";
@@ -279,9 +289,18 @@ for g=1:numel(PDEs)
         BC_terms = vertcat(BC_terms{:});
         % The data of the inputs of lifted states are determined by other
         % states, so that no compatibility of the BCs with inputs of the
-        % PDE can be ensured, which therefore cannot be mixed in
-        has_input = cellfun(@(tm) any(arrayfun(@(f) (isfield(f,'w') && ~isempty(f.w)) || (isfield(f,'u') && ~isempty(f.u)),tm)),BC_terms);
-        if any(has_input)
+        % PDE can be ensured, which therefore cannot be mixed in. This only
+        % holds for groups of several variables (corners): in a group of one
+        % variable the inputs left in the BCs (not lifted into a source) are
+        % free. The inputs of the sources are not inputs of the PDE.
+        % % % Start of changes DJ (CC), 11/08/2026
+        BC_terms_l = cellfun(@(b) b.term(:),PDE_lift.BC(dec.BC_idcs{g}(:)),'UniformOutput',false);
+        BC_terms_l = vertcat(BC_terms_l{:});
+        has_input = cellfun(@(tm) any(arrayfun(@(f) (isfield(f,'w') && ~isempty(f.w) && f.w<=nw0) || (isfield(f,'u') && ~isempty(f.u)),tm)),BC_terms_l);
+        % % % End of changes DJ (CC), 11/08/2026
+%         has_input = cellfun(@(tm) any(arrayfun(@(f) (isfield(f,'w') && ~isempty(f.w)) || (isfield(f,'u') && ~isempty(f.u)),tm)),BC_terms); % DJ (CC), 11/08/2026 (was)
+%         if any(has_input)                                                 % DJ (CC), 11/08/2026 (was)
+        if any(has_input) && size(PDEs{g}.vars,1)>1                         % DJ (CC), 11/08/2026
             error('solve_PIETOOLS_BVP:sourceAndInput','The boundary conditions %s involve both a state of lower dimension and an input; this is not supported, as the input could not be parameterized by free functions.',mat2str(dec.BC_idcs{g}(:)'))
         end
         diffs_comp = term_diffs(PDE,diffs_comp,BC_terms);
@@ -342,6 +361,11 @@ vars_pde = arrayfun(@(i) PDE.vars(i,1).varname{1},1:N,'UniformOutput',false);
 % % % inputs wf and uf ('w', 'u') to the states and their
 % % % derivatives, R. The rows of the states of a group are placed in the
 % % % columns of that group, with zero blocks elsewhere.
+% Whether a fundamental input f is the input r of the PDE itself, with table tab: all its
+% elements, without derivative or boundary value, on its own variables
+is_itself = @(f,tab,r) f.pde==r && ~any(f.Dorder) && ~any(f.loc) && isequal(sort(f.sel(:)'),1:tab(r,2)) && isequal(f.vars,vars_pde(logical(tab(r,3:2+N)))); % DJ (CC), 11/08/2026
+% The fundamental input that is the input r of the PDE itself (group 0), see is_itself
+own_input = @(tab,r) struct('vars',{vars_pde(logical(tab(r,3:2+N)))},'dom',PDE.dom(logical(tab(r,3:2+N)),:),'dim',tab(r,2),'pde',r,'Dorder',zeros(1,N),'loc',zeros(1,N),'sel',(1:tab(r,2))','group',0); % DJ (CC), 11/08/2026
 Rops = struct('x',[],'w',[],'u',[]);
 Kops = struct('K',[]);                      Gops = struct('w',[],'u',[]);
 info.inputs = struct('w',[],'u',[]);        info.rhs = struct('w',[],'u',[]);
@@ -405,6 +429,22 @@ for ty={'x','w','u'}
             col_spaces = col_spaces(first_idx);
             ncols_tot = numel(first_idx);
         end
+        % % % Start of changes DJ (CC), 11/08/2026
+        % The PDE inputs lifted into the sources (lift_BVP_sources) are fundamental
+        % inputs too, with zero columns in the maps of the groups: the existing
+        % fundamental input if that is the PDE input itself (as for an input also in
+        % another BC), else one of its own (group 0, like those not in the BCs below)
+        tab_in = PDE.([obj_type,'_tab']);
+        for lf = [struct('type',{},'idx',{},'C',{}),src.inputs]
+            if ~strcmp(lf.type,obj_type) || any(arrayfun(@(f) is_itself(f,tab_in,lf.idx),col_spaces))
+                continue
+            elseif any([col_spaces.pde]==lf.idx)
+                error('solve_PIETOOLS_BVP:sourceAndInput','An input in the boundary conditions of a state of lower dimension is also decomposed in other boundary conditions, in a way that is not the input itself; this is not supported.')
+            end
+            col_spaces(end+1) = own_input(tab_in,lf.idx);   %#ok<AGROW>
+            ncols_tot = ncols_tot+1;
+        end
+        % % % End of changes DJ (CC), 11/08/2026
         info.inputs.(obj_type) = col_spaces;
     end
     if ncols_tot==0
@@ -568,7 +608,6 @@ if is_an_opt('all_inputs')
         nin = size(tab,1);
         inputs = info.inputs.(obj_type);
         n_fund = numel(inputs);
-        rhs = info.rhs.(obj_type);
 
         % % % The inputs that are not in the BCs (those in the right-hand
         % % % sides of the BCs were decomposed into fundamental inputs
@@ -578,16 +617,16 @@ if is_an_opt('all_inputs')
         % through R; they are their own fundamental input (group 0),
         % listed after the decomposed ones, and only appear in the
         % equations.
-        in_BCs = [];
-        for c=1:numel(rhs)
-            for kk=1:numel(rhs(c).forcing)
-                in_BCs = [in_BCs,cellfun(@(term) term.(obj_type),rhs(c).forcing{kk})];   %#ok<AGROW>
-            end
-        end
-        inter = setdiff(1:nin,in_BCs);
+        % % % Start of changes DJ (CC), 11/08/2026
+        % The inputs without a fundamental input: not in the BCs, nor lifted into
+        % a source (was: not in the right-hand sides info.rhs of the BCs, which gave
+        % the same inputs, except for those lifted, that have a fundamental input)
+        inter = setdiff(1:nin,[inputs.pde]);
+        % % % End of changes DJ (CC), 11/08/2026
         for r=inter
-            dep_mask = logical(tab(r,3:2+N));
-            inputs(end+1) = struct('vars',{vars_pde(dep_mask)},'dom',PDE.dom(dep_mask,:),'dim',tab(r,2),'pde',r,'Dorder',zeros(1,N),'loc',zeros(1,N),'sel',(1:tab(r,2))','group',0);   %#ok<AGROW>
+%             dep_mask = logical(tab(r,3:2+N));                             % DJ (CC), 11/08/2026 (was)
+%             inputs(end+1) = struct('vars',{vars_pde(dep_mask)},'dom',PDE.dom(dep_mask,:),'dim',tab(r,2),'pde',r,'Dorder',zeros(1,N),'loc',zeros(1,N),'sel',(1:tab(r,2))','group',0);   %#ok<AGROW> % DJ (CC), 11/08/2026 (was)
+            inputs(end+1) = own_input(tab,r);                               % DJ (CC), 11/08/2026
         end
         % Append zero columns to the maps from the fundamental inputs to
         % the states, so that their columns match the full list of inputs.
@@ -607,16 +646,28 @@ if is_an_opt('all_inputs')
         % % % Maps from the fundamental inputs to the inputs of the PDE
         % Iin{r}: the row of operators with w_r = Iin{r}*wf, the identity
         % on its own fundamental input, and zero elsewhere (empty for
-        % inputs decomposed in the BCs, which cannot be used elsewhere,
-        % see convert_PDE_term)
+        % inputs decomposed in the BCs, other than as the input itself, which
+        % cannot be used elsewhere, see convert_PDE_term)
         Iin = cell(nin,1);
-        for p=1:numel(inter)
-            r = inter(p);
+        % % % Start of changes DJ (CC), 11/08/2026
+        % The identity on the fundamental input if that is the only one of w_r and is w_r
+        % itself: for the inputs of their own, also those lifted into sources, and for an
+        % input in the BCs that is itself fundamental, which may then also be used in the
+        % equations (was: only the inputs of their own, Iin{r} empty for those in the BCs)
+%         for p=1:numel(inter)                                              % DJ (CC), 11/08/2026 (was)
+%             r = inter(p);                                                 % DJ (CC), 11/08/2026 (was)
+        for r=1:nin
+            c_r = find([inputs.pde]==r);
+            if numel(c_r)~=1 || ~is_itself(inputs(c_r),tab,r)
+                continue
+            end
             dep_mask = logical(tab(r,3:2+N));
             Mat = zeros(tab(r,2),sum([inputs.dim]));
-            Mat(:,sum([inputs(1:n_fund+p-1).dim])+(1:tab(r,2))) = eye(tab(r,2));
+%             Mat(:,sum([inputs(1:n_fund+p-1).dim])+(1:tab(r,2))) = eye(tab(r,2)); % DJ (CC), 11/08/2026 (was)
+            Mat(:,sum([inputs(1:c_r-1).dim])+(1:tab(r,2))) = eye(tab(r,2));     % DJ (CC), 11/08/2026
             Iin{r} = mat2copvar_sop(Mat,struct('out',tab(r,2),'in',[inputs.dim]'),struct('out',{{vars_pde(dep_mask)}},'in',{{inputs.vars}}),dom_pde);
         end
+        % % % End of changes DJ (CC), 11/08/2026
         Rops.(['I',obj_type]) = Iin;
         info.inputs.(obj_type) = inputs;
     end
@@ -767,6 +818,8 @@ end
 if isfield(Rops,'Iw')
     Gops.Iw = Rops.Iw;      Gops.Iu = Rops.Iu;
 end
+% Whether the inputs enter the states, or Tops.w, Tops.u are the zero operators below
+info.input_maps = struct('w',~isempty(Tops.w),'u',~isempty(Tops.u));        % DJ (CC), 11/08/2026
 % % % The constraints Kx*xf + Kw*wf + Ku*uf = 0, as operators of the class
 % % % of Tops with a row for each constraint: Kops.x is K, or has no rows if
 % % % there are no constraints, and the inputs do not enter the constraints

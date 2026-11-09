@@ -11,6 +11,8 @@
 % DJ (CC), 10/29/2026: Initial coding;
 % DJ (CC), 10/29/2026: A kernel depending on t is refused with the limits
 %                      [s,s], where it used to be evaluated at t = s.
+% DJ (CC), 11/08/2026: Also test polynomial kernels in s and s_dum, the dummy
+%                      variable of a variable s that is also an output.
 clear;
 rng(1);
 pvar s1 s2 s3
@@ -47,9 +49,13 @@ for ic=1:numel(cfgs)
     cfs_P = randn(m,n,2*(M+numel(vars_S1))+2);
     Kpoly = build_poly(cfs_P,[vars.out,vars_S1],2);
     Pk_P = build_poly(cfs_P,[vars.out,dvars_S1],2);
+    % Kernel depending on s and t: polynomial, with t named s_dum if s is also an output
+    vars_t = vars.in;       vars_t(is_S3) = strcat(vars.in(is_S3),'_dum');  % DJ (CC), 11/08/2026
+    Pk_dum = build_poly(cfs_Q,[vars.out,vars_t],2);                         % DJ (CC), 11/08/2026
     % Constant kernel
     Kc = randn(m,n);
-    kernels = {Q,Pk_Q; Kpoly,Pk_P; Kc,polynomial(Kc)};
+%     kernels = {Q,Pk_Q; Kpoly,Pk_P; Kc,polynomial(Kc)};                    % DJ (CC), 11/08/2026 (was)
+    kernels = {Q,Pk_Q; Kpoly,Pk_P; Kc,polynomial(Kc); Pk_dum,Pk_Q};         % DJ (CC), 11/08/2026
     % Limits: default (full domain), the full domain, and random combinations
     types_cases = {[],repmat({'ab'},1,N)};
     for it=1:3
@@ -61,7 +67,9 @@ for ic=1:numel(cfgs)
         for it=1:numel(types_cases)
             types = types_cases{it};
             % Q depends on t of every variable, so it is no multiplier      % DJ (CC), 10/29/2026
-            if ik==1 && any(strcmp(types,'ss'))                             % DJ (CC), 10/29/2026
+            % (also the polynomial in s_dum, row 4: it depends on t of every variable)
+%             if ik==1 && any(strcmp(types,'ss'))                           % DJ (CC), 11/08/2026 (was)
+            if any(ik==[1,4]) && any(strcmp(types,'ss'))                    % DJ (CC), 11/08/2026
                 int_dom = int_dom_of(vars.in,types,dom1,'cell');            % DJ (CC), 10/29/2026
                 assert(throws(@() int2sopvar(kernels{ik,1},vars,dom,int_dom)),...
                     "No error for a multiplier with a kernel in t.")        % DJ (CC), 10/29/2026
@@ -84,6 +92,17 @@ for ic=1:numel(cfgs)
         end
     end
 end
+
+% % % Start of changes DJ (CC), 11/08/2026
+%% The kernel s-s_dum as a polynomial: (Pop*x)(s) = int_a^s (s-t) x(t) dt
+pvar s1_dum th
+vars_1 = struct('in',{{'s1'}},'out',{{'s1'}});      dom_1 = struct('in',dom1,'out',dom1);
+x1 = build_poly(randn(1,1,5),{'s1'},2);
+Pop = int2sopvar(s1-s1_dum,vars_1,dom_1,{dom1(1),'s1'});
+check_equal(apply_sopvar(Pop,x1),int((s1-th)*subs(x1,s1,th),th,dom1(1),s1),tol);
+Pop = int2copvar(s1-s1_dum,vars_1,dom_1,{dom1(1),'s1'});            % as copvar
+check_equal(apply_sopvar(Pop.C{1,1},x1),int((s1-th)*subs(x1,s1,th),th,dom1(1),s1),tol);
+% % % End of changes DJ (CC), 11/08/2026
 
 %% A quadPoly kernel may depend on a variable the operator lacks, with degree 0
 vars = struct('in',{{'s1','s2'}},'out',{{'s1'}});
@@ -136,6 +155,8 @@ bad = {Kc,vars,dom,{dom1(1),dom1(2);dom1(1),'s2'},'variable limit for s2, which 
        Kc,vars,dom,{dom1(1),'s2';dom1(1),dom1(2)}, 'limit s2 in the row of s1';
        Kc,vars,dom,[dom1(2),dom1(1);dom1],        'limit in the wrong order';
        build_poly(randn(m,n,4),{'s3'},1),vars,dom,[], 'polynomial in a variable of neither space';
+       build_poly(randn(m,n,4),{'s2_dum'},1),vars,dom,[], 'polynomial in the dummy variable of a variable that is not an output variable';  % DJ (CC), 11/08/2026
+       build_poly(randn(m,n,4),{'s3_dum'},1),vars,dom,[], 'polynomial in the dummy variable of a variable of neither space';              % DJ (CC), 11/08/2026
        quadPoly.polynomial2quadPoly(build_poly(randn(m,n,4),{'s9'},1),{'s9'},cell(1,0)),vars,dom,[], 'quadPoly depending on a variable that is not an output variable';
        {1},vars,dom,[],                            'kernel of the wrong class';
        Kc,struct('in',{{'s1'}}),dom,[],            'variables without a field out';

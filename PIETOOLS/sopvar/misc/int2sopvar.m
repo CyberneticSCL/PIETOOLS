@@ -7,10 +7,10 @@ function Pop = int2sopvar(Kmat,vars,dom,int_dom)
 %
 % INPUTS
 % - Kmat:   m x n 'double', 'polynomial' or 'quadPoly' array, representing
-%           the kernel K(s,t). A 'polynomial' cannot distinguish the
-%           variable s from the dummy variable t of the same name, so a
-%           variable in vars.out is read as s, and a variable only in
-%           vars.in as t; use 'quadPoly' for a kernel depending on both.
+%           the kernel K(s,t). In a 'polynomial', a variable in vars.out is
+%           read as s, the dummy variable t of a variable s that is also in
+%           vars.in is named s_dum (e.g. K = s-s_dum, with pvar s s_dum),
+%           and a variable only in vars.in is its own t.
 %           For a 'quadPoly', the left variables Kmat.ns must be in
 %           vars.out and the right variables Kmat.nt in vars.in, except
 %           for variables with only degree 0 in the kernel;
@@ -82,6 +82,8 @@ function Pop = int2sopvar(Kmat,vars,dom,int_dom)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/29/2026: Initial coding;
+% DJ, 11/08/2026: Read s_dum in a 'polynomial' kernel as the dummy variable
+%                   associated with s;
 
 % Check that the kernel is properly specified
 if ~isa(Kmat,'double') && ~isa(Kmat,'polynomial') && ~isa(Kmat,'quadPoly')
@@ -141,17 +143,23 @@ end
 if isa(Kmat,'double')
     Kmat = quadPoly(Kmat);
 elseif isa(Kmat,'polynomial')
+    % % % Start of changes DJ (CC), 11/08/2026
+    % The variables in vars.out are the left variables s. The right variable t
+    % of a variable that is also in vars.out is named s_dum, that of a variable
+    % only in vars.in is that variable, and is renamed to vars.in below
+    dvars = vars.in;
+    dvars(is_out) = strcat(vars.in(is_out),'_dum');
+    % % % End of changes DJ (CC), 11/08/2026
     % The kernel can only depend on variables of the operator, and
     % polynomial2quadPoly would drop any other variable without an error
     vname_Kmat = Kmat.varname(:);
     has_coef = full(any(Kmat.coefficient,2));
-    is_bad = any(full(Kmat.degmat(has_coef,:)),1)' & ~ismember(vname_Kmat,[vars.out,vars.in]);
+    is_bad = any(full(Kmat.degmat(has_coef,:)),1)' & ~ismember(vname_Kmat,[vars.out,dvars]);    % DJ, 11/08/2026
     if any(is_bad)
         error("Kernel depends on variable(s) '%s', which are not variables of the operator.",...
             strjoin(vname_Kmat(is_bad)',"', '"))
     end
-    % Variables in vars.out are the left variables s, the others are t
-    Kmat = quadPoly.polynomial2quadPoly(Kmat,vars.out,vars.in(~is_out));
+    Kmat = quadPoly.polynomial2quadPoly(Kmat,vars.out,dvars);               % DJ, 11/08/2026
 end
 
 % Bind the monomial bases to the variables. The monomial index of the

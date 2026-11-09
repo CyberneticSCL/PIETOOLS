@@ -48,6 +48,8 @@ function f = combine_terms(f)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/06/2026: Set chkval of the coefficients after editing them;
+% DJ, 11/08/2026: Do not combine the monomials of a degree if any of
+%                   their operators is a 'tensopvar';
 
 if ~f.chkval
     f = initialize(f);
@@ -132,7 +134,7 @@ for j=1:size(degmat2,1)
     Zmat_j = Zmat_new(is_degj,:);        
     ops_j = Cop.ops(:,is_degj);
     degs_j = degmat2(j,:);
-    if isa(ops_j{1},'tensopvar')
+    if any(cellfun(@(c) isa(c,'tensopvar'),ops_j(:)))                       % DJ, 11/08/2026
         old_deg_nums{j} = idcs1(j)*ones(1,nnz(is_degj));
         Zcell{j} = Zmat_j';
         opcell{j} = ops_j;

@@ -35,13 +35,17 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 %   the lower boundary where loc is -1 (info.inputs). With the product
 %   rule, it is a sum of terms C_k*D^{D+k}x_state(loc), which
 %   convert_PDE_term evaluates using Rops of the state.
-% - A group of BCs with new inputs may not also involve inputs of the PDE,
-%   which could not be parameterized by free functions, error
-%   solve_PIETOOLS_BVP:sourceAndInput (raised in solve_PIETOOLS_BVP).
+% - A group of BCs of several variables with new inputs may not also involve
+%   inputs of the PDE, which could not be parameterized by free functions,
+%   error solve_PIETOOLS_BVP:sourceAndInput (raised in solve_PIETOOLS_BVP).
+%   The input terms of a scalar source of a 1-D state are lifted into it
+%   (lift_BVP_sources): wf_c is then also a sum of those inputs, which are
+%   fundamental inputs themselves, so remain inputs of the PIE.
 % - The inputs are eliminated one by one, in an order in which each only
 %   depends on the states of groups without new inputs left. A cyclic
-%   dependence between groups gives the error
-%   solve_PIETOOLS_BVP:cyclicSources.
+%   dependence between groups is solved as a linear system in the inputs,
+%   if these are point values (no variables), and else gives the error
+%   solve_PIETOOLS_BVP:cyclicSources, as does a loop without unique solution.
 % - The BCs involving the states of lower dimension are then checked: the
 %   terms of their states must cancel for every xf, or the compatibility
 %   (corner) conditions of the BCs would constrain xf, which is not
@@ -75,6 +79,10 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 11/02/2026: Initial coding;
+% DJ (CC), 11/08/2026: Solve cyclic dependences between the sources, and
+%                       eliminate the inputs lifted into the sources too
+%                       (source_input_map), keeping other right-hand sides;
+%                       extract substitute_input from the loop;
 
 N = size(PDE.vars,1);       nw0 = numel(PDE.w);
 vars_pde = arrayfun(@(i) PDE.vars(i,1).varname{1},1:N,'UniformOutput',false);
@@ -113,11 +121,41 @@ while true
         in_c = inputs_w(in_idx);
         source = src(in_c.pde-nw0);
         ncols = struct('x',n_xf,'w',n_wf,'u',n_uf);
-        input_map = source_input_map(PDE,source,in_c,Rops,zeros(1,N),ncols);
+%         input_map = source_input_map(PDE,source,in_c,Rops,zeros(1,N),ncols);  % DJ (CC), 11/08/2026 (was)
+        input_map = source_input_map(PDE,source,in_c,Rops,zeros(1,N),ncols,info.inputs); % DJ (CC), 11/08/2026
         maps_inc = containers.Map(mat2str(zeros(1,N)),input_map);
-        if any(~cellfun(@isempty,input_map.w(is_source)))
-            continue                                % depends on another source
+        % % % Start of changes DJ (CC), 11/08/2026
+        % A source that depends on other sources is skipped while another
+        % candidate is left; if all depend on each other (a cycle), the last is
+        % eliminated, the others staying as inputs, to be eliminated after.
+        % Then another source depends on itself, wf_c = L*wf_c + rest, so that
+        % wf_c = (I-L)^{-1}*rest. This needs L to be a matrix, i.e. sources
+        % without variables (point values, e.g. x4(0)=x2(1) with x2(1) set by
+        % x4(1) in another BC, as for a delay on another variable).
+        other = find(is_source);        other(other==in_idx) = [];
+        if any(~cellfun(@isempty,input_map.w(other))) && in_idx<max(other)
+            continue                                % depends on another source 
         end
+        self_dep = ~isempty(input_map.w{in_idx});
+        if self_dep
+            L = input_map.w{in_idx};
+            if ~isempty([L.vars.in,L.vars.out])
+                error("solve_PIETOOLS_BVP:cyclicSources","The sources of the states of lower dimension depend on each other cyclically, as functions of the spatial variables; this is not supported.")
+            end
+            IL = eye(L.dims(1))-full(L.params{1});
+            if rcond(IL)<1e-10
+                error("solve_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically, without a unique solution.")
+            end
+            Mloop = inv(IL);
+            input_map.w{in_idx} = [];
+            for ty={'x','w','u'}
+                for j=find(~cellfun(@isempty,input_map.(ty{1})))
+                    input_map.(ty{1}){j} = Mloop*input_map.(ty{1}){j};
+                end
+            end
+            maps_inc(mat2str(zeros(1,N))) = input_map;
+        end
+        % % % End of changes DJ (CC), 11/08/2026
         % The maps to the states and their derivatives
         for k=1:nx
             % The directions of the group of the state that are passed
@@ -135,63 +173,23 @@ while true
                     inc(vk) = cell2mat(al)-1;       inc(~pass_k) = 0;
                 end
                 if ~isKey(maps_inc,mat2str(inc))
-                    maps_inc(mat2str(inc)) = source_input_map(PDE,source,in_c,Rops,inc,ncols);
+%                     maps_inc(mat2str(inc)) = source_input_map(PDE,source,in_c,Rops,inc,ncols); % DJ (CC), 11/08/2026 (was)
+                    maps_inc(mat2str(inc)) = source_input_map(PDE,source,in_c,Rops,inc,ncols,info.inputs); % DJ (CC), 11/08/2026
+                    % Only the loop of the source itself (inc=0) is solved; a
+                    % self-dependence of its derivatives would be dropped silently
+                    if self_dep && ~isempty(maps_inc(mat2str(inc)).w{in_idx}) % DJ (CC), 11/08/2026
+                        error("solve_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically, in a direction that is passed through; this is not supported.") % DJ (CC), 11/08/2026
+                    end                                                     % DJ (CC), 11/08/2026
                 end
                 input_map = maps_inc(mat2str(inc));
                 if ~isempty(Rops.u)
                     ops.u = Rops.u{k}{lidx};
                 end
-                % Substitute wf_c = Q*(xf,wf,uf) into each row
-                % of ops, so that ops.x*xf + ops.w*wf + ops.u*uf
-                % becomes (ops.x+ops.w(:,c)*Qx)*xf + (ops.w(:,others)
-                % +ops.w(:,c)*Qw)*wf + (ops.u+ops.w(:,c)*Qu)*uf.
-                % Each row needs a block to define its space, so rows left
-                % with only zero blocks get an explicit one
-                blocks = struct('x',[],'w',{ops.w.C},'u',[]);
-                if ~isempty(ops.x)
-                    blocks.x = ops.x.C;
-                end
-                if ~isempty(ops.u)
-                    blocks.u = ops.u.C;
-                end
-                nrows = size(ops.w.C,1);
-                ref_blks = cell(nrows,1);                           % spaces of the rows, for zero blocks
-                for i=1:nrows
-                    ref_blks{i} = ops.w.C{i,in_idx};
-                    if isempty(ref_blks{i})
-                        continue
-                    end
-                    for ty={'x','w','u'}
-                        obj_type = ty{1};
-                        for j=find(~cellfun(@isempty,input_map.(obj_type)))
-                            if isempty(blocks.(obj_type))
-                                error("solve_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.")
-                            end
-                            blk_new = ref_blks{i}*input_map.(obj_type){j};
-                            if isempty(blocks.(obj_type){i,j})
-                                blocks.(obj_type){i,j} = blk_new;
-                            else
-                                blocks.(obj_type){i,j} = blocks.(obj_type){i,j}+blk_new;
-                            end
-                        end
-                    end
-                end
-                if ~isempty(ops.x)
-                    ops.x = copvar(blocks.x);
-                end
-                if ~isempty(ops.u)
-                    ops.u = copvar(blocks.u);
-                end
-                % Remove the column c from the operator of wf
-                if isempty(keep)
-                    ops.w = [];
-                else
-                    W_keep = blocks.w(:,keep);
-                    for i=find(all(cellfun(@isempty,W_keep),2))'
-                        W_keep{i,1} = mat2sopvar(zeros(ref_blks{i}.dims(1),inputs_w(keep(1)).dim),struct('in',{inputs_w(keep(1)).vars},'out',{ref_blks{i}.vars.out}),struct('in',inputs_w(keep(1)).dom,'out',ref_blks{i}.dom.out));
-                    end
-                    ops.w = copvar(W_keep);
-                end
+                % % % Start of changes DJ (CC), 11/08/2026
+                % Substitute the input into the operators, and remove its column (moved to
+                % substitute_input, which has the code that was here)
+                ops = substitute_input(ops,input_map,in_idx,keep,inputs_w);
+                % % % End of changes DJ (CC), 11/08/2026
                 Rops.x{k}{lidx} = ops.x;       Rops.w{k}{lidx} = ops.w;
                 if ~isempty(Rops.u)
                     Rops.u{k}{lidx} = ops.u;
@@ -220,7 +218,18 @@ end
 
 % The BCs of the groups with sources are not conditions with inputs of the
 % PDE: remove their right-hand sides from the info and from Gops
-is_src_rhs = ismember([info.rhs.w.group],groups_src);
+% % % Start of changes DJ (CC), 11/08/2026
+% Only the rows whose right-hand sides are sources: a group of one variable may also
+% have rows with inputs of the PDE (not lifted), which stay
+is_src_rhs = false(1,numel(info.rhs.w));
+for c_rhs=1:numel(info.rhs.w)
+    if ismember(info.rhs.w(c_rhs).group,groups_src)
+        pde_c = cellfun(@(fk) cellfun(@(tm) tm.w,fk),info.rhs.w(c_rhs).forcing,'UniformOutput',false);
+        is_src_rhs(c_rhs) = all([pde_c{:}]>nw0);
+    end
+end
+% % % End of changes DJ (CC), 11/08/2026
+% is_src_rhs = ismember([info.rhs.w.group],groups_src);                     % DJ (CC), 11/08/2026 (was)
 if any(is_src_rhs)
     info.rhs.w(is_src_rhs) = [];
     if ~isempty(Gops.w)
@@ -274,10 +283,12 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function input_map = source_input_map(PDE,source,in_c,Rops,inc,ncols)
-% input_map = SOURCE_INPUT_MAP(PDE,SOURCE,IN_C,ROPS,INC,NCOLS) gives the
+%function input_map = source_input_map(PDE,source,in_c,Rops,inc,ncols)      % DJ (CC), 11/08/2026 (was)
+function input_map = source_input_map(PDE,source,in_c,Rops,inc,ncols,inputs) % DJ (CC), 11/08/2026
+% input_map = SOURCE_INPUT_MAP(PDE,SOURCE,IN_C,ROPS,INC,NCOLS,INPUTS) gives the
 % maps from xf, wf and uf to an input wf_c derived from a
-% source, using the maps of the states in the source.
+% source, using the maps of the states in the source, and the inputs lifted
+% into the source.
 %
 % INPUT
 % - PDE:    'pde_struct' object of the original PDE;
@@ -290,6 +301,8 @@ function input_map = source_input_map(PDE,source,in_c,Rops,inc,ncols)
 %           directions that are passed through;
 % - ncols:  struct with fields x, w, u, the numbers of columns of the
 %           operators in Rops;
+% - inputs: struct with fields w, u, the fundamental inputs (info.inputs),
+%           among which the PDE inputs lifted into the source;
 %
 % OUTPUT
 % - input_map:   struct with fields x, w, u, cells with the blocks of the
@@ -362,6 +375,109 @@ for jt=1:numel(source.terms)
             end
         end
     end
+end
+% % % Start of changes DJ (CC), 11/08/2026
+% The input terms of the source (PDE inputs without variables, lifted with
+% constant coefficients, see lift_BVP_sources): wf_c = (C*w)(sel) in terms
+% of the fundamental input that is the PDE input itself. These have no
+% derivatives, so only enter wf_c, not its derivatives (Dorder=0 for a
+% scalar source).
+if ~any(Dorder)
+    for ji=1:numel(source.inputs)
+        inp = source.inputs(ji);        ty = inp.type;      cols = inputs.(ty);
+        j = find(arrayfun(@(f) f.pde==inp.idx && ~any(f.Dorder) && ~any(f.loc) && isequal(sort(f.sel(:)'),1:f.dim),cols),1);
+        if isempty(j)
+            error("solve_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.")
+        end
+        blk = mat2sopvar(full(double(inp.C(in_c.sel,:))),struct('in',{cols(j).vars},'out',{in_c.vars}),struct('in',cols(j).dom,'out',in_c.dom));
+        if isempty(input_map.(ty){j})
+            input_map.(ty){j} = blk;
+        else
+            input_map.(ty){j} = input_map.(ty){j}+blk;
+        end
+    end
+end
+% % % End of changes DJ (CC), 11/08/2026
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function ops = substitute_input(ops,input_map,in_idx,keep,inputs_w)
+% ops = SUBSTITUTE_INPUT(OPS,INPUT_MAP,IN_IDX,KEEP,INPUTS_W) substitutes the
+% input wf_c = Qx*xf + Qw*wf + Qu*uf into the maps from xf, wf, uf to a state
+% (or derivative), and removes the column of wf_c from the map from wf. Code
+% moved from the loop in eliminate_BVP_sources.
+%
+% INPUT
+% - ops:        struct with fields x, w, u: the 'copvar' maps from xf, wf and uf
+%               to the state (rows: components of the state), with u [] if the
+%               PDE has no actuators; the columns of w are the inputs inputs_w;
+% - input_map:  struct with fields x, w, u: cells with the blocks Qx, Qw, Qu of the
+%               map from xf, wf, uf to wf_c, [] for a zero block, see
+%               source_input_map;
+% - in_idx:     scalar, the index c of the input wf_c in inputs_w;
+% - keep:       1 x (numel(inputs_w)-1) array, the indices in inputs_w of the
+%               other inputs, setdiff(1:numel(inputs_w),in_idx);
+% - inputs_w:   struct array, the fundamental inputs wf (info.inputs.w);
+%
+% OUTPUT
+% - ops:        struct as the input, with the maps to the state in terms of xf,
+%               wf(keep) and uf, so with the columns of wf_c removed from ops.w
+%               (ops.w = [] if no input remains);
+%
+
+% Substitute wf_c = Q*(xf,wf,uf) into each row
+% of ops, so that ops.x*xf + ops.w*wf + ops.u*uf
+% becomes (ops.x+ops.w(:,c)*Qx)*xf + (ops.w(:,others)
+% +ops.w(:,c)*Qw)*wf + (ops.u+ops.w(:,c)*Qu)*uf.
+% Each row needs a block to define its space, so rows left
+% with only zero blocks get an explicit one
+blocks = struct('x',[],'w',{ops.w.C},'u',[]);
+if ~isempty(ops.x)
+    blocks.x = ops.x.C;
+end
+if ~isempty(ops.u)
+    blocks.u = ops.u.C;
+end
+nrows = size(ops.w.C,1);
+ref_blks = cell(nrows,1);                           % spaces of the rows, for zero blocks
+for i=1:nrows
+    ref_blks{i} = ops.w.C{i,in_idx};
+    if isempty(ref_blks{i})
+        continue
+    end
+    for ty={'x','w','u'}
+        obj_type = ty{1};
+        for j=find(~cellfun(@isempty,input_map.(obj_type)))
+            if isempty(blocks.(obj_type))
+                error("solve_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.")
+            end
+            blk_new = ref_blks{i}*input_map.(obj_type){j};
+            if isempty(blocks.(obj_type){i,j})
+                blocks.(obj_type){i,j} = blk_new;
+            else
+                blocks.(obj_type){i,j} = blocks.(obj_type){i,j}+blk_new;
+            end
+        end
+    end
+end
+if ~isempty(ops.x)
+    ops.x = copvar(blocks.x);
+end
+if ~isempty(ops.u)
+    ops.u = copvar(blocks.u);
+end
+% Remove the column c from the operator of wf
+if isempty(keep)
+    ops.w = [];
+else
+    W_keep = blocks.w(:,keep);
+    for i=find(all(cellfun(@isempty,W_keep),2))'
+        W_keep{i,1} = mat2sopvar(zeros(ref_blks{i}.dims(1),inputs_w(keep(1)).dim),struct('in',{inputs_w(keep(1)).vars},'out',{ref_blks{i}.vars.out}),struct('in',inputs_w(keep(1)).dom,'out',ref_blks{i}.dom.out));
+    end
+    ops.w = copvar(W_keep);
 end
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

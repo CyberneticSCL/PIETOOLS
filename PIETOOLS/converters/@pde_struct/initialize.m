@@ -228,6 +228,8 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % DJ, 10/28/2026: Set tdiff=nan for states without equation (no terms,
 %                   no declared zero equation) so boundary value problems 
 %                   can be represented;
+% DJ, 11/08/2026: Bugfix in case a state depends on all spatial variables
+%                   but lists them in incorrect order;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -382,11 +384,6 @@ nncomps_arr = nnvars_arr - size(global_vars,1);
 % % Establish a unique set of primary variables from the full set.
 [var1_list_unique,id1,varnum_list] = unique(var_list,'stable'); % list_unique = list(id1);  list = list_unique(varnum_list)
 nvars = length(var1_list_unique);
-if nvars>2 && ~suppress_summary
-    warning(['Currently, PIETOOLS supports only problems with at most two distinct spatial variables.'...
-            ' Analysis of the returned PDE structure will not be possible.'...
-            ' Try running "combine_vars" to reduce the dimensionality of your problem.']);
-end
 
 % % Loop over the unique variables, and make sure each is coupled to just
 % % one domain and (at most) one dummy variable.
@@ -1020,9 +1017,10 @@ for ii=1:numel(PDE.(obj))
         elseif size(PDE.x{ii}.diff,1)~=1
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
-        elseif size(PDE.x{ii}.diff,2)==nvars
+        elseif size(PDE.x{ii}.diff,2)==nvars && ~(nvars_Lstate==nvars && ~isequal(PDE.x{ii}.var_order,1:nvars_Lstate)) % DJ, 11/08/2026
             % Orders of differentiation have been specified with respect to
-            % all of the global variables.
+            % all of the global variables, and in the same order as the
+            % global variables.
             if any(PDE.x{ii}.diff(1,~has_var_Lstate))
                 error(['State componen "x{',num2str(ii),'}" appears to be differentiable with respect to variables it does not depend on;',...
                         ' please specify orders of differentiability "x{',num2str(ii),'}.diff" only for variables on which the component depends.']);
@@ -1158,8 +1156,9 @@ for ii=1:numel(PDE.(obj))
                     error(['The order of differentiation "',obj,'{',num2str(ii),'}.term{',num2str(jj),'}.D" is not appropriately specified;',...
                             ' derivative orders must be specified as a type "double" array of nonnegative integers.']);
                 end
-                if size(term_ll.D,2)==nvars
+                if size(term_ll.D,2)==nvars && ~(nvars_Rcomp==nvars && any(any(Rvar_order~=repmat(1:nvars_Rcomp,size(Rvar_order,1),1)))) % DJ, 11/08/2026
                     % Derivatives have been specified with respect to all of
+                    % the global variables, and in the correct order for
                     % the global variables.
                     if any(any(term_ll.D(:,~has_vars_Rcomp)))
                         error(['Term "',obj,'{',num2str(ii),'}.term{',num2str(jj),'}" seems to differentiate state component x{',num2str(Rindx),'} with respect to a variable it does not depend on;',...

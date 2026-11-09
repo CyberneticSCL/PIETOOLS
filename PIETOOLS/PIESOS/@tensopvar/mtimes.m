@@ -61,6 +61,8 @@ function C = mtimes(A,B)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/21/2026: Compare empty variable lists regardless of shape;
+% DJ, 11/08/2026: Add support for multiplication of operators involving
+%                   different numbers of factors if mapping from R;
 
 % Check that multiplication is supported
 if ~isa(B,'tensopvar') && all(size(B)==1)
@@ -100,6 +102,12 @@ if isa(A,'tensopvar') && size(A.ops,2)~=num_factors(A) && size(B.ops,2)==num_fac
 end
 
 % Factorwise composition needs matching numbers of factors
+% --> try merging the factors that are operate on R into their neighbors
+if isa(A,'tensopvar') && size(A.ops,2)~=size(B.ops,2)                       % DJ, 11/08/2026
+    A = combine_factors(A);
+    B = combine_factors(B);
+end
+% Throw an error if the numbers of factors still differ
 if isa(A,'tensopvar') && size(A.ops,2)~=size(B.ops,2)
     error("Composition of tensor-PI operators is only supported if both are single-factor, or have the same number of factors (composed factor by factor); here, an operator with %d factor(s) is composed with one with %d.",size(A.ops,2),size(B.ops,2))
 end

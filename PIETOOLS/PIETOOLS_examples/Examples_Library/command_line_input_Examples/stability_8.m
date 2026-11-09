@@ -21,9 +21,9 @@ A = [-1.2142,  1.9649,  0.2232,  0.5616;
 Bpv = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
 Bxr = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];
 %% Define equations
-eq_ODE=diff(x,t)==A*x+Bxr*diff(subs(X,s,a),s); % ODE: xo_{t} = A * xo + Bxr * x_{s}(s=0)
-eq_PDE = diff(X,t)==lam*X+diff(X,s,2)+Bpv*x; % 	PDE: x_{t}  = lam * x + x_{ss} + Bpv * xo
-eq_BC = [subs(X,s,a)==0;subs(X,s,b)==0]; %  BCs: x(s=a) = 0,     x(s=b) = 0 
+eq_ODE=diff(x,t)==A*x+Bxr*subs(diff(X,s),s,a); % ODE: xo_{t} = A * xo + Bxr * x_{s}(s=0)
+eq_PDE = diff(X,t)==lam*X+diff(X,s,2)+Bpv*x;   % PDE: x_{t}  = lam * x + x_{ss} + Bpv * xo
+eq_BC = [subs(X,s,a)==0;subs(X,s,b)==0];       % BCs: x(s=a) = 0,     x(s=b) = 0 
 %% initialize pde system;
 PDE = initialize([eq_ODE;eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
