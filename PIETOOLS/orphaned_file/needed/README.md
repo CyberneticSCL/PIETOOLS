@@ -13,8 +13,9 @@ Since 11/08/2026 the folder holds no code: each file below was here at first and
   stripped,custom,extreme}.m`, `settings/2D/settings_PIETOOLS_*_2D.m`: called by the container
   executives (default settings), `PIETOOLS_auto_execute_sop`, `lpiscript_sop`, `hinf_gain_1d_sop`,
   DEMO7, DEMO12, the Ch2 snippet, the cuADMM baseline suite, container tests, and the tiers of
-  `settings_sopvar`. Every caller on the path now calls `lpisettings_sop`, whose tiers read copies of
-  the presets they use in `settings_sopvar/private/` (with an `extreme` tier added); the only
+  `settings_sopvar`. Every caller on the path now calls `lpisettings_sop`, whose tiers set the values
+  of the presets they use (copies in `settings_sopvar/private/` on 11/08/2026, merged into the tier
+  files 11/09/2026; with an `extreme` tier added); the only
   remaining call is in `PIETOOLS_demos/lowrank_2d_stability/tests_1d/`, which already calls retired
   functions. Now in `cleaning/private/settings/` (maintainer: "Move it now").
 

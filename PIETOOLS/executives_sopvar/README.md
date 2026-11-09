@@ -54,10 +54,13 @@ of spatial variables (vars nv x 2, dom nv x 2).
 | `PIETOOLS_H2_estimator_sop(PIE,settings)` | | H2_estimator |
 | `PIETOOLS_auto_execute_sop` (script) | | auto_execute |
 
-Without settings, each executive takes the default of the stock executive it covers: `lpisettings('light')`,
-except stability in 1-D (`lpisettings('heavy')`, eppos 1e-4, eppos2 1e-6) and in 2-D (`lpisettings('light')`,
-simplify 1, `settings_2d.eppos` 1e-2), and well-posedness (`lpisettings('heavy')`, simplify 1, eppos = eppos2 =
-1e-2). `lpisettings_sop` (folder `settings_sopvar`) gives tiers tuned for this path. `lpiscript_sop`
+Without settings, each executive takes `lpisettings_sop('light')`, with these exceptions:
+- stability: `lpisettings_sop('heavy')` in 1-D and `lpisettings_sop('light')` with simplify 1 in 2-D and
+  higher, each with the one margin of its tier in every dimension (since 11/09/2026; before, eppos 1e-4
+  and eppos2 1e-6 in 1-D, 1e-2 in 2-D);
+- well-posedness: `lpisettings_sop('heavy')`, simplify 1, eppos 1e-2.
+
+`lpisettings_sop` (folder `settings_sopvar`) gives tiers tuned for this path. `lpiscript_sop`
 (folder `lpi_programming_sopvar`, since 10/28/2026) runs them by the names of `lpiscript`.
 
 On 10/28/2026 these nine replaced the 28 files of 10/08/2026 (one per stock executive, each calling a
@@ -74,9 +77,12 @@ value, decision count, rows and Gram sizes identical.
 2. **Storage.** Declared as the stock executive declares it, through `exec_tools_sop`: in 1-D
    `poslpivar_settings_sop` 'lf' (dd1, options1, dd12, options12 of the settings), in 2-D
    `poslpivar_settings_2d_sop` 'lf' (LF_deg, LF_opts and the psatz terms of `settings_2d`, translated by
-   `settings2possopvar`); eppos added where the stock adds it (`exec_tools_sop` eye: eppos, eppos2 in
-   1-D, the four-entry eppos of `settings_2d` in 2-D). The user's level (light, heavy, ...) keeps its
-   meaning.
+   `settings2possopvar`). The margin is added in the same LPIs in every dimension (`exec_tools_sop`
+   eye). Since 11/09/2026 it is one `eppos`, which `exec_sop_settings` spreads over the spaces of each
+   dimension; the stock added none in the 1-D coercive H-infinity and H2 forms. The decay term of
+   stability is `2*epneg` in every form and dimension, as in well-posedness, so `epneg` is the decay rate
+   of the norm of T x; the stock 1-D stability executives posed `epneg`. The user's level (light, heavy,
+   ...) keeps its meaning.
 3. **Negativity.** Every `Dop <= 0` is `lpi_ineq_sop(prog,-Dop,opts)`: the slack is sized by
    `get_lift_degs` on the storage operator (`opts.like`), with the weight raised by `settings.sop.dw_Q`
    (default 1) in the Q forms and `settings.sop.dw_P` (default 2) in the coercive forms (measured,
@@ -143,7 +149,7 @@ from there to this folder the same day.
 | function | what it does |
 |---|---|
 | `exec_sop_settings` | completes a settings struct with the `sop` field (Settings, above) |
-| `exec_tools_sop` | the storage, stock slack, margins, identities and opvar conversion the settings define for a 1-D or 2-D PIE, and for a container PIE in 3 or more variables (`settings_nd`, since 10/29/2026) |
+| `exec_tools_sop` | the storage, stock slack, margins and identities the settings define for a 1-D or 2-D PIE, and for a container PIE in 3 or more variables (`settings_nd`, since 10/29/2026) |
 | `exec_pie_sop` | the PIE an executive receives: an opvar PIE initialized, a container PIE with absent operators set to 0 (10/29/2026) |
 | `exec_info_sop` | the part of `info` every executive shares: status, loop history, slack, SDP shape, dual kernel |
 | `lpi_solve_loop_sop` | the degree loop: build, solve, classify the exit, raise `dw` |

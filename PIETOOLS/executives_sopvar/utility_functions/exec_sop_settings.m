@@ -4,11 +4,19 @@ function st = exec_sop_settings(st)
 % of the container executives: each field of ST.sop listed below that is
 % missing or empty is set to its default, and ST.sos_opts.solver, when
 % missing or empty, is set to 'mosek' if mosekopt is on the MATLAB path and
-% to 'sedumi' otherwise.
+% to 'sedumi' otherwise. A scalar ST.eppos and ST.epneg set the margin and
+% decay-rate fields of every dimension that ST leaves unset.
 %
 % INPUT
 % - st:   'struct' of LPI settings, as returned by lpisettings_sop, with
 %         the optional fields
+%           eppos     double, the margin of the positive operator on every
+%                     space in every dimension: a scalar sets eppos2 (1-D,
+%                     L2), settings_2d.eppos (2-D) and settings_nd.eppos (3
+%                     or more variables) where unset;
+%           epneg     double, the decay rate in every dimension: sets
+%                     settings_2d.epneg where unset (3 or more variables
+%                     read epneg itself);
 %           sos_opts  'struct' of solver options for lpisolve;
 %           sop       'struct' of options of the container executives, each
 %                     field optional:
@@ -66,7 +74,9 @@ function st = exec_sop_settings(st)
 %
 % OUTPUT
 % - st:   'struct', ST with the fields of ST.sop above set (its other
-%         fields kept) and ST.sos_opts.solver set.
+%         fields kept), ST.sos_opts.solver set, and the margin and
+%         decay-rate fields of each dimension set from eppos and epneg
+%         where unset.
 %
 % NOTES
 % ST other than a 'struct', or ST.sop.slack other than 'like' and 'stock',
@@ -120,6 +130,15 @@ function st = exec_sop_settings(st)
 %                read from T that made the 3-D heat benchmark solvable.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
 %                names lpisettings_sop; code unchanged.
+% MMP, 11/09/2026: One margin and one decay rate for every dimension
+%                (maintainer: "I see no reason to treat the eppos and epneg
+%                options differently for 1D,2D and ND"): a scalar eppos and
+%                epneg of ST set eppos2 (1-D), settings_2d.eppos and epneg
+%                (2-D) and settings_nd.eppos (3 or more variables) where ST
+%                leaves them unset, so the tiers of settings_sopvar set each
+%                once; a per-dimension field that is set is kept. Here and
+%                not in EXEC_TOOLS_SOP, which reads those fields: every
+%                caller of EXEC_TOOLS_SOP calls this function first.
 
 % Defaults of the fields of ST.sop
 % d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
@@ -149,4 +168,27 @@ if ~isfield(st.sos_opts,'solver') || isempty(st.sos_opts.solver)
     end
 end
 % if st.sop.keepdual,     st.sos_opts.simplify = 0;   end                   % MMP, 10/08/2026 (was)
+% BEGIN MMP, 11/09/2026: one margin and one decay rate for every dimension.
+% EXEC_TOOLS_SOP reads the margin from eppos and eppos2 in 1-D, from
+% settings_2d.eppos in 2-D (SETTINGS_2D_SOP) and settings_nd.eppos in 3 or
+% more variables, and the decay rate from epneg, settings_2d.epneg and
+% settings_nd.epneg (default epneg); a scalar eppos and epneg fill those
+% left unset. A non-scalar eppos is the 1-D R^n margin of the stock
+% settings and fills nothing.
+if isfield(st,'eppos') && isscalar(st.eppos)
+    if ~isfield(st,'eppos2') || isempty(st.eppos2),     st.eppos2 = st.eppos;   end
+    if isfield(st,'settings_2d') && isstruct(st.settings_2d) && ...
+            (~isfield(st.settings_2d,'eppos') || isempty(st.settings_2d.eppos))
+        st.settings_2d.eppos = st.eppos;
+    end
+    if ~isfield(st,'settings_nd') || ~isstruct(st.settings_nd),  st.settings_nd = struct();  end
+    if ~isfield(st.settings_nd,'eppos') || isempty(st.settings_nd.eppos)
+        st.settings_nd.eppos = st.eppos;
+    end
+end
+if isfield(st,'epneg') && isscalar(st.epneg) && isfield(st,'settings_2d') && ...
+        isstruct(st.settings_2d) && (~isfield(st.settings_2d,'epneg') || isempty(st.settings_2d.epneg))
+    st.settings_2d.epneg = st.epneg;
+end
+% END MMP, 11/09/2026
 end

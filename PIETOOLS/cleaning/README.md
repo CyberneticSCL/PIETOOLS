@@ -35,8 +35,9 @@ the path cannot create a second class or private definition.
 - `private/settings/` (11/08/2026, maintainer: "Move it now") – the 13 files of `settings/`
   (`lpisettings`, the 1-D presets and the `2D/` presets), from `orphaned_file/needed/settings/`
   once every caller on the path had switched to `lpisettings_sop`; the tiers of `settings_sopvar`
-  read copies of the six presets they use in `settings_sopvar/private/storage_*.m`, and an `extreme`
-  tier stands in for the stock extreme level. The only remaining call is in
+  set the values of the presets they use themselves (copies in `settings_sopvar/private/storage_*.m`
+  on 11/08/2026, merged into the tier files 11/09/2026), and an `extreme` tier stands in for the
+  stock extreme level. The only remaining call is in
   `PIETOOLS_demos/lowrank_2d_stability/tests_1d/`, which already calls retired functions.
 
 - `ndopvar/` (11/08/2026, maintainer: "move the ndopvar folder into the orphan_code directory") â€“

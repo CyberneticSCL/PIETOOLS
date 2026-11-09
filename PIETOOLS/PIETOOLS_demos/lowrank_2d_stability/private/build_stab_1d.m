@@ -6,8 +6,8 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 %   'P'   P >= eppos I,   T'*P*A + A'*P*T + c*epneg*T'*P*T + N = 0,   N >= 0;
 %   'Pd'  P >= eppos I,   T*P*A' + A*P*T' + c*epneg*T*P*T' + N = 0,   N >= 0;
 %
-% with c = 1 in 1-D and c = 2 in two spatial variables, P the positive storage
-% operator and N the slack. The slack is the stock one (degrees dd2, dd3 and
+% with c = 2 in every dimension, P the positive storage operator and N the
+% slack. The slack is the stock one (degrees dd2, dd3 and
 % the psatz flag override2), never the sized slack of LPI_INEQ_SOP, so the
 % settings decide the program.
 %
@@ -34,6 +34,9 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 %   'P'/'Pd' assemble of PIETOOLS_stability_sop with the stock slack branch;
 %   opvar, poslpivar and lpi_eq left the path (f83486c8). The opvar body of
 %   09/23/2026 is deleted; it could no longer run.
+% MMP, 11/09/2026: c = 2 in 1-D too, as PIETOOLS_stability_sop poses the
+%   decay term in every dimension since 11/09/2026 (maintainer: the
+%   executives apply eppos and epneg the same way in every dimension).
 
 % BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026)
 if nargin<3 || isempty(dual), dual = false; end
@@ -49,7 +52,8 @@ st  = exec_sop_settings(st);
 tl  = exec_tools_sop(PIE,st);    st.sop = tl.sop;
 eppos = tl.eppos;   epneg = tl.epneg;
 if ~isempty(st.sop.eppos_stab),  eppos(:) = st.sop.eppos_stab;  end
-epfac = 1;  if tl.nv>=2,  epfac = 2;  end   % 2 epneg in 2-D, as the 2-D LPI
+% epfac = 1;  if tl.nv>=2,  epfac = 2;  end   % 2 epneg in 2-D, as the 2-D LPI % MMP, 11/09/2026 (was)
+epfac = 2;          % 2 epneg in every dimension, as PIETOOLS_stability_sop % MMP, 11/09/2026
 Tm = PIE.T;     Am = PIE.A;
 % Storage P on the output side of T ('P') or its input side ('Pd'), plus margin
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);

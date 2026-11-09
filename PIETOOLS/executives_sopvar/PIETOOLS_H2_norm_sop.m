@@ -12,10 +12,9 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %          [-gam I, B1'; B1, Q'*A' + A*Q] <= 0,  [W, C1*Q; Q'*C1', R] >= 0;
 %   'o'    R >= 0, T'*Q = R, W >= 0 on the space of w, gam >= trace(W),
 %          [-gam I, C1; C1', Q'*A + A'*Q] <= 0,  [W, B1'*Q; Q'*B1, R] >= 0;
-%   'cco'  W >= 0 (two or more variables: W >= eppos I on R^n and on the
-%          space in every variable),
+%   'cco'  W >= eppos I on R^n and on the space in every variable,
 %          (A*W)*T' + T*(W*A') + B1*B1' <= 0,  gam >= trace(C1*W*C1');
-%   'oco'  W >= 0 (two or more variables: as 'cco'),
+%   'oco'  W with the margin of 'cco',
 %          (A'*W)*T + T'*(W*A) + C1'*C1 <= 0,  gam >= trace(B1'*W*B1);
 %
 % the trace taken over the finite-dimensional block. The bound GAM is gam
@@ -40,7 +39,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %               dd1, dd12, options1, options12, override1   1-D degrees of R
 %                       (of W in 'cco', 'oco');
 %               settings_2d   2-D degrees;
-%               settings_2d.eppos (2-D)  margins of W in 'cco', 'oco';
+%               eppos     the margin of W in 'cco', 'oco', in every
+%                         dimension (EXEC_SOP_SETTINGS);
 %               settings_nd    degrees and margin in 3 or more variables
 %                              (EXEC_TOOLS_SOP);
 %               sos_opts  solver options;
@@ -140,6 +140,11 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                the light tier (maintainer, 11/08/2026).
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
 %                default named after lpisettings_sop; code unchanged.
+% MMP, 11/09/2026: The margin of W in 'cco' and 'oco' in every dimension
+%                (maintainer: the executives apply eppos and epneg the same
+%                way in every dimension); in 1-D, W >= 0 before. ADD_EPPOS2D
+%                keeps its rule, eppos on R^n and on the space in every
+%                variable, which in 1-D are both spaces.
 
 % Default settings and form; check the PIE
 % if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)
@@ -329,17 +334,17 @@ end
 
     function Wm = add_eppos2d(Wm)
         % WM = ADD_EPPOS2D(WM) adds eppos I on R^n and on the space in every
-        % variable to W in two or more variables (2-D: blkdiag(eppos(1) I,
-        % 0, 0, eppos(4) I)); returns W unchanged in 1-D.
+        % variable to W, in every dimension (1-D: both spaces; 2-D:
+        % blkdiag(eppos(1) I, 0, 0, eppos(4) I)).
         % INPUT/OUTPUT  Wm: 'cdopvar' object, W.
 %       if nv==2                                                            % MMP, 10/29/2026 (was)
 %           e = eppos;  e(2:3) = 0;                                         % MMP, 10/29/2026 (was)
-        if nv>=2                                                            % MMP, 10/29/2026
+%       if nv>=2                                                            % MMP, 11/09/2026 (was)
             % One margin per variable subset (EXEC_TOOLS_SOP, eye), zero    % MMP, 10/29/2026
-            % on the partial ones                                           % MMP, 10/29/2026
+            % on the partial ones, of which 1-D has none                    % MMP, 11/09/2026
             e = eppos(:);   if isscalar(e),     e = e*ones(2^nv,1);     end % MMP, 10/29/2026
             e(2:end-1) = 0;                                                 % MMP, 10/29/2026
             if ~all(e==0),  Wm = Wm + tl.eye(1,e);  end
-        end
+%       end                                                                 % MMP, 11/09/2026 (was)
     end
 end

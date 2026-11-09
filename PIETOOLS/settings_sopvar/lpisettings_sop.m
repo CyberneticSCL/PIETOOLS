@@ -25,7 +25,7 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 % - type:     (optional) char, 'extreme', 'stripped', 'light' (default),
 %             'heavy', 'veryheavy' or 'custom';
 % - derivative_strictness: (optional) double >= 0, the decay rate epneg of
-%             the stability LPIs, in 1-D and 2-D (default 0);
+%             the stability LPIs, in every dimension (default 0);
 % - simplify: (optional) char, '' (default) or 'psimplify': simplify the
 %             SDP before it is solved;
 % - solver:   (optional) char, '' (default: MOSEK when installed, else
@@ -40,13 +40,14 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                          the 1-D degrees and options of the storage level's
 %                          settings_PIETOOLS_<level>;
 %               settings_2d  'struct', settings_PIETOOLS_<level>_2D of the 2-D
-%                          storage level, with eppos (4x1 double, 1e-2) and
-%                          epneg (DERIVATIVE_STRICTNESS);
+%                          storage level;
 %               settings_nd  'struct', the storage in 3 or more variables
-%                          (EXEC_TOOLS_SOP): LF_int 1, LF_mult 0, eppos 1e-2;
-%               eppos, eppos2  double, 1e-4: the 1-D margins of the positive
-%                          operator in the gain, norm and synthesis LPIs;
-%               epneg      double, DERIVATIVE_STRICTNESS;
+%                          (EXEC_TOOLS_SOP): LF_int 1, LF_mult 0;
+%               eppos      double, 1e-4: the margin of the positive operator
+%                          on every space, in every dimension and every LPI
+%                          that imposes one (EXEC_SOP_SETTINGS);
+%               epneg      double, DERIVATIVE_STRICTNESS, the decay rate in
+%                          every dimension;
 %               sos_opts   'struct' with field simplify (0 or 1) and, when
 %                          SOLVER is given, solver;
 %               sop        'struct' of container options:
@@ -69,10 +70,7 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                                slack bases are bounded per direction,
 %                                theta_k + s_k <= Jmax_k(T) + delta
 %                                (EXEC_SOP_SETTINGS);
-%                 eppos_stab     double, 1e-2: the margin of the positive
-%                                operator in the stability and well-posedness
-%                                LPIs, on every space;
-%                 margin         double, 0: no regularizer on the certified
+%                 margin        double, 0: no regularizer on the certified
 %                                inequality;
 %                 keepdual       logical: assemble the dual kernel of the
 %                                negativity constraint;
@@ -126,6 +124,12 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 % MMP, 11/08/2026: Tier 'extreme' (SETTINGS_SOPVAR_EXTREME), the counterpart
 %                of the stock extreme level, so that every level name of
 %                the stock LPISETTINGS has a tier; help text updated.
+% MMP, 11/09/2026: The decay rate is set once, in epneg (maintainer: "I see
+%                no reason to treat the eppos and epneg options differently
+%                for 1D,2D and ND"); EXEC_SOP_SETTINGS sets settings_2d.epneg
+%                from it. The tiers set one margin eppos, 1e-4; help text
+%                updated (eppos_stab, eppos2 and the 2-D and N-D margins
+%                removed).
 
 % Admissible values and defaults of the inputs
 arguments
@@ -146,7 +150,8 @@ switch type
     case 'custom',      st = settings_sopvar_custom();
 end
 % Decay rate, simplification and solver from the inputs
-st.epneg = derivative_strictness;   st.settings_2d.epneg = derivative_strictness;
+% st.epneg = derivative_strictness;   st.settings_2d.epneg = derivative_strictness; % MMP, 11/09/2026 (was)
+st.epneg = derivative_strictness;                                           % MMP, 11/09/2026
 st.sos_opts.simplify = strcmp(simplify,'psimplify');
 if ~isempty(solver),    st.sos_opts.solver = solver;    end
 end

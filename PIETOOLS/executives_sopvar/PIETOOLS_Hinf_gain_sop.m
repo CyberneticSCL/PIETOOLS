@@ -12,10 +12,10 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %         [-gam I, D11', B1'*Q; D11, -gam I, C1; Q'*B1, C1', A'*Q + Q'*A] <= 0;
 %   'Qd'  R >= 0, T*Q = R,
 %         [-gam I, D11, C1*Q; D11', -gam I, B1'; Q'*C1', B1, Q'*A' + A*Q] <= 0;
-%   'P'   R >= 0 (2-D: R >= eppos I),
+%   'P'   R >= eppos I,
 %         [K11, D11', K13; D11, -gam I, C1; K13', C1', (R*A)'*T + T'*(R*A)] <= 0,
 %         K11 = -gam I + Tw'*R*B1 + B1'*R*Tw,  K13 = (R*B1)'*T + Tw'*R*A;
-%   'Pd'  R >= 0 (2-D: R >= eppos I),
+%   'Pd'  R >= eppos I,
 %         [-gam I, D11, C1*R*T'; D11', -gam I, B1'; T*R*C1', B1, T*R*A' + A*R*T'] <= 0.
 %
 % 'Q' is posed as 'P' when Tw is nonzero; 'Qd' and 'Pd' require Tw = 0; in
@@ -40,7 +40,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R;
 %               settings_2d                                 2-D degrees of R;
-%               settings_2d.eppos (2-D)  margins of R in the 'P' forms;
+%               eppos     the margin of R in the 'P' forms, in every
+%                         dimension (EXEC_SOP_SETTINGS);
 %               settings_nd    degrees and margin of R in 3 or more
 %                              variables (EXEC_TOOLS_SOP);
 %               sos_opts  solver options;
@@ -149,6 +150,11 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %                the light tier (maintainer, 11/08/2026).
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
 %                default named after lpisettings_sop; code unchanged.
+% MMP, 11/09/2026: The margin of R in the 'P' and 'Pd' forms in every
+%                dimension (maintainer: the executives apply eppos and epneg
+%                the same way in every dimension); in 1-D, R >= 0 before.
+%                The 'Pd' margin without settings eppos is [1e-4; 1e-6] in
+%                1-D, the rule of every dimension.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -211,15 +217,16 @@ Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 % Twm = [];   if ~Tw0,    Twm = op2copvar_sop(PIE.Tw);    end               % MMP, 11/04/2026 (was)
 Twm = [];   if ~Tw0,    Twm = PIE.Tw;    end                                % MMP, 11/04/2026
 
-% Margin of R: eppos I in the 'P' forms in two or more variables (in 'Pd'   % MMP, 10/29/2026
-% without settings eppos: 1e-4 on R^n, 1e-6 on the space in every variable, % MMP, 10/29/2026
-% 0 between, over the 2^nv variable subsets), none in 1-D                   % MMP, 10/29/2026
+% Margin of R: eppos I in the 'P' forms in every dimension (in 'Pd' without % MMP, 11/09/2026
+% settings eppos: 1e-4 on R^n, 1e-6 on the space in every variable, 0       % MMP, 11/09/2026
+% between, over the 2^nv variable subsets)                                  % MMP, 11/09/2026
 e = [];
 % if coercive && nv==2                                                      % MMP, 10/29/2026 (was)
 %     e = tl.eppos;                                                         % MMP, 10/29/2026 (was)
 %     if strcmp(form,'Pd') && tl.eppos_default,   e = [1e-4;0;0;1e-6];    end % MMP, 10/29/2026 (was)
 % end                                                                       % MMP, 10/29/2026 (was)
-if coercive && nv>=2                                                        % MMP, 10/29/2026
+% if coercive && nv>=2                                                      % MMP, 11/09/2026 (was)
+if coercive                                                                 % MMP, 11/09/2026
     e = tl.eppos;                                                           % MMP, 10/29/2026
     if strcmp(form,'Pd') && tl.eppos_default                                % MMP, 10/29/2026
         e = zeros(2^nv,1);  e(1) = 1e-4;    e(end) = 1e-6;  % [1e-4;0;0;1e-6] in 2-D % MMP, 10/29/2026

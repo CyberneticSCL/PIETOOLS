@@ -6,18 +6,19 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %       T x_t = A x
 %
 % by searching for a Lyapunov certificate, posed as an LPI on 'cdopvar'
-% operators and solved as an SDP. FORM selects the LPI; with c = 1 in 1-D
-% and c = 2 in two or more spatial variables,
+% operators and solved as an SDP. FORM selects the LPI:
 %
-%   'P'   P >= eppos I,          T'*P*A + A'*P*T + c*epneg*T'*P*T <= 0;
-%   'Pd'  P >= eppos I,          T*P*A' + A*P*T' + c*epneg*T*P*T' <= 0;
-%   'Q'   P >= eppos2*T'*T,  T'*Q = P,   A'*Q + Q'*A + epneg*P <= 0;
-%   'Qd'  P >= eppos2*T*T',  T*Q = P,    A*Q + Q'*A' + epneg*P <= 0;
-%   'FP'  P >= 0,                T'*P*A + A'*P*T + c*epneg*T'*T <= 0;
-%   'FQ'  P >= 0,            T'*Q = P,   A'*Q + Q'*A + epneg*T'*T <= 0;
+%   'P'   P >= eppos I,          T'*P*A + A'*P*T + 2*epneg*T'*P*T <= 0;
+%   'Pd'  P >= eppos I,          T*P*A' + A*P*T' + 2*epneg*T*P*T' <= 0;
+%   'Q'   P >= eppos2*T'*T,  T'*Q = P,   A'*Q + Q'*A + 2*epneg*P <= 0;
+%   'Qd'  P >= eppos2*T*T',  T*Q = P,    A*Q + Q'*A' + 2*epneg*P <= 0;
+%   'FP'  P >= 0,                T'*P*A + A'*P*T + 2*epneg*T'*T <= 0;
+%   'FQ'  P >= 0,            T'*Q = P,   A'*Q + Q'*A + 2*epneg*T'*T <= 0;
 %
-% with P a positive operator, Q a free operator, and eppos I the identity
-% scaled by the margin of each space. The forms 'FP', 'FQ' test finite
+% with P a positive operator, Q a free operator, eppos I the identity
+% scaled by the margin of each space (eppos2 the margin on L2), and epneg
+% the decay rate, in every dimension: a solution of 'P' gives
+% ||T x(t)|| <= M exp(-epneg t) ||T x(0)|| for some M > 0. The forms 'FP', 'FQ' test finite
 % energy, int_0^inf ||T x(t)||^2 dt <= C ||T x(0)||^2 for some C > 0, and
 % need epneg > 0. The 'Q' forms exist in 1-D only; for a PIE in two or
 % more variables, 'Q', 'Qd' and 'FQ' are posed as 'P', 'Pd' and 'FP'. While
@@ -46,15 +47,16 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %               settings_2d                                 2-D degrees of P;
 %               settings_nd    degrees and margin of P in 3 or more
 %                              variables (EXEC_TOOLS_SOP);
-%               eppos, eppos2 (1-D), settings_2d.eppos (2-D)  margins of P;
+%               eppos   the margin of P on every space, in every dimension
+%                       (EXEC_SOP_SETTINGS);
 %               epneg   the decay rate, >= 0;
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS), among them
 %                       dw_feas, max_raise_feas and eppos_stab.
-%             Default: in 1-D lpisettings_sop('heavy') with eppos 1e-4,
-%             eppos2 1e-6, epneg 0; in 2-D and higher lpisettings_sop('light')
-%             with sos_opts.simplify 1, settings_2d.eppos 1e-2 on every
-%             space, epneg 0; epneg 1e-5 for the forms 'FP', 'FQ';
+%             Default: in 1-D lpisettings_sop('heavy'), in 2-D and higher
+%             lpisettings_sop('light') with sos_opts.simplify 1, each with
+%             the margin of its tier, epneg 0, and epneg 1e-5 for the forms
+%             'FP', 'FQ';
 % - form:     (optional) char, 'P' (default), 'Pd', 'Q', 'Qd', 'FP' or 'FQ'.
 %
 % OUTPUT
@@ -154,6 +156,18 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
 %                defaults named after lpisettings_sop, a stale body note
 %                (conversion back to opvar) removed; code unchanged.
+% MMP, 11/09/2026: One decay rate and one margin in every dimension
+%                (maintainer: the executives apply eppos and epneg the same
+%                way in every dimension). The decay term is 2*epneg in every
+%                form and dimension, as in two or more variables and in
+%                PIETOOLS_WELL_POSEDNESS_SOP: in 1-D it was epneg, so a
+%                given epneg certified a decay rate of epneg/2 for ||T x||
+%                in 1-D and epneg in 2-D. The default settings take the
+%                margin of their tier in every dimension (were eppos 1e-4,
+%                eppos2 1e-6 in 1-D and settings_2d.eppos 1e-2 in 2-D and
+%                higher), and the finite-energy default epneg 1e-5 is set
+%                once. The entries of 10/28/2026 and 10/29/2026 on the 2-D
+%                factor 2 and the 2-D default settings no longer apply.
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -169,14 +183,17 @@ if nargin<2 || isempty(settings)
 %       settings = lpisettings('light');                                    % MMP, 11/08/2026 (was)
         settings = lpisettings_sop('light');                                % MMP, 11/08/2026
         settings.sos_opts.simplify = 1;
-        settings.settings_2d.eppos = 1e-2*ones(4,1);    settings.settings_2d.epneg = 0;
-        if fe,  settings.settings_2d.epneg = 1e-5;  end % the stock FE default % MMP, 10/28/2026
+%       settings.settings_2d.eppos = 1e-2*ones(4,1);    settings.settings_2d.epneg = 0; % MMP, 11/09/2026 (was)
+%       if fe,  settings.settings_2d.epneg = 1e-5;  end % the stock FE default % MMP, 11/09/2026 (was)
     else
 %       settings = lpisettings('heavy');                                    % MMP, 11/08/2026 (was)
         settings = lpisettings_sop('heavy');                                % MMP, 11/08/2026
-        settings.eppos = 1e-4;  settings.eppos2 = 1e-6;     settings.epneg = 0;
-        if fe,  settings.epneg = 1e-5;  end             % the stock FE default % MMP, 10/28/2026
+%       settings.eppos = 1e-4;  settings.eppos2 = 1e-6;     settings.epneg = 0; % MMP, 11/09/2026 (was)
+%       if fe,  settings.epneg = 1e-5;  end             % the stock FE default % MMP, 11/09/2026 (was)
     end
+    % The tier's margin and decay rate in every dimension; finite energy    % MMP, 11/09/2026
+    % needs a positive decay rate, 1e-5 as in the stock executives          % MMP, 11/09/2026
+    if fe,  settings.epneg = 1e-5;  end                                     % MMP, 11/09/2026
 end
 label = ['stability_sop ' form];
 
@@ -215,7 +232,8 @@ if ~isempty(st.sop.max_raise_feas)
     st.sop.max_raise = st.sop.max_raise_feas(min(nv,end));  % per dimension % MMP, 10/29/2026
 end
 % epfac = 1;  if nv==2,   epfac = 2;  end           % the 2-D LPI carries 2 epneg % MMP, 10/29/2026 (was)
-epfac = 1;  if nv>=2,   epfac = 2;  end     % 2 epneg, as the 2-D LPI       % MMP, 10/29/2026
+% epfac = 1;  if nv>=2,   epfac = 2;  end     % 2 epneg, as the 2-D LPI     % MMP, 11/09/2026 (was)
+epfac = 2;          % 2 epneg in every form and dimension: decay rate epneg % MMP, 11/09/2026
 % Finite energy needs a positive decay term, as in the stock executives     % MMP, 10/28/2026
 if fe && epneg==0                                                           % MMP, 10/28/2026
     error('PIETOOLS_stability_sop:epneg','Finite energy stability check requires settings.epneg >0. Please change your settings.'); % MMP, 10/28/2026
@@ -290,7 +308,8 @@ end
                 [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
                 prog = lpi_eq_sop(prog,Tm'*Qm - Pm);
                 Dm = Am'*Qm + Qm'*Am;
-                if epneg~=0,    Dm = Dm + epneg*Pm;     end
+%               if epneg~=0,    Dm = Dm + epneg*Pm;     end                 % MMP, 11/09/2026 (was)
+                if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/09/2026
             case 'Qd'
                 [prog,Pm] = tl.storage(prog,Tm,'out');
                 Pm = Pm + eppos(2)*(Tm*Tm');
@@ -298,7 +317,8 @@ end
                 [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
                 prog = lpi_eq_sop(prog,Tm*Qm - Pm);
                 Dm = Am*Qm + Qm'*Am';
-                if epneg~=0,    Dm = Dm + epneg*Pm;     end
+%               if epneg~=0,    Dm = Dm + epneg*Pm;     end                 % MMP, 11/09/2026 (was)
+                if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/09/2026
             case 'FP'                                                       % MMP, 10/28/2026
                 % P >= 0 with no margin; the decay term on T'T              % MMP, 10/28/2026
                 [prog,Pm] = tl.storage(prog,Tm,'out');                      % MMP, 10/28/2026
@@ -310,7 +330,8 @@ end
                 [spO,dmO] = copvar_space_list(Tm,'out');    [spI,dmI] = copvar_space_list(Tm,'in'); % MMP, 10/28/2026
                 [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm)); % MMP, 10/28/2026
                 prog = lpi_eq_sop(prog,Tm'*Qm - Pm);                        % MMP, 10/28/2026
-                Dm = Am'*Qm + Qm'*Am + epneg*(Tm'*Tm);                      % MMP, 10/28/2026
+%               Dm = Am'*Qm + Qm'*Am + epneg*(Tm'*Tm);                      % MMP, 11/09/2026 (was)
+                Dm = Am'*Qm + Qm'*Am + epfac*epneg*(Tm'*Tm);                % MMP, 11/09/2026
         end
         % BEGIN MMP, 11/07/2026: Dm <= 0 on ker K only
         % In the primal forms Dm acts on the state x; with Z free from the

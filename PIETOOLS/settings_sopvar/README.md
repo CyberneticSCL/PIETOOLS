@@ -22,13 +22,20 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   entry of the PIE dimension (`exec_tools_sop`); a scalar serves every dimension.
 - **Storage** `light`, `heavy`, ...: the degrees of the stock `settings_PIETOOLS_<level>` (1-D) and
   `settings_PIETOOLS_<level>_2D` (2-D), read by `poslpivar_settings_sop` and `poslpivar_settings_2d_sop`.
-  Since 11/08/2026 the tiers read copies of those values in `private/` (`storage_extreme`, `_light`,
-  `_heavy`, `_veryheavy`; `storage_extreme_2D`, `_light_2D`, `_stripped_2D`, `_heavy_2D`), so
-  `settings_sopvar` calls no file outside this folder; `lpisettings_sop(tier)` is unchanged for every
-  tier that existed before (`isequaln`). The `extreme` tier (11/08/2026) takes the stock extreme
-  storage with the container options of `stripped`.
-  In 3 or more variables every tier takes `settings_nd` (LF_int 1, LF_mult 0, eppos 1e-2): a multiplier
-  and one separable full integral of degree 1 per space.
+  Each tier file sets those values itself (since 11/09/2026; on 11/08/2026 the tiers read copies in
+  `private/`, now merged into the tier files), so `settings_sopvar` calls no file outside this folder,
+  and a copy of `settings_sopvar_custom.m` runs from any folder. `lpisettings_sop(tier)` is unchanged
+  for every tier that existed before. The `extreme` tier (11/08/2026) takes the stock extreme storage
+  with the container options of `stripped`.
+  In 3 or more variables every tier takes `settings_nd` (LF_int 1, LF_mult 0): a multiplier and one
+  separable full integral of degree 1 per space.
+- **Layout of a tier file** (11/09/2026), the same in every tier, so that `diff` of two tier files shows
+  their values: (1) one spatial variable, (2) two (`settings_2d`), (3) the margin, decay rate and
+  solver, (4) three or more (`settings_nd`), (5) the executive options (`sop`). Each section names the function
+  that reads its fields. The fields of the `'stock'` slack mode are marked, as are `opts`, `ineq_opts`
+  and `Zop_opts`, which no container executive reads. As in the stock settings files, `sosineq_on` and
+  `use_sosineq` are read from the base workspace when they exist there; they change only the fields of
+  the `'stock'` slack. `lpisettings_sop` overwrites `epneg` and `sos_opts.simplify` with its inputs.
 - **cap_delta**: per-direction bounds theta_k + s_k <= Jmax_k(T) + delta on the slack bases
   (`lpi_ineq_sop` opts.cap). Jmax_k(T) is the largest total degree in (s_k, s'_k) of a kernel monomial
   of T (`get_lift_degs`): 2 for a Dirichlet-Dirichlet heat direction, 1 for Dirichlet-Neumann. NaN is
@@ -54,9 +61,41 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   | PDE 39 | certified | 1: 19,143 | 220 s |
 - **dual, witness**: `keepdual` (the dual kernel of the negativity constraint) and `witness` (the 1-D
   numerical counterpart: frequency sweep, spectrum or H2 norm, on a Legendre Galerkin model).
-- Every tier: `slack` 'like', `margin` 0, `eppos_stab` 1e-2 (stability and well-posedness, every space),
-  `eppos = eppos2 = 1e-4` (1-D gains, norms, synthesis) and `settings_2d.eppos = 1e-2` (2-D), as
-  `lpisettings` sets them; MOSEK when installed, else SeDuMi; `simplify` off.
+- **Margin and decay rate** (11/09/2026; maintainer: "I see no reason to treat the eppos and epneg
+  options differently for 1D,2D and ND"). Every tier sets one `eppos`, 1e-4, and one `epneg`.
+  - Both are the same in every dimension, and in every LPI that imposes a margin, stability and
+    well-posedness included.
+  - `exec_sop_settings` derives from them the fields each dimension reads (`eppos2`,
+    `settings_2d.eppos` and `epneg`, `settings_nd.eppos`) where they are unset; a field the caller
+    sets is kept.
+  - Before, the margin was 1e-4 in 1-D, 1e-2 in 2-D and in 3 or more variables, and 1e-2 in
+    stability and well-posedness (`eppos_stab`), values copied from `lpisettings`.
+
+  Measured 11/09/2026 at light (MOSEK 11.0.30, this workstation):
+
+  | LPI | eppos 1e-4 | eppos 1e-2 |
+  |---|---|---|
+  | 1-D H-infinity control, H2 control | 0.0328660, 0.0522258 | 0.0328660, 0.0522199 |
+  | 1-D H-infinity estimator, H2 estimator | 1.392e-4, 3.460e-4 | 2.081e-4, 3.989e-4 |
+  | 2-D `fin2` coercive gain (exact 0.0686069) | 0.0686394, 18 s | 0.0686328, 11 s |
+  | 3-D heat coercive gain (exact 0.0414732) | 0.0575665, 294 s | 0.0575797, 306 s |
+  | stability, 1-D and 2-D at f = 0.9 | certified | certified |
+  | stability, 3-D heat (s1 DD, s2 and s3 DN) | certified, 289 s | not rerun |
+
+  At 1e-4 the estimator bounds are 13-33% lower, and the gains move by about 1e-4 relative. With the
+  new tiers, `test_executives_sop` passes its 20 checks.
+- **The executives apply them the same way in every dimension** (11/09/2026, maintainer: "Yes, those
+  too").
+  - The coercive H-infinity forms (`'P'`, `'Pd'`) and H2 forms (`'cco'`, `'oco'`) impose the margin
+    in 1-D as in 2 or more variables; before, R >= 0 and W >= 0 in 1-D. The 1-D values moved by at
+    most 1.1e-5 relative (H-infinity `'P'` 0.0333110, `'Pd'` 0.0333130).
+  - Stability poses `2*epneg` in every form and dimension, as well-posedness does, so epneg is the
+    decay rate of the norm of Tx. Before, 1-D posed `epneg`, which certifies the rate epneg/2.
+  - Measured: x_t = x_ss + pi^2/2 x (slowest rate pi^2/2 = 4.935) certifies epneg 4 and not 5.5 in
+    forms `'P'` and `'Q'`; x_t = lap x + pi^2 x in 2-D (rate pi^2 = 9.870) certifies 8 and not 11.
+  - The stability defaults take the tier's margin in every dimension (were eppos 1e-4, eppos2 1e-6
+    in 1-D, and 1e-2 in 2-D).
+- Every tier: `slack` 'like', `margin` 0; MOSEK when installed, else SeDuMi; `simplify` off.
 
 ## Measured cost and value (10/28/2026, MOSEK 11.0.30, this workstation)
 
@@ -127,7 +166,8 @@ by the runs above:
   feasibility certifies at dw 0 with 2.0-3.7x fewer variables in the same time; 2-D at dw 1 in 2.5 s
   against 6.6 s at dw 2; coercive 1-D at dw 2 reaches the 1.1e-6 floor; Q forms gain nothing above 1),
   the lift offset dD 1 (the default of `get_lift_degs`), the stock storage translation, and eppos 1e-2
-  for stability (relative residuals unchanged over eppos 1e-6..1, measured 09/23).
+  for stability (relative residuals unchanged over eppos 1e-6..1, measured 09/23; replaced on
+  11/09/2026 by the one margin 1e-4 of every LPI).
 - **New Posopvar and Duality** (degree loop, dual): raises by kind (a raise is one build and one solve;
   metric LPIs start at their measured weight because an UNKNOWN pass can take 15-95 s in 2-D), the dual
   and the witness off at stripped (read-back 1-3 ms per build, witness 0.2 s per gain sweep), witness order

@@ -43,6 +43,14 @@ function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MM
 %                  the path): the fields read below (dd1, dd12, options1,
 %                  options12, override1, sosineq_on) are the same; epneg,
 %                  eppos2 and sos_opts are set below as before.
+% MMP, 11/09/2026: eppos2 read as EXEC_SOP_SETTINGS sets it: the L2 margin
+%                  when ST has one, else the one margin eppos. The
+%                  settings_sopvar tiers set eppos only since 11/09/2026, so
+%                  an ST from lpisettings_sop stopped at st.eppos2
+%                  (e2e_stability_1d, test_getsol_sop part ii). The value is
+%                  unchanged for every tier: eppos2 was eppos, 1e-4. The
+%                  decay term epneg*P of the stock form is kept (the
+%                  container executive poses 2*epneg*P since 11/09/2026).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -63,7 +71,10 @@ if nargin<2                                         % stock lines 73-79
     st.eppos = 1e-4;    st.eppos2 = 1e-6;   st.epneg = 0;
 end
 dd1 = st.dd1;   dd12 = st.dd12;     options1 = st.options1;     options12 = st.options12;
-override1 = st.override1;   epneg = st.epneg;   eppos2 = st.eppos2;
+% override1 = st.override1;   epneg = st.epneg;   eppos2 = st.eppos2;      % MMP, 11/09/2026 (was)
+override1 = st.override1;   epneg = st.epneg;                               % MMP, 11/09/2026
+% The L2 margin, else the one margin of the settings_sopvar tiers           % MMP, 11/09/2026
+if isfield(st,'eppos2') && ~isempty(st.eppos2),  eppos2 = st.eppos2;  else,  eppos2 = st.eppos;  end % MMP, 11/09/2026
 if st.sosineq_on                                    % stock lines 148-150
     error('cx_stability:gap',['sosineq_on=1 needs lpi_ineq, which has no container '...
           'counterpart; only the equality path (the default) is transcribed.'])
