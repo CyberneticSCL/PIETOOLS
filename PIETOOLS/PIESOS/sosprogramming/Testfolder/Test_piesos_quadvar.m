@@ -67,6 +67,9 @@ function Test_piesos_quadvar()
 %                        cases dmonomials(y,[1;2]), dmonomials(Tm*y,[1;2]);
 % DJ (CC), 11/07/2026: Add case_deg_renamed: the old option 'deg' is renamed
 %                        to 'degs' with a warning, instead of being ignored;
+% DJ (CC), 11/08/2026: Products of ODE states in the basis are now supported
+%                        (combine_factors): case_ode_state checks that the
+%                        polynomial is returned, instead of the error;
 
 % NOTES
 % - piesos_sosvar wraps piesos_quadvar, so the comparison with it only
@@ -251,6 +254,19 @@ for i=1:nr
         Xc{i} = {1};
     else
         Xc{i} = cellfun(@(nm) X.(nm),reshape(Z.varname(idc),1,[]),'UniformOutput',false);
+        % A state without spatial variables (ODE state) has no copy of a variable on
+        % which a factor of Zop acts: it is merged into the next state of the monomial
+        % (the previous, if last), acting on their Kronecker product, as in combine_factors
+        isode = ~any(Z.depmat.in(idc,:),2)';                                            % DJ (CC), 11/08/2026
+        while any(isode) && numel(Xc{i})>1                                              % DJ (CC), 11/08/2026
+            kk = find(isode,1);                                                         % DJ (CC), 11/08/2026
+            jj = kk+1;                                                                  % DJ (CC), 11/08/2026
+            if jj>numel(Xc{i}),     jj = kk-1;      end                                 % DJ (CC), 11/08/2026
+            if jj>kk,   Xc{i}{jj} = kron(Xc{i}{kk},Xc{i}{jj});                          % DJ (CC), 11/08/2026
+            else,       Xc{i}{jj} = kron(Xc{i}{jj},Xc{i}{kk});     end                  % DJ (CC), 11/08/2026
+            isode(jj) = isode(jj) && isode(kk);                                         % DJ (CC), 11/08/2026
+            Xc{i}(kk) = [];     isode(kk) = [];                                         % DJ (CC), 11/08/2026
+        end                                                                             % DJ (CC), 11/08/2026
     end
 end
 Y = apply_op(fix_empty_params_zop(Zop),Xc);
@@ -823,8 +839,51 @@ T = rand_sopvar([1,1],vars,dom,1);
 f1 = apply_sopvar(T,S.X.x1);
 dg = @(i,o) struct('degs',struct('in',i,'out',o));
 run_check('[xo;x1]',S,[xo;S.x1],[],dg(0,1),140);
-% a product of ODE states in the basis is not supported (no copy of a variable)
-assert_err(@() piesos_quadvar(piesos_program(S.all),[xo;otimes(xo,xo);S.x1],[],dg(0,1)),'without spatial variables');
+% products of ODE states in the basis: the factors from R are merged when the basis
+% operators are composed with the coefficients (combine_factors, see
+% Test_tensopvar_combine_factors for the verification of the merge); here only checked
+% to run, as the evaluation of V by apply_side takes a single input per monomial
+%assert_err(@() piesos_quadvar(piesos_program(S.all),[xo;otimes(xo,xo);S.x1],[],dg(0,1)),'without spatial variables');   % DJ (CC), 11/08/2026 (was)
+%[~,Vode] = piesos_quadvar(piesos_program(S.all),[xo;otimes(xo,xo);S.x1],[],dg(0,1));                                      % DJ (CC), 11/08/2026 (was)
+%assert(isa(Vode,'polyopvar') && any(sum(full(Vode.Z),2)==4),'ODE state products: expected a polynomial with a degree-4 monomial.');   % DJ (CC), 11/08/2026 (was)
+% Verified against the direct evaluation (apply_side merges the inputs of ODE states, as above): products of
+% ODE states, ODE states times PDE states, and ODE states between PDE states
+run_check('[xo;xo^2;x1]',S,[xo;otimes(xo,xo);S.x1],[],dg(0,1),150);                                                                   % DJ (CC), 11/08/2026
+run_check('[xo^2;xo^3]',S,[otimes(xo,xo);otimes(otimes(xo,xo),xo)],[],dg(0,0),151);                                                   % DJ (CC), 11/08/2026
+run_check('[xo;xo*x1]',S,[xo;otimes(xo,S.x1)],[],dg(0,1),152);                                                                        % DJ (CC), 11/08/2026
+run_check('[x1*xo;xo*x1]',S,[otimes(S.x1,xo);otimes(xo,S.x1)],[],dg(0,1),153);                                                        % DJ (CC), 11/08/2026
+run_check('[xo*x1*x1]',S,otimes(otimes(xo,S.x1),S.x1),[],dg(0,1),154);                                                                % DJ (CC), 11/08/2026
+run_check('[x1*xo*x1]',S,otimes(otimes(S.x1,xo),S.x1),[],dg(0,1),155);                                                                % DJ (CC), 11/08/2026
+run_check('[xo;xo^2;xo*x1;x1;x1^2] , ZL~=ZR',S,[xo;otimes(xo,xo);otimes(xo,S.x1)],[S.x1;otimes(xo,S.x1)],dg(0,1),156);                 % DJ (CC), 11/08/2026
+% Vector-valued ODE state
+yo = polyopvar({'yo'},2,{'s1'},S.dom(1,:),false);
+S2 = S;     S2.all = [S.x1;yo];     S2.X.yo = [1.1;-0.7];
+run_check('[yo;yo o yo], vector ODE state',S2,[yo;otimes(yo,yo)],[],dg(0,0),157);                                                    % DJ (CC), 11/08/2026
+run_check('[yo;yo o x1;x1]',S2,[yo;otimes(yo,S.x1);S.x1],[],dg(0,1),158);                                                            % DJ (CC), 11/08/2026
+% (the order of the Kronecker product only matters for a vector-valued ODE state: yo inner, and between two PDE states)
+run_check('[x1 o yo]',S2,otimes(S.x1,yo),[],dg(0,1),159);                                                                            % DJ (CC), 11/08/2026
+% vector PDE state y(s1) in R^2 with an ODE state: the size of the Kronecker product depends on the order
+S3 = S;     S3.all = [S.y;yo;xo];     S3.X.yo = [1.1;-0.7];
+run_check('[y o yo]',S3,otimes(S.y,yo),[],dg(0,1),160);                                                                              % DJ (CC), 11/08/2026
+run_check('[yo o y]',S3,otimes(yo,S.y),[],dg(0,1),161);                                                                              % DJ (CC), 11/08/2026
+run_check('[y o yo;yo o y;y]',S3,[otimes(S.y,yo);otimes(yo,S.y);S.y],[],dg(0,1),162);                                                % DJ (CC), 11/08/2026
+run_check('[y o xo o y], scalar ODE state between vector PDE states',S3,otimes(otimes(S.y,xo),S.y),[],dg(0,1),163);                   % DJ (CC), 11/08/2026
+run_check('[xo o y o y;y o y o xo]',S3,[otimes(otimes(xo,S.y),S.y);otimes(otimes(S.y,S.y),xo)],[],dg(0,1),164);                      % DJ (CC), 11/08/2026
+% with coefficients: a matrix on the vector ODE state and an operator on the vector PDE state, for which the
+% Kronecker product of the two depends on the order (the input of the merged factor is kron(.,.))
+Tm = rand_sopvar([2,2],vars,dom,1);     fm = apply_sopvar(Tm,S.X.y);
+Mo = [1 2;0 3];                         Mx = Mo*S3.X.yo;
+run_check('Tm*y o Mo*yo, coefficients',S3,otimes(Tm*S.y,Mo*yo),[],dg(0,1),165,false,{{{kron(fm,Mx)}}});                              % DJ (CC), 11/08/2026
+run_check('Mo*yo o Tm*y, coefficients',S3,otimes(Mo*yo,Tm*S.y),[],dg(0,1),166,false,{{{kron(Mx,fm)}}});                              % DJ (CC), 11/08/2026
+% a non-square matrix: R^3 --> R^2 on a vector ODE state of size 3
+yo3 = polyopvar({'yo3'},3,{'s1'},S.dom(1,:),false);
+S4 = S3;    S4.all = [S.y;yo3];     S4.X.yo3 = [0.9;-1.2;0.4];
+Mr = [1 2 3;0 1 4];                     Mrx = Mr*S4.X.yo3;
+run_check('Tm*y o Mr*yo3, coefficients, R^3 to R^2',S4,otimes(Tm*S.y,Mr*yo3),[],dg(0,1),167,false,{{{kron(fm,Mrx)}}});               % DJ (CC), 11/08/2026
+run_check('Mr*yo3 o Tm*y, coefficients, R^3 to R^2',S4,otimes(Mr*yo3,Tm*S.y),[],dg(0,1),168,false,{{{kron(Mrx,fm)}}});               % DJ (CC), 11/08/2026
+run_check('Mr*yo3 o Mr*yo3, coefficients',S4,otimes(Mr*yo3,Mr*yo3),[],dg(0,0),169,false,{{{kron(Mrx,Mrx)}}});                          % DJ (CC), 11/08/2026
+% factors of different sizes after merging are rejected
+assert_err(@() piesos_quadvar(piesos_program(S3.all),otimes(otimes(S.y,yo),S.y),[],dg(0,1)),'same size');                            % DJ (CC), 11/08/2026
 run_check('3*xo, scaling',S,3*xo,[],dg(0,0),142,false,{{{3*S.X.xo}}});
 run_check('[xo;T*x1]',S,[xo;T*S.x1],[],dg(0,1),143,false,{{{S.X.xo}},{{f1}}});
 end

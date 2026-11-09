@@ -114,6 +114,7 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % DJ, 10/22/2026: Support coefficients ZL.C, ZR.C, e.g. T*x;
 % DJ, 11/06/2026: Output space of V follows from V.C (see set.C);
 % DJ, 11/07/2026: Rename field 'deg' to 'degs', with a warning;
+% DJ, 11/08/2026: Support products of states without spatial variables;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -380,9 +381,6 @@ for i=1:nr
             error("Coefficients of Z%s with nested factors, e.g. a pointwise product of states in a tensor product, are not supported (row %d, column %d).",side,i,j)
         elseif blk.otype(1)==1 && size(blk.ops,2)>1
             error("The monomial basis Z%s must be defined in terms of tensor products of the variables, as in dmonomials, not elementwise products (row %d, column %d).",side,i,j)
-        elseif size(blk.ops,2)>1 && ~any(depmat(i,:))
-            % The factors of the block cannot be composed with the single factor of ZopL_i
-            error("Products of states without spatial variables in the basis Z%s are not supported (row %d, column %d).",side,i,j)
         end
     end
     % The size of each factor, if each of the factors has a copy of a variable
@@ -394,6 +392,24 @@ for i=1:nr
             error("The factors of a monomial in Z%s must have the same size (row %d).",side,i)
         end
         dims(i) = fdims(1);
+    elseif any(depmat(i,:)) && any(~any(blk.depmat.in,2) & ~any(blk.depmat.out,2))      % DJ, 11/08/2026
+        % Some factors are states without spatial variables (ODE states), 
+        % which are merged into a neighboring factor with variables.
+        % The size of that factor is the product of the sizes
+        is_R = ~any(blk.depmat.in,2) & ~any(blk.depmat.out,2);
+        fdims = blk.dims(:,1);
+        fdims_eff = zeros(0,1);     acc = 1;
+        for k=1:numel(fdims)
+            acc = acc*fdims(k);
+            if ~is_R(k)
+                fdims_eff(end+1,1) = acc;       acc = 1;
+            end
+        end
+        fdims_eff(end) = fdims_eff(end)*acc;
+        if any(fdims_eff~=fdims_eff(1))
+            error("The factors of a monomial in Z%s must have the same size, after merging the states without spatial variables into their neighbors (row %d).",side,i)
+        end
+        dims(i) = fdims_eff(1);
     end
 end
 
