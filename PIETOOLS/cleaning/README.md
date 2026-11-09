@@ -77,6 +77,13 @@ the path cannot create a second class or private definition.
   (11/04/2026), its three `pie2opvar` lines are commented out. Remaining mentions: `p0_path.m` and
   `bench_lpi_degree.m` (legacy series only) in `baselines/`, and the comments of `pie_witness_sop`.
 
+- `piess_opvar` (11/08/2026, maintainer: "Yes, move it") – from `cleaning/` itself, where c821eb72
+  put it on 11/06/2026 (from `converters/`), to `private/dead_code/PIETOOLS/converters/`. In
+  `cleaning/` it was on the MATLAB path, since `genpath` skips only `private/`. It builds `opvar`
+  and `opvar2d` objects, so it failed when called once `opvar/` left the path ("Unrecognized
+  function or variable 'opvar'", 11/08/2026). Its one caller, lines 316–323 of `converters/piess.m`,
+  is reached only by an opvar-class input (see the dead branches below).
+
 - `getController_direct_sop` (11/08/2026, maintainer: "move the unused files to cleaning and
   commit") – from `executives_sopvar/utility_functions/` to
   `private/dead_code/PIETOOLS/executives_sopvar/utility_functions/`. The controller gains without
@@ -139,7 +146,8 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   `lpi_programming_sopvar/tests/bench_getsol_sop.m` (`lpivar`, `getsol_lpivar`, `lpigetsol`) called
   retired functions until 11/08/2026.
 - Branches that only an opvar-class input reaches, now dead: `piesos_getsol`, `piesos_ineq`,
-  `dopvar2sdopvar` (static). `lpi_ineq_sop`, `lpi_eq_sop`, `getsol_lpivar_sop`, `lpigetsol_sop`,
+  `dopvar2sdopvar` (static), and lines 316–323 of `converters/piess.m`, which call `piess_opvar`
+  (off the path since 11/08/2026). `lpi_ineq_sop`, `lpi_eq_sop`, `getsol_lpivar_sop`, `lpigetsol_sop`,
   `poslpivar_sop` and `get_lpivar_degs_sop` raise their own errors for such an input since
   11/08/2026.
 
@@ -332,4 +340,5 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m` (as above) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m` | MATTHEW M PEET, 2026-09-25, db49553e |
 | `PIETOOLS/PIETOOLS_demos/cuadmm/shadows/lpisolve.m.txt`, `poslpivar.m.txt` (read only by `cuadmm_shadow`) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/shadows/` | MATTHEW M PEET, 2026-09-25, db49553e |
 | `PIETOOLS/PIETOOLS_demos/cuadmm/private/lpi_resid.m`, `opnorm_pi.m`, `opgram.m`, `pgridval.m`, `gaussleg.m`, `legval.m` (called only by `experiments/` and by each other) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/` | MATTHEW M PEET, 2026-09-25, db49553e |
+| `PIETOOLS/converters/piess_opvar.m` (split from `converters/piess.m` on 10/30/2026; in `cleaning/` itself, on the MATLAB path, from 11/06/2026, c821eb72; 11/08/2026, maintainer: "Yes, move it"; its one caller, `converters/piess.m`, reaches it only for an opvar-class input) | `dead_code/PIETOOLS/converters/piess_opvar.m` | Declan, 2026-10-30, e504f9ba |
 | `PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m` (11/08/2026, maintainer: "move the unused files to cleaning and commit"; no code caller outside `cleaning/`; builds an `opvar`, off the path) | `dead_code/PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m` | MATTHEW M PEET, 2026-10-09, 368097d3 |
