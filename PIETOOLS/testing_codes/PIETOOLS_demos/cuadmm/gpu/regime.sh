@@ -9,6 +9,9 @@
 #        overlapped other GPU jobs
 # Environment: CUADMM_OUT (Windows path), REGIME_DEADLINE (posix s). A block is
 # not started past the deadline or if $CUADMM_OUT/STOP exists.
+# MMP, 11/08/2026: the suite moved to testing_codes/PIETOOLS_demos/cuadmm
+#   (maintainer: move the testing codes to testing_codes); MATLAB also gets
+#   PIETOOLS_demos/cuadmm, which holds cuadmm_path, the first call of bl_regime.
 set -u
 PKG="$(cd "$(dirname "$0")/.." && pwd)"
 OUTW="${CUADMM_OUT:?set CUADMM_OUT}"
@@ -18,6 +21,7 @@ DMP="$OUTU/baseline/dumps"
 EXE=${CUADMM_EXE:-/home/mpeet/solvers/cuADMM/build/cuadmm_exe}
 DL="${REGIME_DEADLINE:?set REGIME_DEADLINE}"
 PKGW="$(cygpath -w "$PKG")"
+BRW="$(cygpath -w "$(cd "$PKG/../../../PIETOOLS_demos/cuadmm" && pwd)")"    # MMP, 11/08/2026
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$RG/driver.log"; }
 wsldir() { local w; w="$(cygpath -w "$1")"; echo "/mnt/$(echo "${w:0:1}" | tr A-Z a-z)$(echo "${w:2}" | tr '\\' '/')"; }
 
@@ -56,7 +60,8 @@ for blk in "$@"; do
     ;;
   *)
     log "block $blk start"
-    matlab -batch "addpath('$PKGW'); bl_regime('$blk')" > "$RG/$blk.log" 2>&1
+#   matlab -batch "addpath('$PKGW'); bl_regime('$blk')" > "$RG/$blk.log" 2>&1 # MMP, 11/08/2026 (was)
+    matlab -batch "addpath('$PKGW','$BRW'); bl_regime('$blk')" > "$RG/$blk.log" 2>&1 # MMP, 11/08/2026
     log "block $blk exit $? ($(grep -c 'REGIME done' "$RG/$blk.log") items done, $(grep -c 'REGIME ERR' "$RG/$blk.log") ERR)"
     ;;
   esac

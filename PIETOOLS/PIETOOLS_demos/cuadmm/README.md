@@ -9,6 +9,13 @@ settings ladder tuned to cuADMM's strengths. H2 was dropped from the testing reg
 - **`BASELINE_REPORT.md`** — what was measured and what it means. Start here.
 - **`SUITES.md`** — the short test lists, and which to run after which kind of change.
 
+**The baseline suite moved (11/08/2026).** The `bl_*` files except `bl_bisect`, `bl_face` and
+`bl_fix` (which `heat2d_compare` and `jp_wave_plate_rates` call), `private/`, `results/`,
+`SUITES.md`, `BASELINE_REPORT.md`, the `gpu/` shell scripts and `sol/` are in
+`testing_codes/PIETOOLS_demos/cuadmm/` (maintainer: move the testing codes to `testing_codes`).
+That folder is on the path, so `cuadmm_path` and the quick start below work unchanged; the files
+this README names in those groups are there.
+
 ## Quick start
 
 ```matlab

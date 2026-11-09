@@ -19,7 +19,10 @@
 #                  DEMO11_CdopvarControl in 36f50e26 (same LPI; B2 -> Bu and
 #                  the variables from PIE.space). The F4 comparison pairs
 #                  passes by file name, so passes 1-4 have no partner for it.
-P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/baselines/2026-11-02_opvar_phase0"
+# MMP, 11/08/2026: the harness moved to testing_codes/baselines/ (maintainer:
+#                  move the testing codes to testing_codes); P0W follows it.
+# P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/baselines/2026-11-02_opvar_phase0" # MMP, 11/08/2026 (was)
+P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/testing_codes/baselines/2026-11-02_opvar_phase0" # MMP, 11/08/2026
 LOG="$P0W/runs_phase0.log"
 NOWAIT="$2"
 mkdir -p "$P0W/logs"

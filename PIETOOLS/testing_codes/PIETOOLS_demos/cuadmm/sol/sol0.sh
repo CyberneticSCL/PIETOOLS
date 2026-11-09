@@ -11,10 +11,15 @@
 #   scale_rot_f0p50_n04 10,894 it 52.2 s F (clipped eta 1.0e-8); N1 all PASS.
 # Estimated cost: ~2-4 min of a 4-cpu / 32G / a100 job at ~37 CHE/h, i.e.
 # ~2-3 CHE (billing is on elapsed time; the 15 min walltime is a ceiling).
+# MMP, 11/08/2026: sol/ moved to testing_codes/PIETOOLS_demos/cuadmm/sol
+#   (maintainer: move the testing codes to testing_codes); the job is
+#   submitted from that folder of the pushed tree.
 set -euo pipefail
 PKG="$(cd "$(dirname "$0")/.." && pwd)"
 bash "$PKG/sol/sol_push.sh" 'C:\Users\mpeet\cuadmm_out\x0_desktop' stab_tr1 stab_rd1_hv scale_rot_f0p50_n04
-ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/PIETOOLS_demos/cuadmm && \
-         sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm"
+# ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/PIETOOLS_demos/cuadmm && \
+#          sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm" # MMP, 11/08/2026 (was)
+ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/testing_codes/PIETOOLS_demos/cuadmm && \
+         sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm" # MMP, 11/08/2026
 echo "watch: ssh sol 'squeue -u mpeet; tail -20 /scratch/mpeet/pietools/harness_out/slurm/*.out'"
 echo "fetch: bash $PKG/sol/sol_pull.sh 'C:\\Users\\mpeet\\cuadmm_out\\sol0'"

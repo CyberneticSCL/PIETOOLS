@@ -1,0 +1,6 @@
+# Copy of PIETOOLS_demos/cuadmm/.gitattributes: the suite's shell scripts moved
+# here with testing_codes (MMP, 11/08/2026).
+# The repo root sets `* text=auto` and core.autocrlf is true, so on a Windows
+# checkout these would get CRLF endings and then fail under WSL bash with
+# "$'\r': command not found". Keep shell scripts LF everywhere.
+*.sh text eol=lf

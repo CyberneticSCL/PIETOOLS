@@ -30,10 +30,17 @@ function D = t1d_path()                                                     % CC
 % Removals are RETURNED and PRINTED by the caller, never silent: a shadow that
 % had to be removed is information about the environment, and the point of B6
 % is that it was invisible the last three times.
+%
+% MMP, 11/08/2026: the suite moved to testing_codes/PIETOOLS_demos/
+%   lowrank_2d_stability/tests_1d (maintainer: move the testing codes to
+%   testing_codes); the package it tests stays in PIETOOLS_demos/, so D.root
+%   is found first, four levels up, and D.pkg from it.
 D.tests = fileparts(mfilename('fullpath'));
-D.pkg   = fileparts(D.tests);                   % lowrank_2d_stability
+D.root  = fileparts(fileparts(fileparts(fileparts(D.tests)))); % PIETOOLS tree % MMP, 11/08/2026
+% D.pkg   = fileparts(D.tests);                   % lowrank_2d_stability    % MMP, 11/08/2026 (was)
+D.pkg   = fullfile(D.root,'PIETOOLS_demos','lowrank_2d_stability');         % MMP, 11/08/2026
 D.priv  = fullfile(D.pkg,'private');            % the shipped core under test
-D.root  = fileparts(fileparts(D.pkg));          % the PIETOOLS tree
+% D.root  = fileparts(fileparts(D.pkg));          % the PIETOOLS tree       % MMP, 11/08/2026 (was)
 pu = fullfile(D.root,'pietools_path_update.m');
 if ~exist(pu,'file')
     error('t1d_path: pietools_path_update.m not found at %s',pu);

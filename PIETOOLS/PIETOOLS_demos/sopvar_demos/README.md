@@ -216,6 +216,12 @@ review's ablation of bench d = 0:
 
 ## 4. Files and how to run
 
+Since 11/08/2026 the six checks `test_heatNd_pie`, `test_heatNd_lpi`, `test_heatNd_poincare`,
+`test_copquadvar_faces`, `heatNd_validate` and `heatNd_poincare_validate` are in
+`testing_codes/PIETOOLS_demos/sopvar_demos/` (maintainer: move the testing codes to
+`testing_codes`). From a clean MATLAB, call `heatNd_path` first, which puts that folder on the
+path: `matlab -sd "<this folder>" -batch "heatNd_path; test_heatNd_pie"`.
+
 Paths are set up by `heatNd_path` (below); every other entry point calls it itself.
 Run each entry point from a clean working directory (for example this folder), with a
 command such as:

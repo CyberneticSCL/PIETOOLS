@@ -18,6 +18,11 @@ function pielr_path()
 %      loudly otherwise.  A silently shadowed converter does not fail cleanly;
 %      it produces wrong or misleading results, so shadowing is a hard error.
 %
+% MMP, 11/08/2026: pielr_bench, pielr_bench_cases and pielr_bench_diff moved
+%   to testing_codes/PIETOOLS_demos/lowrank_2d_stability/ (maintainer: move
+%   the testing codes to testing_codes); they leave `own`, which requires
+%   this folder, for `need`, which requires one copy.
+%
 % ---------------------------------------------------------------------------
 % EDIT THIS if PIETOOLS is not already on your MATLAB path:
 PIETOOLS_ROOT = '';   % e.g. 'C:/Users/me/Documents/GitHub/PIETOOLS/PIETOOLS'
@@ -68,14 +73,24 @@ end
 % The container functions the builders and the gate call; the stock
 % opvar-path functions left the path (f83486c8, 433980d7) and asserting them
 % stopped every caller with "0 copies".
+% need = {'pde_var','lpiprogram','lpi_eq_sop','lpi_ineq_sop', ...
+%         'lpivar_cdopvar','getsol_lpivar_sop','lpisolve', ...
+%         'exec_pie_sop','exec_sop_settings','exec_tools_sop', ...
+%         'lpisettings_sop','monomials','sortrows_integerTable'};           % MMP, 11/08/2026 (was)
+% own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...
+%         'set2d_deg','nb_rd2d','build_stab_2d_st2', ...
+%         'pielr_solve','pielr_bench','pielr_bench_cases', ...
+%         'pielr_bench_diff','pielr_private'};                              % MMP, 11/08/2026 (was)
+% The benches are in testing_codes/, outside this folder: one copy is       % MMP, 11/08/2026
+% asserted, not the folder.                                                 % MMP, 11/08/2026
 need = {'pde_var','lpiprogram','lpi_eq_sop','lpi_ineq_sop', ...
         'lpivar_cdopvar','getsol_lpivar_sop','lpisolve', ...
         'exec_pie_sop','exec_sop_settings','exec_tools_sop', ...
-        'lpisettings_sop','monomials','sortrows_integerTable'};             % CC, 11/08/2026
-own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...        % CC, 09/19/2026
-        'set2d_deg','nb_rd2d','build_stab_2d_st2', ...                 % CC, 09/19/2026
-        'pielr_solve','pielr_bench','pielr_bench_cases', ...           % CC, 09/23/2026
-        'pielr_bench_diff','pielr_private'};                           % CC, 09/23/2026
+        'lpisettings_sop','monomials','sortrows_integerTable', ...
+        'pielr_bench','pielr_bench_cases','pielr_bench_diff'};              % MMP, 11/08/2026
+own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...
+        'set2d_deg','nb_rd2d','build_stab_2d_st2', ...
+        'pielr_solve','pielr_private'};                                     % MMP, 11/08/2026
 % The new entry points join the shadow assert for the same reason the old ones % CC, 09/23/2026
 % are in it: a second copy on the path (an agent worktree, a stale scratch     % CC, 09/23/2026
 % folder) silently changes which code a benchmark measures, and a benchmark    % CC, 09/23/2026

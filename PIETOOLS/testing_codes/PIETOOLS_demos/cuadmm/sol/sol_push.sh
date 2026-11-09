@@ -12,11 +12,16 @@
 # the desktop/Sol comparison a comparison.  Also copies regime/*.mat (the
 # desktop's Mosek brackets, which Sol cannot compute).  Needs the ASU VPN and
 # the ssh key (memory: asu-sol-access-and-environment).  No Duo prompt.
+# MMP, 11/08/2026: this script moved to testing_codes/PIETOOLS_demos/cuadmm/sol
+#   (maintainer: move the testing codes to testing_codes); TREE climbs one
+#   more level, so the push still sends the whole PIETOOLS tree.
 set -euo pipefail
 OUTW="${1:?local CUADMM_OUT}"; shift
 OUTU="$(cygpath -u "$OUTW")"
-PKG="$(cd "$(dirname "$0")/.." && pwd)"          # .../PIETOOLS/PIETOOLS_demos/cuadmm
-TREE="$(cd "$PKG/../.." && pwd)"                 # .../PIETOOLS (the checkout root)
+# PKG="$(cd "$(dirname "$0")/.." && pwd)"          # .../PIETOOLS/PIETOOLS_demos/cuadmm # MMP, 11/08/2026 (was)
+PKG="$(cd "$(dirname "$0")/.." && pwd)"          # .../PIETOOLS/testing_codes/PIETOOLS_demos/cuadmm # MMP, 11/08/2026
+# TREE="$(cd "$PKG/../.." && pwd)"                 # .../PIETOOLS (the checkout root) # MMP, 11/08/2026 (was)
+TREE="$(cd "$PKG/../../.." && pwd)"   # PKG is .../PIETOOLS/testing_codes/PIETOOLS_demos/cuadmm # MMP, 11/08/2026
 SOL=/scratch/mpeet/pietools
 ssh sol "mkdir -p $SOL/harness $SOL/harness_out/baseline/dumps $SOL/harness_out/regime $SOL/harness_out/slurm"
 

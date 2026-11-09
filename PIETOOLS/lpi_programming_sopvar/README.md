@@ -38,6 +38,9 @@ MMP, 11/04/2026: `lpiprogram_sop` and its test `test_lpiprogram_sop` moved to
 its extra input forms (names, containers, a `vars`/`dom` struct) only filled unread fields (§2).
 Callers declare the program with `lpiprogram` (a PIE: `lpiprogram(PIE.vars,PIE.dom)`). The folder
 root holds eleven user functions.
+MMP, 11/08/2026: `tests/` (17 files, `tests/private/` included) moved to
+`testing_codes/lpi_programming_sopvar/tests/` (maintainer: move the testing codes to
+`testing_codes`); `tests/` below names that folder. It is on the path, so the tests run by name.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
