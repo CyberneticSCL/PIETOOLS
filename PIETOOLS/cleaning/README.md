@@ -53,6 +53,16 @@ the path cannot create a second class or private definition.
   `Bench_copvar_vs_legacy`) already failed on `opvar2d`/`rand_opvar`, and
   `copvar2opvar`/`copvar2opvar2d` still name `copvar2nopvar` in an error message.
 
+- `mopvar` and six files that only retired code calls (11/09/2026, maintainer: "move this into
+  orphaned code", for the `mopvar` constructor, and "move to orphaned code") – to
+  `orphaned_file/private/`: the class folder `sopvar/@mopvar/` (`mopvar`, `canonicalize`, `verify`)
+  as `@mopvar/`; `sopvar/@copvar/canonicalize.m` as `@copvar/canonicalize.m`; `sdopvar2dopvar`
+  (`converters/operator_converters/`); `possopvar` and `poscopvar_lift`
+  (`lpi_programming_sopvar/misc/`), then `sopquadvar` and `posmult_cdopvar` from the same folder,
+  whose last live callers were those two. A live caller is code outside `testing_codes/`,
+  `cleaning/private/` and `orphaned_file/private/`; none had one. `SOSTOOLS400/mpmonomials.m`, also
+  called only by retired code, stays: SOSTOOLS is a separate toolbox (maintainer: leave it).
+
 - `copvar2opvar`, `copvar2opvar2d`, `sopvar2opvar` and 7 failing tests (11/08/2026, maintainer: "Move
   copvar2opvar, copvar2opvar2d and sopvar2opvar, as well as the failing tests into the clean folder
   for deletion") â€“ to `private/dead_code/PIETOOLS/sopvar/{copvar,sopvar}_class/`. All three build an

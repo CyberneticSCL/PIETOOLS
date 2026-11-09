@@ -137,6 +137,25 @@ On 11/09/2026, for the move into `private/`, seven files changed, each marked "M
 The READMEs above now name `testing_codes/private/`; those of `cuadmm`, `sopvar_demos` and
 `lpi_programming_sopvar` say how to add the folders.
 
+## Added on 11/09/2026
+
+Files that no live code calls (live: outside `testing_codes/`, `cleaning/private/` and
+`orphaned_file/private/`) and that tests call (maintainer: "move to testing folder"; for the files
+only tests call, "Leave PIESOS and PIESIM alone", so the PIESOS files of both groups stay). Each
+sits at its old path below `private/`, except `sopvar2opvar2d`.
+
+| File | Callers |
+|---|---|
+| `PIETOOLS_demos/cuadmm/cuimport.m` | `bl_verify` and retired code; `cuadmm_path` no longer asserts it |
+| `converters/operator_converters/opvar2d2copvar.m` | one test and retired code |
+| `sopvar/Testfolder/sdopvar/sopvar2opvar2d.m` | its two tests, beside it, and retired code. A method of `sopvar` until 11/09/2026 (in `sopvar/@sopvar/`); as a plain function it serves the same calls, since it reads only public properties |
+| `PIETOOLS_demos/sopvar_demos/heatNd_poincare.m` | tests only |
+| `PIETOOLS_demos/sopvar_demos/heatNd_poincare_ops.m` | tests only, once `heatNd_poincare` moved |
+| `lpi_programming_sopvar/misc/subs_dvar_sop.m` | tests only |
+
+Files that only retired code calls went to `orphaned_file/private/` the same day (record in
+`cleaning/README.md`).
+
 ## Checked (11/08/2026, on the default path)
 
 - Resolution: each of the 240 moved functions resolves first, and only once in the tree, at its

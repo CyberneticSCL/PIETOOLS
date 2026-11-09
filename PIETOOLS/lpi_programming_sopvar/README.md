@@ -44,6 +44,10 @@ MMP, 11/08/2026: `tests/` (17 files, `tests/private/` included) moved to
 MMP, 11/09/2026: the folder is now `testing_codes/private/lpi_programming_sopvar/tests/`, off the
 path (maintainer: "To be safe, move the files in testing folder a private subfolder."). To run the
 tests, make it the current folder or add it to the path.
+MMP, 11/09/2026: `misc/possopvar`, `poscopvar_lift`, `posmult_cdopvar` and `sopquadvar`, which only
+retired code calls, moved to `orphaned_file/private/` (maintainer: "move to orphaned code"), and
+`misc/subs_dvar_sop`, which only tests call, to `testing_codes/private/lpi_programming_sopvar/misc/`
+(maintainer: "move to testing folder"). The table below marks them.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -84,14 +88,14 @@ the demos call some of them). From `sopvar/lpis_sopvar` (10/16/2026) and the for
 
 | function | what it does |
 |---|---|
-| `subs_dvar_sop` | `lpigetsol_sop` at given decision values, for certifying a candidate point (§2) |
+| `subs_dvar_sop` | `lpigetsol_sop` at given decision values, for certifying a candidate point (§2); in `testing_codes/private/` since 11/09/2026 |
 | `lpigetdual_sop` | the solver's multipliers of one container equality as its signed dual kernel; needs `prog.sopeq = {}` set after `lpiprogram` |
 | `lpi_shape_sop` | the SDP shape: decision variables, PSD block sizes, equality rows, primal length |
 | `lpi_classify_sop` | the solver exit: optimal, inaccurate, infeasible, unbounded or unknown |
 | `copquadvar` | the quadratic form in a list of basis operators, with one Gram matrix over every (space, basis operator) pair, built from the pair integrals; types `'pos'` and `'sym'`; the reference of the tests of `poscopvar_direct` |
 | `poscopvar_direct` | the operator of `poscopvar`, mapped from the Gram blocks straight to the kernel coefficients; used by `lpi_ineq_sop` |
-| `poscopvar_lift`, `lift_copvar`, `posmult_cdopvar` | the separated form `Pop = A'*M*A`: the fixed moment lift `A`, the positive multiplier `M` |
-| `possopvar`, `sopquadvar` | the one-space (`sdopvar`) counterparts of `poscopvar` and `copquadvar`; `sopquadvar` calls `copquadvar` |
+| `poscopvar_lift`, `lift_copvar`, `posmult_cdopvar` | the separated form `Pop = A'*M*A`: the fixed moment lift `A`, the positive multiplier `M`; `poscopvar_lift` and `posmult_cdopvar` in `orphaned_file/private/` since 11/09/2026 |
+| `possopvar`, `sopquadvar` | the one-space (`sdopvar`) counterparts of `poscopvar` and `copquadvar`; `sopquadvar` calls `copquadvar`; both in `orphaned_file/private/` since 11/09/2026 |
 | `get_lift_degs` | sizes the positive operator that cancels a self-adjoint `P`, for `lpi_ineq_sop` |
 | `eq_opts_sopvar` | the `possopvar` options read off the support of an operator (counterpart of `get_eq_opts_2D`) |
 | `lpi_eq_cdopvar`, `lpi_eq_sdopvar` | impose `P == 0` for a `cdopvar` / `sdopvar`; called by `lpi_eq_sop` |

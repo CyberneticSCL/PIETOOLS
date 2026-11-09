@@ -36,7 +36,9 @@ function cuadmm_path(mode)                                                  % CC
 % MMP, 11/09/2026: bl_run and bl_check leave the step-5 list. The suite moved
 %   to testing_codes/private/ (maintainer: "To be safe, move the files in
 %   testing folder a private subfolder."), off the path, where they resolve
-%   zero times and the assert would stop every caller.
+%   zero times and the assert would stop every caller. cuimport followed
+%   them (only tests and retired code call it; maintainer: "move to testing
+%   folder") and leaves the list for the same reason.
 
 % ---------------------------------------------------------------------------
 % EDIT THESE for your machine. Missing folders are skipped.
@@ -100,10 +102,10 @@ if exist(MOSEK,'dir'),  addpath(MOSEK);  end
 % need = {'poscopvar','lpi_eq_sop','lpiprogram','lpisolve','sossolve', ...
 %         'lpi_ineq_sop','lpivar_cdopvar','exec_tools_sop', ...
 %         'bl_run','bl_check','cuadmm_settings','cuimport','bl_fix'};       % MMP, 11/09/2026 (was)
-% bl_run, bl_check: off the path in testing_codes/private/ (header).        % MMP, 11/09/2026
+% bl_run, bl_check, cuimport: off the path in testing_codes/private/.       % MMP, 11/09/2026
 need = {'poscopvar','lpi_eq_sop','lpiprogram','lpisolve','sossolve', ...
         'lpi_ineq_sop','lpivar_cdopvar','exec_tools_sop', ...
-        'cuadmm_settings','cuimport','bl_fix'};                             % MMP, 11/09/2026
+        'cuadmm_settings','bl_fix'};                                        % MMP, 11/09/2026
 for i = 1:numel(need)
     w = unique(which(need{i},'-all'));
     if numel(w) ~= 1

@@ -48,6 +48,12 @@ function Pop = sopvar2opvar2d(Psop)
 %                  already in those. Dummy convention unchanged.
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): notes tightened,
 %                  a commented-out statement removed; code unchanged.
+% MMP, 11/09/2026: Moved from sopvar/@sopvar/, where it was a method, to
+%                  the folder of its two tests as a plain function
+%                  (maintainer: "move to testing folder"; only tests and
+%                  retired code call it, and opvar2d is retired). The calls
+%                  sopvar2opvar2d(Csop) reach it unchanged: it reads only
+%                  public properties of sopvar. Code unchanged.
 
 % Extract the dimension, variables and domain of the operator
 dims = Psop.dims;
