@@ -123,6 +123,8 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
 %   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
 % DJ, 11/08/2026: Extract term k by C{':',k} and Z(k,:);
+% DJ, 11/09/2026: Give PIE components obtained from the same PDE component
+%                  (e.g. a delayed state and its history) unique PDE names;
 
 % Check the options
 if nargin<=4
@@ -149,6 +151,11 @@ if ~PIE.is_initialized                                                      % DJ
 end
 varname_pie = PIE.space.x.varname;
 varname_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));
+% PIE components from the same PDE component share its name: make unique
+[~,idcs_first] = unique(varname_pde,'stable');                              % DJ, 11/09/2026
+for i=setdiff(1:numel(varname_pde),idcs_first)
+    varname_pde{i} = [varname_pde{i},'_',num2str(i)];
+end
 
 % Check that the state variables are properly declared
 if (ischar(xvars) || (isstring(xvars) && isscalar(xvars))) && ~isempty(xvars)
