@@ -142,6 +142,13 @@ classdef npie_struct
 % A component d/dt u would instead have tdiff=1, and the boundary value
 % u(t,1) would have diff=0 and loc=1.
 %
+% The PDE state, as a `polyopvar` object in terms of the PIE state, is
+% available as
+%
+% - PIE.x_pde:  (dependent) 'polyopvar' representing x_pde = X_pde*T*x,
+%               computed as PIE.pie2pde.x*PIE.T*PIE.x. Assumes that Tw and
+%               Tu are empty, so that x_pde does not depend on w and u;
+%
 % The relation is a bijection only between admissible trajectories: x_pde
 % must satisfy the BCs, i.e. be of the form X_pde*(T*x+Tw*w+Tu*u), and, if
 % K is nontrivial, Ku*u + Kw*w + K*x = 0. For the components with tdiff=0
@@ -191,6 +198,8 @@ classdef npie_struct
 %
 % DJ, 10/29/2026: Initial coding;
 % DJ, 11/03/2026: Convert a pie_struct object, using pie2npie_struct;
+% DJ, 11/09/2026: Add dependent property x_pde, the PDE state in terms
+%                   of the PIE state, pie2pde.x*T*x;
 
 properties
     % The dynamics
@@ -235,6 +244,9 @@ end
 properties (Dependent)
     % Spatial dimension of the PIE.
     dim;
+    % The PDE state in terms of the PIE state.
+    x_pde;
+    f_pde;
 end
 
 methods
@@ -320,6 +332,56 @@ function val = get.x(obj)
         sp = obj.space.x;
     end
     val = polyopvar(sp.varname,sp.dims,obj.space.vars,obj.space.dom,sp.depmat);
+end
+
+% The PDE state in terms of the PIE state (polyopvar)
+function val = get.x_pde(obj)                                               % DJ, 11/09/2026
+    % VAL = GET.X_PDE(OBJ) returns the PDE state x_pde = X_pde*T*x as a
+    % polyopvar in the PIE state, with X_pde = pie2pde.x, see the header.
+    % Tw and Tu are ignored (assumed empty), as 
+    %   x_pde = X_pde*(T*x+Tw*w+Tu*u).
+    % This may differ from just T*x in the case of e.g. PDEs with
+    % higher-order temporal derivatives or delays, in which case X_pde may
+    % not be an identity operator.
+    %
+    % INPUT
+    % - obj:    1x1 'npie_struct';
+    %
+    % OUTPUT
+    % - val:    'polyopvar' with a component for each row of pie2pde.x, in
+    %           the variables of PIE.x; empty polyopvar if the PIE has no
+    %           PDE state components;
+    if isempty(obj.space.x.dims) || isempty(obj.space_pde.x.dims)
+        % No PIE state, or PIE not constructed from a PDE: nothing to map
+        val = polyopvar();
+        return
+    end
+    val = obj.pie2pde.x*obj.T*obj.x;
+end
+
+% The dynamics for just the PDE state (polyopvar)
+function val = get.f_pde(obj)                                               % DJ, 11/09/2026
+    % VAL = GET.F_PDE(OBJ) returns the polynomial f_pde = X_pde*f(x) as a
+    % polyopvar in the PIE state, with X_pde = pie2pde.x, see the header.
+    % Tw and Tu are ignored (assumed empty), as 
+    %   f_pde(x) = X_pde*(f(x)+Bw*w+Bu*u).
+    % This gives the dynamics of the PDE state, expressed in terms of the
+    % PIE state
+    %   d/dt x_pde = f_pde(x)
+    %
+    % INPUT
+    % - obj:    1x1 'npie_struct';
+    %
+    % OUTPUT
+    % - val:    'polyopvar' with a component for each row of pie2pde.x, in
+    %           the variables of PIE.x; empty polyopvar if the PIE has no
+    %           PDE state components;
+    if isempty(obj.space.x.dims) || isempty(obj.space_pde.x.dims)
+        % No PIE state, or PIE not constructed from a PDE: nothing to map
+        val = polyopvar();
+        return
+    end
+    val = obj.pie2pde.x*obj.f;
 end
 
 function val = get.D11(obj),        val = obj.Dzw;          end

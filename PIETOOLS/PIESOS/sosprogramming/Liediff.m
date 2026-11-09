@@ -75,6 +75,8 @@ function dV = Liediff(V,PIE)
 %   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
 % DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
 % DJ, 11/08/2026: Extract term k of V by V.C{':',k} and V.Z(k,:);
+% DJ, 11/09/2026: Give PIE components obtained from the same PDE component
+%                  (e.g. a delayed state and its history) unique PDE names;
 
 % Check the inputs
 if ~isa(V,'polyopvar')
@@ -99,6 +101,11 @@ V = clean_poly(V);
 % Every state in V must be a PDE state u or a PIE state x of the PIE; names
 % in both lists could not be told apart
 names_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));                % DJ, 10/29/2026
+% PIE components from the same PDE component share its name: make unique
+[~,idcs_first] = unique(names_pde,'stable');                                % DJ, 11/09/2026
+for i=setdiff(1:numel(names_pde),idcs_first)
+    names_pde{i} = [names_pde{i},'_',num2str(i)];
+end
 names_pie = PIE.space.x.varname;
 if any(ismember(names_pde,names_pie))
     error("PDE and PIE state variables must have different names.")

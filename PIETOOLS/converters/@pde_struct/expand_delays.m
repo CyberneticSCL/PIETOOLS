@@ -80,6 +80,7 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % DJ, 10/29/2026: Return the evaluation positions in del_state_tab as -1
 %                   (lower boundary), 0 (interior) and 1 (upper boundary),
 %                   instead of {0,1,2};
+% DJ, 11/09/2026: Support nonlinear PDEs with delay in linear terms;
 
 if nargin==1
     suppress_summary = false;
@@ -239,8 +240,17 @@ for ii=1:ncomps
     % % Loop over all terms and replace delays with new state.
     for jj=1:nterms
         term_jj = PDE.(Lobj){ii}.term{jj};
-        if numel(term_jj)>1                                                 % DJ, 02/21/2026
-            error("Delays are not supported in nonlinear terms.")
+        if numel(term_jj)>1
+            % Nonlinear terms are only an error if a factor is delayed, as
+            % they are left unchanged otherwise (e.g. x(t)^3 in a PDE with
+            % a delayed linear term)
+            for kk=1:numel(term_jj)
+                delay_kk = term_jj(kk).delay;
+                if ~((isa(delay_kk,'double') || isdouble(delay_kk)) && double(delay_kk)==0)
+                    error("Delays are not supported in nonlinear terms.")
+                end
+            end
+            continue
         end
 
         % % Extract the delay.

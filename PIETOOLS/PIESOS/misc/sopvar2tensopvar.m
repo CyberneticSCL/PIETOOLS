@@ -43,6 +43,8 @@ function Top = sopvar2tensopvar(Pop,type)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/09/2026: Sort the variables of a single-operator tensopvar,
+%                   as 'initialize' does for several factors;
 
 % Check the input
 if ~isa(Pop,'sopvar') && ~isa(Pop,'cell')
@@ -61,9 +63,12 @@ if ~isa(Pop,'cell')
     Top = tensopvar();
     Top.ops = {Pop};
     Top.otype = type;
-    % Set spatial variables and domain
-    Top.vars = Pop.vars;
-    Top.dom = Pop.dom;
+    % Set spatial variables and domain, in the sorted order used by
+    % tensopvar (the factor itself keeps the [S2,S3] order of the 'sopvar')
+    [vars_in,idcs_in] = sort(Pop.vars.in);
+    [vars_out,idcs_out] = sort(Pop.vars.out);
+    Top.vars = struct('in',{vars_in},'out',{vars_out});
+    Top.dom = struct('in',Pop.dom.in(idcs_in,:),'out',Pop.dom.out(idcs_out,:));
     Top.dims = size(Pop);
     Top.depmat.in = ones(1,size(Top.vars.in,2));
     Top.depmat.out = ones(1,size(Top.vars.out,2));
