@@ -64,6 +64,26 @@ the path cannot create a second class or private definition.
   `cleaning/private/` and `orphaned_file/private/`; none had one. `SOSTOOLS400/mpmonomials.m`, also
   called only by retired code, stays: SOSTOOLS is a separate toolbox (maintainer: leave it).
 
+- `poly_decomp_1D`, `initialize_PIETOOLS_PIE` and seven demo tools that nothing calls (11/09/2026,
+  maintainer: "move to orphaned code") – to `orphaned_file/private/`: `misc/poly_decomp_1D`,
+  `converters/initialize_PIETOOLS_PIE`, `cuadmm_linear_psatz` (`PIETOOLS_demos/cuadmm/`),
+  `pielr_face_encode`, `regen_face`, `set2d_psatz4` (`PIETOOLS_demos/lowrank_2d_stability/`),
+  `jp_wave_plate_rates` (`PIETOOLS_demos/multivariate_PIE_2508_14840/`), `heatNd_ladder` and
+  `heatNd_tailor` (`PIETOOLS_demos/sopvar_demos/`). None had a caller, tests and retired code
+  included. `pielr_ipm_ref`, uncalled by name too, stays: the low-rank benches reach it through
+  `pielr_private(name)`.
+
+- Tests that need the retired `opvar2d` (11/09/2026, maintainer: "move to cleaning") – from
+  `testing_codes/private/` to `private/dead_code/PIETOOLS/testing_codes/private_files/`:
+  `sopvar/Testfolder/sdopvar/Test_apply_sopvar_2d`, `Test_ctranspose_sopvar_2d` and
+  `Test_mtimes_sopvar_2d`, which stop at `rand_opvar2d`, with `sopvar2opvar2d`, which only the last
+  two call; `lpi_programming_sopvar/tests/e2e_stability_2d` (E3), which stops in its reference
+  `cx_stability_2D`, with `converters/operator_converters/opvar2d2copvar`; and `cx_stability_2D`
+  itself, to `private/definitely/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/
+  claude_tests/cx_exec/`. Measured on 11/09/2026. `test_endtoend_sop('all')` now runs E1, E2 and
+  E4. The Phase 0 and class-ops baselines, which name `opvar2d` too, stay: they run on exports of
+  older trees.
+
 - `copvar2opvar`, `copvar2opvar2d`, `sopvar2opvar` and 7 failing tests (11/08/2026, maintainer: "Move
   copvar2opvar, copvar2opvar2d and sopvar2opvar, as well as the failing tests into the clean folder
   for deletion") â€“ to `private/dead_code/PIETOOLS/sopvar/{copvar,sopvar}_class/`. All three build an
@@ -110,7 +130,7 @@ the path cannot create a second class or private definition.
 
 | Files | Reason kept |
 |---|---|
-| 12 helpers in `PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/` (`cx_exec/cx_PIE2PDEstability`, `cx_plant`, `cx_resid`, `cx_settings`, `cx_shape`, `cx_solve`, `cx_space_list`, `cx_stability_2D`, `cx_stability_eq_opts_2D`, `cx_stability_pos2d`; `pi_dpvar_eval`, `pi_poly_grid`) | called by 9 tests in `lpi_programming_sopvar/tests/` and by `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m`; since 11/08/2026 ten of them are with the tests, now in `testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/`, and `cx_resid` and `cx_shape`, which the two demos call, stay (`testing_codes/README.md`) |
+| 12 helpers in `PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/` (`cx_exec/cx_PIE2PDEstability`, `cx_plant`, `cx_resid`, `cx_settings`, `cx_shape`, `cx_solve`, `cx_space_list`, `cx_stability_2D`, `cx_stability_eq_opts_2D`, `cx_stability_pos2d`; `pi_dpvar_eval`, `pi_poly_grid`) | called by 9 tests in `lpi_programming_sopvar/tests/` and by `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m`; since 11/08/2026 ten of them are with the tests, now in `testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/`, and `cx_resid` and `cx_shape`, which the two demos call, stay (`testing_codes/README.md`); `cx_stability_2D` went to `definitely/` on 11/09/2026 (it needs the retired `opvar2d`) |
 | `PIETOOLS/converters/internal/legacy/` (8 files) | called by `PIETOOLS_DDE.m`, `convert_PIETOOLS_PDE.m` and `initialize_PIETOOLS_PDE.m` |
 | `PIETOOLS/opvar/2D/@opvar2d/*_legacy.m`, `@dopvar2d/*_legacy.m` (6 files) | called by the 2-D H-infinity executives; moved with `opvar/` on 11/08/2026 |
 | `PIETOOLS/opvar/inv_opvar_old.m` | called by `inv_opvar.m`; moved with `opvar/` on 11/08/2026 |
@@ -146,6 +166,7 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
 - `PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m` (the stock LPI layer),
   `PIETOOLS_demos/lowrank_2d_stability/` (the stock executives and LPI layer) and
   `PIETOOLS_demos/cuadmm/heat2d_compare.m` (through `lowrank_2d_stability`) (static).
+  `jp_wave_plate_rates` is in `orphaned_file/private/` since 11/09/2026.
 - The manual snippets of Ch3 and Ch5 build opvars (static). `lpi_programming_sopvar/examples/
   volterra_norm_sop.m` did too, until 11/08/2026.
 - `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m:59, 72–74`, the reference of
@@ -155,7 +176,8 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   (`opvar2d2copvar:badInput`) with the `extreme` settings, and at line 52, its `use_sosineq = 1`
   error, with the default `light`. The transcription in E3 (`build_2d`) and part 4 of
   `lpi_programming_sopvar/tests/bench_getsol_sop.m` (`lpivar`, `getsol_lpivar`, `lpigetsol`) called
-  retired functions until 11/08/2026.
+  retired functions until 11/08/2026. E3, `cx_stability_2D` and `opvar2d2copvar` are in `private/`
+  since 11/09/2026 (above).
 - Branches that only an opvar-class input reaches, now dead: `piesos_getsol`, `piesos_ineq`,
   `dopvar2sdopvar` (static), and lines 316–323 of `converters/piess.m`, which call `piess_opvar`
   (off the path since 11/08/2026). `lpi_ineq_sop`, `lpi_eq_sop`, `getsol_lpivar_sop`, `lpigetsol_sop`,
@@ -353,3 +375,10 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/PIETOOLS_demos/cuadmm/private/lpi_resid.m`, `opnorm_pi.m`, `opgram.m`, `pgridval.m`, `gaussleg.m`, `legval.m` (called only by `experiments/` and by each other) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/` | MATTHEW M PEET, 2026-09-25, db49553e |
 | `PIETOOLS/converters/piess_opvar.m` (split from `converters/piess.m` on 10/30/2026; in `cleaning/` itself, on the MATLAB path, from 11/06/2026, c821eb72; 11/08/2026, maintainer: "Yes, move it"; its one caller, `converters/piess.m`, reaches it only for an opvar-class input) | `dead_code/PIETOOLS/converters/piess_opvar.m` | Declan, 2026-10-30, e504f9ba |
 | `PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m` (11/08/2026, maintainer: "move the unused files to cleaning and commit"; no code caller outside `cleaning/`; builds an `opvar`, off the path) | `dead_code/PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m` | MATTHEW M PEET, 2026-10-09, 368097d3 |
+| `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_apply_sopvar_2d.m` (11/09/2026, maintainer: tests that need the retired `opvar2d`, "move to cleaning") | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_apply_sopvar_2d.m` | Declan, 2026-06-07, 46aed89c |
+| `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_ctranspose_sopvar_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_ctranspose_sopvar_2d.m` | Declan, 2026-05-27, 4da69e4f |
+| `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar_2d.m` | Declan, 2026-05-27, 5135d8f5 |
+| `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/sopvar2opvar2d.m` (a `sopvar` method until 11/09/2026) | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/sopvar2opvar2d.m` | Declan, 2026-05-27, efd66d8f |
+| `PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/e2e_stability_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/lpi_programming_sopvar/tests/e2e_stability_2d.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
+| `PIETOOLS/testing_codes/private/converters/operator_converters/opvar2d2copvar.m` | `dead_code/PIETOOLS/testing_codes/private_files/converters/operator_converters/opvar2d2copvar.m` | MATTHEW M PEET, 2026-09-19, 2ba10689 |
+| `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m` | `definitely/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m` | MATTHEW M PEET, 2026-09-25, 2be2e6b5 |

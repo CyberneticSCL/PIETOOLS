@@ -102,7 +102,7 @@ all). A previous certificate chains the same way: `pielr_certify(PIE2, cert)`.
 | `pielr_tensor.m` | replicate a certified n=1 face across states, per monomial group |
 | `demo_lowrank_2d.m` | the heat-equation showcase (table below) |
 | `demo_your_system.m` | commented template: your own PDE, and the raw-T/A entry point |
-| `regen_face.m` | regenerates `face_n1.mat` from scratch (~30 min; the .mat is not magic) |
+| `regen_face.m` | regenerates `face_n1.mat` from scratch (~30 min; the .mat is not magic); in `orphaned_file/private/` since 11/09/2026 (no caller; maintainer: "move to orphaned code"), with `pielr_face_encode` and `set2d_psatz4` |
 | `face_n1.mat` | shipped certified n=1 heat face (V, S in original units, partition, provenance) |
 | [`theory.pdf`](theory.pdf) (`.tex`) | the theory note: why certificates are low rank, why the restricted search is sound, where it stops working |
 | [`GUIDE.md`](GUIDE.md) | the usage guide: full command-line workflow for your own system, knobs, failure triage |

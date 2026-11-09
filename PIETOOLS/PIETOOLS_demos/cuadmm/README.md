@@ -10,7 +10,7 @@ settings ladder tuned to cuADMM's strengths. H2 was dropped from the testing reg
 - **`SUITES.md`** — the short test lists, and which to run after which kind of change.
 
 **The baseline suite moved (11/08/2026).** The `bl_*` files except `bl_bisect`, `bl_face` and
-`bl_fix` (which `heat2d_compare` and `jp_wave_plate_rates` call), `private/`, `results/`,
+`bl_fix` (which `heat2d_compare` calls, and `jp_wave_plate_rates` until 11/09/2026), `private/`, `results/`,
 `SUITES.md`, `BASELINE_REPORT.md`, the `gpu/` shell scripts, `sol/` and, since 11/09/2026,
 `cuimport` (only tests and retired code call it; maintainer: "move to testing folder") are in
 `testing_codes/private/PIETOOLS_demos/cuadmm/` (maintainer: move the testing codes to
@@ -102,7 +102,8 @@ Not ported; each still calls the stock code:
   copies of `lpisolve` and the stock `poslpivar`), and `private/lpi_resid`, `opnorm_pi`,
   `opgram`, `pgridval`, `gaussleg`, `legval` (Galerkin matrices of `opvar` operators), now in
   `private_files/` there;
-- `cuadmm_linear_psatz` (no caller): it stops on the missing `eq_opts_psatz`, see below.
+- `cuadmm_linear_psatz` (no caller): it stops on the missing `eq_opts_psatz`, see below. In
+  `orphaned_file/private/` since 11/09/2026 (maintainer: "move to orphaned code").
 
 `heat2d_compare.m` runs on the container path since the low-rank package was ported (11/08/2026,
 c3bfac42): its LPI is the build of `pielr_lpi('stability')`, the form `'P'` LPI of
@@ -127,7 +128,7 @@ not this port.
 |---|---|
 | `cuadmm_path.m` | path setup; run first. Edit the SeDuMi/Mosek folders at its top for your machine |
 | `cuadmm_settings.m` | `cuadmm_settings(tier,dim)`, the tiered settings ladder — same interface as `pielr_settings` |
-| `cuadmm_linear_psatz.m` | turns on the four linear 2-D psatz generators on a settings struct |
+| `cuadmm_linear_psatz.m` | turns on the four linear 2-D psatz generators on a settings struct; in `orphaned_file/private/` since 11/09/2026 |
 | `bl_cases.m`, `bl_suites.m` | the case registry, and the question-organised lists over it |
 | `bl_check.m` | runs a list against `bl_expect.tsv`; `bl_check(s,'bank')` records new cases |
 | `bl_run.m`, `bl_scale.m`, `bl_big.m` | Mosek arm, size ladder, and the rungs Mosek cannot solve |

@@ -222,7 +222,9 @@ Since 11/08/2026 the six checks `test_heatNd_pie`, `test_heatNd_lpi`, `test_heat
 `testing_codes/private/PIETOOLS_demos/sopvar_demos/`, off the path (maintainer: "To be safe, move
 the files in testing folder a private subfolder."). `heatNd_poincare` and `heatNd_poincare_ops`,
 which only those checks call, joined them on 11/09/2026 (maintainer: "move to testing folder"); §11
-describes them as before. From a clean MATLAB, call `heatNd_path`, then add that folder:
+describes them as before. `heatNd_ladder` and `heatNd_tailor`, which nothing called, moved to
+`orphaned_file/private/` the same day (maintainer: "move to orphaned code"); §7 and §12 describe
+them as before. From a clean MATLAB, call `heatNd_path`, then add that folder:
 `matlab -sd "<this folder>" -batch "heatNd_path; addpath(fullfile(pwd,'..','..','testing_codes','private','PIETOOLS_demos','sopvar_demos')); test_heatNd_pie"`.
 
 Paths are set up by `heatNd_path` (below); every other entry point calls it itself.
@@ -242,7 +244,7 @@ Semantics and the building blocks:
 | `heatNd_sdp.m` | `D = heatNd_sdp(prog,file,meta)` returns the pre-solve SeDuMi SDP (At, b, c, K) that `sossolve` would build, with nothing shadowed. It saves that SDP, or a given SDP struct, with metadata (v7.3): κ, the independent row set and the reference verdict with its route (§8). |
 | `heatNd_solve.m` | `v = heatNd_solve(prog, D or file, opts)` solves with MOSEK and returns a **certified** verdict (§5). `tight` sets MOSEK tolerances to 1e−10. For a dump file, the stored row set and reference route are the defaults. `route 'lpisolve'` cross-checks through `sossolve`. |
 | `heatNd_bisect.m` | `B = heatNd_bisect(pie,d,ep,opts,bopts)` bisects on κ over certified verdicts (§5), using the κ-affine SDP. It can resume (`trace0`, `kaff_file`), and it accepts an `oracle` in place of the solver for testing. |
-| `heatNd_ladder.m` | `L = heatNd_ladder(rungs,lopts)` is a build-only sweep over (N, d, preset). It **prices each rung before building** and skips any projected over 24 GB or 20 min, logging what it skipped. Optional dumps (off by default) are named by κ and carry no reference verdict. |
+| `heatNd_ladder.m` | In `orphaned_file/private/` since 11/09/2026. `L = heatNd_ladder(rungs,lopts)` is a build-only sweep over (N, d, preset). It **prices each rung before building** and skips any projected over 24 GB or 20 min, logging what it skipped. Optional dumps (off by default) are named by κ and carry no reference verdict. |
 | `heatNd_lindep.m` | `keep = heatNd_lindep(At)` returns a maximal independent set of equality rows, from one sparse QR. It matched the SVD rank in every 1-D and 2-D case tested. MOSEK's presolve removes none of the dependent rows. |
 | `heatNd_validate.m` | `heatNd_validate('1d'/'2d'/'3d',vopts)` runs the validation below and writes straddling dumps. `vopts.dir` and `vopts.dumpdir` default under `tempdir`, which is **not durable**. `'3d'` resumes from a saved trace and can take a list of κ (`klist`). |
 | `heatNd_poincare_ops.m` | The Poincaré diagnostic's operators A_i, A0 and D_iT, and the SDP-free identity checks I0 (§11.1). In `testing_codes/private/` since 11/09/2026. |

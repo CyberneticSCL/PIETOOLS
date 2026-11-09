@@ -82,7 +82,7 @@ changed:
 
 | File | Called by |
 |---|---|
-| `PIETOOLS_demos/cuadmm/bl_bisect.m` | `PIETOOLS_demos/cuadmm/heat2d_compare.m` and `PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m` |
+| `PIETOOLS_demos/cuadmm/bl_bisect.m` | `PIETOOLS_demos/cuadmm/heat2d_compare.m` and `PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m` (in `orphaned_file/private/` since 11/09/2026) |
 | `PIETOOLS_demos/cuadmm/bl_face.m`, `bl_fix.m`, `gpu/cuadmm_pinf_inf.patch` | `bl_bisect` |
 | `sopvar/Testfolder/sdopvar/apply_sopvar.m` | `PIESOS/@polyopvar/combine_factors`, `PIESOS/@tensopmat/apply_op`, `PIESOS/@tensopvar/apply_op`, `PIESOS/misc/tensopvar2polynomial` |
 | `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_resid.m`, `cx_shape.m` | `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m` (`cx_shape` through `cx_resid`) |
@@ -154,7 +154,11 @@ sits at its old path below `private/`, except `sopvar2opvar2d`.
 | `lpi_programming_sopvar/misc/subs_dvar_sop.m` | tests only |
 
 Files that only retired code calls went to `orphaned_file/private/` the same day (record in
-`cleaning/README.md`).
+`cleaning/README.md`). Later that day `opvar2d2copvar` and `sopvar2opvar2d` moved on to
+`cleaning/private/` with the tests that need the retired `opvar2d`: `Test_apply_sopvar_2d`,
+`Test_ctranspose_sopvar_2d`, `Test_mtimes_sopvar_2d`, `e2e_stability_2d` and `cx_stability_2D`
+(maintainer: "move to cleaning"; record in `cleaning/README.md`). `test_endtoend_sop('all')` runs
+E1, E2 and E4.
 
 ## Checked (11/08/2026, on the default path)
 

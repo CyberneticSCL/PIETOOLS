@@ -70,11 +70,17 @@ function R = test_endtoend_sop(which_)
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): E1 compares with
 %                the recorded stock bound (e2e_hinf_gain_1d, 11/07/2026);
 %                code unchanged.
+% MMP, 11/09/2026: E3 (e2e_stability_2d) moved to cleaning/private/
+%                (maintainer: tests that need the retired opvar2d, "move to
+%                cleaning"): its stock comparison, cx_stability_2D, needs
+%                opvar2d. 'all' runs E1, E2 and E4; 'E3' errors with the
+%                new location.
 
 % Default selection; a comma list or 'all' becomes a cellstr of names
 if nargin<1 || isempty(which_),     which_ = {'E1','E2'};   end
 if ischar(which_),  which_ = strsplit(which_,',');  end
-if isequal(which_,{'all'}),     which_ = {'E1','E2','E3','E4'};     end
+% if isequal(which_,{'all'}),     which_ = {'E1','E2','E3','E4'};     end   % MMP, 11/09/2026 (was)
+if isequal(which_,{'all'}),     which_ = {'E1','E2','E4'};  end             % MMP, 11/09/2026
 R = struct();
 % Run each check with its defaults (it errors at its first failure), then
 % print its time
@@ -87,7 +93,9 @@ for k = 1:numel(which_)
 %       case 'E4',  R.E4 = heat3d_stability_sop();                          % MMP, 10/21/2026 (was)
         case 'E1',  R.E1 = e2e_hinf_gain_1d();                              % MMP, 10/21/2026
         case 'E2',  R.E2 = e2e_stability_1d();                              % MMP, 10/21/2026
-        case 'E3',  R.E3 = e2e_stability_2d();                              % MMP, 10/21/2026
+%       case 'E3',  R.E3 = e2e_stability_2d();                              % MMP, 11/09/2026 (was)
+        case 'E3',  error('test_endtoend_sop:E3',['E3 (e2e_stability_2d) ' ...
+                    'is in cleaning/private/ since 11/09/2026: it needs the retired opvar2d.']) % MMP, 11/09/2026
         case 'E4',  R.E4 = e2e_heat3d_stability();                          % MMP, 10/21/2026
         otherwise,  error('test_endtoend_sop:which','Unknown example ''%s''.',which_{k})
     end
