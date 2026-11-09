@@ -115,6 +115,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 11/06/2026: Display PIE states and inputs with a hat in the summary;
 % DJ, 11/06/2026: Get the names of components and variables in the summary
 %                   from 'varname2display';
+% DJ, 11/08/2026: Drop the zero maps of the inputs by info.input_maps;;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, as the
 % % % PIETOOLS converter does, and convert other structures to pde_struct
@@ -308,7 +309,7 @@ poly_struct = struct('x',{cell(nx,1)},'z',{cell(numel(PDE.z),1)},'y',{cell(numel
 % state if the derivatives were computed
 for obj_type={'x','w','u'}
     % w, u: no maps if there are no inputs in the BCs
-    if ~strcmp(obj_type{1},'x') && isempty(info.rhs.(obj_type{1}))
+    if ~strcmp(obj_type{1},'x') && ~info.input_maps.(obj_type{1})           % DJ, 11/08/2026
         Tops.(obj_type{1}) = [];
     end
     if isempty(Tops.(obj_type{1}))

@@ -38,6 +38,11 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 %           - vars,dom,dim:   variables (pvar array), domain, and size of
 %                     the input, the variables being those on which the
 %                     terms depend;
+%           - inputs: struct array with the input terms of the BC lifted
+%                     into the source, with fields type ('w' or 'u'), idx
+%                     (the input), and C (constant, dim x size of the
+%                     input), so that p_r = sum C*D^{D}x_state(loc) +
+%                     sum C*w_idx; empty if none, see NOTES;
 %
 % NOTES
 % - A term of a state is considered to be of lower dimension if the
@@ -54,6 +59,13 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 %   single input as right-hand side, whatever the coefficients C of the
 %   terms. The input depends on the variables of the terms and
 %   coefficients.
+% - If the source has no variables and the constrained state depends on one
+%   variable, the input terms of the BC, of inputs without variables and
+%   with constant coefficients, are also lifted into the source, so that a
+%   row with a state of lower dimension and an input still has a single
+%   input as right-hand side (see eliminate_BVP_sources). Without this,
+%   or with more variables, such inputs stay in the BCs, which is not
+%   supported in the same group as a source (solve_PIETOOLS_BVP).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,6 +93,9 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 11/02/2026: Initial coding;
+% DJ (CC), 11/08/2026: Lift the input terms of a BC into a scalar source of a
+%                   1-D state, so that a row with a state of lower dimension
+%                   and an input has a single input as right-hand side;
 
 PDE = pde_struct(PDE);
 if ~PDE.is_initialized
@@ -91,9 +106,12 @@ nw = numel(PDE.w);
 isvar = logical(PDE.x_tab(:,3:2+N));
 vars_pde = arrayfun(@(i) PDE.vars(i,1).varname{1},1:N,'UniformOutput',false);
 has_int_delay = @(term) (isfield(term,'I') && any(~cellfun(@isempty,term.I))) || (isfield(term,'delay') && any(double(polynomial(term.delay(:)))));
+% Rows of the matrix polynomial C with a nonzero entry
+rows_of = @(C) reshape(any(reshape(any(full(C.coeff)~=0,1),size(C)),2),[],1); % DJ (CC), 11/08/2026
 
 % % % Find the terms of lower dimension in each BC, and replace them
-src = struct('BC',{},'terms',{},'vars',{},'dom',{},'dim',{});
+% src = struct('BC',{},'terms',{},'vars',{},'dom',{},'dim',{});             % DJ (CC), 11/08/2026 (was)
+src = struct('BC',{},'terms',{},'vars',{},'dom',{},'dim',{},'inputs',{});   % DJ (CC), 11/08/2026
 BC = PDE.BC;
 for k=1:numel(BC)
     terms = BC{k}.term;
@@ -158,18 +176,48 @@ for k=1:numel(BC)
         free = arrayfun(@(m) ~isdouble(loc(m)),1:numel(vidx));
         vars_src(vidx(free)) = true;
         vars_src(ismember(vars_pde,C.varname)) = true;
-        rows_src = rows_src | reshape(any(reshape(any(full(C.coeff)~=0,1),size(C)),2),[],1);
+%         rows_src = rows_src | reshape(any(reshape(any(full(C.coeff)~=0,1),size(C)),2),[],1); % DJ (CC), 11/08/2026 (was)
+        rows_src = rows_src | rows_of(C);                                   % DJ (CC), 11/08/2026
         st(end+1) = struct('state',term.x,'D',D,'loc',loc,'C',C);                  %#ok<AGROW>
     end
+    % % % Start of changes DJ (CC), 11/08/2026
+    % The input terms are lifted into a scalar source of a 1-D state (inputs
+    % without variables, constant coefficients), see NOTES. Then each row of
+    % the BC has a single input as right-hand side, the source; the lifted
+    % inputs enter the source, and are eliminated with it, with the states
+    % (eliminate_BVP_sources). Their rows are rows of the source.
+    inp = struct('type',{},'idx',{},'C',{});    in_idx = zeros(1,0);
+    if ~any(vars_src) && nnz(isvar_states(ii_main,:))==1
+        for jj=1:numel(terms)
+            tm = terms{jj};
+            if numel(tm)~=1 || ~(isfield(tm,'w') || isfield(tm,'u')) || has_int_delay(tm)
+                continue
+            end
+            ty = 'w';   if isfield(tm,'u'), ty = 'u'; end
+            Cj = polynomial(tm.C);
+            if any(PDE.([ty,'_tab'])(tm.(ty),3:2+N)) || any(full(Cj.degmat(:)))
+                continue                    % input with variables, or coefficient of a variable
+            end
+            inp(end+1) = struct('type',ty,'idx',tm.(ty),'C',Cj);                        %#ok<AGROW>
+            in_idx(end+1) = jj;                                                         %#ok<AGROW>
+            rows_src = rows_src | rows_of(Cj);
+        end
+    end
+    % % % End of changes DJ (CC), 11/08/2026
     rows = find(rows_src);
     for jt=1:numel(st)
         st(jt).C = st(jt).C(rows,:);
     end
+    for ji=1:numel(inp)                                                     % DJ (CC), 11/08/2026
+        inp(ji).C = inp(ji).C(rows,:);                                      % DJ (CC), 11/08/2026
+    end                                                                     % DJ (CC), 11/08/2026
     vidx_src = find(vars_src);
-    src(end+1) = struct('BC',k,'terms',st,'vars',PDE.vars(vidx_src,1),'dom',reshape(PDE.dom(vidx_src,:),[],2),'dim',numel(rows)); %#ok<AGROW>
+%     src(end+1) = struct('BC',k,'terms',st,'vars',PDE.vars(vidx_src,1),'dom',reshape(PDE.dom(vidx_src,:),[],2),'dim',numel(rows)); %#ok<AGROW> % DJ (CC), 11/08/2026 (was)
+    src(end+1) = struct('BC',k,'terms',st,'vars',PDE.vars(vidx_src,1),'dom',reshape(PDE.dom(vidx_src,:),[],2),'dim',numel(rows),'inputs',inp); %#ok<AGROW> % DJ (CC), 11/08/2026
     E = zeros(nrow,numel(rows));
     E(sub2ind(size(E),rows(:),(1:numel(rows))')) = 1;
-    terms(lift_idx) = [];
+%     terms(lift_idx) = [];                                                 % DJ (CC), 11/08/2026 (was)
+    terms([lift_idx,in_idx]) = [];                                          % DJ (CC), 11/08/2026
     terms{end+1} = struct('w',nw+numel(src),'C',E,'I',{cell(numel(vidx_src),1)},'delay',0);        %#ok<AGROW>
     BC{k}.term = terms;
 end

@@ -37,7 +37,9 @@ function PIE = initialize(PIE)
 % - If PIE.space.(type) has not been specified for the state (x), inputs
 %   (w and u), or outputs (z and y), the components are determined from the
 %   spaces of the operators, with one component for each space. If it has
-%   been specified, the components are checked against the operators.
+%   been specified, the components are checked against the operators, unless
+%   no operator involves the type of component (e.g. an output that is zero),
+%   in which case the specified components are kept, with zero operators.
 % - The components in PIE.space and PIE.space_pde that have not been named
 %   (varname empty) are assigned default names. The names must be unique,
 %   and sorted for the state in PIE.space (see 'npie_struct').
@@ -78,6 +80,8 @@ function PIE = initialize(PIE)
 %
 % DJ, 10/29/2026: Initial coding, based on the initialize function of
 %                   pie_struct;
+% DJ, 11/08/2026: Keep a specified PIE.space for a component (output) that
+%                   is just zero;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -193,6 +197,13 @@ end
 for type = fieldnames(spaces)'
     if isempty(spaces.(type{1}))
         spaces.(type{1}) = struct('depmat',false(0,nvars),'dims',zeros(0,1),'name','');
+        % Keep component that is zero  with zero operators below.
+        % Inconsistent sizes are left to the checks further down.
+        if isfield(PIE.space,type{1}) && ~isempty(PIE.space.(type{1}).dims) &&...
+              size(PIE.space.(type{1}).depmat,2)==nvars &&...
+                size(PIE.space.(type{1}).depmat,1)==numel(PIE.space.(type{1}).dims)
+            spaces.(type{1}) = struct('depmat',logical(PIE.space.(type{1}).depmat),'dims',PIE.space.(type{1}).dims(:),'name','PIE.space');
+        end
     end
 end
 

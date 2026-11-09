@@ -5,13 +5,13 @@
 % % 2024. 
 % %
 % % System:
-% % ODE:        x1_{t}(t) = -x1(t) +5*x2(t,3,-1) +u1(t);
+% % ODE:        x1_{t}(t) = -x1(t) +5*x2(t,3,-1) +u1(t-0.5);
 % % PDE:        x2_{t}(t,s1,s2) = x2_{s1s2}(t,s1,s2) + (3-s1)(1-s2)(s2+1)*w(t);
 % % Outputs:    z(t) = [x1(t); 10*int_{0}^{3} int_{-1}^{1} x2(t,s1,s2) ds2 ds1];
 % %             y1(t,s1) = int_{-1}^{1} x2(t,s2) ds2 + s1*w(t);
 % %             y2(t,s2) = x2(t,0,s2);
 % % With BCs:   0 = x2(t,s1,-1)
-% %             0 = x2(t,0,s2) - u2(t-1,s2)
+% %             0 = x2(t,0,s2) - u2(t,s2)
 % %
 % % For (s1,s2) in [0,3]x[-1,1]
 % %
@@ -43,8 +43,8 @@ y1 = pde_var('sense',s1,[0,3]);
 y2 = pde_var('sense',s2,[-1,1]);
 
 %%%%%   Step 2: Declare the ODE and  PDE equations                    %%%%%
-% % Declare the ODE  x1_{t}(t) = -x1(t)+x2(t,3,-1)+u1(t);
-ODE_dyn = diff(x1,'t')==-x1 +5*subs(x2,[s1;s2],[3;-1]) +u1;
+% % Declare the ODE  x1_{t}(t) = -x1(t)+5*x2(t,3,-1)+u1(t-0.5);
+ODE_dyn = diff(x1,'t')==-x1 +5*subs(x2,[s1;s2],[3;-1]) +subs(u1,t,t-0.5);
 
 % % Declare the PDE  x_{t}(t,s1,s2) = x_{s1s2}(t,s1,s2) + (3-s1)(1-s2)(s2+1)*w(t)
 PDE_dyn = diff(x2,t)==diff(diff(x2,s1,1),s2,1)+(3-s1)*(1-s2)*(s2+1)*w;
@@ -63,8 +63,8 @@ PDE_y2 = y2==subs(x2,s1,0);
 % % Declare the first BC 0 = x2(t,s1,-1)
 BC1 = subs(x2,s2,-1)==0;
 
-% % Declare the second BC 0 = x2(t,0,s2) - u2(t-0.5,s2)
-BC2 = subs(x2,s1,0)==subs(u2,t,t-0.5);
+% % Declare the second BC 0 = x2(t,0,s2) - u2(t,s2)
+BC2 = subs(x2,s1,0)==u2;
 
 %%%%%   Step 5: initialize the PDE, and display                       %%%%%
 PDE = [ODE_dyn;PDE_dyn;PDE_z;PDE_y1;PDE_y2;BC1;BC2];
@@ -75,7 +75,7 @@ PDE = initialize(PDE)
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % To perform e.g. analysis, the system must be converted to a PIE.
 % For this, we first get rid of the temporal delay, introducing a state
-% variable x3(t,s,s2)=u2(t-s*tau), modeled by a transport equation:
+% variable x3(t,s)=u1(t-s*tau), modeled by a transport equation:
 PDE2 = expand_delays(PDE)
 % Note also that the PDE has been normalized, in that the spatial domain of
 % all variables is now [-1,1]:
@@ -88,5 +88,5 @@ PIE = convert(PDE2);
 % Note also that the state variables get reordered when converting to the
 % PIE representation.
 % Finally, note that the boundary input u2(t,s2) appears as a derivative
-% d/ds2 u1(t,s2) in the PIE representation, so e.g. optimal control will be
-% performed in terms of d/ds2 u1(t,s2).
+% d/ds2 u2(t,s2) in the PIE representation, so e.g. optimal control will be
+% performed in terms of d/ds2 u2(t,s2).

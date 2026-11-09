@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
 %
-% Copyright (C)2025  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 %
 % DJ, 12/30/2024: Initial coding;
 % DJ, 12/11/2025: Add wave equation example;
+% DJ, 11/08/2026: Sense y=X(1) instead of X(0) in 4.1.1, as X(0)=0 by the
+%                   BC made the output identically zero;
 clear
 
 
@@ -47,7 +49,7 @@ eqns = [diff(x,t)==-5*x+int(diff(X,s,1),s,[0,1])+u;
         diff(X,t)==9*X+diff(X,s,2)+s*w;
         subs(X,s,0)==0;
         subs(diff(X,s),s,1)==-x+2*w;
-        y==subs(X,s,0)];
+        y==subs(X,s,1)];
 odepde = [eqns; out_eq];
 odepde = initialize(odepde);
 PIE = convert(odepde,'pie');

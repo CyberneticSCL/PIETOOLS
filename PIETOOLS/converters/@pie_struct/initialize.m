@@ -30,7 +30,9 @@ function PIE = initialize(PIE)
 % - If PIE.space.(type) has not been specified for the state (x), inputs
 %   (w and u), or outputs (z and y), the components are determined from the
 %   spaces of the operators, with one component for each space. If it has
-%   been specified, the components are checked against the operators.
+%   been specified, the components are checked against the operators, unless
+%   no operator involves the type of component (e.g. an output that is zero),
+%   in which case the specified components are kept, with zero operators.
 % - The operators K, Kw, and Ku defining the algebraic constraint must all
 %   map to the same space. If none of them has been specified, they are
 %   initialized as operators without any rows (no output space), from the
@@ -70,6 +72,8 @@ function PIE = initialize(PIE)
 % DJ, 12/07/2024: Use new default vars (s1,s2) and (s1_dum,s2_dum);
 % DJ, 10/29/2026: Update to new pie_struct structure: operators converted
 %                   to copvar, spaces and maps between PDE and PIE checked;
+% DJ, 11/08/2026: Keep a specified PIE.space for a component (output) that
+%                   is just zero;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -208,6 +212,13 @@ end
 for obj = fieldnames(spaces)'
     if isempty(spaces.(obj{1}))
         spaces.(obj{1}) = struct('depmat',false(0,nvars),'dims',zeros(0,1),'name','');
+        % Keep component that is zero  with zero operators below.
+        % Inconsistent sizes are left to the checks further down.
+        if isfield(PIE.space,obj{1}) && ~isempty(PIE.space.(obj{1}).dims) &&...
+              size(PIE.space.(obj{1}).depmat,2)==nvars &&...
+                size(PIE.space.(obj{1}).depmat,1)==numel(PIE.space.(obj{1}).dims)
+            spaces.(obj{1}) = struct('depmat',logical(PIE.space.(obj{1}).depmat),'dims',PIE.space.(obj{1}).dims(:),'name','PIE.space');
+        end
     end
 end
 
