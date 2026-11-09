@@ -122,6 +122,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
 % DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
 %   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
+% DJ, 11/08/2026: Extract term k by C{':',k} and Z(k,:);
 
 % Check the options
 if nargin<=4
@@ -314,7 +315,11 @@ V = subs(Wxu,names_pde,Tx);
 if get_dV
     dV = 0;
     for k=find(~cellfun('isempty',Wxu.C.ops(1,:)))
-        Wk = Wxu{1,k};
+        % Term k: coefficients Wxu.C{1,k} on the monomial Wxu.Z(k,:)
+        Wk = Wxu;
+        Wk.C = Wxu.C{':',k};
+        Wk.Z = Wxu.Z(k,:);
+        Wk = initialize(Wk);
         zk = full(Wk.Z(1,:));
         [is_u,rows] = ismember(Wk.varname(zk(zk>0)),names_pde);     % factors u, and their rows in T, f
         fctrs = find(is_u(:))';                                     % row, for the loops

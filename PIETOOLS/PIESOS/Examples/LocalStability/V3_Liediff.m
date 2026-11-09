@@ -90,6 +90,7 @@ function [prog, V3, dV3, Pcell] = V3_Liediff(prog, PIE, d, opdeg)
     % DJ (CC), 11/06/2026: Declare basis operator as 'sopvar'
     %                   ('polys2sopvar'), instead of converting an 'opvar';
     %                   accept the 'npie_struct' returned by 'convert' as PIE;
+    % DJ, 11/08/2026: Extract term l of f by f.C{':',l} and f.Z(l,:);
 
     narginchk(4,4);
 
@@ -146,7 +147,11 @@ function [prog, V3, dV3, Pcell] = V3_Liediff(prog, PIE, d, opdeg)
     f_terms = cell(f_deg,1);
 
     for l = 1:f_deg
-        f_terms{l}           = f{l};    % the term l: monomial Z(l,:) and C.ops{1,l}  % DJ, 10/14/2026
+        % The term l: monomial Z(l,:) and C.ops{1,l}
+        f_terms{l} = f;
+        f_terms{l}.C = f.C{':',l};
+        f_terms{l}.Z = f.Z(l,:);
+        f_terms{l} = initialize(f_terms{l});
     end
 
 

@@ -39,6 +39,44 @@ the path cannot create a second class or private definition.
   tier stands in for the stock extreme level. The only remaining call is in
   `PIETOOLS_demos/lowrank_2d_stability/tests_1d/`, which already calls retired functions.
 
+- `ndopvar/` (11/08/2026, maintainer: "move the ndopvar folder into the orphan_code directory") â€“
+  the whole folder moved to `orphaned_file/private/ndopvar/` (names kept; `private/` keeps it off the
+  path). Measured first with `ndopvar/` off the path: 65 demos and examples gave no new failure.
+  Taken out of it beforehand: `rand_poly.m` and `rand_dpvar.m` to `PIETOOLS/misc/` (about 100 tests
+  call them); to `private/dead_code/PIETOOLS/ndopvar/`: `Test_quadPoly_common_vars.m`,
+  `Test_quadPoly_mtimes.m`, `Test_quadPoly_set_vars.m`, `coeff2poly.m` and `ndopvar2tensopvar.m`
+  (untracked since 11/08/2026; committed at `PIESOS/misc/` in `HEAD`); and the six converters that
+  only create or read an `nopvar`/`ndopvar` (no caller outside tests): `nopvar2sopvar`,
+  `nopvar2copvar`, `ndopvar2sdopvar` (`converters/operator_converters/`), `sopvar2nopvar`,
+  `copvar2nopvar`, `sdopvar2ndopvar` (`sopvar/{sopvar,copvar,sdopvar}_class/`). The tests that still
+  call them (`Test_ndopvar_to_sdopvar_conversion`, section 6 of `Test_copvar_converters`,
+  `Bench_copvar_vs_legacy`) already failed on `opvar2d`/`rand_opvar`, and
+  `copvar2opvar`/`copvar2opvar2d` still name `copvar2nopvar` in an error message.
+
+- `copvar2opvar`, `copvar2opvar2d`, `sopvar2opvar` and 7 failing tests (11/08/2026, maintainer: "Move
+  copvar2opvar, copvar2opvar2d and sopvar2opvar, as well as the failing tests into the clean folder
+  for deletion") â€“ to `private/dead_code/PIETOOLS/sopvar/{copvar,sopvar}_class/`. All three build an
+  `opvar`/`opvar2d`, which is no longer on the path, so each already failed when called. Tests, all
+  failing on 11/08/2026 and all calling one of the converters retired above: `Test_copvar_converters`,
+  `Bench_copvar_vs_legacy`, `Test_copvar_inv`, `converters/Test_ndopvar_to_sdopvar_conversion`,
+  `sdopvar/Test_mtimes_sopvar_1d`, `sdopvar/test_sopvar_AT_bug` (all `sopvar/Testfolder/`), and
+  `PIESOS/Examples/LocalStability/Tests/WSB_test`. Callers left behind, none reachable without an
+  opvar class: `pie2opvar` (lines 198, 200; no live caller), `lift_operator` in
+  `converters_sopvar/tmap_separable_sopvar.m` (line 271), and the handles `tl.toop` in
+  `exec_tools_sop` (lines 193, 204; every executive call is commented out).
+
+- `converters_sopvar/` and `pie2opvar` (11/08/2026, maintainer: "move the old converter
+  `convert_PIETOOLS_PDE_sopvar` and associated functions to the clean folder ... Do the PIESIM codes
+  work without pie2opvar? If so, move that function as well") â€“ the 12 files of `converters_sopvar/`
+  (`convert_PIETOOLS_PDE_sopvar`, `tmap_sopvar`, `tmap_separable_sopvar`, `periodic_map_sopvar`,
+  `bc_operators_sopvar`, `pde_operators_sopvar`, `ftc_expansion_sopvar` and the five of `private/`,
+  now `private_files/`) to `private/dead_code/PIETOOLS/converters_sopvar/`, and
+  `converters/operator_converters/pie2opvar.m` to `private/dead_code/PIETOOLS/converters/operator_converters/`.
+  No caller outside the folder on the path (word search, comments excluded, 11/08/2026); nothing the
+  folder calls is left without another caller. `PIESIM` converts with `pie2piesim`
+  (11/04/2026), its three `pie2opvar` lines are commented out. Remaining mentions: `p0_path.m` and
+  `bench_lpi_degree.m` (legacy series only) in `baselines/`, and the comments of `pie_witness_sop`.
+
 ## Not moved
 
 | Files | Reason kept |
