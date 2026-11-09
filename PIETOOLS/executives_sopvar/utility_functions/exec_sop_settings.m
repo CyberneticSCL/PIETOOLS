@@ -7,8 +7,8 @@ function st = exec_sop_settings(st)
 % to 'sedumi' otherwise.
 %
 % INPUT
-% - st:   'struct' of LPI settings, as returned by lpisettings or
-%         lpisettings_sop, with the optional fields
+% - st:   'struct' of LPI settings, as returned by lpisettings_sop, with
+%         the optional fields
 %           sos_opts  'struct' of solver options for lpisolve;
 %           sop       'struct' of options of the container executives, each
 %                     field optional:
@@ -99,33 +99,27 @@ function st = exec_sop_settings(st)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/16/2026: moved from lpi_programming_sopvar/ to executives_sopvar/
-%                utility_functions/: read by the container executives only.
-%                The measurements cited above moved to that folder's NOTES.md.
+% MMP, 10/16/2026: Moved from lpi_programming_sopvar/ to
+%                executives_sopvar/utility_functions/: read by the container
+%                executives only.
 % MMP, 10/28/2026: Fields dw_feas, max_raise_feas, eppos_stab, read by the
 %                feasibility executives (PIETOOLS_stability_sop,
 %                PIETOOLS_well_posedness_sop) in place of dw_P / dw_Q,
-%                max_raise and eppos. The tiers of settings_sopvar
-%                (LPISETTINGS_SOP) set them: feasibility LPIs certify at a
-%                lower weight than the metric LPIs that share dw_P (1-D at
-%                dw 0 with 2.0-3.7x fewer variables, 2-D at dw 1 in 2.5 s
-%                against 6.6 s at dw 2; measured 10/16/2026). Their default
+%                max_raise and eppos, and set by the tiers of settings_sopvar
+%                (LPISETTINGS_SOP): feasibility LPIs certify at a lower
+%                weight than the metric LPIs that share dw_P. Their default
 %                [] keeps every program of the existing settings unchanged.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body; code unchanged. The deleted header text was
-%                measurement notes, file references and a solver note.
+%                Header to the header protocol, the licence block added, step
+%                comments in the body; code unchanged.
 % MMP, 10/29/2026: max_raise_feas documented as one entry per dimension, as
-%                dw_feas; the help text states the rule both follow (the
-%                last entry serves every higher dimension, as entry
-%                min(nv,end) in PIETOOLS_stability_sop). Code unchanged.
-% MMP, 10/29/2026: Field cap_delta (default [], no change): per-direction
-%                bounds theta_k + s_k <= Jmax_k(T) + cap_delta on the slack
-%                bases (opts.cap of LPI_INEQ_SOP, EXEC_TOOLS_SOP capfor). The
-%                bound read from T is the rule that made the 3-D heat
-%                benchmark solvable; at cap_delta 2 the 2-D heat and PDE 45
-%                gains stay within 1e-5 of the unbounded slack with 15-20%
-%                fewer rows (measured 10/29).
+%                dw_feas (the last entry serves every higher dimension, entry
+%                min(nv,end) in PIETOOLS_stability_sop). Field cap_delta
+%                (default [], no change): per-direction bounds
+%                theta_k + s_k <= Jmax_k(T) + cap_delta on the slack bases
+%                (opts.cap of LPI_INEQ_SOP, EXEC_TOOLS_SOP capfor), the bound
+%                read from T that made the 3-D heat benchmark solvable.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                names lpisettings_sop; code unchanged.
 
 % Defaults of the fields of ST.sop
 % d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...

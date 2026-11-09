@@ -102,22 +102,20 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body; code unchanged. The deleted header text was
-%                the provenance of the code (the test-folder translators it
-%                transcribes) and comparisons with the stock 2-D routines.
+% MMP, 10/28/2026: Header to the header protocol, the licence block added,
+%                step comments in the body; code unchanged.
 % MMP, 10/28/2026: L2[x] and L2[y] spaces (one-variable states, as in the
-%                PIEs of coupled ODE-PDE and delay systems). Before, such a
+%                PIEs of coupled ODE-PDE and delay systems); before, such a
 %                space was an error in pos2d and eqopts2d, so the container
 %                executives could not run those 2-D PIEs (example library
 %                PDE 42, 43, 50). pos2d declares their bases from dx, dy by
-%                the 1-D translation of settings2possopvar (new local
-%                function pos1d), and settles the one separation flag per
-%                direction that poscopvar takes; eqopts2d adds the
-%                exclude(2:7), sep(1:2) rules of get_eq_opts_2D. The help
-%                text describes the new spaces; R^n and L2[x,y] spaces are
-%                translated as before.
+%                the 1-D translation of settings2possopvar (local pos1d) and
+%                settles the one separation flag per direction that
+%                poscopvar takes; eqopts2d adds the exclude(2:7), sep(1:2)
+%                rules of the stock get_eq_opts_2D. R^n and L2[x,y] spaces
+%                are translated as before.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
+%                unchanged.
 
 % The 2-D settings, the domain of P (variable names of the PIE), and the
 % SIDE spaces of X
@@ -316,7 +314,8 @@ end                                                                         % MM
 function eq_opts = eqopts2d(Km,eq_opts,ztol,xy)                             % MMP, 10/28/2026
 % EQ_OPTS = EQOPTS2D(KM,EQ_OPTS,ZTOL,XY) sets the exclude and sep entries of
 % EQ_OPTS that the structure of KM allows, for R^n, L2[x], L2[y] and
-% L2[x,y] spaces, as get_eq_opts_2D does for an 'opvar2d'. With (i,j) the
+% L2[x,y] spaces, as the stock get_eq_opts_2D (retired 11/08/2026) did for
+% an 'opvar2d'. With (i,j) the
 % parameter cells of an L2[x,y] -> L2[x,y] block (i, j = 1 multiplier, 2
 % lower, 3 upper integral in x, in y), q the cells of an L2[x] -> L2[x]
 % block (L2[y] -> L2[y]; q = 1 multiplier, 2 lower, 3 upper integral), and

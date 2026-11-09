@@ -20,8 +20,9 @@ function out = settings2possopvar(settings)
 % What the translation cannot carry is listed in OUT.report.lossy.
 %
 % INPUT
-% - settings: 'struct' of LPI settings (settings_PIETOOLS_* or
-%             settings_PIETOOLS_*_2D):
+% - settings: 'struct' of LPI settings in the form of the stock
+%             settings_PIETOOLS_* or settings_PIETOOLS_*_2D (retired
+%             11/08/2026; the callers build it):
 %   1-D (no field is2D, or is2D = 0): dd1, options1 (Lyapunov operator);
 %             dd12, options12, override1 (its psatz term, translated when
 %             override1 is 0 or absent); dd2, options2 (equality
@@ -75,7 +76,7 @@ function out = settings2possopvar(settings)
 % exclude(1:7) keeps, and a nonzero sep(1:2). A d2{i,j} array without one
 % cap per subset of the variables of Z2^{ij} is an error.
 %
-% See also POSSOPVAR, POSLPIVAR, POSLPIVAR_2D.
+% See also POSSOPVAR, POSLPIVAR_SETTINGS_2D_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -106,27 +107,19 @@ function out = settings2possopvar(settings)
 % Initial coding MMP, 09/21/2026: the positivity builders take degree
 %                  specifications that differ in kind, so a settings file
 %                  written for 'poslpivar_2d' cannot be handed to
-%                  'possopvar'. Translates the parts that map exactly and
-%                  reports the parts that cannot, rather than quietly
-%                  building a different cone.
-% MMP, 09/21/2026: 'block1d' had deg.int and deg.mult SWAPPED, and carried a
-%                  comment asserting that 'possopvar's header had the
-%                  correspondence backwards. Measured from 'poslpivar'
-%                  itself that the header is right and 'block1d' was wrong:
-%                  the first slot of d{2} caps the variable that then
-%                  becomes the integration variable. 'caps2spec', the 2D
-%                  path in this same file, already had it right, so the two
-%                  halves of the file disagreed. Latent until now -- nothing
-%                  outside this file calls it -- which is why a green test
-%                  suite did not catch it.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the licence block in the toolbox form
-%                  (title line added), step comments in the body; code
-%                  unchanged. The deleted header text was the history and
-%                  rationale of the degree conversion (EXACTNESS) and the
-%                  reasons for the lossy cases; its statement that
-%                  exclude(1:7) is reported in report.lossy is replaced by
-%                  report.lines, where the code reports it.
+%                  'possopvar'; the parts that map exactly are translated,
+%                  the parts that cannot are reported.
+% MMP, 09/21/2026: 'block1d' had deg.int and deg.mult swapped: measured from
+%                  'poslpivar' itself, the first slot of d{2} caps the
+%                  variable that becomes the integration variable, as
+%                  'caps2spec', the 2-D path, already had it.
+% MMP, 10/28/2026: Header to the header protocol, the licence block in the
+%                  toolbox form, step comments in the body; code unchanged.
+%                  exclude(1:7) is reported in report.lines, where the code
+%                  reports it, not in report.lossy as the old header said.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; the
+%                  retired POSLPIVAR, POSLPIVAR_2D out of See also; the
+%                  09/21/2026 note of block1d shortened; code unchanged.
 
 % SETTINGS: a 'struct', 2-D when its field is2D is set
 if ~isa(settings,'struct')
@@ -506,13 +499,8 @@ function [blk,out] = block1d(d,o,tag,out)
 % lower/upper integral triples, mapping to (deg.int, deg.mult, deg.joint) in
 % that order -- which is what 'sopquadvar's header says.
 %
-% MEASURED from 'poslpivar' itself, correcting the claim that was here      % MMP, 09/21/2026
-% before: poslpivar.m:321 builds Z2sth over [var1;var2] with d{2}(1)        % MMP, 09/21/2026
-% capping var1, then lines 343-344 substitute var1 -> sss (the integration  % MMP, 09/21/2026
-% variable eta) and var2 -> var1 (the spatial variable s). So the FIRST     % MMP, 09/21/2026
-% slot becomes theta and the second becomes s, i.e. d{2}(1) is deg.int.     % MMP, 09/21/2026
-% 'caps2spec' in this same file already says so, and                        % MMP, 09/21/2026
-% 'test_possopvar_vs_poslpivar' passes 5 of 5 using int = d2(1).            % MMP, 09/21/2026
+% Measured from poslpivar itself: d{2}(1) caps the variable that becomes    % MMP, 09/21/2026
+% the integration variable (int), d{2}(2) the output variable (mult).       % MMP, 09/21/2026
 
 % No degrees: an empty translation, reported
 blk = struct('deg',{{}},'opts',struct());
@@ -548,8 +536,8 @@ for a = 1:3
     else
         t = d{a};
         if isscalar(t), t = [t t t]; end
-%       spec = struct('int',t(2),'mult',t(1),'joint',t(3));                  % MMP, 09/21/2026 (was)
-        spec = struct('int',t(1),'mult',t(2),'joint',t(3));                  % MMP, 09/21/2026
+%       spec = struct('int',t(2),'mult',t(1),'joint',t(3));                 % MMP, 09/21/2026 (was)
+        spec = struct('int',t(1),'mult',t(2),'joint',t(3));                 % MMP, 09/21/2026
     end
     incl(end+1,1) = an;                                                 %#ok<AGROW>
     degs{end+1} = spec;                                                 %#ok<AGROW>

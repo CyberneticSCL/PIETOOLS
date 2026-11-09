@@ -18,9 +18,9 @@
 %               H2_norm         PIETOOLS_H2_norm_sop, form 'o';
 %               H2_norm_dual    PIETOOLS_H2_norm_sop, form 'c';
 %             with no flag set, the script asks which to run;
-% - settings: (optional) 'struct' of LPI settings (lpisettings,
-%             lpisettings_sop); if absent, the script asks for a level of
-%             lpisettings ('light' when the answer is empty or unknown).
+% - settings: (optional) 'struct' of LPI settings (lpisettings_sop); if
+%             absent, the script asks for a tier of lpisettings_sop ('light'
+%             when the answer is empty or unknown).
 %
 % OUTPUT (variables in the base workspace), per executive run:
 %   stability:       prog_stability, P_stability, info_stability;
@@ -75,15 +75,13 @@
 %                stability, stability_dual, Hinf_gain_dual, H2_norm and
 %                H2_norm_dual call PIETOOLS_stability_sop,
 %                PIETOOLS_Hinf_gain_sop and PIETOOLS_H2_norm_sop with the
-%                form of the executive they called before
-%                (PIETOOLS_PIE2PDEstability_sop, _dual_sop,
-%                PIETOOLS_Hinf_gain_dual_sop, PIETOOLS_H2_norm_o_sop,
-%                PIETOOLS_H2_norm_c_sop, removed). The call string is set in
-%                each branch; the former single line built it from the
-%                name. Header to the header protocol.
+%                form of the file each called before (removed); the call
+%                string is set in each branch. Header to the header protocol.
 % MMP, 11/08/2026: The level asked for goes to lpisettings_sop (was the
-%                stock lpisettings, whose folder leaves the path); every
-%                name offered, 'extreme' included, is a tier there.
+%                stock lpisettings, retired with its folder); every name
+%                offered, 'extreme' included, is a tier there.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help and a body
+%                note name lpisettings_sop; code unchanged.
 
 % The PIE: from the workspace, the GUI, or a PDE
 if ~exist('PIE','var')
@@ -147,7 +145,7 @@ if isempty(exec)
     exec = split(exec,[" ",","]);
 end
 
-% The settings: from the workspace, or a level of lpisettings
+% The settings: from the workspace, or a tier of lpisettings_sop
 if ~exist('settings','var')
     fprintf('\n How hard should the solver work? \n');
     msg = ['   Please input ''extreme'', ''stripped'', ''light'' (default), ''heavy'', ''veryheavy'', or ''custom''\n ---> '];

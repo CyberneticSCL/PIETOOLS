@@ -22,16 +22,16 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %             other operators are not used; K empty (a constraint K x = 0
 %             on the state, e.g. periodic BCs, is an error); a PIE in two
 %             or more variables is an error;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P, R;
 %               eppos, eppos2   margins of P;
 %               epneg   minus omega;
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS), among them
 %                       dw_feas, max_raise_feas and eppos_stab.
-%             Default lpisettings('heavy') with sos_opts.simplify 1, eppos =
-%             eppos2 = 1e-2, epneg 0.
+%             Default lpisettings_sop('heavy') with sos_opts.simplify 1,
+%             eppos = eppos2 = 1e-2, epneg 0.
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
@@ -81,53 +81,39 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %
 % Initial coding MMP, 10/08/2026
 % MMP, 10/28/2026: settings.sop.dw_feas (its 1-D entry), max_raise_feas and
-%                eppos_stab replace dw_P, max_raise and eppos when set: the
-%                1-D feasibility LPIs certify at dw 0 with 2.0-3.7x fewer
-%                variables (measured 10/16/2026). Unset, nothing changes.
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
-%                code unchanged. The deleted header text compared the file
-%                with the stock executive and named the helpers it calls.
-% MMP, 10/29/2026: settings.sop.max_raise_feas may hold one entry per
-%                dimension (PIETOOLS_stability_sop reads entry min(nv,end));
-%                this 1-D executive reads its 1-D entry, as for dw_feas.
-% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (INITIALIZE for an
-%                opvar PIE, as before; a 1-D container PIE accepted), and
-%                every PIE in two or more variables is rejected, not only a
-%                2-D one.
-% MMP, 10/29/2026: Each slack takes opts.cap = capfor(target) of
-%                EXEC_TOOLS_SOP, the per-direction bounds of
-%                settings.sop.cap_delta; empty by default, so every program
-%                is unchanged unless cap_delta is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: P and R returned as 'copvar' objects, not converted to
-%                opvar (maintainer decision: the executives return
-%                containers). Header outputs updated.
+%                eppos_stab replace dw_P, max_raise and eppos when set (the
+%                1-D feasibility LPIs certify at dw 0 with fewer variables);
+%                unset, nothing changes. Header to the header protocol, step
+%                comments in the body; code unchanged.
+% MMP, 10/29/2026: max_raise_feas read at its 1-D entry (one entry per
+%                dimension, as dw_feas). The PIE goes through EXEC_PIE_SOP (a
+%                1-D container PIE accepted), and every PIE in two or more
+%                variables is rejected, not only a 2-D one. Each slack takes
+%                opts.cap = capfor(target) of EXEC_TOOLS_SOP (the
+%                per-direction bounds of settings.sop.cap_delta; empty by
+%                default, every program unchanged), and st.sop takes tl.sop,
+%                each per-dimension vector of the settings tiers reduced to
+%                its 1-D entry.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects), and P, R are returned as 'copvar'
+%                objects, not converted to opvar (maintainer: the executives
+%                return containers). Programs unchanged.
 % MMP, 11/07/2026: A PIE with a constraint K x = 0 on the state (PIE.K, set
 %                by convert_PIETOOLS_PDE for rank-deficient boundary
 %                conditions, e.g. periodic, with auxiliary states) is an
-%                error. The row of each auxiliary state is F times the PDE
-%                row (convert_PIETOOLS_PDE), so on ker K the range of T - A
-%                is {[F y; y]}, a proper subspace of the output space of T,
-%                and (T - A)*R*(T - A)' - eppos I >= 0 is infeasible: the
-%                LPI cannot certify such a PIE, with or without K imposed
-%                (x_t = x_ss + lam*x, periodic or Neumann BCs, well posed:
-%                infeasible). Header updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                error: the row of each auxiliary state is F times the PDE
+%                row, so on ker K the range of T - A is a proper subspace of
+%                the output space of T, and the surjectivity condition
+%                (T - A)*R*(T - A)' - eppos I >= 0 is infeasible with or
+%                without K imposed (x_t = x_ss + lam*x, periodic or Neumann
+%                BCs, well posed: infeasible). Help: status 'residual'
+%                (LPI_CLASSIFY_SOP, a cuADMM exit since 11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('heavy') (was the stock
-%                lpisettings('heavy'), whose folder leaves the path): the
-%                same 1-D storage degrees, the stripped 2-D storage of the
-%                heavy tier (was the stock heavy 2-D), and the container
-%                options of that tier (maintainer, 11/08/2026).
+%                lpisettings('heavy'), retired with its folder): the same 1-D
+%                storage degrees, with the container options of that tier
+%                (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                default named after lpisettings_sop; code unchanged.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)

@@ -40,8 +40,8 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %             (EXEC_PIE_SOP), and K a 'copvar' object (the constraint
 %             K x = 0 on the state) or empty; its other operators are not
 %             used;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of P;
 %               settings_2d                                 2-D degrees of P;
 %               settings_nd    degrees and margin of P in 3 or more
@@ -51,10 +51,10 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS), among them
 %                       dw_feas, max_raise_feas and eppos_stab.
-%             Default: in 1-D lpisettings('heavy') with eppos 1e-4, eppos2
-%             1e-6, epneg 0; in 2-D and higher lpisettings('light') with
-%             sos_opts.simplify 1, settings_2d.eppos 1e-2 on every space,
-%             epneg 0; epneg 1e-5 for the forms 'FP', 'FQ';
+%             Default: in 1-D lpisettings_sop('heavy') with eppos 1e-4,
+%             eppos2 1e-6, epneg 0; in 2-D and higher lpisettings_sop('light')
+%             with sos_opts.simplify 1, settings_2d.eppos 1e-2 on every
+%             space, epneg 0; epneg 1e-5 for the forms 'FP', 'FQ';
 % - form:     (optional) char, 'P' (default), 'Pd', 'Q', 'Qd', 'FP' or 'FQ'.
 %
 % OUTPUT
@@ -108,70 +108,52 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                executives of 10/08/2026 (PIETOOLS_PDEstability_sop, _dual,
 %                PIETOOLS_PIE2PDEstability_sop, _dual,
 %                PIETOOLS_stability_2D_sop, _dual_2D), which called
-%                private/stability_build_sop (10/08/2026, 10/28/2026); their
-%                LPIs and default settings are the forms here, the
-%                program of each form unchanged.
+%                private/stability_build_sop; their LPIs and default settings
+%                are the forms here, the program of each form unchanged.
 % MMP, 10/28/2026: Forms 'FP' and 'FQ', the finite-energy stability LPIs of
-%                PIETOOLS_FEPDEstability and PIETOOLS_FEPIE2PDEstability
-%                (and their 2-D versions), which had no container
-%                counterpart (maintainer: create one). As the stock: P >= 0
-%                with no margin, the decay term epneg*T'*T (2*epneg in
-%                2-D), epneg > 0 required, epneg 1e-5 in the default
-%                settings; 'FQ' posed as 'FP' in 2-D, as the other Q forms.
+%                PIETOOLS_FEPDEstability and PIETOOLS_FEPIE2PDEstability (and
+%                their 2-D versions), which had no container counterpart. As
+%                the stock: P >= 0 with no margin, the decay term epneg*T'*T
+%                (2*epneg in 2-D), epneg > 0 required, epneg 1e-5 in the
+%                default settings; 'FQ' posed as 'FP' in 2-D.
 % MMP, 10/29/2026: settings.sop.max_raise_feas read per dimension, entry
-%                min(nv,end), as dw_feas is; a scalar serves every dimension
-%                as before. The 2-D raises cost far more than the 1-D ones:
-%                in the 10/28 example-library baseline at light, the second
-%                2-D raise ran only on PDE 36 and 38 (infeasible on both
-%                paths), took 2,803 s of the 3,819 s of solve time, and
-%                certified nothing; the 1-D raises took 80 s and certified 35
-%                passes.
-% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs
-%                (maintainer: the executives must support n variables, at
-%                least 3-D). The PIE goes through EXEC_PIE_SOP (INITIALIZE
-%                for an opvar PIE, as before), and the 2-D rules hold for
-%                every nv >= 2: the Q forms posed as the P forms, 2*epneg,
-%                and the 2-D default settings; EXEC_TOOLS_SOP supplies the
-%                N-D storage.
-% MMP, 10/29/2026: The slack takes opts.cap = capfor(D) of EXEC_TOOLS_SOP,
-%                the per-direction bounds of settings.sop.cap_delta; empty
-%                by default, so every program is unchanged unless cap_delta
-%                is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: P returned as a 'copvar' object, not converted to an
-%                opvar / opvar2d (maintainer decision: the executives
-%                return containers). Header output updated.
+%                min(nv,end), as dw_feas is (the 2-D raises cost far more than
+%                the 1-D ones and certified nothing in the 10/28 example
+%                library baseline); a scalar serves every dimension as before.
+% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs: the PIE
+%                goes through EXEC_PIE_SOP, and the 2-D rules hold for every
+%                nv >= 2 (the Q forms posed as the P forms, 2*epneg, the 2-D
+%                default settings); EXEC_TOOLS_SOP supplies the N-D storage.
+%                The slack takes opts.cap = capfor(D) of EXEC_TOOLS_SOP (the
+%                per-direction bounds of settings.sop.cap_delta; empty by
+%                default, every program unchanged), and st.sop takes tl.sop,
+%                each per-dimension vector of the settings tiers reduced to
+%                its entry for the dimension of the PIE.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects, which OP2COPVAR_SOP returned
+%                unchanged), and P is returned as a 'copvar' object, not an
+%                opvar / opvar2d (maintainer: the executives return
+%                containers). Programs unchanged.
 % MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
-%                convert_PIETOOLS_PDE for rank-deficient boundary
-%                conditions, e.g. periodic, with auxiliary states) is used:
-%                in 'P', 'Q', 'FP', 'FQ' the negativity condition, which
-%                acts on the state x, carries + K'*Z + Z'*K, Z free, so it
-%                holds on ker K only. Without it the LPI was posed off
-%                ker K too, where the auxiliary dynamics miss a boundary
-%                condition: x_t = x_ss - x with periodic or Neumann BCs was
-%                infeasible, now certified, at decay rates up to the exact
-%                bound (V decays at rate 2: epneg 1.9 certified, 2.1
-%                infeasible). With K, 'Pd' and 'Qd' are posed as 'P' and
-%                'Q': they ignore K, and certified unstable PIEs
-%                (x_t = x_ss + x with periodic, Neumann or rank-deficient
-%                BCs; 7 of 8 runs). Programs without K unchanged.
-%                Header updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                convert_PIETOOLS_PDE for rank-deficient boundary conditions,
+%                e.g. periodic, with auxiliary states) is used: in 'P', 'Q',
+%                'FP', 'FQ' the negativity condition, which acts on the state
+%                x, carries + K'*Z + Z'*K, Z free, so it holds on ker K only.
+%                Without it the LPI was posed off ker K too, where the
+%                auxiliary dynamics miss a boundary condition: x_t = x_ss - x
+%                with periodic or Neumann BCs was infeasible, now certified
+%                up to the exact decay rate. 'Pd' and 'Qd' ignore K and
+%                certified unstable PIEs: with K they are posed as 'P' and
+%                'Q'. Programs without K unchanged. Help: status 'residual'
+%                (LPI_CLASSIFY_SOP, a cuADMM exit since 11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('light') in 2-D and
 %                higher, lpisettings_sop('heavy') in 1-D (was the stock
-%                lpisettings of the same levels, whose folder leaves the
-%                path): the same storage degrees there, with the container
-%                options of those tiers (maintainer, 11/08/2026).
+%                lpisettings of the same levels, retired with its folder):
+%                the same storage degrees, with the container options of
+%                those tiers (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                defaults named after lpisettings_sop, a stale body note
+%                (conversion back to opvar) removed; code unchanged.
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -199,7 +181,7 @@ end
 label = ['stability_sop ' form];
 
 % Complete the container options and read the tools of the PIE's dimension
-% (storage of P, stock slack, margins, conversion back to opvar)
+% (storage of P, stock slack, margins)
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
 st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026

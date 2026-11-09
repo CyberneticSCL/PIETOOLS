@@ -30,7 +30,7 @@ function tr = trace_rn_sop(X)
 % variables, or has decision variables other than X.Zd is an error, as is
 % an 'sdopvar' block whose A is nonzero and has other than m*m entries.
 %
-% See also LPI_INEQ, POSLPIVAR_SOP, LPIVAR_CDOPVAR.
+% See also LPI_INEQ_SOP, POSLPIVAR_SOP, LPIVAR_CDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -61,12 +61,11 @@ function tr = trace_rn_sop(X)
 % Initial coding MMP, 10/06/2026. Library version of the test-folder
 %                cx_h2_trace (cx_exec, MMP 09/25/2026), same sums, plus the
 %                legacy branches and a check that an R^q diagonal block is
-%                square (cx_h2_trace read dims(1) only). cx_h2_trace stays,
-%                unchanged, for the frozen 2-D H2 transcriptions.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body; code
-%                unchanged. The deleted header text was the use of the
-%                output by its callers and a cost note.
+%                square (cx_h2_trace read dims(1) only).
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                code unchanged.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): See also names
+%                LPI_INEQ_SOP (LPI_INEQ retired 11/08/2026); code unchanged.
 
 % Legacy operators: the trace of the matrix part
 if isa(X,'opvar') || isa(X,'dopvar')

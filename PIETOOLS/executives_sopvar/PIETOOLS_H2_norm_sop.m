@@ -35,8 +35,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %             objects (EXEC_PIE_SOP); Tw zero or absent (no disturbance at
 %             the boundary); K a 'copvar' object (the constraint K x = 0 on
 %             the state) or empty;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R
 %                       (of W in 'cco', 'oco');
 %               settings_2d   2-D degrees;
@@ -46,7 +46,7 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_Q for 'c'
 %                       and 'o', dw_P for 'cco' and 'oco', max_raise.
-%             Default lpisettings('light');
+%             Default lpisettings_sop('light');
 % - form:     (optional) char, 'c' (default), 'o', 'cco' or 'oco'.
 %
 % OUTPUT
@@ -102,56 +102,44 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % Initial coding MMP, 10/28/2026: one executive for the eight H2 norm
 %                executives of 10/08/2026 (PIETOOLS_H2_norm_c_sop, _o_sop,
 %                _c_coercive_sop, _o_coercive_sop and their 2-D versions
-%                _2D_c_non_coercive_sop, _2D_o_non_coercive_sop,
-%                _2D_c_sop, _2D_o_sop), which called private/h2_build_sop
-%                (MMP, 10/08/2026, 10/09/2026); their LPIs are the forms
-%                here, the program of each unchanged.
-% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs
-%                (maintainer: the executives must support n variables, at
-%                least 3-D). The PIE goes through EXEC_PIE_SOP (INITIALIZE
-%                for an opvar PIE, as before); the 2-D margin of W in
-%                'cco', 'oco' holds for every nv >= 2, written for the
-%                2^nv variable subsets: eppos on R^n and on the space in
-%                every variable, 0 between (e(2:3) = 0 at nv = 2).
-% MMP, 10/29/2026: Both slacks take opts.cap of EXEC_TOOLS_SOP capfor, each
-%                laid over its own target's variables (the per-direction
-%                bounds of settings.sop.cap_delta); empty by default, so
-%                every program is unchanged unless cap_delta is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The scalar gamma constraints are imposed by
-%                LPI_INEQ_SOP of lpi_programming_sopvar in place of
-%                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
-%                impose it by SOSINEQ, so the program is the same.
-% MMP, 11/04/2026: W, R and Q returned as 'copvar' objects, not converted
-%                to opvar / opvar2d (maintainer decision: the executives
-%                return containers). Header outputs updated.
+%                _2D_c_non_coercive_sop, _2D_o_non_coercive_sop, _2D_c_sop,
+%                _2D_o_sop), which called private/h2_build_sop; their LPIs
+%                are the forms here, the program of each unchanged.
+% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs: the PIE
+%                goes through EXEC_PIE_SOP; the 2-D margin of W in 'cco',
+%                'oco' holds for every nv >= 2, written for the 2^nv variable
+%                subsets (eppos on R^n and on the space in every variable, 0
+%                between). Both slacks take opts.cap of EXEC_TOOLS_SOP capfor,
+%                each laid over its own target's variables (the per-direction
+%                bounds of settings.sop.cap_delta; empty by default, every
+%                program unchanged), and st.sop takes tl.sop, each
+%                per-dimension vector of the settings tiers reduced to its
+%                entry for the dimension of the PIE.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects); the scalar gamma constraints are
+%                imposed by LPI_INEQ_SOP in place of the stock LPI_INEQ (both
+%                SOSINEQ on a 'dpvar'); W, R and Q are returned as 'copvar'
+%                objects, not opvar / opvar2d (maintainer: the executives
+%                return containers). Programs unchanged.
 % MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
-%                convert_PIETOOLS_PDE for rank-deficient boundary
-%                conditions, e.g. periodic) is used: in 'o' and 'oco' the
-%                block of the negativity condition on the state carries
-%                + K'*Z + Z'*K, Z free (EXEC_KMULT_SOP), so it holds on
-%                ker K only; 'c' and 'cco', which have no such term, are
-%                posed as 'o' and 'oco'. On x_t = x_ss + lam*x + w,
-%                periodic BCs, z = int x (H2 norm 1/sqrt(2|lam|)), no form
-%                certified a bound before (the default 'c' returned 0.052,
-%                status unknown, for 0.7071); now every form returns 0.7071
-%                at lam = -1 and none certifies lam = 1 (unstable).
-%                Programs without K unchanged. Header updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                convert_PIETOOLS_PDE for rank-deficient boundary conditions,
+%                e.g. periodic) is used: in 'o' and 'oco' the block of the
+%                negativity condition on the state carries + K'*Z + Z'*K, Z
+%                free (EXEC_KMULT_SOP), so it holds on ker K only; 'c' and
+%                'cco', which have no such term, are posed as 'o' and 'oco'.
+%                On x_t = x_ss + lam*x + w, periodic BCs, z = int x (H2 norm
+%                1/sqrt(2|lam|)), no form certified a bound before (the
+%                default 'c' returned 0.052, status unknown, for 0.7071); now
+%                every form returns 0.7071 at lam = -1 and none certifies
+%                lam = 1 (unstable). Programs without K unchanged. Help:
+%                status 'residual' (LPI_CLASSIFY_SOP, a cuADMM exit since
+%                11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), whose folder leaves the path): the
-%                same storage degrees and margins, with the container
-%                options of the light tier (maintainer, 11/08/2026).
+%                lpisettings('light'), retired with its folder): the same
+%                storage degrees and margins, with the container options of
+%                the light tier (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                default named after lpisettings_sop; code unchanged.
 
 % Default settings and form; check the PIE
 % if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)

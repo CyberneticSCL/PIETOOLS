@@ -29,8 +29,9 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %                        or 'qp', the gain L of bounded degree minimizing
 %                        ||P*L - Z||^2 by QP_COPVAR, with no inverse of P
 %                        (P must be self-adjoint), for any number of spatial
-%                        variables and required when there are several. The options of the 'qp'
-%                        method, passed to QP_COPVAR: qp_deg (maximal degree
+%                        variables and required for a non-separable P in
+%                        several. The options of the 'qp' method, passed to
+%                        QP_COPVAR: qp_deg (maximal degree
 %                        of L in the spatial variable), qp_basis
 %                        ('monomial', 'legendre' or 'chebyshev'), qp_assembly
 %                        ('container' or 'apply'), qp_solver ('quadprog' or
@@ -51,7 +52,7 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %           a 1 x ny cell, the INFO of QP_COPVAR for each of the ny columns
 %           of Z (without its matrices H and f).
 %
-% See also GETCONTROLLER_SOP, COPVAR/INV, QP_COPVAR, GETOBSERVER, GETOBSERVER_2D.
+% See also GETCONTROLLER_SOP, COPVAR/INV, QP_COPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -82,9 +83,7 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 % Initial coding MMP, 10/09/2026.
 % MMP, 10/28/2026: Header to the header protocol (what the function does,
 %                inputs, outputs), step comments in the body; code
-%                unchanged. The deleted header text was a comparison with
-%                the stock getObserver, the uses of Lop elsewhere and a
-%                reference to the 2-D estimator.
+%                unchanged.
 % AT, 10/28/2026: Option opts.method = 'qp': L is the minimizer of ||P*L - Z||^2
 %                over L of bounded degree, from QP_COPVAR (a QP in the
 %                coefficients of L), one QP per column of Z; no inverse of P is
@@ -95,13 +94,18 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %                [] with a warning (as Kop of GETCONTROLLER_SOP).
 % MMP, 11/04/2026: No 'opvar' copy of L: Lop is [] (the executives return
 %                containers, maintainer decision), so the routine needs no
-%                operator class. The unit vectors of the method 'qp' are
+%                operator class; the unit vectors of the method 'qp' are
 %                built by MAT2COPVAR_SOP instead of MAT2OPVAR and
-%                OPVAR2COPVAR. Supersedes the Lop lines of AT, 10/28/2026.
-% MMP, 11/04/2026: The method 'inv' in several variables: COPVAR/INV now
-%                inverts a separable P (Woodbury), so the refusal of an N-D
-%                P or Z is removed; a non-separable P raises the error of
-%                COPVAR/INV. Header: the methods.
+%                OPVAR2COPVAR (supersedes the Lop lines of AT, 10/28/2026).
+%                The method 'inv' in several variables: COPVAR/INV inverts a
+%                separable P (Woodbury), so the refusal of an N-D P or Z is
+%                removed; a non-separable P raises the error of COPVAR/INV.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
+%                help of the method 'qp' no longer calls it required in
+%                several variables (the method 'inv' serves a separable P
+%                since 11/04/2026), the retired stock GETOBSERVER and
+%                GETOBSERVER_2D out of See also, a commented-out note
+%                removed; code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Default options; 'opvar' operators to containers
@@ -140,7 +144,6 @@ if strcmpi(method,'qp')                                                     % AT
     end                                                                     % AT, 10/28/2026
     L = Lc;                                 % L = sum_j X_j e_j'             % AT, 10/28/2026
 else                                                                        % AT, 10/28/2026
-%   % The inverse is one-dimensional                                        % MMP, 11/04/2026 (was); AT, 10/28/2026
 %   if numel(P.vars)>1 || numel(Z.vars)>1                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
 %       error('getObserver_sop:ndInverse',['P and Z depend on %d spatial variables, and the inverse '... % MMP, 11/04/2026 (was); AT, 10/28/2026
 %           '(method ''inv'') is one-dimensional: use opts.method = ''qp''.'],max(numel(P.vars),numel(Z.vars)));% MMP, 11/04/2026 (was); AT, 10/28/2026

@@ -1,7 +1,7 @@
 function test_executives_sop(quick)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TEST_EXECUTIVES_SOP(QUICK) tests the container executives at
-% lpisettings('light') with MOSEK when installed, and errors at the first
+% lpisettings_sop('light') with MOSEK when installed, and errors at the first
 % failed check:
 %   (a) on the 1-D PIE  x_t = x_ss + pi^2/2 x + s(1-s) w + u, x(0) = x(1) = 0,
 %       z = [int x; u], y = int x,  every form of PIETOOLS_Hinf_gain_sop and
@@ -54,17 +54,19 @@ function test_executives_sop(quick)
 % MMP, 10/28/2026: The executives called are the consolidated ones
 %                (PIETOOLS_stability_sop, PIETOOLS_Hinf_gain_sop and
 %                PIETOOLS_H2_norm_sop with a form, in place of the removed
-%                per-form files); header to the header protocol, the
-%                licence block added.
+%                per-form files); header to the header protocol, the licence
+%                block added.
 % MMP, 11/04/2026: The gains and solved operators are checked as 'copvar'
 %                objects: the executives return containers.
 % MMP, 11/07/2026: Part (b) compares with recorded values of the stock
-%                executives. PIEs hold 'copvar' operators, on which the
+%                executives: the PIEs hold 'copvar' operators, on which the
 %                stock PIETOOLS_Hinf_gain and PIETOOLS_H2_norm_c fail at
-%                their first poslpivar call (Top.dim); the test ended there,
-%                before parts (c) and (d).
+%                their first poslpivar call (Top.dim), so the test ended
+%                there, before parts (c) and (d).
 % MMP, 11/08/2026: Settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), whose folder leaves the path).
+%                lpisettings('light'), retired with its folder).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                lpisettings_sop; code unchanged.
 
 % Settings, solver and messages; counter of passed checks
 if nargin<1,    quick = true;   end

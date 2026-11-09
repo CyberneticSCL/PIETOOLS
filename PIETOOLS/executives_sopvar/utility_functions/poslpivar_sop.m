@@ -85,23 +85,19 @@ function varargout = poslpivar_sop(prog,n,varargin)
 %                poslpivar call for containers, replacing the test-folder
 %                cx_stability_pos, cx_h2_pos, cx_hinf_posdeg and cx_pl2pm
 %                (cx_exec, MMP 09/25/2026), which differed on psatz other
-%                than 0/1 (error / pass-through / none), on sep (error in
-%                cx_h2_pos) and on degree filling (none in cx_hinf_posdeg).
-%                This follows poslpivar on all three. On the shipped
-%                settings presets every 1-D container program is unchanged.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body; code
-%                unchanged. The deleted header text was the comparison with
-%                the 1-D branch of poslpivar and a cost note.
+%                than 0/1, on sep and on degree filling; this follows
+%                poslpivar on all three.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                code unchanged.
 % MMP, 11/08/2026: A second input that is not a 'copvar' or 'cdopvar'
 %                object, such as the dimension N, is an error
 %                (poslpivar_sop:class). It went to POSLPIVAR, retired
 %                11/08/2026 (cleaning/private) with the opvar classes it
 %                returned. Help text to match.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, two
+%                commented-out notes removed; code unchanged.
 
-% % A dimension N: the call is POSLPIVAR's                                  % MMP, 11/08/2026 (was)
 % if ~(isa(n,'copvar') || isa(n,'cdopvar'))                                 % MMP, 11/08/2026 (was)
-%     % Legacy family: poslpivar itself.                                    % MMP, 11/08/2026 (was)
 %     [varargout{1:max(nargout,1)}] = poslpivar(prog,n,varargin{:});        % MMP, 11/08/2026 (was)
 %     return                                                                % MMP, 11/08/2026 (was)
 % end                                                                       % MMP, 11/08/2026 (was)

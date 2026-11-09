@@ -10,21 +10,19 @@ function [prog,P] = poslpivar_settings_sop(prog,n,settings,role,varargin)
 %                 omitted when override1 = 1;
 %   ROLE 'slack'  P1 of dd2 and options2, P2 of dd3 and options3, P2
 %                 omitted when override2 = 1.
-% With the dimension N of an 'opvar' object in place of X, P1 and P2 are
-% the 'dopvar' objects of POSLPIVAR(PROG,N,dd,options). No constraint other
-% than P1 >= 0 and P2 >= 0 is added.
+% No constraint other than P1 >= 0 and P2 >= 0 is added. An X that is not a
+% 'copvar' or 'cdopvar' object, such as the dimension N of the retired
+% POSLPIVAR, is an error (POSLPIVAR_SOP).
 %
 % INPUT
 % - prog:      'struct', the LPI program to which the decision variables
 %              are added;
 % - X:         'copvar' or 'cdopvar' object whose SIDE spaces P maps, each
-%              R^q or L2^m[s] in one spatial variable; or
-%   N:         'double', the dimensions [n0;n1] or the 2x2 .dim of an
-%              'opvar' object;
-% - settings:  'struct' of 1-D LPI settings (LPISETTINGS,
-%              settings_PIETOOLS_*) with the fields of ROLE: dd1, options1,
-%              override1, dd12, options12 ('lf') or dd2, options2,
-%              override2, dd3, options3 ('slack'), and (optional)
+%              R^q or L2^m[s] in one spatial variable;
+% - settings:  'struct' of 1-D LPI settings (LPISETTINGS_SOP) with the
+%              fields of ROLE: dd1, options1, override1, dd12, options12
+%              ('lf') or dd2, options2, override2, dd3, options3 ('slack'),
+%              and (optional)
 %              sosineq_on. Each dd is a 'cell' {d1,d2,d3} of monomial
 %              degrees: d1 of the multiplier basis, d2 and d3 [degree in
 %              the integration variable, in s, joint] of the lower and upper
@@ -43,14 +41,13 @@ function [prog,P] = poslpivar_settings_sop(prog,n,settings,role,varargin)
 % OUTPUT
 % - prog:      'struct', the program with the decision variables and Gram
 %              constraints of P1 and then of P2 added;
-% - P:         'cdopvar' object P1 + P2 (P1 when P2 is omitted); with N, a
-%              'dopvar' object.
+% - P:         'cdopvar' object P1 + P2 (P1 when P2 is omitted).
 %
 % NOTES
 % ROLE 'slack' with settings.sosineq_on nonzero is an error, as is a ROLE
 % other than 'lf' and 'slack'.
 %
-% See also POSLPIVAR_SOP, LPISETTINGS, LPI_EQ_SOP.
+% See also POSLPIVAR_SOP, LPISETTINGS_SOP, LPI_EQ_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -83,11 +80,12 @@ function [prog,P] = poslpivar_settings_sop(prog,n,settings,role,varargin)
 %                09/25/2026) and the P1(+P2) / N1(+N2) pairs written out in
 %                the stability transcriptions. cx_hinf_slack imposed the
 %                equality itself; returning N instead serves both forms.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body; code
-%                unchanged. The deleted header text was the transcription
-%                of the executives' code, references to the executives and
-%                a cost note.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                code unchanged.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help no longer
+%                offers the dimension N of the retired POSLPIVAR in place of
+%                X (POSLPIVAR_SOP rejects it since 11/08/2026) and names
+%                LPISETTINGS_SOP; code unchanged.
 
 % The settings fields of ROLE: degrees and options of P1, the override,
 % degrees and options of P2

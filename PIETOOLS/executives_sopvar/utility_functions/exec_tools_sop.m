@@ -4,8 +4,8 @@ function tl = exec_tools_sop(PIE,st)
 % ST define for the container executives on a PIE in any number of spatial
 % variables: the positive operator and the stock slack of the settings, the
 % margins, identity operators on the PIE's spaces, the degrees of a free
-% operator, and the conversion of a solved container back to an 'opvar'
-% or 'opvar2d' object (1-D, 2-D).
+% operator, the container options of the PIE's dimension and the
+% per-direction bounds of the slack bases.
 %
 % INPUT
 % - PIE:  'pie_struct' object as EXEC_PIE_SOP returns it: each operator a
@@ -68,9 +68,12 @@ function tl = exec_tools_sop(PIE,st)
 %           ident          function handle, I = ident(Bop,side): the
 %                          identity 'copvar' on the output (SIDE 1) or input
 %                          (SIDE 2) space of the 'copvar' or 'cdopvar' Bop;
-%           toop           function handle, Op = toop(C): the 'copvar' C as
-%                          an 'opvar' (1-D) or 'opvar2d' (2-D) object; C
-%                          itself in N-D;
+%           toop           function handle, Op = toop(C): C itself in N-D;
+%                          in 1-D and 2-D a call of copvar2opvar or
+%                          copvar2opvar2d, retired 11/08/2026
+%                          (cleaning/private) with the opvar classes, so the
+%                          handle errors when called; no executive calls it
+%                          since 11/04/2026;
 %           zdeg           the degrees of a free operator for
 %                          LPIVAR_CDOPVAR: 1-D the settings' ddZ (default 1);
 %                          2-D a 'struct' with the largest entry of
@@ -118,63 +121,53 @@ function tl = exec_tools_sop(PIE,st)
 %                utility_functions/ with the consolidation of the
 %                executives; header to the header protocol, the licence
 %                block added, step comments in the body; code unchanged.
-% MMP, 10/29/2026: PIEs in any number of spatial variables (maintainer: the
-%                executives must support n variables, at least 3-D), and
-%                container PIEs (T a 'copvar') in every dimension.
-%                - N-D branch: no stock settings exist in 3-D or higher, so
-%                  the positive operator is a POSCOPVAR of settings_nd
-%                  (local SETTINGS_ND, POS_ND), the stock slack is an error
-%                  (the 'like' slack of LPI_INEQ_SOP is N-D), and a solved
-%                  container is returned as it is.
-%                - eye and ident build on the spaces of a container (local
-%                  EYE_CONTAINER, IDENT_OP; MAT2COPVAR_SOP, EYE_COPVAR_SOP),
-%                  since an N-D PIE has no opvar dims; an opvar PIE takes
-%                  the former code.
+% MMP, 10/29/2026: PIEs in any number of spatial variables and container
+%                PIEs (T a 'copvar') in every dimension. N-D branch: no stock
+%                settings exist in 3-D or higher, so the positive operator
+%                is a POSCOPVAR of settings_nd (local SETTINGS_ND, POS_ND),
+%                whose default has the structure of the stock light 2-D
+%                storage, a multiplier and one separable full integral per
+%                space (with all 3^nv basis operators at degree 1 the 3-D
+%                heat stability SDP was past what MOSEK solves here); the
+%                stock slack is an error, and a solved container is returned
+%                as it is. eye and ident build on the spaces of a container
+%                (local EYE_CONTAINER, IDENT_OP). Field capfor (local
+%                CAP_FOR): the per-direction bounds of settings.sop.cap_delta
+%                for opts.cap of LPI_INEQ_SOP, read from T (GET_LIFT_DEGS
+%                info.Jmax) and laid over each target's variables, [] when
+%                cap_delta is empty. Field sop (local SOP_OF_DIM): the
+%                per-dimension vectors of the settings_sopvar tiers reduced
+%                to this dimension's entry; a NaN cap_delta means no bound.
 %                The 1-D and 2-D branches are unchanged.
-%                The default N-D storage has the structure of the stock
-%                light 2-D storage (a multiplier and one separable full
-%                integral per space): with all 3^nv basis operators at
-%                degree 1, the 3-D heat stability SDP (heatNd, light) had m
-%                145,123 (storage Gram 216, slack Gram 1728, build 439 s),
-%                past what MOSEK solves on this workstation.
-% MMP, 10/29/2026: Field capfor (local CAP_FOR): the per-direction bounds of
-%                settings.sop.cap_delta for LPI_INEQ_SOP's opts.cap, read
-%                from T (GET_LIFT_DEGS info.Jmax) and laid over each
-%                target's variables; [] when cap_delta is empty, so every
-%                program is unchanged by default.
-% MMP, 10/29/2026: Field sop (local SOP_OF_DIM): the per-dimension vectors of
-%                the settings_sopvar tiers ([1-D 2-D 3-D], since 10/29/2026)
-%                reduced to this dimension's entry, so the executives keep
-%                reading scalars; a NaN cap_delta means no bound.
 % DJ (CC), 10/29/2026: Support the 'copvar' operators of the new pie_struct:
 %                tl.ident and eye_state read the spaces of PIE.T and Bop
 %                from the 'copvar' fields, as PIE.T.dim and Bop.dim no longer
 %                exist; eye_state gives one block for each block of PIE.T,
 %                and tl.ident one for each space of Bop;
-% MMP, 10/30/2026: Merge of origin/ndopvar. The tl.ident and EYE_STATE bodies
-%                of the entry above (DJ, origin commit 3df33dcc) and the
-%                container branch of 10/29/2026 (IDENT_OP, EYE_CONTAINER)
-%                both read the spaces from the 'copvar' fields; the
-%                container branch is kept. The DJ tl.ident lines are
-%                commented out; the DJ EYE_STATE body is named where it
-%                stood.
-%                EYE_CONTAINER indexes the weights by 1 + sum_k 2^(k-1) over
-%                the variables of a space, equal to the 1 + sum_k loc(k) of
-%                DJ in 1-D and 2-D; in 3 or more variables that index gives
-%                {s3} and {s1,s2} the same weight. IDENT_OP returns the 0 x 0
-%                container of EYE_COPVAR_SOP for an empty channel, where DJ
-%                returned copvar().
-% MMP, 11/04/2026: The opvar-PIE code is removed, being unreachable:
-%                EXEC_PIE_SOP returns a PIE whose operators are all 'copvar'
-%                objects. EYE_STATE calls EYE_CONTAINER (its opvar body
-%                commented out); IDENT_OP raises an error for a class other
-%                than 'copvar' or 'cdopvar' (its opvar branch commented out,
-%                its arguments VARS and PDOM dropped); capfor reads PIE.T
-%                without OP2COPVAR_SOP. The help text of the file, EYE_STATE
-%                and IDENT_OP no longer describes an opvar PIE. Step of the
-%                removal of the opvar classes. This supersedes the opvar-PIE
-%                parts of the entries of 10/29/2026 ("an opvar PIE takes the
-%                former code") and 10/30/2026 (the EYE_STATE body).
+% MMP, 10/30/2026: Merge of origin/ndopvar: the DJ tl.ident and EYE_STATE
+%                bodies (origin commit 3df33dcc) and the container branch of
+%                10/29/2026 both read the spaces from the 'copvar' fields;
+%                the container branch is kept, the DJ lines commented out
+%                where they stood. EYE_CONTAINER indexes the weights by
+%                1 + sum_k 2^(k-1) over the variables of a space, equal to
+%                the 1 + sum_k loc(k) of DJ in 1-D and 2-D (in 3 or more
+%                variables that index gives {s3} and {s1,s2} the same
+%                weight); IDENT_OP returns the 0 x 0 container of
+%                EYE_COPVAR_SOP for an empty channel, where DJ returned
+%                copvar().
+% MMP, 11/04/2026: The opvar-PIE code is commented out, being unreachable
+%                (EXEC_PIE_SOP returns a PIE whose operators are all 'copvar'
+%                objects): EYE_STATE calls EYE_CONTAINER, IDENT_OP errors on
+%                a class other than 'copvar' or 'cdopvar' (its arguments VARS
+%                and PDOM dropped), capfor reads PIE.T without OP2COPVAR_SOP.
+%                Supersedes the opvar-PIE parts of the entries of 10/29/2026
+%                and 10/30/2026.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; the
+%                help of toop and the 1-D, 2-D branch notes say that
+%                copvar2opvar and copvar2opvar2d are retired (11/08/2026,
+%                cleaning/private), so the handle errors when called (unused
+%                since 11/04/2026); three commented-out notes removed; code
+%                unchanged.
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -183,7 +176,8 @@ vnames = reshape(vars(:,1).varname,1,[]);
 tl = struct('nv',nv,'S',[]);
 if nv==1
     % 1-D: margins from eppos, eppos2, epneg; storage and slack from the
-    % 1-D degree fields; conversion by copvar2opvar; Z degrees from ddZ
+    % 1-D degree fields; toop a call of copvar2opvar (retired, unused); Z
+    % degrees from ddZ
     tl.dom = PIE.dom;
     tl.eppos = [getf(st,'eppos',1e-4); getf(st,'eppos2',1e-6)];
     tl.epneg = getf(st,'epneg',0);
@@ -193,8 +187,8 @@ if nv==1
     tl.toop    = @(C) copvar2opvar(C);
     tl.zdeg    = getf(st,'ddZ',1);
 elseif nv==2
-    % 2-D: everything from settings_2d; conversion by copvar2opvar2d; one
-    % degree cap for Z
+    % 2-D: everything from settings_2d; toop a call of copvar2opvar2d
+    % (retired, unused); one degree cap for Z
     S = settings_2d_sop(st);
     tl.S = S;
     tl.dom = struct('vars',{vnames},'dom',PIE.dom);
@@ -271,9 +265,6 @@ function Im = eye_state(PIE,side,e,dom)                                     % MM
 Im = eye_container(PIE,side,e,dom);                                         % MMP, 11/04/2026
 % % % BEGIN MMP, 11/04/2026: the opvar-PIE body below is commented out, being
 % % % unreachable (no opvar PIE reaches EXEC_TOOLS_SOP; header entry).
-% % The copvar body of DJ (CC), 10/29/2026 (origin commit 3df33dcc) is not    % MMP, 10/30/2026
-% % carried by the merge of 10/30/2026: the line above reaches EYE_CONTAINER, % MMP, 10/30/2026
-% % which reads the same copvar fields (header entry). An opvar PIE below.    % MMP, 10/30/2026
 % n = PIE.T.dim(:,side);
 % if isscalar(e),     e = e*ones(numel(n),1);     end
 % if numel(e)~=numel(n)

@@ -36,8 +36,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %             and K a 'copvar' object (the constraint K x = 0 on the state)
 %             or empty; in two or more variables, Tw and B1 not both
 %             nonzero;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R;
 %               settings_2d                                 2-D degrees of R;
 %               settings_2d.eppos (2-D)  margins of R in the 'P' forms;
@@ -46,7 +46,7 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_Q for the
 %                       'Q' forms, dw_P for the 'P' forms, max_raise.
-%             Default lpisettings('light');
+%             Default lpisettings_sop('light');
 % - form:     (optional) char, 'Q' (default), 'Qd', 'P' or 'Pd';
 % - gain:     (optional) positive double: solve the feasibility LPI at
 %             gam = gain instead of minimizing gam (0 or [] minimizes).
@@ -108,59 +108,47 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % Initial coding MMP, 10/08/2026
 % MMP, 10/28/2026: One executive for the seven gain executives of
 %                10/08/2026: the body of this file (a call of
-%                private/hinf_build_sop) is replaced by the builder's code
-%                (MMP, 10/08/2026), and PIETOOLS_Hinf_gain_coercive_sop,
-%                _dual_sop, _dual_coercive_sop, _2D_sop, _2D_non_coercive_sop
-%                and _dual_2D_sop are the forms 'P', 'Qd', 'Pd' and their 2-D
+%                private/hinf_build_sop) is replaced by the builder's code,
+%                and PIETOOLS_Hinf_gain_coercive_sop, _dual_sop,
+%                _dual_coercive_sop, _2D_sop, _2D_non_coercive_sop and
+%                _dual_2D_sop are the forms 'P', 'Qd', 'Pd' and their 2-D
 %                cases, the program of each unchanged. Header to the header
 %                protocol.
-% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs
-%                (maintainer: the executives must support n variables, at
-%                least 3-D). The PIE goes through EXEC_PIE_SOP (INITIALIZE
-%                for an opvar PIE, as before); the 2-D rules hold for every
-%                nv >= 2: the Tw/B1 check, 'Qd' posed as 'Pd', the margin
-%                of R in the 'P' forms, and the 'Pd' default margin,
-%                written for 2^nv spaces (1e-4 on R^n, 1e-6 on the space in
-%                every variable, 0 between; [1e-4;0;0;1e-6] at nv = 2).
-% MMP, 10/29/2026: The 'like' slack takes opts.cap = capfor(K) of
-%                EXEC_TOOLS_SOP, the per-direction bounds of
-%                settings.sop.cap_delta; empty by default, so every program
-%                is unchanged unless cap_delta is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The scalar gamma constraints are imposed by
-%                LPI_INEQ_SOP of lpi_programming_sopvar in place of
-%                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
-%                impose it by SOSINEQ, so the program is the same.
-% MMP, 11/04/2026: R returned as a 'copvar' object, not converted to an
-%                opvar / opvar2d (maintainer decision: the executives
-%                return containers). Header output updated.
+% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs: the PIE
+%                goes through EXEC_PIE_SOP, and the 2-D rules hold for every
+%                nv >= 2: the Tw/B1 check, 'Qd' posed as 'Pd', the margin of
+%                R in the 'P' forms, and the 'Pd' default margin written for
+%                2^nv spaces (1e-4 on R^n, 1e-6 on the space in every
+%                variable, 0 between). The 'like' slack takes opts.cap =
+%                capfor(K) of EXEC_TOOLS_SOP (the per-direction bounds of
+%                settings.sop.cap_delta; empty by default, every program
+%                unchanged), and st.sop takes tl.sop, each per-dimension
+%                vector of the settings tiers reduced to its entry for the
+%                dimension of the PIE.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects); the scalar gamma constraints are
+%                imposed by LPI_INEQ_SOP in place of the stock LPI_INEQ (both
+%                SOSINEQ on a 'dpvar'); R is returned as a 'copvar' object,
+%                not an opvar / opvar2d (maintainer: the executives return
+%                containers). Programs unchanged.
 % MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
-%                convert_PIETOOLS_PDE for rank-deficient boundary
-%                conditions, e.g. periodic) is used: in 'Q' and 'P' the
-%                block of the KYP operator on the state carries
-%                + K'*Z + Z'*K, Z free (EXEC_KMULT_SOP), so the LPI holds on
-%                ker K only; 'Qd' and 'Pd', which have no such term, are
-%                posed as 'Q' and 'P'. On x_t = x_ss + lam*x + w, periodic
-%                BCs, z = int x (gain 1/|lam|), no form certified a bound
-%                before (status unknown; 'Qd' returned gam 0.012 for gain
-%                1); now every form returns 1 at lam = -1 and 2 at
-%                lam = -0.5, and none certifies lam = 1 (unstable).
-%                Programs without K unchanged. Header updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                convert_PIETOOLS_PDE for rank-deficient boundary conditions,
+%                e.g. periodic) is used: in 'Q' and 'P' the block of the KYP
+%                operator on the state carries + K'*Z + Z'*K, Z free
+%                (EXEC_KMULT_SOP), so the LPI holds on ker K only; 'Qd' and
+%                'Pd', which have no such term, are posed as 'Q' and 'P'. On
+%                x_t = x_ss + lam*x + w, periodic BCs, z = int x (gain
+%                1/|lam|), no form certified a bound before; now every form
+%                returns 1 at lam = -1 and 2 at lam = -0.5, and none
+%                certifies lam = 1 (unstable). Programs without K unchanged.
+%                Help: status 'residual' (LPI_CLASSIFY_SOP, a cuADMM exit
+%                since 11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), whose folder leaves the path): the
-%                same storage degrees and margins, with the container
-%                options of the light tier (maintainer, 11/08/2026).
+%                lpisettings('light'), retired with its folder): the same
+%                storage degrees and margins, with the container options of
+%                the light tier (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                default named after lpisettings_sop; code unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

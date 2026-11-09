@@ -22,8 +22,8 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 %             or input at the boundary); K empty (a constraint
 %             K x = 0 on the state, e.g. periodic BCs, is an error); a PIE
 %             in two or more variables is an error;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P;
 %               ddZ     degrees of Z;
 %               eppos, eppos2   margins of P;
@@ -32,7 +32,7 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 %                       degree raise of the slack, max_raise, and
 %                       gam_fixed (a positive double: solve the
 %                       feasibility LPI at gam = gam_fixed).
-%             Default lpisettings('light').
+%             Default lpisettings_sop('light').
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
@@ -84,52 +84,42 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 %
 % Initial coding MMP, 10/08/2026
 % MMP, 10/28/2026: The body (a call of private/synth_build_sop) is replaced
-%                by the builder's 'ctrl' code (MMP, 10/08/2026, 10/09/2026),
-%                the program unchanged. Header to the header protocol.
-% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (INITIALIZE for an
-%                opvar PIE, as before; a 1-D container PIE accepted), and
-%                every PIE in two or more variables is rejected, not only a
-%                2-D one: the controller gain is extracted in 1-D only
-%                (GETCONTROLLER_SOP).
-% MMP, 10/29/2026: The slack takes opts.cap = capfor(K) of EXEC_TOOLS_SOP,
-%                the per-direction bounds of settings.sop.cap_delta; empty
-%                by default, so every program is unchanged unless cap_delta
-%                is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The scalar gamma constraints are imposed by
-%                LPI_INEQ_SOP of lpi_programming_sopvar in place of
-%                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
-%                impose it by SOSINEQ, so the program is the same.
-% MMP, 11/04/2026: P, Z and the gain K returned as 'copvar' objects, not
-%                converted to opvar (maintainer decision: the executives
-%                return containers); K is the container of
+%                by the builder's 'ctrl' code, the program unchanged. Header
+%                to the header protocol.
+% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (a 1-D container PIE
+%                accepted), and every PIE in two or more variables is
+%                rejected, not only a 2-D one: the controller gain is
+%                extracted in 1-D only (GETCONTROLLER_SOP). The slack takes
+%                opts.cap = capfor(K) of EXEC_TOOLS_SOP (the per-direction
+%                bounds of settings.sop.cap_delta; empty by default, every
+%                program unchanged), and st.sop takes tl.sop, each
+%                per-dimension vector of the settings tiers reduced to its
+%                entry for the dimension of the PIE.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects); the scalar gamma constraints are
+%                imposed by LPI_INEQ_SOP in place of the stock LPI_INEQ (both
+%                SOSINEQ on a 'dpvar'); P, Z and the gain K are returned as
+%                'copvar' objects, not converted to opvar (maintainer: the
+%                executives return containers), K the container of
 %                GETCONTROLLER_SOP, which no longer builds an opvar copy.
-%                Header outputs updated.
+%                Programs unchanged.
 % MMP, 11/07/2026: A PIE with a constraint K x = 0 on the state (PIE.K, set
 %                by convert_PIETOOLS_PDE for rank-deficient boundary
 %                conditions, e.g. periodic) is an error, as in
-%                PIETOOLS_Hinf_OFcontrol_sop. The LPI is posed on the dual,
+%                PIETOOLS_Hinf_OFcontrol_sop: the LPI is posed on the dual,
 %                where K cannot be imposed by a multiplier, and the dual
 %                stability LPI without K certified unstable PIEs
 %                (PIETOOLS_stability_sop, 11/07/2026). Before, the solver
-%                returned status unknown with gam 0.014 for an optimal
-%                bound of 0.70711 (x_t = x_ss - x + w + u, periodic BCs,
-%                z = [int x; u]). Header updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                returned status unknown with gam 0.014 for an optimal bound
+%                of 0.70711 (x_t = x_ss - x + w + u, periodic BCs,
+%                z = [int x; u]). Help: status 'residual' (LPI_CLASSIFY_SOP,
+%                a cuADMM exit since 11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), whose folder leaves the path): the
-%                same storage degrees and margins, with the container
-%                options of the light tier (maintainer, 11/08/2026).
+%                lpisettings('light'), retired with its folder): the same
+%                storage degrees and margins, with the container options of
+%                the light tier (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                default named after lpisettings_sop; code unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

@@ -60,6 +60,11 @@ function [K,info] = getController_direct_sop(P,Z,opts)
 %           on the grid) and condT (condition number of T; NaN with no R^k
 %           space).
 %
+% NOTES
+% The 'opvar' form K.op is built by the opvar constructor, retired
+% 11/08/2026 (cleaning/private) with the opvar classes: on the current path
+% this routine errors there, after the grid computation of K1 and K2.
+%
 % See also GETCONTROLLER_SOP, GK_GRID, CHEBFIT_MONO, COPVAR/INV, CLOSEDLOOPPIE.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -91,10 +96,10 @@ function [K,info] = getController_direct_sop(P,Z,opts)
 % Initial coding MMP, 10/09/2026.
 % MMP, 10/28/2026: Header to the header protocol (what the function does,
 %                inputs, outputs), step comments in the body; code
-%                unchanged. The deleted header text was a reference to the
-%                delay-case construction it follows, the uses of K.op
-%                elsewhere, a comparison with getController_sop with its
-%                measurement, and a note on the observer gain.
+%                unchanged.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): NOTES on the opvar
+%                constructor that K.op needs, retired 11/08/2026; code
+%                unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Options: the defaults, overridden by the fields of OPTS

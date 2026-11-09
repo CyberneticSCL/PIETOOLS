@@ -7,9 +7,9 @@ function S = settings_2d_sop(st)
 %
 % INPUT
 % - st:   'struct', either LPI settings with the field settings_2d and,
-%         optionally, sos_opts (as returned by lpisettings or
-%         lpisettings_sop), or 2-D settings with is2D true (as returned by
-%         settings_PIETOOLS_light_2D); the 2-D settings have the fields
+%         optionally, sos_opts (as returned by lpisettings_sop), or 2-D
+%         settings with is2D true (that field itself); the 2-D settings
+%         have the fields
 %         LF_deg_psatz, LF_opts_psatz and LF_use_psatz and, when
 %         use_sosineq is 0, eq_deg_psatz, eq_opts_psatz and eq_use_psatz.
 %
@@ -63,11 +63,12 @@ function S = settings_2d_sop(st)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body and the header of the local function; code
-%                unchanged. The deleted header text was the comparison with
-%                the stock 2-D executives.
+% MMP, 10/28/2026: Header to the header protocol, the licence block added,
+%                step comments in the body and the header of the local
+%                function; code unchanged.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                lpisettings_sop, not the retired lpisettings and
+%                settings_PIETOOLS_light_2D; code unchanged.
 
 % The 2-D settings: ST itself, or ST.settings_2d with the solver options
 % of ST

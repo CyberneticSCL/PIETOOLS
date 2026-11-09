@@ -28,15 +28,15 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %             EXEC_PIE_SOP); Tw and D11 zero or absent; K a 'copvar'
 %             object (the constraint K x = 0 on the state) or empty; a PIE
 %             in two or more variables is an error;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P;
 %               ddZ     degrees of Z and W;
 %               eppos, eppos2   margins of P;
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_P, the
 %                       degree raise of the slacks, and max_raise.
-%             Default lpisettings('light').
+%             Default lpisettings_sop('light').
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
@@ -88,53 +88,44 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % MMP, 10/28/2026: The body (a call of private/h2_build_sop and a local
 %                safe_op whose branch, a call of the nonexistent
 %                cop2opvar_sop, was never reached) is replaced by the
-%                builder's 'est' code (MMP, 10/08/2026, 10/09/2026), the
-%                program unchanged. Header to the header protocol.
-% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (INITIALIZE for an
-%                opvar PIE, as before; a 1-D container PIE accepted), and
-%                every PIE in two or more variables is rejected, not only a
-%                2-D one: the gain is extracted in 1-D only.
-% MMP, 10/29/2026: Both slacks take opts.cap of EXEC_TOOLS_SOP capfor, each
-%                laid over its own target's variables (the per-direction
-%                bounds of settings.sop.cap_delta); empty by default, so
-%                every program is unchanged unless cap_delta is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The scalar gamma constraints are imposed by
-%                LPI_INEQ_SOP of lpi_programming_sopvar in place of
-%                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
-%                impose it by SOSINEQ, so the program is the same.
-% MMP, 11/04/2026: P, Z, W and the gain L returned as 'copvar' objects, not
-%                converted to opvar (maintainer decision: the executives
-%                return containers); L is the container of GETOBSERVER_SOP,
-%                which no longer builds an opvar copy. Header outputs
-%                updated.
+%                builder's 'est' code, the program unchanged. Header to the
+%                header protocol.
+% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (a 1-D container PIE
+%                accepted), and every PIE in two or more variables is
+%                rejected, not only a 2-D one: the gain is extracted in 1-D
+%                only. Both slacks take opts.cap of EXEC_TOOLS_SOP capfor,
+%                each laid over its own target's variables (the per-direction
+%                bounds of settings.sop.cap_delta; empty by default, every
+%                program unchanged), and st.sop takes tl.sop, each
+%                per-dimension vector of the settings tiers reduced to its
+%                entry for the dimension of the PIE.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects); the scalar gamma constraints are
+%                imposed by LPI_INEQ_SOP in place of the stock LPI_INEQ (both
+%                SOSINEQ on a 'dpvar'); P, Z, W and the gain L are returned
+%                as 'copvar' objects, not converted to opvar (maintainer: the
+%                executives return containers), L the container of
+%                GETOBSERVER_SOP, which no longer builds an opvar copy.
+%                Programs unchanged.
 % MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
-%                convert_PIETOOLS_PDE for rank-deficient boundary
-%                conditions, e.g. periodic) is used: the block of the
-%                negativity condition on the state carries
-%                + K'*Z_K + Z_K'*K, Z_K free (EXEC_KMULT_SOP), so it holds
-%                on ker K only. On x_t = x_ss + lam*x + w1, periodic BCs,
-%                y = int x + w2, z = int x (optimal sqrt(lam+sqrt(lam^2+1)),
-%                the Kalman filter of the mean of x), no bound was certified
-%                before (status unknown); now 0.64359 at lam = -1, 1.55377
-%                at lam = 1; with y = int (s-1/2) x + w2 (mean unobservable)
+%                convert_PIETOOLS_PDE for rank-deficient boundary conditions,
+%                e.g. periodic) is used: the block of the negativity
+%                condition on the state carries + K'*Z_K + Z_K'*K, Z_K free
+%                (EXEC_KMULT_SOP), so it holds on ker K only. On
+%                x_t = x_ss + lam*x + w1, periodic BCs, y = int x + w2,
+%                z = int x (optimal sqrt(lam+sqrt(lam^2+1)), the Kalman
+%                filter of the mean of x), no bound was certified before
+%                (status unknown); now 0.64359 at lam = -1, 1.55377 at
+%                lam = 1; with y = int (s-1/2) x + w2 (mean unobservable)
 %                0.70711 at lam = -1, none at lam = 1. Programs without K
-%                unchanged. Header updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                unchanged. Help: status 'residual' (LPI_CLASSIFY_SOP, a
+%                cuADMM exit since 11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), whose folder leaves the path): the
-%                same storage degrees and margins, with the container
-%                options of the light tier (maintainer, 11/08/2026).
+%                lpisettings('light'), retired with its folder): the same
+%                storage degrees and margins, with the container options of
+%                the light tier (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
+%                default named after lpisettings_sop; code unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

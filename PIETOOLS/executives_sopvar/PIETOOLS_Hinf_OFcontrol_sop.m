@@ -39,12 +39,12 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %             container PIE, EXEC_PIE_SOP), and D22 zero; Tw and Tu zero or
 %             absent (no disturbance or input at the boundary), and no
 %             algebraic constraint K;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of R, V;
 %               eppos, eppos2   margins of R and V; the free operators Q and U
 %                       rescale R and V, and with the default margins of
-%                       lpisettings (1e-4) the solver stalls (status 'unknown')
+%                       lpisettings_sop (1e-4) the solver stalls (status 'unknown')
 %                       on the examples tried, so eppos = eppos2 = 1e-7 is
 %                       advised;
 %               sos_opts  solver options;
@@ -55,7 +55,7 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %                       coupling_margin (default 0: the coupling LPI is
 %                       required to hold with R and V reduced by this
 %                       multiple of the identity).
-%             Default lpisettings('light').
+%             Default lpisettings_sop('light').
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
@@ -72,7 +72,7 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %                          which decides no feasibility: never certified);
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
-%                gam, gam_fixed ([]), nv;
+%               form ('OF'), gam, gam_fixed ([]), nv;
 %               sol        'struct' of the solved 'copvar' operators Q, U, An,
 %                          Bn, Cn, Dn, R and V;
 %               K          'cdopvar' object, the LPI operator Phi;
@@ -119,12 +119,14 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %                 gam >= 0 by LPI_INEQ_SOP instead of the stock LPI_INEQ. No
 %                 OP2COPVAR_SOP on the PIE operators, which EXEC_PIE_SOP has
 %                 already converted (it returned its input).
-% MMP 11/07/2026 - Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                 returns for a cuADMM exit since 11/04/2026. Code unchanged.
+% MMP 11/07/2026 - Help: status 'residual' (LPI_CLASSIFY_SOP, a cuADMM exit
+%                 since 11/04/2026). Code unchanged.
 % MMP 11/08/2026 - Default settings lpisettings_sop('light') (was the stock
-%                 lpisettings('light'), whose folder leaves the path): the
-%                 same storage degrees and margins, with the container
-%                 options of the light tier (maintainer, 11/08/2026).
+%                 lpisettings('light'), retired with its folder): the same
+%                 storage degrees and margins, with the container options of
+%                 the light tier (maintainer, 11/08/2026).
+% MMP 11/08/2026 - Comment pass (maintainer, 11/08/2026): the help names
+%                 lpisettings_sop and lists info.form; code unchanged.
 
 % Default settings; check the PIE
 % if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)

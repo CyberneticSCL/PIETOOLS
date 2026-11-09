@@ -28,8 +28,8 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %             and K a 'copvar' object (the constraint K x = 0 on the state)
 %             or empty; in two or more variables, Tw and B1 not both
 %             nonzero;
-% - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
-%             or lpisettings_sop:
+% - settings: (optional) 'struct' of LPI settings, as returned by
+%             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of P;
 %               ddZ     1-D degrees of Z;
 %               settings_2d   2-D degrees of P (LF_deg, ...) and of Z
@@ -40,7 +40,7 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_P, the
 %                       degree raise of the slack, max_raise, gam_fixed.
-%             Default lpisettings('light');
+%             Default lpisettings_sop('light');
 % - gain:     (optional) positive double: solve the feasibility LPI at
 %             gam = gain instead of minimizing gam (0 or [] minimizes).
 %
@@ -97,66 +97,53 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 % MMP, 10/28/2026: One executive for the 1-D and 2-D estimators of
 %                10/08/2026: the body of this file (a call of
 %                private/synth_build_sop) is replaced by the builder's 'est'
-%                code (MMP, 10/08/2026, 10/09/2026), with the third argument
-%                GAIN of PIETOOLS_Hinf_estimator_2D_sop; the programs
-%                unchanged. Header to the header protocol.
-% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs
-%                (maintainer: the executives must support n variables, at
-%                least 3-D). The PIE goes through EXEC_PIE_SOP (INITIALIZE
-%                for an opvar PIE, as before); the 2-D Tw/B1 check holds for
-%                every nv >= 2. In 3 or more variables the LPI is solved and
-%                no gain is extracted (GETOBSERVER_SOP is 1-D, getObserver_2D
-%                2-D): L = [] with a message.
-% MMP, 10/29/2026: The slack takes opts.cap = capfor(K) of EXEC_TOOLS_SOP,
-%                the per-direction bounds of settings.sop.cap_delta; empty
-%                by default, so every program is unchanged unless cap_delta
-%                is set.
-% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
-%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
-%                cap_delta) reduced to its entry for the dimension of the
-%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
-%                scalar settings are unchanged.
-% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
-%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
-%                an opvar PIE, so every operator reaching them was a
-%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
-%                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The scalar gamma constraints are imposed by
-%                LPI_INEQ_SOP of lpi_programming_sopvar in place of
-%                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
-%                impose it by SOSINEQ, so the program is the same.
-% MMP, 11/04/2026: P, Z and the gain L returned as 'copvar' objects, not
-%                converted to opvar / opvar2d (maintainer decision: the
+%                code, with the third argument GAIN of
+%                PIETOOLS_Hinf_estimator_2D_sop; the programs unchanged.
+%                Header to the header protocol.
+% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs: the PIE
+%                goes through EXEC_PIE_SOP; the 2-D Tw/B1 check holds for
+%                every nv >= 2; in 3 or more variables the LPI is solved and
+%                no gain is extracted (L = [] with a message). The slack
+%                takes opts.cap = capfor(K) of EXEC_TOOLS_SOP (the
+%                per-direction bounds of settings.sop.cap_delta; empty by
+%                default, every program unchanged), and st.sop takes tl.sop,
+%                each per-dimension vector of the settings tiers reduced to
+%                its entry for the dimension of the PIE.
+% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
+%                returns 'copvar' objects); the scalar gamma constraints are
+%                imposed by LPI_INEQ_SOP in place of the stock LPI_INEQ (both
+%                SOSINEQ on a 'dpvar'); P, Z and the gain L are returned as
+%                'copvar' objects, not opvar / opvar2d (maintainer: the
 %                executives return containers). 1-D: L is the container of
 %                GETOBSERVER_SOP, which no longer builds an opvar copy. 2-D:
-%                the stock GETOBSERVER_2D still computes L on opvar2d
-%                copies of P and Z (the 2-D gain is an open decision); its
-%                result is converted to a container. Header outputs updated.
-% MMP, 11/04/2026: 2-D gain L = P^{-1} Z by GETOBSERVER_SOP with the
-%                container inverse of a separable P (COPVAR/INV, Woodbury;
-%                maintainer: "Build a container 2-D inverse"); for a
-%                non-separable P the least-squares gain of its method 'qp',
-%                as the stock fell back from the separable inverse to
-%                MLDIVIDE. Replaces GETOBSERVER_2D on opvar2d copies (entry
-%                above): the executive no longer uses the opvar classes.
+%                L = P^{-1} Z by GETOBSERVER_SOP with the container inverse
+%                of a separable P (COPVAR/INV, Woodbury; maintainer: "Build a
+%                container 2-D inverse"), and for a non-separable P the
+%                least-squares gain of its method 'qp', as the stock fell
+%                back from the separable inverse to MLDIVIDE; the stock
+%                GETOBSERVER_2D on opvar2d copies of P and Z, used earlier
+%                the same day, is replaced, so the executive uses no opvar
+%                class. Programs unchanged.
 % MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
-%                convert_PIETOOLS_PDE for rank-deficient boundary
-%                conditions, e.g. periodic) is used: the block of the LPI
-%                operator on the state carries + K'*Z_K + Z_K'*K, Z_K free
-%                (EXEC_KMULT_SOP), so the LPI holds on ker K only. On
-%                x_t = x_ss + lam*x + w1, periodic BCs, y = int x + w2,
-%                z = int x (optimal bound 1/sqrt(2) at lam = -1, 1 at
-%                lam = 1, by the mean of x), no bound was certified before
-%                (status unknown); now 0.70711 and 1.0002; with
-%                y = int (s-1/2) x + w2 (mean unobservable) 1 at lam = -1,
-%                none at lam = 1. Programs without K unchanged. Header
-%                updated.
-% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
-%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+%                convert_PIETOOLS_PDE for rank-deficient boundary conditions,
+%                e.g. periodic) is used: the block of the LPI operator on the
+%                state carries + K'*Z_K + Z_K'*K, Z_K free (EXEC_KMULT_SOP),
+%                so the LPI holds on ker K only. On x_t = x_ss + lam*x + w1,
+%                periodic BCs, y = int x + w2, z = int x (optimal bound
+%                1/sqrt(2) at lam = -1, 1 at lam = 1, by the mean of x), no
+%                bound was certified before (status unknown); now 0.70711
+%                and 1.0002; with y = int (s-1/2) x + w2 (mean unobservable)
+%                1 at lam = -1, none at lam = 1. Programs without K
+%                unchanged. Help: status 'residual' (LPI_CLASSIFY_SOP, a
+%                cuADMM exit since 11/04/2026).
 % MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), whose folder leaves the path): the
-%                same storage degrees and margins, with the container
-%                options of the light tier (maintainer, 11/08/2026).
+%                lpisettings('light'), retired with its folder): the same
+%                storage degrees and margins, with the container options of
+%                the light tier (maintainer, 11/08/2026).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed (the
+%                two 11/04 entries merged), help default named after
+%                lpisettings_sop, two commented-out notes removed; code
+%                unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -214,8 +201,6 @@ try
     Psol = getsol_lpivar_sop(prog,aux.Pm);  Zsol = getsol_lpivar_sop(prog,aux.Zm);
 %   P = tl.toop(Psol);      Z = tl.toop(Zsol);                              % MMP, 11/04/2026 (was)
 %   if nv==1,   [Gc,L,iinv] = getObserver_sop(Psol,Zsol);                   % MMP, 11/04/2026 (was)
-%   % The containers as solved; L the container gain; in 2-D the stock      % MMP, 11/04/2026 (was)
-%   % GETOBSERVER_2D on opvar2d copies of P and Z, L converted back         % MMP, 11/04/2026 (was)
     % The containers as solved; L the container gain                        % MMP, 11/04/2026
     P = Psol;      Z = Zsol;                                                % MMP, 11/04/2026
     if nv==1,   [Gc,~,iinv] = getObserver_sop(Psol,Zsol);   L = Gc;         % MMP, 11/04/2026

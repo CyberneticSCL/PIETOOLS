@@ -105,35 +105,33 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body and headers of the local functions; code
-%                unchanged. The deleted header text was the interpretation
-%                of the outputs (a lower bound, the meaning of alignment
-%                values) and the reason the discretization is exact.
+% MMP, 10/28/2026: Header to the header protocol, the licence block added,
+%                step comments in the body and headers of the local
+%                functions; code unchanged.
 % MMP, 10/28/2026: 'gain' includes the disturbance at the boundary: from
 %                T x_t + Tw w_t = A x + B1 w, the input operator of G(om) is
-%                B - i*om*Tw. Before, Tw was not used, so for Tw ~= 0 the
-%                witness was the gain of the PIE without the Tw term.
-%                'h2' returns ok = false when Tw ~= 0. For Tw = 0 both are
+%                B - i*om*Tw (before, Tw was not used, so for Tw ~= 0 the
+%                witness was the gain of the PIE without the Tw term); 'h2'
+%                returns ok = false when Tw ~= 0. For Tw = 0 both are
 %                computed as before.
 % MMP, 10/28/2026: 'gain' with an empty channel (no disturbance or no
-%                regulated output) returns the gain 0 at omega 0. Before,
-%                the worst input was read off the SVD of an nz x 0 response
-%                and the index failed, so the H-infinity gain executive
-%                errored on a PIE without disturbance (maintainer: empty
-%                channels should not raise an error).
+%                regulated output) returns the gain 0 at omega 0; before, the
+%                worst input was read off the SVD of an nz x 0 response and
+%                the index failed (maintainer: empty channels should not
+%                raise an error).
 % DJ, 10/29/2026: Convert the operators of the PIE to 'opvar' objects
 %                using pie2opvar, which PIE_DISC_SOP and PIE.B1.dim require,
 %                instead of initializing the PIE, whose operators are now
 %                'copvar' objects. This is a temporary fix, we should
 %                really work with the new PIE structure directly;
 % MMP, 11/04/2026: Convert with PIE2PIESIM, to structs of the kernels,
-%                instead of PIE2OPVAR, so that the witness needs no
-%                operator class; the test Tw == 0 reads the kernels
-%                (local ZERO_KERNELS, every coefficient below 1e-14 in
-%                modulus, the tolerance of the opvar test it replaces).
-%                Supersedes DJ, 10/29/2026. Header: PIE input text.
+%                instead of PIE2OPVAR, so that the witness needs no operator
+%                class; the test Tw == 0 reads the kernels (local
+%                ZERO_KERNELS, every coefficient below 1e-14 in modulus, the
+%                tolerance of the opvar test it replaces). Supersedes DJ,
+%                10/29/2026.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
+%                unchanged.
 
 % Output with every quantity not computed
 W = struct('ok',false,'note','','N',NaN,'gain',NaN,'omega',NaN,'wcoef',[],'wgrid',[],'sgrid',[], ...

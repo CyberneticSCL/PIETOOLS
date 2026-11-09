@@ -69,23 +69,18 @@ function [prog,aux,hist] = lpi_solve_loop_sop(build,st,label)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/16/2026: Header only. The earlier text said a raise changes
-%                  nothing for a feasibility LPI; the Posopvar session
-%                  measured the opposite on the 2-D stability executives
-%                  (infeasible at dw 0, certified at dw 1; 2.57 s and
-%                  2.48 s against 6.60 s and 5.68 s from the default
-%                  dw_P = 2; the 1-D feasibility executives certify at
-%                  dw 0 with 2.0-3.7x fewer decision variables at the
-%                  same time). Code unchanged.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the licence block added, step comments
-%                  in the body; code unchanged. The deleted header text was
-%                  the rationale for raising on each status, a notes
-%                  reference and measurement results.
+% MMP, 10/16/2026: Header only: a raise can turn an infeasible feasibility
+%                  LPI into a certificate (the earlier text said the
+%                  opposite; measured on the 2-D stability executives). Code
+%                  unchanged.
+% MMP, 10/28/2026: Header to the header protocol, the licence block added,
+%                  step comments in the body; code unchanged.
 % MMP, 10/30/2026: The history and the printed line of each pass carry
-%                  relres and eta, the residual of the SDP equality system
-%                  at the returned point, so a pass can be judged by its
+%                  relres and eta, the residual of the SDP equality system at
+%                  the returned point, so a pass can be judged by its
 %                  residual when the solver sets no infeasibility flags.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
+%                  unchanged.
 
 % Default label; complete the container options
 if nargin<3,    label = '';     end

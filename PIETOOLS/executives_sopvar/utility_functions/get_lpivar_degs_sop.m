@@ -67,22 +67,15 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %                09/25/2026), two readings of the same rule; the body is
 %                cx_stability_lpivar_degs' (it also reads fixed sopvar
 %                blocks), restricted to 1-D with cx_hinf_qdeg's guard.
-% MMP, 10/08/2026: N-D containers no longer error: a block over two or more
-%                  variables sends the whole container to the per-role
-%                  reading of the test-folder cx_hinf_qdeg2d (MMP,
-%                  09/26/2026), copied below as qdeg_nd, so that the 2-D
-%                  container executives (executives_sopvar) size their free
-%                  operator from one routine. The 1-D rule is unchanged.
-% MMP, 10/16/2026: moved from lpi_programming_sopvar/ to executives_sopvar/
-%                  utility_functions/, as the stock get_lpivar_degs is in
-%                  executives/utility_functions; the README it cites is
-%                  executives_sopvar's. Comment only otherwise.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body and headers
-%                  of the local functions; code unchanged. The deleted
-%                  header text was the comparison with the stock rule, a
-%                  measurement and a README reference, a cost note and
-%                  history.
+% MMP, 10/08/2026: A block over two or more variables sends the whole
+%                  container to the per-role reading of the test-folder
+%                  cx_hinf_qdeg2d (MMP, 09/26/2026), copied below as
+%                  qdeg_nd, so that the 2-D container executives size their
+%                  free operator from one routine. The 1-D rule is unchanged.
+% MMP, 10/16/2026: Moved from lpi_programming_sopvar/ to
+%                  executives_sopvar/utility_functions/.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                  and headers of the local functions; code unchanged.
 % MMP, 11/08/2026: The last 1-D entry is max(deg2-1,0) (was deg2-1): a
 %                  positive operator without integral kernels (deg2 = 0, as
 %                  in the 'extreme' tier) gave -1, which LPIVAR_CDOPVAR
@@ -94,8 +87,9 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %                  (get_lpivar_degs_sop:class). It went to GET_LPIVAR_DEGS,
 %                  retired 11/08/2026 (cleaning/private) with the opvar
 %                  classes it read. Help text to match; TOP is unused.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, a
+%                  commented-out note removed; code unchanged.
 
-% % Legacy operator: the stock rule                                         % MMP, 11/08/2026 (was)
 % if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))                             % MMP, 11/08/2026 (was)
 %     Qdeg = get_lpivar_degs(Rop,Top);                                      % MMP, 11/08/2026 (was)
 %     return                                                                % MMP, 11/08/2026 (was)
