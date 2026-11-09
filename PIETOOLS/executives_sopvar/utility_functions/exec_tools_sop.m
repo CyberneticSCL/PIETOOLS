@@ -68,12 +68,6 @@ function tl = exec_tools_sop(PIE,st)
 %           ident          function handle, I = ident(Bop,side): the
 %                          identity 'copvar' on the output (SIDE 1) or input
 %                          (SIDE 2) space of the 'copvar' or 'cdopvar' Bop;
-%           toop           function handle, Op = toop(C): C itself in N-D;
-%                          in 1-D and 2-D a call of copvar2opvar or
-%                          copvar2opvar2d, retired 11/08/2026
-%                          (cleaning/private) with the opvar classes, so the
-%                          handle errors when called; no executive calls it
-%                          since 11/04/2026;
 %           zdeg           the degrees of a free operator for
 %                          LPIVAR_CDOPVAR: 1-D the settings' ddZ (default 1);
 %                          2-D a 'struct' with the largest entry of
@@ -176,6 +170,11 @@ function tl = exec_tools_sop(PIE,st)
 %                2-D branch, each with its header as the comment of the
 %                block. CAP_FOR and IDENT_OP stay: their handles need a
 %                function body.
+% MMP, 11/09/2026: tl.toop removed (maintainer, 11/09/2026: "why does
+%                exec_tools need a converter?"): the handle converted a
+%                container result back to an opvar for output; no executive
+%                has called it since they return containers (11/04/2026),
+%                and its targets copvar2opvar, copvar2opvar2d are retired.
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -183,27 +182,25 @@ vars = PIE.vars;
 vnames = reshape(vars(:,1).varname,1,[]);
 tl = struct('nv',nv,'S',[]);
 if nv==1
-    % 1-D: margins from eppos, eppos2, epneg; storage and slack from the
-    % 1-D degree fields; toop a call of copvar2opvar (retired, unused); Z
-    % degrees from ddZ
+    % 1-D: margins from eppos, eppos2, epneg; storage and slack from the    % MMP, 11/09/2026
+    % 1-D degree fields; Z degrees from ddZ                                 % MMP, 11/09/2026
     tl.dom = PIE.dom;
     tl.eppos = [getf(st,'eppos',1e-4); getf(st,'eppos2',1e-6)];
     tl.epneg = getf(st,'epneg',0);
     tl.eppos_default = ~isfield(st,'eppos') || isempty(st.eppos);
     tl.storage = @(prog,X,side) poslpivar_settings_sop(prog,X,st,'lf',side,PIE.dom);
     tl.slack   = @(prog,X) poslpivar_settings_sop(prog,X,st,'slack','out',PIE.dom);
-    tl.toop    = @(C) copvar2opvar(C);
+%   tl.toop    = @(C) copvar2opvar(C);                                      % MMP, 11/09/2026 (was)
     tl.zdeg    = getf(st,'ddZ',1);
 elseif nv==2
-    % 2-D: everything from settings_2d; toop a call of copvar2opvar2d
-    % (retired, unused); one degree cap for Z
+    % 2-D: everything from settings_2d; one degree cap for Z                % MMP, 11/09/2026
     S = settings_2d_sop(st);
     tl.S = S;
     tl.dom = struct('vars',{vnames},'dom',PIE.dom);
     tl.eppos = S.eppos;     tl.epneg = S.epneg;     tl.eppos_default = S.eppos_default;
     tl.storage = @(prog,X,side) poslpivar_settings_2d_sop(prog,X,st,'lf',side,PIE);
     tl.slack   = @(prog,X) poslpivar_settings_2d_sop(prog,X,st,'slack','out',PIE);
-    tl.toop    = @(C) copvar2opvar2d(C,vnames);
+%   tl.toop    = @(C) copvar2opvar2d(C,vnames);                             % MMP, 11/09/2026 (was)
 %   tl.zdeg    = zcaps(S.Zop_deg);                                          % MMP, 11/09/2026 (was)
     % One degree cap for every role of LPIVAR_CDOPVAR: the largest entry of % MMP, 11/09/2026
     % the stock 2-D free-variable degrees (the former local ZCAPS)          % MMP, 11/09/2026
@@ -221,7 +218,7 @@ else                                                                        % MM
     tl.storage = @(prog,X,side) pos_nd(prog,X,side,S,tl.dom);               % MMP, 10/29/2026
     tl.slack   = @(prog,X) error('exec_tools_sop:slack',['The stock slack reads the stock 1-D ' ...
                      'and 2-D settings; for %d variables set settings.sop.slack = ''like''.'],nv); % MMP, 10/29/2026
-    tl.toop    = @(C) C;                                                    % MMP, 10/29/2026
+%   tl.toop    = @(C) C;                                                    % MMP, 11/09/2026 (was); MMP, 10/29/2026
     z = S.Zop_deg;  tl.zdeg = struct('mult',z,'int',[z z],'out',z,'in',z);  % MMP, 10/29/2026
 end
 % Identity operators: weighted on the state spaces, plain on an input or

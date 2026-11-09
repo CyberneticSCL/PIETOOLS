@@ -10,14 +10,14 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 % containers. The coefficients of K are not truncated.
 %
 % INPUT
-% - P:      'copvar' object (or 'opvar', converted by OPVAR2COPVAR), the
+% - P:      'copvar' object, the                                            % MMP, 11/09/2026
 %           solved Lyapunov operator, with the same spaces and dimensions in
 %           and out. P may be an N-D copvar, in any number of spatial
 %           variables and with any spaces; the inverse (method 'inv') exists
 %           in one spatial variable for R^k x L2^m[s] with at most one R^k
 %           and one L2 space, and in several for a separable P (COPVAR/INV);
 %           otherwise the method 'qp' is required;
-% - Z:      'copvar' object (or 'opvar'), the solved free operator, from the
+% - Z:      'copvar' object, the solved free operator, from the             % MMP, 11/09/2026
 %           spaces of P to R^nu, R^k x L2^m[s] -> R^nu in 1-D; for the method
 %           'qp' also N-D (the spatial variables of P and Z);
 % - opts:   (optional) 'struct', each field optional. The options of the
@@ -106,12 +106,15 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 %                several variables (the method 'inv' serves a separable P
 %                since 11/04/2026), the retired stock GETCONTROLLER out of
 %                See also, a commented-out note removed; code unchanged.
+% MMP, 11/09/2026: Dead opvar branch removed (maintainer, 11/09/2026): the
+%                OPVAR2COPVAR conversions of P and Z are gone with the
+%                retired classes; help to match.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Default options; 'opvar' operators to containers
+% Default options                                                           % MMP, 11/09/2026
 if nargin<3,    opts = struct();    end
-if isa(P,'opvar'),  P = opvar2copvar(P);    end
-if isa(Z,'opvar'),  Z = opvar2copvar(Z);    end
+% if isa(P,'opvar'),  P = opvar2copvar(P);    end                           % MMP, 11/09/2026 (was)
+% if isa(Z,'opvar'),  Z = opvar2copvar(Z);    end                           % MMP, 11/09/2026 (was)
 % The method: 'inv' (default) or 'qp'
 method = 'inv';                                                             % AT, 10/28/2026
 if isfield(opts,'method'),  method = opts.method;   end                     % AT, 10/28/2026

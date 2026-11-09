@@ -32,10 +32,10 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % INPUTS:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIE: a linear PIE, as a pie_struct object
-% K : an opvar, opvar2d, or copvar object, mapping the PIE state to the
+% K : a copvar object, mapping the PIE state to the                         % MMP, 11/09/2026
 %     actuator input u (controller) or the observed output y to the PIE
 %     state (observer); for type='dynamic', a struct with fields TK, AK,    % DB, 11/03/2026
-%     BK, CK, DK, the operators (opvar, opvar2d or copvar objects) of the    % DB, 11/03/2026
+%     BK, CK, DK, the operators (copvar objects) of the                     % MMP, 11/09/2026; DB, 11/03/2026
 %     controller PIE, or a struct with such a field G    % DB, 11/03/2026
 % type: optional string input; 'controller' (default), 'observer' or    % DB, 11/03/2026
 %     'dynamic'    % DB, 11/03/2026
@@ -86,6 +86,12 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 %                   (retired to cleaning/private on 11/08/2026) to
 %                   executives_sopvar/utility_functions: PIETOOLS_PDE.m, DEMO12
 %                   and the manual snippets call it on container PIEs.
+% MMP, 11/09/2026: Dead opvar branches removed (maintainer, 11/09/2026):
+%                   the gain and the dynamic-controller operators are
+%                   'copvar' objects; the op2copvar_sop conversions of
+%                   'opvar'/'opvar2d' inputs (DB, 11/03/2026) and their
+%                   mention in the help and the error texts are gone, the
+%                   opvar classes being retired since 11/08/2026.
 
 if nargin==2
     type = 'controller';
@@ -115,16 +121,21 @@ if strcmp(type,'dynamic')    % DB, 11/03/2026
         if ~isfield(K,f{1})    % DB, 11/03/2026
             error('For type "dynamic", the second input to closedLoopPIE() should have a field %s',f{1});    % DB, 11/03/2026
         end    % DB, 11/03/2026
-        if isa(K.(f{1}),'opvar') || isa(K.(f{1}),'opvar2d')    % DB, 11/03/2026
-            K.(f{1}) = op2copvar_sop(K.(f{1}));    % DB, 11/03/2026
-        elseif ~isa(K.(f{1}),'copvar')    % DB, 11/03/2026
-            error('The controller operators should be opvar, opvar2d or copvar class objects');    % DB, 11/03/2026
-        end    % DB, 11/03/2026
+%       if isa(K.(f{1}),'opvar') || isa(K.(f{1}),'opvar2d')                 % MMP, 11/09/2026 (was); DB, 11/03/2026
+%           K.(f{1}) = op2copvar_sop(K.(f{1}));                             % MMP, 11/09/2026 (was); DB, 11/03/2026
+%       elseif ~isa(K.(f{1}),'copvar')                                      % MMP, 11/09/2026 (was); DB, 11/03/2026
+%           error('The controller operators should be opvar, opvar2d or copvar class objects'); % MMP, 11/09/2026 (was); DB, 11/03/2026
+%       end                                                                 % MMP, 11/09/2026 (was); DB, 11/03/2026
+        if ~isa(K.(f{1}),'copvar')                                          % MMP, 11/09/2026; DB, 11/03/2026
+            error('The controller operators should be copvar class objects'); % MMP, 11/09/2026; DB, 11/03/2026
+        end                                                                 % MMP, 11/09/2026; DB, 11/03/2026
     end    % DB, 11/03/2026
-elseif isa(K,'opvar') || isa(K,'opvar2d')    % DB, 11/03/2026
-    K = op2copvar_sop(K);
-elseif ~isa(K,'copvar')
-    error('Second input to closedLoopPIE() must be an opvar, opvar2d or copvar class object');
+% elseif isa(K,'opvar') || isa(K,'opvar2d')                                 % MMP, 11/09/2026 (was); DB, 11/03/2026
+%   K = op2copvar_sop(K);                                                   % MMP, 11/09/2026 (was)
+% elseif ~isa(K,'copvar')                                                   % MMP, 11/09/2026 (was)
+%   error('Second input to closedLoopPIE() must be an opvar, opvar2d or copvar class object'); % MMP, 11/09/2026 (was)
+elseif ~isa(K,'copvar')                                                     % MMP, 11/09/2026
+    error('Second input to closedLoopPIE() must be a copvar class object'); % MMP, 11/09/2026
 end
 
 % Build controller closed-loop system by default

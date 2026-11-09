@@ -3,8 +3,6 @@ function tr = trace_rn_sop(X)
 % TR = TRACE_RN_SOP(X) returns the trace of the finite-dimensional part of
 % the square PI operator X:
 %
-%   X 'opvar', 'dopvar'       trace(X.P);
-%   X 'opvar2d', 'dopvar2d'   trace(X.R00);
 %   X 'copvar', 'cdopvar'     the sum of the traces of the diagonal blocks
 %                             X.C{k,k} whose space k has no spatial
 %                             variable: for an m x m 'sdopvar' block with
@@ -14,13 +12,11 @@ function tr = trace_rn_sop(X)
 %                             block, trace(params{1}).
 %
 % INPUT
-% - X:    'opvar', 'dopvar', 'opvar2d', 'dopvar2d', 'copvar' or 'cdopvar'
+% - X:    'copvar' or 'cdopvar'                                             % MMP, 11/09/2026
 %         object, square.
 %
 % OUTPUT
-% - tr:   for a legacy X, what trace returns for X.P or X.R00 ('double', or
-%         'dpvar' for a 'dopvar' or 'dopvar2d' whose part is a 'dpvar');
-%         for a container, a 1 x 1 'dpvar' over the decision variables X.Zd
+% - tr:   a 1 x 1 'dpvar' over the decision variables X.Zd                  % MMP, 11/09/2026
 %         (none for a 'copvar'), the constant 0 when every space of X has a
 %         spatial variable.
 %
@@ -66,15 +62,21 @@ function tr = trace_rn_sop(X)
 %                code unchanged.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): See also names
 %                LPI_INEQ_SOP (LPI_INEQ retired 11/08/2026); code unchanged.
+% MMP, 11/09/2026: Dead opvar branches removed (maintainer, 11/09/2026):
+%                the trace(X.P) and trace(X.R00) of the retired legacy
+%                classes, with their help and error text.
 
-% Legacy operators: the trace of the matrix part
-if isa(X,'opvar') || isa(X,'dopvar')
-    tr = trace(X.P);    return
-elseif isa(X,'opvar2d') || isa(X,'dopvar2d')
-    tr = trace(X.R00);  return
-elseif ~(isa(X,'copvar') || isa(X,'cdopvar'))
-    error('trace_rn_sop:class','X must be an opvar, opvar2d, copvar or cdopvar.')
-end
+% A container ('copvar' or 'cdopvar') only                                  % MMP, 11/09/2026
+% if isa(X,'opvar') || isa(X,'dopvar')                                      % MMP, 11/09/2026 (was)
+%   tr = trace(X.P);    return                                              % MMP, 11/09/2026 (was)
+% elseif isa(X,'opvar2d') || isa(X,'dopvar2d')                              % MMP, 11/09/2026 (was)
+%   tr = trace(X.R00);  return                                              % MMP, 11/09/2026 (was)
+% elseif ~(isa(X,'copvar') || isa(X,'cdopvar'))                             % MMP, 11/09/2026 (was)
+%   error('trace_rn_sop:class','X must be an opvar, opvar2d, copvar or cdopvar.') % MMP, 11/09/2026 (was)
+% end                                                                       % MMP, 11/09/2026 (was)
+if ~(isa(X,'copvar') || isa(X,'cdopvar'))                                   % MMP, 11/09/2026
+    error('trace_rn_sop:class','X must be a copvar or cdopvar.')            % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 % Container: the constant a and the decision coefficients b of the trace,
 % over the decision list of X
 if isa(X,'cdopvar'),    Zd = X.Zd(:);   else,   Zd = cell(0,1);     end

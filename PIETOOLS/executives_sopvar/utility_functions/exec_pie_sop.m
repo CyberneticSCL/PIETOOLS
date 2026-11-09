@@ -1,8 +1,8 @@
 function PIE = exec_pie_sop(PIE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIE = EXEC_PIE_SOP(PIE) prepares the PIE that a container executive
-% (executives_sopvar) receives. A PIE with 'opvar' (1-D) or 'opvar2d' (2-D)
-% operators is initialized (INITIALIZE). A container PIE, whose T is a
+% (executives_sopvar) receives. A PIE whose T is not yet a 'copvar' object  % MMP, 11/09/2026
+% is initialized (INITIALIZE). A container PIE, whose T is a                % MMP, 11/09/2026
 % 'copvar' object (as PIE2COPVAR returns, or built in any number of
 % spatial variables), is returned with every absent operator ([]) set to
 % the double 0, so that the zero tests of the executives (Op==0, a logical
@@ -13,18 +13,16 @@ function PIE = exec_pie_sop(PIE)
 %             T*x_t + Tw*w_t + Tu*u_t = A*x  + B1*w  + B2*u,
 %                                   z = C1*x + D11*w + D12*u,
 %                                   y = C2*x + D21*w + D22*u,
-%         with either 'opvar' / 'opvar2d' operators, or T a 'copvar' object
-%         and each other operator a 'copvar', 'opvar' or 'opvar2d' object,
-%         or [] (absent); for a
+%         with T a 'copvar' object and each other operator a 'copvar'       % MMP, 11/09/2026
+%         object or [] (absent), or not yet initialized; for a              % MMP, 11/09/2026
 %         container PIE, vars (nv x 2 'polynomial', the spatial variables
 %         and their dummies) and dom (nv x 2 double) define the dimension
 %         nv = PIE.dim.
 %
 % OUTPUT
-% - PIE:  'pie_struct' object: INITIALIZE(PIE) for an opvar PIE; for a
+% - PIE:  'pie_struct' object: INITIALIZE(PIE) when T is not a 'copvar'; for a % MMP, 11/09/2026
 %         container PIE, the input with each of T, Tw, Tu, A, B1, B2, C1,
-%         D11, D12, C2, D21, D22 that is [] replaced by 0, and each that is
-%         an 'opvar' or 'opvar2d' object converted to a 'copvar' object.
+%         D11, D12, C2, D21, D22 that is [] replaced by 0.                  % MMP, 11/09/2026
 %         Every operator of the output is a 'copvar' object or 0.
 %
 % NOTES
@@ -67,12 +65,17 @@ function PIE = exec_pie_sop(PIE)
 %                OP2COPVAR_SOP on the PIE operators, which converted such
 %                an operator; this keeps that case working and makes every
 %                operator of the output a 'copvar' or 0.
+% MMP, 11/09/2026: Dead opvar branch removed (maintainer, 11/09/2026): the
+%                conversion of an 'opvar'/'opvar2d' operator beside a
+%                'copvar' T (11/04/2026) is gone with the retired classes;
+%                help to match. INITIALIZE still serves a PIE whose T is
+%                not a 'copvar'.
 
 % A pie_struct only, as every executive requires
 if ~isa(PIE,'pie_struct')
     error('exec_pie_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-% An opvar / opvar2d PIE: initialized as before
+% A PIE not yet initialized (T not a 'copvar' object): INITIALIZE           % MMP, 11/09/2026
 if ~isa(PIE.T,'copvar')
     PIE = initialize(PIE);
     return
@@ -88,8 +91,6 @@ ops = {'T','Tw','Tu','A','B1','B2','C1','D11','D12','C2','D21','D22'};
 for k = 1:numel(ops)
     X = PIE.(ops{k});
     if isnumeric(X) && isempty(X),  PIE.(ops{k}) = 0;   end
-    % An opvar operator beside a 'copvar' T: converted, since the           % MMP, 11/04/2026
-    % executives read every operator as a 'copvar'                          % MMP, 11/04/2026
-    if isa(X,'opvar') || isa(X,'opvar2d'),  PIE.(ops{k}) = op2copvar_sop(X);    end % MMP, 11/04/2026
+%   if isa(X,'opvar') || isa(X,'opvar2d'),  PIE.(ops{k}) = op2copvar_sop(X);    end % MMP, 11/09/2026 (was); MMP, 11/04/2026
 end
 end
