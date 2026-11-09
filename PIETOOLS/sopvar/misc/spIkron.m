@@ -18,7 +18,8 @@ function varargout = spIkron(q,varargin)
 %               rows C{1} and columns C{2} of Cmat
 %       C{4} - scalar integer specifying the row dimension of Cmat
 %       C{5} - scalar integer specifying the column dimension of Cmat
-%       C{6} - (optional) number of nonzero elements in Cmat
+%       C{6} - (optional) number of nonzero elements in Cmat; read for
+%               IC{6} only (IC{6} = q*C{6}; without it, nnz(IC{3}))
 %
 % OUTPUTS
 % - IC: with one output, the sparse matrix I o Cmat; with 5 or 6 outputs,
@@ -34,6 +35,11 @@ function varargout = spIkron(q,varargin)
 % MMP, 11/08/2026: 'if varargout==6' compared a cell with 6, so every call
 %                  with 2 to 6 outputs errored; replaced by 'if nargout==6'
 %                  (the 11/06 note that it was left as is no longer applies).
+% MMP, 11/08/2026: The one-output form no longer passes C{6} as the nzmax of
+%                  I o Cmat: sparse requires nzmax at least the number of
+%                  triplets, q times those of Cmat (duplicates included),
+%                  so the call errored for q > 1. C{6} now scales into IC{6}
+%                  only. Help of C{6} to match.
 
 % If C is specified as an actual array, we compute the kronecker product
 % using the built-in Matlab routine
@@ -79,11 +85,15 @@ r_idcs_I = r_idcs + (0:q-1)*m;
 c_idcs_I = c_idcs + (0:q-1)*n;
 Cvals_I = repmat(Cvals,[q,1]);
 if nargout==1
-    if nargin==7
-        varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q,varargin{6});
-    else
-        varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q);
-    end
+%   if nargin==7                                                            % MMP, 11/08/2026 (was)
+%       varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q,varargin{6}); % MMP, 11/08/2026 (was)
+%   else                                                                    % MMP, 11/08/2026 (was)
+%       varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q); % MMP, 11/08/2026 (was)
+%   end                                                                     % MMP, 11/08/2026 (was)
+    % No nzmax from C{6}: sparse needs nzmax at least the number of         % MMP, 11/08/2026
+    % triplets, q times those of Cmat (duplicates included), so the count   % MMP, 11/08/2026
+    % of Cmat errored for q > 1; sparse allocates the exact size itself.    % MMP, 11/08/2026
+    varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q);  % MMP, 11/08/2026
 elseif nargout<=6
     varargout{1} = r_idcs_I;
     varargout{2} = c_idcs_I;
