@@ -202,6 +202,10 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  code removed, the notes in gamma_params and int_onesided
 %                  shortened, See also without the retired poslpivar; code
 %                  unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  COMMON_DVARS (09/30/2026, one caller) inlined where B.Zd,
+%                  B.dmap and B.ndec are set, its header as the comment of
+%                  the block; its 09/26/2026 lines keep their markers.
 
 
 % % % BEGIN change MMP, 09/30/2026 (split): the primary runs the            % MMP, 09/30/2026
@@ -235,7 +239,22 @@ deg_list = degree_list(deg,S,nb,bsp,bix);                                   % MM
 % What the block loop reads. No callee assigns into Zd, Nprod or prog, so   % MMP, 09/30/2026
 % none of the q-length data is copied (copy-on-write).                      % MMP, 09/30/2026
 B = struct('alpha_sp',{alpha_sp},'nb',nb,'base',base,'Nprod',{Nprod});      % MMP, 09/30/2026
-[B.Zd,B.dmap,B.ndec] = common_dvars(Qcell);                                 % MMP, 09/30/2026
+% [B.Zd,B.dmap,B.ndec] = common_dvars(Qcell);                               % MMP, 11/09/2026 (was); MMP, 09/30/2026
+% The decision variables of the Gram blocks Qcell (the former local         % MMP, 11/09/2026
+% COMMON_DVARS): B.Zd the sorted list of every name, without repeats, the   % MMP, 11/09/2026
+% common basis every block is expressed over (a class invariant of          % MMP, 11/09/2026
+% 'cdopvar'); B.ndec = numel(B.Zd); B.dmap: name -> index into B.Zd.        % MMP, 11/09/2026
+% Pieces collected, concatenated once: growing the list re-copied it for    % MMP, 11/09/2026; MMP, 09/26/2026
+% each of the N^2 blocks, O(N^2*q).                                         % MMP, 11/09/2026; MMP, 09/26/2026
+% Zd = {};                                                                  % MMP, 11/09/2026; MMP, 09/26/2026 (was)
+Zd = cell(numel(Qcell),1);                                                  % MMP, 11/09/2026; MMP, 09/26/2026
+for q = 1:numel(Qcell)                                                      % MMP, 11/09/2026
+%   Zd = [Zd; reshape(cellstr(string(Qcell{q})),[],1)];                     %#ok<AGROW> % MMP, 11/09/2026; MMP, 09/26/2026 (was)
+    Zd{q} = reshape(cellstr(string(Qcell{q})),[],1);                        % MMP, 11/09/2026; MMP, 09/26/2026
+end                                                                         % MMP, 11/09/2026
+Zd = vertcat(Zd{:});                                                        % MMP, 11/09/2026; MMP, 09/26/2026
+B.Zd = unique(Zd);    B.ndec = numel(B.Zd);                                 % MMP, 11/09/2026
+B.dmap = containers.Map(B.Zd,num2cell(1:B.ndec));                           % MMP, 11/09/2026
 B.gfun = psatz_weight(options,S);                                           % MMP, 09/30/2026
 
 % Block (k,l): the sum of the terms of all pairs of basis operators of
@@ -580,35 +599,6 @@ end
 %%% Declare Q and form the products N{c,e} = Z_c' Q_ce Z_e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The 'sosquadvar' call that declares Q is in the primary.                  % MMP, 09/30/2026
-
-function [Zd,dmap,ndec] = common_dvars(Qcell)                               % MMP, 09/30/2026
-% [ZD,DMAP,NDEC] = COMMON_DVARS(QCELL) returns the decision variables of
-% the Gram blocks QCELL and their index map:
-% The sorted list Zd of every decision variable of Q, ndec = numel(Zd),     % MMP, 09/30/2026
-% and dmap: name -> index into Zd.                                          % MMP, 09/30/2026
-% INPUT  Qcell: N x N 'cell' of 'cellstr' arrays, the names of the entries
-%               of each block of Q.
-% OUTPUT Zd:    ndec x 1 'cellstr', sorted, without repeats;
-%        dmap:  'containers.Map' from name to index in Zd;
-%        ndec:  'double'.
-
-% Common decision variable basis, so that every block is expressed over the
-% same Zd - a class invariant of 'cdopvar'.
-% Pieces collected, concatenated once: growing Zd re-copied the whole list  % MMP, 09/26/2026
-% for each of the N^2 blocks, O(N^2*q).                                     % MMP, 09/26/2026
-% Zd = {};                                                                  % MMP, 09/26/2026 (was)
-Zd = cell(numel(Qcell),1);                                                  % MMP, 09/26/2026
-for q = 1:numel(Qcell)
-%   Zd = [Zd; reshape(cellstr(string(Qcell{q})),[],1)];                     %#ok<AGROW> % MMP, 09/26/2026 (was)
-    Zd{q} = reshape(cellstr(string(Qcell{q})),[],1);                        % MMP, 09/26/2026
-end
-Zd = vertcat(Zd{:});                                                        % MMP, 09/26/2026
-% Sorted, without repeats; the map from name to index
-Zd = unique(Zd);    ndec = numel(Zd);
-dmap = containers.Map(Zd,num2cell(1:ndec));
-
-end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gfun = psatz_weight(options,S)                                     % MMP, 09/30/2026

@@ -9,6 +9,12 @@ function disp(obj)
 %
 % This function formats each matrix entry F(i,j) as a sum of monomials
 % in the left variables (ns) and right variables (nt).
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals
+%                   toSubscriptTrailingDigits, digitsToSub and
+%                   toSuperscriptInt (one caller each) inlined into monomStr;
+%                   the superseded first subscript table of digitsToSub
+%                   (marked NASGU) dropped.
 
 fprintf('%s\n', format(obj));
 end
@@ -130,43 +136,30 @@ for k = 1:numel(e)
             v = "θ" + extractAfter(v,5);
         end
     end
-    v = toSubscriptTrailingDigits(v);
+%   v = toSubscriptTrailingDigits(v);                                       % MMP, 11/09/2026 (was)
+    % trailing digits of the variable name as subscripts (the former locals % MMP, 11/09/2026
+    % toSubscriptTrailingDigits and digitsToSub)                            % MMP, 11/09/2026
+    txt = char(v);                                                          % MMP, 11/09/2026
+    dg = regexp(txt, '\d+$', 'match', 'once');                              % MMP, 11/09/2026
+    if isempty(dg)                                                          % MMP, 11/09/2026
+        v = string(txt);                                                    % MMP, 11/09/2026
+    else                                                                    % MMP, 11/09/2026
+        sub = "";   tbl = '₀₁₂₃₄₅₆₇₈₉';                 % MMP, 11/09/2026
+        for ii = 1:numel(dg),  sub = sub + string(tbl(dg(ii)-'0'+1));  end  % MMP, 11/09/2026
+        v = string(txt(1:end-numel(dg))) + sub;                             % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
 
     if ek == 1
         parts(end+1) = v;
     else
-        parts(end+1) = v + toSuperscriptInt(ek);
+%       parts(end+1) = v + toSuperscriptInt(ek);                            % MMP, 11/09/2026 (was)
+        % the exponent as superscript digits (the former local toSuperscriptInt) % MMP, 11/09/2026
+        tbl2 = '⁰¹²³⁴⁵⁶⁷⁸⁹';   dgs = char(num2str(ek));   sup = ""; % MMP, 11/09/2026
+        for ii = 1:numel(dgs),  sup = sup + string(tbl2(dgs(ii)-'0'+1));  end % MMP, 11/09/2026
+        parts(end+1) = v + sup;                                             % MMP, 11/09/2026
     end
 end
 ms = strjoin(parts, "·"); % centered dot
-end
-
-function v = toSubscriptTrailingDigits(v)
-txt = char(v);
-d = regexp(txt, '\d+$', 'match', 'once');
-if isempty(d), v = string(txt); return; end
-base = txt(1:end-numel(d));
-v = string(base) + digitsToSub(d);
-end
-
-function out = digitsToSub(digits)
-table = '₀₁₂₃₄₅₆₇₈⁹'; %#ok<NASGU>
-% NOTE: corrected table below (previous line kept for readability in editors)
-table = '₀₁₂₃₄₅₆₇₈₉';
-digits = char(digits);
-out = "";
-for i = 1:numel(digits)
-    out = out + string(table(digits(i)-'0'+1));
-end
-end
-
-function out = toSuperscriptInt(k)
-table = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-digits = char(num2str(k));
-out = "";
-for i = 1:numel(digits)
-    out = out + string(table(digits(i)-'0'+1));
-end
 end
 
 function ts = termStr(a, ms, mt)

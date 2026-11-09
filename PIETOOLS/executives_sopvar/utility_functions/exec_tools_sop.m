@@ -168,6 +168,14 @@ function tl = exec_tools_sop(PIE,st)
 %                cleaning/private), so the handle errors when called (unused
 %                since 11/04/2026); three commented-out notes removed; code
 %                unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                very short and called once go into the body): EYE_STATE
+%                (one call of EYE_CONTAINER since 11/04/2026, with its
+%                disabled opvar body of 10/29/2026) into the handle tl.eye,
+%                SOP_OF_DIM into the construction of tl.sop, ZCAPS into the
+%                2-D branch, each with its header as the comment of the
+%                block. CAP_FOR and IDENT_OP stay: their handles need a
+%                function body.
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -196,7 +204,11 @@ elseif nv==2
     tl.storage = @(prog,X,side) poslpivar_settings_2d_sop(prog,X,st,'lf',side,PIE);
     tl.slack   = @(prog,X) poslpivar_settings_2d_sop(prog,X,st,'slack','out',PIE);
     tl.toop    = @(C) copvar2opvar2d(C,vnames);
-    tl.zdeg    = zcaps(S.Zop_deg);
+%   tl.zdeg    = zcaps(S.Zop_deg);                                          % MMP, 11/09/2026 (was)
+    % One degree cap for every role of LPIVAR_CDOPVAR: the largest entry of % MMP, 11/09/2026
+    % the stock 2-D free-variable degrees (the former local ZCAPS)          % MMP, 11/09/2026
+    m = max([cellmax(S.Zop_deg.dx), cellmax(S.Zop_deg.dy), cellmax(S.Zop_deg.d2), 0]); % MMP, 11/09/2026
+    tl.zdeg    = struct('mult',m,'int',[m m],'out',m,'in',m);               % MMP, 11/09/2026
 % else                                                                      % MMP, 10/29/2026 (was)
 %     error('exec_tools_sop:dim','The stock executives exist for 1-D and 2-D PIEs only.'); % MMP, 10/29/2026 (was)
 else                                                                        % MMP, 10/29/2026
@@ -217,12 +229,29 @@ end
 % tl.eye   = @(side,e) eye_state(PIE,side,e);                               % MMP, 10/29/2026 (was)
 % tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom)); % MMP, 10/29/2026 (was)
 cdom = PIE.dom;     if nv>=2,   cdom = tl.dom;  end % the domain of a container % MMP, 10/29/2026
-tl.eye   = @(side,e) eye_state(PIE,side,e,cdom);                            % MMP, 10/29/2026
+% tl.eye   = @(side,e) eye_state(PIE,side,e,cdom);                          % MMP, 11/09/2026 (was); MMP, 10/29/2026
+% diag(e_k I) on the state spaces of the PIE, side 1 the PDE state, 2 the   % MMP, 11/09/2026
+% fundamental state (EYE_CONTAINER directly: the former local EYE_STATE was % MMP, 11/09/2026
+% that one call since 11/04/2026)                                           % MMP, 11/09/2026
+tl.eye   = @(side,e) eye_container(PIE,side,e,cdom);                        % MMP, 11/09/2026
 % tl.ident = @(Bop,side) ident_op(Bop,side,vars,PIE.dom,cdom);              % MMP, 11/04/2026 (was)
 tl.ident = @(Bop,side) ident_op(Bop,side,cdom);    % copvar Bop only        % MMP, 11/04/2026
-% The container options of this dimension: every per-dimension vector       % MMP, 10/29/2026
-% reduced to its entry min(nv,end) (local SOP_OF_DIM), for the executives   % MMP, 10/29/2026
-tl.sop = [];    if isfield(st,'sop'),   tl.sop = sop_of_dim(st.sop,nv);     end % MMP, 10/29/2026
+% The container options of this dimension, for the executives (the former   % MMP, 11/09/2026
+% local SOP_OF_DIM): each per-dimension vector among dw_feas, dw_P, dw_Q,   % MMP, 11/09/2026
+% max_raise, max_raise_feas and cap_delta reduced to its entry min(nv,end), % MMP, 11/09/2026
+% the last entry serving every higher dimension; eppos_stab (one entry per  % MMP, 11/09/2026
+% space) is kept                                                            % MMP, 11/09/2026
+% tl.sop = [];    if isfield(st,'sop'),   tl.sop = sop_of_dim(st.sop,nv);     end % MMP, 11/09/2026 (was); MMP, 10/29/2026
+tl.sop = [];                                                                % MMP, 11/09/2026
+if isfield(st,'sop')                                                        % MMP, 11/09/2026
+    tl.sop = st.sop;                                                        % MMP, 11/09/2026
+    f = {'dw_feas','dw_P','dw_Q','max_raise','max_raise_feas','cap_delta'}; % MMP, 11/09/2026
+    for k = 1:numel(f)                                                      % MMP, 11/09/2026
+        if isfield(tl.sop,f{k}) && isnumeric(tl.sop.(f{k})) && numel(tl.sop.(f{k}))>1 % MMP, 11/09/2026
+            v = tl.sop.(f{k});   tl.sop.(f{k}) = v(min(nv,end));            % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 % Per-direction bounds on the slack bases (settings.sop.cap_delta): Jmax    % MMP, 10/29/2026
 % of T plus the delta, laid over each target's variables; none by default   % MMP, 10/29/2026
 % and where the delta of this dimension is NaN                              % MMP, 10/29/2026
@@ -249,44 +278,6 @@ end
 
 
 % function Im = eye_state(PIE,side,e)                                       % MMP, 10/29/2026 (was)
-function Im = eye_state(PIE,side,e,dom)                                     % MMP, 10/29/2026
-% IM = EYE_STATE(PIE,SIDE,E,DOM) returns diag(e_k I_{n_k}) on the state
-% spaces of the PIE as a 'copvar' object.
-% INPUT  PIE:   'pie_struct' object, T a 'copvar' object, any dimension;
-%        side:  1 (the output spaces of PIE.T, the PDE state) or 2 (its
-%               input spaces, the fundamental state);
-%        e:     double, a scalar for every space, or 2^nv weights
-%               (EYE_CONTAINER);
-%        dom:   the domain argument of MAT2COPVAR_SOP.
-% OUTPUT Im:    'copvar' object.
-% A container PIE: on the spaces of its T                                   % MMP, 10/29/2026
-% if isa(PIE.T,'copvar'),     Im = eye_container(PIE,side,e,dom);     return,     end % MMP, 11/04/2026 (was)
-% Every PIE reaching here has a 'copvar' T (EXEC_PIE_SOP)                   % MMP, 11/04/2026
-Im = eye_container(PIE,side,e,dom);                                         % MMP, 11/04/2026
-% % % BEGIN MMP, 11/04/2026: the opvar-PIE body below is commented out, being
-% % % unreachable (no opvar PIE reaches EXEC_TOOLS_SOP; header entry).
-% n = PIE.T.dim(:,side);
-% if isscalar(e),     e = e*ones(numel(n),1);     end
-% if numel(e)~=numel(n)
-%     error('exec_tools_sop:e','E should have one weight per space (%d) or be a scalar.',numel(n));
-% end
-% % The block-diagonal matrix of the weights, as an opvar / opvar2d, then a
-% % container
-% blocks = cell(1,numel(n));
-% for k = 1:numel(n),     blocks{k} = e(k)*eye(n(k));    end
-% Imat = blkdiag(blocks{:});
-% if PIE.dim==1
-%     Pop = mat2opvar(Imat,n,PIE.vars,PIE.dom);
-% else
-%     Pop = opvar2d(Imat,[n,n],PIE.dom,PIE.vars);
-% end
-% Im = op2copvar_sop(Pop);
-% % % END MMP, 11/04/2026
-end
-
-
-
-
 % % % BEGIN MMP, 10/29/2026: new local functions EYE_CONTAINER, IDENT_OP,
 % % % SETTINGS_ND, POS_ND (container and N-D PIEs), CAP_FOR (the cap_delta
 % % % bounds) and SOP_OF_DIM (the per-dimension options), header entries of
@@ -425,21 +416,6 @@ c = reshape(tc(ix),1,[]);
 end
 
 
-function s = sop_of_dim(s,nv)
-% S = SOP_OF_DIM(S,NV) returns the container options S with each
-% per-dimension field reduced to its entry for NV variables, the last
-% entry serving every higher NV: dw_feas, dw_P, dw_Q, max_raise,
-% max_raise_feas, cap_delta (eppos_stab, one entry per space, is kept).
-% INPUT  s:  'struct', settings.sop (EXEC_SOP_SETTINGS);
-%        nv: double, the spatial dimension.
-% OUTPUT s:  'struct', S with those fields scalar.
-f = {'dw_feas','dw_P','dw_Q','max_raise','max_raise_feas','cap_delta'};
-for k = 1:numel(f)
-    if isfield(s,f{k}) && isnumeric(s.(f{k})) && numel(s.(f{k}))>1
-        v = s.(f{k});   s.(f{k}) = v(min(nv,end));
-    end
-end
-end
 % % % END MMP, 10/29/2026
 
 
@@ -449,18 +425,6 @@ function v = getf(s,f,d)
 % INPUT  s: 'struct'; f: char, the field name; d: the default value.
 % OUTPUT v: the field's value or D.
 if isstruct(s) && isfield(s,f) && ~isempty(s.(f)),  v = s.(f);  else,   v = d;  end
-end
-
-
-function d = zcaps(Z)
-% D = ZCAPS(Z) returns one degree cap for every role of LPIVAR_CDOPVAR: the
-% largest entry of the stock 2-D free-variable degrees Z.
-% INPUT  Z: 'struct' with fields dx, dy, d2, each a nested cell of double
-%           arrays (settings_2d.Zop_deg).
-% OUTPUT d: 'struct' with fields mult (double), int (1x2 double), out and
-%           in (double), each the cap.
-m = max([cellmax(Z.dx), cellmax(Z.dy), cellmax(Z.d2), 0]);
-d = struct('mult',m,'int',[m m],'out',m,'in',m);
 end
 
 

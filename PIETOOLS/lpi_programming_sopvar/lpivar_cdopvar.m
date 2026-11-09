@@ -144,6 +144,9 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, See
 %                  also without the retired lpivar and lpivar_2d, the
 %                  deletion note before parse_deg shortened; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  PARSE_DEG (one caller) inlined at the degree caps, its
+%                  header as the comment of the block.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 if nargin<5 || isempty(deg),        deg = 1;            end
@@ -191,7 +194,19 @@ if isfield(options,'occ') && ~isempty(options.occ)
     end
 end
 % Degree caps of every block
-degs = parse_deg(deg,M,N);
+% degs = parse_deg(deg,M,N);                                                % MMP, 11/09/2026 (was)
+% The degree caps of every block in normalized form, fields mult, int       % MMP, 11/09/2026
+% (1 x 2), out, in (the former local PARSE_DEG): one specification per      % MMP, 11/09/2026
+% block from an M x N cell, or one specification for every block            % MMP, 11/09/2026
+if iscell(deg)                                                              % MMP, 11/09/2026
+    if ~isequal(size(deg),[M,N])                                            % MMP, 11/09/2026
+        error("A cell of degree specifications should be %d x %d.",M,N)     % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    degs = cellfun(@norm_deg,deg,'UniformOutput',false);                    % MMP, 11/09/2026
+else                                                                        % MMP, 11/09/2026
+    d = norm_deg(deg);                                                      % MMP, 11/09/2026
+    degs = repmat({d},M,N);                                                 % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 % A row or column with no block cannot have its space read off one          % MMP, 09/25/2026
 % ('verify', cdopvar(C)), so it gets one explicit zero block: degree 0,     % MMP, 09/25/2026
 % no coefficient positions, hence no variables. Rows first, then columns.   % MMP, 09/25/2026
@@ -357,27 +372,6 @@ end
 % gamma_of_cell (sopvar/misc/conventions; test_index_maps (B) holds verbatim
 % copies); parse_spaces, norm_spaces and parse_dom (09/25/2026) moved
 % verbatim into parse_copvar_spaces.
-
-
-function degs = parse_deg(deg,M,N)
-% DEGS = PARSE_DEG(DEG,M,N) returns the degree caps of each of the M x N
-% blocks in normalized form.
-% INPUT  deg:  'double' scalar or 1 x 3 array, 'struct', or M x N cell of
-%              these (one per block);
-%        M, N: double, the numbers of output and input spaces.
-% OUTPUT degs: M x N cell of 'struct', fields mult, int (1 x 2), out, in.
-if iscell(deg)
-    % One specification per block
-    if ~isequal(size(deg),[M,N])
-        error("A cell of degree specifications should be %d x %d.",M,N)
-    end
-    degs = cellfun(@norm_deg,deg,'UniformOutput',false);
-else
-    % One specification for every block
-    d = norm_deg(deg);
-    degs = repmat({d},M,N);
-end
-end
 
 
 function d = norm_deg(x)

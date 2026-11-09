@@ -53,6 +53,9 @@ function At = ctranspose(A)
 %                  house format (a 'Date' line removed), step comments, the
 %                  08/29/2026 note tightened, INPUT/OUTPUT for the local
 %                  function; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  SIZE_DECVARS (08/29/2026, one caller) inlined where q is
+%                  set, its return a break; its lines keep their markers.
 
 % Number of shared variables, one cell direction each
 nvars3 = numel(intersect(A.vars.in,A.vars.out));
@@ -79,7 +82,17 @@ end                                                                         % MM
 [Tcell,ZLt,ZRt] = canonical_adjoint_map(A.vars,A.ZL,A.ZR,A.dims);           % MMP, 08/29/2026
 nC_t = A.dims(2)*prod([cellfun(@numel,ZLt),1]) ...                          % MMP, 08/29/2026
        * A.dims(1)*prod([cellfun(@numel,ZRt),1]);                           % MMP, 08/29/2026
-q = size_decvars(A);                                                        % MMP, 08/29/2026
+% q = size_decvars(A);                                                      % MMP, 11/09/2026 (was); MMP, 08/29/2026
+% q: the number of decision variables, read from a stored B parameter where % MMP, 11/09/2026
+% there is one, so that an operator with none is handled the same way (the  % MMP, 11/09/2026
+% former local SIZE_DECVARS)                                                % MMP, 11/09/2026
+q = numel(A.Zd);                                                            % MMP, 11/09/2026; MMP, 08/29/2026
+for ii = 1:numel(A.params.B)                                                % MMP, 11/09/2026; MMP, 08/29/2026
+    if ~isempty(A.params.B{ii})                                             % MMP, 11/09/2026; MMP, 08/29/2026
+        q = size(A.params.B{ii},1);                                         % MMP, 11/09/2026; MMP, 08/29/2026
+        break                                                               % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026; MMP, 08/29/2026
+end                                                                         % MMP, 11/09/2026; MMP, 08/29/2026
 
 % Map each cell of A to the cell adjidx(ii) of At; [] stands for a zero cell
 pA = cell(size(params.A));      pB = cell(size(params.B));                  % MMP, 08/29/2026
@@ -103,20 +116,4 @@ At_vars = struct('in',{A.vars.out},'out',{A.vars.in});
 At_dom = struct('in',A.dom.out,'out',A.dom.in);
 At = sdopvar(params,At_vars,A.Zd,ZLt,ZRt,At_dom,[A.dims(2),A.dims(1)]);     % MMP, 08/29/2026
 end
-
-function q = size_decvars(A)                                                % MMP, 08/29/2026
-% Q = SIZE_DECVARS(A) returns the number of decision variables, read from a % MMP, 08/29/2026
-% stored parameter where there is one, so that an operator with none is     % MMP, 08/29/2026
-% handled the same way.                                                     % MMP, 08/29/2026
-% INPUT   A: 'sdopvar' object.
-% OUTPUT  q: number of rows of the B parameters (numel(A.Zd) if all empty).
-
-q = numel(A.Zd);                                                            % MMP, 08/29/2026
-for ii = 1:numel(A.params.B)                                                % MMP, 08/29/2026
-    if ~isempty(A.params.B{ii})                                             % MMP, 08/29/2026
-        q = size(A.params.B{ii},1);                                         % MMP, 08/29/2026
-        return                                                              % MMP, 08/29/2026
-    end                                                                     % MMP, 08/29/2026
-end                                                                         % MMP, 08/29/2026
-end                                                                         % MMP, 08/29/2026
 

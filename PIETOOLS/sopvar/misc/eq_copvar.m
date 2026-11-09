@@ -121,6 +121,10 @@ function tf = eq_copvar(A,B,tol)
 %           affine functions of the decision variables, matched by name.    % MMP, 09/29/2026 (was)
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
 %                  for the local functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  EQ_REFINED (one caller, followed by a return) inlined into
+%                  the different-partition branch; its returns are returns of
+%                  eq_copvar with tf false, as the caller's return was.
 
 if nargin<3 || isempty(tol)
     tol = 1e-14;
@@ -157,8 +161,27 @@ tf = false;
 dims = [mA.dim_out(:);mA.dim_in(:);mB.dim_out(:);mB.dim_in(:)];             % MMP, 09/29/2026
 if ~isequal(size(mA.C),size(mB.C)) || ~isequal(mA.dim_out(:),mB.dim_out(:)) ...
         || ~isequal(mA.dim_in(:),mB.dim_in(:)) || ~all(dims)                % MMP, 09/29/2026
-    tf = eq_refined(A,B,mA,mB,tol);                                         % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
+%   tf = eq_refined(A,B,mA,mB,tol);                                         % MMP, 11/09/2026 (was); MMP, 09/29/2026
+%   return                                                                  % MMP, 11/09/2026 (was); MMP, 09/29/2026
+    % (the former local EQ_REFINED) Refine both sides, check the component  % MMP, 11/09/2026
+    % space of every segment, then compare the cut pair blockwise by calling % MMP, 11/09/2026
+    % eq_copvar again. The cut pair has one grid, equal dimensions, no      % MMP, 11/09/2026
+    % zero-count row or column (each segment holds at least one component)  % MMP, 11/09/2026
+    % and (checked here) equal spaces, so that call takes the same-partition % MMP, 11/09/2026
+    % path and cannot come back here. A side with no components in either   % MMP, 11/09/2026
+    % operand gives a 0 x N (or M x 0) cut grid, with no kernel entries: the % MMP, 11/09/2026
+    % component spaces of the other side decide.                            % MMP, 11/09/2026
+    tf = false;                                                             % MMP, 11/09/2026
+    [ok,rA,rB] = refine(mA.dim_out,mB.dim_out);     if ~ok,     return,     end % MMP, 11/09/2026
+    [ok,cA,cB] = refine(mA.dim_in,mB.dim_in);       if ~ok,     return,     end % MMP, 11/09/2026
+    for t = 1:numel(rA.blk)                                                 % MMP, 11/09/2026
+        if ~same_space(mA,mA.space_out(rA.blk(t),:),mB,mB.space_out(rB.blk(t),:)),  return,  end % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    for u = 1:numel(cA.blk)                                                 % MMP, 11/09/2026
+        if ~same_space(mA,mA.space_in(cA.blk(u),:),mB,mB.space_in(cB.blk(u),:)),    return,  end % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    tf = eq_copvar(cut(A,mA,rA,cA),cut(B,mB,rB,cB),tol);                    % MMP, 11/09/2026
+    return                                                                  % MMP, 11/09/2026
 end
 % for i = 1:size(A.C,1)                                                     % MMP, 09/29/2026 (was)
 %     if ~same_space(A,A.space_out(i,:),B,B.space_out(i,:)),  return,  end  % MMP, 09/29/2026 (was)
@@ -249,31 +272,6 @@ end
 
 % % % BEGIN new code, MMP, 09/29/2026 - the three functions below, to the END
 % % % marker, compare containers whose block partitions differ (NOTES).
-
-function tf = eq_refined(A,B,mA,mB,tol)
-% A == B when the grids or dimensions differ, or a row or column has zero
-% components. mA, mB: the fields of A, B read once (main function). Refine
-% both sides, check the component space of every segment, then compare the
-% cut pair blockwise by calling eq_copvar again. The cut pair has one grid,
-% equal dimensions, no zero-count row or column (each segment holds at
-% least one component) and (checked here) equal spaces, so that call takes
-% the same-partition path and cannot come back here. A side with no
-% components in either operand gives a 0 x N (or M x 0) cut grid, with no
-% kernel entries: the component spaces of the other side decide.
-% INPUTS  A, B: containers; mA, mB: their fields as structs; tol: scalar.
-% OUTPUT  tf: logical.
-tf = false;
-[ok,rA,rB] = refine(mA.dim_out,mB.dim_out);     if ~ok,     return,     end
-[ok,cA,cB] = refine(mA.dim_in,mB.dim_in);       if ~ok,     return,     end
-for t = 1:numel(rA.blk)
-    if ~same_space(mA,mA.space_out(rA.blk(t),:),mB,mB.space_out(rB.blk(t),:)),  return,  end
-end
-for u = 1:numel(cA.blk)
-    if ~same_space(mA,mA.space_in(cA.blk(u),:),mB,mB.space_in(cB.blk(u),:)),    return,  end
-end
-tf = eq_copvar(cut(A,mA,rA,cA),cut(B,mB,rB,cB),tol);
-end
-
 
 function [ok,a,b] = refine(dA,dB)
 % Common refinement of two partitions dA, dB (component counts per block)

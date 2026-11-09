@@ -115,6 +115,12 @@ function [deg,report] = degbalance_core(P,opts)
 %                  no code.
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
 %                  for the local functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                  very short and called once go into the body): NUMCELLS at
+%                  the cell count, ENUM_ALPHA at the default include list,
+%                  REACH in the block loop, each with its header as the
+%                  comment of the block; their 09/30/2026 lines keep their
+%                  markers.
 
 if nargin<2 || isempty(opts)
     opts = struct();
@@ -127,7 +133,9 @@ if ~ismember(weight,{'uniform','slotwise'})
     error("'weight' should be 'uniform' or 'slotwise'.")
 end
 
-ncell = numcells(P);
+% ncell = numcells(P);                                                      % MMP, 11/09/2026 (was)
+% The number of parameter cells of the block P (the former local NUMCELLS)  % MMP, 11/09/2026
+if isa(P,'sdopvar'), ncell = numel(P.params.A); else, ncell = numel(P.params); end % MMP, 11/09/2026
 n3 = round(log(ncell)/log(3));
 if 3^n3 ~= ncell
     error("The parameter cell count %d is not a power of 3.",ncell)
@@ -142,7 +150,19 @@ if isscalar(sepv), sepv = repmat(sepv,1,n3); end
 
 incl = getdef(opts,'include',[]);
 if isempty(incl)
-    incl = enum_alpha(n3,sepv);
+%   incl = enum_alpha(n3,sepv);                                             % MMP, 11/09/2026 (was)
+    % every basis multi-index, {1,2,3} per direction or {1,4} in a          % MMP, 11/09/2026
+    % separable one, direction 1 fastest (the former local ENUM_ALPHA)      % MMP, 11/09/2026
+    vals = cell(1,n3);                                                      % MMP, 11/09/2026
+    for k = 1:n3                                                            % MMP, 11/09/2026
+        if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end           % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    % A = vals{1}(:);                                                       % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % for k = 2:n3                                                          % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    %     A = [kron(ones(numel(vals{k}),1),A), ...
+    %          kron(vals{k}(:),ones(size(A,1),1))];                         % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % end                                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    incl = multiindex_grid(vals);          % direction 1 fastest            % MMP, 11/09/2026; MMP, 09/30/2026
 end
 
 report = struct('lines',{{}},'maxdeg',{cell(1,size(incl,1))});
@@ -158,7 +178,27 @@ DR = multiindex_grid(P.ZR,'first_slowest');                                 % MM
 
 for r = 1:size(incl,1)
     a = incl(r,:);
-    cells = reach(a,n3);
+%   cells = reach(a,n3);                                                    % MMP, 11/09/2026 (was)
+    % The cells the diagonal of block a can populate (the former local      % MMP, 11/09/2026
+    % REACH; see 'eq_opts_sopvar', where this was measured): every gamma in % MMP, 11/09/2026
+    % the product of the sets {1} or {2,3} per direction, direction 1       % MMP, 11/09/2026
+    % fastest, as cells                                                     % MMP, 11/09/2026
+    sets = cell(1,n3);                                                      % MMP, 11/09/2026
+    for k = 1:n3                                                            % MMP, 11/09/2026
+        if a(k)==1, sets{k} = 1; else, sets{k} = [2 3]; end                 % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    % G = sets{1}(:);                                                       % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % for k = 2:n3                                                          % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    %     G = [kron(ones(numel(sets{k}),1),G), ...
+    %          kron(sets{k}(:),ones(size(G,1),1))];                         % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % end                                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % C = zeros(size(G,1),1);                                               % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % for r = 1:size(G,1)                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    %     k = 1;                                                            % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    %     for t = 1:n3, k = k + (G(r,t)-1)*3^(t-1); end                     % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    %     C(r) = k;                                                         % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    % end                                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+    cells = cell_of_gamma(multiindex_grid(sets));                           % MMP, 11/09/2026; MMP, 09/30/2026
 
     % % % Exponent pairs the target actually carries on those cells. The
     % rows of a coefficient are (matrix row outer, ZL monomial inner) and
@@ -246,51 +286,6 @@ end
 
 
 %%
-function C = reach(a,n3)
-% C = REACH(A,N3) lists the cells the diagonal of block 'a' can populate;
-% see 'eq_opts_sopvar', where this was measured.
-% INPUT   a: 1 x n3 basis multi-index; n3: number of shared variables.
-% OUTPUT  C: column of linear cell indices.
-sets = cell(1,n3);
-for k = 1:n3
-    if a(k)==1, sets{k} = 1; else, sets{k} = [2 3]; end
-end
-% G = sets{1}(:);                                                           % MMP, 09/30/2026 (was)
-% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
-%     G = [kron(ones(numel(sets{k}),1),G), ...
-%          kron(sets{k}(:),ones(size(G,1),1))];                             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-% C = zeros(size(G,1),1);                                                   % MMP, 09/30/2026 (was)
-% for r = 1:size(G,1)                                                       % MMP, 09/30/2026 (was)
-%     k = 1;                                                                % MMP, 09/30/2026 (was)
-%     for t = 1:n3, k = k + (G(r,t)-1)*3^(t-1); end                         % MMP, 09/30/2026 (was)
-%     C(r) = k;                                                             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-% Every gamma in the product of the sets, direction 1 fastest, as cells.    % MMP, 09/30/2026
-C = cell_of_gamma(multiindex_grid(sets));                                   % MMP, 09/30/2026
-end
-
-
-%%
-function A = enum_alpha(n3,sepv)
-% A = ENUM_ALPHA(N3,SEPV) lists every basis multi-index, {1,2,3} per
-% direction or {1,4} in a separable one, direction 1 fastest.
-% INPUT   n3: number of shared variables; sepv: 1 x n3 logical.
-% OUTPUT  A: nblk x n3 array.
-vals = cell(1,n3);
-for k = 1:n3
-    if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
-end
-% A = vals{1}(:);                                                           % MMP, 09/30/2026 (was)
-% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
-%     A = [kron(ones(numel(vals{k}),1),A), ...
-%          kron(vals{k}(:),ones(size(A,1),1))];                             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-A = multiindex_grid(vals);          % direction 1 fastest                   % MMP, 09/30/2026
-end
-
-
-%%
 function [ri,ci] = nzpos(P,k)
 % [RI,CI] = NZPOS(P,K) returns the row and column positions of the stored
 % nonzeros of cell K of P (constant or decision part), empty past the last
@@ -311,13 +306,6 @@ else
     if k>numel(P.params), ri=[]; ci=[]; return, end
     [ri,ci] = find(P.params{k});
 end
-end
-
-
-%%
-function n = numcells(P)
-% N = NUMCELLS(P) is the number of parameter cells of the block P.
-if isa(P,'sdopvar'), n = numel(P.params.A); else, n = numel(P.params); end
 end
 
 

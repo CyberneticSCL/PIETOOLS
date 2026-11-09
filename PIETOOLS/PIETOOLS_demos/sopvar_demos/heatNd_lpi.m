@@ -166,6 +166,8 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   multiples of a written one (since 11/01/2026); E2E_HEAT3D_STABILITY
 %   check (2) needs them to compare the extracted operators with the rows.
 %   Rows and SDP unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local memnow
+%   (one caller) inlined before the meta struct.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<5 || isempty(opts),   opts = struct();    end
@@ -273,8 +275,21 @@ if ~isempty(k)
 end
 
 opts.base = [];
+% meta = struct('N',N,'r',pie.r,'d',d,'k',k,'kappa',kappa,'ep',ep,'opts',opts,'kstar',pie.exact.kstar, ...
+%             'lambda1',pie.exact.lambda1,'t',t,'mem',memnow(),'nP',nP,'ndec',numel(prog.decvartable)); % MMP, 11/09/2026 (was)
+% MB: MATLAB's own use (memory), and the process peaks from .NET (Windows); % MMP, 11/09/2026
+% the former local MEMNOW                                                   % MMP, 11/09/2026
+mem = struct('matlab',NaN,'peak_ws',NaN,'peak_private',NaN,'private',NaN);  % MMP, 11/09/2026
+try,    u = memory;     mem.matlab = u.MemUsedMATLAB/2^20;    catch,  end   % MMP, 11/09/2026
+try                                                                         % MMP, 11/09/2026
+    p = System.Diagnostics.Process.GetCurrentProcess();     p.Refresh();    % MMP, 11/09/2026
+    mem.peak_ws = double(p.PeakWorkingSet64)/2^20;                          % MMP, 11/09/2026
+    mem.peak_private = double(p.PeakPagedMemorySize64)/2^20;                % MMP, 11/09/2026
+    mem.private = double(p.PrivateMemorySize64)/2^20;                       % MMP, 11/09/2026
+catch                                                                       % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 meta = struct('N',N,'r',pie.r,'d',d,'k',k,'kappa',kappa,'ep',ep,'opts',opts,'kstar',pie.exact.kstar, ...
-              'lambda1',pie.exact.lambda1,'t',t,'mem',memnow(),'nP',nP,'ndec',numel(prog.decvartable));
+              'lambda1',pie.exact.lambda1,'t',t,'mem',mem,'nP',nP,'ndec',numel(prog.decvartable)); % MMP, 11/09/2026
 meta.sdp = shape(prog);
 meta.base = base;
 end
@@ -484,15 +499,3 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function m = memnow()
-% MB: MATLAB's own use (memory), and the process peaks from .NET (Windows).
-m = struct('matlab',NaN,'peak_ws',NaN,'peak_private',NaN,'private',NaN);
-try,    u = memory;     m.matlab = u.MemUsedMATLAB/2^20;    catch,  end
-try
-    p = System.Diagnostics.Process.GetCurrentProcess();     p.Refresh();
-    m.peak_ws = double(p.PeakWorkingSet64)/2^20;
-    m.peak_private = double(p.PeakPagedMemorySize64)/2^20;
-    m.private = double(p.PrivateMemorySize64)/2^20;
-catch
-end
-end

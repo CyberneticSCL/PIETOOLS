@@ -81,6 +81,9 @@ function [prog,aux,hist] = lpi_solve_loop_sop(build,st,label)
 %                  residual when the solver sets no infeasibility flags.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
 %                  unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
+%                  local TERN inlined; the '(divergent)' tag is set before
+%                  the fprintf that prints it.
 
 % Default label; complete the container options
 if nargin<3,    label = '';     end
@@ -115,9 +118,13 @@ for it = 0:st.sop.max_raise
 %           fprintf('  [%s] dw %d: %s%s, objective %s, %d decision variables, %d rows, build %.1f s, solve %.1f s\n', ...
 %                   label,dw,cl.status,tern(cl.divergent,' (divergent)',''),num2str(cl.obj,'%.8g'), ...
 %                   numel(prog.decvartable),m,tb,ts);                       % MMP, 10/30/2026 (was)
+%       fprintf('  [%s] dw %d: %s%s, residual %.1e, eta %.1e, objective %s, %d decision variables, %d rows, build %.1f s, solve %.1f s\n', ...
+%               label,dw,cl.status,tern(cl.divergent,' (divergent)',''),cl.relres,cl.eta, ...
+%               num2str(cl.obj,'%.8g'),numel(prog.decvartable),m,tb,ts);    % MMP, 11/09/2026 (was); MMP, 10/30/2026
+        dv = '';    if cl.divergent,  dv = ' (divergent)';  end    % the status tag (former local TERN) % MMP, 11/09/2026
         fprintf('  [%s] dw %d: %s%s, residual %.1e, eta %.1e, objective %s, %d decision variables, %d rows, build %.1f s, solve %.1f s\n', ...
-                label,dw,cl.status,tern(cl.divergent,' (divergent)',''),cl.relres,cl.eta, ...
-                num2str(cl.obj,'%.8g'),numel(prog.decvartable),m,tb,ts);    % MMP, 10/30/2026
+                label,dw,cl.status,dv,cl.relres,cl.eta, ...
+                num2str(cl.obj,'%.8g'),numel(prog.decvartable),m,tb,ts);    % MMP, 11/09/2026
     end
     % Stop unless the status is 'unknown' or 'infeasible' and a raise is
     % left; otherwise raise the slack weight by one
@@ -130,9 +137,3 @@ aux.classify = cl;  aux.dw = dw;    aux.hist = hist;
 end
 
 
-function s = tern(c,a,b)
-% S = TERN(C,A,B) returns A when C is true and B otherwise.
-% INPUT  c: logical; a, b: the two values.
-% OUTPUT s: A or B.
-if c,   s = a;  else,   s = b;  end
-end

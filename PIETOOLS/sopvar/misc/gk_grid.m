@@ -68,6 +68,11 @@ function G = gk_grid(R,opts,lf,rf)
 %                moved here so that the gain construction can share it.
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-lines for the
 %                nested functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                very short and called once go into the body): the nested
+%                R0_at, F_at and G_at, each one line and used once as a
+%                handle, written out as the anonymous functions R0fun, Ffun,
+%                Gfun; the nested bases stays for CB and stage.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2 || isempty(opts),   opts = struct();    end
@@ -163,9 +168,18 @@ Y = cell(1,Rr); off = n;
 for j = 1:Rr,   Y{j} = W(:,off+(1:qR(j)),:);    off = off + qR(j);  end
 w = (h/3)*[1, repmat([4 2],1,(N-3)/2), 4, 1];                              % composite Simpson, N odd
 
+% G = struct('a',a,'b',b,'m',m,'N',N,'sg',sg,'h',h,'w',w,'r1',r1,'r2',r2,'n',n,...
+%          'Pg',Pg,'rcondU22',rc,'condR0',max(condR0),'R0inv',R0inv,'M',M,'Nn',Nn,...
+%          'R0fun',@(s) R0_at(s),'Ffun',@(s) F_at(s),'Gfun',@(s) G_at(s));  % MMP, 11/09/2026 (was)
+% The evaluator handles: the multiplier R0(s) = Lb C0 Rb and the kernel     % MMP, 11/09/2026
+% factors [F1(s) F2(s)] = Lb [U1 U2], [G1(s); -G2(s)] = [V1; -V2] Rb, with  % MMP, 11/09/2026
+% Lb = I_m kron ZL(s)', Rb = I_m kron ZR(s) (the former nested R0_at, F_at, % MMP, 11/09/2026
+% G_at, written out)                                                        % MMP, 11/09/2026
 G = struct('a',a,'b',b,'m',m,'N',N,'sg',sg,'h',h,'w',w,'r1',r1,'r2',r2,'n',n,...
            'Pg',Pg,'rcondU22',rc,'condR0',max(condR0),'R0inv',R0inv,'M',M,'Nn',Nn,...
-           'R0fun',@(s) R0_at(s),'Ffun',@(s) F_at(s),'Gfun',@(s) G_at(s));
+           'R0fun',@(s) full(kron(Im,sparse(s.^zL)')*C0*kron(Im,sparse(s.^zR))), ...
+           'Ffun',@(s) [full(kron(Im,sparse(s.^zL)')*U1), full(kron(Im,sparse(s.^zL)')*U2)], ...
+           'Gfun',@(s) [full(V1*kron(Im,sparse(s.^zR))); -full(V2*kron(Im,sparse(s.^zR)))]); % MMP, 11/09/2026
 G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() makes an empty struct array
 
     function [Lb,Rb] = bases(s)
@@ -190,18 +204,6 @@ G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() make
         for jj = 1:Rr
             Rmat(:,off2+(1:qR(jj))) = Bi*R0i*rf{jj}(s);     off2 = off2 + qR(jj);
         end
-    end
-    function R0s = R0_at(s)
-        % the multiplier R0(s)
-        [Lb,Rb] = bases(s);     R0s = full(Lb*C0*Rb);
-    end
-    function Fs = F_at(s)
-        % the kernel factor [F1(s) F2(s)]
-        [Lb,~] = bases(s);      Fs = [full(Lb*U1), full(Lb*U2)];
-    end
-    function Gs = G_at(s)
-        % the kernel factor [G1(s); -G2(s)]
-        [~,Rb] = bases(s);      Gs = [full(V1*Rb); -full(V2*Rb)];
     end
 end
 

@@ -130,6 +130,8 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                opts.cap). Degrees and terms unchanged.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed,
 %                See also names GET_LPIVAR_DEGS_SOP; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
+%                local CELL_PARAMS inlined at the cell count of a block.
 
 % Options; the defaults of dD, dw and wR
 if nargin<2 || isempty(opts),   opts = struct();    end
@@ -219,7 +221,10 @@ for b = 1:numel(blocks)
     [~,d3] = ismember(S3,vars);
     % True for a block between an R^q space and an L2 space
     otherR = (isRs(bk(b)) && ~isRs(bkp(b))) || (~isRs(bk(b)) && isRs(bkp(b)));
-    ncell = numel(cell_params(B,1,'count'));
+%   ncell = numel(cell_params(B,1,'count'));                                % MMP, 11/09/2026 (was)
+    % The number of parameter cells of the block B (the former local        % MMP, 11/09/2026
+    % CELL_PARAMS): params.A of an 'sdopvar', params of a 'sopvar'          % MMP, 11/09/2026
+    if isa(B,'sdopvar'),    ncell = numel(B.params.A);     else,   ncell = numel(B.params);  end % MMP, 11/09/2026
     for q = 1:ncell
         % The monomial pairs of the nonzeros of cell q, and its multi-index
         [li,ei] = cell_support(B,q,m,n,NL,NR);
@@ -299,17 +304,6 @@ terms = struct('codes',codes,'offsets',offs);
 info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'Jmax',Jmax,'D',D,'w',w,'wR',wR,...
               'dD',dD,'dw',dw,'nv',nv,'M',M,'vars',{vars},'isR',isR);       % MMP, 10/29/2026
 
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function c = cell_params(B,~,~)
-% C = CELL_PARAMS(B,~,~) returns the parameter cells of the block B, for
-% counting them: params.A of an 'sdopvar', params of a 'sopvar'. The
-% second and third inputs are not used.
-% INPUT  B: 'sdopvar' or 'sopvar' object.
-% OUTPUT c: cell array, 3 x ... x 3 over the shared variables of B.
-if isa(B,'sdopvar'),    c = B.params.A;     else,   c = B.params;  end
 end
 
 

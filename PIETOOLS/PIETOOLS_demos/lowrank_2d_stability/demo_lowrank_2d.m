@@ -23,6 +23,10 @@
 % Every row is verified LIVE at the operator level (residual over all 36
 % opvar2d cells < 1e-6 AND every Gram block PSD).  The script aborts loudly if
 % any row fails.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the script-local
+%   run_stock_n1 (one caller, behind RUN_STOCK) inlined into the flag branch;
+%   PIE, t0, prog and sopts then live in the workspace of the script.
 
 % ---------------- config ----------------------------------------------------
 nlist     = [1 2 3];   % state counts to run.  n = 4,5,6 also certify (measured)
@@ -89,7 +93,18 @@ fprintf(['\nReference (measured on this LPI family, same settings):\n' ...
     '  certifies n=4 in minutes (dominated by LPI assembly, not solving).\n']);
 if RUN_STOCK
     fprintf('\n=== stock full solve at n=1 (RUN_STOCK = true; ~28 min) ===\n'); %#ok<UNRCH> % config constant
-    run_stock_n1(st);
+%   run_stock_n1(st);                                                       % MMP, 11/09/2026 (was)
+    % the stock reference: the full LPI solved with SeDuMi through lpisolve, % MMP, 11/09/2026
+    % as the 2-D executive would; behind the flag because it is ~28 min of  % MMP, 11/09/2026
+    % pure solver time for a number the table above already quotes from     % MMP, 11/09/2026
+    % measurement (the former local RUN_STOCK_N1)                           % MMP, 11/09/2026
+    PIE = nb_rd2d(1);                                                       % MMP, 11/09/2026
+    t0 = tic;                                                               % MMP, 11/09/2026
+    prog = build_stab_2d_st2(PIE,st); % same program as the face route      % MMP, 11/09/2026
+    sopts.solver = 'sedumi';  sopts.simplify = 0;                           % MMP, 11/09/2026
+    prog = sossolve(prog,sopts);                                            % MMP, 11/09/2026
+    fprintf('stock full solve: %.1f s  (feasratio %.3g)\n', ...
+        toc(t0),prog.solinfo.info.feasratio);                               % MMP, 11/09/2026
 end
 fprintf('(certificates remain in your workspace: certs.n1, certs.n2, ...)\n'); % CC, 09/19/2026
 fprintf('\nDEMO_LOWRANK_2D_DONE\n');
@@ -112,15 +127,3 @@ for k = 1:numel(rows)
 end
 end
 
-function run_stock_n1(st) %#ok<DEFNU> % called only when RUN_STOCK = true
-% the stock reference: solve the full LPI with SeDuMi through lpisolve, as the
-% 2-D executive would.  Kept behind a flag because it is ~28 min of pure solver
-% time for a number the table above already quotes from measurement.
-PIE = nb_rd2d(1);
-t0 = tic;
-prog = build_stab_2d_st2(PIE,st); % same program as the face route
-sopts.solver = 'sedumi';  sopts.simplify = 0;
-prog = sossolve(prog,sopts);
-fprintf('stock full solve: %.1f s  (feasratio %.3g)\n', ...
-    toc(t0),prog.solinfo.info.feasratio);
-end

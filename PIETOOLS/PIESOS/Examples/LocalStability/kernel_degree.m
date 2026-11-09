@@ -44,6 +44,9 @@ function opdeg = kernel_degree(F)
     %                   distributed degree and fix accumulator/index
     %                   handling.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+    %                   max_kernel_degree (DJ, 10/14/2026, one caller)
+    %                   inlined into the coefficient loop;
 
 
     if ~isa(F,'polyopvar') || ~(size(F.degmat,2)==1) 
@@ -64,7 +67,19 @@ function opdeg = kernel_degree(F)
         end
 
         % max. over the kernels and their monomials of the total degree
-        deg_opts(idx) = max_kernel_degree(Kop);                             % DJ, 10/14/2026
+%       deg_opts(idx) = max_kernel_degree(Kop);                             % MMP, 11/09/2026 (was); DJ, 10/14/2026
+        % the maximal total degree of the monomials in the kernels of the   % MMP, 11/09/2026
+        % 'intop' Kop, 0 for constant kernels (the former local             % MMP, 11/09/2026
+        % MAX_KERNEL_DEGREE)                                                % MMP, 11/09/2026
+        m = 0;                                                              % MMP, 11/09/2026
+        Kc = kernels(Kop);                                                  % MMP, 11/09/2026
+        for k=1:numel(Kc)                                                   % MMP, 11/09/2026
+            Kk = Kc{k};                                                     % MMP, 11/09/2026
+            if (isa(Kk,'polynomial') || isa(Kk,'dpvar')) && ~isempty(Kk.degmat) % MMP, 11/09/2026
+                m = max(m,max(sum(full(Kk.degmat),2)));                     % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
+        deg_opts(idx) = m;                                                  % MMP, 11/09/2026
     end
 
     [max_deg, arg_deg] = max(deg_opts);
@@ -78,15 +93,3 @@ function opdeg = kernel_degree(F)
 end
 
 
-function m = max_kernel_degree(Kop)                                         % DJ, 10/14/2026
-    % m = max_kernel_degree(Kop) returns the maximal total degree of the monomials
-    % in the kernels of the 'intop' object Kop (0 for constant kernels).
-    m = 0;
-    Kc = kernels(Kop);
-    for k=1:numel(Kc)
-        Kk = Kc{k};
-        if (isa(Kk,'polynomial') || isa(Kk,'dpvar')) && ~isempty(Kk.degmat)
-            m = max(m,max(sum(full(Kk.degmat),2)));
-        end
-    end
-end

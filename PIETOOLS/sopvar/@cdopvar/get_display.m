@@ -99,6 +99,11 @@ function disp_struct = get_display(Pop,name,expand)
 %
 % DJ, 11/06/2026: Initial coding;
 % DJ, 11/06/2026: Get the subscripts from 'varname2display';
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                  very short and called once go into the body): is_id_block
+%                  and is_zero_block inlined into the block loop of
+%                  is_id_cdopvar, each with its header as the comment of the
+%                  block.
 
 % Default settings
 max_blocks = 6;         % maximal number of blocks defined as the actual operators
@@ -392,12 +397,25 @@ for i=1:p
         blk = Pop.C{i,j};
         if i==j
             % An empty diagonal block is a zero operator
-            if isempty(blk) || ~is_id_block(blk)
-                return
-            end
-        elseif ~isempty(blk) && ~is_zero_block(blk)
-            return
-        end
+%           if isempty(blk) || ~is_id_block(blk)                            % MMP, 11/09/2026 (was)
+%               return                                                      % MMP, 11/09/2026 (was)
+%           end                                                             % MMP, 11/09/2026 (was)
+%       elseif ~isempty(blk) && ~is_zero_block(blk)                         % MMP, 11/09/2026 (was)
+%           return                                                          % MMP, 11/09/2026 (was)
+%       end                                                                 % MMP, 11/09/2026 (was)
+            % and a nonempty one an identity operator ('is_id_op' of        % MMP, 11/09/2026
+            % 'sopvar', 'get_display' of 'sdopvar'; the former local        % MMP, 11/09/2026
+            % IS_ID_BLOCK)                                                  % MMP, 11/09/2026
+            if isempty(blk),    return,     end                             % MMP, 11/09/2026
+            if isa(blk,'sdopvar'),  blk_id = get_display(blk).is_id;   else,   blk_id = is_id_op(blk);  end % MMP, 11/09/2026
+            if ~blk_id,     return,     end                                 % MMP, 11/09/2026
+        elseif ~isempty(blk)                                                % MMP, 11/09/2026
+            % An off-diagonal block must have every coefficient zero up to  % MMP, 11/09/2026
+            % 1e-12, those of the decision variables included (the former   % MMP, 11/09/2026
+            % local IS_ZERO_BLOCK)                                          % MMP, 11/09/2026
+            if isa(blk,'sdopvar'),  coef_sets = [blk.params.A(:);blk.params.B(:)];  else,   coef_sets = blk.params(:);  end % MMP, 11/09/2026
+            if any(cellfun(@(c) ~isempty(c) && any(abs(nonzeros(c))>1e-12),coef_sets)),  return,  end % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
     end
 end
 is_id = true;
@@ -405,30 +423,3 @@ is_id = true;
 end
 
 
-function is_id = is_id_block(blk)
-% IS_ID = IS_ID_BLOCK(BLK) checks whether the 'sopvar' or 'sdopvar' object
-% BLK is an identity operator, see 'is_id_op' of 'sopvar' and
-% 'get_display' of 'sdopvar'.
-
-if isa(blk,'sdopvar')
-    is_id = get_display(blk).is_id;
-else
-    is_id = is_id_op(blk);
-end
-
-end
-
-
-function is_zero = is_zero_block(blk)
-% IS_ZERO = IS_ZERO_BLOCK(BLK) checks whether all coefficients of the
-% 'sopvar' or 'sdopvar' object BLK, including those that multiply the
-% decision variables, are zero, up to 1e-12.
-
-if isa(blk,'sdopvar')
-    coef_sets = [blk.params.A(:);blk.params.B(:)];
-else
-    coef_sets = blk.params(:);
-end
-is_zero = ~any(cellfun(@(c) ~isempty(c) && any(abs(nonzeros(c))>1e-12),coef_sets));
-
-end

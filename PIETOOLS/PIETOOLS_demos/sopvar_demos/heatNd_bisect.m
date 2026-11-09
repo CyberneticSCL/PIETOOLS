@@ -106,6 +106,9 @@ function B = heatNd_bisect(pie,d,ep,opts,bopts)
 %   is replaced by lo >= lambda1; gap(2) clipped and flagged; B.unc with a
 %   NaN end; upward doubling bounded by kmax; trace column 9 is cert_viol
 %   (HEATND_SOLVE now gates on it; it was cert_rel).
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local vfill
+%   (one caller) inlined into the nested attempt, with names of its own
+%   (dfo, fno, io) since a nested function shares the workspace.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<4 || isempty(opts),   opts = struct();    end
@@ -171,7 +174,14 @@ ns = 0;     tlast = 0;
             D = K.D1;   D.At = K.D1.At + (kap-K.kap1)*K.dA;
             v = heatNd_solve(D,so);
         else
-            v = vfill(bopts.oracle(kap,so));
+%           v = vfill(bopts.oracle(kap,so));                                % MMP, 11/09/2026 (was)
+            % the oracle verdict, with the fields the trace records filled  % MMP, 11/09/2026
+            % in (the former local VFILL)                                   % MMP, 11/09/2026
+            v = bopts.oracle(kap,so);                                       % MMP, 11/09/2026
+            dfo = struct('st',0,'why','oracle','rel_b',NaN,'psd_relmin',NaN,'t_mosek',NaN,'iter',NaN, ...
+                         'eta',NaN,'mosek_threads',NaN,'cert_viol',NaN,'rows','all','tight',false,'wall',0); % MMP, 11/09/2026
+            fno = fieldnames(dfo);                                          % MMP, 11/09/2026
+            for io = 1:numel(fno),  if ~isfield(v,fno{io}),  v.(fno{io}) = dfo.(fno{io});  end,  end % MMP, 11/09/2026
         end
         st = v.st;  ns = ns+1;  tlast = v.wall;
         tr(end+1,:) = [kap st v.rel_b v.psd_relmin v.t_mosek v.iter v.eta v.mosek_threads ...
@@ -339,10 +349,3 @@ if ~isempty(bopts.kaff_file),   kaff = K;   save(bopts.kaff_file,'kaff','-v7.3')
 end
 
 
-function v = vfill(v)
-% Oracle verdicts: fill the fields the trace records.
-df = struct('st',0,'why','oracle','rel_b',NaN,'psd_relmin',NaN,'t_mosek',NaN,'iter',NaN, ...
-            'eta',NaN,'mosek_threads',NaN,'cert_viol',NaN,'rows','all','tight',false,'wall',0);
-fn = fieldnames(df);
-for i = 1:numel(fn),    if ~isfield(v,fn{i}),   v.(fn{i}) = df.(fn{i});     end,    end
-end

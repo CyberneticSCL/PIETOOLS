@@ -32,6 +32,9 @@ function info = dump2cuadmm(dumpfile,outdir)
 % row for (i,j) carries sqrt(2)/2 on BOTH vec entries (i,j) and (j,i), which
 % maps an asymmetric A_k to sqrt(2)*sym(A_k)_ij and a symmetric X to
 % sqrt(2)*X_ij, as required.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%   store_blk (one caller) inlined at the blk.txt export.
 
 S = load(dumpfile);
 At = S.At;  b = full(S.b(:));  c = S.c;  K = S.K;   % SeDuMi form, At is nvar x m
@@ -61,7 +64,18 @@ if K.f > 0, blk(end+1,:) = {'u',K.f}; end
 for i = 1:numel(Ks), blk(end+1,:) = {'s',Ks(i)}; end     %#ok<AGROW>
 
 if ~exist(outdir,'dir'), mkdir(outdir); end
-store_blk(blk,   fullfile(outdir,'blk.txt'));
+% store_blk(blk,   fullfile(outdir,'blk.txt'));                             % MMP, 11/09/2026 (was)
+% blk.txt: one line per block, its type and size (the former local          % MMP, 11/09/2026
+% STORE_BLK)                                                                % MMP, 11/09/2026
+fid = fopen(fullfile(outdir,'blk.txt'),'w');                                % MMP, 11/09/2026
+for i = 1:size(blk,1)                                                       % MMP, 11/09/2026
+    t = blk{i,1};                                                           % MMP, 11/09/2026
+    if ~any(strcmp(t,{'s','u','l'}))                                        % MMP, 11/09/2026
+        fclose(fid);  error('unsupported block type %s',t);                 % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    fprintf(fid,'%c %d\n',t,fix(blk{i,2}));                                 % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
+fclose(fid);                                                                % MMP, 11/09/2026
 store_coo(cu_At, fullfile(outdir,'At.txt'));
 store_coo(cu_b,  fullfile(outdir,'b.txt'));
 store_coo(cu_C,  fullfile(outdir,'C.txt'));
@@ -101,19 +115,6 @@ for k = 1:numel(Ks)
     bv = bv + N^2;
 end
 I = cat(1,I{:});  J = cat(1,J{:});  V = cat(1,V{:});
-end
-
-
-function store_blk(blk,fn)
-fid = fopen(fn,'w');
-for i = 1:size(blk,1)
-    t = blk{i,1};
-    if ~any(strcmp(t,{'s','u','l'}))
-        fclose(fid);  error('unsupported block type %s',t);
-    end
-    fprintf(fid,'%c %d\n',t,fix(blk{i,2}));
-end
-fclose(fid);
 end
 
 

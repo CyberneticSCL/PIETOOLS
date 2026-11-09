@@ -88,6 +88,10 @@ function Psol = getsol_lpivar_sop(prog,P)
 %                lists the classes still accepted. Help text to match.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): a (was) comment
 %                line removed; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                very short and called once go into the body): DVAR_POSITIONS
+%                inlined after the name list, its header as the comment of
+%                the block and its early return the first branch of an if.
 
 % % % Fixed classes: nothing to substitute                                  % MMP, 11/08/2026
 if isa(P,'sopvar') || isa(P,'copvar')
@@ -130,7 +134,21 @@ Zd = P.Zd;
 if isstring(Zd),    Zd = cellstr(Zd);   end     % rand_sdopvar names are strings
 Zd = Zd(:);
 q = numel(Zd);
-[tf,loc] = dvar_positions(Zd,dtab);
+% [tf,loc] = dvar_positions(Zd,dtab);                                       % MMP, 11/09/2026 (was)
+% tf(k), loc(k): whether, and at which first row of dtab, the name Zd{k}    % MMP, 11/09/2026
+% sits (the former local DVAR_POSITIONS): decvartable repeats the name of a % MMP, 11/09/2026
+% Gram entry ((i,j) and (j,i)), and getequation puts the At row of a name   % MMP, 11/09/2026
+% at its lowest table row, hence the lowest row of each name                % MMP, 11/09/2026
+if q==0                                                                     % MMP, 11/09/2026
+    tf = false(0,1);    loc = zeros(0,1);                                   % MMP, 11/09/2026
+else                                                                        % MMP, 11/09/2026
+    [in,pos] = ismember(dtab,Zd);                                           % MMP, 11/09/2026
+    r = find(in);                                                           % MMP, 11/09/2026
+    % reshape: for a table of one name find returns a ROW, 1x0 when absent, % MMP, 11/09/2026
+    % and accumarray rejects row subscripts against a [q,1] size            % MMP, 11/09/2026
+    loc = accumarray(reshape(pos(r),[],1),reshape(r,[],1),[q,1],@min,0);    % MMP, 11/09/2026
+    tf = loc>0;                                                             % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 d = zeros(q,1);                                 % absent names contribute 0 here
 d(tf) = full(RRx(loc(tf)));                     % and keep their rows of B
 Zk = Zd(~tf);                                   % names left as decision variables
@@ -167,32 +185,6 @@ end
 
 
 % ========================================================================
-function [tf,loc] = dvar_positions(Zd,dtab)
-% [TF,LOC] = DVAR_POSITIONS(ZD,DTAB) returns, for each name Zd{k}, the
-% first row LOC(k) of DTAB that holds it (0 for none) and TF(k) = LOC(k)>0.
-% INPUT  Zd:   q x 1 cellstr of distinct names (a repeated name is found on
-%              its first copy only);
-%        dtab: N x 1 cellstr, the decision variable table.
-% OUTPUT tf:   q x 1 logical;
-%        loc:  q x 1 double.
-% No names: empty outputs
-q = numel(Zd);
-if q==0
-    tf = false(0,1);    loc = zeros(0,1);
-    return
-end
-% Each table row against Zd, then the lowest row of each name: decvartable
-% repeats the name of a Gram entry ((i,j) and (j,i)), and getequation puts
-% the At row of a name at its lowest table row
-[in,pos] = ismember(dtab,Zd);
-r = find(in);
-% reshape: for a table of one name find returns a ROW, 1x0 when absent,
-% and accumarray rejects row subscripts against a [q,1] size
-loc = accumarray(reshape(pos(r),[],1),reshape(r,[],1),[q,1],@min,0);
-tf = loc>0;
-end
-
-
 % ========================================================================
 function Pout = subs_block(P,d,tf,Zk)
 % POUT = SUBS_BLOCK(P,D,TF,ZK) returns the 'sdopvar' block P with the

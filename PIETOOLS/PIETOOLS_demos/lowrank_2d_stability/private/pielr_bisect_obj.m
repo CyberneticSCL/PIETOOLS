@@ -35,6 +35,9 @@ function [V,R,q,why,notes,P] = pielr_bisect_obj(prog,H,D,A,opts,vb)        % CC,
 %
 % OUTPUT  V,R,q,why,notes as pielr_discover;  P the bm_setup package of the
 %         ACCEPTED trial, which the caller needs to lift the face.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local keepbest
+%         (CC, 09/27/2026, one caller) inlined into the ladder loop.
 
 notes = {};  V = [];  R = [];  q = [];  why = [];  P = [];
 % Best point seen across ALL trials, so a bisection that never brackets still
@@ -78,7 +81,18 @@ else
         nit = nit+1;
         [Vk,Rk,qk,wk,nk,Pk] = trial(prog,H,D,A,opts,vb,jc,g);
         allwhy = [allwhy wk];  notes = [notes nk];   %#ok<AGROW>
-        [bq,bP,brel] = keepbest(bq,bP,brel,qk,Pk,Rk);                   % CC, 09/27/2026
+%       [bq,bP,brel] = keepbest(bq,bP,brel,qk,Pk,Rk);                       % MMP, 11/09/2026 (was); CC, 09/27/2026
+        % keep the trial point with the smallest gate residual; a trial whose % MMP, 11/09/2026
+        % gate returned nothing still carries a point (pielr_discover hands % MMP, 11/09/2026
+        % back its best attempt), scored inf, and the first such point beats % MMP, 11/09/2026
+        % none (the former local KEEPBEST)                                  % MMP, 11/09/2026
+        if ~isempty(qk)                                                     % MMP, 11/09/2026
+            s = inf;                                                        % MMP, 11/09/2026
+            if ~isempty(Rk) && isfield(Rk,'rel') && isfinite(Rk.rel), s = Rk.rel; end % MMP, 11/09/2026
+            if s < brel || isempty(bq)                                      % MMP, 11/09/2026
+                bq = qk;  bP = Pk;  brel = s;                               % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
         if vb, fprintf('  [gamma] ladder g = %-10.6g -> %s\n',g,verd(Rk)); end
         if ~isempty(Rk) && Rk.ok
             hi = g;  bestall = struct('V',{Vk},'R',Rk,'q',qk,'P',Pk,'g',g);
@@ -147,14 +161,3 @@ else,          s = sprintf('fail (rel %.3e)',R.rel);
 end
 end
 
-function [bq,bP,brel] = keepbest(bq,bP,brel,qk,Pk,Rk)                   % CC, 09/27/2026
-% Keep the trial point with the smallest gate residual.  A trial whose gate
-% returned nothing still carries a point (pielr_discover hands back its best
-% attempt), so score those as inf and take the first -- some point beats none.
-if isempty(qk), return, end
-s = inf;
-if ~isempty(Rk) && isfield(Rk,'rel') && isfinite(Rk.rel), s = Rk.rel; end
-if s < brel || isempty(bq)
-    bq = qk;  bP = Pk;  brel = s;
-end
-end

@@ -84,6 +84,8 @@ function R = dpvar_op_copvar(op,varargin)
 %                shared by the four classes' mtimes/plus/horzcat/vertcat.
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
 %                for the local functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
+%                local ISDECISION inlined into op_mtimes.
 
 switch op
     case 'mtimes',              R = op_mtimes(varargin{1},varargin{2});
@@ -115,7 +117,10 @@ if isnumeric(D) && isscalar(D)
 end
 if all(size(D)==1)
     % dpvar scalar with decision variables: d*X = X*d, scale each block.
-    if isdecision(X)
+%   if isdecision(X)                                                        % MMP, 11/09/2026 (was)
+    % decision by type, not by content: a cdopvar or sdopvar, as in         % MMP, 11/09/2026
+    % @cdopvar/mtimes (the former local ISDECISION)                         % MMP, 11/09/2026
+    if isa(X,'cdopvar') || isa(X,'sdopvar')                                 % MMP, 11/09/2026
         error('cdopvar:decisionTimesDecision',['A dpvar with decision '...
             'variables times a %s is quadratic in the decision variables and '...
             'is not representable. Multiply a decision scalar only into a '...
@@ -246,13 +251,6 @@ end
 function tf = isoperator(x)
 % TF = ISOPERATOR(X) is true for a container or a block of the four classes.
 tf = isa(x,'copvar') || isa(x,'cdopvar') || isa(x,'sopvar') || isa(x,'sdopvar');
-end
-
-
-function tf = isdecision(X)
-% By type, not by content: a cdopvar or sdopvar is decision, as in
-% @cdopvar/mtimes. 'sdopvar' is a subclass of nothing here, so isa is exact.
-tf = isa(X,'cdopvar') || isa(X,'sdopvar');
 end
 
 

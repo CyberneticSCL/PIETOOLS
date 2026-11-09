@@ -16,6 +16,9 @@ function [V,R,q,notes] = pielr_refine(prog,H,D,P,A,V,R,q,vb)               % CC,
 % A REJECTED SHRINK IS EVIDENCE, NOT A PROOF.  It says this face does not
 % contain a certificate at that width; another face might.  Reported as
 % "resists", never as a rank floor.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local shrink1
+%   (one caller) inlined into the refinement loop.
 
 notes = {};
 B = numel(P.rows);
@@ -24,7 +27,17 @@ while improved
     improved = false;
     for i = 1:B
         if size(V{i},2) <= 1, continue; end
-        Vt = V;   Vt{i} = shrink1(V{i},q,P,i);
+%       Vt = V;   Vt{i} = shrink1(V{i},q,P,i);                              % MMP, 11/09/2026 (was)
+        % drop the direction the certified Gram block uses least: S_i =     % MMP, 11/09/2026
+        % V_i' X_i V_i is tiny, so its eigendecomposition costs nothing at  % MMP, 11/09/2026
+        % any decision count; orth() guards against a numerically           % MMP, 11/09/2026
+        % rank-deficient product (the former local SHRINK1)                 % MMP, 11/09/2026
+        N  = round(sqrt(numel(P.rows{i})));                                 % MMP, 11/09/2026
+        Xi = reshape(q(P.rows{i}),N,N);   Xi = (Xi+Xi')/2;                  % MMP, 11/09/2026
+        Si = V{i}'*Xi*V{i};   Si = (Si+Si')/2;                              % MMP, 11/09/2026
+        [W,Dg] = eig(Si);                                                   % MMP, 11/09/2026
+        [~,ord] = sort(diag(Dg),'descend');                                 % MMP, 11/09/2026
+        Vt = V;   Vt{i} = orth(V{i}*W(:,ord(1:end-1)));                     % MMP, 11/09/2026
         try
             [Rt,qt] = restrict_solve(prog,H,P,D.At,D.b,Vt,false,A);
             if Rt.ok
@@ -43,16 +56,3 @@ end
 end
 
 % =========================================================================
-function Vi = shrink1(Vi,q,P,i)
-% Drop the direction the certified Gram block uses least.  S_i = V_i' X_i V_i
-% is tiny, so its eigendecomposition costs nothing at any decision count.
-N  = round(sqrt(numel(P.rows{i})));
-Xi = reshape(q(P.rows{i}),N,N);   Xi = (Xi+Xi')/2;
-Si = Vi'*Xi*Vi;   Si = (Si+Si')/2;
-[W,Dg] = eig(Si);
-[~,ord] = sort(diag(Dg),'descend');
-Vi = Vi*W(:,ord(1:end-1));
-% keep the columns orthonormal: V_i*W is orthonormal already when W is, but
-% orth() guards against a numerically rank-deficient product
-Vi = orth(Vi);
-end

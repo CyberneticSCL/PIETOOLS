@@ -137,6 +137,9 @@ function [X,info] = qp_copvar(A,B,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding AT - 10/26/2026 
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                gauss_legendre (one caller) inlined into the node loop of
+%                assemble_apply; its n==1 return is the first branch of an if.
 
 if nargin<3 || isempty(opts),  opts = struct();  end
 %o = struct('deg',4,'basis','monomial','assembly','container','solver','auto','lambda',0,'verbose',false);   % AT, 10/28/2026 (was)
@@ -345,7 +348,17 @@ for i = 1:M
     end
     nq = md+1;   xs = cell(1,nv);   ws = cell(1,nv);
     for k = 1:nv
-        [xk,wk] = gauss_legendre(nq(k));   xs{k} = dom(k,1)+(dom(k,2)-dom(k,1))*(xk+1)/2;   ws{k} = wk*(dom(k,2)-dom(k,1))/2;
+%       [xk,wk] = gauss_legendre(nq(k));   xs{k} = dom(k,1)+(dom(k,2)-dom(k,1))*(xk+1)/2;   ws{k} = wk*(dom(k,2)-dom(k,1))/2; % MMP, 11/09/2026 (was)
+        % Gauss-Legendre nodes xk and weights wk on [-1,1] (Golub-Welsch; the % MMP, 11/09/2026
+        % former local gauss_legendre), then mapped onto dom(k,:)           % MMP, 11/09/2026
+        if nq(k)==1                                                         % MMP, 11/09/2026
+            xk = 0;  wk = 2;                                                % MMP, 11/09/2026
+        else                                                                % MMP, 11/09/2026
+            kk = 1:nq(k)-1;   bb = kk./sqrt(4*kk.^2-1);                     % MMP, 11/09/2026
+            [V,D] = eig(diag(bb,1)+diag(bb,-1));                            % MMP, 11/09/2026
+            [xk,io] = sort(diag(D));   wk = 2*V(1,io)'.^2;                  % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
+        xs{k} = dom(k,1)+(dom(k,2)-dom(k,1))*(xk+1)/2;   ws{k} = wk*(dom(k,2)-dom(k,1))/2; % MMP, 11/09/2026
     end
     [G{1:max(nv,1)}] = ndgrid(xs{:});   [Gw{1:max(nv,1)}] = ndgrid(ws{:});
     pts = zeros(numel(G{1}),nv);   wq = ones(numel(G{1}),1);
@@ -376,14 +389,6 @@ for k = 1:numel(w.varname)
     Mon = Mon.*(pts(:,col).^(full(dmat(:,k)).'));
 end
 V = Mon*full(cf);
-end
-
-function [x,w] = gauss_legendre(n)
-% nodes and weights on [-1,1] (Golub-Welsch)
-if n==1,  x = 0;  w = 2;  return,  end
-k = 1:n-1;   bb = k./sqrt(4*k.^2-1);
-[V,D] = eig(diag(bb,1)+diag(bb,-1));
-[x,io] = sort(diag(D));   w = 2*V(1,io)'.^2;
 end
 
 function S = basis_coef(d,dom,type)

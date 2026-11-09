@@ -47,6 +47,9 @@ function opdeg = kernel_degree2(F)
     %                   each FDP coefficient operator before taking the
     %                   maximum; document each step of the calculation.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+    %                   max_kernel_degree (DJ, 10/14/2026, one caller)
+    %                   inlined into the coefficient loop;
 
 
     % The current implementation supports FDPs in one distributed state;
@@ -81,7 +84,19 @@ function opdeg = kernel_degree2(F)
         % degree: the exponents of its monomials, summed over the variables.
         % The raw kernel degree of K_w is the largest total degree among
         % all spatial monomials appearing in that coefficient operator.
-        raw_degree = max_kernel_degree(Kop);                                % DJ, 10/14/2026
+%       raw_degree = max_kernel_degree(Kop);                                % MMP, 11/09/2026 (was); DJ, 10/14/2026
+        % the maximal total degree of the monomials in the kernels of the   % MMP, 11/09/2026
+        % 'intop' Kop, 0 for constant kernels (the former local             % MMP, 11/09/2026
+        % MAX_KERNEL_DEGREE)                                                % MMP, 11/09/2026
+        m = 0;                                                              % MMP, 11/09/2026
+        Kc = kernels(Kop);                                                  % MMP, 11/09/2026
+        for k=1:numel(Kc)                                                   % MMP, 11/09/2026
+            Kk = Kc{k};                                                     % MMP, 11/09/2026
+            if (isa(Kk,'polynomial') || isa(Kk,'dpvar')) && ~isempty(Kk.degmat) % MMP, 11/09/2026
+                m = max(m,max(sum(full(Kk.degmat),2)));                     % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
+        raw_degree = m;                                                     % MMP, 11/09/2026
 
         % The row F.degmat(idx,:) contains the exponents of the distributed
         % states in v^w. Their sum is the linear-form distributed degree w.
@@ -111,15 +126,3 @@ function opdeg = kernel_degree2(F)
 end
 
 
-function m = max_kernel_degree(Kop)                                         % DJ, 10/14/2026
-    % m = max_kernel_degree(Kop) returns the maximal total degree of the monomials
-    % in the kernels of the 'intop' object Kop (0 for constant kernels).
-    m = 0;
-    Kc = kernels(Kop);
-    for k=1:numel(Kc)
-        Kk = Kc{k};
-        if (isa(Kk,'polynomial') || isa(Kk,'dpvar')) && ~isempty(Kk.degmat)
-            m = max(m,max(sum(full(Kk.degmat),2)));
-        end
-    end
-end

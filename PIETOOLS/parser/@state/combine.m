@@ -32,6 +32,8 @@ function [out, varargout] = combine(varargin)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  findPermutation (one caller) inlined into the output loop.
 out = varargin{1};
 for i=2:nargin
     tmp = varargin{i};
@@ -47,16 +49,18 @@ end
 varargout = cell(1,nargin);
 
 for i=1:nargin
-    varargout{i} = findPermutation(out,varargin{i});
-end
-end
-function P = findPermutation(A,B) % returns P, such that B = P*A
-s.type = '.'; s.subs = 'veclength';
-P = zeros(sum(subsref(B,s)),sum(subsref(A,s)));
-blen = [0;cumsum(subsref(B,s))]+1; alen = [0;cumsum(subsref(A,s))]+1;
-[~,idx] = ismember(B,A);
-for i=1:length(blen)-1
-    tmp = subsref(A,s);
-    P(blen(i):blen(i+1)-1,alen(idx(i)):alen(idx(i)+1)-1) = eye(tmp(idx(i)));
+%   varargout{i} = findPermutation(out,varargin{i});                        % MMP, 11/09/2026 (was)
+    % the permutation Pi with varargin{i} = Pi*out (the former local        % MMP, 11/09/2026
+    % FINDPERMUTATION): one identity block per state of varargin{i}, placed % MMP, 11/09/2026
+    % at the position of that state in out                                  % MMP, 11/09/2026
+    ss.type = '.'; ss.subs = 'veclength';                                   % MMP, 11/09/2026
+    Pi = zeros(sum(subsref(varargin{i},ss)),sum(subsref(out,ss)));          % MMP, 11/09/2026
+    blen = [0;cumsum(subsref(varargin{i},ss))]+1; alen = [0;cumsum(subsref(out,ss))]+1; % MMP, 11/09/2026
+    [~,pidx] = ismember(varargin{i},out);                                   % MMP, 11/09/2026
+    for ib=1:length(blen)-1                                                 % MMP, 11/09/2026
+        vlen = subsref(out,ss);                                             % MMP, 11/09/2026
+        Pi(blen(ib):blen(ib+1)-1,alen(pidx(ib)):alen(pidx(ib)+1)-1) = eye(vlen(pidx(ib))); % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    varargout{i} = Pi;                                                      % MMP, 11/09/2026
 end
 end

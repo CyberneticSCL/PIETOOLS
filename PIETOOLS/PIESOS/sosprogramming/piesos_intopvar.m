@@ -130,6 +130,9 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                   select_degs (one caller) inlined as a loop over the
+%                   terms;
 
 
 % Check the matrix dimensions
@@ -292,7 +295,13 @@ varnames = reshape(varnames(is_dep),1,[]);    domval = domval(is_dep,:);
 ntrms = ntrms(is_dep);          deps = deps(is_dep);
 intmat = intmat(is_dep);
 if per_term
-    degs = cellfun(@(a) select_degs(a,is_dep),degs,'UniformOutput',false);
+%   degs = cellfun(@(a) select_degs(a,is_dep),degs,'UniformOutput',false);  % MMP, 11/09/2026 (was)
+    % the degrees of each term restricted to the kept variables when given  % MMP, 11/09/2026
+    % as a 1 x N cell (the former local SELECT_DEGS; arrays have a column   % MMP, 11/09/2026
+    % per dummy variable and lose none)                                     % MMP, 11/09/2026
+    for kt = 1:numel(degs)                                                  % MMP, 11/09/2026
+        if iscell(degs{kt}),    degs{kt} = degs{kt}(is_dep);    end         % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     degs = reshape(degs,[ntrms,1]);     % drop singleton terms of discarded variables
 else
     degs = degs(is_dep);
@@ -500,15 +509,6 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function a = select_degs(a,idx)
-% A = SELECT_DEGS(A,IDX) restricts the degrees A of a term to the variables
-% IDX, if specified as 1 x N cell. Arrays have a column for each dummy
-% variable, and the variables that are discarded have none.
-
-if iscell(a)                                                     
-    a = a(idx);                                            
-end                                                 
-end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 

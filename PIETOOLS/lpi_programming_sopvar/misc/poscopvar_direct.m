@@ -200,6 +200,11 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                LPIPROGRAM_SOP is retired.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
 %                code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local ACT_OF
+%                (10/29/2026, one caller) inlined before the reduce_spec
+%                call, its header as the comment of the block and its
+%                10/29/2026 lines with their markers; the commented-out
+%                ng_of header line of 10/29/2026 removed with it.
 
 % The cache of position maps; 'clear' empties it
 persistent CACHE
@@ -305,7 +310,23 @@ for c = 1:nt
             offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
         end
 %       spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/29/2026 (was)
-        spec = reduce_spec(spec,offv,act_of(codes(c),nv),nv);               % MMP, 10/29/2026
+%       spec = reduce_spec(spec,offv,act_of(codes(c),nv),nv);               % MMP, 11/09/2026 (was); MMP, 10/29/2026
+        % act: the directions in which the weight of the term codes(c) has  % MMP, 11/09/2026
+        % positive degree (the former local ACT_OF, which replaced NG_OF:   % MMP, 11/09/2026
+        % that returned the count, and the subset rule of REDUCE_SPEC needs % MMP, 11/09/2026
+        % the directions): none for the plain term, all for the box product, % MMP, 11/09/2026
+        % direction d for a face 2d+1 / 2d+2 or a single-direction box      % MMP, 11/09/2026
+        % quadratic 2nv+2+d                                                 % MMP, 11/09/2026
+        % if code==0,         n = 0;                                        % MMP, 11/09/2026; MMP, 10/29/2026 (was)
+        % elseif code==1,     n = nv;                                       % MMP, 11/09/2026; MMP, 10/29/2026 (was)
+        % else,               n = 1;                                        % MMP, 11/09/2026; MMP, 10/29/2026 (was)
+        % end                                                               % MMP, 11/09/2026; MMP, 10/29/2026 (was)
+        act = false(1,nv);                                                  % MMP, 11/09/2026; MMP, 10/29/2026
+        if codes(c)==1,                             act(:) = true;          % MMP, 11/09/2026; MMP, 10/29/2026
+        elseif codes(c)>=3 && codes(c)<=2*nv+2,     act(floor((codes(c)-1)/2)) = true; % MMP, 11/09/2026; MMP, 10/29/2026
+        elseif codes(c)>2*nv+2,                     act(codes(c)-2*nv-2) = true; % MMP, 11/09/2026; MMP, 10/29/2026
+        end                                                                 % MMP, 11/09/2026; MMP, 10/29/2026
+        spec = reduce_spec(spec,offv,act,nv);                               % MMP, 11/09/2026
         % Caps per variable, 'mult' zero where the multi-index is 1; the
         % exponent grid
         d = process_degrees_one(spec,nv);
@@ -486,30 +507,6 @@ info = struct('basis_list',basis_list,'E',{terms(1).E},'N',[terms.N],'ndec',ndec
               't_product',sum([terms.t_product]),'t_blocks',t_blocks,'t_total',toc(t_all),...
               'Qdpvar',{Qd},'terms',rmfield(terms,{'PM','SE','SF','useshift','Qdpvar'}));
 
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function n = ng_of(code,nv)                                               % MMP, 10/29/2026 (was)
-function act = act_of(code,nv)                                              % MMP, 10/29/2026
-% ACT = ACT_OF(CODE,NV) returns a 1 x NV logical row, true in the
-% directions in which the weight of the term CODE has positive degree:
-% none for the plain term, all for the box product, direction d for a face
-% 2d+1 / 2d+2 or a single-direction box quadratic 2nv+2+d. (Replaces
-% NG_OF, which returned the count: the subset rule of REDUCE_SPEC needs
-% the directions themselves.)
-% INPUT  code: double, the term code; nv: double, the number of registry
-%        variables.
-% OUTPUT act:  1 x nv logical.
-% if code==0,         n = 0;                                                % MMP, 10/29/2026 (was)
-% elseif code==1,     n = nv;                                               % MMP, 10/29/2026 (was)
-% else,               n = 1;                                                % MMP, 10/29/2026 (was)
-% end                                                                       % MMP, 10/29/2026 (was)
-act = false(1,nv);                                                          % MMP, 10/29/2026
-if code==1,                         act(:) = true;                          % MMP, 10/29/2026
-elseif code>=3 && code<=2*nv+2,     act(floor((code-1)/2)) = true;          % MMP, 10/29/2026
-elseif code>2*nv+2,                 act(code-2*nv-2) = true;                % MMP, 10/29/2026
-end                                                                         % MMP, 10/29/2026
 end
 
 

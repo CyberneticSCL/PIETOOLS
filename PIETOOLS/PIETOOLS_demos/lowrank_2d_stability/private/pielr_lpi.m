@@ -44,6 +44,11 @@ function A = pielr_lpi(lpi)                                                 % CC
 % a free lpivar operator Qop and couples it by Top'*Qop = Rop, while
 % PIETOOLS_Hinf_gain_2D works with Pop directly), so they are separate
 % transcriptions.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals
+%   poincare_adapter (into the switch) and stab_2d_settings (into stab_build)
+%   inlined; stab_build, l2g_build and poincare_build stay, being bodies of
+%   the build handles.
 
 switch lower(char(lpi))
     case 'stability'
@@ -55,7 +60,13 @@ switch lower(char(lpi))
     case 'l2gain-dual'
         A = l2g_adapter(true);
     case 'poincare'
-        A = poincare_adapter();
+%       A = poincare_adapter();                                             % MMP, 11/09/2026 (was)
+        % the Poincare adapter (the former local POINCARE_ADAPTER)          % MMP, 11/09/2026
+        A.name = 'poincare';                                                % MMP, 11/09/2026
+        A.dual    = false;                                                  % MMP, 11/09/2026
+        A.has_obj = true;                                                   % MMP, 11/09/2026
+        A.build   = @(PIE,st) poincare_build(PIE,st);                       % MMP, 11/09/2026
+        A.resid   = @(prog,H) poincare_resid(prog,H);                       % MMP, 11/09/2026
     otherwise
         error('pielr_lpi:unknown', ...
             ['Unsupported LPI ''%s''.  This package currently certifies ' ...
@@ -89,23 +100,20 @@ function [prog,H] = stab_build(PIE,st,dual)
 % end                                                                       % CC, 11/08/2026 (was)
 if pie_dim(PIE)==2 && ~isfield(st,'settings_2d')
     S2 = lpisettings_sop('light');
-    S2.settings_2d = stab_2d_settings(st);
+%   S2.settings_2d = stab_2d_settings(st);                                  % MMP, 11/09/2026 (was)
+    % the 2-D settings: a 1-D settings struct carries them under            % MMP, 11/09/2026
+    % .settings_2d (lpisettings' convention, and t1d_set's); a bare struct is % MMP, 11/09/2026
+    % the 2-D settings itself (the former local STAB_2D_SETTINGS)           % MMP, 11/09/2026
+    if isfield(st,'settings_2d') && ~isempty(st.settings_2d)                % MMP, 11/09/2026
+        S2.settings_2d = st.settings_2d;                                    % MMP, 11/09/2026
+    else                                                                    % MMP, 11/09/2026
+        S2.settings_2d = st;                                                % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     if isfield(st,'sos_opts'),  S2.sos_opts = st.sos_opts;  end
     st = S2;
 end
 [prog,H] = build_stab_1d(PIE,st,dual);
 % END CC, 11/08/2026
-end
-
-function s2d = stab_2d_settings(st)
-% A 1-D settings struct carries the 2-D one under .settings_2d (lpisettings'
-% own convention, and t1d_set's).  Accept either spelling so a caller can pass
-% whichever it has.
-if isfield(st,'settings_2d') && ~isempty(st.settings_2d)
-    s2d = st.settings_2d;
-else
-    s2d = st;
-end
 end
 
 function S = stab_resid(prog,H)
@@ -202,14 +210,6 @@ S.aux.Dop = Dop;   S.aux.gam = gam;   S.aux.Qop = Qop;   S.aux.Deop = Deop;
 end
 
 % =========================================================================
-function A = poincare_adapter()
-A.name = 'poincare';
-A.dual    = false;
-A.has_obj = true;
-A.build   = @(PIE,st) poincare_build(PIE,st);
-A.resid   = @(prog,H) poincare_resid(prog,H);
-end
-
 function [prog,H] = poincare_build(PIE,st)
 if pie_dim(PIE)==2
     error('pielr_lpi:poincare2d', ...

@@ -93,6 +93,12 @@ function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed,
 %                  references to the retired get_eq_opts_2D removed, what
 %                  lines for four local functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                  very short and called once go into the body): NUMCELLS at
+%                  the cell count, CELLDIFF in the separability test (the
+%                  difference computed before the if), ENUM_ALPHA at the
+%                  candidate blocks, each with its header as the comment of
+%                  the block; their 09/30/2026 lines keep their markers.
 
 % Defaults: OPTS struct(), ZTOL 1e-12; DOP an 'sopvar' or 'sdopvar'
 if nargin<2 || isempty(opts)
@@ -113,7 +119,9 @@ report = struct('lines',{{}},'nkept',0,'ndropped',0,'support',[]);
 % part has an entry above the tolerance, i.e. when the coefficient vanishes
 % for EVERY value of the decision variables.
 % n3 from the cell count 3^n3; then the support, cell by cell
-ncell = numcells(Dop);
+% ncell = numcells(Dop);                                                    % MMP, 11/09/2026 (was)
+% The number of parameter cells of Dop (the former local NUMCELLS)          % MMP, 11/09/2026
+if isa(Dop,'sdopvar'), ncell = numel(Dop.params.A); else, ncell = numel(Dop.params); end % MMP, 11/09/2026
 n3 = round(log(ncell)/log(3));
 if 3^n3 ~= ncell
     error("The parameter cell count %d is not a power of 3.",ncell)
@@ -149,7 +157,18 @@ for kdir = 1:n3
         if g(kdir)~=2, continue, end
         g3 = g;  g3(kdir) = 3;
 %       if celldiff(Dop,k,lin_of(g3,n3)) > ztol                             % MMP, 09/30/2026 (was)
-        if celldiff(Dop,k,cell_of_gamma(g3)) > ztol                         % MMP, 09/30/2026
+%       if celldiff(Dop,k,cell_of_gamma(g3)) > ztol                         % MMP, 11/09/2026 (was); MMP, 09/30/2026
+        % The largest magnitude of the difference between cell k and the    % MMP, 11/09/2026
+        % cell of g3 (the former local CELLDIFF): cells of an 'sopvar' share % MMP, 11/09/2026
+        % one ZL/ZR, so they are directly comparable; for an 'sdopvar' the  % MMP, 11/09/2026
+        % larger of the A and B differences                                 % MMP, 11/09/2026
+        k2 = cell_of_gamma(g3);                                             % MMP, 11/09/2026
+        if isa(Dop,'sdopvar')                                               % MMP, 11/09/2026
+            dk = max(absmax(getA(Dop,k)-getA(Dop,k2)), absmax(getB(Dop,k)-getB(Dop,k2))); % MMP, 11/09/2026
+        else                                                                % MMP, 11/09/2026
+            dk = absmax(getP(Dop,k)-getP(Dop,k2));                          % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
+        if dk > ztol                                                        % MMP, 11/09/2026
             ok = false;  break
         end
     end
@@ -162,7 +181,20 @@ for kdir = 1:n3
 end
 
 % % % Candidate blocks, and the cells each diagonal can reach.
-alpha_all = enum_alpha(n3,sepv);
+% alpha_all = enum_alpha(n3,sepv);                                          % MMP, 11/09/2026 (was)
+% The admissible multi-indices alpha_all (the former local ENUM_ALPHA):     % MMP, 11/09/2026
+% {1,2,3} in an ordinary direction and {1,4} in a separable one, direction  % MMP, 11/09/2026
+% 1 varying fastest, matching 'possopvar'                                   % MMP, 11/09/2026
+vals = cell(1,n3);                                                          % MMP, 11/09/2026
+for k = 1:n3                                                                % MMP, 11/09/2026
+    if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end               % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
+% A = vals{1}(:);                                                           % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+% for k = 2:n3                                                              % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+%     A = [kron(ones(numel(vals{k}),1),A), ...
+%          kron(vals{k}(:),ones(size(A,1),1))];                             % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 11/09/2026; MMP, 09/30/2026 (was)
+alpha_all = multiindex_grid(vals);                                          % MMP, 11/09/2026; MMP, 09/30/2026
 keep = false(size(alpha_all,1),1);
 for r = 1:size(alpha_all,1)
     cells = reach(alpha_all(r,:),n3);
@@ -230,37 +262,6 @@ end
 
 
 %%
-function A = enum_alpha(n3,sepv)
-% A = ENUM_ALPHA(N3,SEPV) returns the admissible multi-indices: {1,2,3} in
-% an ordinary direction and {1,4} in a separable one, direction 1 varying
-% fastest, matching 'possopvar'.
-% INPUT  n3:   'double', the number of variables;
-%        sepv: 1 x n3 'logical', the separable directions.
-% OUTPUT A:    'double', one multi-index per row, n3 columns.
-% Admissible entries per direction, then their grid
-vals = cell(1,n3);
-for k = 1:n3
-    if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
-end
-% A = vals{1}(:);                                                           % MMP, 09/30/2026 (was)
-% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
-%     A = [kron(ones(numel(vals{k}),1),A), ...
-%          kron(vals{k}(:),ones(size(A,1),1))];                             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-A = multiindex_grid(vals);                                                  % MMP, 09/30/2026
-end
-
-
-%%
-function n = numcells(P)
-% N = NUMCELLS(P) returns the number of parameter cells of P.
-% INPUT  P: 'sopvar' or 'sdopvar' object.
-% OUTPUT n: 'double'.
-if isa(P,'sdopvar'), n = numel(P.params.A); else, n = numel(P.params); end
-end
-
-
-%%
 function m = cellmax(P,k)
 % M = CELLMAX(P,K) returns the largest magnitude in cell K, over the
 % constant part and every row of the decision part.
@@ -279,22 +280,6 @@ else
 end
 end
 
-
-%%
-function d = celldiff(P,k1,k2)
-% D = CELLDIFF(P,K1,K2) returns the largest magnitude of the difference
-% between cells K1 and K2; cells of an 'sopvar' share one ZL/ZR, so they
-% are directly comparable.
-% INPUT  P:      'sopvar' or 'sdopvar' object;
-%        k1, k2: 'double', two cell indices.
-% OUTPUT d:      'double'; for an 'sdopvar', the larger of the A and B
-%                differences.
-if isa(P,'sdopvar')
-    d = max(absmax(getA(P,k1)-getA(P,k2)), absmax(getB(P,k1)-getB(P,k2)));
-else
-    d = absmax(getP(P,k1)-getP(P,k2));
-end
-end
 
 function X = getA(P,k)
 % X = GETA(P,K) returns the constant part A of cell K of an 'sdopvar', 0

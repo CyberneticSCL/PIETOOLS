@@ -153,6 +153,10 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 %                  the references to the retired 'mtimes_AT' removed, long
 %                  body notes tightened, INPUT/OUTPUT for the local
 %                  functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  SETUP_KEY (09/30/2026, one caller) inlined at the top of
+%                  memo_setup, its header as the comment of the block and
+%                  its lines with their markers.
 
 % % % Resolve the optional arguments. The layout may be supplied in either    % MMP, 08/30/2026
 % % % trailing position, since Csize is numeric and layout is text.           % MMP, 08/30/2026
@@ -278,29 +282,6 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function key = setup_key(ZG,lims,g1)                                        % MMP, 09/30/2026
-% The setup key (ZG, lims, g1) as the 64-bit patterns of g1, the counts and % MMP, 09/30/2026
-% every entry, so equal keys give bit-identical setups; isequal on the      % MMP, 09/30/2026
-% values would equate 0 and -0. [] (never cached) unless lims and every     % MMP, 09/30/2026
-% ZG{i} are real full double and each ZG{i} a column: those fix the class   % MMP, 09/30/2026
-% and shape of the setup, and the counts then fix every size. lims is       % MMP, 09/30/2026
-% numel(ZG) x 2 (checked above). A few builtins, independent of numel(ZG):  % MMP, 09/30/2026
-% an entry-by-entry comparison cost 6-22 us per call (measured).            % MMP, 09/30/2026
-% INPUT   ZG: 1 x ns3a cell of exponent vectors; lims: ns3a x 2; g1: scalar.
-% OUTPUT  key: uint64 column, or [] when the setup is not cacheable.
-key = [];                                                                   % MMP, 09/30/2026
-if isa(lims,'double') && ~issparse(lims) && isreal(lims) ...
-        && all(cellfun('isclass',ZG,'double')) && all(cellfun('isreal',ZG)) ...
-        && all(cellfun('size',ZG,2)==1)                                     % MMP, 09/30/2026
-    v = vertcat(ZG{:});         % sparse if any ZG{i} is                    % MMP, 09/30/2026
-    if ~issparse(v)                                                         % MMP, 09/30/2026
-        key = typecast([g1; numel(ZG); cellfun('prodofsize',ZG(:)); ...
-                        lims(:); v],'uint64');                              % MMP, 09/30/2026
-    end                                                                     % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
-
-
 function S = memo_setup(ZG,lims,g1)                                         % MMP, 09/30/2026
 % The setup of (ZG, lims, g1), from the memo when it holds that key.        % MMP, 09/30/2026
 % copquadvar calls int_semisep once per (i,j) basis pair with G.Z and the   % MMP, 09/30/2026
@@ -315,7 +296,25 @@ function S = memo_setup(ZG,lims,g1)                                         % MM
 % INPUT   ZG, lims, g1: as for 'semisep_setup'.
 % OUTPUT  S: the setup struct of 'semisep_setup'.
 persistent keys Ss last                                                     % MMP, 09/30/2026
-key = setup_key(ZG,lims,g1);                                                % MMP, 09/30/2026
+% key = setup_key(ZG,lims,g1);                                              % MMP, 11/09/2026 (was); MMP, 09/30/2026
+% The setup key (ZG, lims, g1) as the 64-bit patterns of g1, the counts and % MMP, 11/09/2026; MMP, 09/30/2026
+% every entry, so equal keys give bit-identical setups; isequal on the      % MMP, 11/09/2026; MMP, 09/30/2026
+% values would equate 0 and -0. [] (never cached) unless lims and every     % MMP, 11/09/2026; MMP, 09/30/2026
+% ZG{i} are real full double and each ZG{i} a column: those fix the class   % MMP, 11/09/2026; MMP, 09/30/2026
+% and shape of the setup, and the counts then fix every size. lims is       % MMP, 11/09/2026; MMP, 09/30/2026
+% numel(ZG) x 2 (checked in semisep_setup). A few builtins, independent of  % MMP, 11/09/2026; MMP, 09/30/2026
+% numel(ZG): an entry-by-entry comparison cost 6-22 us per call (measured). % MMP, 11/09/2026; MMP, 09/30/2026
+% (The former local SETUP_KEY.)                                             % MMP, 11/09/2026
+key = [];                                                                   % MMP, 11/09/2026; MMP, 09/30/2026
+if isa(lims,'double') && ~issparse(lims) && isreal(lims) ...
+        && all(cellfun('isclass',ZG,'double')) && all(cellfun('isreal',ZG)) ...
+        && all(cellfun('size',ZG,2)==1)                                     % MMP, 11/09/2026; MMP, 09/30/2026
+    v = vertcat(ZG{:});         % sparse if any ZG{i} is                    % MMP, 11/09/2026; MMP, 09/30/2026
+    if ~issparse(v)                                                         % MMP, 11/09/2026; MMP, 09/30/2026
+        key = typecast([g1; numel(ZG); cellfun('prodofsize',ZG(:)); ...
+                        lims(:); v],'uint64');                              % MMP, 11/09/2026; MMP, 09/30/2026
+    end                                                                     % MMP, 11/09/2026; MMP, 09/30/2026
+end                                                                         % MMP, 11/09/2026; MMP, 09/30/2026
 if ~isempty(key) && ~isempty(last) && isequal(key,keys{last})               % MMP, 09/30/2026
     S = Ss{last};                                                           % MMP, 09/30/2026
     return                                                                  % MMP, 09/30/2026

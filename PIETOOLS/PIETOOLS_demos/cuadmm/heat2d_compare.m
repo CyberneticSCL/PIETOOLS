@@ -37,6 +37,8 @@
 %   of pielr_lpi('stability'), which since the low-rank container port
 %   (c3bfac42) poses the form 'P' LPI of PIETOOLS_stability_sop with the
 %   stock slack; build_stab_2d_st2 is no longer called.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%   number_tag (one caller) inlined into export_cuadmm_problem.
 %% parameters
 n = 1;                          % Number of coupled heat-equation states.
 lam = 2;                        % Reaction coefficient in x_t = x_s1s1 + x_s2s2 + lam*x.
@@ -348,7 +350,13 @@ if isfield(D, 'c') && nnz(D.c) > 0 && norm(full(D.c(:))) > 1e-12
     error('cuADMM feasibility export expects c = 0; norm(D.c) = %.3e', norm(full(D.c(:))));
 end
 
-case_id = sprintf('heat2d_n%d_lam%s_Dup%d', n, number_tag(lam), nd);
+% case_id = sprintf('heat2d_n%d_lam%s_Dup%d', n, number_tag(lam), nd);      % MMP, 11/09/2026 (was)
+% lam as a file-name tag: '-' to 'm', '+' dropped, '.' to 'p', 'e' to 'em'  % MMP, 11/09/2026
+% (the former local NUMBER_TAG)                                             % MMP, 11/09/2026
+lamtag = sprintf('%.8g', lam);                                              % MMP, 11/09/2026
+lamtag = strrep(lamtag, '-', 'm');   lamtag = strrep(lamtag, '+', '');      % MMP, 11/09/2026
+lamtag = strrep(lamtag, '.', 'p');   lamtag = strrep(lamtag, 'e', 'em');    % MMP, 11/09/2026
+case_id = sprintf('heat2d_n%d_lam%s_Dup%d', n, lamtag, nd);                 % MMP, 11/09/2026
 dumpfile = fullfile(cuadmm_outdir, [case_id '.mat']);
 metafile = fullfile(cuadmm_outdir, [case_id '_meta.mat']);
 
@@ -388,14 +396,6 @@ cu.info = info;
 cu.bscl = bscl;
 cu.solution_file = '';
 cu.certificate_file = '';
-end
-
-function s = number_tag(x)
-s = sprintf('%.8g', x);
-s = strrep(s, '-', 'm');
-s = strrep(s, '+', '');
-s = strrep(s, '.', 'p');
-s = strrep(s, 'e', 'em');
 end
 
 function v = getf(s, name)

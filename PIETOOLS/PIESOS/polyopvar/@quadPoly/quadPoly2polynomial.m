@@ -1,5 +1,8 @@
 function P = quadPoly2polynomial(Q)
 %quadPoly2polynomial Convert quadPoly to polynomial object.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                   tensorDecompAll (one caller) inlined into fullDegreeTable.
 
     [m,n] = size(Q);
     % m = Q.dim(1);
@@ -95,7 +98,16 @@ function D = fullDegreeTable(Zcell)
     sizes = cellfun(@(z) numel(z(:)), Zcell);
     N = prod(sizes);
 
-    subs = tensorDecompAll(N, sizes); % N×k positions
+%   subs = tensorDecompAll(N, sizes); % N×k positions                      % MMP, 11/09/2026 (was)
+    % subs: the N x k tensor subscripts (1-based) of all positions, the last % MMP, 11/09/2026
+    % variable varying fastest (the former local TENSORDECOMPALL)           % MMP, 11/09/2026
+    subs = zeros(N,k);                                                      % MMP, 11/09/2026
+    idx = (0:N-1).';                                                        % MMP, 11/09/2026
+    for ii = k:-1:1                                                         % MMP, 11/09/2026
+        si = sizes(ii);                                                     % MMP, 11/09/2026
+        subs(:,ii) = mod(idx, si) + 1;                                      % MMP, 11/09/2026
+        idx = floor(idx / si);                                              % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     D = zeros(N, k);
     for i = 1:k
         zi = Zcell{i}(:);
@@ -104,14 +116,3 @@ function D = fullDegreeTable(Zcell)
     end
 end
 
-function subs = tensorDecompAll(N, sizes)
-% N = prod(sizes). Return N×k subscripts (1-based), last var varies fastest.
-    k = numel(sizes);
-    subs = zeros(N,k);
-    idx = (0:N-1).';
-    for i = k:-1:1
-        si = sizes(i);
-        subs(:,i) = mod(idx, si) + 1;
-        idx = floor(idx / si);
-    end
-end

@@ -162,6 +162,11 @@ function R = bl_bisect(dumpfile,opts)                                        % C
 %   container 2-D programs carry such rows (stab2_rd: eta 5.2e-2 at MOSEK's
 %   point with them, 6.4e-10 without), so no point could pass psd_eta_tol.
 %   Programs without them are unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%   very short and called once go into the body): blockeig into
+%   certify_primal, chord into resol, diag_trace, parse_trace and write_b
+%   into probe, firstpass into the bisection loop, wslpath into upath, each
+%   with its header as the comment of the block.
 
 if nargin < 2, opts = struct(); end
 cuadmm_path;
@@ -278,7 +283,16 @@ while (est.f-est.i) > P.rtol*est.f && numel(R.probes) < P.max_probes
 %   tau = P.c_lean*D/2;                                                     % CC, 09/27/2026 (was)
     D   = resol(C,est.i,est.f);                % in the solver's pinf units, either norm % CC, 09/27/2026
     tau = P.c_lean*D;                                                       % CC, 09/27/2026
-    fp  = firstpass(seedtr,tau);
+%   fp  = firstpass(seedtr,tau);                                            % MMP, 11/09/2026 (was)
+    % iterations the certified seed needed for its running-min pinf to reach % MMP, 11/09/2026
+    % tau: 0 without a seed trace, inf when it never did (the former local  % MMP, 11/09/2026
+    % FIRSTPASS)                                                            % MMP, 11/09/2026
+    if isempty(seedtr)                                                      % MMP, 11/09/2026
+        fp = 0;                                                             % MMP, 11/09/2026
+    else                                                                    % MMP, 11/09/2026
+        ifp = find(seedtr(:,2) <= tau,1);                                   % MMP, 11/09/2026
+        if isempty(ifp), fp = inf; else, fp = seedtr(ifp,1); end            % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     if tau < P.tau_min || (strcmp(P.solver,'cuadmm') && fp > P.kmax/2)
         R.flags{end+1} = sprintf('resolution: tau %.2e, seed first passage %g',tau,fp);
         break
@@ -325,7 +339,13 @@ C.frep = fullfile(C.dir,sprintf('run_%03d_Frep.txt',n));                    % CC
 if ~exist(C.dir,'dir'), mkdir(C.dir); end                                   % CC, 09/27/2026
 switch P.solver
 case 'cuadmm'
-    write_b(fullfile(C.dir,'b.txt'),bn);
+%   write_b(fullfile(C.dir,'b.txt'),bn);                                    % MMP, 11/09/2026 (was)
+    % cuADMM's b.txt: 0-based COO, ascending rows (dump2cuadmm's store_coo  % MMP, 11/09/2026
+    % format; the former local WRITE_B)                                     % MMP, 11/09/2026
+    [r,~,v] = find(sparse(bn(:)));                                          % MMP, 11/09/2026
+    fid = fopen(fullfile(C.dir,'b.txt'),'w');                               % MMP, 11/09/2026
+    fprintf(fid,'%d %d %.17g\n',[r(:)'-1; zeros(1,numel(r)); v(:)']);       % MMP, 11/09/2026
+    fclose(fid);                                                            % MMP, 11/09/2026
     for f = {'X_opt.txt','y_opt.txt','S_opt.txt'}      % a stale certificate must not survive
         if exist(fullfile(C.dir,f{1}),'file'), delete(fullfile(C.dir,f{1})); end
     end
@@ -355,12 +375,29 @@ case 'cuadmm'
     pr.t_init = str2double(tm{1});                                          % CC, 09/27/2026 (c)
     pr.t_s  = str2double(tm{2});
     pr.conv = ~isempty(strfind(txt,'Solver ended: converged'));
-    tr = parse_trace(txt);
+%   tr = parse_trace(txt);                                                  % MMP, 11/09/2026 (was)
+    % the trace rows ' iter | pinf dinf | pobj dobj relgap | t | sigma' as a % MMP, 11/09/2026
+    % numeric array (the former local PARSE_TRACE)                          % MMP, 11/09/2026
+    tok = regexp(txt,['^\s*(\d+)\s*\|\s*(\S+)\s+(\S+)\s*\|\s*(\S+)\s+(\S+)\s+(\S+)\s*\|'], ...
+                 'tokens','lineanchors');                                   % MMP, 11/09/2026
+    tr = zeros(numel(tok),6);                                               % MMP, 11/09/2026
+    for i = 1:numel(tok), tr(i,:) = str2double(tok{i}); end                 % MMP, 11/09/2026
+    tr = tr(all(isfinite(tr),2),:);                                         % MMP, 11/09/2026
     if ~isempty(tr)
         rm = cummin(tr(:,2));
         pr.iters = tr(end,1);  pr.pinf_end = tr(end,2);  pr.pinf_min = rm(end);
         pr.dobj_end = tr(end,5);
-        [pr.slope,pr.aitken] = diag_trace(tr(:,1),rm);
+%       [pr.slope,pr.aitken] = diag_trace(tr(:,1),rm);                      % MMP, 11/09/2026 (was)
+        % recorded, never used to steer: the last-octave log-log slope of   % MMP, 11/09/2026
+        % the running min, and the Aitken plateau from (k/4, k/2, k) (the   % MMP, 11/09/2026
+        % former local DIAG_TRACE)                                          % MMP, 11/09/2026
+        kit = tr(:,1);  pr.slope = NaN;  pr.aitken = NaN;  ke = kit(end);   % MMP, 11/09/2026
+        i2 = find(kit <= ke/2,1,'last');  i4 = find(kit <= ke/4,1,'last');  % MMP, 11/09/2026
+        if ~isempty(i2) && kit(i2) > 0, pr.slope = log(rm(end)/rm(i2))/log(ke/kit(i2)); end % MMP, 11/09/2026
+        if ~isempty(i4) && ~isempty(i2)                                     % MMP, 11/09/2026
+            p1 = rm(i4);  p2 = rm(i2);  p3 = rm(end);  dn = p1 + p3 - 2*p2; % MMP, 11/09/2026
+            if dn > 0, pr.aitken = (p1*p3 - p2^2)/dn; end                   % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
         tr = [tr(:,1) rm];
     end
     % lean on the PRIMAL residual (the retro-tested rule), not cuADMM's own
@@ -496,7 +533,19 @@ for r = 1:P.rep_rounds
     rv   = C.As'*x - bn;  rres = norm(rv)/nb;
     eta  = max(abs(rv)./(C.rownorm*max(abs(x)) + abs(bn) + realmin));
     xf = C.T'*x;
-    [lmin,V,L,lmax] = blockeig(xf,K,C.Ks,C.zero);
+%   [lmin,V,L,lmax] = blockeig(xf,K,C.Ks,C.zero);                           % MMP, 11/09/2026 (was)
+    % eigen-decomposition of the reduced blocks X(~z,~z) of xf, the         % MMP, 11/09/2026
+    % forced-zero rows and columns of C.zero{k} (bl_face) carrying exact    % MMP, 11/09/2026
+    % zeros (the former local BLOCKEIG; CC, 09/27/2026)                     % MMP, 11/09/2026
+    lmin = inf;  lmax = -inf;  off = K.f;  V = cell(1,numel(C.Ks));  L = V; % MMP, 11/09/2026
+    for k = 1:numel(C.Ks)                                                   % MMP, 11/09/2026
+        N = C.Ks(k);  Xk = reshape(xf(off+(1:N^2)),N,N);  Xs = (Xk+Xk')/2;  % MMP, 11/09/2026
+        kk = true(N,1);  if ~isempty(C.zero), kk = ~C.zero{k}; end          % MMP, 11/09/2026
+        off = off + N^2;                                                    % MMP, 11/09/2026
+        if ~any(kk), V{k} = zeros(0);  L{k} = zeros(0,1);  continue; end    % MMP, 11/09/2026
+        [V{k},Dk] = eig(Xs(kk,kk));  L{k} = diag(Dk);                       % MMP, 11/09/2026
+        lmin = min(lmin,min(L{k}));  lmax = max(lmax,max(L{k}));            % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     labs = lmin;  lred = lmin;  lmin = lmin/max(lmax,realmin);   % relative to the largest eigenvalue over blocks
 %   if eta <= P.eta_tol && lmin >= -P.psd_tol, ok = true; break; end        % CC, 09/27/2026 (b) (was; now after the clip)
     off = K.f;
@@ -590,21 +639,6 @@ end
 end
 
 
-function [lmin,V,L,lmax] = blockeig(xf,K,Ks,zero)
-% CC, 09/27/2026: optional zero{k} (bl_face) -- eigen-decompose only the
-% reduced block X(~z,~z); the forced-zero rows/columns carry exact zeros.
-lmin = inf;  lmax = -inf;  off = K.f;  V = cell(1,numel(Ks));  L = V;
-for k = 1:numel(Ks)
-    N = Ks(k);  Xk = reshape(xf(off+(1:N^2)),N,N);  Xs = (Xk+Xk')/2;
-    kk = true(N,1);  if nargin >= 4 && ~isempty(zero), kk = ~zero{k}; end
-    off = off + N^2;
-    if ~any(kk), V{k} = zeros(0);  L{k} = zeros(0,1);  continue; end
-    [V{k},Dk] = eig(Xs(kk,kk));  L{k} = diag(Dk);
-    lmin = min(lmin,min(L{k}));  lmax = max(lmax,max(L{k}));
-end
-end
-
-
 function D = resol(C,a,b)
 % CC, 09/27/2026: the bracket interval in the solver's primal-residual units:
 % the change in the pinned, unit-normalised b between gamma = a and gamma = b,
@@ -614,7 +648,10 @@ if strcmp(C.P.pinf_norm,'inf')
     ba = [C.b_un; C.s*a];  ba = ba/norm(ba);  bb = [C.b_un; C.s*b];  bb = bb/norm(bb);
     D = max(abs(ba-bb))/(1 + max(max(abs(ba)),max(abs(bb))));
 else
-    D = chord(C.s*a,C.s*b,C.B)/2;
+%   D = chord(C.s*a,C.s*b,C.B)/2;                                           % MMP, 11/09/2026 (was)
+    % half the distance between the unit-normalised pinned b at gamma = a   % MMP, 11/09/2026
+    % and at gamma = b (the former local CHORD)                             % MMP, 11/09/2026
+    D = 2*sin(abs(atan(C.s*a/C.B) - atan(C.s*b/C.B))/2)/2;                  % MMP, 11/09/2026
 end
 end
 
@@ -637,43 +674,6 @@ for k = 1:numel(Ks)
     bs = bs + N*(N+1)/2;  bv = bv + N^2;
 end
 T = sparse(cat(1,I{:}),cat(1,J{:}),cat(1,V{:}),vec_len,nvar);
-end
-
-
-function D = chord(a,b,B)
-% distance between the unit-normalised pinned b at gamma = a and gamma = b
-D = 2*sin(abs(atan(a/B) - atan(b/B))/2);
-end
-
-
-function k = firstpass(tr,tau)
-% iterations the certified seed needed for its running-min pinf to reach tau
-if isempty(tr), k = 0; return; end
-i = find(tr(:,2) <= tau,1);
-if isempty(i), k = inf; else, k = tr(i,1); end
-end
-
-
-function tr = parse_trace(txt)
-% rows ' iter | pinf dinf | pobj dobj relgap | t | sigma'
-tok = regexp(txt,['^\s*(\d+)\s*\|\s*(\S+)\s+(\S+)\s*\|\s*(\S+)\s+(\S+)\s+(\S+)\s*\|'], ...
-             'tokens','lineanchors');
-tr = zeros(numel(tok),6);
-for i = 1:numel(tok), tr(i,:) = str2double(tok{i}); end
-tr = tr(all(isfinite(tr),2),:);
-end
-
-
-function [s,a] = diag_trace(k,rm)
-% recorded, never used to steer: last-octave log-log slope of the running min,
-% and the Aitken plateau from (k/4, k/2, k)
-s = NaN;  a = NaN;  ke = k(end);
-i2 = find(k <= ke/2,1,'last');  i4 = find(k <= ke/4,1,'last');
-if ~isempty(i2) && k(i2) > 0, s = log(rm(end)/rm(i2))/log(ke/k(i2)); end
-if ~isempty(i4) && ~isempty(i2)
-    p1 = rm(i4);  p2 = rm(i2);  p3 = rm(end);  dn = p1 + p3 - 2*p2;
-    if dn > 0, a = (p1*p3 - p2^2)/dn; end
-end
 end
 
 
@@ -777,25 +777,10 @@ R.tsv = tsv;
 end
 
 
-function write_b(fn,bn)
-% cuADMM's b.txt: 0-based COO, ascending rows (dump2cuadmm's store_coo format)
-[r,~,v] = find(sparse(bn(:)));
-fid = fopen(fn,'w');
-fprintf(fid,'%d %d %.17g\n',[r(:)'-1; zeros(1,numel(r)); v(:)']);
-fclose(fid);
-end
-
-
 function v = readvec(fn)
 fid = fopen(fn,'r');
 if fid < 0, error('bl_bisect:open','cannot open %s',fn); end
 v = fscanf(fid,'%f');  fclose(fid);
-end
-
-
-function p = wslpath(p)
-p = strrep(p,'\','/');
-if numel(p) >= 2 && p(2) == ':', p = ['/mnt/' lower(p(1)) p(3:end)]; end
 end
 
 
@@ -824,7 +809,12 @@ end
 end
 
 function p = upath(P,p)
-if strcmp(launcher(P),'wsl'), p = wslpath(p); end
+% if strcmp(launcher(P),'wsl'), p = wslpath(p); end                         % MMP, 11/09/2026 (was)
+if strcmp(launcher(P),'wsl')                                                % MMP, 11/09/2026
+    % the WSL spelling of a Windows path (the former local WSLPATH)         % MMP, 11/09/2026
+    p = strrep(p,'\','/');                                                  % MMP, 11/09/2026
+    if numel(p) >= 2 && p(2) == ':', p = ['/mnt/' lower(p(1)) p(3:end)]; end % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 end
 
 function E = envrec(P,dir)

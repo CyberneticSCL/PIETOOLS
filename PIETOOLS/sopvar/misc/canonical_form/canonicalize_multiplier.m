@@ -101,6 +101,9 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 %                  wrote it. The move changes no code.
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/29/2026
 %                  entry condensed; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                  HAS_CONTENT (09/29/2026, one caller) inlined into the cell
+%                  loop of find_noncanonical; its lines keep their markers.
 
 changed = false;
 
@@ -202,7 +205,19 @@ maskR = cell(1,n3);                                                         % MM
 for k = 1:ncell
     % Empty cell first: nothing stored, so nothing to fold. It then costs   % MMP, 09/29/2026
     % one nnz per stored array, not the multi-index and the O(NR) mask.     % MMP, 09/29/2026
-    if ~has_content(params,k,is_sdop)                                       % MMP, 09/29/2026
+%   if ~has_content(params,k,is_sdop)                                       % MMP, 11/09/2026 (was); MMP, 09/29/2026
+    % Whether parameter k stores anything at all, tested before the         % MMP, 11/09/2026; MMP, 09/29/2026
+    % position enumeration below, so that an empty or all-zero parameter    % MMP, 11/09/2026; MMP, 09/29/2026
+    % costs O(1) instead of one index per coefficient (the former local     % MMP, 11/09/2026; MMP, 09/29/2026
+    % HAS_CONTENT)                                                          % MMP, 11/09/2026
+    if is_sdop                                                              % MMP, 11/09/2026
+%       tf = nnz(params.A{k})>0 || nnz(params.B{k})>0;                      % MMP, 11/09/2026; MMP, 09/29/2026 (was)
+        tf = stores(params.A{k}) || stores(params.B{k});                    % MMP, 11/09/2026; MMP, 09/29/2026
+    else                                                                    % MMP, 11/09/2026
+%       tf = nnz(params{k})>0;                                              % MMP, 11/09/2026; MMP, 09/29/2026 (was)
+        tf = stores(params{k});                                             % MMP, 11/09/2026; MMP, 09/29/2026
+    end                                                                     % MMP, 11/09/2026
+    if ~tf                                                                  % MMP, 11/09/2026
         continue                                                            % MMP, 09/29/2026
     end                                                                     % MMP, 09/29/2026
 %   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
@@ -387,22 +402,6 @@ end                                                                         % MM
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function tf = has_content(params,k,is_sdop)
-% Whether parameter k stores anything at all. Tested before the position
-% enumeration below, so that an empty or all-zero parameter costs O(1)
-% instead of one index per coefficient.
-
-if is_sdop
-%   tf = nnz(params.A{k})>0 || nnz(params.B{k})>0;                          % MMP, 09/29/2026 (was)
-    tf = stores(params.A{k}) || stores(params.B{k});                        % MMP, 09/29/2026
-else
-%   tf = nnz(params{k})>0;                                                  % MMP, 09/29/2026 (was)
-    tf = stores(params{k});                                                 % MMP, 09/29/2026
-end
-
-end
-
-
 function tf = stores(X)                                                     % MMP, 09/29/2026
 % X has a nonzero entry. nnz is O(1) for sparse storage but scans a full    % MMP, 09/29/2026
 % array; find(X,1) stops at the first nonzero. Pass 1 now calls this for    % MMP, 09/29/2026

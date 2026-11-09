@@ -21,6 +21,9 @@ function F = randquadPoly(dim, nMons, var_s, var_t, maxdeg, density)
 %   This generator builds per-variable exponent sets Zs{i}, Zt{j} such that
 %   prod_i numel(Zs{i}) == ds and prod_j numel(Zt{j}) == dt by distributing
 %   the desired tensor sizes across variables.
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                   factorCounts (one caller) inlined into randExpCell.
 
 m = dim(1); 
 n = dim(2);
@@ -67,7 +70,17 @@ if nvar == 0
 end
 
 % Choose per-variable counts ni with product exactly dTot
-nPer = factorCounts(dTot, nvar);
+% nPer = factorCounts(dTot, nvar);                                          % MMP, 11/09/2026 (was)
+% Per-variable counts nPer with product exactly dTot: each prime factor of  % MMP, 11/09/2026
+% dTot goes to the currently smallest bucket (the former local              % MMP, 11/09/2026
+% FACTORCOUNTS; dTot = 12, nvar = 3 gives [2 2 3])                          % MMP, 11/09/2026
+pf = factor(dTot);                                                          % MMP, 11/09/2026
+nPer = ones(1, nvar);                                                       % MMP, 11/09/2026
+for p = pf                                                                  % MMP, 11/09/2026
+    [~, idx] = min(nPer);                                                   % MMP, 11/09/2026
+    nPer(idx) = nPer(idx) * p;                                              % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
+nPer = nPer(:).';                                                           % MMP, 11/09/2026
 
 % Per-variable degree bounds
 if isscalar(deg)
@@ -98,22 +111,3 @@ for i = 1:nvar
 end
 end
 
-function nPer = factorCounts(dTot, nvar)
-%FACTORCOUNTS Split dTot into nvar integer factors (>=1) with exact product.
-%Simple balanced factor allocation from prime factors.
-%
-% Example: dTot=12, nvar=3 -> could return [2 2 3].
-
-pf = factor(dTot);
-nPer = ones(1, nvar);
-
-% Greedy: assign each prime factor to the currently smallest bucket
-for p = pf
-    [~, idx] = min(nPer);
-    nPer(idx) = nPer(idx) * p;
-end
-
-% Ensure product matches
-% (it should, but keep it deterministic)
-nPer = nPer(:).';
-end

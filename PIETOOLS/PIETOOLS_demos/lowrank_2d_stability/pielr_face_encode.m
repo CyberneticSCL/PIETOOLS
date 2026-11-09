@@ -40,6 +40,9 @@ function [W,res,info] = pielr_face_encode(Zop,Slist)                        % CC
 % under-determine w and report a good residual for a wrong column.
 %
 % CC, 09/20/2026: initial version, for the candidate-M6 face read-out.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local mxc_l
+%                 (one caller) inlined before the assert; the empty case is
+%                 the first branch, as its first return was.
 
 if ~iscell(Slist), Slist = {Slist}; end
 K = numel(Slist);
@@ -55,8 +58,18 @@ for k = 1:numel(chk)
         v = chk{k}.(f);
         if ~iscell(v), v = {v}; end
         for c = 1:numel(v)
-            assert(mxc_l(v{c})==0, ...
-                'pielr_face_encode: operator %d has nonzero %s; only R22 is handled',k,f);
+%           assert(mxc_l(v{c})==0, ...
+%               'pielr_face_encode: operator %d has nonzero %s; only R22 is handled',k,f); % MMP, 11/09/2026 (was)
+            % max |coefficient| of the parameter cell (opcheck_2d's own mxc, % MMP, 11/09/2026
+            % the former local MXC_L): 0 when empty, NaN for another class  % MMP, 11/09/2026
+            if isempty(v{c}),               mx = 0;                         % MMP, 11/09/2026
+            elseif isa(v{c},'double'),      mx = full(max(abs(v{c}(:))));   % MMP, 11/09/2026
+            elseif isa(v{c},'polynomial'),  mx = full(max(abs(v{c}.coefficient(:)))); % MMP, 11/09/2026
+            else,                           mx = NaN;                       % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+            if isempty(mx), mx = 0; end                                     % MMP, 11/09/2026
+            assert(mx==0, ...
+                'pielr_face_encode: operator %d has nonzero %s; only R22 is handled',k,f); % MMP, 11/09/2026
         end
     end
 end
@@ -143,13 +156,3 @@ D(:,loc) = d;
 end
 
 % =========================================================================
-function m = mxc_l(X)
-% max|coefficient| of one parameter cell (opcheck_2d's own mxc, kept local)
-if isempty(X), m = 0; return, end
-if     isa(X,'double'),     C = X;
-elseif isa(X,'polynomial'), C = X.coefficient;
-else,  m = NaN; return
-end
-if isempty(C), m = 0; else, m = full(max(abs(C(:)))); end
-if isempty(m), m = 0; end
-end

@@ -52,6 +52,9 @@ function L = heatNd_ladder(rungs,lopts)
 % MMP, 09/27/2026 (final reviews): the independent-row price recalibrated
 %   to the measured maxima, 697 s / 11450 MB (it used 586 s / 11100 MB,
 %   15-20% below the later keep-route solves).
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local ks_str
+%   (one caller) inlined before the fprintf of report; the old argument line
+%   is kept as a comment above the statement, not inside it.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(rungs)
@@ -181,21 +184,19 @@ end
 
 function report(e)
 if strcmp(e.status,'built')
+    % the Gram list as runs, e.g. 288x7 552x7 (the former local KS_STR)     % MMP, 11/09/2026
+    [u,~,j] = unique(e.Ks,'stable');  c = accumarray(j(:),1);               % MMP, 11/09/2026
+    kss = strjoin(arrayfun(@(a,b) sprintf('%dx%d',a,b),u(:),c(:),'UniformOutput',false),' '); % MMP, 11/09/2026
+%       e.N,e.d,e.preset,e.r,strjoin(e.bc,'x'),e.q,e.nP,e.m,e.Kf,e.nnz,e.nx,ks_str(e.Ks), ... (was) % MMP, 11/09/2026
     fprintf(['N=%d d=%d %-6s r=%-4g %-12s | q %9d nP %5d m %7d Kf %5d nnz %10d nx %9d | Ks %s | ' ...
              'build %.1f s (R %.1f Q %.1f 15a %.1f) | MATLAB %.0f MB, peak private %.0f MB | ' ...
              'solve price (inferred) all rows %.0f s %.0f MB, keep rows %.0f s %.0f MB\n'], ...
-        e.N,e.d,e.preset,e.r,strjoin(e.bc,'x'),e.q,e.nP,e.m,e.Kf,e.nnz,e.nx,ks_str(e.Ks), ...
+        e.N,e.d,e.preset,e.r,strjoin(e.bc,'x'),e.q,e.nP,e.m,e.Kf,e.nnz,e.nx,kss, ...
         e.t.total,e.t.R,e.t.Q,e.t.eq15a,e.mem.matlab,e.mem.peak_private,e.solve_price.all.t, ...
         e.solve_price.all.mem,e.solve_price.keep.t,e.solve_price.keep.mem);
 else
     fprintf('N=%d d=%d %-6s r=%-4g %-12s | %s\n',e.N,e.d,e.preset,e.r,strjoin(e.bc,'x'),e.status);
 end
-end
-
-function s = ks_str(Ks)
-% Run-length Gram list, e.g. 288x7 552x7.
-[u,~,j] = unique(Ks,'stable');  c = accumarray(j(:),1);
-s = strjoin(arrayfun(@(a,b) sprintf('%dx%d',a,b),u(:),c(:),'UniformOutput',false),' ');
 end
 
 function m = memnow()

@@ -57,6 +57,9 @@ function [Cmono,relrms,d] = chebfit_mono(x,Y,ab,deg0,degmax,tol,x2)
 %                moved here so that the gain construction can share it.
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
 %                block added; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local DESIGN2
+%                (one caller) inlined into the two-variable branch of the
+%                degree loop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 a = ab(1);  b = ab(2);
@@ -68,7 +71,15 @@ while true
     T1 = chebV(xs,d);
     if two
         T2 = chebV(xt,d);
-        Phi = design2(T1,T2,d);
+%       Phi = design2(T1,T2,d);                                             % MMP, 11/09/2026 (was)
+        % Phi: rows (i,j) with i fastest, columns (p-1)(d+1)+q, the products % MMP, 11/09/2026
+        % T_p(x_i) T_q(y_j) (the former local DESIGN2)                      % MMP, 11/09/2026
+        Phi = zeros(size(T1,1)*size(T2,1),(d+1)^2);                         % MMP, 11/09/2026
+        for qq = 1:d+1                                                      % MMP, 11/09/2026
+            for pp = 1:d+1                                                  % MMP, 11/09/2026
+                Phi(:,(pp-1)*(d+1)+qq) = reshape(T1(:,pp)*T2(:,qq)',[],1);  % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
     else
         Phi = T1;
     end
@@ -98,16 +109,6 @@ function T = chebV(x,d)
 x = x(:);   T = zeros(numel(x),d+1);    T(:,1) = 1;
 if d>=1,    T(:,2) = x;     end
 for p = 2:d,    T(:,p+1) = 2*x.*T(:,p) - T(:,p-1);   end
-end
-
-function Phi = design2(T1,T2,d)
-% rows (i,j) with i fastest, columns (p-1)(d+1)+q: Phi = T_p(x_i) T_q(y_j)
-Phi = zeros(size(T1,1)*size(T2,1),(d+1)^2);
-for q = 1:d+1
-    for p = 1:d+1
-        Phi(:,(p-1)*(d+1)+q) = reshape(T1(:,p)*T2(:,q)',[],1);
-    end
-end
 end
 
 function M = cheb2mono(d,alpha,beta)

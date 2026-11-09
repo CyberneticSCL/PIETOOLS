@@ -18,6 +18,10 @@ function [nU, ZU, PA, PB, mapA, mapB, unionIsA, unionIsB, dU] = unionBasis(nA, Z
 %   mapA, mapB    : old tensor index -> union tensor index maps (length dA / dB)
 %   unionIsA/B    : true iff union basis equals operand basis (identity map)
 %   dU            : union tensor basis size
+%
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                   lexLessChar (one caller) inlined into the merge loop of
+%                   mergeSortedCellstr, computed before the comparison.
 
 % ---- merge variable names (sorted union) ----
 nU = mergeSortedCellstr(nA, nB);
@@ -109,9 +113,17 @@ k = 0;
 
 while i <= na && j <= nb
     ai = a{i}; bj = b{j};
-    if strcmp(ai, bj)
+    % lexicographic order of ai and bj without string allocations (the      % MMP, 11/09/2026
+    % former local LEXLESSCHAR): the first differing character decides,     % MMP, 11/09/2026
+    % else the shorter string is less                                       % MMP, 11/09/2026
+    c1 = char(ai); c2 = char(bj); L1 = numel(c1); L2 = numel(c2); L = min(L1, L2); % MMP, 11/09/2026
+    dd = c1(1:L) - c2(1:L);                                                 % MMP, 11/09/2026
+    ix = find(dd ~= 0, 1, 'first');                                         % MMP, 11/09/2026
+    if isempty(ix), less = (L1 < L2); else, less = (dd(ix) < 0); end        % MMP, 11/09/2026
+    if strcmp(ai, bj)                                                       % MMP, 11/09/2026
         k=k+1; u{k} = ai; i=i+1; j=j+1;
-    elseif lexLessChar(ai, bj)
+%   elseif lexLessChar(ai, bj)                                              % MMP, 11/09/2026 (was)
+    elseif less                                                             % MMP, 11/09/2026
         k=k+1; u{k} = ai; i=i+1;
     else
         k=k+1; u{k} = bj; j=j+1;
@@ -121,21 +133,6 @@ while i <= na, k=k+1; u{k} = a{i}; i=i+1; end
 while j <= nb, k=k+1; u{k} = b{j}; j=j+1; end
 
 u = u(1:k);
-end
-
-function tf = lexLessChar(s1, s2)
-% Lexicographic compare without string allocations.
-s1 = char(s1); s2 = char(s2);
-L1 = numel(s1); L2 = numel(s2);
-L  = min(L1, L2);
-
-d = s1(1:L) - s2(1:L);
-idx = find(d ~= 0, 1, 'first');
-if isempty(idx)
-    tf = (L1 < L2);
-else
-    tf = (d(idx) < 0);
-end
 end
 
 function [u, mapA, mapB, unionIsA, unionIsB] = mergeSortedUnique(a, b)

@@ -58,6 +58,9 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 % DJ, 10/22/2026: Move 'enumerate_valid_orders' to '@intop/private';
 % DJ, 10/23/2026: Support Kronecker product of operators as a factor in a
 %                   pointwise product.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals
+%                   sparse2struct (one caller, the coefficient loop) and
+%                   IkronZ (one caller, the right basis) inlined.
 
 % Check that the functional is properly specified.
 if ~isa(Aop,'intop')
@@ -199,7 +202,15 @@ zmapA = Zmap(Aop.Z.in,Zgrid_A);
 nZgrid_A = prod(cellfun(@(a) size(a,1),Zgrid_A));
 Acoeffs = cell(size(Aparams));
 for k=1:numel(Aparams)
-    Acoeffs{k} = sparse2struct(Aparams{k},zmapA,nZgrid_A);
+%   Acoeffs{k} = sparse2struct(Aparams{k},zmapA,nZgrid_A);                  % MMP, 11/09/2026 (was)
+    % the struct of the nonzeros of Aparams{k}, columns (j-1)*nZ+z, with the % MMP, 11/09/2026
+    % monomial z moved to zmapA(z) in a basis of nZgrid_A monomials (the    % MMP, 11/09/2026
+    % former local SPARSE2STRUCT)                                           % MMP, 11/09/2026
+    nZa = numel(zmapA);                                                     % MMP, 11/09/2026
+    [iA,jA,vA] = find(Aparams{k});                                          % MMP, 11/09/2026
+    jbA = ceil(jA/nZa);                                                     % MMP, 11/09/2026
+    zA = jA - (jbA-1)*nZa;                                                  % MMP, 11/09/2026
+    Acoeffs{k} = struct('i',iA(:),'j',(jbA(:)-1)*nZgrid_A + zmapA(zA(:)),'v',vA(:),'m',size(Aparams{k},1),'n',(size(Aparams{k},2)/nZa)*nZgrid_A); % MMP, 11/09/2026
 end
 ZAR = quadPoly(1);
 if ~isempty(Zdegs_A)
@@ -447,7 +458,11 @@ nZ = size(Z_inner,1);
 % (B o I_nZ) is not formed: A*(B o I_nZ) is computed from B itself, by
 % mtimes_kronL below
 % Multiply with right-monomials from B parameters
-ZR = IkronZ(size(ZBR,1),Z_inner)*ZBR;
+% ZR = IkronZ(size(ZBR,1),Z_inner)*ZBR;                                     % MMP, 11/09/2026 (was)
+% I_n o Z_inner for the RIGHT monomial basis Z_inner (a 'quadPoly' whose    % MMP, 11/09/2026
+% coefficients are the identity), n = size(ZBR,1) (the former local IKRONZ) % MMP, 11/09/2026
+nZi = prod(cellfun(@(a) numel(a),Z_inner.Zt));                              % MMP, 11/09/2026
+ZR = quadPoly(speye(size(ZBR,1)*nZi),Z_inner.Zs,Z_inner.Zt,size(ZBR,1)*size(Z_inner),Z_inner.ns,Z_inner.nt)*ZBR; % MMP, 11/09/2026
 
 % Terms with the same intervals of integration are merged, as unique_intmat does
 % below, but here on the coefficient structs, before each term is converted to a
@@ -956,14 +971,6 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function IZ = IkronZ(n,Z)
-% Compute the Kronecker product In o Z for a 'quadPoly' object Z,
-% representing a RIGHT monomial basis, so that Z.C is the identity
-
-nZ = prod(cellfun(@(a) numel(a),Z.Zt));
-IZ = quadPoly(speye(n*nZ),Z.Zs,Z.Zt,n*size(Z),Z.ns,Z.nt);
-
-end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
@@ -1450,17 +1457,4 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function A = sparse2struct(P,zmap,nZgrid)
-% A = SPARSE2STRUCT(P,ZMAP,NZGRID) represents the sparse coefficient matrix
-% P, with columns (j-1)*nZ+z, by the struct of its nonzeros with fields
-% i,j,v,m,n, with the monomial z moved to the monomial ZMAP(z) in a basis
-% of NZGRID monomials.
-
-nZ = numel(zmap);
-[i,j,v] = find(P);
-jb = ceil(j/nZ);
-z = j - (jb-1)*nZ;
-A = struct('i',i(:),'j',(jb(:)-1)*nZgrid + zmap(z(:)),'v',v(:),'m',size(P,1),'n',(size(P,2)/nZ)*nZgrid);
-
-end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

@@ -83,6 +83,12 @@ function C = mtimes(A,B)
 %                  functions, commented-out calls of the retired
 %                  'MatrixMultiply' and a commented-out reshape/permute
 %                  construction of PL/PR removed; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                  very short and called once go into the body):
+%                  parameterMultiIndexToLinear into
+%                  expandCommonFullIntegrals_SD, kronSub2ind_SS into
+%                  kronPermutationMatrix_SS, each with its header as the
+%                  comment of the block.
 
 
 % dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
@@ -808,7 +814,14 @@ for k = 1:size(finalIdx,1)
         gammaBase(basePosition(isBaseVariable)) = ...
             gamma(isBaseVariable);
 
-        sourceIndex = parameterMultiIndexToLinear(gammaBase);
+%       sourceIndex = parameterMultiIndexToLinear(gammaBase);               % MMP, 11/09/2026 (was)
+        % the linear cell index 1 + sum_k (gammaBase(k)-1)*3^(k-1) of the   % MMP, 11/09/2026
+        % multi-index gammaBase, the map of multiIndexToLinear below (the   % MMP, 11/09/2026
+        % former local PARAMETERMULTIINDEXTOLINEAR)                         % MMP, 11/09/2026
+        sourceIndex = 1;                                                    % MMP, 11/09/2026
+        for kb = 1:numel(gammaBase)                                         % MMP, 11/09/2026
+            sourceIndex = sourceIndex + (gammaBase(kb)-1)*3^(kb-1);         % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
     end
 
     paramsOut.A{k} = paramsIn.A{sourceIndex};
@@ -829,20 +842,6 @@ else
 end
 end
 
-function linearIndex = parameterMultiIndexToLinear(idx)
-% LINEARINDEX = PARAMETERMULTIINDEXTOLINEAR(IDX) is the linear cell index
-% 1 + sum_k (idx(k)-1)*3^(k-1) of the multi-index IDX (the same map as
-% 'multiIndexToLinear' below).
-% INPUT   idx: 1 x n multi-index in {1,2,3}^n.
-% OUTPUT  linearIndex: integer in 1..3^n.
-
-linearIndex = 1;
-
-for k = 1:numel(idx)
-    linearIndex = linearIndex ...
-                + (idx(k)-1)*3^(k-1);
-end
-end
 function selectedDom = selectDomain(selectedVars,allVars,allDom,label)
 % SELECTEDDOM = SELECTDOMAIN(SELECTEDVARS,ALLVARS,ALLDOM,LABEL) returns the
 % rows of the domain table ALLDOM (one row [a,b] per entry of ALLVARS) for
@@ -1447,7 +1446,20 @@ dimsNew = dimsOld(loc);
 idxNew = kronMultiIdx_SS(dimsNew);
 idxOld = zeros(N,numel(dimsOld));
 idxOld(:,loc) = idxNew;
-oldLin = kronSub2ind_SS(dimsOld,idxOld);
+% oldLin = kronSub2ind_SS(dimsOld,idxOld);                                  % MMP, 11/09/2026 (was)
+% oldLin: the linear position of each multi-index row of idxOld in the      % MMP, 11/09/2026
+% tensor order of dimsOld, the inverse of kronMultiIdx_SS (the former local % MMP, 11/09/2026
+% KRONSUB2IND_SS)                                                           % MMP, 11/09/2026
+dimsRow = dimsOld(:).';                                                     % MMP, 11/09/2026
+if isempty(dimsRow)                                                         % MMP, 11/09/2026
+    oldLin = ones(size(idxOld,1),1);                                        % MMP, 11/09/2026
+elseif numel(dimsRow) == 1                                                  % MMP, 11/09/2026
+    oldLin = idxOld(:,1);                                                   % MMP, 11/09/2026
+else                                                                        % MMP, 11/09/2026
+    subs = num2cell(fliplr(idxOld),1);                                      % MMP, 11/09/2026
+    oldLin = sub2ind(fliplr(dimsRow),subs{:});                              % MMP, 11/09/2026
+    oldLin = oldLin(:);                                                     % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 
 P = sparse(oldLin,(1:N).',1,N,N);
 end
@@ -1471,20 +1483,3 @@ else
 end
 end
 
-function lin = kronSub2ind_SS(dims,idx)
-% LIN = KRONSUB2IND_SS(DIMS,IDX) is the inverse of 'kronMultiIdx_SS': the
-% linear position of each multi-index row of IDX in the tensor order.
-% INPUTS  dims: 1 x d; idx: N x d multi-indices.
-% OUTPUT  lin: N x 1 linear indices.
-
-dims = dims(:).';
-if isempty(dims)
-    lin = ones(size(idx,1),1);
-elseif numel(dims) == 1
-    lin = idx(:,1);
-else
-    subs = num2cell(fliplr(idx),1);
-    lin = sub2ind(fliplr(dims),subs{:});
-    lin = lin(:);
-end
-end

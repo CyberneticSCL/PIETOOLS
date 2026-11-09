@@ -77,6 +77,8 @@ function [R,q,info] = restrict_solve(prog,H,P,Atf,bf,V,use_sdp,adp)         % CC
 %          measurement (an lsqr point on the FULL program, indefinite at op
 %          rel 1.7e-11) still stands and is still the reason the gate, not the
 %          equality residual, decides.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
+%          local getf inlined at the SeDuMi iteration count.
 
 if nargin<7 || isempty(use_sdp), use_sdp = false; end                       % CC, 09/20/2026
 % adp: a pielr_lpi adapter.  Supplying one selects pielr_opcheck (which takes  % CC, 09/23/2026
@@ -170,7 +172,9 @@ if use_sdp                             % oracle: the pre-09/20 SeDuMi path  % CC
     pars.fid = 0;
     [xr,~,infr] = sedumi(Atr_s(:,keep),bfull(keep),sparse(size(Atr_s,1),1),Kr,pars);
     xr = full(xr);   xr = xr(npad+1:end);
-    info.sedumi_iter = getf(infr,'iter');
+%   info.sedumi_iter = getf(infr,'iter');                                   % MMP, 11/09/2026 (was)
+    % SeDuMi's iteration count, -1 when absent (the former local GETF)      % MMP, 11/09/2026
+    if isstruct(infr) && isfield(infr,'iter'), info.sedumi_iter = infr.iter; else, info.sedumi_iter = -1; end % MMP, 11/09/2026
     info.clip = NaN;                     % the cone was the solver's job    % CC, 09/20/2026
 else                                                                        % CC, 09/20/2026
     % free variables ride along in the same solve; Kf = 0 in every program  % CC, 09/20/2026
@@ -240,6 +244,3 @@ else                                                                        % CC
 end                                                                         % CC, 09/23/2026
 end
 
-function v = getf(s,f)
-if isstruct(s) && isfield(s,f), v = s.(f); else, v = -1; end
-end

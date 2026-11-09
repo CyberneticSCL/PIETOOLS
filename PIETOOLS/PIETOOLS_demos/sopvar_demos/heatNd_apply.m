@@ -28,6 +28,8 @@ function y = heatNd_apply(P,f,S,nq)
 % Cost: ns * 3^n3 * nq^(n3+n1) kernel evaluations; test points only.
 %
 % Initial coding MMP, 09/27/2026
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local gl01
+%   (one caller) inlined at the quadrature nodes.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if isa(P,'copvar'),     P = P.C{1,1};   end
@@ -38,7 +40,13 @@ n3 = numel(S3);
 [~,i3in] = ismember(S3,vin);    [~,i3out] = ismember(S3,vout);
 [~,i1in] = ismember(S1,vin);
 q = P.dims(1);      p = P.dims(2);
-[xg,wg] = gl01(nq);
+% [xg,wg] = gl01(nq);                                                       % MMP, 11/09/2026 (was)
+% Gauss-Legendre nodes xg and weights wg on [0,1] (Golub-Welsch; the former % MMP, 11/09/2026
+% local GL01)                                                               % MMP, 11/09/2026
+b = (1:nq-1)./sqrt(4*(1:nq-1).^2-1);                                        % MMP, 11/09/2026
+[V,L] = eig(diag(b,1)+diag(b,-1));                                          % MMP, 11/09/2026
+[xg,ix] = sort(diag(L));     wg = 2*V(1,ix)'.^2;                            % MMP, 11/09/2026
+xg = (xg+1)/2;    wg = wg/2;                                                % MMP, 11/09/2026
 ns = size(S,1);     y = zeros(ns,q);
 for g = 1:3^n3
     C = full(P.params{g});
@@ -95,10 +103,3 @@ end
 end
 
 
-function [x,w] = gl01(n)
-% Gauss-Legendre nodes and weights on [0,1] (Golub-Welsch).
-b = (1:n-1)./sqrt(4*(1:n-1).^2-1);
-[V,L] = eig(diag(b,1)+diag(b,-1));
-[x,ix] = sort(diag(L));     w = 2*V(1,ix)'.^2;
-x = (x+1)/2;    w = w/2;
-end

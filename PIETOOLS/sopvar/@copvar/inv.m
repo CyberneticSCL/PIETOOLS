@@ -99,6 +99,11 @@ function [Pinv,info] = inv(P,opts)
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUT/OUTPUT for
 %                the local functions 'blockmat' and 'matblock'; code
 %                unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                very short and called once go into the body): cheb1 into
+%                cheb_fit, cheb_grid into fits, gl_grid (with gauss1 inside
+%                it) into kmat, each with its header as the comment of the
+%                block; tensor_points stays, called from both grids.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2,    opts = struct();    end
@@ -295,7 +300,25 @@ end
     for jj = 1:nsp
         bs = find([F.j]==jj);   bp = find([F.i]==jj);
         if isempty(bs) || isempty(bp),  continue,   end
-        [X,w] = gl_grid(D{jj},nq);
+%       [X,w] = gl_grid(D{jj},nq);                                          % MMP, 11/09/2026 (was)
+        % The tensor Gauss-Legendre rule of nq nodes per variable on the box % MMP, 11/09/2026
+        % D{jj}: points X (one row each) and weights w; with no variable, one % MMP, 11/09/2026
+        % point with weight 1 (the former locals GL_GRID and GAUSS1, the    % MMP, 11/09/2026
+        % latter Golub-Welsch on [a,b] for each variable)                   % MMP, 11/09/2026
+        if size(D{jj},1)==0                                                 % MMP, 11/09/2026
+            X = zeros(1,0);     w = 1;                                      % MMP, 11/09/2026
+        else                                                                % MMP, 11/09/2026
+            g = cell(1,size(D{jj},1));    w = 1;                            % MMP, 11/09/2026
+            for v = 1:size(D{jj},1)                                         % MMP, 11/09/2026
+                k = (1:nq-1)';   bt = k./sqrt(4*k.^2-1);                    % MMP, 11/09/2026
+                [Vv,Dv] = eig(diag(bt,1)+diag(bt,-1));                      % MMP, 11/09/2026
+                [t,ix] = sort(diag(Dv));                                    % MMP, 11/09/2026
+                g{v} = (D{jj}(v,1)+D{jj}(v,2))/2 + (D{jj}(v,2)-D{jj}(v,1))/2*t; % MMP, 11/09/2026
+                wv = (D{jj}(v,2)-D{jj}(v,1))/2*2*Vv(1,ix)'.^2;              % MMP, 11/09/2026
+                w = kron(w,wv);                                             % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+            X = tensor_points(g);                                           % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
         Mi = minv_at(jj,X);
         ZRb = arrayfun(@(b) zeval(F(b).ZR,F(b).vi,V{jj},X),bs,'UniformOutput',false);
         ZLb = arrayfun(@(b) zeval(F(b).ZL,F(b).vo,V{jj},X),bp,'UniformOutput',false);
@@ -335,7 +358,19 @@ end
     G = cell(nsp,1);    Lam = cell(nsp,1);  rr = 0;
     for i = 1:nsp
         Li = find([F.i]==i);    Ri = find([F.j]==i);    kv = numel(V{i});
-        if kv==0,   X = zeros(1,0);     else,   X = cheb_grid(D{i},2*(d+1));    end
+%       if kv==0,   X = zeros(1,0);     else,   X = cheb_grid(D{i},2*(d+1));    end % MMP, 11/09/2026 (was)
+        % X: the tensor grid of 2(d+1) first-kind Chebyshev points per      % MMP, 11/09/2026
+        % variable on the box D{i}, one row per point (the former local     % MMP, 11/09/2026
+        % CHEB_GRID); no variable: one empty point                          % MMP, 11/09/2026
+        if kv==0                                                            % MMP, 11/09/2026
+            X = zeros(1,0);                                                 % MMP, 11/09/2026
+        else                                                                % MMP, 11/09/2026
+            nc = 2*(d+1);   g = cell(1,size(D{i},1));                       % MMP, 11/09/2026
+            for v = 1:size(D{i},1)                                          % MMP, 11/09/2026
+                g{v} = (D{i}(v,1)+D{i}(v,2))/2 + (D{i}(v,2)-D{i}(v,1))/2*cos(pi*((1:nc)'-0.5)/nc); % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+            X = tensor_points(g);                                           % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
         Mi = minv_at(i,X);  np = size(X,1);
         ZLi = arrayfun(@(b) zeval(F(b).ZL,F(b).vo,V{i},X),Li,'UniformOutput',false);
         ZRi = arrayfun(@(b) zeval(F(b).ZR,F(b).vi,V{i},X),Ri,'UniformOutput',false);
@@ -448,7 +483,19 @@ function [cM,rr] = cheb_fit(X,Fv,dom,d)
 % relative RMS residual at X.
 Phi = ones(size(X,1),1);    T = 1;
 for v = 1:size(X,2)
-    [Pv,Tv] = cheb1(X(:,v),dom(v,:),d);
+%   [Pv,Tv] = cheb1(X(:,v),dom(v,:),d);                                     % MMP, 11/09/2026 (was)
+    % Pv: the values at X(:,v) of the Chebyshev polynomials T_0..T_d of     % MMP, 11/09/2026
+    % t = (2x-a-b)/(b-a) on dom(v,:) = [a b]; Tv: column k+1 the monomial   % MMP, 11/09/2026
+    % coefficients of T_k in x, ascending degree (the former local CHEB1)   % MMP, 11/09/2026
+    xv = X(:,v);                                                            % MMP, 11/09/2026
+    al = 2/(dom(v,2)-dom(v,1));     be = -(dom(v,1)+dom(v,2))/(dom(v,2)-dom(v,1)); % MMP, 11/09/2026
+    t = al*xv(:)+be;                                                        % MMP, 11/09/2026
+    Pv = ones(numel(xv),d+1);   Tv = zeros(d+1,d+1);    Tv(1,1) = 1;        % MMP, 11/09/2026
+    if d>=1,    Pv(:,2) = t;    Tv(1:2,2) = [be;al];    end                 % MMP, 11/09/2026
+    for k = 2:d                                                             % MMP, 11/09/2026
+        Pv(:,k+1) = 2*t.*Pv(:,k) - Pv(:,k-1);                               % MMP, 11/09/2026
+        Tv(:,k+1) = 2*(al*[0;Tv(1:end-1,k)] + be*Tv(:,k)) - Tv(:,k-1);      % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     n1 = size(Phi,2);   n2 = d+1;
     Phi = Phi(:,kron(1:n1,ones(1,n2))).*Pv(:,repmat(1:n2,1,n1));
     T = kron(T,Tv);
@@ -456,43 +503,6 @@ end
 cP = Phi\Fv;
 cM = T*cP;
 rr = norm(Phi*cP-Fv,'fro')/max(norm(Fv,'fro'),realmin);
-end
-
-function [Pv,Tv] = cheb1(x,dom,d)
-% [PV,TV] = CHEB1(X,DOM,D) the values PV (numel(X) x (D+1)) at X of the
-% Chebyshev polynomials T_0..T_D of t = (2x-a-b)/(b-a) on DOM = [a b], and
-% TV ((D+1) x (D+1)), column k+1 the monomial coefficients of T_k in x
-% (ascending degree).
-al = 2/(dom(2)-dom(1));     be = -(dom(1)+dom(2))/(dom(2)-dom(1));
-t = al*x(:)+be;
-Pv = ones(numel(x),d+1);    Tv = zeros(d+1,d+1);    Tv(1,1) = 1;
-if d>=1,    Pv(:,2) = t;    Tv(1:2,2) = [be;al];    end
-for k = 2:d
-    Pv(:,k+1) = 2*t.*Pv(:,k) - Pv(:,k-1);
-    Tv(:,k+1) = 2*(al*[0;Tv(1:end-1,k)] + be*Tv(:,k)) - Tv(:,k-1);
-end
-end
-
-function X = cheb_grid(dom,n)
-% X = CHEB_GRID(DOM,N) the tensor grid of N first-kind Chebyshev points per
-% variable on the box DOM (one row per variable), one row of X per point.
-g = cell(1,size(dom,1));
-for v = 1:size(dom,1)
-    g{v} = (dom(v,1)+dom(v,2))/2 + (dom(v,2)-dom(v,1))/2*cos(pi*((1:n)'-0.5)/n);
-end
-X = tensor_points(g);
-end
-
-function [X,w] = gl_grid(dom,n)
-% [X,W] = GL_GRID(DOM,N) the tensor Gauss-Legendre rule of N nodes per
-% variable on the box DOM: points X (one row each) and weights W; with no
-% variable, one point with weight 1.
-if size(dom,1)==0,  X = zeros(1,0);     w = 1;  return,     end
-g = cell(1,size(dom,1));    w = 1;
-for v = 1:size(dom,1)
-    [g{v},wv] = gauss1(n,dom(v,1),dom(v,2));     w = kron(w,wv);
-end
-X = tensor_points(g);
 end
 
 function X = tensor_points(g)
@@ -505,12 +515,4 @@ for v = 1:numel(g)
 end
 end
 
-function [x,w] = gauss1(n,a,b)
-% [X,W] = GAUSS1(N,A,B) the N-point Gauss-Legendre nodes and weights on
-% [A,B] (Golub-Welsch).
-k = (1:n-1)';   bt = k./sqrt(4*k.^2-1);
-[Vv,Dv] = eig(diag(bt,1)+diag(bt,-1));
-[t,ix] = sort(diag(Dv));
-x = (a+b)/2 + (b-a)/2*t;    w = (b-a)/2*2*Vv(1,ix)'.^2;
-end
 % END MMP, 11/04/2026

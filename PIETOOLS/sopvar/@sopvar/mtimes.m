@@ -89,6 +89,12 @@ function C = mtimes(A,B)
 %                  commented-out code of earlier versions and debug lines
 %                  removed, notes tightened, INPUTS/OUTPUTS for the local
 %                  functions; code unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                  very short and called once go into the body):
+%                  paramMultiIdx_SS and paramMultiIdxToLinear_SS into
+%                  expandCommonFullIntegrals, kronSub2ind_SS into
+%                  kronPermutationMatrix_SS, each with its header as the
+%                  comment of the block.
 %
 
 % dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
@@ -817,7 +823,15 @@ end
 nBase = numel(baseVars);
 nFinal = numel(finalVars);
 
-finalIdx = paramMultiIdx_SS(nFinal);
+% finalIdx = paramMultiIdx_SS(nFinal);                                      % MMP, 11/09/2026 (was)
+% finalIdx: the multi-indices of the 3^nFinal parameter cells in linear     % MMP, 11/09/2026
+% index order, first variable fastest, entries 1, 2, 3 (the former local    % MMP, 11/09/2026
+% PARAMMULTIIDX_SS)                                                         % MMP, 11/09/2026
+if nFinal == 0                                                              % MMP, 11/09/2026
+    finalIdx = zeros(1,0);                                                  % MMP, 11/09/2026
+else                                                                        % MMP, 11/09/2026
+    finalIdx = fliplr(dec2base(0:3^nFinal-1,3,nFinal)-'0') + 1;             % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 
 if nFinal == 0
     Csize = [1,1];
@@ -846,33 +860,15 @@ for k = 1:size(finalIdx,1)
     else
         gammaBase = zeros(1,nBase);
         gammaBase(basePos(isBaseVar)) = gamma(isBaseVar);
-        linBase = paramMultiIdxToLinear_SS(gammaBase);
+%       linBase = paramMultiIdxToLinear_SS(gammaBase);                      % MMP, 11/09/2026 (was)
+        % the linear cell index 1 + sum_i (gammaBase(i)-1)*3^(i-1), first   % MMP, 11/09/2026
+        % variable fastest (the former local PARAMMULTIIDXTOLINEAR_SS)      % MMP, 11/09/2026
+        linBase = 1;                                                        % MMP, 11/09/2026
+        for ib = 1:numel(gammaBase)                                         % MMP, 11/09/2026
+            linBase = linBase + (gammaBase(ib)-1)*3^(ib-1);                 % MMP, 11/09/2026
+        end                                                                 % MMP, 11/09/2026
         Cparams_out{k} = Cparams_in{linBase};
     end
-end
-end
-
-function idx = paramMultiIdx_SS(n)
-% IDX = PARAMMULTIIDX_SS(N) lists the multi-indices of the 3^N parameter
-% cells in linear-index order: first variable changes fastest.
-% INPUT   n: number of shared variables.
-% OUTPUT  idx: 3^n x n array with entries 1, 2, 3.
-if n == 0
-    idx = zeros(1,0);
-else
-    idx = fliplr(dec2base(0:3^n-1,3,n)-'0') + 1;
-end
-end
-
-function lin = paramMultiIdxToLinear_SS(idx)
-% LIN = PARAMMULTIIDXTOLINEAR_SS(IDX) returns the linear cell index of one
-% multi-index, lin = 1 + sum_i (idx(i)-1)*3^(i-1) (first variable fastest).
-% INPUT   idx: 1 x n multi-index with entries 1, 2, 3.
-% OUTPUT  lin: linear index into the 3 x ... x 3 cell array.
-idx = idx(:).';
-lin = 1;
-for i = 1:numel(idx)
-    lin = lin + (idx(i)-1)*3^(i-1);
 end
 end
 
@@ -1378,7 +1374,20 @@ dimsNew = dimsOld(loc);
 idxNew = kronMultiIdx_SS(dimsNew);
 idxOld = zeros(N,numel(dimsOld));
 idxOld(:,loc) = idxNew;
-oldLin = kronSub2ind_SS(dimsOld,idxOld);
+% oldLin = kronSub2ind_SS(dimsOld,idxOld);                                  % MMP, 11/09/2026 (was)
+% oldLin: the linear positions of the multi-index rows of idxOld in the     % MMP, 11/09/2026
+% tensor basis of dimsOld, the inverse of kronMultiIdx_SS (the former local % MMP, 11/09/2026
+% KRONSUB2IND_SS)                                                           % MMP, 11/09/2026
+dimsRow = dimsOld(:).';                                                     % MMP, 11/09/2026
+if isempty(dimsRow)                                                         % MMP, 11/09/2026
+    oldLin = ones(size(idxOld,1),1);                                        % MMP, 11/09/2026
+elseif numel(dimsRow) == 1                                                  % MMP, 11/09/2026
+    oldLin = idxOld(:,1);                                                   % MMP, 11/09/2026
+else                                                                        % MMP, 11/09/2026
+    subs = num2cell(fliplr(idxOld),1);                                      % MMP, 11/09/2026
+    oldLin = sub2ind(fliplr(dimsRow),subs{:});                              % MMP, 11/09/2026
+    oldLin = oldLin(:);                                                     % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 
 P = sparse(oldLin,(1:N).',1,N,N);
 end
@@ -1402,21 +1411,3 @@ else
 end
 end
 
-function lin = kronSub2ind_SS(dims,idx)
-% LIN = KRONSUB2IND_SS(DIMS,IDX) returns the linear positions of the
-% multi-indices IDX in the tensor basis, the inverse of kronMultiIdx_SS.
-% INPUTS  dims: numbers of monomials per variable; idx: rows of 1-based
-%         per-variable positions.
-% OUTPUT  lin: size(idx,1) x 1 linear positions.
-
-dims = dims(:).';
-if isempty(dims)
-    lin = ones(size(idx,1),1);
-elseif numel(dims) == 1
-    lin = idx(:,1);
-else
-    subs = num2cell(fliplr(idx),1);
-    lin = sub2ind(fliplr(dims),subs{:});
-    lin = lin(:);
-end
-end

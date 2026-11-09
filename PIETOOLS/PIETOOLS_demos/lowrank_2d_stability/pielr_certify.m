@@ -104,6 +104,10 @@ function cert = pielr_certify(PIE,opts)
 %                 now accepted BOTH as opts.face AND directly as the second
 %                 argument, so certificates chain between calls with no
 %                 intermediate struct: cert2 = pielr_certify(PIE2,cert).
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                 very short and called once go into the body): padw and
+%                 wblk into disc_bm, shrink1 into refine_blocks, each with
+%                 its header as the comment of the block.
 
 % ---- options ---------------------------------------------------------------
 if nargin<2, opts = struct(); end
@@ -450,7 +454,16 @@ for ri = 1:numel(rvl)
         else
             % warm start: a rank-r' solution with r' < r is also a rank-r
             % solution, so padding keeps the sweep monotone in r
-            w = padw(prevw,prevrv,rv,Ns);   sname = 'prev';
+%           w = padw(prevw,prevrv,rv,Ns);   sname = 'prev';                 % MMP, 11/09/2026 (was)
+            % (the former local PADW) each block of prevw, Ns(ip) x prevrv(ip), % MMP, 11/09/2026
+            % into the first columns of an Ns(ip) x rv(ip) zero block       % MMP, 11/09/2026
+            w = [];  kw = 0;                                                % MMP, 11/09/2026
+            for ip = 1:numel(Ns)                                            % MMP, 11/09/2026
+                Yo = reshape(prevw(kw+(1:Ns(ip)*prevrv(ip))),Ns(ip),prevrv(ip));  kw = kw+Ns(ip)*prevrv(ip); % MMP, 11/09/2026
+                Yn = zeros(Ns(ip),rv(ip));  cc = min(prevrv(ip),rv(ip));  Yn(:,1:cc) = Yo(:,1:cc); % MMP, 11/09/2026
+                w = [w;Yn(:)]; %#ok<AGROW>                                  % MMP, 11/09/2026
+            end                                                             % MMP, 11/09/2026
+            sname = 'prev';                                                 % MMP, 11/09/2026
         end
 %       w = bm_lm2(P,rv,w,400,1e-16);                                       % CC, 09/21/2026 (was)
         % tol at the gate value, not 1e-16: op_rel ~ 0.35-0.40*raw_rel here,  % CC, 09/22/2026
@@ -463,7 +476,11 @@ for ri = 1:numel(rvl)
         % certify the SUBSPACE BM found -- the point of the find/certify split
         Vc = cell(1,B);
         for i = 1:B
-            Yi = reshape(wblk(w,Ns,rv,i),Ns(i),rv(i));
+%           Yi = reshape(wblk(w,Ns,rv,i),Ns(i),rv(i));                      % MMP, 11/09/2026 (was)
+            % block i of w (the former local WBLK)                          % MMP, 11/09/2026
+            kw = 0;                                                         % MMP, 11/09/2026
+            for jw = 1:i-1, kw = kw + Ns(jw)*rv(jw); end                    % MMP, 11/09/2026
+            Yi = reshape(w(kw+(1:Ns(i)*rv(i))),Ns(i),rv(i));                % MMP, 11/09/2026
             Vi = orth(Yi);
             if isempty(Vi)                 % Y_i == 0: keep a 1-dim face, which
                 Vi = zeros(Ns(i),1); Vi(1) = 1;   % still contains X_i = 0
@@ -581,7 +598,17 @@ while improved
     improved = false;
     for i = 1:B
         if size(V{i},2) <= 1, continue; end
-        Vt = V;   Vt{i} = shrink1(V{i},q,P,i);
+%       Vt = V;   Vt{i} = shrink1(V{i},q,P,i);                              % MMP, 11/09/2026 (was)
+        % drop the direction carrying the least weight in the CERTIFIED     % MMP, 11/09/2026
+        % solution: diagonalise S_i = V_i' X_i V_i, keep its top eigenvectors, % MMP, 11/09/2026
+        % re-orthonormalise (the former local SHRINK1)                      % MMP, 11/09/2026
+        N = P.Ns(i);                                                        % MMP, 11/09/2026
+        X = reshape(q(P.rows{i}),N,N);   X = (X+X')/2;                      % MMP, 11/09/2026
+        Si = V{i}'*X*V{i};   Si = (Si+Si')/2;                               % MMP, 11/09/2026
+        [W,D] = eig(Si);   [~,p] = sort(diag(D),'descend');   W = W(:,p);   % MMP, 11/09/2026
+        Vs = V{i}*W(:,1:end-1);                                             % MMP, 11/09/2026
+        [Vs,~] = qr(Vs,0);                                                  % MMP, 11/09/2026
+        Vt = V;   Vt{i} = Vs;                                               % MMP, 11/09/2026
         try
             [Rt,qt] = restrict_solve(prog,H,P,Atf,bf,Vt);
             if okg(Rt)
@@ -600,23 +627,6 @@ end
 end
 
 % =============================================================================
-function Vs = shrink1(Vi,q,P,i)
-% drop the direction carrying the least weight in the CERTIFIED solution:
-% diagonalise S_i = V_i' X_i V_i and keep its top eigenvectors
-N = P.Ns(i);
-X = reshape(q(P.rows{i}),N,N);   X = (X+X')/2;
-Si = Vi'*X*Vi;   Si = (Si+Si')/2;
-[W,D] = eig(Si);   [~,p] = sort(diag(D),'descend');   W = W(:,p);
-Vs = Vi*W(:,1:end-1);
-[Vs,~] = qr(Vs,0);               % re-orthonormalise
-end
-
-function v = wblk(w,Ns,rv,i)
-k = 0;
-for j = 1:i-1, k = k + Ns(j)*rv(j); end
-v = w(k+(1:Ns(i)*rv(i)));
-end
-
 function w = fitw(Y0,rv,Ns)                                                 % CC, 09/21/2026
 % Fit a supplied per-block factor {Y_1..Y_B} to the current rank profile rv.
 % Keep the leading columns; fill any surplus with SMALL RANDOM values scaled
@@ -636,15 +646,6 @@ for i = 1:numel(Ns)
         Yi(:,kk+1:end) = 1e-3*s*randn(Ns(i),rv(i)-kk);
     end
     w = [w;Yi(:)]; %#ok<AGROW>
-end
-end
-
-function w = padw(wold,rold,rnew,Ns)
-w = [];  k = 0;
-for i = 1:numel(Ns)
-    Yo = reshape(wold(k+(1:Ns(i)*rold(i))),Ns(i),rold(i));  k = k+Ns(i)*rold(i);
-    Yn = zeros(Ns(i),rnew(i));  cc = min(rold(i),rnew(i));  Yn(:,1:cc) = Yo(:,1:cc);
-    w = [w;Yn(:)]; %#ok<AGROW>
 end
 end
 

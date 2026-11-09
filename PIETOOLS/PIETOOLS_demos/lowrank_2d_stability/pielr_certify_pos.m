@@ -69,6 +69,9 @@ function cert = pielr_certify_pos(Ptgt,opts)
 % CC, 09/19/2026: initial version -- the ft_rank.m pipeline (BM find ->
 %                 restrict_solve_pos certify -> within-face shrink), packaged
 %                 with the pielr_certify option surface and cert struct.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals padw
+%                 (warm start) and shrink1 (refine loop, with names of its
+%                 own since N and D are taken) inlined.
 
 % ---- options (mirrors pielr_certify, incl. direct cert/face second arg) ----
 if nargin<2, opts = struct(); end
@@ -206,7 +209,13 @@ else
                 sname = 'prev';
             end
             if strcmp(sname,'prev')
-                w = padw(prevw,prevr,rv,Ns);
+%               w = padw(prevw,prevr,rv,Ns);                                % MMP, 11/09/2026 (was)
+                % warm start from the previous rank (the former local PADW): % MMP, 11/09/2026
+                % the Ns(1) x prevr(1) block into the first columns of an   % MMP, 11/09/2026
+                % Ns(1) x rv(1) zero block                                  % MMP, 11/09/2026
+                Yo = reshape(prevw,Ns(1),prevr(1));                         % MMP, 11/09/2026
+                Yn = zeros(Ns(1),rv(1));  c = min(prevr(1),rv(1));  Yn(:,1:c) = Yo(:,1:c); % MMP, 11/09/2026
+                w = Yn(:);                                                  % MMP, 11/09/2026
             else
                 [Vd,~] = bm_dr(P,rv,qi,opts.drit);
                 Yi = zeros(Ns(1),rv(1));
@@ -257,7 +266,15 @@ doref = opts.refine;  if isempty(doref), doref = isempty(opts.face); end
 if ~isempty(V) && doref
     tR = tic;
     while size(V{1},2) > 1
-        Vs = shrink1(V{1},q,P);
+%       Vs = shrink1(V{1},q,P);                                             % MMP, 11/09/2026 (was)
+        % drop the direction the certified Gram block uses least (the former % MMP, 11/09/2026
+        % local SHRINK1): the top eigenvectors of S = V' X V, re-orthonormalised % MMP, 11/09/2026
+        N1 = P.Ns(1);                                                       % MMP, 11/09/2026
+        X1 = reshape(q(P.rows{1}),N1,N1);  X1 = (X1+X1')/2;                 % MMP, 11/09/2026
+        S1 = V{1}'*X1*V{1};  S1 = (S1+S1')/2;                               % MMP, 11/09/2026
+        [W1,D1] = eig(S1);  [~,p1] = sort(diag(D1),'descend');  W1 = W1(:,p1); % MMP, 11/09/2026
+        Vs = V{1}*W1(:,1:end-1);                                            % MMP, 11/09/2026
+        [Vs,~] = qr(Vs,0);                                                  % MMP, 11/09/2026
         try
             [Rs,qs] = restrict_solve_pos(prog,Ptgt,Peop,P,Atf,bf,{Vs});
         catch
@@ -324,19 +341,6 @@ so = [0, n2, n3, n2+n3; n1, n1+n2, n1+n3, n1+n2+n3];
 dd.d2 = {o,   so,  so;
          so', ii,  ii;
          so', ii,  ii};
-end
-function w = padw(wold,rold,rnew,Ns)
-Yo = reshape(wold,Ns(1),rold(1));
-Yn = zeros(Ns(1),rnew(1));  c = min(rold(1),rnew(1));  Yn(:,1:c) = Yo(:,1:c);
-w = Yn(:);
-end
-function Vs = shrink1(Vi,q,P)
-N = P.Ns(1);
-X = reshape(q(P.rows{1}),N,N);  X = (X+X')/2;
-Si = Vi'*X*Vi;  Si = (Si+Si')/2;
-[W,D] = eig(Si);  [~,p] = sort(diag(D),'descend');  W = W(:,p);
-Vs = Vi*W(:,1:end-1);
-[Vs,~] = qr(Vs,0);
 end
 function s = tern(c,a,b)
 if c, s = a; else, s = b; end

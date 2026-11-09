@@ -49,6 +49,9 @@ function PDE_out = diff(PDE_in,vars,dval)
 % DJ, 01/09/2025: Add support for temporal differentiation of vectors of
 %                   state variables;
 % DJ, 02/18/2026: Add support for nonlinear terms;
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
+%                   polydiff (one caller) inlined into the coefficient
+%                   derivative loop;
 
 % % % Process the inputs
 
@@ -366,7 +369,15 @@ for ii=1:numel(PDE_out.free)
                         dval_C = cell2mat(dval_C(1:end-1)) - 1;
         
                         % Differentiate coefficients with the variable.
-                        Cll = polydiff(Cjj,vars_obj,dval_C);
+%                       Cll = polydiff(Cjj,vars_obj,dval_C);                % MMP, 11/09/2026 (was)
+                        % Cll: Cjj differentiated dval_C(iv) times with each % MMP, 11/09/2026
+                        % variable vars_obj(iv) (the former local POLYDIFF) % MMP, 11/09/2026
+                        Cll = Cjj;                                          % MMP, 11/09/2026
+                        for iv=1:length(vars_obj)                           % MMP, 11/09/2026
+                            for jd=1:dval_C(iv)                             % MMP, 11/09/2026
+                                Cll = diff(Cll,vars_obj(iv));               % MMP, 11/09/2026
+                            end                                             % MMP, 11/09/2026
+                        end                                                 % MMP, 11/09/2026
                         if all(isequal(Cll,0))
                             % Don't add a zero term to the PDE...
                             continue
@@ -472,16 +483,4 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function dC = polydiff(C,vars,dval)
-% Compute derivative of 'polynomial' class object "C" with each of the
-% variables "vars(jj)" up to order "dval(jj)";
-
-% Very basic (expensive) implementation, just use for loops
-dC = C;
-for ii=1:length(vars)
-    for jj=1:dval(ii)
-        dC = diff(dC,vars(ii));
-    end
-end
-end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

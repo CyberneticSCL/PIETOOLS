@@ -132,6 +132,11 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 %                10/29/2026.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
 %                unchanged.
+% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
+%                very short and called once go into the body): GAUSS_LEGENDRE
+%                at the nodes of the worst input, BLOCK_MATRIX in
+%                dual_alignment, ZERO_KERNELS (11/04/2026) at the Tw test,
+%                each with its header as the comment of the block.
 
 % Output with every quantity not computed
 W = struct('ok',false,'note','','N',NaN,'gain',NaN,'omega',NaN,'wcoef',[],'wgrid',[],'sgrid',[], ...
@@ -163,7 +168,18 @@ try
     D = pie_disc_sop(PIE.D11,N);
     % The boundary-disturbance operator Tw, when nonzero                    % MMP, 10/28/2026
 %   Tw0 = (PIE.Tw==0);                                                      % MMP, 11/04/2026 (was); MMP, 10/28/2026
-    Tw0 = zero_kernels(PIE.Tw,1e-14);                                       % MMP, 11/04/2026
+%   Tw0 = zero_kernels(PIE.Tw,1e-14);                                       % MMP, 11/09/2026 (was); MMP, 11/04/2026
+    % Tw0: every coefficient of the kernels P, Q1, Q2, R0, R1, R2 of Tw below % MMP, 11/09/2026
+    % 1e-14 in modulus, the tolerance of the opvar test it replaced, repeated % MMP, 11/09/2026
+    % monomials merged first as the subtraction of that test did (the former % MMP, 11/09/2026
+    % local ZERO_KERNELS)                                                   % MMP, 11/09/2026
+    Kz = {PIE.Tw.P, PIE.Tw.Q1, PIE.Tw.Q2, PIE.Tw.R.R0, PIE.Tw.R.R1, PIE.Tw.R.R2}; % MMP, 11/09/2026
+    Tw0 = true;                                                             % MMP, 11/09/2026
+    for kz = 1:numel(Kz)                                                    % MMP, 11/09/2026
+        c = Kz{kz};                                                         % MMP, 11/09/2026
+        if isa(c,'polynomial'),     c = combine(c);     c = c.coefficient;  end % MMP, 11/09/2026
+        Tw0 = Tw0 && all(abs(c(:))<1e-14);                                  % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
     Twd = [];   if ~Tw0,    Twd = pie_disc_sop(PIE.Tw,N);   end             % MMP, 10/28/2026
 catch ME
     W.note = ['pie_disc_sop: ' ME.message];     return
@@ -226,7 +242,16 @@ switch mode
         wc = V(:,1);                                % worst input, orthonormal coefficients
         W.wcoef = wc;
         % Its distributed components at the Gauss-Legendre nodes
-        [sq,wq] = gauss_legendre(q,a,b);
+%       [sq,wq] = gauss_legendre(q,a,b);                                    % MMP, 11/09/2026 (was)
+        % Gauss-Legendre nodes sq (increasing) and weights wq on [a,b] by   % MMP, 11/09/2026
+        % Golub-Welsch (the former local GAUSS_LEGENDRE): the eigenvalues of % MMP, 11/09/2026
+        % the Jacobi matrix of the Legendre recurrence and twice the squared % MMP, 11/09/2026
+        % first entries of its eigenvectors, mapped from [-1,1]             % MMP, 11/09/2026
+        betaq = 0.5./sqrt(1-(2*(1:q-1)).^(-2));                             % MMP, 11/09/2026
+        Jq = diag(betaq,1)+diag(betaq,-1);                                  % MMP, 11/09/2026
+        [Vq,Dq] = eig(Jq);                                                  % MMP, 11/09/2026
+        [sq,iq] = sort(diag(Dq));     wq = 2*Vq(1,iq).^2;                   % MMP, 11/09/2026
+        sq = (b-a)/2*sq + (a+b)/2;    wq = (b-a)/2*wq;                      % MMP, 11/09/2026
         W.sgrid = sq;
         if nwd>0
 %           Pq = (sq(:).^(0:N))*di.C';              % p_j(s_q): q x (N+1)  % MMP, 10/08/2026 (was)
@@ -259,23 +284,6 @@ if isstruct(s) && isfield(s,f) && ~isempty(s.(f)),  v = s.(f);  else,   v = d;  
 end
 
 
-function [x,w] = gauss_legendre(n,a,b)
-% [X,W] = GAUSS_LEGENDRE(N,A,B) returns the N-point Gauss-Legendre nodes and
-% weights on [A,B], by the Golub-Welsch method.
-% INPUT  n: double, the number of nodes; a, b: double, the interval.
-% OUTPUT x: n x 1 double, the nodes in increasing order;
-%        w: 1 x n double, the weights.
-% Nodes: the eigenvalues of the Jacobi matrix of the Legendre recurrence;
-% weights: twice the squared first entries of its eigenvectors; then the
-% map from [-1,1] to [a,b]
-beta = 0.5./sqrt(1-(2*(1:n-1)).^(-2));
-J = diag(beta,1)+diag(beta,-1);
-[V,Dg] = eig(J);
-[x,i] = sort(diag(Dg));     w = 2*V(1,i).^2;
-x = (b-a)/2*x + (a+b)/2;    w = (b-a)/2*w;
-end
-
-
 function al = dual_alignment(Y,wblk,W,nwf,nwd,sq,wq)
 % AL = DUAL_ALIGNMENT(Y,WBLK,W,NWF,NWD,SQ,WQ) returns the normalized
 % Frobenius inner product of the symmetrized block (WBLK,WBLK) of Y with
@@ -292,7 +300,13 @@ Yb = Y.C{wblk,wblk};
 if isempty(Yb),     al = NaN;   return,     end
 if nwf>0 && nwd>0,  al = NaN;   return,     end     % mixed space: not compared
 if nwd==0                                           % finite disturbance: the multiplier matrix
-    K = full(block_matrix(Yb));
+%   K = full(block_matrix(Yb));                                             % MMP, 11/09/2026 (was)
+    % The multiplier matrix of the block Yb: its first parameter, or zeros  % MMP, 11/09/2026
+    % of its dims when that is empty (the former local BLOCK_MATRIX)        % MMP, 11/09/2026
+    p = Yb.params;                                                          % MMP, 11/09/2026
+    if iscell(p),   K = p{1};    else,   K = p;   end                       % MMP, 11/09/2026
+    if isempty(K),  K = zeros(Yb.dims);    end                              % MMP, 11/09/2026
+    K = full(K);                                                            % MMP, 11/09/2026
     K = (K+K')/2;
     wf = W.wcoef(1:nwf);
     S = real(wf*wf');
@@ -307,18 +321,6 @@ S = real(W.wgrid(:)*W.wgrid(:)');
 sw = sqrt(repmat(wq(:),nwd,1));
 Kw = (sw*sw').*Kq;  Sw = (sw*sw').*S;
 al = abs(sum(sum(Kw.*Sw)))/max(norm(Kw,'fro')*norm(Sw,'fro'),eps);
-end
-
-
-function Kmat = block_matrix(B)
-% KMAT = BLOCK_MATRIX(B) returns the matrix of a 'sopvar' block between
-% finite-dimensional spaces: its first parameter, or zeros(B.dims) when
-% that is empty.
-% INPUT  B:    'sopvar' object without spatial variables.
-% OUTPUT Kmat: B.dims(1) x B.dims(2) double.
-p = B.params;
-if iscell(p),   Kmat = p{1};    else,   Kmat = p;   end
-if isempty(Kmat),   Kmat = zeros(B.dims);   end
 end
 
 
@@ -374,20 +376,3 @@ Kq = (Kq+Kq')/2;
 end
 
 
-% BEGIN MMP, 11/04/2026: local function zero_kernels, new
-function tf = zero_kernels(X,tol)
-% TF = ZERO_KERNELS(X,TOL) is true when every kernel of the 1-D operator X
-% has all its coefficients below TOL in modulus.
-% INPUT  X: 'struct' with the kernel fields P, Q1, Q2 and R (fields R0, R1,
-%        R2), each 'double' or 'polynomial' (PIE2PIESIM); tol: 'double'.
-% OUTPUT tf: logical.
-K = {X.P, X.Q1, X.Q2, X.R.R0, X.R.R1, X.R.R2};
-tf = true;
-for k = 1:numel(K)
-    c = K{k};
-    % Merge repeated monomials first, as the subtraction of the opvar test did
-    if isa(c,'polynomial'),     c = combine(c);     c = c.coefficient;  end
-    tf = tf && all(abs(c(:))<tol);
-end
-end
-% END MMP, 11/04/2026
