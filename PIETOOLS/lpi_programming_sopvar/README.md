@@ -246,7 +246,7 @@ container routine.
   degree loop, the stock settings translators (`poslpivar_sop`, `poslpivar_settings_sop`,
   `poslpivar_settings_2d_sop`, `settings_2d_sop`, and `settings2possopvar` from
   `sopvar/lpis_sopvar`), `get_lpivar_degs_sop`, `trace_rn_sop`, the gain
-  reconstruction (`getController_sop`, `getObserver_sop`, `getController_direct_sop`) and the
+  reconstruction (`getController_sop`, `getObserver_sop`) and the
   numerical witness (`pie_disc_sop`, `pie_witness_sop`); see `executives_sopvar/README.md`.
 - **Slack-sizing studies**, `sopvar/Testfolder/sdopvar/claude_tests/slack_sizing/`:
   `hinf_tailor_1d`, `hinf_tailor_2d`, `volterra_tailor` (results in `NOTES.md`).

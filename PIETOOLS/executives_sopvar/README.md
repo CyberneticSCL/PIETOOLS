@@ -155,7 +155,6 @@ from there to this folder the same day.
 | `trace_rn_sop` | the trace over the R^q blocks, for the H2 executives |
 | `getController_sop`, `getObserver_sop` | the 1-D gains through the container inverse (below) |
 | `closedLoopPIE` | the closed-loop PIE of a PIE and a state-feedback, observer or dynamic output-feedback gain; called by `PIETOOLS_PDE.m`, DEMO12 and the manual snippets (from `executives/utility_functions/`, 11/08/2026) |
-| `getController_direct_sop` | the controller gains without forming the inverse; called by `Test_copvar_inv` only |
 | `pie_disc_sop`, `pie_witness_sop` | the Legendre-Galerkin matrices of a 1-D PIE, and the numerical counterpart of a certificate |
 
 Added for this folder on 10/08/2026 and kept in the library: `lpi_classify_sop`, `lpi_shape_sop`,
@@ -183,7 +182,6 @@ and `getObserver` give 8.1e-5 and 7.4e-3 on the same solved P, Z.
 | `[Pinv,info] = inv(P[,opts])` on a `copvar` over R^k x L2^m[s] | the L2 block by the method above, the rest by the block inverse through the finite-dimensional Schur complement `T = Pm - Q1 Rh Q2` (Lemma 18): one operator inverse and one matrix inverse. `info.condT`. N-D is refused. |
 | `[K,Kop,info] = getController_sop(P,Z[,opts])` | `K = Z P^{-1}` as a `copvar`, which `closedLoopPIE`, `piess` and PIESIM take; `Kop` is `[]` (no `opvar` copy since 11/04/2026; the executives return containers). Accepts `opvar` inputs (`opvar2copvar`). No coefficient truncation (the stock routine zeroes coefficients of K below 1e-4). |
 | `[L,Lop,info] = getObserver_sop(P,Z[,opts])` | `L = P^{-1} Z`, the same way. |
-| `[K,info] = getController_direct_sop(P,Z[,opts])` | the gains `K1`, `K2(s)` of `u = Z P^{-1} x` WITHOUT forming `P^{-1}` (the analogue of Cor. 11 of arXiv 1806.08071): grid values of the Gohberg-Krein data and their cumulative integrals (`gk_grid`), Simpson for the Schur complement; `K.apply` evaluates `u` by quadrature, `K.op` is the one polynomial fit (of `K2`) for `closedLoopPIE`, `K.fit.relrms` its residual. Agrees with the inverse route to 1e-9 (Test_copvar_inv). The QT formulation is discussed in `opvar/inverse_dependency_map_2026_10_09.md`, Sec. 8.2. |
 
 `PIETOOLS_Hinf_control_sop`, `_Hinf_estimator_sop`, `_H2_control_sop` and `_H2_estimator_sop` call
 these and return the container gain (also `info.G`), `info.inv` the inverse diagnostics. In 2-D the

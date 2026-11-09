@@ -77,6 +77,17 @@ the path cannot create a second class or private definition.
   (11/04/2026), its three `pie2opvar` lines are commented out. Remaining mentions: `p0_path.m` and
   `bench_lpi_degree.m` (legacy series only) in `baselines/`, and the comments of `pie_witness_sop`.
 
+- `getController_direct_sop` (11/08/2026, maintainer: "move the unused files to cleaning and
+  commit") – from `executives_sopvar/utility_functions/` to
+  `private/dead_code/PIETOOLS/executives_sopvar/utility_functions/`. The controller gains without
+  forming the inverse (10/09/2026). No code caller outside `cleaning/` (word search over the tree,
+  comments excluded, 11/08/2026); its one caller, `Test_copvar_inv`, is in `dead_code/` since
+  11/08/2026 (above). It builds the 'opvar' form of the gain with the `opvar` constructor, off the
+  path since 11/08/2026, so `opvar Kop;` (line 180) fails on the current path. Its helpers
+  `gk_grid` and `chebfit_mono` (`sopvar/misc/`) stay: `sopvar/@sopvar/inv.m` calls both. Remaining
+  mentions: the comments of `@sopvar/inv.m` and `gk_grid.m`, and
+  `baselines/2026-11-02_opvar_phase0/opvar_removal_plan.md`.
+
 ## Not moved
 
 | Files | Reason kept |
@@ -321,3 +332,4 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m` (as above) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m` | MATTHEW M PEET, 2026-09-25, db49553e |
 | `PIETOOLS/PIETOOLS_demos/cuadmm/shadows/lpisolve.m.txt`, `poslpivar.m.txt` (read only by `cuadmm_shadow`) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/shadows/` | MATTHEW M PEET, 2026-09-25, db49553e |
 | `PIETOOLS/PIETOOLS_demos/cuadmm/private/lpi_resid.m`, `opnorm_pi.m`, `opgram.m`, `pgridval.m`, `gaussleg.m`, `legval.m` (called only by `experiments/` and by each other) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/` | MATTHEW M PEET, 2026-09-25, db49553e |
+| `PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m` (11/08/2026, maintainer: "move the unused files to cleaning and commit"; no code caller outside `cleaning/`; builds an `opvar`, off the path) | `dead_code/PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m` | MATTHEW M PEET, 2026-10-09, 368097d3 |
