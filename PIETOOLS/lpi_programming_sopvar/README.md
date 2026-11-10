@@ -48,6 +48,13 @@ MMP, 11/09/2026: `misc/possopvar`, `poscopvar_lift`, `posmult_cdopvar` and `sopq
 retired code calls, moved to `orphaned_file/private/` (maintainer: "move to orphaned code"), and
 `misc/subs_dvar_sop`, which only tests call, to `testing_codes/private/lpi_programming_sopvar/misc/`
 (maintainer: "move to testing folder"). The table below marks them.
+MMP, 11/10/2026: `examples/` (its four scripts, §4) moved to
+`cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/` (maintainer: "move the
+lpi_programming/examples folder to the cleaning folder"). No code or test calls them; the DEMOs of
+`PIETOOLS_demos/` show standard usage. Every other file of the folder has a caller in the library
+or the DEMOs, so none moved with them. `misc/copquadvar` and its four `misc/private/` helpers have
+none (`poscopvar` names `copquadvar` only in an error message) and stay (maintainer, 11/09/2026:
+in development).
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -288,7 +295,8 @@ are MOSEK 11 and SeDuMi (E3).
 
 ### Examples (MMP, 10/21/2026)
 
-The scripts in `examples/` show standard usage, as the DEMOs of `PIETOOLS_demos/` do. A PDE is
+Since 11/10/2026 these scripts are in `cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/`,
+off the path; this section records them as they were. The scripts in `examples/` show standard usage, as the DEMOs of `PIETOOLS_demos/` do. A PDE is
 declared with `pde_var` and converted with `convert` (or an `opvar` is declared), its operators
 become containers with `op2copvar_sop`, and one LPI is written with the user functions of the folder
 root, among them `lpidecvar`, `lpisetobj` and `lpisolve`. Each runs by name, with MOSEK when

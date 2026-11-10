@@ -145,6 +145,15 @@ the path cannot create a second class or private definition.
   `private/dead_code/PIETOOLS/PIESOS/polyopvar/`. `Tests/SOS_DP_test.m` expects the v1 `SOS_DP`
   (`Zs` a cell; the renamed one returns the `tensopmat` `Zop`), `Tests/kernel_degree_test.m` calls
   `kernel_degree2`, `Tests/DMB_test.m` builds an `opvar()`; none passes against the live functions as it is.
+- `lpi_programming_sopvar/examples/` (11/10/2026, maintainer: "move the lpi_programming/examples
+  folder to the cleaning folder") – its four scripts (`hinf_gain_1d_sop`, `stability_1d_sop`,
+  `stability_2d_sop`, `volterra_norm_sop`), which use the user functions of
+  `lpi_programming_sopvar/`, to `private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/`; the
+  folder is gone. No code or test calls them (word search, comments excluded); tests and the opvar
+  removal plan name them in comments. The rest of `lpi_programming_sopvar/` stays: each file has a
+  caller in the library or the DEMOs, directly or through another file of the folder, except
+  `misc/copquadvar` and the four `misc/private/` helpers only it calls, which stay (maintainer,
+  11/09/2026: in development).
 
 ## Not moved
 
@@ -402,3 +411,7 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/e2e_stability_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/lpi_programming_sopvar/tests/e2e_stability_2d.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
 | `PIETOOLS/testing_codes/private/converters/operator_converters/opvar2d2copvar.m` | `dead_code/PIETOOLS/testing_codes/private_files/converters/operator_converters/opvar2d2copvar.m` | MATTHEW M PEET, 2026-09-19, 2ba10689 |
 | `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m` | `definitely/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m` | MATTHEW M PEET, 2026-09-25, 2be2e6b5 |
+| `PIETOOLS/lpi_programming_sopvar/examples/hinf_gain_1d_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/hinf_gain_1d_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
+| `PIETOOLS/lpi_programming_sopvar/examples/stability_1d_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/stability_1d_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
+| `PIETOOLS/lpi_programming_sopvar/examples/stability_2d_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/stability_2d_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
+| `PIETOOLS/lpi_programming_sopvar/examples/volterra_norm_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/volterra_norm_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
