@@ -11,7 +11,7 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 %
 % Inputs:
 %     PDE = examples_PDE_library_PIESOS(example,option1,option2,...)
-%       - example - integer (1-11) corresponding to the selected example
+%       - example - integer (1-13) corresponding to the selected example
 %       - option# - character array 'name=value', which overrides the
 %            default value of the parameter 'name' of the selected example
 %            by the value 'value'. For example, 'r=5' sets r equal to 5.
@@ -92,6 +92,8 @@ switch index
 %   9. Fisher equation                           | alp, bet, a, b
 %   10. Nonlinear delay ODE, delay-dependent     | a, tau
 %   11. Wright's equation                        | a, tau
+%   12. Heat equation, integral feedback         | k, a, b
+%   13. Wave equation, boundary feedback         | mu, a, k
 %--------------------------------------------------------------------------
     case 1
 %% Nonlinear delay ODE
@@ -381,6 +383,70 @@ LF_form = 'pie';        % form of the Lyapunov functional
 settings = PIESOS_settings('light');    % lower degrees than the default
 
 %--------------------------------------------------------------------------
+    case 12
+%% Heat equation with integral feedback
+% 	PDE:    x_{t} = x_{ss} + x^2 - k*int_a^b x ds               s in [a,b]
+%   BCs:    x_{s}(s=a) = 0;     x(s=b) = 0;
+% For k=2*pi^2 and [a,b]=[0,1], the linearization is exponentially stable.
+% The other equilibrium has ||x_{s}|| = 27.27, and the smallest initial 
+% state found for which simulations do not converge has ||x_{s}|| = 17.2. 
+% Local stability can be verified on the ball ||x_{s}|| <= R up to 14
+% (certified radius up to 12).
+
+a = 0;                  % left end of the interval of s
+b = 1;                  % right end of the interval of s
+k = 2*pi^2;             % gain of the integral feedback
+[k,a,b] = set_params({'k','a','b'},{k,a,b},params);
+
+x = pde_var(s,[a,b]);
+PDE = [diff(x,t)==diff(x,s,2)+x^2-k*int(x,s,a,b);
+        subs(diff(x,s),s,a)==0;
+        subs(x,s,b)==0];
+
+% Stability test: local stability on the ball ||x_{s}|| <= 10
+use_exec = 'local';     % executive to use
+rad = 10;               % radius of the ball
+alpha = [0,1];          % weights of the norm: ||x_{s}||
+lambda = 0;             % decay rate
+LF_form = 'pie';        % form of the Lyapunov functional
+settings.LF.mon_deg = 2;                % degree of the kernels of V
+settings.mult.dist_deg = [1,1];         % multipliers p1, p2 in both conditions
+settings.mult.mon_deg = [2,2];          % degree of the kernels of p1, p2
+settings.sos.psatz = [0,0,1];           % psatz multipliers in the constraints
+settings.simplify = false;              % solver stalls (numerr=2) if simplified
+
+%--------------------------------------------------------------------------
+    case 13
+%% Wave equation with boundary feedback
+% 	PDE:    z_{tt} = z_{ss} - 2*mu*z_{t} + a*z + z^3            s in [0,1]
+%   BCs:    z(s=0) = 0;     z_{s}(s=1) = -k*z(s=1);
+% Written in the states z and y = z_{t}:
+% 	PDE:    z_{t} = y;
+%           y_{t} = z_{ss} - 2*mu*y + a*z + z^3;
+% The linearization is exponentially stable iff a < lambda_1, the smallest
+% eigenvalue of -d^2/ds^2 under the boundary conditions: lambda_1=6.03 for
+% k=3, and a=5 is stabilized iff k > 1.754. The other equilibria have energy
+% ||z_{s}|| >= 1.8 for a=5, k=3, which bounds the radius of any region of
+% attraction in the energy norm ||z_{s}||^2 + ||y||^2.
+% No stability test could be verified with the PIESOS executives: for
+% mu=2, a=5, k=3 they stalled (numerr=2) with LF.mon_deg=1 and sos.mon_deg=
+% [1,1,2], and with LF.mon_deg=2 and sos.mon_deg=[2,2,3] (SDP of 249k x 20k,
+% 4 GB). The test `LocalStability_wave` certifies a radius of 0.0212 on the
+% ball of radius 0.3, using a quartic term in V and pointwise multipliers.
+
+mu = 2;                 % damping
+a = 5;                  % reaction parameter
+k = 3;                  % gain of the boundary feedback
+[mu,a,k] = set_params({'mu','a','k'},{mu,a,k},params);
+
+z = pde_var(s,[0,1]);
+y = pde_var(s,[0,1]);
+PDE = [diff(z,t)==y;
+        diff(y,t)==diff(z,s,2)-2*mu*y+a*z+z^3;
+        subs(z,s,0)==0;
+        subs(diff(z,s),s,1)+k*subs(z,s,1)==0];
+
+%--------------------------------------------------------------------------
 end
 
 % % % Processing of the outputs.
@@ -462,7 +528,7 @@ function [index,params,sttngs] = process_inputs(varargin0,nargin1)
 % - sttngs:     'light', 'default' or 'heavy' if the user specified the
 %               settings of the stability test, and '' otherwise;
 
-n_examples = 11;
+n_examples = 13;
 
 params = struct();      % no fields if the user specifies no parameters
 sttngs = '';
