@@ -36,6 +36,7 @@ function PDE_out = power(PDE_in,deg)
 % authorship, and a brief description of modifications
 %
 % DJ, 02/18/2026: Initial coding;
+% DJ, 11/09/2026: Support terms with delay;
 
 
 % Make sure the inputs are of appropriate type
@@ -176,14 +177,11 @@ obj_num = term_in.(obj);
 obj_size = PDE.(obj){obj_num}.size;
 obj_vars = PDE.(obj){obj_num}.vars;
 
-% Preclude delay in the terms
+% Keep the delay of the term, with zero delay if not specified (replaced by
+% a state in expand_delays, as for linear terms)
 term_out = term_in;
-if isfield(term_out,'delay')
-    if ~isequal(term_out.delay,0)
-        error("Taking power of delayed signals is not supported.")
-    else
-        term_out = rmfield(term_out,'delay');
-    end
+if ~isfield(term_out,'delay')
+    term_out.delay = 0;
 end
 % Make sure the coefficient matrix is specified
 if ~isfield(term_out,'C')

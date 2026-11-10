@@ -11,7 +11,7 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 %
 % Inputs:
 %     PDE = examples_PDE_library_PIESOS(example,option1,option2,...)
-%       - example - integer (1-10) corresponding to the selected example
+%       - example - integer (1-11) corresponding to the selected example
 %       - option# - character array 'name=value', which overrides the
 %            default value of the parameter 'name' of the selected example
 %            by the value 'value'. For example, 'r=5' sets r equal to 5.
@@ -91,6 +91,7 @@ switch index
 %  Local stability tests
 %   9. Fisher equation                           | alp, bet, a, b
 %   10. Nonlinear delay ODE, delay-dependent     | a, tau
+%   11. Wright's equation                        | a, tau
 %--------------------------------------------------------------------------
     case 1
 %% Nonlinear delay ODE
@@ -351,6 +352,35 @@ lambda = 0;             % decay rate
 LF_form = 'pie';        % form of the Lyapunov functional
 
 %--------------------------------------------------------------------------
+    case 11
+%% Wright's equation
+% 	ODE:    x_{t} = -a*x(t-tau)*(1 + x(t))
+% This is the delayed logistic equation, shifted so that the equilibrium
+% is at zero. For a*tau < pi/2 = 1.57, every solution with x>-1 converges
+% to zero (see [5]), while the zero solution is unstable for a*tau > pi/2. 
+% The other equilibrium, x=-1, has norm sqrt(3) for tau=1 in the L2 norm of 
+% (x(t),history).
+% For tau=1, local stability can be verified for a=1.55 on the L2 ball of 
+% radius 0.01. For a=0.5, radius 1 can be verified.
+
+a = 1.55;               % gain
+tau = 1;                % delay
+[a,tau] = set_params({'a','tau'},{a,tau},params);
+
+x = pde_var('state',1,[],[]);
+xd = subs(x,t,t-tau);
+PDE = diff(x,t)==-a*xd-a*xd*x;
+
+% Stability test: local stability on the L2 ball of radius 0.01, verified
+% with light settings for a=1.55 and tau=1
+use_exec = 'local';     % executive to use
+rad = 0.01;             % radius of the ball
+alpha = 1;              % weights of the norm: 1 for the L2 norm
+lambda = 0;             % decay rate
+LF_form = 'pie';        % form of the Lyapunov functional
+settings = PIESOS_settings('light');    % lower degrees than the default
+
+%--------------------------------------------------------------------------
 end
 
 % % % Processing of the outputs.
@@ -432,7 +462,7 @@ function [index,params,sttngs] = process_inputs(varargin0,nargin1)
 % - sttngs:     'light', 'default' or 'heavy' if the user specified the
 %               settings of the stability test, and '' otherwise;
 
-n_examples = 10;
+n_examples = 11;
 
 params = struct();      % no fields if the user specifies no parameters
 sttngs = '';
@@ -576,5 +606,17 @@ end
 %   number={1-2},
 %   pages={196--218},
 %   year={1951}
+% }
+%
+% % [5] - Wright's equation: global attractivity of the zero solution for
+% %       0 < a*tau < pi/2 (Wright's conjecture)
+% @article{vandenberg2018proof,
+%   title={A proof of {W}right's conjecture},
+%   author={van den Berg, Jan Bouwe and Jaquette, Jonathan},
+%   journal={Journal of Differential Equations},
+%   volume={264},
+%   number={12},
+%   pages={7412--7462},
+%   year={2018}
 % }
 %

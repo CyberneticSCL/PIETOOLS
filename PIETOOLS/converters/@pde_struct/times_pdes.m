@@ -37,6 +37,7 @@ function PDE_out = times_pdes(PDE1,PDE2)
 % authorship, and a brief description of modifications
 %
 % DJ, 02/13/2026: Initial coding;
+% DJ, 11/09/2026: Support terms with delay;
 
 % Make sure the inputs are 'pde_struct' objects
 if ~isa(PDE1,'pde_struct') || ~isa(PDE2,'pde_struct')
@@ -186,20 +187,13 @@ if ~strcmp(obj1,obj2)
     term2.(obj1) = [];
 end
 
-% Preclude delay in the terms
-if isfield(term1,'delay')
-    if ~isequal(term1.delay,0)
-        error("Multiplication of delayed signals is not supported.")
-    else
-        term1 = rmfield(term1,'delay');
-    end
+% Keep the delays of the factors, with zero delay if not specified: delayed
+% factors are replaced by states in expand_delays, as for linear terms
+if ~isfield(term1,'delay')
+    [term1.delay] = deal(0);
 end
-if isfield(term2,'delay')
-    if ~isequal(term2.delay,0)
-        error("Multiplication of delayed signals is not supported.")
-    else
-        term2 = rmfield(term2,'delay');
-    end
+if ~isfield(term2,'delay')
+    [term2.delay] = deal(0);
 end
 
 % Check if the number of rows in the terms matches

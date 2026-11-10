@@ -1,5 +1,5 @@
 function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
-% PDE = expand_delays(PDE) takes a pde_struct and retruns a PDE with no
+% PDE = expand_delays(PDE) takes a pde_struct and returns a PDE with no
 % time delays, using new state variables to represent the delayed terms.
 %
 % INPUTS:
@@ -48,6 +48,9 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % may introduce conservatism in e.g. stability tests. An updated version
 % adding BCs may be incorporated in a later version of PIETOOLS.
 %
+% Each factor of a nonlinear term is replaced separately, and delayed
+% factors with the same delay, position and derivative share one new state.
+%
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
 
@@ -81,6 +84,7 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 %                   (lower boundary), 0 (interior) and 1 (upper boundary),
 %                   instead of {0,1,2};
 % DJ, 11/09/2026: Support nonlinear PDEs with delay in linear terms;
+% DJ, 11/09/2026: Support delayed factors in nonlinear terms;
 
 if nargin==1
     suppress_summary = false;
@@ -237,21 +241,15 @@ end
 % % new states.
 for ii=1:ncomps
     nterms = numel(PDE.(Lobj){ii}.term);
-    % % Loop over all terms and replace delays with new state.
-    for jj=1:nterms
-        term_jj = PDE.(Lobj){ii}.term{jj};
-        if numel(term_jj)>1
-            % Nonlinear terms are only an error if a factor is delayed, as
-            % they are left unchanged otherwise (e.g. x(t)^3 in a PDE with
-            % a delayed linear term)
-            for kk=1:numel(term_jj)
-                delay_kk = term_jj(kk).delay;
-                if ~((isa(delay_kk,'double') || isdouble(delay_kk)) && double(delay_kk)==0)
-                    error("Delays are not supported in nonlinear terms.")
-                end
-            end
-            continue
-        end
+    % Loop over all factors of all terms and replace delays with new state.
+    % For nonlinear terms, the l-th factor is factor fctr_list(l) of
+    % term jj_list(l).
+    nfctrs = reshape(cellfun(@numel,PDE.(Lobj){ii}.term),1,[]);
+    jj_list = repelem(1:nterms,nfctrs);
+    fctr_list = cell2mat(arrayfun(@(n) 1:n,nfctrs,'UniformOutput',false));
+    for ll=1:numel(jj_list)                                                 % DJ, 11/09/2026
+        jj = jj_list(ll);   fctr_idx = fctr_list(ll);
+        term_jj = PDE.(Lobj){ii}.term{jj}(fctr_idx);
 
         % % Extract the delay.
         delay = term_jj.delay;
@@ -303,8 +301,9 @@ for ii=1:ncomps
         if isa(delay,'double') || isdouble(delay)
             % % % The delay is fixed.
             delay = abs(double(delay));
-            % Check if the delay is already included in our list.
-            tau_idx = find(delay==abs(double(PDE.tau(:,2))),1,'first');
+            % Check if the delay is already included in our list: the
+            % delay variables are the last variables, on [-delay,0].
+            tau_idx = find(delay==-double(PDE.dom(nvars_old+1:end,1)),1,'first');
             if ~isempty(tau_idx)
                 % The considered delay already appears in our table.
                 % We still have to check if this delay already appears in
@@ -454,7 +453,7 @@ for ii=1:ncomps
                 term_jj.delay = 0;
             end
         end
-        PDE.(Lobj){ii}.term{jj} = term_jj;
+        PDE.(Lobj){ii}.term{jj}(fctr_idx) = term_jj;                        % DJ, 11/09/2026
     end
 end
 

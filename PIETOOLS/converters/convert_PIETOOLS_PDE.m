@@ -77,11 +77,12 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   inputs not in the BCs.
 % - The right-hand side of the PIE is derived by convert_PDE_term, so that
 %   inputs can only appear linearly.
-% - Delays are modeled by transport states (expand_delays), and
-%   higher-order temporal derivatives (linear PDEs, any number of spatial
-%   variables) by additional states (expand_tderivatives); pde2pie.x.
-%   delay and pde2pie.x.tdiff describe these components. Expansion is not
-%   supported for states with boundary inputs.
+% - Delays (also of factors in nonlinear terms) are modeled by transport
+%   states (expand_delays), and higher-order temporal derivatives (linear 
+%   PDEs, any number of spatial variables) by additional states 
+%   (expand_tderivatives); pde2pie.x. delay and pde2pie.x.tdiff describe 
+%   these components. Expansion is not supported for states with boundary 
+%   inputs.
 % - ODE states, and states of lower dimension, may appear in the BCs of
 %   other states, see solve_PIETOOLS_BVP; the T operators then map the
 %   fundamental state of the former to the latter.
