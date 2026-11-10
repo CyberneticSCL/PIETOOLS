@@ -206,6 +206,9 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  COMMON_DVARS (09/30/2026, one caller) inlined where B.Zd,
 %                  B.dmap and B.ndec are set, its header as the comment of
 %                  the block; its 09/26/2026 lines keep their markers.
+% MMP, 11/09/2026: The private PACK_SHEETS (this file its one caller)
+%                  inlined into block_terms (maintainer, 11/09/2026: the
+%                  one-caller private files too); the file removed.
 
 
 % % % BEGIN change MMP, 09/30/2026 (split): the primary runs the            % MMP, 09/30/2026
@@ -730,7 +733,15 @@ negmap = [1,3,2,4];
         end                                                                 % MMP, 09/22/2026
 %       Bblk = remap_dvars(Pblk.B,cellstr(string(Pblk.dvarname)),dmap,ndec);% MMP, 09/22/2026 (was)
 %       Cpk  = pack_sheets([Pblk.A.';Bblk],Pblk.m,Pblk.n);                  % MMP, 09/22/2026 (was)
-        Cpk  = pack_sheets([Pblk.A.';Pblk.B],Pblk.m,Pblk.n);                % MMP, 09/22/2026
+%       Cpk  = pack_sheets([Pblk.A.';Pblk.B],Pblk.m,Pblk.n);                % MMP, 11/09/2026 (was); MMP, 09/22/2026
+        % Cpk: the sheets [Pblk.A.'; Pblk.B], one row each the column-major % MMP, 11/09/2026
+        % vec of an m x n matrix, laid out side by side, sheet sg in columns % MMP, 11/09/2026
+        % (sg-1)*n+1 : sg*n (the former private PACK_SHEETS)                % MMP, 11/09/2026
+        Vsh = [Pblk.A.';Pblk.B];                                            % MMP, 11/09/2026
+        [sg,lin,val] = find(Vsh);                                           % MMP, 11/09/2026
+        irow = mod(lin-1,Pblk.m)+1;                                         % MMP, 11/09/2026
+        icol = floor((lin-1)/Pblk.m)+1;                                     % MMP, 11/09/2026
+        Cpk  = sparse(irow,(sg-1)*Pblk.n+icol,val,Pblk.m,size(Vsh,1)*Pblk.n); % MMP, 11/09/2026
 
         % % % Multi-indices of the pair, over the registry. The left factor
         % is the adjoint of basis i, so its indicators are flipped.
@@ -851,7 +862,7 @@ function params = gamma_params(Cgam,g1b,NL3,g2b,NR3,nloc,Lmat,Rmat, ...
 %                  constant part, sparse (m_k*NLf*m_l*NRf) x 1, and B{q}
 %                  the decision part, sparse ndec x (m_k*NLf*m_l*NRf).
 
-        % Nothing between 'pack_sheets' and here mixes sheets (each stays a
+        % Nothing between the layout of Cpk and here mixes sheets (each stays a % MMP, 11/09/2026
         % contiguous block of columns), so the block's own nloc sheets carry
         % the elimination and the rows are scattered onto the global basis
         % once, here, from triplets; ndec sheets would pad every intermediate.

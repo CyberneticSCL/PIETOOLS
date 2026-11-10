@@ -63,6 +63,10 @@ function d = process_degrees_one(deg,n3)
 %                function of 'possopvar' (the file since renamed
 %                'sopquadvar'), moved to private/ by MMP, 09/21/2026; the
 %                lines stamped MMP, 09/21/2026 add the subset caps.
+% MMP, 11/09/2026: The private EXPAND_CAPS (this file its one caller, for
+%                int and mult) inlined as one loop over the two fields
+%                (maintainer, 11/09/2026: the one-caller private files too);
+%                the file removed.
 
 % A scalar is the cap int
 if isnumeric(deg) && isscalar(deg)
@@ -79,10 +83,21 @@ if ~isfield(deg,'mult') || isempty(deg.mult)
     deg.mult = deg.int;
 end
 
-% Per-variable caps as 1 x n3 rows
+% Per-variable caps as 1 x n3 rows (the former private EXPAND_CAPS): a      % MMP, 11/09/2026
+% scalar applies to every variable, otherwise one entry per variable        % MMP, 11/09/2026
 d = struct();
-d.int = expand_caps(deg.int,n3,'int');
-d.mult = expand_caps(deg.mult,n3,'mult');
+% d.int = expand_caps(deg.int,n3,'int');                                    % MMP, 11/09/2026 (was)
+% d.mult = expand_caps(deg.mult,n3,'mult');                                 % MMP, 11/09/2026 (was)
+for f = {'int','mult'}                                                      % MMP, 11/09/2026
+    caps = reshape(deg.(f{1}),1,[]);                                        % MMP, 11/09/2026
+    if isscalar(caps)                                                       % MMP, 11/09/2026
+        caps = repmat(caps,1,n3);                                           % MMP, 11/09/2026
+    elseif numel(caps)~=n3                                                  % MMP, 11/09/2026
+        error("The '"+string(f{1})+"' degree should be a scalar or have one "...
+              +"element per spatial variable.")                             % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+    d.(f{1}) = caps;                                                        % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 
 % Total cap; default sum(int)+sum(mult)
 if ~isfield(deg,'joint') || isempty(deg.joint)

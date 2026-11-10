@@ -32,6 +32,10 @@ function [V,R,q,why,notes] = pielr_discover(prog,H,D,P,A,opts,vb)          % CC,
 % OUTPUT  V,R,q  accepted face, gate result and Gram vector ([] if none)
 %         why    struct array, one row per attempt
 %         notes  cellstr of fine print
+%
+% MMP, 11/09/2026: The private pielr_wblk (this file its one caller) inlined
+%   into the face loop, the Kf offset with it (maintainer, 11/09/2026: the
+%   one-caller private files too); the file removed.
 
 notes = {};  V = [];  R = [];  q = [];
 Ns = P.Ns;   B = numel(Ns);
@@ -129,7 +133,14 @@ for ri = 1:numel(rvl)
         % certify the SUBSPACE BM found -- the point of the find/certify split
         Vc = cell(1,B);
         for i = 1:B
-            Yi = reshape(pielr_wblk(w,Ns,rv,i,P.Kf),Ns(i),rv(i));
+%           Yi = reshape(pielr_wblk(w,Ns,rv,i,P.Kf),Ns(i),rv(i));           % MMP, 11/09/2026 (was)
+            % block i of the factor, sliced out of the LM vector            % MMP, 11/09/2026
+            % w = [z (Kf free); Y_1(:); ...; Y_B(:)]: the offset starts at  % MMP, 11/09/2026
+            % P.Kf, as bm_resid lays w out (the former private PIELR_WBLK; a % MMP, 11/09/2026
+            % count from zero is wrong whenever Kf > 0, as for l2gain)      % MMP, 11/09/2026
+            kw = P.Kf;                                                      % MMP, 11/09/2026
+            for jw = 1:i-1, kw = kw + Ns(jw)*rv(jw); end                    % MMP, 11/09/2026
+            Yi = reshape(w(kw+(1:Ns(i)*rv(i))),Ns(i),rv(i));                % MMP, 11/09/2026
             Vi = orth(Yi);
             if isempty(Vi)                 % Y_i == 0: keep a 1-dim face, which
                 Vi = zeros(Ns(i),1); Vi(1) = 1;   % still contains X_i = 0

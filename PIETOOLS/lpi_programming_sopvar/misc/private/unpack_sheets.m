@@ -80,6 +80,11 @@ function [A,B] = unpack_sheets(C,mrow,ncol,nsheet,L,R,rloc,nrow)
 % function [A,B] = unpack_sheets(C,mrow,ncol,nsheet)                        % MMP, 09/26/2026 (was)
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
 %                  guard note shortened; code unchanged.
+% MMP, 11/09/2026: The private LR_MULTIPLY (this file its one caller, on
+%                  both routes) inlined: the constant part once, before the
+%                  fused test, the decision part B*kron(R.',L).' on the
+%                  unfused route (maintainer, 11/09/2026: the one-caller
+%                  private files too); the file removed.
 
 % Inputs: the triplets of C and all eight arguments; C of the stated size
 if ~isstruct(C) || nargin<8                                                 % MMP, 10/01/2026
@@ -137,15 +142,21 @@ if fused                                                                    % MM
     cnt = sparse(sg,kj,1,nsheet,nout);                                      % MMP, 09/26/2026
     fused = all(nonzeros(cnt)<=2);                                          % MMP, 09/26/2026
 end                                                                         % MMP, 09/26/2026
-% A by lr_multiply; B from the moved triplets (fused), or by lr_multiply
-% and a scatter of its rows to RLOC
+% A: vec(L*C*R) of the constant sheet, the mr x nc matrix multiplied and    % MMP, 11/09/2026
+% vectorized (the former private LR_MULTIPLY, which also gave the decision  % MMP, 11/09/2026
+% part as B*kron(R.',L).'); B from the moved triplets (fused), or by that   % MMP, 11/09/2026
+% product and a scatter of its rows to RLOC                                 % MMP, 11/09/2026
+X = reshape(A,size(L,2),size(R,1));                                         % MMP, 11/09/2026
+Y = L*X*R;                                                                  % MMP, 11/09/2026
+A = Y(:);                                                                   % MMP, 11/09/2026
 if fused                                                                    % MMP, 09/26/2026
-    A = lr_multiply(L,A,[],R);                                              % MMP, 09/26/2026
+%   A = lr_multiply(L,A,[],R);                                              % MMP, 11/09/2026 (was); MMP, 09/26/2026
     B = sparse(rloc(sg),kj,vB,nrow,nout);                                   % MMP, 09/26/2026
 else                                                                        % MMP, 09/26/2026
     % Unfused: the sequence 'copquadvar' ran before this date.
     B = sparse(sg,(cc-1)*mrow+irow(~is_A),vB,nsheet,mrow*ncol);             % MMP, 09/26/2026
-    [A,B] = lr_multiply(L,A,B,R);                                           % MMP, 09/26/2026
+%   [A,B] = lr_multiply(L,A,B,R);                                           % MMP, 11/09/2026 (was); MMP, 09/26/2026
+    B = B*kron(R.',L).';                                                    % MMP, 11/09/2026
     [bi,bj,bv] = find(B);                                                   % MMP, 09/26/2026
     B = sparse(rloc(bi(:)),bj(:),bv(:),nrow,size(B,2));                     % MMP, 09/26/2026
 end                                                                         % MMP, 09/26/2026

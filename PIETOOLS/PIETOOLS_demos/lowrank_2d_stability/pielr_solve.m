@@ -82,6 +82,11 @@ function cert = pielr_solve(PIE,lpi,opts)                                   % CC
 %   cert.notes     fine print accumulated during the run
 %
 % Requires PIETOOLS and SeDuMi on the path: run pielr_path once per session.
+%
+% MMP, 11/09/2026: The private pielr_pie_dim and pielr_face_coeffs (this
+%   file their one caller) inlined (maintainer, 11/09/2026: the one-caller
+%   private files too); the files removed. pielr_pie_dim's last resort, the
+%   class of T, tested the retired opvar2d classes and is dropped.
 
 if nargin<2 || isempty(lpi), lpi = 'stability'; end
 if nargin<3, opts = struct(); end
@@ -151,7 +156,17 @@ if ~isempty(opts.gate_eta),  A.gate.eta_tol = opts.gate_eta;  end           % CC
 
 % ---- normalise the PIE, and settle the dimension ------------------------
 PIE = pielr_norm_pie(PIE);
-dim = pielr_pie_dim(PIE);
+% dim = pielr_pie_dim(PIE);                                                 % MMP, 11/09/2026 (was)
+% the spatial dimension, 1 or 2: a pie_struct's own field, else the dim     % MMP, 11/09/2026
+% field of a plain struct, else 1 (the former private PIELR_PIE_DIM; its    % MMP, 11/09/2026
+% last resort, the class of T, tested the retired opvar2d classes)          % MMP, 11/09/2026
+if isa(PIE,'pie_struct')                                                    % MMP, 11/09/2026
+    dim = PIE.dim;                                                          % MMP, 11/09/2026
+elseif isstruct(PIE) && isfield(PIE,'dim') && ~isempty(PIE.dim) && isscalar(PIE.dim) % MMP, 11/09/2026
+    dim = PIE.dim;                                                          % MMP, 11/09/2026
+else                                                                        % MMP, 11/09/2026
+    dim = 1;                                                                % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 if isempty(opts.settings)
 %   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings('light'); end % CC, 11/08/2026 (was)
     if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_sop('light'); end % CC, 11/08/2026
@@ -316,7 +331,21 @@ if isfield(R,'aux') && isfield(R.aux,'gam'), cert.gam = R.aux.gam; end
 cert.face = V;
 cert.r    = cellfun(@(v)size(v,2),V);
 cert.unknowns_face = sum(cert.r.*(cert.r+1)/2);
-cert.S    = pielr_face_coeffs(V,q,P);
+% cert.S    = pielr_face_coeffs(V,q,P);                                     % MMP, 11/09/2026 (was)
+% the face coefficients S_i = V_i' X_i V_i in ORIGINAL-b units: q arrives in % MMP, 11/09/2026
+% normalised-b units (bm_setup divides b by nb0), so the Gram block is scaled % MMP, 11/09/2026
+% back here, the one place that owns the conversion; getting it wrong reports % MMP, 11/09/2026
+% a perfectly good certificate at residual 1 (the former private            % MMP, 11/09/2026
+% PIELR_FACE_COEFFS)                                                        % MMP, 11/09/2026
+cert.S = cell(1,numel(V));                                                  % MMP, 11/09/2026
+if ~isempty(V) && ~isempty(q)                                               % MMP, 11/09/2026
+    for i = 1:numel(V)                                                      % MMP, 11/09/2026
+        Nf = round(sqrt(numel(P.rows{i})));                                 % MMP, 11/09/2026
+        Xf = reshape(q(P.rows{i}),Nf,Nf)*P.nb0;                             % MMP, 11/09/2026
+        Sf = V{i}'*((Xf+Xf')/2)*V{i};                                       % MMP, 11/09/2026
+        cert.S{i} = (Sf+Sf')/2;                                             % MMP, 11/09/2026
+    end                                                                     % MMP, 11/09/2026
+end                                                                         % MMP, 11/09/2026
 % THE DECISION VECTOR ITSELF, so a caller can score the SDP ROW residual
 % ||At'x-b||/||b|| and not only the operator residual this gate reports.
 % (CC, 09/24/2026) Those are not interchangeable: measured 3 rank INVERSIONS
