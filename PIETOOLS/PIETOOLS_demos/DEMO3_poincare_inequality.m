@@ -24,7 +24,7 @@
 %      s.t.     H2op'*H2op -gam*H1op'*H1op ≤ 0,
 % where now c = sqrt(gam).
 %
-% This example is also included in the paper (page 6, Demoenstration 3)
+% This example is also included in the paper (page 6, Demonstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
