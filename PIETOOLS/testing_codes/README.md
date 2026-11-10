@@ -52,6 +52,10 @@ are in `private/`.
 | `PIETOOLS_demos/cuadmm/` | 442 | the baseline suite: 12 `bl_*` files (`bl_expect.tsv` among them), `private/` (11), `results/` (409), the `gpu/` scripts `bl_bisgpu.sh`, `bl_gpu.sh`, `bl_gpu_post.sh` and `regime.sh`, `sol/` (4), `SUITES.md`, `BASELINE_REPORT.md` |
 | `PIETOOLS_demos/lowrank_2d_stability/` | 30 | `tests_1d/` (26), `pielr_bench`, `pielr_bench_cases`, `pielr_bench_diff`, `BENCH.md` |
 
+Moved out again on 11/09/2026 (maintainer): the 13 files of `PIESOS/Examples/` (the `Linear_Examples/`
+and `LocalStability/` rows above) went to `cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/`, with the
+example scripts they belong to; see `cleaning/README.md`.
+
 Also moved, with `mv`: 1,042 untracked files (55 MB), the fixture data of
 `baselines/2026-11-02_opvar_phase0/` (`F1/` 292, `F2/` 688, `F4/` 22, `logs/` 40). The harness reads
 them from its own folder; `testing_codes/baselines/.gitignore` keeps them out of git, as the old

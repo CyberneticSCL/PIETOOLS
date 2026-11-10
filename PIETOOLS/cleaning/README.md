@@ -126,6 +126,26 @@ the path cannot create a second class or private definition.
   mentions: the comments of `@sopvar/inv.m` and `gk_grid.m`, and
   `baselines/2026-11-02_opvar_phase0/opvar_removal_plan.md`.
 
+- `PIESOS/Examples/` (11/09/2026, maintainer: "Move all the test functions and the example scripts from
+  PIESOS/Examples (linear and nonlinear) to the cleaning folder for deletion") â€“ the 42 example
+  scripts (`Linear_Examples/`, `LocalStability/` with `Examples/`, `Examples/Sim/`, `Interpret_LF/`,
+  and the 10 in the root of `Examples/`) and the 13 tests that came from it, from
+  `testing_codes/private/PIESOS/Examples/` (`Test_Linear_Examples*.m`, `examples_PDE_library_PIETOOLS_nouinput.m`,
+  `LocalStability/Testfolder/`, `LocalStability/Tests/`), to `private/dead_code/PIETOOLS/PIESOS/Examples/`, paths
+  kept. No file outside `PIESOS/Examples/` and `testing_codes/` names any of them (word search,
+  comments excluded; no hard-coded path to the folder). `Weighted_Sobolev_Norm.m` no longer shares
+  its name, up to case, with `PIESOS/executives/weighted_sobolev_norm.m`. The other PIESOS tests
+  (`testing_codes/private/PIESOS/Testfolder/`, `sosprogramming/Testfolder/`) stay in `testing_codes/`.
+  Six of the 42 came back the same day (maintainer: "Those are not really example files, and could
+  potentially be useful"): `LocalStability/polys2sopvar.m` to `PIESOS/converters/`,
+  `Interpret_LF/polyopvar_equal.m`, `Interpret_LF/filter_Pcell.m` and `DMB.m` to `PIESOS/custom/`, and
+  `SOS_DP_v2.m` and `kernel_degree2.m` to `PIESOS/custom/` as `SOS_DP.m` and `kernel_degree.m`. The
+  earlier `SOS_DP.m` and `kernel_degree.m` stay here. `polys2sopvar.m` returned here on 11/09/2026
+  (maintainer: no caller left; only the retired `SOS_DP.m` and `V3_Liediff.m` here call it), to
+  `private/dead_code/PIETOOLS/PIESOS/polyopvar/`. `Tests/SOS_DP_test.m` expects the v1 `SOS_DP`
+  (`Zs` a cell; the renamed one returns the `tensopmat` `Zop`), `Tests/kernel_degree_test.m` calls
+  `kernel_degree2`, `Tests/DMB_test.m` builds an `opvar()`; none passes against the live functions as it is.
+
 ## Not moved
 
 | Files | Reason kept |

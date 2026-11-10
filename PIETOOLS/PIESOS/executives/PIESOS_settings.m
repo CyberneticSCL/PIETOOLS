@@ -2,7 +2,9 @@ function settings = PIESOS_settings(preset)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SETTINGS = PIESOS_settings(PRESET) returns the settings of the PIESOS
 % executives, PIESOS_stability_global and PIESOS_stability_local, as a
-% 'struct'. Change the fields of the output to adjust the settings, e.g.
+% 'struct'. PIESOS_sublevel only uses LF.mon_deg, sos.mon_deg(3), sos.psatz(3)
+% and the solver fields. Change the fields of the output to adjust the
+% settings, e.g.
 %   settings = PIESOS_settings('light');
 %   settings.LF.mon_deg = 4;
 %   settings.sos.use_ineq = false;

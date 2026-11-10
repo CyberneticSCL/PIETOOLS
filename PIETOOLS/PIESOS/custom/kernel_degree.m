@@ -1,5 +1,5 @@
-function opdeg = kernel_degree2(F)
-    % OPDEG = KERNEL_DEGREE2(F) returns the spatial monomial degree to use
+function opdeg = kernel_degree(F)
+    % OPDEG = KERNEL_DEGREE(F) returns the spatial monomial degree to use
     % as opdeg in SOS_DP when F must equate to an SOS-FDP. Coefficient
     % operators of F that are not 'intop' objects, such as constants or
     % decision variables, do not contribute spatial kernel degree and are
@@ -15,7 +15,7 @@ function opdeg = kernel_degree2(F)
     %           suitable for SOS_DP;
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - kernel_degree2
+    % PIETOOLS - kernel_degree
     %
     % Copyright (C) 2026 PIETOOLS Team
     %
@@ -55,7 +55,7 @@ function opdeg = kernel_degree2(F)
     % The current implementation supports FDPs in one distributed state;
     % each row of F.degmat then identifies one distributed monomial v^w.
     if ~isa(F,'polyopvar') || ~(size(F.degmat,2)==1) 
-        error('kernel_degree2:InvalidInput', ...
+        error('kernel_degree:InvalidInput', ...
             'F must be a 1-by-1 polyopvar functional.');
     end
 

@@ -55,6 +55,8 @@ function [logval, max_error, residual] = polyopvar_equal(F1, F2, tol)
     %
     % CR, 10/07/2026: Initial coding.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % DJ, 11/09/2026: Sum the terms (rows of ops) of a 'tensopvar' 
+    %                   coefficient before testing for zero;
 
     narginchk(2,3);
 
@@ -101,6 +103,13 @@ function m = max_abs_coef(coefficient)                                      % DJ
     % m = max_abs_coef(coefficient) returns the maximal absolute value of the
     % coefficients (of the kernels, for an 'intop', of the parameters, for a
     % 'sopvar') of the operator or polynomial 'coefficient'.
+    %
+    % INPUT
+    % - coefficient:    'intop', 'tensopmat', 'tensopvar', 'sopvar', 'dpvar',
+    %                   'polynomial', numeric array, or cell of these;
+    %
+    % OUTPUT
+    % - m:              nonnegative scalar, the maximal absolute coefficient;
 
     m = 0;
     if isempty(coefficient)
@@ -109,6 +118,10 @@ function m = max_abs_coef(coefficient)                                      % DJ
         % The params of an 'intop' are coefficients in a unified monomial
         % basis, not kernels: use the kernels
         m = max_abs_coef(kernels(coefficient));
+    elseif isa(coefficient,'tensopvar') && ...
+            all(cellfun(@(c) isa(c,'sopvar'),coefficient.ops(:)))
+        % Terms of a sum of tensor products must be added, not compared     % DJ, 11/09/2026
+        m = max_abs_terms(coefficient.ops);
     elseif isa(coefficient,'tensopmat') || isa(coefficient,'tensopvar')
         m = max_abs_coef(coefficient.ops);
     elseif isa(coefficient,'sopvar')
@@ -128,5 +141,90 @@ function m = max_abs_coef(coefficient)                                      % DJ
             ['Cannot compare a polyopvar coefficient of class ', ...
              '"%s".'],class(coefficient));
     end
+
+end
+
+
+
+function m = max_abs_terms(ops)                                             % DJ), 11/09/2026
+    % m = max_abs_terms(ops) returns the maximal absolute coefficient of the
+    % tensor T = sum_i ops{i,1} (x) ... (x) ops{i,d}, with the terms i merged
+    % wherever possible so that cancelling terms give 0.
+    %
+    % Two terms agreeing up to a scalar in all but one factor j are replaced
+    % by one term, with factor j the (scaled) sum of their factors j. This
+    % is exact for the tensor T of the parameters, whose maximal entry is
+    % the product of the maximal entries of the factors of the last
+    % remaining term; but it is only sufficient for equality of the
+    % operators when the product is pointwise (otype 1), where different T
+    % can give the same operator, and it does not detect a sum that
+    % vanishes only through three or more dependent terms.
+    %
+    % INPUT
+    % - ops:    K x d cell of 'sopvar' objects, the d factors of K terms;
+    %
+    % OUTPUT
+    % - m:      nonnegative scalar, the maximal absolute coefficient of T;
+
+    ztol = 1e-12;                       % as in clean_poly
+    [K,d] = size(ops);
+
+    % Split each factor into a unit-max factor Rn and its scale s, so that
+    % proportional factors compare equal (up to sign)
+    s = zeros(K,d);
+    Rn = ops;
+    for i=1:K
+        for j=1:d
+            s(i,j) = max_abs_coef(ops{i,j});
+            if s(i,j)>ztol
+                Rn{i,j} = (1/s(i,j))*ops{i,j};
+            end
+        end
+    end
+    % A term with a zero factor is zero
+    alive = all(s>ztol,2);
+    w = prod(s,2);                      % term i = w(i) * Rn{i,1} (x) ... (x) Rn{i,d}
+
+    % Merge term k into term i if they agree in all factors but (at most) one
+    changed = true;
+    while changed
+        changed = false;
+        for i=1:K
+            for k=i+1:K
+                if ~alive(i) || ~alive(k)
+                    continue
+                end
+                % Rn{k,m} = sg(m)*Rn{i,m}, or sg(m)=0 if not proportional
+                sg = zeros(1,d);
+                for m=1:d
+                    if max_abs_coef(Rn{i,m}-Rn{k,m})<=ztol
+                        sg(m) = 1;
+                    elseif max_abs_coef(Rn{i,m}+Rn{k,m})<=ztol
+                        sg(m) = -1;
+                    end
+                end
+                j = find(sg==0);
+                if numel(j)>1
+                    continue
+                elseif isempty(j)
+                    j = 1;
+                end
+                % Add the factors j, scaling by the other factors of k
+                sg(j) = 1;
+                Q = w(i)*Rn{i,j} + (w(k)*prod(sg))*Rn{k,j};
+                w(i) = max_abs_coef(Q);
+                alive(k) = false;
+                changed = true;
+                if w(i)>ztol
+                    Rn{i,j} = (1/w(i))*Q;
+                else
+                    alive(i) = false;   % terms cancelled
+                end
+            end
+        end
+    end
+
+    % Factors Rn have unit max, so the max entry of term i is w(i)
+    m = max([0;w(alive)]);
 
 end

@@ -1,5 +1,5 @@
-function [prog, DP, Pcell, Zop] = SOS_DP_v2(prog, d, opdeg, x, dom, opts)
-    % [PROG,DP,PCELL,ZOP] = SOS_DP_V2(PROG,D,OPDEG,X,DOM,OPTS)
+function [prog, DP, Pcell, Zop] = SOS_DP(prog, d, opdeg, x, dom, opts)
+    % [PROG,DP,PCELL,ZOP] = SOS_DP(PROG,D,OPDEG,X,DOM,OPTS)
     % declares the degree-2*d SOS distributed polynomial
     %   DP = < Z_d(x), P Z_d(x) >_{L2}
     %      = \sum_i=1^d \sum_j=1^d <U^i x^i, Pmat U^j x^j>_{L_2}
@@ -42,7 +42,7 @@ function [prog, DP, Pcell, Zop] = SOS_DP_v2(prog, d, opdeg, x, dom, opts)
     %           U^i acting on the monomials x^i;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - SOS_DP_v2
+    % PIETOOLS - SOS_DP
     %
     % Copyright (C) 2026 PIETOOLS Team
     %
@@ -74,12 +74,13 @@ function [prog, DP, Pcell, Zop] = SOS_DP_v2(prog, d, opdeg, x, dom, opts)
     %                 be constructed using a psatz multiplier.
     % DJ, 10/14/2026: Alternative formulation using `piesos_sosvar`
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+
     %% Declare the options for the SOS functional.
     if nargin<6 || isempty(opts)
         opts = struct();
     end
     if isfield(opts,'psatz') && (~isnumeric(opts.psatz) && ~islogical(opts.psatz))
-        error("SOS_DP_v2: Invalid opts.psatz value!")
+        error("SOS_DP: Invalid opts.psatz value!") 
     end
     % Degrees of the monomials in the basis operators U^i; the multiplier term
     % is excluded, so that U^i only has the two integral terms (R0=0, R1
