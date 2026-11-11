@@ -95,8 +95,8 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %               (otype = 1) of the 3-PI operators in constructing the
 %               tensor-PI operator basis. If otype==1, then d_out =
 %               depmat.out. If otype==2, then d_out = d*depmat.out,
-%               where d = max(depmat.in(i,:)). The case otype==2 is not
-%               supported;
+%               where d = max(depmat.in(i,:)). For otype==2, Pmat is a
+%               matrix in the d copies, see `piesos_quadopvar`;
 %
 % OUTPUTS
 % - prog:   'struct' specifying the PIESOS program with the positive

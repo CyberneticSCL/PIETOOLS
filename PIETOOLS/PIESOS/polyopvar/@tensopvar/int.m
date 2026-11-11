@@ -10,7 +10,15 @@ function KCop = int(Cop,W)
 % - W:      (optional) q x p 'double', 'polynomial' or 'dpvar' weight
 %           inside the integral, defaults to the identity. If W depends on
 %           the output variables of Cop, it is integrated along with Cop,
-%           and all output variables must then have degree 1 (deps.out==1);
+%           and may depend only on the variables
+%             'si_j'  for the jth copy of vars.out{i}, j=1,...,deps.out(i),
+%                     as named by `apply_op` for a tensor product of the
+%                     outputs (Cop.otype(1)==2, or degree above 1);
+%             'si'    also for the only copy, if the ith output variable
+%                     vars.out{i} has degree 1 (deps.out(i)==1) and
+%                     Cop.otype(1)==1 (a pointwise product);
+%           where si is the name vars.out{i}. Other variables are rejected,
+%           as is a weight depending on both 'si' and 'si_1';
 %
 % OUTPUTS
 % - KCop:   q x n 'intop' object defining a functional representing the
@@ -42,6 +50,8 @@ function KCop = int(Cop,W)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/10/2026: Allow a weight in the copies si_j of the outputs, for
+%                   tensor products;
 
 if nargin<2
     W = [];
@@ -70,15 +80,32 @@ Kop = intop(params,intmat,vars_out,dom_out,true);
 % variables renamed to the dummy variables of integration
 has_spatial_W = ~isempty(W) && ~isa(W,'double') && ~isempty(W.varname);
 if has_spatial_W
-    if any(degs_out~=1)
-        error("A weight depending on the output variables is only supported if each output variable has degree 1.")
-    elseif ~all(ismember(W.varname,vars_out)) 
-        error("The weight may only depend on the output variables of the operator.") 
-    end
+    % Variables allowed in W, and the dummy variables of Kop they are
+    % renamed to: the copies <name>_<j>, as named by apply_op for a tensor
+    % product, and, for the only copy of a pointwise output, also the bare
+    % name
     dum_vars = Kop.varnames.in_dum;
+    names_W = cell(1,0);        names_dum = cell(1,0);
     for i=1:M
-        W.varname(strcmp(W.varname,vars_out{i})) = dum_vars{i}(1);
+        names_i = arrayfun(@(j) [vars_out{i},'_',num2str(j)],1:degs_out(i),'UniformOutput',false);
+        dum_i = reshape(dum_vars{i},1,[]);
+        if degs_out(i)==1 && Cop.otype(1)==1
+            names_i = [names_i,vars_out(i)];
+            dum_i = [dum_i,dum_vars{i}(1)];
+        end
+        names_W = [names_W,names_i];
+        names_dum = [names_dum,dum_i];
     end
+    [is_ok,idcs] = ismember(W.varname,names_W);
+    if ~all(is_ok)
+        error("The weight may only depend on the variables 'si_j' (copy j of the output variable si) or, for one copy of a pointwise output, 'si'.")
+    end
+    % Rename all variables at once: a copy may not be renamed twice
+    new_names = names_dum(idcs);
+    if numel(unique(new_names))<numel(new_names)
+        error("The weight may not depend on both 'si' and 'si_1', the same variable.")
+    end
+    W.varname = reshape(new_names,size(W.varname));
     Kop = intop({W},intmat,vars_out,dom_out,true);
 end
 

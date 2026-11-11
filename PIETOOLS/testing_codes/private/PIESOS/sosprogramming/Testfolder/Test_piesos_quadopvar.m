@@ -55,6 +55,8 @@ function Test_piesos_quadopvar()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 11/10/2026: case_errors: otype(1)=2 is accepted, also with numeric
+%                        psatz, not with logical psatz or for one operator only;
 
 % NOTES
 % - piesos_poslpivar wraps piesos_quadopvar, so case_equals_poslpivar only
@@ -837,8 +839,15 @@ assert_err(@() piesos_quadopvar(prog,1,{'s1'},[0 1],struct('L',1,'R',[1 1]),dg,s
 assert_err(@() q1(1,dg,5),'struct');
 assert_err(@() q1(1,dg,struct('L',5)),'must be specified as');
 assert_err(@() q1(1,dg,struct('R',5,'L',struct())),'must be specified as');
-assert_err(@() q1(1,dg,struct('otype',[2 2])),'currently not supported');
-assert_err(@() q1(1,dg,struct('L',struct('otype',[2 2]))),'currently not supported');
+%assert_err(@() q1(1,dg,struct('otype',[2 2])),'currently not supported');          % DJ (CC), 11/10/2026 (was)
+%assert_err(@() q1(1,dg,struct('L',struct('otype',[2 2]))),'currently not supported');  % DJ (CC), 11/10/2026 (was)
+% otype(1)=2 (tensor-product output, see Test_piesos_tensor_gram): accepted, with
+% Pmat in the copies of the primary variables, also with numeric psatz; not with a
+% logical psatz, or for one operator only
+q1(1,dg,struct('otype',[2 2]));                                             % DJ (CC), 11/10/2026
+q1(1,dg,struct('L',struct('otype',[2 2])));                                 % DJ (CC), 11/10/2026
+q1(1,dg,struct('otype',[2 2],'pos',true,'psatz',1));                        % DJ (CC), 11/10/2026
+assert_err(@() q1(1,dg,struct('otype',[2 2],'pos',true,'psatz',true(2,1))),'currently not supported');  % DJ (CC), 11/10/2026
 assert_err(@() q1(1,dg,struct('L',struct(),'R',struct('otype',[2 2]))),'currently not supported');
 % invalid degrees and psatz, as for piesos_poslpivar
 assert_err(@() q1(1,struct('in',1,'out',-1),struct()),'nonnegative integers');

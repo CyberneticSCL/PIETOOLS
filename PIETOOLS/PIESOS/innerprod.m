@@ -33,6 +33,9 @@ function V = innerprod(u1,P,u2)
 %   inherently.
 % - V = innerprod(u1,P,u2) is also computed by u1'*P*u2, see 'ctranspose'
 %   and 'mtimes'. u1 and u2 themselves cannot be adjoints.
+% - A weight P that depends on spatial variables is passed to `int`: for
+%   outputs with several copies of a variable si (tensor products, e.g.
+%   u1=u2=x1 o x2), P depends on the copies si_j, j=1,...,d, see `int`.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - innerprod

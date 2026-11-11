@@ -83,6 +83,8 @@ function Test_piesos_poslpivar()
 % DJ (CC), 10/15/2026: Initial coding;
 % DJ (CC), 10/21/2026: 3 x 1 'exclude' is OR over the variables of a state
 %                        (nrows_nd, case_mixed_exclude_sep);
+% DJ (CC), 11/10/2026: case_errors: otype [2 2] with numeric psatz is accepted,
+%                        see piesos_quadopvar;
 
 % NOTES
 % - The SDP cases (case_sdp_feasibility,
@@ -1055,7 +1057,11 @@ assert_err(@() piesos_poslpivar(prog,1,{'s1'},struct('in',[0 1],'out',[0 2]),1,1
     'must match');
 assert_err(@() piesos_poslpivar(prog,1,{'s1'},[0 1],struct('in',1,'out',2),1,struct()),...
     'must match');
-assert_err(@() piesos_poslpivar(prog,1,{'s1'},[0 1],1,1,struct('psatz',1,'otype',[2 2])),...
+%assert_err(@() piesos_poslpivar(prog,1,{'s1'},[0 1],1,1,struct('psatz',1,'otype',[2 2])),...   % DJ (CC), 11/10/2026 (was)
+%    'currently not supported');                                            % DJ (CC), 11/10/2026 (was)
+% otype(1)=2 supports a numeric psatz (see Test_piesos_tensor_gram), not a logical one
+piesos_poslpivar(prog,1,{'s1'},[0 1],1,1,struct('psatz',1,'otype',[2 2]));  % DJ (CC), 11/10/2026
+assert_err(@() piesos_poslpivar(prog,1,{'s1'},[0 1],1,1,struct('psatz',true(2,1),'otype',[2 2])),...   % DJ (CC), 11/10/2026
     'currently not supported');
 % Wrong sizes are rejected by monopmat
 assert_err(@() piesos_poslpivar(prog,[1;1],{'s1'},[0 1],1,1,struct()),'');
