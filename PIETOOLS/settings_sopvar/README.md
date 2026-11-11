@@ -118,6 +118,11 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   DEMO14 sets `dw` 1 itself and reaches the finite-element value 4.165 at `w = 1` (93,845 variables);
   with the floor it would have 169,325.
 
+  The entry for three or more variables is 0: on the Volterra row in 3-D (ASU Sol, 16 cores, 11/10/2026),
+  the floor moves 1.000015 to 1.000004 at 2.5 times the variables (1,892,800 → 4,702,425), 6.7 times the
+  solve time (1,446 → 9,715 s) and 3.4 times the peak memory (14.7 → 49.1 GB). The heat rows were not run
+  in 3-D: the projected Schur complement is 180 GB at the rule and 405 GB with the floor.
+
 ## Measured cost and value (10/28/2026, MOSEK 11.0.30, this workstation)
 
 Plants, each with an exact answer:
