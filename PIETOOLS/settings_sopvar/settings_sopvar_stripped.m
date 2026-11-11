@@ -220,7 +220,7 @@ st.sos_opts = struct('simplify',0);
 % and one full-integral basis, separable in every direction, of degree
 % LF_int in each variable and 2*LF_int in total; the margin and decay rate
 % of section 3.
-st.settings_nd = struct('LF_int',1,'LF_mult',0);
+st.settings_nd = struct('LF_int',0,'LF_mult',0);
 
 %% 5. Options of the container executives: st.sop (EXEC_SOP_SETTINGS)
 % A vector holds the entries for 1, 2, and 3 or more spatial variables; a
