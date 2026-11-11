@@ -89,6 +89,13 @@ function C = mtimes(A,B)
 %                  expandCommonFullIntegrals_SD, kronSub2ind_SS into
 %                  kronPermutationMatrix_SS, each with its header as the
 %                  comment of the block.
+% DJ, 11/10/2026: The decision data of the left factor is no longer
+%                  mapped onto all nRowsC*nColsL columns before the
+%                  assembly. Only the columns reached from a
+%                  nonzero column of B are formed, and the rows of
+%                  kron(MR,I) on those are gathered from MR.'. Same
+%                  triplets as before. Replaces the kron(MR,speye(nRowsC))
+%                  form of the decision coefficient (MMP, 09/22/2026, (2)).
 
 
 % dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
@@ -519,10 +526,12 @@ end
 
 CB_barL = {speye(qLbar*nBarL)};
 
-[Cvarsout,CZL,CLtemp_betab] = ...
-    leftShiftMonomials_SD( ...
-        varLtemp,ZLtemp,CLtemp, ...
-        vs3a,barZ_3aL,CB_barL);
+% Field B of CLtemp_betab is returned unmapped, and TLtemp{1} is            % DJ (CC), 11/10/2026
+% applied to its nonzero columns only, below, not to all of them.
+%[Cvarsout,CZL,CLtemp_betab] = leftShiftMonomials_SD( ...                   % DJ (CC), 11/10/2026 (was)
+%    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,CB_barL);                         
+[Cvarsout,CZL,CLtemp_betab,TLtemp] = leftShiftMonomials_SD( ...             % DJ (CC), 11/10/2026
+     varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,CB_barL);                                             
 CRtemp_row = CRtemp.';
 qRbar = size(CRtemp_row{1},2);
 
@@ -560,6 +569,22 @@ Cparams.B = repmat( ...
 
 nMid = A.dims(2);
 
+% For B_L = B*TLtemp{1}.', only the columns that TLtemp{1} reaches from a   % DJ (CC), 11/10/2026
+% nonzero column of B can hold data. Keep those as BLc{j}, the position 
+% (c,l) of each in crow, lrow: column c+nRowsC*(l-1) of B_L.
+BLc  = cell(size(beta_b,1),1);                                              % DJ (CC), 11/10/2026 (start)
+lrow = cell(size(BLc));
+crow = cell(size(BLc));
+for j = 1:size(beta_b,1)
+    nzB = find(any(CLtemp_betab{j}.B,1));
+    [ti,tj,tv] = find(TLtemp{1}(:,nzB));
+    [rr,~,ri] = unique(ti(:));
+    BLc{j} = CLtemp_betab{j}.B(:,nzB) ...
+           *sparse(ri,tj(:),tv(:),numel(rr),numel(nzB)).';
+    lrow{j} = ceil(rr/nRowsC);
+    crow{j} = rr-nRowsC*(lrow{j}-1);
+end                                                                         % DJ (CC), 11/10/2026 (end)
+
 % Assemble each cell gamma of C as the sum over (beta_b, alpha_a) of
 % L_j * (I_nMid kron M_{gamma,j,k}) * R_k, with L_j the affine left factor,
 % M the vs3a coefficient table and R_k the right factor
@@ -590,8 +615,11 @@ for igamma = 1:numel(Cparams.A)
         % vec(L*MR) = (MR' kron I)*vec(L) directly and never form the kron. % MMP, 09/22/2026
         Lmat = reshape(Lparam.A,nRowsC,nColsL);                             % MMP, 09/22/2026
 
+%       if size(Lparam.B,1) ~= nDecision || ...
+%               size(Lparam.B,2) ~= numel(Lparam.A)                         % DJ (CC), 11/10/2026 (was)
         if size(Lparam.B,1) ~= nDecision || ...
-                size(Lparam.B,2) ~= numel(Lparam.A)
+                size(Lparam.B,2) ~= size(TLtemp{1},2) || ...
+                size(TLtemp{1},1) ~= numel(Lparam.A)                        % DJ (CC), 11/10/2026
             error('mtimes:leftAffineDimensions', ...
                 'The left affine decision data has inconsistent dimensions.');
         end
@@ -636,7 +664,20 @@ for igamma = 1:numel(Cparams.A)
 
             % kron(MR,I) is kron(MR.',I).', so it is built in that form     % MMP, 09/22/2026
             % directly and the transpose of a q-column sparse is avoided.   % MMP, 09/22/2026
-            [bi,bj,bv] = find(Lparam.B*kron(MR,speye(nRowsC)));             % MMP, 09/22/2026
+%           [bi,bj,bv] = find(Lparam.B*kron(MR,speye(nRowsC)));             % DJ (CC), 11/10/2026 (was)
+            % Compute the product B_L*kron(MR,I) only for the retained      % DJ (CC), 11/10/2026
+            % columns. The kronecker product kron(MR,I) is not formed,
+            % row (c,l) of kron(MR,I) is row l of MR at column 
+            % c+nRowsC*(c'-1), gathered from MR.';
+            if isempty(lrow{j})                                             % DJ (CC), 11/10/2026 (start)
+                continue
+            end
+            MRt = MR.';
+            [cc,pp,vv] = find(MRt(:,lrow{j}));
+            % find returns rows if size(MR,2) = 1: force columns
+            cc = cc(:);  pp = pp(:);  vv = vv(:);
+            [bi,bj,bv] = find(BLc{j}*sparse(pp,crow{j}(pp)+nRowsC*(cc-1), ...
+                                            vv,numel(lrow{j}),nCoefC));     % DJ (CC), 11/10/2026 (end)
             nAcc = nAcc+1;                                                  % MMP, 09/22/2026
             accI{nAcc} = bi(:);     accJ{nAcc} = bj(:);                     % MMP, 09/22/2026
             accV{nAcc} = bv(:);                                             % MMP, 09/22/2026
