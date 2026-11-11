@@ -78,7 +78,14 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                                counterpart of the certificate;
 %                 N_cheb, nfreq  double, its Legendre degree (24; 32 at
 %                                veryheavy) and number of frequencies (240;
-%                                480 at veryheavy).
+%                                480 at veryheavy);
+%               lpi        'struct' with field ineq, the options of
+%                          LPI_INEQ_SOP: dD 1 and dw 1, added to the lift and
+%                          weight degrees read from the support, and wmin,
+%                          the least weight degree when the support is read
+%                          from the target itself, one entry per dimension:
+%                          [2 2 0] (light, heavy, veryheavy, custom), 0
+%                          (stripped, extreme).
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -130,6 +137,8 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                from it. The tiers set one margin eppos, 1e-4; help text
 %                updated (eppos_stab, eppos2 and the 2-D and N-D margins
 %                removed).
+% MMP, 11/10/2026: Help text: the field lpi, the options of LPI_INEQ_SOP
+%                that every tier now sets (st.lpi.ineq). Code unchanged.
 
 % Admissible values and defaults of the inputs
 arguments

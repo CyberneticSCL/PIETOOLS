@@ -174,7 +174,11 @@ program it returns equals the routine's own program field by field (test_lpi_eq_
 The degrees come from the lower-kernel support of `P` per direction (`Dmin`, `Dmax`, the
 multiplier degree): lift `D = Dmin + dD`, weight `w = max(ceil((Dmax - D - 1)/2), ceil(Mdeg/2), 0) +
 dw`, defaults `dD = dw = 1` (the heat benchmark needs both, `PIETOOLS_demos/sopvar_demos/README.md`
-Sec. 12); terms `'auto'`: 1-D the plain term at `w` and the product at `w - 1` (the Markov-Lukacs
+Sec. 12). Read from `P` itself, `w` is at least `wmin`, 2 in 1-D and 2-D (11/10/2026: the Poincaré LPI
+of DEMO3 returned 1.218/pi at `w = 1` and 1.00002/pi at `w = 2`). The defaults of `dD`, `dw` and `wmin`
+are `lpi.ineq` of the default settings tier (`settings_sopvar/README.md`); `opts` may be a settings
+structure, and a call that sets `dw` and not `wmin` keeps `w = reach + dw`. Terms `'auto'`: 1-D the
+plain term at `w` and the product at `w - 1` (the Markov-Lukacs
 pair), N-D the plain term at `w` and the `2N` faces at `w - 1` when every weight is at least 2, at
 `w` otherwise (changed 10/08/2026, see below); `opts.deg` bypasses the reader; `opts.like` reads
 the support of another operator instead, or of a cell of them, pooled. Without `opts.like` and

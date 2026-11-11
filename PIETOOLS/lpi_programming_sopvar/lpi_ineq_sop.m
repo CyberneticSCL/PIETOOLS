@@ -26,10 +26,19 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %          positive; for a 'copvar' P the constraint certifies P >= 0. A
 %          'dpvar' or 'polynomial' P goes to SOSINEQ; any other class is
 %          an error;
-% - opts:  (optional) 'struct' with the optional fields
+% - opts:  (optional) 'struct' with the optional fields below, or a
+%          settings structure (LPISETTINGS_SOP), of which only lpi.ineq is
+%          read; dD, dw and wmin not given are those of
+%          lpisettings_sop().lpi.ineq (tier 'light'), whose vectors hold
+%          the entries for 1, 2, and 3 or more variables:
 %            dD, dw        double, added to the lift degree and to the
 %                          weight degree read from the support (default
 %                          1, 1);
+%            wmin          double, the least weight degree when the
+%                          support is read from P itself, not from
+%                          opts.like (default 2 in one and two variables,
+%                          0 in three or more; 0 when opts.dw is given and
+%                          opts.wmin is not);
 %            wR            double, the weight degree on an R^q space
 %                          (default 0);
 %            psatz         the terms of Pop: 'auto' (default; in one
@@ -95,7 +104,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                        rows), the terms of Pop;
 %            degrees     'struct' of the degrees read from the support,
 %                        with fields Dmin, Dmax, Mdeg, J, D, w, wR, dD, dw,
-%                        nv, M, vars, isR (GET_LIFT_DEGS), or
+%                        wmin, nv, M, vars, isR (GET_LIFT_DEGS), or
 %                        struct('given',true) with opts.deg;
 %            include     1 x M cell, entry k the multi-index rows of the
 %                        basis operators kept on space k ([] when not
@@ -193,6 +202,16 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
 %                opts.cap note tightened, a (was) comment line removed; code
 %                unchanged.
+% MMP, 11/10/2026: The degree options from the settings tiers (maintainer,
+%                11/10/2026: "settings files should have the knobs used in
+%                lpi_programming, especially lpi_ineq"): OPTS may be a
+%                settings structure, whose lpi.ineq is read, and dD, dw,
+%                wmin not given come from the default tier. wmin is the
+%                least weight degree read from P itself (GET_LIFT_DEGS):
+%                with w = reach + 1 alone the Poincare LPI of DEMO3 returned
+%                1.218/pi, with w >= 2 1.00002/pi. A call that sets dw keeps
+%                w = reach + dw (maintainer, 11/10/2026). Sizing from
+%                opts.like or opts.deg is unchanged.
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -222,6 +241,22 @@ end
 if ~isequal(P.space_out,P.space_in) || ~isequal(P.dim_out(:),P.dim_in(:))
     error('lpi_ineq_sop:square',"P must be square: the same spaces on both sides.")
 end
+
+% % % BEGIN MMP, 11/10/2026. The degree options from the settings tiers: a
+% settings structure passes its lpi.ineq; dD, dw, wmin not given are the
+% default tier's (LPISETTINGS_SOP, 'light'). A tier vector holds the
+% entries for 1, 2, and 3 or more variables. wmin comes only with dw: a
+% call that sets dw keeps w = reach + dw.
+if isfield(opts,'lpi'),     tier = opts.lpi.ineq;   opts = struct();
+else,                       tier = lpisettings_sop().lpi.ineq;
+end
+pick = @(v) v(min(max(numel(P.vars),1),end));
+if ~isfield(opts,'dD') || isempty(opts.dD),     opts.dD = pick(tier.dD);    end
+if ~isfield(opts,'dw') || isempty(opts.dw)
+    opts.dw = pick(tier.dw);
+    if ~isfield(opts,'wmin') || isempty(opts.wmin),     opts.wmin = pick(tier.wmin);    end
+end
+% % % END MMP, 11/10/2026
 
 % % % Spaces, as poscopvar takes them.
 [sp,dm] = copvar_space_list(P,'out');
@@ -265,6 +300,7 @@ if isfield(opts,'deg') && ~isempty(opts.deg)
         end
     else
         ro = opts;  ro.deg = [];
+        ro.wmin = [];   % the terms of a given deg without the floor, as before % MMP, 11/10/2026
         [~,t0,~] = get_lift_degs(P,ro);     codes = t0.codes;   offs = t0.offsets;
     end
     terms = struct('codes',codes,'offsets',offs);

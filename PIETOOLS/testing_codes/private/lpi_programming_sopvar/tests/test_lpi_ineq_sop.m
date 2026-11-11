@@ -24,8 +24,8 @@ function test_lpi_ineq_sop
 %   (5) none since 11/08/2026: it compared LPI_INEQ_SOP with LPI_INEQ on a
 %       'dopvar' of POSLPIVAR, all three retired;
 %   (6) opts.like = Pt'*Pt gives the lift and weight that GET_LIFT_DEGS
-%       reads from Pt'*Pt, with more decision variables than the default,
-%       and a 'double' opts.like is refused;
+%       reads from Pt'*Pt, with more decision variables than Pt read by
+%       the same rule (opts.wmin = 0), and a 'double' opts.like is refused;
 %   (7) for X1 = -(T'*P1*A0 + A0'*P1*T) and X1 - T'*P2*T on the PIE of
 %       (2), P1 and P2 of POSCOPVAR at degrees 2 and 3: info.ndec equals
 %       the growth of prog.decvartable in the five calls of (7), and
@@ -34,7 +34,11 @@ function test_lpi_ineq_sop
 %       the degrees and decision variables of opts.like = P1, and from X1
 %       itself, with more decision variables, without prog.sop_pos;
 %       X1 - T'*P2*T is sized from P1 and P2, with the degrees and decision
-%       variables of opts.like = {P1,P2}.
+%       variables of opts.like = {P1,P2};
+%   (8) the weight degree of Pt (reach 0) is 2 by default (the floor wmin
+%       of the default tier), 1 with opts.dw = 1, 2 with opts.dw = 1 and
+%       opts.wmin = 2, 1 with the settings structure of tier 'stripped'
+%       and 2 with that of tier 'heavy'.
 %
 % INPUT
 % none.
@@ -85,6 +89,11 @@ function test_lpi_ineq_sop
 %                POSLPIVAR (10/08/2026), deleted: the three are retired
 %                (cleaning/private), and the branch of lpi_ineq_sop it
 %                exercised now raises lpi_ineq_sop:class.
+% MMP, 11/10/2026: Part (8), the degree options of the settings tiers and
+%                the weight floor wmin (lpi_ineq_sop, get_lift_degs). Part
+%                (6) compares opts.like with Pt at the rule (wmin 0): the
+%                default Pop of (1) now has the floor w >= 2, larger than
+%                the certificate sized from Pt'*Pt (114 against 99 names).
 
 % Silence the canonical-form warnings; MOSEK, else SeDuMi; the pass count
 warning('off','sopvar:noncanonicalMultiplier');
@@ -192,7 +201,11 @@ npass = npass+1;
 Pq = Pt'*Pt;                                % a larger support than Pt's
 [~,~,iq] = get_lift_degs(Pq);
 [~,Pl,il] = lpi_ineq_sop(prog,Pt,struct('like',Pq));
-if ~(isequal(il.degrees.D,iq.D) && isequal(il.degrees.w,iq.w) && numel(Pl.Zd)>numel(Pop.Zd))
+% if ~(isequal(il.degrees.D,iq.D) && isequal(il.degrees.w,iq.w) && numel(Pl.Zd)>numel(Pop.Zd)) % MMP, 11/10/2026 (was)
+% Pt read by the same rule (wmin 0): the default Pop of (1) has the floor   % MMP, 11/10/2026
+% w >= 2 of the default tier, which opts.like does not get                  % MMP, 11/10/2026
+[~,Pr] = lpi_ineq_sop(prog,Pt,struct('wmin',0));                            % MMP, 11/10/2026
+if ~(isequal(il.degrees.D,iq.D) && isequal(il.degrees.w,iq.w) && numel(Pl.Zd)>numel(Pr.Zd)) % MMP, 11/10/2026
     error('test_lpi_ineq_sop: (6) ''like'' should size P from the support of the given operator.');
 end
 % A 'double' opts.like is refused
@@ -203,8 +216,10 @@ end
 if isempty(e6)
     error('test_lpi_ineq_sop: (6) a non-container ''like'' should be refused.');
 end
-fprintf('  passed: (6) like: lift %s weight %s from the given operator (own %s %s), ndec %d > %d; non-container refused\n',...
-        mat2str(il.degrees.D),mat2str(il.degrees.w),mat2str(inf1.degrees.D),mat2str(inf1.degrees.w),numel(Pl.Zd),numel(Pop.Zd));
+% fprintf('  passed: (6) like: lift %s weight %s from the given operator (own %s %s), ndec %d > %d; non-container refused\n',...
+%         mat2str(il.degrees.D),mat2str(il.degrees.w),mat2str(inf1.degrees.D),mat2str(inf1.degrees.w),numel(Pl.Zd),numel(Pop.Zd)); % MMP, 11/10/2026 (was)
+fprintf('  passed: (6) like: lift %s weight %s from the given operator (own %s %s), ndec %d > %d at the rule; non-container refused\n',...
+        mat2str(il.degrees.D),mat2str(il.degrees.w),mat2str(inf1.degrees.D),mat2str(inf1.degrees.w),numel(Pl.Zd),numel(Pr.Zd)); % MMP, 11/10/2026
 npass = npass+1;
 
 %% (7) the count before the build; the support of poscopvar's operators     % MMP, 10/21/2026
@@ -251,6 +266,25 @@ end
 fprintf('  passed: (7) counted = declared %s; from P1 %d (= like %d) against %d from the target; from P1, P2 %d (= like %d)\n',...
         mat2str(nd),i7a.ndec,i7b.ndec,i7c.ndec,i7d.ndec,i7e.ndec);
 npass = npass+1;
+
+%% (8) the degree options of the settings tiers; the weight floor wmin      % MMP, 11/10/2026
+% Pt of (1) read from itself: reach weight 0, so w = 1 under the rule       % MMP, 11/10/2026
+% w = reach + dw. The default tier floors w at 2 (inf1 of (1)); a call that % MMP, 11/10/2026
+% sets dw keeps w = reach + dw; wmin with dw restores the floor; a settings % MMP, 11/10/2026
+% structure passes its lpi.ineq: stripped no floor, heavy w >= 2. opts.like % MMP, 11/10/2026
+% is never floored: (6) compares il with GET_LIFT_DEGS at wmin 0.           % MMP, 11/10/2026
+prog8 = lpiprogram(polynomial({'s1'}),[],[0 1]);                            % MMP, 11/10/2026
+[~,~,i8a] = lpi_ineq_sop(prog8,Pt,struct('dw',1));                          % MMP, 11/10/2026
+[~,~,i8b] = lpi_ineq_sop(prog8,Pt,struct('dw',1,'wmin',2));                 % MMP, 11/10/2026
+[~,~,i8c] = lpi_ineq_sop(prog8,Pt,lpisettings_sop('stripped'));             % MMP, 11/10/2026
+[~,~,i8d] = lpi_ineq_sop(prog8,Pt,lpisettings_sop('heavy'));                % MMP, 11/10/2026
+w8 = [inf1.degrees.w, i8a.degrees.w, i8b.degrees.w, i8c.degrees.w, i8d.degrees.w]; % MMP, 11/10/2026
+if ~isequal(w8,[2 1 2 1 2])                                                 % MMP, 11/10/2026
+    error('test_lpi_ineq_sop: (8) weights %s, expected [2 1 2 1 2] (tier, dw 1, dw 1 + wmin 2, stripped, heavy).',mat2str(w8)); % MMP, 11/10/2026
+end                                                                         % MMP, 11/10/2026
+fprintf('  passed: (8) weight: tier %d, dw 1 %d, dw 1 + wmin 2 %d, stripped %d, heavy %d; ndec %d at w 2, %d at w 1\n',...
+        w8,inf1.ndec,i8a.ndec);                                             % MMP, 11/10/2026
+npass = npass+1;                                                            % MMP, 11/10/2026
 
 % The summary line
 fprintf('\ntest_lpi_ineq_sop passed (%d checks).\n',npass);

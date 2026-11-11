@@ -31,7 +31,8 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   separable full integral of degree 1 per space.
 - **Layout of a tier file** (11/09/2026), the same in every tier, so that `diff` of two tier files shows
   their values: (1) one spatial variable, (2) two (`settings_2d`), (3) the margin, decay rate and
-  solver, (4) three or more (`settings_nd`), (5) the executive options (`sop`). Each section names the function
+  solver, (4) three or more (`settings_nd`), (5) the executive options (`sop`), (6) the options of
+  `lpi_ineq_sop` (`lpi.ineq`, 11/10/2026). Each section names the function
   that reads its fields. The fields of the `'stock'` slack mode are marked, as are `opts`, `ineq_opts`
   and `Zop_opts`, which no container executive reads. As in the stock settings files, `sosineq_on` and
   `use_sosineq` are read from the base workspace when they exist there; they change only the fields of
@@ -96,6 +97,26 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   - The stability defaults take the tier's margin in every dimension (were eppos 1e-4, eppos2 1e-6
     in 1-D, and 1e-2 in 2-D).
 - Every tier: `slack` 'like', `margin` 0; MOSEK when installed, else SeDuMi; `simplify` off.
+- **lpi.ineq** (11/10/2026): the options of `lpi_ineq_sop` in a hand-written LPI. `dD` 1 and `dw` 1 are the
+  offsets of the lift and weight degrees over the support of the target (`get_lift_degs`); `wmin` is the
+  least weight degree when the support is read from the target itself (no `opts.like`): `[2 2 0]` at
+  light, heavy, veryheavy and custom, 0 at stripped and extreme. `lpi_ineq_sop` takes every field a call
+  leaves unset from the default tier (light), or all three from the `lpi.ineq` of a settings structure
+  passed as `opts`; a call that sets `dw` and not `wmin` gets no floor. The executives size from
+  `opts.like` and are unchanged. With `w = reach + dw` alone, a target whose support needs `w = 0` gets
+  `w = 1`. gamma/gamma* (1 is exact), MOSEK, this workstation, 11/10/2026:
+
+  | LPI (exact value) | 1-D rule → floor | 2-D rule → floor (variables; solve) |
+  |---|---|---|
+  | DEMO3: Poincaré constant (1/pi) | 1.218 → 1.00002 | – |
+  | heat: min gam, gam*S - T'*T >= 0, S = -(T'*A0 + A0'*T)/2 (1/lambda_1) | 1.483 → 1.000032 | 1.135 → 1.000025 (103,680 → 187,920; 2.6 → 11.9 s) |
+  | heat: min gam, gam - T'*T >= 0 (norm of T squared) | 1.104 → 1.000001 | 1.000253 → 1.000002 (109,520 → 198,505; 2.3 → 7.4 s) |
+  | Volterra: min gam, gam - T'*T >= 0 ((2/pi)^(2N)) | 1.000580 → 1.000000 | 1.000008 → 1.000002 (23,120 → 41,905; 0.3 → 1.0 s) |
+
+  The heat rows use the `heatNd` PIE (`testing_codes/private/PIETOOLS_demos/sopvar_demos`). In 1-D, the
+  faces at `w = 1` reach only 1.174 on the first heat row, so that class needs the weight, not more terms.
+  DEMO14 sets `dw` 1 itself and reaches the finite-element value 4.165 at `w = 1` (93,845 variables);
+  with the floor it would have 169,325.
 
 ## Measured cost and value (10/28/2026, MOSEK 11.0.30, this workstation)
 
@@ -188,7 +209,8 @@ The runs above changed three of the recommendations:
 ## Not settings
 
 The functions size these, and the tiers leave them alone: the support the slack is sized from ('like',
-passed by the executives), the lift and weight rule and dD (`get_lift_degs`), the term set ('auto': plain
+passed by the executives), the lift and weight rule (`get_lift_degs`; its offsets and floor for
+hand-written LPIs are `lpi.ineq` since 11/10/2026), the term set ('auto': plain
 + product at w-1 in 1-D, plain + faces at w-1 in N-D), the zero-diagonal prune, the construction route
 (`poscopvar_direct`) and its cache. `margin` changes the certified statement and stays 0; `gam_fixed` is
 per call; `verbose` is printing.

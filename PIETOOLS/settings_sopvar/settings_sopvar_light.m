@@ -33,7 +33,9 @@ function st = settings_sopvar_light()
 %           sop           'struct', the options of the container executives:
 %                         slack, dw_feas, dw_P, dw_Q, max_raise_feas,
 %                         max_raise, cap_delta, margin, keepdual,
-%                         witness, N_cheb, nfreq.
+%                         witness, N_cheb, nfreq;
+%           lpi           'struct' with field ineq, the degree options of
+%                         LPI_INEQ_SOP: dD, dw, wmin.
 %         The body gives the value of each field and what it does.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -90,6 +92,10 @@ function st = settings_sopvar_light()
 %                1e-4, the former 1-D value: the margin in two or more
 %                variables, and in stability and well-posedness, falls from
 %                1e-2 (README, measurements of 11/09/2026).
+% MMP, 11/10/2026: st.lpi.ineq, the degree options of LPI_INEQ_SOP (dD 1,
+%                dw 1, wmin [2 2 0]; maintainer, 11/10/2026: "settings files
+%                should have the knobs used in lpi_programming, especially
+%                lpi_ineq").
 
 % BEGIN MMP, 11/09/2026: body reorganized, one margin and decay rate (header)
 
@@ -237,4 +243,13 @@ st.sop = struct( ...
     'N_cheb',24, ...                its Legendre degree
     'nfreq',240);                   % its number of frequencies
 % END MMP, 11/09/2026
+
+%% 6. Options of LPI_INEQ_SOP: st.lpi.ineq                                  % MMP, 11/10/2026
+% The certificate of P >= 0 in a hand-written LPI: lift degree Dmin + dD    % MMP, 11/10/2026
+% and weight degree reach + dw over the support of P (GET_LIFT_DEGS), at    % MMP, 11/10/2026
+% least wmin when read from P itself (no opts.like). wmin 2: with dw alone  % MMP, 11/10/2026
+% the Poincare LPI of DEMO3 is 22% above 1/pi, at w = 2 within 2e-5         % MMP, 11/10/2026
+% (README). A vector holds the entries for 1, 2, and 3 or more variables;   % MMP, 11/10/2026
+% a call that sets dw and not wmin gets no floor (LPI_INEQ_SOP).            % MMP, 11/10/2026
+st.lpi.ineq = struct('dD',1,'dw',1,'wmin',[2 2 0]);                         % MMP, 11/10/2026
 end

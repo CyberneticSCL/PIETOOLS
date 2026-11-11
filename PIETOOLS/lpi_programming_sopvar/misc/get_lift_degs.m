@@ -23,7 +23,10 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % weight degree that reaches the support plus OPTS.dw,
 %
 %   w_d = max(ceil((Dmax_d-D_d-1)/2), ceil(Mdeg_d/2), J_d-D_d-wR-1, 0)
-%         + OPTS.dw.
+%         + OPTS.dw,
+%
+% raised to OPTS.wmin when the support is read from P itself (no
+% OPTS.like).
 %
 % INPUT
 % - P:     'cdopvar' or 'copvar' object, square (the same output and input
@@ -32,6 +35,8 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % - opts:  (optional) 'struct' with the optional fields
 %            dD, dw        double, added to Dmin_d and to the weight rule
 %                          (default 1, 1);
+%            wmin          double, the least weight degree when the support
+%                          is read from P itself (default 0: none);
 %            wR            double, the weight degree of an R^q space
 %                          (default 0, the identity basis);
 %            psatz         the terms: 'auto' (default; in one variable the
@@ -67,7 +72,7 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %          lower cells, i over multiplier and one-sided cells; -1 where
 %          unseen; the per-direction cap theta_d + s_d a lift basis needs
 %          to carry the operator read, as heatNd_lpi 'Tspan' reads it from
-%          T), wR, dD, dw, nv, M (double), vars (1 x nv cellstr, the
+%          T), wR, dD, dw, wmin, nv, M (double), vars (1 x nv cellstr, the
 %          registry) and isR (1 x M logical, true for an R^q space).
 %
 % NOTES
@@ -132,12 +137,21 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                See also names GET_LPIVAR_DEGS_SOP; code unchanged.
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
 %                local CELL_PARAMS inlined at the cell count of a block.
+% MMP, 11/10/2026: opts.wmin, the least weight degree when the support is
+%                read from P itself (no opts.like), set by LPI_INEQ_SOP from
+%                the settings tiers (st.lpi.ineq). With w = reach + dw
+%                alone, a fixed target whose support needs w = 0 got w = 1:
+%                the Poincare LPI of DEMO3 returned 1.218/pi, w = 2 gives
+%                1.00002/pi (settings_sopvar/README). Sizing from opts.like
+%                is unchanged; info.wmin.
 
 % Options; the defaults of dD, dw and wR
 if nargin<2 || isempty(opts),   opts = struct();    end
 dD = 1;     if isfield(opts,'dD') && ~isempty(opts.dD),     dD = opts.dD;   end
 dw = 1;     if isfield(opts,'dw') && ~isempty(opts.dw),     dw = opts.dw;   end
 wR = 0;     if isfield(opts,'wR') && ~isempty(opts.wR),     wR = opts.wR;   end
+% wmin: the least weight degree read from P itself (default 0, none)        % MMP, 11/10/2026
+wmin = 0;   if isfield(opts,'wmin') && ~isempty(opts.wmin), wmin = opts.wmin;   end % MMP, 11/10/2026
 
 % % % Blocks and spaces
 if isa(P,'sdopvar') || isa(P,'sopvar')
@@ -261,6 +275,9 @@ end
 % % % The rule
 D = Dmin + dD;
 w = max([ceil((Dmax-D-1)/2); ceil(Mdeg/2); J-D-wR-1; zeros(1,nv)],[],1) + dw;
+% Read from P itself, at least wmin: with dw alone a fixed target whose     % MMP, 11/10/2026
+% support needs w = 0 got w = 1 (DEMO3: 1.218/pi; w = 2: 1.00002/pi)        % MMP, 11/10/2026
+if ~(isfield(opts,'like') && ~isempty(opts.like)),  w = max(w,wmin);  end   % MMP, 11/10/2026
 % Per space: w and the lift D in its own directions, or wR on R^q
 deg = cell(1,M);
 for k = 1:M
@@ -301,8 +318,10 @@ end
 terms = struct('codes',codes,'offsets',offs);
 % info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'D',D,'w',w,'wR',wR,'dD',dD,'dw',dw,...
 %               'nv',nv,'M',M,'vars',{vars},'isR',isR);                     % MMP, 10/29/2026 (was)
+% info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'Jmax',Jmax,'D',D,'w',w,'wR',wR,...
+%               'dD',dD,'dw',dw,'nv',nv,'M',M,'vars',{vars},'isR',isR);     % MMP, 11/10/2026 (was)
 info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'Jmax',Jmax,'D',D,'w',w,'wR',wR,...
-              'dD',dD,'dw',dw,'nv',nv,'M',M,'vars',{vars},'isR',isR);       % MMP, 10/29/2026
+              'dD',dD,'dw',dw,'wmin',wmin,'nv',nv,'M',M,'vars',{vars},'isR',isR); % MMP, 11/10/2026
 
 end
 
