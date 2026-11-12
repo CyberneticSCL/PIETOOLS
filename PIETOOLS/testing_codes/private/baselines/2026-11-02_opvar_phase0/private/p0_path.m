@@ -18,6 +18,12 @@ function info = p0_path()
 % 1-2: p0_eb5d0600, passes 3-4: p0_c81c3d04, the default). An error is
 % raised when a name used by the fixtures resolves to more than one file,
 % or first to a file outside the export.
+%
+% MMP, 11/08/2026: apply_opvar, convert_PIETOOLS_PDE_sopvar and pie2opvar
+% may resolve to no file. f83486c8 retired apply_opvar with opvar/ and
+% 6757b6d3 the two converters, so every run on a later export stopped
+% here. Where an export has them (older commits), each must still resolve
+% once, inside it.
 ROOT = getenv('P0_ROOT');
 if isempty(ROOT),   ROOT = 'C:\Users\mpeet\wt\p0_c81c3d04';     end
 if ~exist(fullfile(ROOT,'P0_COMMIT.txt'),'file')
@@ -44,6 +50,11 @@ for k = 1:numel(names)
     w = w(endsWith(w,'.m') & ~contains(w,'Shadowed'));
     if strcmp(names{k},'convert')
         ok = any(contains(w,'@pde_struct')) && all(startsWith(w,ROOT));
+    elseif isempty(w) && any(strcmp(names{k},{'apply_opvar', ...
+            'convert_PIETOOLS_PDE_sopvar','pie2opvar'}))                    % MMP, 11/08/2026
+        % Retired (apply_opvar by f83486c8, the converters by 6757b6d3);    % MMP, 11/08/2026
+        % older exports still have them and take the else branch            % MMP, 11/08/2026
+        ok = true;                                                          % MMP, 11/08/2026
     else
         ok = numel(w)==1 && startsWith(w{1},ROOT);
     end

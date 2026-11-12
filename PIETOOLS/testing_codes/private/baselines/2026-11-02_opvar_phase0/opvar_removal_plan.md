@@ -766,7 +766,8 @@ README rather than being deleted.
   cleaning/private"), ahead of decisions 2, 5 and 6: `opvar/`, `lpi_programming/` and `executives/` are in
   `cleaning/private/<folder>/`. `settings/` followed later on 11/08 (maintainer: "Move it now"; Repo
   cleanup session): every caller on the path now calls `lpisettings_sop`, whose tiers read copies of
-  the presets they use in `settings_sopvar/private/` (with an `extreme` tier), and the 13 files are in
+  the presets they use in `settings_sopvar/private/` (with an `extreme` tier; merged into the tier
+  files 11/09/2026, maintainer: "merge them"), and the 13 files are in
   `cleaning/private/settings/`; measured there, `lpisettings_sop` returns the same structure for every
   old tier (0 of 16 calls differ) and `test_executives_sop` passes 19 of 19. `orphaned_file/needed/`
   holds no code. `closedLoopPIE` is in `executives_sopvar/utility_functions/` (DEMO12 runs,
