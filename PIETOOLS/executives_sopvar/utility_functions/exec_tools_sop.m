@@ -12,27 +12,26 @@ function tl = exec_tools_sop(PIE,st)
 %         'copvar' object or 0 (absent), in any number nv >= 1 of
 %         variables;
 % - st:   'struct' of LPI settings, completed by EXEC_SOP_SETTINGS:
-%           1-D  eppos, eppos2, epneg, ddZ (each optional), and the degree
-%                fields of POSLPIVAR_SETTINGS_SOP;
+%           1-D  eppos, eppos2, epneg (each optional), lpi.var.deg{1}, the
+%                degrees of a free operator, and lpi.pos, the positive
+%                operator of POSLPIVAR_SETTINGS_SOP;
 %           2-D  settings_2d, read by SETTINGS_2D_SOP and
 %                POSLPIVAR_SETTINGS_2D_SOP;
-%           N-D  (nv >= 3) settings_nd (optional), a 'struct' with the
+%           N-D  (nv >= 3) lpi.pos and lpi.var, entry 3: the positive
+%                operator on a space in d >= 1 variables, the multiplier
+%                basis operator (alpha = 1 in every direction) of degree
+%                mult and the full-integral one (alpha = 4, separable in
+%                every direction) with caps int in each variable and joint
+%                in total, the rule of the stock light 2-D storage, the
+%                identity basis on R^n; lpi.var.deg{3}, the degree of a free
+%                operator; and settings_nd (optional), a 'struct' with the
 %                optional fields
-%                  LF_int, LF_mult  the positive operator on a space in
-%                       d >= 1 variables: the multiplier basis operator
-%                       (alpha = 1 in every direction) of degree LF_mult
-%                       (default 0) and the full-integral one (alpha = 4,
-%                       separable in every direction) with caps LF_int in
-%                       each variable and 2*LF_int in total (default 1),
-%                       the rule of the stock light 2-D storage; the
-%                       identity basis on R^n;
 %                  LF_deg, LF_opts  instead, a POSCOPVAR degree
 %                       specification and its options;
 %                  LF_psatz  the term codes (default 0);
 %                  eppos  the margin on every space, or 2^nv margins as
 %                       for EYE below (default 1e-2);
-%                  epneg  (default the field epneg of ST, else 0);
-%                  Zop_deg  the degree of a free operator (default 1).
+%                  epneg  (default the field epneg of ST, else 0).
 %
 % OUTPUT
 % - tl:   'struct' with fields
@@ -69,10 +68,10 @@ function tl = exec_tools_sop(PIE,st)
 %                          identity 'copvar' on the output (SIDE 1) or input
 %                          (SIDE 2) space of the 'copvar' or 'cdopvar' Bop;
 %           zdeg           the degrees of a free operator for
-%                          LPIVAR_CDOPVAR: 1-D the settings' ddZ (default 1);
-%                          2-D a 'struct' with the largest entry of
+%                          LPIVAR_CDOPVAR: 1-D lpi.var.deg{1}; 2-D a
+%                          'struct' with the largest entry of
 %                          settings_2d.Zop_deg on every role; N-D the same
-%                          with settings_nd.Zop_deg;
+%                          with lpi.var.deg{3};
 %           sop            'struct', settings.sop with each per-dimension
 %                          vector (dw_feas, dw_P, dw_Q, max_raise,
 %                          max_raise_feas, cap_delta) reduced to its entry
@@ -175,6 +174,13 @@ function tl = exec_tools_sop(PIE,st)
 %                container result back to an opvar for output; no executive
 %                has called it since they return containers (11/04/2026),
 %                and its targets copvar2opvar, copvar2opvar2d are retired.
+% MMP, 11/12/2026: Native settings (maintainer, 11/12/2026: phase 2 of the
+%                knob reduction): Z in 1-D from lpi.var.deg{1}, the former
+%                ddZ; in N-D, LF_int, LF_mult and Zop_deg from lpi.pos and
+%                lpi.var, entry 3, the former settings_nd fields, with the
+%                total cap joint of lpi.pos in place of 2*LF_int (2*int in
+%                every tier, so the same P). settings_nd keeps LF_deg,
+%                LF_opts, LF_psatz, eppos and epneg.
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -182,8 +188,10 @@ vars = PIE.vars;
 vnames = reshape(vars(:,1).varname,1,[]);
 tl = struct('nv',nv,'S',[]);
 if nv==1
-    % 1-D: margins from eppos, eppos2, epneg; storage and slack from the    % MMP, 11/09/2026
-    % 1-D degree fields; Z degrees from ddZ                                 % MMP, 11/09/2026
+%   % 1-D: margins from eppos, eppos2, epneg; storage and slack from the    % MMP, 11/12/2026 (was); MMP, 11/09/2026
+%   % 1-D degree fields; Z degrees from ddZ                                 % MMP, 11/12/2026 (was); MMP, 11/09/2026
+    % 1-D: margins from eppos, eppos2, epneg; storage from lpi.pos, stock   % MMP, 11/12/2026
+    % slack from sop.stock (POSLPIVAR_SETTINGS_SOP); Z degrees from lpi.var % MMP, 11/12/2026
     tl.dom = PIE.dom;
     tl.eppos = [getf(st,'eppos',1e-4); getf(st,'eppos2',1e-6)];
     tl.epneg = getf(st,'epneg',0);
@@ -191,7 +199,8 @@ if nv==1
     tl.storage = @(prog,X,side) poslpivar_settings_sop(prog,X,st,'lf',side,PIE.dom);
     tl.slack   = @(prog,X) poslpivar_settings_sop(prog,X,st,'slack','out',PIE.dom);
 %   tl.toop    = @(C) copvar2opvar(C);                                      % MMP, 11/09/2026 (was)
-    tl.zdeg    = getf(st,'ddZ',1);
+%   tl.zdeg    = getf(st,'ddZ',1);                                          % MMP, 11/12/2026 (was)
+    tl.zdeg    = st.lpi.var.deg{1};     % the former ddZ                    % MMP, 11/12/2026
 elseif nv==2
     % 2-D: everything from settings_2d; one degree cap for Z                % MMP, 11/09/2026
     S = settings_2d_sop(st);
@@ -333,17 +342,23 @@ end
 
 function S = settings_nd(st)                                                % MMP, 10/29/2026
 % S = SETTINGS_ND(ST) returns the N-D settings of the container executives:
-% the fields of ST.settings_nd, each absent or empty one at its default.
-% INPUT  st: 'struct' of LPI settings, with the optional field settings_nd
-%            ('struct': LF_int, LF_mult, LF_deg, LF_opts, LF_psatz, eppos,
-%            epneg, Zop_deg).
-% OUTPUT S:  'struct' with fields LF_int (default 1), LF_mult (0), LF_deg
-%            ([]: the rule of LF_int, LF_mult), LF_opts (struct()),
-%            LF_psatz (0), eppos (1e-2), epneg (ST.epneg, else 0), Zop_deg
-%            (1) and eppos_default (logical, true when ST.settings_nd has no
-%            eppos).
-S = struct('LF_int',1,'LF_mult',0,'LF_deg',[],'LF_opts',struct(),'LF_psatz',0, ...
-           'eppos',1e-2,'epneg',getf(st,'epneg',0),'Zop_deg',1);
+% LF_int, LF_mult, LF_joint and Zop_deg from entry 3 of ST.lpi.pos and
+% ST.lpi.var, the other fields from ST.settings_nd, each absent or empty one
+% at its default.
+% INPUT  st: 'struct' of LPI settings, with field lpi (pos, var) and the
+%            optional field settings_nd ('struct': LF_deg, LF_opts,
+%            LF_psatz, eppos, epneg).
+% OUTPUT S:  'struct' with fields LF_int, LF_mult, LF_joint (lpi.pos int,
+%            mult, joint), LF_deg ([]: the rule of LF_int, LF_mult), LF_opts
+%            (struct()), LF_psatz (0), eppos (1e-2), epneg (ST.epneg, else
+%            0), Zop_deg (lpi.var.deg{3}) and eppos_default (logical, true
+%            when ST.settings_nd has no eppos).
+% S = struct('LF_int',1,'LF_mult',0,'LF_deg',[],'LF_opts',struct(),'LF_psatz',0, ... % MMP, 11/12/2026 (was)
+%            'eppos',1e-2,'epneg',getf(st,'epneg',0),'Zop_deg',1);          % MMP, 11/12/2026 (was)
+ps = st.lpi.pos;    zd = st.lpi.var.deg;    k3 = @(v) v(min(3,end));        % MMP, 11/12/2026
+S = struct('LF_int',k3(ps.int),'LF_mult',k3(ps.mult),'LF_joint',k3(ps.joint), ...
+           'LF_deg',[],'LF_opts',struct(),'LF_psatz',0,'eppos',1e-2, ...
+           'epneg',getf(st,'epneg',0),'Zop_deg',zd{min(3,end)});            % MMP, 11/12/2026
 given = struct();
 if isfield(st,'settings_nd') && isstruct(st.settings_nd),   given = st.settings_nd;     end
 f = fieldnames(S);
@@ -386,7 +401,8 @@ for k = 1:numel(sp)
         deg{k} = struct('int',zeros(1,numel(dom.vars)));   % one 0 per registry variable
     else
         deg{k} = {struct('int',S.LF_mult,'mult',0,'joint',S.LF_mult), ...
-                  struct('int',S.LF_int,'mult',S.LF_int,'joint',2*S.LF_int)};
+                  struct('int',S.LF_int,'mult',S.LF_int,'joint',S.LF_joint)}; % MMP, 11/12/2026
+%                 struct('int',S.LF_int,'mult',S.LF_int,'joint',2*S.LF_int)}; % MMP, 11/12/2026 (was)
         incl{k} = [ones(1,d); 4*ones(1,d)];
     end
 end

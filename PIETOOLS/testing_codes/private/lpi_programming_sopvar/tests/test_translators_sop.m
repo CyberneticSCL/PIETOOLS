@@ -9,12 +9,13 @@ function R = test_translators_sop()
 %   (ii)  each of 12 inputs built to fail raises an error, with the
 %         identifier expected where one is listed (poslpivar_sop:side,
 %         :dim, :excludeRn, :excludeL2, :nargout;
-%         poslpivar_settings_sop:sosineq, :role; get_lpivar_degs_sop:class;
+%         poslpivar_settings_sop:stock, :role; get_lpivar_degs_sop:class;
 %         trace_rn_sop:square; copvar_space_list:side);
-%   (iii) on the container R x L2[s1], with lpisettings_sop('custom') and
-%         override1 = override2 = 0, poslpivar_settings_sop for the roles
-%         'lf' and 'slack' returns the program and operator of two
-%         poslpivar_sop calls summed;
+%   (iii) on the container R x L2[s1], with lpisettings_stock_sop('custom')
+%         and override2 = 0, poslpivar_settings_sop returns for the role
+%         'lf' the program and operator of the former stock-format
+%         dd1 = {1,[1 1 2],[1 1 2]}, sep 0 (poslpivar_sop), and for the
+%         role 'slack' those of its two poslpivar_sop terms summed;
 %   (iv)  with the integral bases excluded (exclude [0 0 1 1]),
 %         get_lpivar_degs_sop returns 0 as third degree;
 %   (v)   at random decision values, trace_rn_sop equals the sum of the
@@ -88,6 +89,14 @@ function R = test_translators_sop()
 %                returned struct. Help to match.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): three (was)
 %                comment lines removed; code unchanged.
+% MMP, 11/12/2026: Native settings (phase 2 of the knob reduction,
+%                maintainer 11/12/2026): (ii) checks the error of a 'slack'
+%                without sop.stock in place of sosineq_on, retired; (iii)
+%                compares 'lf' with the former dd1 of 'custom', so that the
+%                native lpi.pos is checked against what the tier held, and
+%                'slack' with the two terms of sop.stock
+%                (LPISETTINGS_STOCK_SOP). override1 and the 'lf' psatz term
+%                are gone.
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter
@@ -103,8 +112,10 @@ n = 0;
 % and LPIVAR on legacy inputs; all retired. Kept: the settings, used by     % MMP, 11/08/2026
 % (ii) and (iii).                                                           % MMP, 11/08/2026
 % st = lpisettings('custom');                                               % MMP, 11/08/2026 (was)
-st = lpisettings_sop('custom');                                             % MMP, 11/08/2026
-st.override1 = 0;   st.override2 = 0;           % both second terms declared
+% st = lpisettings_sop('custom');                                           % MMP, 11/12/2026 (was); MMP, 11/08/2026
+% st.override1 = 0;   st.override2 = 0;           % both second terms declared % MMP, 11/12/2026 (was)
+st = lpisettings_stock_sop('custom');               % with the stock slack  % MMP, 11/12/2026
+st.sop.stock.override2 = 0;                         % its second term       % MMP, 11/12/2026
 
 % % % (ii) errors
 % Containers: R^1 x L2[s1], L2[s1] -> R^2, one space over two variables
@@ -120,7 +131,7 @@ E = { @() poslpivar_sop(pc,Xr,1,[]),                                   'poslpiva
       @() nout3(pc,Xm),                                                'poslpivar_sop:nargout'
       @() poslpivar_sop(pc,Xm,[1 2 3 4],[]),                           ''
       @() poslpivar_sop(pc,Xm,1,7),                                    ''
-      @() poslpivar_settings_sop(pc,Xm,setfield(st,'sosineq_on',1),'slack'), 'poslpivar_settings_sop:sosineq'
+      @() poslpivar_settings_sop(pc,Xm,lpisettings_sop('custom'),'slack'), 'poslpivar_settings_sop:stock' % MMP, 11/12/2026
       @() poslpivar_settings_sop(pc,Xm,st,'other'),                    'poslpivar_settings_sop:role'
 %       @() get_lpivar_degs_sop(X2),                                     'get_lpivar_degs_sop:dim' % MMP, 11/08/2026 (was)
       @() get_lpivar_degs_sop(eye(2)),                                 'get_lpivar_degs_sop:class' % MMP, 11/08/2026
@@ -139,15 +150,27 @@ end
 % 10/06/2026), retired; the loop above still requires an error for each.    % MMP, 11/08/2026
 
 % % % (iii) poslpivar_settings_sop composition, container
-% For each role, its two settings terms by poslpivar_sop, summed
+% % For each role, its two settings terms by poslpivar_sop, summed          % MMP, 11/12/2026 (was)
+% 'lf': the one term of the former dd1 of 'custom'; 'slack': the two        % MMP, 11/12/2026
+% terms of sop.stock by poslpivar_sop, summed                               % MMP, 11/12/2026
 for role = {'lf','slack'}
-    if strcmp(role{1},'lf'),  f = {'dd1','options1','dd12','options12'};
-    else,                     f = {'dd2','options2','dd3','options3'};
-    end
+%   if strcmp(role{1},'lf'),  f = {'dd1','options1','dd12','options12'};    % MMP, 11/12/2026 (was)
+%   else,                     f = {'dd2','options2','dd3','options3'};      % MMP, 11/12/2026 (was)
+%   end                                                                     % MMP, 11/12/2026 (was)
     [pa,Pa] = poslpivar_settings_sop(pc,Xm,st,role{1},'out',dom);
-    [pb,P1] = poslpivar_sop(pc,Xm,st.(f{1}),st.(f{2}),'out',dom);
-    [pb,P2] = poslpivar_sop(pb,Xm,st.(f{3}),st.(f{4}),'out',dom);
-    [tf,where] = same_val_sop({pa,Pa},{pb,P1+P2},role{1});
+%   [pb,P1] = poslpivar_sop(pc,Xm,st.(f{1}),st.(f{2}),'out',dom);           % MMP, 11/12/2026 (was)
+%   [pb,P2] = poslpivar_sop(pb,Xm,st.(f{3}),st.(f{4}),'out',dom);           % MMP, 11/12/2026 (was)
+%   [tf,where] = same_val_sop({pa,Pa},{pb,P1+P2},role{1});                  % MMP, 11/12/2026 (was)
+    if strcmp(role{1},'lf')                                                 % MMP, 11/12/2026
+        [pb,Pb] = poslpivar_sop(pc,Xm,{1,[1 1 2],[1 1 2]}, ...
+                                struct('sep',0,'exclude',[0 0 0 0]),'out',dom); % MMP, 11/12/2026
+    else                                                                    % MMP, 11/12/2026
+        sk = st.sop.stock;                                                  % MMP, 11/12/2026
+        [pb,P1] = poslpivar_sop(pc,Xm,sk.dd2,sk.options2,'out',dom);        % MMP, 11/12/2026
+        [pb,P2] = poslpivar_sop(pb,Xm,sk.dd3,sk.options3,'out',dom);        % MMP, 11/12/2026
+        Pb = P1+P2;                                                         % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+    [tf,where] = same_val_sop({pa,Pa},{pb,Pb},role{1});                     % MMP, 11/12/2026
     assert(tf,'(iii) %s pair differs at %s',role{1},where);    n = n+1;
 end
 

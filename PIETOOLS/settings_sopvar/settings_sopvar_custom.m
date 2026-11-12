@@ -11,14 +11,8 @@ function st = settings_sopvar_custom()
 %
 % OUTPUT
 % - st:   'struct' with fields
-%           override1, options1, options12, dd1, dd12   P on a PIE in one
-%                         spatial variable;
-%           ddZ           1x3 'double', the free operator of the synthesis
-%                         LPIs in one spatial variable;
-%           sosineq_on, override2, options2, dd2, options3, dd3 (or opts)
-%                         the slack of the 'stock' slack mode in one
-%                         spatial variable;
-%           settings_2d   'struct', the same in two spatial variables:
+%           settings_2d   'struct', the positive and free operators and the
+%                         'stock' slack in two spatial variables:
 %                         is2D, LF_deg, LF_opts, LF_use_psatz,
 %                         LF_opts_psatz, LF_deg_psatz (P); Zop_deg,
 %                         Zop_opts (free operator); use_sosineq and
@@ -28,14 +22,13 @@ function st = settings_sopvar_custom()
 %                         dimension;
 %           epneg         'double', the decay rate, in every dimension;
 %           sos_opts      'struct' with field simplify (0 or 1);
-%           settings_nd   'struct' with fields LF_int, LF_mult: P on a PIE in
-%                         three or more spatial variables;
 %           sop           'struct', the options of the container executives:
 %                         slack, dw_feas, dw_P, dw_Q, max_raise_feas,
 %                         max_raise, cap_delta, margin, keepdual,
 %                         witness, N_cheb, nfreq, verbose;
-%           lpi           'struct' with field ineq, the degree options of
-%                         LPI_INEQ_SOP: dD, dw, wmin.
+%           lpi           'struct' with fields pos and var, the positive and
+%                         free operators of the LPIs, and ineq, the degree
+%                         options of LPI_INEQ_SOP: dD, dw, wmin.
 %         The body gives the value of each field, what it does, and the
 %         optional fields.
 %
@@ -98,44 +91,49 @@ function st = settings_sopvar_custom()
 %                dw 1, wmin [2 2 0]; maintainer, 11/10/2026: "settings files
 %                should have the knobs used in lpi_programming, especially
 %                lpi_ineq").
+% MMP, 11/12/2026: The positive and free operators in native form, lpi.pos
+%                and lpi.var (maintainer, 11/12/2026: phase 2 of the knob
+%                reduction): they replace the stock-format fields of
+%                section 1 (override1, options1, options12, dd1, dd12, ddZ)
+%                and settings_nd (section 4), with the same programs. The
+%                'stock' slack (sosineq_on, override2, options2, dd2,
+%                options3, dd3) leaves for LPISETTINGS_STOCK_SOP
+%                (maintainer: "retire it, but create a utility function
+%                which creates an ad hoc settings file which reproduces the
+%                baselines"); the slack comment of sop names it. Sections 5
+%                and 6 are now 4 and 5.
 
 % BEGIN MMP, 11/09/2026: body reorganized, one margin and decay rate (header)
 
-%% 1. PIEs in one spatial variable s in [a,b]
-% P = P1 + P2, each Pi = Zi'*Qi*Zi with Qi >= 0 (POSLPIVAR_SETTINGS_SOP,
-% role 'lf'). Degrees dd = {d1, d2, d3}: d1 of the multiplier basis; d2, d3
-% of the lower- and upper-integral bases, each [degree in the integration
-% variable, in s, joint]. Options: sep 1 takes one integral over [a,b] for
-% the lower and upper ones; exclude (1x4) drops the R^n, multiplier, lower-
-% and upper-integral bases; psatz 1 weights Q by (s-a)(b-s).
-st.override1 = 1;                                   % 1: P = P1, dd12 and options12 unread
-st.options1  = struct('sep',0,'exclude',[0 0 0 0]);
-st.options12 = struct('sep',0,'exclude',[0 0 0 0],'psatz',1);
-st.dd1  = {1, [1 1 2], [1 1 2]};
-st.dd12 = {0, [0 0 1], [0 0 1]};
-% Free operator of the synthesis LPIs (LPIVAR_CDOPVAR): [d1 d2 d3], d1 the
-% degree of the multiplier and of the maps to and from R^n, d3 and d2 the
-% degrees of the integral kernels in s and in the integration variable.
-st.ddZ = [2 2 2];
-% Slack N = N1 + N2 of the 'stock' slack mode (role 'slack'), read only
-% with sop.slack = 'stock': N1 of dd2 and options2, N2 of dd3 and options3,
-% N2 omitted when override2 = 1. sosineq_on is read from the base workspace
-% when it exists there, as in the stock settings files: 1 selects the stock
-% sosineq, which the container executives reject, and sets only opts, which
-% none of them reads.
-st.sosineq_on = 0;
-if evalin('base','exist(''sosineq_on'',''var'')')
-    st.sosineq_on = evalin('base','sosineq_on');
-end
-if st.sosineq_on
-    st.opts = struct('psatz',0,'pure',1);
-else
-    st.override2 = 0;                               % 0: N = N1 + N2
-    st.options2  = struct('exclude',[0 0 0 0]);
-    st.dd2  = {2, [1 2 3], [1 2 3]};
-    st.options3  = struct('psatz',1,'exclude',[0 0 0 0]);
-    st.dd3  = {1, [0 1 2], [0 1 2]};
-end
+%% 1. The positive and free operators: st.lpi.pos, st.lpi.var               % MMP, 11/12/2026
+% BEGIN MMP, 11/12/2026: native form (header). Deleted, of 11/09/2026: the
+% stock-format override1 = 1, options1, options12, dd1 = {1, [1 1 2], [1 1 2]}
+% and dd12 (unread), now entry 1 of pos; ddZ = [2 2 2], now entry 1 of var;
+% the 'stock' slack (sosineq_on, override2, options2, dd2, options3, dd3),
+% now LPISETTINGS_STOCK_SOP; and section 4 of 10/29/2026, settings_nd =
+% struct('LF_int',1,'LF_mult',0), now entry 3.
+% A vector holds the entries for 1, 2, and 3 or more spatial variables.
+% P = Z'*Q*Z, Q >= 0, on each space (POSCOPVAR): on R^n the identity
+% basis; on an L2 space the multiplier basis of degree mult and integral
+% bases of degree int in each variable and joint in total (int < 0: none):
+% in one variable the lower and upper integrals, or with sep = 1 one
+% integral over the whole interval; in two or more one full integral,
+% separable in every direction. The executives read entries 1 and 3
+% (POSLPIVAR_SETTINGS_SOP, EXEC_TOOLS_SOP; two variables: settings_2d,
+% section 2), POSCOPVAR without DEG the entry of each space.
+% Optional, in three or more variables: settings_nd with LF_deg and
+% LF_opts (a POSCOPVAR degree specification and options, in place of
+% entry 3 of pos), LF_psatz (the term codes, default 0), eppos and epneg
+% (default those of section 3).
+st.lpi.pos = struct('mult',[1 0 0],'int',[1 1 1],'joint',[2 2 2],'sep',0);
+% Z, the free operator of the synthesis LPIs (LPIVAR_CDOPVAR): one degree
+% specification per dimension, in a form LPIVAR_CDOPVAR takes; in one
+% variable [d1 d2 d3], d1 the degree of the multiplier and of the maps to
+% and from R^n, d3 and d2 those of the integral kernels in s and in the
+% integration variable. The executives read entries 1 and 3,
+% LPIVAR_CDOPVAR without DEG the entry of its largest space.
+st.lpi.var = struct('deg',{{[2 2 2],1,1}});
+% END MMP, 11/12/2026
 
 %% 2. PIEs in two spatial variables (x,y): st.settings_2d
 % P = P0 + P1 + ..., each term Z'*Q*Z with Q >= 0
@@ -220,24 +218,14 @@ st.settings_2d = s2;
 st.eppos = 1e-4;    st.epneg = 0;
 st.sos_opts = struct('simplify',0);
 
-%% 4. PIEs in three or more spatial variables: st.settings_nd
-% P on each space (EXEC_TOOLS_SOP): a multiplier basis of degree LF_mult
-% and one full-integral basis, separable in every direction, of degree
-% LF_int in each variable and 2*LF_int in total; the margin and decay rate
-% of section 3. Optional: LF_deg and LF_opts (a POSCOPVAR degree
-% specification and options, in place of LF_int and LF_mult), LF_psatz
-% (the term codes, default 0), eppos and epneg (default those of section
-% 3), Zop_deg (the degree of the free operator, default 1).
-st.settings_nd = struct('LF_int',1,'LF_mult',0);
-
-%% 5. Options of the container executives: st.sop (EXEC_SOP_SETTINGS)
+%% 4. Options of the container executives: st.sop (EXEC_SOP_SETTINGS)       % MMP, 11/12/2026
 % A vector holds the entries for 1, 2, and 3 or more spatial variables; a
 % scalar serves every dimension. The slack of each negativity constraint
 % -D >= 0 has a weight degree, raised by dw over the rule of GET_LIFT_DEGS,
 % and the degree loop LPI_SOLVE_LOOP_SOP rebuilds the LPI with the weight
 % one higher after UNKNOWN or INFEASIBLE, up to max_raise times.
 st.sop = struct( ...
-    'slack','like', ...             'like': slack sized from P (LPI_INEQ_SOP); 'stock': the slacks above
+    'slack','like', ...             'like': slack sized from P (LPI_INEQ_SOP); 'stock': LPISETTINGS_STOCK_SOP
     'dw_feas',[0 1 1], ...          weight raise in stability and well-posedness
     'dw_P',[2 2 1], ...             weight raise in coercive gains and norms, and synthesis
     'dw_Q',1, ...                   weight raise in the Q (non-coercive) forms
@@ -252,7 +240,7 @@ st.sop = struct( ...
     'verbose',true);                % print each pass and the result
 % END MMP, 11/09/2026
 
-%% 6. Options of LPI_INEQ_SOP: st.lpi.ineq                                  % MMP, 11/10/2026
+%% 5. Options of LPI_INEQ_SOP: st.lpi.ineq                                  % MMP, 11/12/2026; MMP, 11/10/2026
 % The certificate of P >= 0 in a hand-written LPI: lift degree Dmin + dD    % MMP, 11/10/2026
 % and weight degree reach + dw over the support of P (GET_LIFT_DEGS), at    % MMP, 11/10/2026
 % least wmin when read from P itself (no opts.like). wmin 2: with dw alone  % MMP, 11/10/2026

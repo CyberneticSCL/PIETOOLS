@@ -22,7 +22,18 @@ function test_settings_prog_sop
 %       call wins over prog.settings, and so does an explicit dw;
 %   (6) LPISOLVE without options passes prog.settings.sos_opts, and with a
 %       settings structure its sos_opts (an unknown solver name is reported
-%       by SOSSOLVE in both cases); with the tier options it solves.
+%       by SOSSOLVE in both cases); with the tier options it solves;
+%   (7) POSCOPVAR without DEG builds, on R^2 x L2[s1] at 'light' and at
+%       'heavy', the operator of the explicit specification of lpi.pos
+%       (the multiplier, lower and upper bases), and on R^2 x L2[s1] x
+%       L2[s1,s2] the multiplier and full-integral bases in every space
+%       (s1 separable, being owned by the 2-D space); with DEG omitted an
+%       OPTIONS.include is refused; LPIVAR_CDOPVAR without DEG on a 1-D
+%       program at 'heavy' builds the operator of lpi.var.deg{1} = [4 2 2];
+%   (8) EXEC_SOP_SETTINGS refuses a retired stock-format field (dd1) and
+%       settings_nd.LF_int with the identifier exec_sop_settings:retired;
+%       LPISETTINGS_STOCK_SOP('heavy') sets sop.slack = 'stock' and returns
+%       sop.stock with the former dd2 of the heavy level, {3,[2 2 3],[2 2 3]}.
 %
 % INPUT:  none.
 % OUTPUT: none; one line per passed part, then a summary line.
@@ -55,6 +66,10 @@ function test_settings_prog_sop
 %   11/12/2026: "Settings on the program"). Part (3) guards the domain by
 %   name: the varname of a polynomial vector is sorted, so a domain read
 %   from it would follow the sorted names, not the rows of prog.dom.
+% MMP, 11/12/2026: Parts (7) and (8): the degrees of POSCOPVAR and
+%   LPIVAR_CDOPVAR from the program settings when DEG is omitted, the
+%   retired stock-format fields and LPISETTINGS_STOCK_SOP (phase 2 of the
+%   knob reduction).
 
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
@@ -161,6 +176,64 @@ if ~(abs(gv) < 1e-6)
     error('test_settings_prog_sop: (6) min g s.t. g >= 0 returned g = %g.',gv);
 end
 fprintf('  passed: (6) lpisolve: prog.settings.sos_opts and a settings structure passed; min g = %.1e\n',gv);
+npass = npass+1;
+
+%% (7) POSCOPVAR and LPIVAR_CDOPVAR without DEG: the program settings
+q1 = lpiprogram(polynomial({'s1'}),[0 1]);          % light
+q2 = lpiprogram(polynomial({'s1'}),[0 1],'heavy');
+sp1 = {{},{'s1'}};      dm1 = [2;1];
+for q = {q1, q2}
+    ps = q{1}.settings.lpi.pos;
+    Zi = struct('int',ps.int(1),'mult',ps.int(1),'joint',ps.joint(1));
+    dx = {struct('int',0), {struct('int',ps.mult(1),'mult',0,'joint',ps.mult(1)),Zi,Zi}};
+    ox = struct('sep',false,'include',{{[],[1;2;3]}});
+    [qa,Pa] = poscopvar(q{1},dm1,sp1);
+    [qb,Pb] = poscopvar(q{1},dm1,sp1,dx,ox);
+    if ~isequaln(Pa,Pb) || ~isequaln(qa.decvartable,qb.decvartable)
+        error('test_settings_prog_sop: (7) poscopvar without DEG differs from the explicit lpi.pos (mult %d).',ps.mult(1));
+    end
+end
+% the coupled spaces: s1 separable for the 1-D space too
+st2 = p0.settings.lpi.pos;
+Zi1 = struct('int',st2.int(1),'mult',st2.int(1),'joint',st2.joint(1));
+Zi2 = struct('int',st2.int(2),'mult',st2.int(2),'joint',st2.joint(2));
+dx = {struct('int',0), {struct('int',st2.mult(1),'mult',0,'joint',st2.mult(1)),Zi1}, ...
+      {struct('int',st2.mult(2),'mult',0,'joint',st2.mult(2)),Zi2}};
+ox = struct('sep',true(1,2));   ox.include = {[],[1;4],[1 1;4 4]};
+[~,Pc] = poscopvar(p0,dm,sp);
+[~,Pd] = poscopvar(p0,dm,sp,dx,ox);
+if ~isequaln(Pc,Pd)
+    error('test_settings_prog_sop: (7) the coupled default differs from multiplier and full integral in every space.');
+end
+refused = 0;
+try,    poscopvar(q1,dm1,sp1,[],struct('include',{{[],[1;2]}}));   catch,  refused = 1;    end
+if ~refused
+    error('test_settings_prog_sop: (7) OPTIONS.include with DEG omitted was accepted.');
+end
+dz1 = struct('out',[1;1],'in',[1;1]);   sz1 = {{},{'s1'}};
+[~,Za] = lpivar_cdopvar(q2,dz1,sz1);
+[~,Zb] = lpivar_cdopvar(q2,dz1,sz1,[4 2 2]);
+if ~isequaln(Za,Zb)
+    error('test_settings_prog_sop: (7) lpivar_cdopvar without DEG differs from lpi.var.deg{1}.');
+end
+fprintf('  passed: (7) poscopvar and lpivar_cdopvar without DEG: the settings at light and heavy, coupled spaces separable\n');
+npass = npass+1;
+
+%% (8) Retired fields refused; the stock-slack utility
+bad = {setfield(lpisettings_sop(),'dd1',{1,[1 1 2],[1 1 2]}), ...
+       setfield(lpisettings_sop(),'settings_nd',struct('LF_int',1))};
+nref = 0;
+for k = 1:numel(bad)
+    try,    exec_sop_settings(bad{k});
+    catch ME,   nref = nref + strcmp(ME.identifier,'exec_sop_settings:retired');
+    end
+end
+[sk,stock] = lpisettings_stock_sop('heavy');
+if nref~=2 || ~strcmp(sk.sop.slack,'stock') || ~isequal(stock,sk.sop.stock) || ...
+        ~isequal(stock.dd2,{3,[2 2 3],[2 2 3]})
+    error('test_settings_prog_sop: (8) retired fields accepted (%d of 2 refused) or the stock slack of heavy wrong.',nref);
+end
+fprintf('  passed: (8) retired fields refused (2 of 2); the stock slack of heavy from LPISETTINGS_STOCK_SOP\n');
 npass = npass+1;
 
 % The summary line

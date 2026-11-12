@@ -47,7 +47,9 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            ('double', one row [a,b] per name of vars). Optional: omitted,
 %            as LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DEG,OPTIONS), the domain
 %            of PROG (LPIPROGRAM), by name;
-% - deg:     (optional) the degree caps, nonnegative integers (default 1):
+% - deg:     (optional) the degree caps, nonnegative integers (default: the
+%            entry of lpi.var.deg in the program settings, LPIPROGRAM, for
+%            the largest space; 1 for a program without settings):
 %            a 'struct' with any of the fields
 %              mult  'double', the degree in t_k where gam_k = 1;
 %              int   1 x 2 'double', the degrees in t_k and in s'_k where
@@ -151,7 +153,10 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  header as the comment of the block.
 % MMP, 11/12/2026: DOM may be omitted: the domain of PROG, by name
 %                  (maintainer, 11/12/2026: "Settings on the program"; DOM
-%                  repeated the domain given to LPIPROGRAM).
+%                  repeated the domain given to LPIPROGRAM). DEG omitted:
+%                  the entry of lpi.var.deg of the program settings for the
+%                  largest space (phase 2 of the knob reduction); it was 1,
+%                  which remains for a program without settings.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 % DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'   % MMP, 11/12/2026
@@ -170,7 +175,8 @@ if nin<4 || ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
 end                                                                         % MMP, 11/12/2026
 % if nargin<5 || isempty(deg),        deg = 1;            end               % MMP, 11/12/2026 (was)
 % if nargin<6 || isempty(options),    options = struct(); end               % MMP, 11/12/2026 (was)
-if nin<5 || isempty(deg),           deg = 1;            end                 % MMP, 11/12/2026
+% if nin<5 || isempty(deg),           deg = 1;            end               % MMP, 11/12/2026 (was)
+defdeg = nin<5 || isempty(deg);     % from the settings, after the parse    % MMP, 11/12/2026
 if nin<6 || isempty(options),       options = struct(); end                 % MMP, 11/12/2026
 if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
     error("'prog' should be an LPI program structure; use 'lpiprogram'.")
@@ -203,6 +209,16 @@ end                                                                         % MM
 % order: spaces, dims, reserved '_int'/'_dum' names, domain.                % MMP, 09/30/2026
 [meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom);                 % MMP, 09/30/2026
 M = numel(sp_out);      N = numel(sp_in);                                   % MMP, 09/30/2026
+% DEG omitted: lpi.var.deg of the program settings (LPIPROGRAM), the entry  % MMP, 11/12/2026
+% of the largest space, at least the first; 1 for a program without them    % MMP, 11/12/2026
+if defdeg                                                                   % MMP, 11/12/2026
+    deg = 1;                                                                % MMP, 11/12/2026
+    if isfield(prog,'settings') && isfield(prog.settings,'lpi') && isfield(prog.settings.lpi,'var') % MMP, 11/12/2026
+        zd = prog.settings.lpi.var.deg;                                     % MMP, 11/12/2026
+        c = max([sum(meta.space_out,2); sum(meta.space_in,2); 1]);          % MMP, 11/12/2026
+        deg = zd{min(c,end)};                                               % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 vars = meta.vars;       dom = meta.dom;                                     % MMP, 09/30/2026
 d_out = meta.dim_out;   d_in = meta.dim_in;                                 % MMP, 09/30/2026
 

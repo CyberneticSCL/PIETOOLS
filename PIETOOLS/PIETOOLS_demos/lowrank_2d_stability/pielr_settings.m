@@ -128,12 +128,18 @@ S.eppos = 1e-2;   S.eppos2 = 1e-2;
 if isfield(S,'settings_2d'), S.settings_2d.eppos = 1e-2*ones(4,1); end
 
 % negativity psatz, and the degree bump on the slack
-S.override2 = double(~psatz);          % 1 means OFF; see the header
+% The stock slack left the tiers on 11/12/2026: it starts from that of the  % MMP, 11/12/2026
+% base tier (LPISETTINGS_STOCK_SOP), in sop.stock, which tl.slack reads     % MMP, 11/12/2026
+[~,S.sop.stock] = lpisettings_stock_sop(base);                              % MMP, 11/12/2026
+% S.override2 = double(~psatz);          % 1 means OFF; see the header      % MMP, 11/12/2026 (was)
+S.sop.stock.override2 = double(~psatz);  % 1 means OFF; see the header      % MMP, 11/12/2026
 n1 = 1;  n2 = 1;  n3 = 1;              % the 1-D light/heavy base orders
 if strcmp(base,'heavy'), n1 = 2; end
 n4 = n2 + n3;
-S.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]};
-S.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]};
+% S.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]}; % MMP, 11/12/2026 (was)
+% S.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]}; % MMP, 11/12/2026 (was)
+S.sop.stock.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]}; % MMP, 11/12/2026
+S.sop.stock.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]}; % MMP, 11/12/2026
 
 % Poincare: psatz flag plus a bump on degbalance's own degrees              % CC, 11/08/2026 (was)
 % Poincare: psatz flag plus a raise of lpi_ineq_sop's weight degree.  Tier  % CC, 11/08/2026

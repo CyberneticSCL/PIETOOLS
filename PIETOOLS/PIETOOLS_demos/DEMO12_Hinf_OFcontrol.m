@@ -61,6 +61,11 @@
 % MMP 11/08/2026: Settings lpisettings_sop('light') for the synthesis and
 %                 the closed-loop analysis (was the stock lpisettings('light'),
 %                 whose folder leaves the path).
+% MMP 11/12/2026: The storage degrees of the closed-loop analysis in the
+%                 native settings, lpi.pos (maintainer, 11/12/2026: phase 2
+%                 of the knob reduction): mult 4, int 6, joint 6, the former
+%                 dd1 = {4,[6 6 6],[6 6 6]}, which the settings no longer
+%                 accept. Same program.
 
 clear; clc; clear stateNameGenerator
 
@@ -103,7 +108,10 @@ fprintf('\nThe LPI certifies a closed-loop H-infinity bound gam = %.4f.\n',gam);
 PIEcl = closedLoopPIE(PIE,Kc,'dynamic');
 % settings_an = lpisettings('light');                                       % MMP, 11/08/2026 (was)
 settings_an = lpisettings_sop('light');                                     % MMP, 11/08/2026
-settings_an.dd1 = {4,[6 6 6],[6 6 6]};
+% settings_an.dd1 = {4,[6 6 6],[6 6 6]};                                    % MMP, 11/12/2026 (was)
+% storage degrees in one variable: multiplier 4; integrals 6, 6 in total    % MMP, 11/12/2026
+settings_an.lpi.pos.mult(1) = 4;    settings_an.lpi.pos.int(1) = 6;         % MMP, 11/12/2026
+settings_an.lpi.pos.joint(1) = 6;                                           % MMP, 11/12/2026
 settings_an.eppos = 1e-6;   settings_an.eppos2 = 1e-6;
 % settings_an.sop.witness = false;                                          % MMP, 11/05/2026 (was)
 % [~,~,gam_cl] = PIETOOLS_Hinf_gain_sop(PIEcl,settings_an,'Q');             % MMP, 11/05/2026 (was)

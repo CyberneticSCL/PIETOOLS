@@ -51,6 +51,12 @@ function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MM
 %                  unchanged for every tier: eppos2 was eppos, 1e-4. The
 %                  decay term epneg*P of the stock form is kept (the
 %                  container executive poses 2*epneg*P since 11/09/2026).
+% MMP, 11/12/2026: The settings are native (phase 2 of the knob reduction,
+%                  maintainer 11/12/2026): the stock-format degree fields,
+%                  read here and never used, are no longer read; P comes
+%                  from lpi.pos and N from sop.stock (POSLPIVAR_SETTINGS_SOP),
+%                  which CX_SETTINGS and the default ST now carry. The same
+%                  program for every tier.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -67,20 +73,26 @@ end
 if nargin<2                                         % stock lines 73-79
 %   st = settings_PIETOOLS_heavy;                                           % MMP, 11/08/2026 (was)
     st = lpisettings_sop('heavy');                                          % MMP, 11/08/2026
+    [~,st.sop.stock] = lpisettings_stock_sop('heavy');  % the stock slack   % MMP, 11/12/2026
     st.sos_opts.simplify = 1;
     st.eppos = 1e-4;    st.eppos2 = 1e-6;   st.epneg = 0;
 end
-dd1 = st.dd1;   dd12 = st.dd12;     options1 = st.options1;     options12 = st.options12;
+% dd1 = st.dd1;   dd12 = st.dd12;     options1 = st.options1;     options12 = st.options12; % MMP, 11/12/2026 (was)
 % override1 = st.override1;   epneg = st.epneg;   eppos2 = st.eppos2;      % MMP, 11/09/2026 (was)
-override1 = st.override1;   epneg = st.epneg;                               % MMP, 11/09/2026
+% override1 = st.override1;   epneg = st.epneg;                             % MMP, 11/12/2026 (was); MMP, 11/09/2026
+% The degree fields above were read and never used (P and N come from       % MMP, 11/12/2026
+% POSLPIVAR_SETTINGS_SOP, which reads lpi.pos and sop.stock since           % MMP, 11/12/2026
+% 11/12/2026, when they left the settings)                                  % MMP, 11/12/2026
+epneg = st.epneg;                                                           % MMP, 11/12/2026
 % The L2 margin, else the one margin of the settings_sopvar tiers           % MMP, 11/09/2026
 if isfield(st,'eppos2') && ~isempty(st.eppos2),  eppos2 = st.eppos2;  else,  eppos2 = st.eppos;  end % MMP, 11/09/2026
-if st.sosineq_on                                    % stock lines 148-150
-    error('cx_stability:gap',['sosineq_on=1 needs lpi_ineq, which has no container '...
-          'counterpart; only the equality path (the default) is transcribed.'])
-end
-override2 = st.override2;   options2 = st.options2;     options3 = st.options3;
-dd2 = st.dd2;   dd3 = st.dd3;
+% if st.sosineq_on                                    % stock lines 148-150 % MMP, 11/12/2026 (was)
+%     error('cx_stability:gap',['sosineq_on=1 needs lpi_ineq, which has no container '... % MMP, 11/12/2026 (was)
+%           'counterpart; only the equality path (the default) is transcribed.']) % MMP, 11/12/2026 (was)
+% end                                                                       % MMP, 11/12/2026 (was)
+% override2 = st.override2;   options2 = st.options2;     options3 = st.options3; % MMP, 11/12/2026 (was)
+% dd2 = st.dd2;   dd3 = st.dd3;                                             % MMP, 11/12/2026 (was)
+% (sosineq_on left the settings: the transcription poses the equality path) % MMP, 11/12/2026
 
 % Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
 Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026

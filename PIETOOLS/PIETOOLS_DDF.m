@@ -34,6 +34,11 @@
 %                   convert_PIETOOLS_DDE2PIE_legacy (DDF_min = 0) or its
 %                   minimal DDF with convert_PIETOOLS_DDF (DDF_min = 1);
 %                   convert_PIETOOLS_DDE2PIE, called before, does not exist.
+% MMP, 11/12/2026: The separable storage of the controller and estimator
+%                   synthesis is settings.lpi.pos.sep = 1 (maintainer,
+%                   11/12/2026: phase 2 of the knob reduction); the former
+%                   options1.sep and options12.sep are no longer accepted
+%                   (options12 was unread: override1 = 1 in every tier).
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -279,15 +284,17 @@ if Hinf_gain_dual==1
     [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
 end
 if Hinf_control==1
-    settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP
-    settings.options12.sep = 1; 
+%   settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP % MMP, 11/12/2026 (was)
+%   settings.options12.sep = 1;                                             % MMP, 11/12/2026 (was)
+    settings.lpi.pos.sep = 1;   % P separable, to construct the controller  % MMP, 11/12/2026
 
 %   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/04/2026 (was)
     [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/04/2026
 end
 if Hinf_estimator==1
-    settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP
-    settings.options12.sep = 1; 
+%   settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP % MMP, 11/12/2026 (was)
+%   settings.options12.sep = 1;                                             % MMP, 11/12/2026 (was)
+    settings.lpi.pos.sep = 1;   % P separable, to construct the estimator   % MMP, 11/12/2026
 %   [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % MMP, 11/04/2026 (was)
     [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/04/2026
 end

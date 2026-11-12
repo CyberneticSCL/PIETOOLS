@@ -17,9 +17,10 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %   custom     as light
 %
 % A vector holds the entries of 1, 2, and 3 or more variables; NaN in
-% cap_delta is no bound. In 3 or more variables every tier takes the
-% storage settings_nd (EXEC_TOOLS_SOP). keepdual and witness are false at
-% extreme and stripped, true otherwise.
+% cap_delta is no bound. The storage in 1 and in 3 or more variables is
+% lpi.pos (below); in 2 variables settings_2d. keepdual and witness are
+% false at extreme and stripped, true otherwise. The 'stock' slack, which
+% the tiers held until 11/12/2026, comes from LPISETTINGS_STOCK_SOP.
 %
 % INPUT
 % - type:     (optional) char, 'extreme', 'stripped', 'light' (default),
@@ -35,14 +36,8 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %
 % OUTPUT
 % - st:       'struct' with fields
-%               dd1, dd12, options1, options12, override1, ddZ, dd2, dd3,
-%               options2, options3, override2, sosineq_on
-%                          the 1-D degrees and options of the storage level's
-%                          settings_PIETOOLS_<level>;
 %               settings_2d  'struct', settings_PIETOOLS_<level>_2D of the 2-D
 %                          storage level;
-%               settings_nd  'struct', the storage in 3 or more variables
-%                          (EXEC_TOOLS_SOP): LF_int 1, LF_mult 0;
 %               eppos      double, 1e-4: the margin of the positive operator
 %                          on every space, in every dimension and every LPI
 %                          that imposes one (EXEC_SOP_SETTINGS);
@@ -79,8 +74,20 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                 N_cheb, nfreq  double, its Legendre degree (24; 32 at
 %                                veryheavy) and number of frequencies (240;
 %                                480 at veryheavy);
-%               lpi        'struct' with field ineq, the options of
-%                          LPI_INEQ_SOP: dD 1 and dw 1, added to the lift and
+%               lpi        'struct' with fields
+%                 pos      'struct', the positive operator P = Z'*Q*Z, one
+%                          entry per dimension: mult, the degree of the
+%                          multiplier basis; int and joint, the degree of the
+%                          integral bases in each variable and in total (int
+%                          < 0: none); sep, one integral over the interval in
+%                          place of the lower and upper ones in 1 variable.
+%                          Light: mult [1 0 0], int [1 1 1], joint [2 2 2],
+%                          sep 0; the stock 1-D storage levels in entry 1;
+%                 var      'struct' with field deg, a 1x3 'cell' of degree
+%                          specifications of the free operator
+%                          (LPIVAR_CDOPVAR); light {[2 2 2],1,1};
+%                 ineq     the options of LPI_INEQ_SOP: dD 1 and dw 1,
+%                          added to the lift and
 %                          weight degrees read from the support, and wmin,
 %                          the least weight degree when the support is read
 %                          from the target itself, one entry per dimension:
@@ -139,6 +146,11 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                removed).
 % MMP, 11/10/2026: Help text: the field lpi, the options of LPI_INEQ_SOP
 %                that every tier now sets (st.lpi.ineq). Code unchanged.
+% MMP, 11/12/2026: Help text: the tiers carry the operators in native form,
+%                lpi.pos and lpi.var, in place of the stock-format 1-D fields
+%                and settings_nd; the 'stock' slack left for
+%                LPISETTINGS_STOCK_SOP (phase 2 of the knob reduction). Code
+%                unchanged.
 
 % Admissible values and defaults of the inputs
 arguments

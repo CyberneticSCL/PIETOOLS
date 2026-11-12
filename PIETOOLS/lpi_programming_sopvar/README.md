@@ -158,8 +158,13 @@ chooses its tier once:
     prog = lpisolve(prog);
 
 The executives pass their own settings. `poscopvar` and `lpivar_cdopvar` take their `dom`
-argument from the program when it is omitted, by variable name. Degree defaults for these two
-from the settings are not yet available: the tiers hold degrees only in the stock format.
+argument from the program when it is omitted, by variable name, and their degrees from the
+settings when `deg` is omitted (11/12/2026): `poscopvar` space by space from `lpi.pos`, the entry for
+the dimension of the space (on R^n the identity basis; in one variable the multiplier and the lower and
+upper integrals; in two or more the multiplier and one separable full integral, which makes every
+direction of such a space separable for the 1-D spaces too, `sep` being per direction);
+`lpivar_cdopvar` the entry of `lpi.var.deg` for its largest space (1 for a program without
+settings, the former default). An explicit `deg` is unchanged.
 
 Apart from an omitted `dom` of `poscopvar` or `lpivar_cdopvar` (11/12/2026), no container
 routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and

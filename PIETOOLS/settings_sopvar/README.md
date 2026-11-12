@@ -20,23 +20,32 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
 
 - **Vectors** hold the entries of 1, 2, and 3 or more variables (10/29/2026). The executives read the
   entry of the PIE dimension (`exec_tools_sop`); a scalar serves every dimension.
-- **Storage** `light`, `heavy`, ...: the degrees of the stock `settings_PIETOOLS_<level>` (1-D) and
-  `settings_PIETOOLS_<level>_2D` (2-D), read by `poslpivar_settings_sop` and `poslpivar_settings_2d_sop`.
-  Each tier file sets those values itself (since 11/09/2026; on 11/08/2026 the tiers read copies in
-  `private/`, now merged into the tier files), so `settings_sopvar` calls no file outside this folder,
-  and a copy of `settings_sopvar_custom.m` runs from any folder. `lpisettings_sop(tier)` is unchanged
-  for every tier that existed before. The `extreme` tier (11/08/2026) takes the stock extreme storage
-  with the container options of `stripped`.
-  In 3 or more variables every tier takes `settings_nd` (LF_int 1, LF_mult 0): a multiplier and one
-  separable full integral of degree 1 per space.
-- **Layout of a tier file** (11/09/2026), the same in every tier, so that `diff` of two tier files shows
-  their values: (1) one spatial variable, (2) two (`settings_2d`), (3) the margin, decay rate and
-  solver, (4) three or more (`settings_nd`), (5) the executive options (`sop`), (6) the options of
-  `lpi_ineq_sop` (`lpi.ineq`, 11/10/2026). Each section names the function
-  that reads its fields. The fields of the `'stock'` slack mode are marked, as are `opts`, `ineq_opts`
-  and `Zop_opts`, which no container executive reads. As in the stock settings files, `sosineq_on` and
-  `use_sosineq` are read from the base workspace when they exist there; they change only the fields of
-  the `'stock'` slack. `lpisettings_sop` overwrites `epneg` and `sos_opts.simplify` with its inputs.
+- **Storage** `light`, `heavy`, ...: in one and in three or more variables the native `lpi.pos`
+  (11/12/2026): per dimension the degree `mult` of the multiplier basis and the degrees `int` (in each
+  variable) and `joint` (in total) of the integral bases, `int < 0` for none; in one variable the lower
+  and upper integrals, or with `sep = 1` one integral over the interval; in two or more one separable
+  full integral. Entry 1 holds the stock 1-D storage of each level (light `mult 1, int 1, joint 2`, the
+  former `dd1 = {1,[1 1 2],[1 1 2]}`), entry 3 the former `settings_nd` (`int` 1, `mult` 0; stripped
+  `int` 0 since adacec41). The free operator of the synthesis LPIs is `lpi.var.deg`, one degree
+  specification per dimension (light `{[2 2 2],1,1}`, entry 1 the former `ddZ`). In two variables the
+  stock `settings_PIETOOLS_<level>_2D` (`settings_2d`, read by `poslpivar_settings_2d_sop`). The programs
+  are those of the stock-format fields they replace (measured 11/12/2026, below). Each tier file sets
+  its values itself (since 11/09/2026), so `settings_sopvar` calls no file outside this folder, and a
+  copy of `settings_sopvar_custom.m` runs from any folder. The `extreme` tier (11/08/2026) takes the
+  stock extreme storage with the container options of `stripped`.
+- **Stock slack**: the `'stock'` slack mode (`sop.slack = 'stock'`), which reproduces the slack of the
+  stock executives for the baselines, reads `sop.stock` (`dd2`, `options2`, `override2`, `dd3`,
+  `options3`). The tiers no longer carry it (11/12/2026); `lpisettings_stock_sop(tier)` returns the tier
+  with the stock slack of its level, and `[~,stock] = lpisettings_stock_sop(tier)` the slack alone.
+  The executives refuse the stock-format fields (`dd1`, `ddZ`, `dd2`, `sosineq_on`, ...,
+  `settings_nd.LF_int`) with an error that names the replacement.
+- **Layout of a tier file** (11/09/2026; 11/12/2026), the same in every tier, so that `diff` of two tier
+  files shows their values: (1) the positive and free operators (`lpi.pos`, `lpi.var`), (2) two
+  variables (`settings_2d`), (3) the margin, decay rate and solver, (4) the executive options (`sop`),
+  (5) the options of `lpi_ineq_sop` (`lpi.ineq`, 11/10/2026). Each section names the function that
+  reads its fields. `ineq_opts` and `Zop_opts` of `settings_2d` are marked, which no container
+  executive reads; `use_sosineq` is read from the base workspace when it exists there, as in the stock
+  settings files. `lpisettings_sop` overwrites `epneg` and `sos_opts.simplify` with its inputs.
 - **cap_delta**: per-direction bounds theta_k + s_k <= Jmax_k(T) + delta on the slack bases
   (`lpi_ineq_sop` opts.cap). Jmax_k(T) is the largest total degree in (s_k, s'_k) of a kernel monomial
   of T (`get_lift_degs`): 2 for a Dirichlet-Dirichlet heat direction, 1 for Dirichlet-Neumann. NaN is
@@ -168,7 +177,9 @@ entries, seconds):
 | heavy | 58,922 rows, 9.38M, built 167 s, not solved | 59,718 rows, 9.41M, built 163 s, not solved |
 | veryheavy | not built | not built: 35.6M (cap prototype) |
 
-- Stripped and light build identical 3-D programs: their 3-D entries agree in weight (1) and cap (0).
+- Stripped and light built identical 3-D programs until 11/11/2026: their 3-D entries agreed in weight
+  (1) and cap (0). Since adacec41 (11/11/2026) stripped sets the 3-D storage degree to 0 (`lpi.pos.int`
+  entry 3, then `settings_nd.LF_int`), so the stripped row above no longer describes its program.
 - The two heavy builds peaked at 17.0 GB in one MATLAB session. Their solves project to about 41-44
   GB, scaled as rows^1.9-2 from the 13.7 GB peak of the 33,231-row light solve at r = 5 (10/30/2026):
   within a 64 GB machine, but over the 40 GB this workstation had free. Not run.

@@ -25,7 +25,8 @@ function st = exec_sop_settings(st)
 %                         LPI_INEQ_SOP with a slack sized from the positive
 %                         operator of the LPI ('like'), or as D + N == 0
 %                         with N the positive slack declared from the
-%                         degrees of the settings ('stock');
+%                         degrees of sop.stock ('stock', the settings of
+%                         LPISETTINGS_STOCK_SOP);
 %             dw_Q        double (default 1), the raise of the weight
 %                         degree of the 'like' slack (opts.dw of
 %                         LPI_INEQ_SOP) in the non-coercive forms;
@@ -70,17 +71,23 @@ function st = exec_sop_settings(st)
 %                         margin of the positive operator of the stability
 %                         and well-posedness LPIs in place of eppos, eppos2
 %                         (1-D) and settings_2d.eppos (2-D) (default []:
-%                         those fields).
+%                         those fields);
+%           lpi       'struct' with fields pos and var, the positive and
+%                     free operators of the LPIs (default those of
+%                     LPISETTINGS_SOP('light')).
 %
 % OUTPUT
 % - st:   'struct', ST with the fields of ST.sop above set (its other
-%         fields kept), ST.sos_opts.solver set, and the margin and
+%         fields kept), ST.sos_opts.solver set, the margin and
 %         decay-rate fields of each dimension set from eppos and epneg
-%         where unset.
+%         where unset, and lpi.pos and lpi.var set where missing.
 %
 % NOTES
-% ST other than a 'struct', or ST.sop.slack other than 'like' and 'stock',
-% is an error.
+% ST other than a 'struct', ST.sop.slack other than 'like' and 'stock', or
+% a stock-format field that the tiers held until 11/12/2026 (dd1, dd12,
+% options1, options12, override1, ddZ, dd2, dd3, options2, options3,
+% override2, sosineq_on; settings_nd.LF_int, LF_mult, Zop_deg) is an error
+% that names its replacement.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -139,6 +146,13 @@ function st = exec_sop_settings(st)
 %                once; a per-dimension field that is set is kept. Here and
 %                not in EXEC_TOOLS_SOP, which reads those fields: every
 %                caller of EXEC_TOOLS_SOP calls this function first.
+% MMP, 11/12/2026: Native settings (maintainer, 11/12/2026: phase 2 of the
+%                knob reduction; "No, migrate"): a stock-format field of the
+%                former tiers is an error naming its replacement, lpi.pos,
+%                lpi.var or LPISETTINGS_STOCK_SOP, instead of being read with
+%                a meaning the executives no longer give it; lpi.pos and
+%                lpi.var, which EXEC_TOOLS_SOP and POSLPIVAR_SETTINGS_SOP
+%                read, default to those of 'light'.
 
 % Defaults of the fields of ST.sop
 % d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
@@ -151,6 +165,30 @@ d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',t
            'dw_feas',[],'max_raise_feas',[],'eppos_stab',[],'cap_delta',[]); % MMP, 10/29/2026
 % Check ST; set each missing or empty field of ST.sop to its default
 if ~isstruct(st),   error('exec_sop_settings:st','ST should be a settings struct (lpisettings).');   end
+% Stock-format fields of the tiers before 11/12/2026: an error naming the   % MMP, 11/12/2026
+% replacement                                                               % MMP, 11/12/2026
+old = {'dd1','dd12','options1','options12','override1','ddZ','dd2','dd3', ...
+       'options2','options3','override2','sosineq_on'};                     % MMP, 11/12/2026
+new = [repmat({'use lpi.pos'},1,5),{'use lpi.var.deg{1}'}, ...
+       repmat({'use sop.stock (LPISETTINGS_STOCK_SOP)'},1,5), ...
+       {'remove it: the container executives pose no sosineq'}];           % MMP, 11/12/2026
+for k = find(isfield(st,old))                                               % MMP, 11/12/2026
+    error('exec_sop_settings:retired',['settings.%s was retired on 11/12/2026;'...
+          ' %s.'],old{k},new{k});                                           % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+if isfield(st,'settings_nd') && isstruct(st.settings_nd) && ...
+        any(isfield(st.settings_nd,{'LF_int','LF_mult','Zop_deg'}))         % MMP, 11/12/2026
+    error('exec_sop_settings:retired',['settings_nd.LF_int, LF_mult and Zop_deg were '...
+          'retired on 11/12/2026; use entry 3 of lpi.pos and lpi.var.'])    % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+% lpi.pos and lpi.var, the operators of the LPIs: those of 'light' where    % MMP, 11/12/2026
+% missing                                                                   % MMP, 11/12/2026
+if ~isfield(st,'lpi') || ~all(isfield(st.lpi,{'pos','var'}))                % MMP, 11/12/2026
+    d0 = lpisettings_sop();                                                 % MMP, 11/12/2026
+    if ~isfield(st,'lpi'),          st.lpi = struct();      end             % MMP, 11/12/2026
+    if ~isfield(st.lpi,'pos'),      st.lpi.pos = d0.lpi.pos;    end         % MMP, 11/12/2026
+    if ~isfield(st.lpi,'var'),      st.lpi.var = d0.lpi.var;    end         % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 if ~isfield(st,'sop') || isempty(st.sop),   st.sop = struct();     end
 fn = fieldnames(d);
 for i = 1:numel(fn)

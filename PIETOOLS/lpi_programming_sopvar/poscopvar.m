@@ -42,7 +42,10 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                'struct' with fields vars ('cellstr') and dom (double, one
 %                row per name). Omitted, as POSCOPVAR(PROG,DIMS,SPACES,DEG,
 %                OPTIONS): the domain of PROG (LPIPROGRAM), by name;
-% - deg:         the degrees of Z^alpha(theta,s): a scalar (int and mult),
+% - deg:         (optional; omitted or [], the degrees of the program
+%                settings, lpi.pos of LPIPROGRAM, space by space, with the
+%                include and sep they imply, which OPTIONS may then not set)
+%                the degrees of Z^alpha(theta,s): a scalar (int and mult),
 %                or a 'struct' with the optional fields
 %                  int     scalar or 1 x nv, the degree in each theta_d
 %                          (default 1);
@@ -152,6 +155,12 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  included, sets them. 'pos' was the only legal type, and
 %                  the check here repeated that of POSCOPVAR_DIRECT, which
 %                  also keeps path and cache (defaults 'fast', on).
+% MMP, 11/12/2026: DEG may be omitted: the degrees of the program settings,
+%                  lpi.pos, space by space, entry min(d,3) for a space in d
+%                  variables (phase 2 of the knob reduction; maintainer, for
+%                  two variables: "N-D rule"). SEP being per direction, a
+%                  direction owned by a space in two or more variables is
+%                  separable for every space. Before, DEG was required.
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
 % DOM omitted: the 4th input is DEG (a scalar, a 'struct' without field     % MMP, 11/12/2026
@@ -159,18 +168,26 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % per element, since the varname of a polynomial vector is sorted while     % MMP, 11/12/2026
 % the rows of prog.dom follow the program order                             % MMP, 11/12/2026
 nin = nargin;                                                               % MMP, 11/12/2026
-if nin>=4 && ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
-               || (isstruct(dom) && isfield(dom,'dom')))                    % MMP, 11/12/2026
+% if nin>=4 && ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...   % MMP, 11/12/2026 (was)
+%                || (isstruct(dom) && isfield(dom,'dom')))                  % MMP, 11/12/2026 (was)
+%     if nin>=5,  options = deg;  end                                       % MMP, 11/12/2026 (was)
+%     deg = dom;  nin = nin+1;                                              % MMP, 11/12/2026 (was)
+% Also DOM and DEG both omitted, POSCOPVAR(PROG,DIMS,SPACES)                % MMP, 11/12/2026
+if nin==3 || (nin>=4 && ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
+               || (isstruct(dom) && isfield(dom,'dom'))))                   % MMP, 11/12/2026
     if nin>=5,  options = deg;  end                                         % MMP, 11/12/2026
-    deg = dom;  nin = nin+1;                                                % MMP, 11/12/2026
+    if nin>=4,  deg = dom;      end                                         % MMP, 11/12/2026
+    nin = nin+1;                                                            % MMP, 11/12/2026
     v = cell(1,size(prog.dom,1));                                           % MMP, 11/12/2026
     for k = 1:numel(v),     v{k} = prog.vartable(k).varname{1};     end     % MMP, 11/12/2026
     dom = struct('vars',{v},'dom',prog.dom);                                % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
-% if nargin<5                                                               % MMP, 11/12/2026 (was)
-if nin<5                                                                    % MMP, 11/12/2026
-    error("Not enough input arguments.")
-end
+% DEG omitted or empty: the degrees of the program settings (below)         % MMP, 11/12/2026
+usedef = nin<5 || isempty(deg);                                             % MMP, 11/12/2026
+% % if nargin<5                                                             % MMP, 11/12/2026 (was)
+% if nin<5                                                                  % MMP, 11/12/2026 (was)
+%     error("Not enough input arguments.")                                  % MMP, 11/12/2026 (was)
+% end                                                                       % MMP, 11/12/2026 (was)
 % if nargin<6 || isempty(options)                                           % MMP, 11/12/2026 (was)
 if nin<6 || isempty(options)                                                % MMP, 11/12/2026
     options = struct();
@@ -198,6 +215,38 @@ end                                                                         % MM
 
 % [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,options); % MMP, 10/17/2026 (was)
 meta = parse_copvar_spaces(dims,spaces,dom);    % the registry, for nv      % MMP, 10/17/2026
+% DEG omitted: the degrees of prog.settings.lpi.pos (LPIPROGRAM; light for  % MMP, 11/12/2026
+% a program without settings) space by space, entry min(d,3) for a space    % MMP, 11/12/2026
+% in d variables: on R^n the identity basis; otherwise the multiplier       % MMP, 11/12/2026
+% basis of degree mult and integral bases of degree int in each variable    % MMP, 11/12/2026
+% and joint in total (int < 0: none), the lower and upper integrals in one  % MMP, 11/12/2026
+% variable, one full integral in a separable direction. SEP is per          % MMP, 11/12/2026
+% direction: a direction that a space in two or more variables owns is      % MMP, 11/12/2026
+% separable for every space, any other when lpi.pos.sep is set.             % MMP, 11/12/2026
+if usedef                                                                   % MMP, 11/12/2026
+    if any(isfield(options,{'include','sep'}))                              % MMP, 11/12/2026
+        error("With DEG omitted the settings give include and sep; OPTIONS may not set them.") % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+    ps = struct('mult',[1 0 0],'int',[1 1 1],'joint',[2 2 2],'sep',0);      % MMP, 11/12/2026
+    if isfield(prog,'settings') && isfield(prog.settings,'lpi') && isfield(prog.settings.lpi,'pos') % MMP, 11/12/2026
+        ps = prog.settings.lpi.pos;                                         % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+    own = meta.space_out;   nd = sum(own,2);    e = @(x,c) x(min(c,end));   % MMP, 11/12/2026
+    sepd = logical(ps.sep(1)) | any(own(nd>=2,:),1);                        % MMP, 11/12/2026
+    deg = cell(1,numel(nd));    incl = cell(1,numel(nd));                   % MMP, 11/12/2026
+    for k = 1:numel(nd)                                                     % MMP, 11/12/2026
+        if nd(k)==0,    deg{k} = struct('int',0);   continue;   end         % MMP, 11/12/2026
+        c = min(nd(k),3);   m = e(ps.mult,c);   b = e(ps.int,c);            % MMP, 11/12/2026
+        Zi = struct('int',b,'mult',b,'joint',e(ps.joint,c));                % MMP, 11/12/2026
+        deg{k} = {struct('int',m,'mult',0,'joint',m), Zi, Zi};              % MMP, 11/12/2026
+        incl{k} = [1;2;3];                                                  % MMP, 11/12/2026
+        if all(sepd(own(k,:)))                                              % MMP, 11/12/2026
+            deg{k} = deg{k}(1:2);   incl{k} = [ones(1,nd(k)); 4*ones(1,nd(k))]; % MMP, 11/12/2026
+        end                                                                 % MMP, 11/12/2026
+        if b<0,     deg{k} = deg{k}(1);     incl{k} = incl{k}(1,:);     end % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+    options.sep = sepd;     options.include = incl;                         % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 % copquadvar's contract for options.psatz is kept: one code, 0, 1 or a face % MMP, 10/17/2026
 % 2d+1 / 2d+2. poscopvar_direct also takes a row of codes and the box       % MMP, 10/17/2026
 % quadratics 2nv+2+d (the terms of lpi_ineq_sop); poscopvar rejects them,   % MMP, 10/17/2026

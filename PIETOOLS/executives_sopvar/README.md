@@ -13,9 +13,10 @@ of spatial variables (vars nv x 2, dom nv x 2).
   operator ([]) to 0.
 - In 1-D and 2-D a container PIE builds the same SDP as the opvar PIE: 23 executive/form builds
   matched, with identical fingerprints.
-- In 3 or more variables, `exec_tools_sop` declares the storage from `settings.settings_nd`. The
-  default follows the stock light 2-D storage: a multiplier and one separable full integral per
-  space. Only the 'like' slack is available, and solved operators stay containers.
+- In 3 or more variables, `exec_tools_sop` declares the storage from entry 3 of `settings.lpi.pos`
+  (the former `settings_nd`, 11/12/2026). The rule follows the stock light 2-D storage: a multiplier
+  and one separable full integral per space. Only the 'like' slack is available, and solved
+  operators stay containers.
 - Stability, H-infinity gain and H2 norm run in N-D. The H-infinity estimator solves its LPI but
   returns no gain, because the gain is extracted in 1-D and 2-D only. The controllers, the H2
   estimator and well-posedness reject nv >= 2.
@@ -75,7 +76,7 @@ value, decision count, rows and Gram sizes identical.
    (`sopvar/Testfolder/sdopvar/claude_tests/cx_exec`) wrote them, which produced programs identical to the
    stock on the test plants.
 2. **Storage.** Declared as the stock executive declares it, through `exec_tools_sop`: in 1-D
-   `poslpivar_settings_sop` 'lf' (dd1, options1, dd12, options12 of the settings), in 2-D
+   `poslpivar_settings_sop` 'lf' (entry 1 of `lpi.pos`, the former dd1 and options1, 11/12/2026), in 2-D
    `poslpivar_settings_2d_sop` 'lf' (LF_deg, LF_opts and the psatz terms of `settings_2d`, translated by
    `settings2possopvar`). The margin is added in the same LPIs in every dimension (`exec_tools_sop`
    eye). Since 11/09/2026 it is one `eppos`, which `exec_sop_settings` spreads over the spaces of each
@@ -136,7 +137,8 @@ left as given. In 2-D the free
 operators (Q of the Q forms, Z of the
 estimator) take their degrees from the storage (`get_lpivar_degs_sop`, the per-role reading) and from
 the largest entry of `settings_2d.Zop_deg` (one cap on every role of `lpivar_cdopvar`, a superset of the
-stock `lpivar_2d` monomials); in 1-D from `get_lpivar_degs_sop` and `settings.ddZ`, as the stock.
+stock `lpivar_2d` monomials); in 1-D from `get_lpivar_degs_sop` and `settings.lpi.var.deg{1}` (the
+former `ddZ`), as the stock.
 
 ## utility_functions/ (moved from lpi_programming_sopvar, 10/16/2026)
 
@@ -204,7 +206,7 @@ the stock routine unchanged; the container branch mirrors it.
 | function | legacy class | container |
 |---|---|---|
 | `poslpivar_sop(prog,n/X,d,options[,side,dom])` | `poslpivar` | `poscopvar` over X's `side` spaces, with poslpivar's degree filling, psatz (weight only for 1), exclude and sep translated; 1-D |
-| `poslpivar_settings_sop(prog,n/X,settings,role[,side,dom])` | the `dd1`/`dd12` (`'lf'`) or `dd2`/`dd3` (`'slack'`) pair of `poslpivar` calls | the same pair through `poslpivar_sop`; P1 first, `P1 + P2`; imposes nothing |
+| `poslpivar_settings_sop(prog,n/X,settings,role[,side,dom])` | the `dd1` (`'lf'`) or `dd2`/`dd3` (`'slack'`) `poslpivar` calls | `'lf'`: one `poslpivar_sop` call with the stock-format degrees built from `lpi.pos` (11/12/2026); `'slack'`: the pair from `sop.stock` (`lpisettings_stock_sop`), P1 first, `P1 + P2`; imposes nothing |
 | `get_lpivar_degs_sop(R[,T])` | `get_lpivar_degs` | the same 1-D rule read off the nonzero coefficients |
 | `trace_rn_sop(X)` | `trace(X.P)`, `trace(X.R00)` | trace of the R^q diagonal blocks, a 1 x 1 dpvar over `X.Zd` |
 | `copvar_space_list(X,side)` (sopvar/misc/conventions) | — | the inverse of `parse_copvar_spaces` |

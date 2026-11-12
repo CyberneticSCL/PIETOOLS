@@ -67,6 +67,9 @@ function test_executives_sop(quick)
 %                lpisettings('light'), retired with its folder).
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
 %                lpisettings_sop; code unchanged.
+% MMP, 11/12/2026: (b) takes the stock slack of light from
+%                LPISETTINGS_STOCK_SOP (sop.stock): it left the tiers (phase 2
+%                of the knob reduction). The same slack, so the same check.
 
 % Settings, solver and messages; counter of passed checks
 if nargin<1,    quick = true;   end
@@ -118,7 +121,10 @@ for nm = {'Hinf_control','Hinf_estimator','H2_control','H2_estimator'}
               sprintf('%s_sop: %s, gamma %.7g (open loop %.7g), gain class %s',nm{1},info.status,g,ref,class(out{2}))); % MMP, 11/04/2026
 end
 % ---- (b) the stock slack reproduces the stock
-st2 = st;   st2.sop.slack = 'stock';
+% st2 = st;   st2.sop.slack = 'stock';                                      % MMP, 11/12/2026 (was)
+% the stock slack of light, which left the tiers on 11/12/2026              % MMP, 11/12/2026
+st2 = st;   [~,st2.sop.stock] = lpisettings_stock_sop('light');             % MMP, 11/12/2026
+st2.sop.slack = 'stock';                                                    % MMP, 11/12/2026
 % evalc('[~,~,gs] = PIETOOLS_Hinf_gain(PIE,st);');                          % MMP, 11/07/2026 (was)
 % Stock values recorded 11/07/2026 at e6319ace, MOSEK 11.0.30: each         % MMP, 11/07/2026
 % executive without its pie_struct check, on pie2opvar(PIE), settings st.   % MMP, 11/07/2026

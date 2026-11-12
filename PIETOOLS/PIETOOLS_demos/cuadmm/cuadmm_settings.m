@@ -34,6 +34,10 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 %   the 'stock' slack (sop.slack); the tiers set 'like', so on the container
 %   path the Dup and psatz columns of the ladder pose no different program
 %   (read from the code, not measured).
+% MMP, 11/12/2026: dd2, dd3 and override2 move to S.sop.stock, which starts
+%   from LPISETTINGS_STOCK_SOP(base): the stock slack left the tiers
+%   (maintainer, 11/12/2026: phase 2 of the knob reduction), and the
+%   executives refuse the top-level fields. The same slack for tl.slack.
 %
 % ---------------------------------------------------------------------------
 % WHAT TRANSFERS FROM pielr_settings, AND WHY
@@ -196,12 +200,18 @@ S.eppos = 1e-2;   S.eppos2 = 1e-2;
 if isfield(S,'settings_2d'), S.settings_2d.eppos = 1e-2*ones(4,1); end
 
 % ---- negativity psatz and the Dup bump on the slack -- as pielr_settings
-S.override2 = double(~psatz);          % 1 means OFF: the flag is inverted
+% The stock slack left the tiers on 11/12/2026: it starts from that of the  % MMP, 11/12/2026
+% base tier (LPISETTINGS_STOCK_SOP), in sop.stock, which tl.slack reads     % MMP, 11/12/2026
+[~,S.sop.stock] = lpisettings_stock_sop(base);                              % MMP, 11/12/2026
+% S.override2 = double(~psatz);          % 1 means OFF: the flag is inverted % MMP, 11/12/2026 (was)
+S.sop.stock.override2 = double(~psatz);  % 1 means OFF: the flag is inverted % MMP, 11/12/2026
 n1 = 1;  n2 = 1;  n3 = 1;              % the 1-D light/heavy base orders
 if strcmp(base,'heavy'), n1 = 2; end   % light and heavy differ ONLY here
 n4 = n2 + n3;
-S.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]};
-S.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]};
+% S.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]}; % MMP, 11/12/2026 (was)
+% S.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]}; % MMP, 11/12/2026 (was)
+S.sop.stock.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]}; % MMP, 11/12/2026
+S.sop.stock.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]}; % MMP, 11/12/2026
 S.poincare = struct('psatz',psatz,'dbump',max(0,tier-1));
 
 % ---- 2-D linear psatz generators: an OPTION, off by default in every tier;

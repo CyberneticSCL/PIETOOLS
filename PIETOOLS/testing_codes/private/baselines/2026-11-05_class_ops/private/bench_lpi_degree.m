@@ -54,6 +54,11 @@ function R = bench_lpi_degree(nv,dlist,series,problem)
 %                info.hist of the container executives, since the paper's
 %                parsing time (wall minus solver) also counts the work after
 %                the solver call, which differs between stub and full runs.
+% MMP, 11/12/2026: The container series get the 1-D settings in the native
+%                form (local NATIVE_FROM_STOCK: lpi.pos, lpi.var, sop.stock),
+%                since the container executives refuse the stock-format
+%                fields (phase 2 of the knob reduction); the legacy series
+%                keeps them. Same degrees, so the same programs.
 
 % The PDE and its PIE (copvar operators), and the PIE with opvar operators
 if nargin<4 || isempty(problem),    problem = 'stability';  end             % MMP, 11/06/2026
@@ -98,6 +103,9 @@ for d = dlist
         stk = st;
         stk.sop = struct('max_raise',0,'max_raise_feas',0,'witness',false,'keepdual',false,'verbose',false);
         if strcmp(ser,'sop_stock'),     stk.sop.slack = 'stock';    end
+        % The container executives read the native settings since           % MMP, 11/12/2026
+        % 11/12/2026: in 1-D the same degrees as lpi.pos, lpi.var, sop.stock % MMP, 11/12/2026
+        if nv==1 && ~strcmp(ser,'legacy'),  stk = native_from_stock(stk);  end % MMP, 11/12/2026
         if strcmp(problem,'of') && strcmp(ser,'legacy')                     % MMP, 11/06/2026
             error('bench_lpi_degree:noLegacyOF','No legacy implementation of the output feedback LPI exists.'); % MMP, 11/06/2026
         end                                                                 % MMP, 11/06/2026
@@ -195,6 +203,23 @@ else
     st.settings_2d.LF_deg = scale_deg(st.settings_2d.LF_deg,d);
 end
 end
+
+function sn = native_from_stock(st)                                         % MMP, 11/12/2026
+% SN = NATIVE_FROM_STOCK(ST) returns the stock-format 1-D settings ST in the
+% native form the container executives read since 11/12/2026: lpi.pos from
+% dd1 = {m,[b b j],[b b j]} and options1.sep, lpi.var.deg{1} from ddZ,
+% sop.stock from dd2, options2, override2, dd3, options3; the stock-format
+% fields removed. INPUT st: 'struct', SETTINGS_FOR(1,d). OUTPUT sn: 'struct'.
+f = {'dd1','dd12','options1','options12','override1','ddZ','dd2','dd3', ...
+     'options2','options3','override2','sosineq_on','opts'};                % MMP, 11/12/2026
+sn = rmfield(st,f(isfield(st,f)));                                          % MMP, 11/12/2026
+d1 = st.dd1;                                                                % MMP, 11/12/2026
+sn.lpi.pos = struct('mult',[d1{1} 0 0],'int',[d1{2}(1) 1 1], ...
+                    'joint',[d1{2}(3) 2 2],'sep',st.options1.sep);          % MMP, 11/12/2026
+sn.lpi.var = struct('deg',{{st.ddZ,1,1}});                                  % MMP, 11/12/2026
+sn.sop.stock = struct('override2',st.override2,'options2',st.options2, ...
+    'dd2',{st.dd2},'options3',st.options3,'dd3',{st.dd3});                  % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 
 function D = scale_deg(D,d)
 % Every numeric array inside the struct/cell D multiplied by d
