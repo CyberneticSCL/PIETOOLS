@@ -83,9 +83,10 @@ and `lpisolve` (in this folder since 11/04/2026) serve both families unchanged.
 | `lpi_ineq_sop` | `lpi_ineq` | imposes `P >= 0`: sizes the positive slack, prints its decision variables, declares it, then `P - Pop == 0` (§2) |
 | `lpigetsol_sop` | `lpigetsol` | the solved value of a decision variable or operator (§2) |
 | `getsol_lpivar_sop` | `getsol_lpivar` | the same for a decision operator (§2) |
-| `lpiprogram` | – | declares the program in any number of spatial variables, for both families |
+| `lpiprogram` | – | declares the program in any number of spatial variables, for both families, with its settings (§2) |
 | `lpidecvar` | – | declares a scalar or matrix decision variable (`dpvar`) |
 | `lpisetobj` | – | sets the objective, a linear function of `dpvar` decision variables |
+| `lpisetsettings` | – | sets the settings of the program: a settings structure or a tier name (§2) |
 | `lpisolve` | – | solves the program (`sossolve`) |
 | `lpiscript_sop` | `lpiscript` | solves a predefined LPI by name (`'stability'`, `'l2gain'`, `'h2norm'`, `'hinf-controller'`, ...) with the container executive and form of `PIETOOLS_auto_execute_sop`; the outputs of `lpiscript`, then the executive's `info` |
 
@@ -142,9 +143,26 @@ in any number of spatial variables: `(vartab,dumvartab,dom[,decvartab[,freevarta
 `(vartab,dom,...)`, an n×2 `vartab` (variables and dummies), a 1×2 `dom` for all variables.
 For a PIE, `lpiprogram(PIE.vars,PIE.dom)`. The program has the fields
 `vartable = [vars; dummies; free]` (a `polynomial`), `dom` (n×2), `decvartable` (a cellstr),
-and the SOSTOOLS fields.
+`settings`, and the SOSTOOLS fields.
 
-No container routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and
+Settings on the program (11/12/2026): an optional last input, a settings structure
+(`lpisettings_sop`) or a tier name, is stored in `prog.settings` (light by default), and
+`lpisetsettings(prog,st)` replaces it later; one field can also be set directly, as
+`prog.settings.lpi.ineq.dw = 2`. `lpi_ineq_sop` takes from it the `dD`, `dw`, `wmin` a call does
+not give (`lpi.ineq`), and `lpisolve` without options its `sos_opts`. A hand-written LPI then
+chooses its tier once:
+
+    prog = lpiprogram(PIE.vars,PIE.dom,'heavy');
+    [prog,P] = poscopvar(prog,1,{{'s'}},4);      % DOM omitted: the domain of prog
+    prog = lpi_ineq_sop(prog,-Q);
+    prog = lpisolve(prog);
+
+The executives pass their own settings. `poscopvar` and `lpivar_cdopvar` take their `dom`
+argument from the program when it is omitted, by variable name. Degree defaults for these two
+from the settings are not yet available: the tiers hold degrees only in the stock format.
+
+Apart from an omitted `dom` of `poscopvar` or `lpivar_cdopvar` (11/12/2026), no container
+routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and
 DEMO2 with a program declared on no spatial variable build the same SDP and solve to the same
 feasratio). They matter when stock constraints share the program: the stock `lpi_ineq` and
 `lpi_eq` on an opvar read the dummies from `vartable` and the domain from `dom`, and a
@@ -176,7 +194,8 @@ multiplier degree): lift `D = Dmin + dD`, weight `w = max(ceil((Dmax - D - 1)/2)
 dw`, defaults `dD = dw = 1` (the heat benchmark needs both, `PIETOOLS_demos/sopvar_demos/README.md`
 Sec. 12). Read from `P` itself, `w` is at least `wmin`, 2 in 1-D and 2-D (11/10/2026: the Poincaré LPI
 of DEMO3 returned 1.218/pi at `w = 1` and 1.00002/pi at `w = 2`). The defaults of `dD`, `dw` and `wmin`
-are `lpi.ineq` of the default settings tier (`settings_sopvar/README.md`); `opts` may be a settings
+are `lpi.ineq` of the program settings (`prog.settings`, light by default;
+`settings_sopvar/README.md`); `opts` may be a settings
 structure, and a call that sets `dw` and not `wmin` keeps `w = reach + dw`. Terms `'auto'`: 1-D the
 plain term at `w` and the product at `w - 1` (the Markov-Lukacs
 pair), N-D the plain term at `w` and the `2N` faces at `w - 1` when every weight is at least 2, at
@@ -250,7 +269,7 @@ unchanged on container programs. **Measured** in two places:
   programs, with `lpidecvar`, `lpi_ineq`, `lpisetobj`, `lpisolve` and `lpigetsol_sop`.
 
 Neither `prog.vartable` nor `prog.dom` is read by lpidecvar, lpisetobj, lpisolve or any
-container routine.
+container routine, except by `poscopvar` and `lpivar_cdopvar` for an omitted `dom` (11/12/2026).
 
 ## 3. Related functions in other folders (moved 10/16/2026)
 
@@ -336,6 +355,7 @@ both on the path from `genpath`, and `tests/private/opcheck_sop`.
 | command | what | time |
 |---|---|---|
 | `test_lpi_eq_sop` | dispatch of 16 cases field by field, the option pass-through, 7 errors | 2 s |
+| `test_settings_prog_sop` | settings on the program (`lpiprogram`, `lpisetsettings`), the defaults `lpi_ineq_sop` and `lpisolve` take from them, `dom` read from the program by name | 1 s |
 | `test_getsol_sop`, `bench_getsol_sop` | getsol (getsol agent) | 18 s, minutes |
 | `test_dpvar_ops_sop`, `test_dpvar_hinf_chain_sop` | dpvar operators and constructors (operators agent) | 17 s, 10 s |
 | `test_endtoend_sop` | E1 `e2e_hinf_gain_1d` and E2 `e2e_stability_1d` by default; `'all'` adds E3 `e2e_stability_2d` and E4 `e2e_heat3d_stability` | 15 s; E3 5 min; E4 15–20 min |

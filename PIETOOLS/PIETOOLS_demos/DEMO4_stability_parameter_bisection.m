@@ -44,6 +44,9 @@
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% MMP, 11/12/2026: POSCOPVAR takes the domain from the program (maintainer,
+%   11/12/2026: "Update demos first"); the argument repeated the domain
+%   given to LPIPROGRAM. Same programs.
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -83,7 +86,8 @@ for iter = 1:n_iters
     
     % % Declare decision variables:
     % %   P:L2-->L2,    P>0
-    [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],2);                               % DJ (CC), 10/30/2026
+%   [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],2);                           % MMP, 11/12/2026 (was)
+    [prog,P] = poscopvar(prog,1,{{'s'}},2);   % domain: that of prog        % MMP, 11/12/2026
     P = P + 1e-4*eye_copvar_sop(1,{{'s'}},[0,1]);   % enforce P>=1e-4           % DJ (CC), 10/30/2026
     
     % % Set inequality constraints:

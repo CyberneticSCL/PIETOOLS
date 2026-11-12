@@ -1,8 +1,9 @@
-function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
-% PROG = LPIPROGRAM(VARTAB,DUMVARTAB,DOM,DECVARTAB,FREEVARTAB) declares an
-% LPI program structure in independent variables 'vartab' on domain 'dom',
-% with dummy variables 'dumvartab', decision variables 'decvartab', and
-% additional (non-spatial) independent variables 'freevartab'.
+function prog = lpiprogram(varargin)
+% PROG = LPIPROGRAM(VARTAB,DUMVARTAB,DOM,DECVARTAB,FREEVARTAB,SETTINGS)
+% declares an LPI program structure in independent variables 'vartab' on
+% domain 'dom', with dummy variables 'dumvartab', decision variables
+% 'decvartab', additional (non-spatial) independent variables
+% 'freevartab', and settings 'settings'.
 %
 % INPUT
 % - vartab:     nx1 array of type 'polynomial', specifying n independent
@@ -22,11 +23,18 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 % - freevartab: (optional) mx1 array of type 'polynomial', specifying
 %               additional independent variables in the optimization 
 %               program that need not exist on any fixed domain.
+% - settings:   (optional, the last input) 'struct' of LPI settings
+%               (LPISETTINGS_SOP), or a 'char' or 'string' naming a tier:
+%               'stripped', 'light', 'heavy', 'veryheavy', 'custom' or
+%               'extreme'; default 'light'. LPI_INEQ_SOP and LPISOLVE take
+%               from it the options a call does not give; LPISETSETTINGS
+%               changes it.
 %
 % OUTPUT
 % - prog:       'struct' specifying an optimization program structure as
-%               per SOSTOOLS format, but with an additional field 'dom'
-%               specifying the domain of the independent variables.
+%               per SOSTOOLS format, but with additional fields 'dom',
+%               specifying the domain of the independent variables, and
+%               'settings', the settings structure.
 %
 % NOTES
 % The independent variables will be stored in the lpi program structure
@@ -78,7 +86,30 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 %   with the opvar classes. The adapter 'lpiprogram_sop' named in the
 %   10/01/2026 entry is retired the same day (cleaning/private/dead_code).
 % DJ, 11/06/2026: Allow variable names to be specified as cellstr;
+% MMP, 11/12/2026: Optional last input SETTINGS, a settings structure or a
+%   tier name, stored in prog.settings by LPISETSETTINGS (default light):
+%   LPI_INEQ_SOP and LPISOLVE take from it the options a call does not give
+%   (maintainer, 11/12/2026: "Settings on the program"). The inputs are
+%   parsed by position, so SETTINGS is taken off the end first; the former
+%   signature lpiprogram(vartab,dumvartab,dom,decvartab,freevartab) and its
+%   body move, unchanged, to the local function DECLARE_PROGRAM, whose
+%   three recursive calls now call it directly.
 
+% % % SETTINGS: a 'struct' or text as the last input (no other input is     % MMP, 11/12/2026
+% either), stored in PROG; the inputs before it declare the program.        % MMP, 11/12/2026
+st = [];                                                                    % MMP, 11/12/2026
+if nargin>=2,   st = varargin{end};     end                                 % MMP, 11/12/2026
+if isstruct(st) || ischar(st) || isstring(st),  varargin(end) = [];         % MMP, 11/12/2026
+else,                                           st = [];                    % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+prog = lpisetsettings(declare_program(varargin{:}),st);                     % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+
+
+function prog = declare_program(vartab,dumvartab,dom,decvartab,freevartab)  % MMP, 11/12/2026
+% PROG = DECLARE_PROGRAM(VARTAB,DUMVARTAB,DOM,DECVARTAB,FREEVARTAB)         % MMP, 11/12/2026
+% declares the program of LPIPROGRAM from the inputs before SETTINGS.       % MMP, 11/12/2026
+% INPUT, OUTPUT: as LPIPROGRAM, without SETTINGS and prog.settings.         % MMP, 11/12/2026
 
 % % % Process the inputs
 % % First, check if the second argument corresponds to dummy variables or a
@@ -104,14 +135,17 @@ elseif nargin>=2 && nargin<=4 && isnumeric(dumvartab)
             freevartab = decvartab;
             decvartab = dom;
             dom = dumvartab;
-            prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab,freevartab);
+%           prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab,freevartab); % MMP, 11/12/2026 (was)
+            prog = declare_program(vartab,dumvartab_tmp,dom,decvartab,freevartab); % MMP, 11/12/2026
         elseif nargin==3
             decvartab = dom;
             dom = dumvartab;
-            prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab);
+%           prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab);          % MMP, 11/12/2026 (was)
+            prog = declare_program(vartab,dumvartab_tmp,dom,decvartab);     % MMP, 11/12/2026
         else
             dom = dumvartab;
-            prog = lpiprogram(vartab,dumvartab_tmp,dom);
+%           prog = lpiprogram(vartab,dumvartab_tmp,dom);                    % MMP, 11/12/2026 (was)
+            prog = declare_program(vartab,dumvartab_tmp,dom);               % MMP, 11/12/2026
         end
         return
     end

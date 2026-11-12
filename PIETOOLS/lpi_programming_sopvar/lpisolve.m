@@ -3,12 +3,15 @@ function prog_sol = lpisolve(prog,opts)
 % PROG_SOL = LPISOLVE(PROG,OPTS) takes an LPI program structure 'prog', and
 % passes this to sossolve to solve with options 'opts', returning the
 % solved LPI program structure.
-% 
+%
 % INPUT
 % - prog:       An LPI program structure (based on SOSTOOLS structure)
 %               specifying an LPI to solve;
-% - opts:       'struct' of options to be passed to SOSTOOLS for solving
-%               the optimization program specified by lpi;
+% - opts:       (optional) 'struct' of options to be passed to SOSTOOLS for
+%               solving the optimization program specified by lpi; or a
+%               settings structure (LPISETTINGS_SOP), whose field sos_opts
+%               is passed. Default: prog.settings.sos_opts (LPIPROGRAM,
+%               LPISETSETTINGS), else the defaults of SOSSOLVE;
 %
 % OUTPUT
 % - prog_sol:   'struct', the solved LPI program;
@@ -46,12 +49,30 @@ function prog_sol = lpisolve(prog,opts)
 %   classes.
 % MMP, 11/08/2026 - Comment pass (maintainer, 11/08/2026): OUTPUT names
 %   prog_sol; code unchanged.
+% MMP, 11/12/2026 - Without OPTS, the solver options of the program
+%   settings (LPIPROGRAM, LPISETSETTINGS); OPTS may also be a settings
+%   structure (maintainer, 11/12/2026: "Settings on the program"). Every
+%   tier sets sos_opts.simplify = 0 and no solver, as SOSSOLVE does without
+%   options, so a call without OPTS solves the same program as before.
 
 % % Solve using 'sossolve' with desired settings, if specified.
-if nargin>=2
-    prog_sol = sossolve(prog,opts);
-else
-    prog_sol = sossolve(prog);
-end
+% if nargin>=2                                                              % MMP, 11/12/2026 (was)
+%     prog_sol = sossolve(prog,opts);                                       % MMP, 11/12/2026 (was)
+% else                                                                      % MMP, 11/12/2026 (was)
+%     prog_sol = sossolve(prog);                                            % MMP, 11/12/2026 (was)
+% end                                                                       % MMP, 11/12/2026 (was)
+% The options: OPTS; sos_opts of a settings structure OPTS; without OPTS,   % MMP, 11/12/2026
+% sos_opts of prog.settings; else none (the SOSSOLVE defaults)              % MMP, 11/12/2026
+if nargin<2 || isempty(opts)                                                % MMP, 11/12/2026
+    opts = [];                                                              % MMP, 11/12/2026
+    if isfield(prog,'settings') && isfield(prog.settings,'sos_opts')        % MMP, 11/12/2026
+        opts = prog.settings.sos_opts;                                      % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+elseif isfield(opts,'sos_opts')                                             % MMP, 11/12/2026
+    opts = opts.sos_opts;                                                   % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+if isempty(opts),   prog_sol = sossolve(prog);                              % MMP, 11/12/2026
+else,               prog_sol = sossolve(prog,opts);                         % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 
 end

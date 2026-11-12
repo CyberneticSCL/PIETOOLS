@@ -58,6 +58,10 @@
 % DB 10/30/2026: Update to the new 'pie_struct' structure: use PIE.space.vars,
 %             PIE.space.dom, and PIE.Bu, instead of the hidden fields
 %             PIE.dom and PIE.B2, and correct the description above;
+% MMP, 11/12/2026: POSCOPVAR and LPIVAR_CDOPVAR take the domain from the
+%             program, and LPI_INEQ_SOP infers 'like' = P from the operator
+%             POSCOPVAR declared (maintainer, 11/12/2026: "Update demos
+%             first"). Same program.
 clear; clc; clear stateNameGenerator
 pvar s1 s2
 c1 = 1; c2 = 1; lam = 2*pi^2+1; ne = 1;
@@ -79,15 +83,18 @@ I = eye_copvar_sop(ne,vars,dom);
 %% Positive PI Lyapunov variable and free auxiliary feedback variable.
 % prog = lpiprogram_sop(T);                                                 % DB, 11/04/2026 (retired)
 prog = lpiprogram(PIE.vars,PIE.dom);                                               % DB, 11/04/2026
-[prog,P] = poscopvar(prog,ne,vars,dom,0);
+% [prog,P] = poscopvar(prog,ne,vars,dom,0);                                 % MMP, 11/12/2026 (was)
+[prog,P] = poscopvar(prog,ne,vars,0);       % domain: that of prog          % MMP, 11/12/2026
 P = P + 1e-4*I;
 spaces.out = []; spaces.in = vars;
-[prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,dom,2);
+% [prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,dom,2);    % MMP, 11/12/2026 (was)
+[prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,2);          % MMP, 11/12/2026
 
 %% Dual LPI: (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0.
 APBZ = A*P+B*Z;
 Q = APBZ*T'+T*APBZ'+2*alpha*T*P*T';
-prog = lpi_ineq_sop(prog,-Q,struct('like',P,'dD',2,'dw',2));
+% prog = lpi_ineq_sop(prog,-Q,struct('like',P,'dD',2,'dw',2));              % MMP, 11/12/2026 (was)
+prog = lpi_ineq_sop(prog,-Q,struct('dD',2,'dw',2));  % like: P, inferred    % MMP, 11/12/2026
 prog = lpisolve(prog);
 info = prog.solinfo.info;
 assert(~info.pinf && ~info.dinf && info.numerr==0 && abs(info.feasratio-1)<0.1, ...

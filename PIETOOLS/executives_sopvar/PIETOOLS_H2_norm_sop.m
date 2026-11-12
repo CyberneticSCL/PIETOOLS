@@ -145,6 +145,12 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                way in every dimension); in 1-D, W >= 0 before. ADD_EPPOS2D
 %                keeps its rule, eppos on R^n and on the space in every
 %                variable, which in 1-D are both spaces.
+% MMP, 11/12/2026: The program takes the settings of the run (the last
+%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
+%                defaults from them instead of the light tier (maintainer,
+%                11/12/2026: "Settings on the program"). Programs unchanged:
+%                every tier sets lpi.ineq.dD = 1, and with dw and like
+%                given wmin does not apply.
 
 % Default settings and form; check the PIE
 % if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)
@@ -237,7 +243,8 @@ end
         %               (slack info of LPI_INEQ_SOP for the negativity
         %               constraint), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam as the objective, gam >= 0 except in 'o' (as the stock 1-D files)
         [prog,gamv] = lpidecvar(prog,'gam');

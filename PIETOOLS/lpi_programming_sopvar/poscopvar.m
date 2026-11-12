@@ -36,10 +36,12 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % - spaces:      1 x M cell of 'cellstr', spaces{k} the names of the
 %                variables of s^k ({} for R^{m_k}); a plain 'cellstr' is
 %                one space, so several spaces are nested, as {{},{'s'}};
-% - dom:         double, nv x 2, dom(d,:) the interval of variable d of
-%                the registry (the sorted union of all spaces), or one
-%                1 x 2 row for every variable; or a 'struct' with fields
-%                vars ('cellstr') and dom (double, one row per name);
+% - dom:         (optional) double, nv x 2, dom(d,:) the interval of
+%                variable d of the registry (the sorted union of all
+%                spaces), or one 1 x 2 row for every variable; or a
+%                'struct' with fields vars ('cellstr') and dom (double, one
+%                row per name). Omitted, as POSCOPVAR(PROG,DIMS,SPACES,DEG,
+%                OPTIONS): the domain of PROG (LPIPROGRAM), by name;
 % - deg:         the degrees of Z^alpha(theta,s): a scalar (int and mult),
 %                or a 'struct' with the optional fields
 %                  int     scalar or 1 x nv, the degree in each theta_d
@@ -53,7 +55,6 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                or a 1 x M cell of these, one per space, each of which
 %                may be a cell with one per basis operator of the space;
 % - options:     (optional) 'struct' with the optional fields
-%                  type     char, 'pos' (any other value is an error);
 %                  psatz    double, the weight g: 0 (default, g = 1), 1
 %                           (g = prod_d (theta_d-a_d)*(b_d-theta_d)), or
 %                           2d+1 / 2d+2, d = 1..nv (g = (theta_d-a_d)/L_d
@@ -66,13 +67,7 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  include  1 x M cell, entry k selecting basis operators
 %                           of space k: multi-index rows over the
 %                           variables of s^k, a logical mask, or linear
-%                           indices (default all);
-%                  path     char, 'fast' (default) or 'general', the
-%                           construction of the map from Q to the kernels
-%                           of Pop (the same Pop up to rounding);
-%                  cache    logical (default true): keep the position
-%                           maps of the session; POSCOPVAR_DIRECT('clear')
-%                           empties them.
+%                           indices (default all).
 %
 % OUTPUT
 % - prog:        'struct', the program with Q declared positive
@@ -150,23 +145,46 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                LPIPROGRAM_SOP is retired.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, See
 %                  also without the retired poslpivar; code unchanged.
+% MMP, 11/12/2026: DOM may be omitted: the domain of PROG, by name
+%                  (maintainer, 11/12/2026: "Settings on the program"; DOM
+%                  repeated the domain given to LPIPROGRAM). options.type,
+%                  path and cache are no longer documented: no caller, test
+%                  included, sets them. 'pos' was the only legal type, and
+%                  the check here repeated that of POSCOPVAR_DIRECT, which
+%                  also keeps path and cache (defaults 'fast', on).
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
-if nargin<5
+% DOM omitted: the 4th input is DEG (a scalar, a 'struct' without field     % MMP, 11/12/2026
+% dom, or a 'cell', never n x 2), and the domain is that of PROG by name,   % MMP, 11/12/2026
+% per element, since the varname of a polynomial vector is sorted while     % MMP, 11/12/2026
+% the rows of prog.dom follow the program order                             % MMP, 11/12/2026
+nin = nargin;                                                               % MMP, 11/12/2026
+if nin>=4 && ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
+               || (isstruct(dom) && isfield(dom,'dom')))                    % MMP, 11/12/2026
+    if nin>=5,  options = deg;  end                                         % MMP, 11/12/2026
+    deg = dom;  nin = nin+1;                                                % MMP, 11/12/2026
+    v = cell(1,size(prog.dom,1));                                           % MMP, 11/12/2026
+    for k = 1:numel(v),     v{k} = prog.vartable(k).varname{1};     end     % MMP, 11/12/2026
+    dom = struct('vars',{v},'dom',prog.dom);                                % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+% if nargin<5                                                               % MMP, 11/12/2026 (was)
+if nin<5                                                                    % MMP, 11/12/2026
     error("Not enough input arguments.")
 end
-if nargin<6 || isempty(options)
+% if nargin<6 || isempty(options)                                           % MMP, 11/12/2026 (was)
+if nin<6 || isempty(options)                                                % MMP, 11/12/2026
     options = struct();
 end
 if ~isa(options,'struct')
     error("Options should be specified as a 'struct' object.")
 end
-if isfield(options,'type') && ~isempty(options.type) ...
-        && ~strcmp(char(options.type),'pos')
-    error("'poscopvar' declares a positive operator; for type '%s' call "...
-          +"'copquadvar' directly.",char(options.type))
-end
-options.type = 'pos';
+% if isfield(options,'type') && ~isempty(options.type) ...                  % MMP, 11/12/2026 (was)
+%         && ~strcmp(char(options.type),'pos')                              % MMP, 11/12/2026 (was)
+%     error("'poscopvar' declares a positive operator; for type '%s' call "... % MMP, 11/12/2026 (was)
+%           +"'copquadvar' directly.",char(options.type))                   % MMP, 11/12/2026 (was)
+% end                                                                       % MMP, 11/12/2026 (was)
+% options.type = 'pos';                                                     % MMP, 11/12/2026 (was)
+% type: POSCOPVAR_DIRECT rejects any but 'pos'                              % MMP, 11/12/2026
 
 % No space (an empty channel of a PIE, as the W of an H2 LPI on R^0): the   % MMP, 10/28/2026
 % 0 x 0 operator, with no block and no decision variable; PROG unchanged    % MMP, 10/28/2026

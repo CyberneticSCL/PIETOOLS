@@ -50,6 +50,9 @@
 % DJ, 10/30/2026: Update to use "int2copvar" to compute mean;
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% MMP, 11/12/2026: POSCOPVAR and LPIVAR_CDOPVAR take the domain from the
+%   program (maintainer, 11/12/2026: "Update demos first"); the arguments
+%   repeated the domain given to LPIPROGRAM. Same program.
 
 clc; clear; clear stateNameGenerator
 pvar s t;
@@ -82,12 +85,14 @@ T = (I-S)*T;            A = (I-S)*A;
 % prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
 prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 % Lyapunov decision PI variable (coercive)
-[prog,P] = poscopvar(prog,1,{'s'},PIE.dom,struct('int',3,'mult',3,'joint',3));
+% [prog,P] = poscopvar(prog,1,{'s'},PIE.dom,struct('int',3,'mult',3,'joint',3)); % MMP, 11/12/2026 (was)
+[prog,P] = poscopvar(prog,1,{'s'},struct('int',3,'mult',3,'joint',3));      % MMP, 11/12/2026
 P = P + 1e-4*I;
 % Lagrange decision PI variable (indefinite)
 spaces.out = {[], {'s'}};  % R and L2[s]
 spaces.in  = [];         % R
-[prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,PIE.dom,6);
+% [prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,PIE.dom,6); % MMP, 11/12/2026 (was)
+[prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,6);        % MMP, 11/12/2026
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
 % all x(s,t) : Kx(s,t)=0, a <= s <= b
 Q = A'*P*T + T'*P*A + 2*alpha*T'*P*T + X*K + K'*X';

@@ -126,6 +126,12 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %                the light tier (maintainer, 11/08/2026).
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
 %                default named after lpisettings_sop; code unchanged.
+% MMP, 11/12/2026: The program takes the settings of the run (the last
+%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
+%                defaults from them instead of the light tier (maintainer,
+%                11/12/2026: "Settings on the program"). Programs unchanged:
+%                every tier sets lpi.ineq.dD = 1, and with dw and like
+%                given wmin does not apply.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -198,7 +204,8 @@ end
         %               ('cdopvar' P, Z, W), li (slack info of LPI_INEQ_SOP
         %               for the negativity constraint), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective
         [prog,gamv] = lpidecvar(prog,'gam');

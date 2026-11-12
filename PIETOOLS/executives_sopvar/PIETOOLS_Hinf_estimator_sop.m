@@ -144,6 +144,12 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                two 11/04 entries merged), help default named after
 %                lpisettings_sop, two commented-out notes removed; code
 %                unchanged.
+% MMP, 11/12/2026: The program takes the settings of the run (the last
+%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
+%                defaults from them instead of the light tier (maintainer,
+%                11/12/2026: "Settings on the program"). Programs unchanged:
+%                every tier sets lpi.ineq.dD = 1, and with dw and like
+%                given wmin does not apply.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -243,7 +249,8 @@ end
         %               operator), Nm (the slack), li (slack info of
         %               LPI_INEQ_SOP), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective, or the fixed gain
         if isempty(gfix)

@@ -114,6 +114,12 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %                (maintainer, 11/08/2026).
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
 %                default named after lpisettings_sop; code unchanged.
+% MMP, 11/12/2026: The program takes the settings of the run (the last
+%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
+%                defaults from them instead of the light tier (maintainer,
+%                11/12/2026: "Settings on the program"). Programs unchanged:
+%                every tier sets lpi.ineq.dD = 1, and with dw and like
+%                given wmin does not apply.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
@@ -196,7 +202,8 @@ end
         %               constrained operators), li (slack info of
         %               LPI_INEQ_SOP for Dm1, with degrees2 those for Dm2).
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % P >= eppos I on the output space of T, R >= I on its input space
         [prog,Pm] = tl.storage(prog,Tm,'out');

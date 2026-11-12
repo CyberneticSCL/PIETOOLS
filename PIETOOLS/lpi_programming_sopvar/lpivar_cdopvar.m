@@ -44,7 +44,9 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            name in the sorted list of the nv names of SPACES; one 1 x 2
 %            row for every variable; or a 'struct' with fields vars
 %            ('cellstr', every name of SPACES among them) and dom
-%            ('double', one row [a,b] per name of vars);
+%            ('double', one row [a,b] per name of vars). Optional: omitted,
+%            as LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DEG,OPTIONS), the domain
+%            of PROG (LPIPROGRAM), by name;
 % - deg:     (optional) the degree caps, nonnegative integers (default 1):
 %            a 'struct' with any of the fields
 %              mult  'double', the degree in t_k where gam_k = 1;
@@ -147,10 +149,29 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
 %                  PARSE_DEG (one caller) inlined at the degree caps, its
 %                  header as the comment of the block.
+% MMP, 11/12/2026: DOM may be omitted: the domain of PROG, by name
+%                  (maintainer, 11/12/2026: "Settings on the program"; DOM
+%                  repeated the domain given to LPIPROGRAM).
 
 % Defaults of the optional inputs; PROG must be an LPI program
-if nargin<5 || isempty(deg),        deg = 1;            end
-if nargin<6 || isempty(options),    options = struct(); end
+% DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'   % MMP, 11/12/2026
+% without field dom, or a 'cell', never n x 2), and the domain is that of   % MMP, 11/12/2026
+% PROG by name, per element, since the varname of a polynomial vector is    % MMP, 11/12/2026
+% sorted while the rows of prog.dom follow the program order                % MMP, 11/12/2026
+nin = nargin;                                                               % MMP, 11/12/2026
+if nin<4 || ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
+              || (isstruct(dom) && isfield(dom,'dom')))                     % MMP, 11/12/2026
+    if nin>=5,  options = deg;  end                                         % MMP, 11/12/2026
+    if nin>=4,  deg = dom;      end                                         % MMP, 11/12/2026
+    nin = nin+1;                                                            % MMP, 11/12/2026
+    v = cell(1,size(prog.dom,1));                                           % MMP, 11/12/2026
+    for k = 1:numel(v),     v{k} = prog.vartable(k).varname{1};     end     % MMP, 11/12/2026
+    dom = struct('vars',{v},'dom',prog.dom);                                % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
+% if nargin<5 || isempty(deg),        deg = 1;            end               % MMP, 11/12/2026 (was)
+% if nargin<6 || isempty(options),    options = struct(); end               % MMP, 11/12/2026 (was)
+if nin<5 || isempty(deg),           deg = 1;            end                 % MMP, 11/12/2026
+if nin<6 || isempty(options),       options = struct(); end                 % MMP, 11/12/2026
 if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
     error("'prog' should be an LPI program structure; use 'lpiprogram'.")
 end

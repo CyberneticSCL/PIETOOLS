@@ -69,6 +69,9 @@
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% MMP, 11/12/2026: POSCOPVAR and LPIVAR_CDOPVAR take the domain from the
+%   program (maintainer, 11/12/2026: "Update demos first"); the arguments
+%   repeated the domain given to LPIPROGRAM. Same program.
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -111,12 +114,14 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % MM
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-[prog,P] = poscopvar(prog,1,{{'s'}},[0,1],4);                               % DJ (CC), 10/30/2026
+% [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],4);                             % MMP, 11/12/2026 (was)
+[prog,P] = poscopvar(prog,1,{{'s'}},4);   % domain: that of prog            % MMP, 11/12/2026
 % Enforce strict positivity P >= 1e-3
 P = P + 1e-3*eye_copvar_sop(1,{{'s'}},[0,1]);                               % DJ (CC), 10/30/2026
 % Indefinite operator variable Z: L2-->\R
 spaces.out = [];        spaces.in = {'s'};
-[prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,[0,1],2);      % DJ (CC), 10/30/2026
+% [prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,[0,1],2);    % MMP, 11/12/2026 (was)
+[prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,2);            % MMP, 11/12/2026
 
 % % Set inequality constraints:
 % %   Q <= 0

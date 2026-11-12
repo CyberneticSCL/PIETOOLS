@@ -28,8 +28,9 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %          an error;
 % - opts:  (optional) 'struct' with the optional fields below, or a
 %          settings structure (LPISETTINGS_SOP), of which only lpi.ineq is
-%          read; dD, dw and wmin not given are those of
-%          lpisettings_sop().lpi.ineq (tier 'light'), whose vectors hold
+%          read. dD, dw and wmin not given are those of the settings of the
+%          program, prog.settings.lpi.ineq (LPIPROGRAM, LPISETSETTINGS;
+%          tier 'light' for a program without them), where a vector holds
 %          the entries for 1, 2, and 3 or more variables:
 %            dD, dw        double, added to the lift degree and to the
 %                          weight degree read from the support (default
@@ -39,8 +40,6 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          opts.like (default 2 in one and two variables,
 %                          0 in three or more; 0 when opts.dw is given and
 %                          opts.wmin is not);
-%            wR            double, the weight degree on an R^q space
-%                          (default 0);
 %            psatz         the terms of Pop: 'auto' (default; in one
 %                          variable the plain term and the box product one
 %                          weight degree lower, in nv ~= 1 variables the
@@ -72,11 +71,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          spatial variables, keep only the basis operators
 %                          whose diagonal term reaches a nonzero parameter
 %                          cell of the diagonal block of P;
-%            path          char, 'fast' (default) or 'general', the route
-%                          of POSCOPVAR_DIRECT;
-%            cache         logical (default true): keep the position maps
-%                          of POSCOPVAR_DIRECT for the session;
-%            margin        double >= 0 (default 0): impose
+%            margin       double >= 0 (default 0): impose
 %                          P + margin*eD - Pop == 0 instead, eD = A'*A with
 %                          A the lift of LIFT_COPVAR at the largest 'mult'
 %                          degree of the specification (at least 1);
@@ -212,6 +207,16 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                1.218/pi, with w >= 2 1.00002/pi. A call that sets dw keeps
 %                w = reach + dw (maintainer, 11/10/2026). Sizing from
 %                opts.like or opts.deg is unchanged.
+% MMP, 11/12/2026: dD, dw, wmin not given come from the settings of the
+%                program, prog.settings.lpi.ineq (LPIPROGRAM,
+%                LPISETSETTINGS), and from tier 'light' only for a program
+%                without them (maintainer, 11/12/2026: "Settings on the
+%                program"); the executives pass their own settings to
+%                LPIPROGRAM. path and cache are no longer options: no
+%                caller, test included, set them, and POSCOPVAR_DIRECT keeps
+%                its defaults ('fast', cache on). wR is no longer documented
+%                (no caller sets it; GET_LIFT_DEGS still reads it, default
+%                0).
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -247,8 +252,12 @@ end
 % default tier's (LPISETTINGS_SOP, 'light'). A tier vector holds the
 % entries for 1, 2, and 3 or more variables. wmin comes only with dw: a
 % call that sets dw keeps w = reach + dw.
+% The settings of the program (prog.settings) come before 'light'.          % MMP, 11/12/2026
 if isfield(opts,'lpi'),     tier = opts.lpi.ineq;   opts = struct();
-else,                       tier = lpisettings_sop().lpi.ineq;
+% else,                       tier = lpisettings_sop().lpi.ineq;            % MMP, 11/12/2026 (was)
+elseif isfield(prog,'settings') && isfield(prog.settings,'lpi')             % MMP, 11/12/2026
+    tier = prog.settings.lpi.ineq;      % the settings of the program       % MMP, 11/12/2026
+else,                       tier = lpisettings_sop().lpi.ineq;  % none      % MMP, 11/12/2026
 end
 pick = @(v) v(min(max(numel(P.vars),1),end));
 if ~isfield(opts,'dD') || isempty(opts.dD),     opts.dD = pick(tier.dD);    end
@@ -377,10 +386,11 @@ end
 % % % One positive operator, all terms, then the equality.
 popts = struct('psatz',terms.codes,'psatz_offset',terms.offsets);
 if prune && any(~cellfun(@isempty,include)),   popts.include = include;    end
-% path and cache, when given
-for f = {'path','cache'}
-    if isfield(opts,f{1}) && ~isempty(opts.(f{1})),  popts.(f{1}) = opts.(f{1});    end
-end
+% % path and cache, when given                                              % MMP, 11/12/2026 (was)
+% for f = {'path','cache'}                                                  % MMP, 11/12/2026 (was)
+%     if isfield(opts,f{1}) && ~isempty(opts.(f{1})),  popts.(f{1}) = opts.(f{1});    end % MMP, 11/12/2026 (was)
+% end                                                                       % MMP, 11/12/2026 (was)
+% path and cache are no longer options: POSCOPVAR_DIRECT keeps its defaults % MMP, 11/12/2026
 % % % The decision variables of the certificate, counted before anything    % MMP, 10/21/2026
 % is declared (POSCOPVAR_DIRECT 'estimate': the grids of the build below,   % MMP, 10/21/2026
 % no Gram, no map) and printed, so an oversized program shows before the    % MMP, 10/21/2026

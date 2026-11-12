@@ -168,6 +168,12 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                higher), and the finite-energy default epneg 1e-5 is set
 %                once. The entries of 10/28/2026 and 10/29/2026 on the 2-D
 %                factor 2 and the 2-D default settings no longer apply.
+% MMP, 11/12/2026: The program takes the settings of the run (the last
+%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
+%                defaults from them instead of the light tier (maintainer,
+%                11/12/2026: "Settings on the program"). Programs unchanged:
+%                every tier sets lpi.ineq.dD = 1, and with dw and like
+%                given wmin does not apply.
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -286,7 +292,8 @@ end
         %               operator), Nm (the slack), li (slack info of
         %               LPI_INEQ_SOP), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % The positive operator P and the derivative operator Dm of FORM
         switch form
