@@ -2,7 +2,7 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 % [Rops,Gops,info] = ELIMINATE_BVP_SOURCES(PDE,src,Rops,Gops,info)
 % eliminates the inputs introduced by lift_BVP_sources for the
 % states of lower dimension (including ODE states) in the BCs, from the
-% operators assembled in solve_PIETOOLS_BVP. A state x2 with the BC
+% operators assembled in convert_PIETOOLS_BVP. A state x2 with the BC
 % x2(s1,0)=x1(s1) is solved as x2 = T2*v2 + Tw2*wf_c, with wf_c the
 % fundamental inputs derived from the BC data p=x1: derivatives of p, at
 % the lower boundary in some variables. As p=x1 is itself a function of the
@@ -17,7 +17,7 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 %           lower dimension;
 % - src:    struct array defining the new inputs of the BCs, from
 %           lift_BVP_sources, the r-th input being w_{numel(PDE.w)+r};
-% - Rops,Gops,info:    operators and info assembled in solve_PIETOOLS_BVP
+% - Rops,Gops,info:    operators and info assembled in convert_PIETOOLS_BVP
 %           for the PDE in which these states are replaced by the new
 %           inputs;
 %
@@ -37,7 +37,7 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 %   convert_PDE_term evaluates using Rops of the state.
 % - A group of BCs of several variables with new inputs may not also involve
 %   inputs of the PDE, which could not be parameterized by free functions,
-%   error solve_PIETOOLS_BVP:sourceAndInput (raised in solve_PIETOOLS_BVP).
+%   error convert_PIETOOLS_BVP:sourceAndInput (raised in convert_PIETOOLS_BVP).
 %   The input terms of a scalar source of a 1-D state are lifted into it
 %   (lift_BVP_sources): wf_c is then also a sum of those inputs, which are
 %   fundamental inputs themselves, so remain inputs of the PIE.
@@ -45,11 +45,11 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 %   depends on the states of groups without new inputs left. A cyclic
 %   dependence between groups is solved as a linear system in the inputs,
 %   if these are point values (no variables), and else gives the error
-%   solve_PIETOOLS_BVP:cyclicSources, as does a loop without unique solution.
+%   convert_PIETOOLS_BVP:cyclicSources, as does a loop without unique solution.
 % - The BCs involving the states of lower dimension are then checked: the
 %   terms of their states must cancel for every xf, or the compatibility
 %   (corner) conditions of the BCs would constrain xf, which is not
-%   supported, error solve_PIETOOLS_BVP:sourceCompatibility. This is not
+%   supported, error convert_PIETOOLS_BVP:sourceCompatibility. This is not
 %   checked for groups with rank-deficient directions, whose BCs hold on
 %   the constrained fundamental state only.
 %
@@ -83,6 +83,7 @@ function [Rops,Gops,info] = eliminate_BVP_sources(PDE,src,Rops,Gops,info)
 %                       eliminate the inputs lifted into the sources too
 %                       (source_input_map), keeping other right-hand sides;
 %                       extract substitute_input from the loop;
+% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
 
 N = size(PDE.vars,1);       nw0 = numel(PDE.w);
 vars_pde = arrayfun(@(i) PDE.vars(i,1).varname{1},1:N,'UniformOutput',false);
@@ -140,11 +141,11 @@ while true
         if self_dep
             L = input_map.w{in_idx};
             if ~isempty([L.vars.in,L.vars.out])
-                error("solve_PIETOOLS_BVP:cyclicSources","The sources of the states of lower dimension depend on each other cyclically, as functions of the spatial variables; this is not supported.")
+                error("convert_PIETOOLS_BVP:cyclicSources","The sources of the states of lower dimension depend on each other cyclically, as functions of the spatial variables; this is not supported.") % DJ, 11/11/2026
             end
             IL = eye(L.dims(1))-full(L.params{1});
             if rcond(IL)<1e-10
-                error("solve_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically, without a unique solution.")
+                error("convert_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically, without a unique solution.") % DJ, 11/11/2026
             end
             Mloop = inv(IL);
             input_map.w{in_idx} = [];
@@ -178,7 +179,7 @@ while true
                     % Only the loop of the source itself (inc=0) is solved; a
                     % self-dependence of its derivatives would be dropped silently
                     if self_dep && ~isempty(maps_inc(mat2str(inc)).w{in_idx}) % DJ (CC), 11/08/2026
-                        error("solve_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically, in a direction that is passed through; this is not supported.") % DJ (CC), 11/08/2026
+                        error("convert_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically, in a direction that is passed through; this is not supported.") % DJ, 11/11/2026
                     end                                                     % DJ (CC), 11/08/2026
                 end
                 input_map = maps_inc(mat2str(inc));
@@ -212,7 +213,7 @@ while true
         break
     end
     if ~done
-        error("solve_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically.")
+        error("convert_PIETOOLS_BVP:cyclicSources","The states of lower dimension in the boundary conditions depend on each other cyclically.") % DJ, 11/11/2026
     end
 end
 
@@ -272,7 +273,7 @@ for g=unique(groups_src)
             end
         end
         if any(cellfun(@(P) ~isempty(P) && amax(P)>1e-9,B_sum))
-            error("solve_PIETOOLS_BVP:sourceCompatibility","The boundary conditions %s are not satisfied by the states coupled to states of lower dimension: these states must satisfy the compatibility (corner) conditions of the boundary conditions they enter, e.g. x1(0)=0 if x2(0,s2)=0 and x2(s1,0)=x1(s1). Constraints on the fundamental state are not generated.",mat2str(k))
+            error("convert_PIETOOLS_BVP:sourceCompatibility","The boundary conditions %s are not satisfied by the states coupled to states of lower dimension: these states must satisfy the compatibility (corner) conditions of the boundary conditions they enter, e.g. x1(0)=0 if x2(0,s2)=0 and x2(s1,0)=x1(s1). Constraints on the fundamental state are not generated.",mat2str(k)) % DJ, 11/11/2026
         end
     end
 end
@@ -294,7 +295,7 @@ function input_map = source_input_map(PDE,source,in_c,Rops,inc,ncols,inputs) % D
 % - PDE:    'pde_struct' object of the original PDE;
 % - source: element of src, see lift_BVP_sources;
 % - in_c:   element of info.inputs.w, the input wf_c derived from the
-%           source, see solve_PIETOOLS_BVP;
+%           source, see convert_PIETOOLS_BVP;
 % - Rops:   struct with the maps to the states and their derivatives;
 % - inc:    1 x N array, increase of the orders of the derivative of
 %           wf_c in each variable, for the derivatives of the states in
@@ -327,7 +328,7 @@ for jt=1:numel(source.terms)
     free = arrayfun(@(m) ~isdouble(term.loc(m)),1:nvars_src);
     vfree = reshape(vidx(free),1,[]);
     if any(in_c.loc(vfree)==0 & ~ismember(vars_pde(vfree),in_c.vars))
-        error("solve_PIETOOLS_BVP:sourceVars","A state of lower dimension in a boundary condition depends on a variable that the other states do not depend on.")
+        error("convert_PIETOOLS_BVP:sourceVars","A state of lower dimension in a boundary condition depends on a variable that the other states do not depend on.") % DJ, 11/11/2026
     end
     % The multi-indices k <= Dorder in the variables of the state
     nfree = numel(vfree);       k_arr = zeros(1,0);
@@ -387,7 +388,7 @@ if ~any(Dorder)
         inp = source.inputs(ji);        ty = inp.type;      cols = inputs.(ty);
         j = find(arrayfun(@(f) f.pde==inp.idx && ~any(f.Dorder) && ~any(f.loc) && isequal(sort(f.sel(:)'),1:f.dim),cols),1);
         if isempty(j)
-            error("solve_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.")
+            error("convert_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.") % DJ, 11/11/2026
         end
         blk = mat2sopvar(full(double(inp.C(in_c.sel,:))),struct('in',{cols(j).vars},'out',{in_c.vars}),struct('in',cols(j).dom,'out',in_c.dom));
         if isempty(input_map.(ty){j})
@@ -452,7 +453,7 @@ for i=1:nrows
         obj_type = ty{1};
         for j=find(~cellfun(@isempty,input_map.(obj_type)))
             if isempty(blocks.(obj_type))
-                error("solve_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.")
+                error("convert_PIETOOLS_BVP:sourceInputs","The inputs of a state of lower dimension in a boundary condition have no counterpart in the operators.") % DJ, 11/11/2026
             end
             blk_new = ref_blks{i}*input_map.(obj_type){j};
             if isempty(blocks.(obj_type){i,j})

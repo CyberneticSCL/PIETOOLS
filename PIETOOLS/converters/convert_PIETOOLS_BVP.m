@@ -1,5 +1,5 @@
-function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
-% [Tops,Kops,Dmap,info] = SOLVE_PIETOOLS_BVP(PDE,diffs,opts) computes
+function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
+% [Tops,Kops,Dmap,info] = CONVERT_PIETOOLS_BVP(PDE,diffs,opts) computes
 % operators parameterizing all states of an ND PDE that satisfy its
 % boundary conditions (BCs): with the fundamental state xf (free of BCs,
 % except for the constraints Kops.x*xf=0) and the fundamental inputs wf,
@@ -30,8 +30,8 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 %           are not in the BCs), 'blocks' (see OUTPUT),
 %           and 'nonlinear' (return 'tensopmat' objects).
 %           Either of diffs and opts may be omitted or [], so that e.g.
-%           solve_PIETOOLS_BVP(PDE,'terms') and
-%           solve_PIETOOLS_BVP(PDE,'blocks') both work: a single input is
+%           convert_PIETOOLS_BVP(PDE,'terms') and
+%           convert_PIETOOLS_BVP(PDE,'blocks') both work: a single input is
 %           diffs if it is 'all', 'terms' or not text, and opts otherwise.
 %           The order (opts,diffs) is also recognized;
 %
@@ -159,7 +159,7 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - solve_PIETOOLS_BVP
+% PIETOOLS - convert_PIETOOLS_BVP
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -187,6 +187,7 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 %                   into its source, as fundamental inputs, and map each
 %                   input that is its own fundamental input to the PDE input
 %                   (Iin), also if in the BCs; add info.input_maps;
+% DJ, 11/11/2026: Rename from solve_PIETOOLS_BVP;
 
 % % % Check the inputs
 msg = "Options should be specified as 'no_decouple', 'all_inputs', 'blocks' or 'nonlinear'.";
@@ -243,7 +244,7 @@ if want_diffs
     elseif iscell(diffs) && numel(diffs)==nx
         diffs_k = diffs(:);
     else
-        error('solve_PIETOOLS_BVP:diffs',"The derivatives should be specified as 'all', 'terms', or an nx x 1 cell.")
+        error('convert_PIETOOLS_BVP:diffs',"The derivatives should be specified as 'all', 'terms', or an nx x 1 cell.")
     end
     for k=1:nx
         Dk = Delta(k,isvar(k,:));
@@ -253,7 +254,7 @@ if want_diffs
             bad = ~isempty(diffs_k{k}) && (~isnumeric(diffs_k{k}) || size(diffs_k{k},2)~=numel(Dk) || any(diffs_k{k}(:)<0) || any(diffs_k{k}(:)~=round(diffs_k{k}(:))) || any(any(diffs_k{k}>Dk,2)));
         end
         if bad
-            error('solve_PIETOOLS_BVP:diffs','The derivatives of state %d should be ''all'', or nonnegative integer orders, one for each of its variables, not exceeding the orders of the state.',k)
+            error('convert_PIETOOLS_BVP:diffs','The derivatives of state %d should be ''all'', or nonnegative integer orders, one for each of its variables, not exceeding the orders of the state.',k)
         end
     end
 end
@@ -301,7 +302,7 @@ for g=1:numel(PDEs)
 %         has_input = cellfun(@(tm) any(arrayfun(@(f) (isfield(f,'w') && ~isempty(f.w)) || (isfield(f,'u') && ~isempty(f.u)),tm)),BC_terms); % DJ (CC), 11/08/2026 (was)
 %         if any(has_input)                                                 % DJ (CC), 11/08/2026 (was)
         if any(has_input) && size(PDEs{g}.vars,1)>1                         % DJ (CC), 11/08/2026
-            error('solve_PIETOOLS_BVP:sourceAndInput','The boundary conditions %s involve both a state of lower dimension and an input; this is not supported, as the input could not be parameterized by free functions.',mat2str(dec.BC_idcs{g}(:)'))
+            error('convert_PIETOOLS_BVP:sourceAndInput','The boundary conditions %s involve both a state of lower dimension and an input; this is not supported, as the input could not be parameterized by free functions.',mat2str(dec.BC_idcs{g}(:)'))
         end
         diffs_comp = term_diffs(PDE,diffs_comp,BC_terms);
     end
@@ -325,7 +326,7 @@ for g=1:numel(PDEs)
         [sol(g).Tops,sol(g).Kops,sol(g).Fop,sol(g).info,sol(g).Gops] = solve_BVP_group(PDEs{g},alphas_g,any(dec.w_idcs{g}>nw0));
     catch ME
         if strcmp(ME.identifier,'compose_Tmaps:inputsRankDeficient') && any(dec.w_idcs{g}>nw0)
-            error('solve_PIETOOLS_BVP:sourceRankDeficient','The boundary conditions %s involve states of lower dimension, in a direction that is rank deficient (e.g. periodic); this is not supported.',mat2str(dec.BC_idcs{g}(:)'))
+            error('convert_PIETOOLS_BVP:sourceRankDeficient','The boundary conditions %s involve states of lower dimension, in a direction that is rank deficient (e.g. periodic); this is not supported.',mat2str(dec.BC_idcs{g}(:)'))
         end
         rethrow(ME)
     end
@@ -421,7 +422,7 @@ for ty={'x','w','u'}
                 for c2=c1+1:numel(first_idx)
                     f1 = col_spaces(first_idx(c1));     f2 = col_spaces(first_idx(c2));
                     if f1.pde==f2.pde && any(ismember(f1.sel,f2.sel)) && isempty(intersect(groups_c{c1},groups_c{c2}))
-                        error('solve_PIETOOLS_BVP:sharedInputs','The input %s%d appears in the boundary conditions of states on different variables, in ways that cannot be written as the same fundamental input; this is not supported.',obj_type,f1.pde)
+                        error('convert_PIETOOLS_BVP:sharedInputs','The input %s%d appears in the boundary conditions of states on different variables, in ways that cannot be written as the same fundamental input; this is not supported.',obj_type,f1.pde)
                     end
                 end
             end
@@ -439,7 +440,7 @@ for ty={'x','w','u'}
             if ~strcmp(lf.type,obj_type) || any(arrayfun(@(f) is_itself(f,tab_in,lf.idx),col_spaces))
                 continue
             elseif any([col_spaces.pde]==lf.idx)
-                error('solve_PIETOOLS_BVP:sourceAndInput','An input in the boundary conditions of a state of lower dimension is also decomposed in other boundary conditions, in a way that is not the input itself; this is not supported.')
+                error('convert_PIETOOLS_BVP:sourceAndInput','An input in the boundary conditions of a state of lower dimension is also decomposed in other boundary conditions, in a way that is not the input itself; this is not supported.')
             end
             col_spaces(end+1) = own_input(tab_in,lf.idx);   %#ok<AGROW>
             ncols_tot = ncols_tot+1;
@@ -958,7 +959,7 @@ function [Tops,Kops,Fop,info,Gops] = solve_BVP_group(PDE,alphas,sources)
 % OUTPUT
 % - Tops,Kops,Fop,Gops: operators as in compose_Tmaps;
 % - info:   struct with fields groups, fund, inputs, rhs as in
-%           solve_PIETOOLS_BVP, for a single group (group index 1, states
+%           convert_PIETOOLS_BVP, for a single group (group index 1, states
 %           x_idcs=1:nx). The fields inputs and rhs have subfields w and u
 %           for the exogenous and actuator inputs, and rhs.w and rhs.u
 %           have the BCs and the terms of w, resp. u, of the right-hand
@@ -976,7 +977,7 @@ dir_idcs = 1:N;
 if isempty(PDE.BC)
     % States without BCs must not be differentiable, and have xf=u
     if any(Delta(:)>0)
-        error('solve_PIETOOLS_BVP:noBCs','A state that is differentiable in some direction has no boundary conditions along it.')
+        error('convert_PIETOOLS_BVP:noBCs','A state that is differentiable in some direction has no boundary conditions along it.')
     end
     dir_idcs = find(any(isvar,1));
     maps = repmat(struct('Tops',[],'Kops',[],'Fop',[],'info',[],'Qops',[],'forced',[],'source',[]),1,numel(dir_idcs));
@@ -988,7 +989,7 @@ else
     % The states must all depend on the same variables, so that the
     % right-hand sides of the BCs (forcing) only involve inputs
     if ~all(isvar(:))
-        error('solve_PIETOOLS_BVP:mixedDimension','The states in a group of coupled boundary conditions should all depend on the same variables.')
+        error('convert_PIETOOLS_BVP:mixedDimension','The states in a group of coupled boundary conditions should all depend on the same variables.')
     end
     maps = repmat(struct('Tops',[],'Kops',[],'Fop',[],'info',[],'Qops',[],'forced',[],'source',[]),1,N);
     for i=1:N
@@ -1065,7 +1066,7 @@ else
         catch ME
             msg = ['Boundary conditions along ',vars_pde{i},': ',ME.message];
             if isempty(ME.identifier)
-                error('solve_PIETOOLS_BVP:direction','%s',msg)
+                error('convert_PIETOOLS_BVP:direction','%s',msg)
             else
                 error(ME.identifier,'%s',msg)
             end
@@ -1078,7 +1079,7 @@ end
 % % % direction
 [Tops,Kops,Fop,info_comp,Gops] = compose_Tmaps(maps,vars_pde(dir_idcs),PDE.dom(dir_idcs,:),sizes,Delta(:,dir_idcs),alphas,sources);
 % Info on the group, in terms of the states and BCs of the group; the
-% indices are mapped to those of the PDE in solve_PIETOOLS_BVP
+% indices are mapped to those of the PDE in convert_PIETOOLS_BVP
 info = struct('groups',struct('BC_idcs',1:numel(PDE.BC),'vars',{info_comp.vars},'pass',{info_comp.vars(info_comp.pass)}));
 info.fund = info_comp.fund;
 [info.fund.group] = deal(1);

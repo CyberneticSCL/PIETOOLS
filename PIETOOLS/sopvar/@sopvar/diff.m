@@ -71,6 +71,8 @@ function [dPop,is_zero] = diff(Pop,vars,d,chk_override)
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
 %                  added to the headers of the local functions; code
 %                  unchanged.
+% DJ, 11/12/2026: Bugfix in case that no term of the kernel depends on the
+%                  differentiation variable;
 
 if nargin<=3 || ~chk_override
     % Check that the operator is properly specified
@@ -268,6 +270,14 @@ param_idcs = vertcat(param_idcs{1:cntr});
 ridcs = vertcat(ridcs{1:cntr});     degsL = vertcat(degsL{1:cntr});
 cidcs = vertcat(cidcs{1:cntr});     degsR = vertcat(degsR{1:cntr});     
 vals = vertcat(vals{1:cntr});
+
+% If no term depends on v, nothing is retained and the derivative is zero.
+% Use 0*P, with the monomials of P, as for cntr==0.
+if isempty(vals)
+    dP = 0*P;
+    is_zero = true;
+    return
+end
 
 % % Build the new monomial bases
 ZLn = ZL;       ZRn = ZR;

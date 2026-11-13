@@ -67,7 +67,7 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 %               w: R^{n_BC} --> R^{mK}, w --> -J2*w,
 %               u: R^{0} --> R^{mK}, zero (there are no inputs u),
 %           such that Kops.x*v1+Kops.w*w=0 for the fundamental state of u,
-%           as in solve_PIETOOLS_BVP. The constraint does not depend on v0.
+%           as in convert_PIETOOLS_BVP. The constraint does not depend on v0.
 %           All have no rows if mK=0;
 % - Fop:    L2^{|n|} --> R^{m}, u --> v0 = int_{a}^{b} F3(s)*u(s) ds. Empty
 %           if m=0. The choice of F3 is not unique: if m=|n|, F3 is the

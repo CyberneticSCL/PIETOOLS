@@ -12,6 +12,8 @@
 % Run pietools_path_update first.
 
 % DJ (CC), 10/20/2026: Initial coding;
+% DJ (CC), 11/12/2026: Test the derivative of an operator that does not
+%                  depend on the differentiation variable (zero operator);
 
 rng(7);
 tol = 1e-9;
@@ -163,6 +165,41 @@ ref = [0*Px; diff(Px,s1)];
 [npass,nfail] = tally(throws(@() diff(P,{'s1'},-1),"nonnegative"),npass,nfail,'negative order');
 [npass,nfail] = tally(throws(@() diff(1,P,1),"sopvar"),npass,nfail,'not a sopvar');
 [npass,nfail] = tally(throws(@() diff(P,{'s1'},[1,1]),"each of the spatial"),npass,nfail,'order size');
+
+% % % Start of changes DJ (CC), 11/12/2026
+%% Derivative of an operator that does not depend on the variable
+% For the operators u -> 1*u, s1*u, s2*u from R to L2[0,1]^2 the derivatives
+% follow from the definition: d/ds1 and d/ds2 of 1 are 0, d/ds1 of s2 and d/ds2
+% of s1 are 0, d/ds1 of s1 and d/ds2 of s2 are the multiplier 1. A zero
+% derivative must keep a nonempty monomial basis, so that products work: it
+% used to have an empty basis in the variable, and D'*D failed in mtimes.
+vo = struct('in',{cell(1,0)},'out',{{'s1','s2'}});
+dmo = struct('in',zeros(0,2),'out',[0,1;0,1]);
+c1 = mat2sopvar(1,vo,dmo);
+f1 = mat2sopvar(polynomial({'s1'}),vo,dmo);
+f2 = mat2sopvar(polynomial({'s2'}),vo,dmo);
+zc = 0*c1;
+% operator, variable, expected derivative
+cs = {c1,'s1',zc; f2,'s1',zc; c1,'s2',zc; f1,'s2',zc; f1,'s1',c1; f2,'s2',c1};
+for k=1:size(cs,1)
+    [dP,is_zero] = diff(cs{k,1},cs{k,2});
+    nm = ['d/d',cs{k,2},', case ',num2str(k)];
+    isz = isequal(cs{k,3},zc);
+    [npass,nfail] = tally(all(cellfun(@numel,dP.ZL)>0),npass,nfail,[nm,': nonempty basis']);
+    dQ = dP-cs{k,3};
+    [npass,nfail] = tally(all(cellfun(@nnz,dQ.params(:))==0),npass,nfail,[nm,': value']);
+    [npass,nfail] = tally(is_zero==isz,npass,nfail,[nm,': is_zero']);
+    ok = true;
+    try,    DD = dP'*dP;    catch,  ok = false;     end
+    [npass,nfail] = tally(ok && isz==all(cellfun(@nnz,DD.params(:))==0),npass,nfail,[nm,': D''*D']);
+end
+% Blocks of a copvar, as for the derivative of the operator T of a BVP
+Cb = copvar({c1,f1,f2});
+dCb = diff(Cb,'s1');
+ok = true;
+try,    DD = dCb'*dCb;  catch,  ok = false;     end
+[npass,nfail] = tally(ok && dCb==copvar({zc,c1,zc}),npass,nfail,'copvar blocks, d/ds1 and D''*D');
+% % % End of changes DJ (CC), 11/12/2026
 
 %% Independent implementation: 1D opvar diff(P,s,'pure')
 pvar s1 s1_dum

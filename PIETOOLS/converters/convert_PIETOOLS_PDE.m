@@ -34,7 +34,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           Cz*xf, and Cy*xf are replaced by the polynomials f, gz,
 %           and gy. The operators are 'copvar' objects (linear PDE) or
 %           'tensopmat' objects (nonlinear PDE). The components of xf
-%           are the blocks info.blocks of solve_PIETOOLS_BVP, one for each
+%           are the blocks info.blocks of convert_PIETOOLS_BVP, one for each
 %           state in each component of the fundamental state, and those of
 %           wf and uf the fundamental inputs info.inputs.w and
 %           info.inputs.u. The
@@ -57,12 +57,12 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   right-hand side of that row is F times that of x_pde, and the
 %   constraint K*xf=0 ties xf_b to x_pde.
 % - The inputs in the boundary conditions are decomposed into fundamental
-%   inputs wf and uf, as in solve_PIETOOLS_BVP: each is a derivative of an
+%   inputs wf and uf, as in convert_PIETOOLS_BVP: each is a derivative of an
 %   element of an input of the PDE, evaluated at the lower boundary in some
 %   variables (e.g. for a state with BCs along both s1 and s2, the corner
 %   value of an input, and its derivatives along the boundaries). This is
 %   stored in pde2pie (idx, diff, loc, and C selecting the elements), see
-%   the description of Dmap in solve_PIETOOLS_BVP. This requires all
+%   the description of Dmap in convert_PIETOOLS_BVP. This requires all
 %   directions of the group of BCs to be admissible (e.g. no periodic
 %   BCs), and each BC with an input to have a single element of a single
 %   input as right-hand side. An input of fewer variables than its
@@ -70,7 +70,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   (e.g. scalar inputs on all faces of a 2D state must be equal, so there
 %   is one fundamental input). An input that is shared by the BCs of
 %   states on different variables is one fundamental input (see
-%   solve_PIETOOLS_BVP). An input that does not appear in the BCs is its
+%   convert_PIETOOLS_BVP). An input that does not appear in the BCs is its
 %   own fundamental input (see append_inputs). An input that appears both
 %   in a BC and elsewhere in the PDE is not supported. The map pie2pde.w,
 %   pie2pde.u from PIE inputs to PDE inputs is only specified for the
@@ -84,7 +84,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   these components. Expansion is not supported for states with boundary 
 %   inputs.
 % - ODE states, and states of lower dimension, may appear in the BCs of
-%   other states, see solve_PIETOOLS_BVP; the T operators then map the
+%   other states, see convert_PIETOOLS_BVP; the T operators then map the
 %   fundamental state of the former to the latter.
 %
 
@@ -116,7 +116,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 11/06/2026: Display PIE states and inputs with a hat in the summary;
 % DJ, 11/06/2026: Get the names of components and variables in the summary
 %                   from 'varname2display';
-% DJ, 11/08/2026: Drop the zero maps of the inputs by info.input_maps;;
+% DJ, 11/08/2026: Drop the zero maps of the inputs by info.input_maps;
+% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, as the
 % % % PIETOOLS converter does, and convert other structures to pde_struct
@@ -238,7 +239,7 @@ op_matrix = @(row_sp,col_sp,hit,X) cell2op(arrayfun(@(r,j) select_cell({zero_op(
 
 
 % % % Derive the map from the fundamental state and inputs to the PDE
-% % % state, with a block for each state (see solve_PIETOOLS_BVP)
+% % % state, with a block for each state (see convert_PIETOOLS_BVP)
 opts = {'all_inputs','blocks'};
 % 'tensopmat' blocks for a nonlinear PDE, or if the flag 'nonlinear' is set
 if is_nonlinear
@@ -249,7 +250,7 @@ diffs = 'terms';
 if return_Top
     diffs = [];
 end
-[Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts);
+[Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts);               % DJ, 11/11/2026
 Gops = info.Gops;
 blocks = info.blocks;       nblocks = numel(blocks);
 spaces_pde = arrayfun(@(k) get_space(PDE.x_tab,k),1:nx);
@@ -492,7 +493,7 @@ for obj_type={'x','w','u','y','z'}
 end
 PIE.space_pde = space_pde;
 
-% % % Maps from the PDE to the PIE, as Dmap of solve_PIETOOLS_BVP: 
+% % % Maps from the PDE to the PIE, as Dmap of convert_PIETOOLS_BVP: 
 % % %   xf_b = C_b*D^{diff}x_pde_idx(b), 
 % % % with C_b the block F_b of Dmap.x.C, the identity for the main blocks 
 % % % and the integral for the auxiliary ones. The inputs are evaluated at 

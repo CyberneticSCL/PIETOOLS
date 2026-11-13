@@ -16,13 +16,13 @@ function [Pterm,Pblk] = convert_PDE_term(term,Tops,PDE,opts)
 % - Tops:   struct with fields
 %           - x:    nx x 1 cell, with Tops.x{k}{alpha+1} a 1 x nV 'copvar'
 %                   (or 'tensopmat') mapping xf --> D^{alpha}x_k, as
-%                   Tops.x of solve_PIETOOLS_BVP with the derivatives (an
+%                   Tops.x of convert_PIETOOLS_BVP with the derivatives (an
 %                   error is thrown for a derivative that was not
 %                   computed);
 %           - w,u:  the same for wf and uf ([] if no such inputs),
 %           and, if the term involves inputs w_r or u_r,
 %           - Iw,Iu:    cells with Tops.Iw{r} the operator wf --> w_r (the
-%                   fields Gops.Iw, Gops.Iu of solve_PIETOOLS_BVP); empty
+%                   fields Gops.Iw, Gops.Iu of convert_PIETOOLS_BVP); empty
 %                   for inputs decomposed in BCs;
 % - PDE:    initialized 'pde_struct' object;
 % - opts:   (optional) 'nonlinear' or a logical (default PDE.is_nonlinear),
@@ -78,6 +78,7 @@ function [Pterm,Pblk] = convert_PDE_term(term,Tops,PDE,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding;
+% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
 
 % % % Check the inputs
 % opts may be a struct, a string, or a logical flag for nonlinear
@@ -270,7 +271,7 @@ if ~is_input
             end
             Tops_rows.(obj_type{1}) = R_cell{D_idcs{:}};
             if isempty(Tops_rows.(obj_type{1})) && strcmp(obj_type{1},'x')
-                error('convert_PDE_term:derivativeMissing',"The derivative D^{%s} of x_%d was not computed by solve_PIETOOLS_BVP: request it in the derivatives specified for solve_PIETOOLS_BVP.",mat2str(D),comp_idx)
+                error('convert_PDE_term:derivativeMissing',"The derivative D^{%s} of x_%d was not computed by convert_PIETOOLS_BVP: request it in the derivatives specified for convert_PIETOOLS_BVP.",mat2str(D),comp_idx) % DJ, 11/11/2026
             end
         end
     end

@@ -30,7 +30,7 @@ function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 %           state itself) is always computed;
 % - sources: (optional) true if all inputs in the BCs are determined by
 %           other states (lifted states of lower dimension, see
-%           solve_PIETOOLS_BVP), so that they satisfy the conditions along
+%           convert_PIETOOLS_BVP), so that they satisfy the conditions along
 %           rank-deficient directions, which are then passed through
 %           (default false);
 %
@@ -404,7 +404,7 @@ for i=find(~triv)
         % With one auxiliary value for each component of the general
         % direction, these are ordered as the regrouped components in the
         % 1D problem. xf is split in blocks per state, with the auxiliary
-        % values in the order of the states (see solve_PIETOOLS_BVP), so
+        % values in the order of the states (see convert_PIETOOLS_BVP), so
         % reorder them: the rows of F, and the columns of R0.
         if i==gen_idx && m(i)==ns && ~isequal(perm_back,1:ns)
             ops_1D(i).F = ops_1D(i).F(perm_back,:);

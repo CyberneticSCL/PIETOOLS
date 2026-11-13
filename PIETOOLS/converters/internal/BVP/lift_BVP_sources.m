@@ -65,7 +65,7 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 %   row with a state of lower dimension and an input still has a single
 %   input as right-hand side (see eliminate_BVP_sources). Without this,
 %   or with more variables, such inputs stay in the BCs, which is not
-%   supported in the same group as a source (solve_PIETOOLS_BVP).
+%   supported in the same group as a source (convert_PIETOOLS_BVP).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,6 +96,7 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 % DJ (CC), 11/08/2026: Lift the input terms of a BC into a scalar source of a
 %                   1-D state, so that a row with a state of lower dimension
 %                   and an input has a single input as right-hand side;
+% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
 
 PDE = pde_struct(PDE);
 if ~PDE.is_initialized
@@ -149,7 +150,7 @@ for k=1:numel(BC)
             continue
         end
         if has_int_delay(term)
-            error("solve_PIETOOLS_BVP:sourceTerm","Terms with an integral or a delay of a state of lower dimension in a boundary condition are not supported.")
+            error("convert_PIETOOLS_BVP:sourceTerm","Terms with an integral or a delay of a state of lower dimension in a boundary condition are not supported.") % DJ, 11/11/2026
         end
         lift_idx(end+1) = state_terms(ii);                                         %#ok<AGROW>
     end
