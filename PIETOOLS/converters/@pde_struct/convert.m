@@ -27,7 +27,8 @@ function PIE = convert(PDE,out_type)
 %   "convert_PIETOOLS_BVP". PIE is then a pie_struct object with only the
 %   operators T, Tw, Tu and K, Kw, Ku specified, for which
 %       x_pde = T*xf + Tw*wf + Tu*uf,       K*xf + Kw*wf + Ku*uf = 0,
-%   for the fundamental state xf and inputs wf, uf.
+%   for the fundamental state xf and inputs wf, uf. A PDE without dynamics
+%   cannot have static constraints 0=F(s) on the whole domain.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,6 +63,8 @@ function PIE = convert(PDE,out_type)
 %                   "convert_PIETOOLS_PDE" as second input;
 % DJ, 11/11/2026: Convert a PDE without dynamics (a BVP) to a PIE with
 %                   only T and K operators, using "convert_PIETOOLS_BVP";
+% DJ, 11/12/2026: Give an error for a PDE without dynamics that has static
+%                   constraints;
 
 % We support only PDE to PIE conversion. The second argument is 'pie', or
 % flags of convert_PIETOOLS_PDE, with the 'pie' left out.
@@ -111,7 +114,8 @@ function PIE = BVP2pie_struct(PDE)
 %
 % INPUT
 % - PDE:    initialized, linear 'pde_struct' object with nx states, with no
-%           equation specified for any of them;
+%           equation specified for any of them, and without static
+%           constraints (PDE.constraint_ID empty);
 %
 % OUTPUT
 % - PIE:    initialized 'pie_struct' object, with T, Tw, Tu the nx x ncomp
@@ -121,6 +125,13 @@ function PIE = BVP2pie_struct(PDE)
 %           component of xf is derived from a single PDE state by 
 %           PIE.pde2pie.x, and each component of wf and uf from a
 %           PDE input by PIE.pde2pie.w and PIE.pde2pie.u;
+
+% Static constraints 0=F(s) would be dropped in solving BVP, and are thus
+% not supported.
+if ~isempty(PDE.constraint_ID)                                              % DJ, 11/12/2026
+    error(['Conversion to PIE is not supported: the PDE has no dynamics, but has ',...
+        ' static constraint(s) 0=F(s) on the whole spatial domain, which are not supported for a PDE without dynamics.'])
+end
 
 % Parameterize the states satisfying the BCs by the fundamental state xf
 % and inputs wf, uf.
