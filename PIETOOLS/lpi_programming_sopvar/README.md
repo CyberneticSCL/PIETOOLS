@@ -163,8 +163,10 @@ settings when `deg` is omitted (11/12/2026): `poscopvar` space by space from `lp
 the dimension of the space (on R^n the identity basis; in one variable the multiplier and the lower and
 upper integrals; in two or more the multiplier and one separable full integral, which makes every
 direction of such a space separable for the 1-D spaces too, `sep` being per direction);
-`lpivar_cdopvar` the entry of `lpi.var.deg` for its largest space (1 for a program without
-settings, the former default). An explicit `deg` is unchanged.
+`lpivar_cdopvar` block by block from `lpi.var.deg`, the left caps (`mult`, `int(1)`, `out`) at the
+entry for the dimension of the output space and the right caps (`int(2)`, `in`) at that of the input
+space, so a block depends on its own two spaces only (1 for a program without settings, the former
+default). An explicit `deg` is unchanged.
 
 Apart from an omitted `dom` of `poscopvar` or `lpivar_cdopvar` (11/12/2026), no container
 routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and

@@ -47,9 +47,11 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            ('double', one row [a,b] per name of vars). Optional: omitted,
 %            as LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DEG,OPTIONS), the domain
 %            of PROG (LPIPROGRAM), by name;
-% - deg:     (optional) the degree caps, nonnegative integers (default: the
-%            entry of lpi.var.deg in the program settings, LPIPROGRAM, for
-%            the largest space; 1 for a program without settings):
+% - deg:     (optional) the degree caps, nonnegative integers (default: per
+%            block, from lpi.var.deg in the program settings, LPIPROGRAM,
+%            the left caps mult, int(1) and out at the entry of the
+%            dimension of the output space, the right caps int(2) and in at
+%            that of the input space; 1 for a program without settings):
 %            a 'struct' with any of the fields
 %              mult  'double', the degree in t_k where gam_k = 1;
 %              int   1 x 2 'double', the degrees in t_k and in s'_k where
@@ -157,6 +159,13 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  the entry of lpi.var.deg of the program settings for the
 %                  largest space (phase 2 of the knob reduction); it was 1,
 %                  which remains for a program without settings.
+% MMP, 11/12/2026: DEG omitted: per block, the left caps from the entry of
+%                  lpi.var.deg for the dimension of the output space, the
+%                  right caps from that of the input space (phase 3 of the
+%                  knob reduction; replaces the largest-space rule above,
+%                  under which a block changed when a space of another
+%                  dimension joined the container). Same blocks as that
+%                  rule when the spaces other than R^n share one dimension.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 % DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'   % MMP, 11/12/2026
@@ -209,14 +218,27 @@ end                                                                         % MM
 % order: spaces, dims, reserved '_int'/'_dum' names, domain.                % MMP, 09/30/2026
 [meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom);                 % MMP, 09/30/2026
 M = numel(sp_out);      N = numel(sp_in);                                   % MMP, 09/30/2026
-% DEG omitted: lpi.var.deg of the program settings (LPIPROGRAM), the entry  % MMP, 11/12/2026
-% of the largest space, at least the first; 1 for a program without them    % MMP, 11/12/2026
+% DEG omitted: lpi.var.deg of the program settings (LPIPROGRAM), per block  % MMP, 11/12/2026
+% (i,j): the left caps (mult, int(1), out) from the entry of the dimension  % MMP, 11/12/2026
+% of output space i, the right caps (int(2), in) from that of input space   % MMP, 11/12/2026
+% j, so a block depends on its own two spaces only. R^n reads entry 1,      % MMP, 11/12/2026
+% which then caps no variable. 1 for a program without settings.            % MMP, 11/12/2026
 if defdeg                                                                   % MMP, 11/12/2026
     deg = 1;                                                                % MMP, 11/12/2026
     if isfield(prog,'settings') && isfield(prog.settings,'lpi') && isfield(prog.settings.lpi,'var') % MMP, 11/12/2026
         zd = prog.settings.lpi.var.deg;                                     % MMP, 11/12/2026
-        c = max([sum(meta.space_out,2); sum(meta.space_in,2); 1]);          % MMP, 11/12/2026
-        deg = zd{min(c,end)};                                               % MMP, 11/12/2026
+%       c = max([sum(meta.space_out,2); sum(meta.space_in,2); 1]);          % MMP, 11/12/2026 (was)
+%       deg = zd{min(c,end)};                                               % MMP, 11/12/2026 (was)
+        e = @(a) norm_deg(zd{min(max(a,1),end)});                           % MMP, 11/12/2026
+        dO = arrayfun(e,sum(meta.space_out,2),'UniformOutput',false);       % MMP, 11/12/2026
+        dI = arrayfun(e,sum(meta.space_in,2),'UniformOutput',false);        % MMP, 11/12/2026
+        deg = cell(M,N);                                                    % MMP, 11/12/2026
+        for i = 1:M                                                         % MMP, 11/12/2026
+            for j = 1:N                                                     % MMP, 11/12/2026
+                deg{i,j} = struct('mult',dO{i}.mult,'int',[dO{i}.int(1),dI{j}.int(2)], ...
+                                  'out',dO{i}.out,'in',dI{j}.in);           % MMP, 11/12/2026
+            end                                                             % MMP, 11/12/2026
+        end                                                                 % MMP, 11/12/2026
     end                                                                     % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
 vars = meta.vars;       dom = meta.dom;                                     % MMP, 09/30/2026

@@ -15,7 +15,8 @@ function test_settings_prog_sop
 %       operator of the call with DOM given, on R^2 x L2[s1] x L2[s1,s2]
 %       (an ODE, 1-D and 2-D coupling), and not that of the swapped domain;
 %   (4) LPIVAR_CDOPVAR with DOM omitted, and with DOM and DEG omitted,
-%       builds the operator of the explicit call;
+%       builds the operator of the explicit call (DEG: the caps of 'light'
+%       block by block, [2 2 2] for L2[s1], 1 for L2[s1,s2]);
 %   (5) LPI_INEQ_SOP takes its degree defaults from prog.settings: on the
 %       target Pt of TEST_LPI_INEQ_SOP the weight degree is 2 at 'light'
 %       and 1 at 'stripped' (wmin 0); a settings structure passed to the
@@ -33,7 +34,13 @@ function test_settings_prog_sop
 %   (8) EXEC_SOP_SETTINGS refuses a retired stock-format field (dd1) and
 %       settings_nd.LF_int with the identifier exec_sop_settings:retired;
 %       LPISETTINGS_STOCK_SOP('heavy') sets sop.slack = 'stock' and returns
-%       sop.stock with the former dd2 of the heavy level, {3,[2 2 3],[2 2 3]}.
+%       sop.stock with the former dd2 of the heavy level, {3,[2 2 3],[2 2 3]};
+%   (9) LPIVAR_CDOPVAR without DEG at 'heavy' (lpi.var.deg {[4 2 2],1,1})
+%       on R x L2[s1] x L2[s1,s2]: the largest exponent of each variable
+%       in the left basis of a block is the cap of the entry for its output
+%       space, in the right basis that of its input space (L2[s1]: 4 left,
+%       2 right in s1 shared, 4 right in s1 input-only; L2[s1,s2]: 1); on
+%       R x L2[s1,s2] the operator of entry 2.
 %
 % INPUT:  none.
 % OUTPUT: none; one line per passed part, then a summary line.
@@ -70,6 +77,9 @@ function test_settings_prog_sop
 %   LPIVAR_CDOPVAR from the program settings when DEG is omitted, the
 %   retired stock-format fields and LPISETTINGS_STOCK_SOP (phase 2 of the
 %   knob reduction).
+% MMP, 11/12/2026: Part (4) compares DEG omitted with the caps of each block
+%   from its two spaces, part (9) reads those caps off the bases (phase 3:
+%   LPIVAR_CDOPVAR defaults per block, no longer the largest space).
 
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
@@ -135,7 +145,13 @@ dz = struct('out',[1;1],'in',[1;1]);    sz = {{'s1'},{'s1','s2'}};
 [~,ZA] = lpivar_cdopvar(p0,dz,sz,[0 1; 0 2],1);
 [~,ZB] = lpivar_cdopvar(p0,dz,sz,1);
 [~,ZC] = lpivar_cdopvar(p0,dz,sz);
-if ~isequal(ZA,ZB) || ~isequal(ZA,ZC)
+% DEG omitted at light: entry 1 ([2 2 2]) for L2[s1], entry 2 (1) for       % MMP, 11/12/2026
+% L2[s1,s2]; left caps from the output space, right from the input space    % MMP, 11/12/2026
+dgc = {[2 2 2], struct('mult',2,'int',[2 1],'out',2,'in',1); ...
+       struct('mult',1,'int',[1 2],'out',1,'in',2), 1};                     % MMP, 11/12/2026
+[~,ZD] = lpivar_cdopvar(p0,dz,sz,[0 1; 0 2],dgc);                           % MMP, 11/12/2026
+% if ~isequal(ZA,ZB) || ~isequal(ZA,ZC)                                     % MMP, 11/12/2026 (was)
+if ~isequal(ZA,ZB) || ~isequal(ZD,ZC)                                       % MMP, 11/12/2026
     error('test_settings_prog_sop: (4) DOM or DEG omitted builds another operator.');
 end
 fprintf('  passed: (4) lpivar_cdopvar: DOM omitted, and DOM and DEG omitted, = explicit\n');
@@ -234,6 +250,39 @@ if nref~=2 || ~strcmp(sk.sop.slack,'stock') || ~isequal(stock,sk.sop.stock) || .
     error('test_settings_prog_sop: (8) retired fields accepted (%d of 2 refused) or the stock slack of heavy wrong.',nref);
 end
 fprintf('  passed: (8) retired fields refused (2 of 2); the stock slack of heavy from LPISETTINGS_STOCK_SOP\n');
+npass = npass+1;
+
+%% (9) LPIVAR_CDOPVAR without DEG: the caps of each block from its two spaces
+% heavy: entry 1 [4 2 2] (mult = out = in = 4, int = [2 2]), entry 2 every
+% cap 1. Rows: block, side, its variables, their largest exponents.
+h = lpiprogram(polynomial({'s1';'s2'}),[0 1; 0 2],'heavy');
+sp3 = {{},{'s1'},{'s1','s2'}};      d3 = struct('out',[1;1;1],'in',[1;1;1]);
+[~,Zh] = lpivar_cdopvar(h,d3,sp3);
+want = {[2 2],'ZL',{'s1'},4;            [2 2],'ZR',{'s1'},2;
+        [3 3],'ZL',{'s1','s2'},[1 1];   [3 3],'ZR',{'s1','s2'},[1 1];
+        [2 3],'ZL',{'s1'},4;            [2 3],'ZR',{'s1','s2'},[1 1];
+        [3 2],'ZL',{'s1','s2'},[1 1];   [3 2],'ZR',{'s1'},2;
+        [1 2],'ZR',{'s1'},4;            [1 3],'ZR',{'s1','s2'},[1 1];
+        [2 1],'ZL',{'s1'},4;            [3 1],'ZL',{'s1','s2'},[1 1]};
+for k = 1:size(want,1)
+    B = Zh.C{want{k,1}(1),want{k,1}(2)};
+    if strcmp(want{k,2},'ZL'),  v = B.vars.out;     Zb = B.ZL;
+    else,                       v = B.vars.in;      Zb = B.ZR;
+    end
+    [in,loc] = ismember(want{k,3},v);
+    if ~all(in) || numel(v)~=numel(want{k,3}) || ~isequal(cellfun(@max,Zb(loc)),want{k,4})
+        error('test_settings_prog_sop: (9) block (%d,%d) %s over %s: largest exponents %s, expected %s.', ...
+              want{k,1},want{k,2},strjoin(v,','),mat2str(cellfun(@max,Zb)),mat2str(want{k,4}));
+    end
+end
+% One dimension besides R^n: every block from that entry, as before
+dz2 = struct('out',[1;1],'in',[1;1]);   sz2 = {{},{'s1','s2'}};
+[~,Ze] = lpivar_cdopvar(h,dz2,sz2);
+[~,Zf] = lpivar_cdopvar(h,dz2,sz2,1);
+if ~isequal(Ze,Zf)
+    error('test_settings_prog_sop: (9) on R x L2[s1,s2] the default differs from entry 2.');
+end
+fprintf('  passed: (9) lpivar_cdopvar without DEG: %d block sides capped by their own space; R x L2[s1,s2] = entry 2\n',size(want,1));
 npass = npass+1;
 
 % The summary line
