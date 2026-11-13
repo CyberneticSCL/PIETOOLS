@@ -47,13 +47,22 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          degree lower when every weight degree is at
 %                          least 2), 'none' (the plain term), 'product' (as
 %                          'auto' in one variable), 'faces' (the plain term
-%                          and the 2nv faces), or a double row of term
+%                          and the 2nv faces), 'corners' (the faces and every
+%                          product of two faces of different directions),
+%                          or a double row of term
 %                          codes: 0 plain, 1 box product, 2d+1 / 2d+2 lower
 %                          / upper face of direction d, 2nv+2+d box
 %                          quadratic of direction d;
 %            psatz_offset  double, with a row of codes: the weight degree
 %                          by which each term is lowered, one per code or
 %                          one for all (default 0);
+%            psatz_rows, psatz_rows_offset
+%                          with a row of codes: rows of per-direction
+%                          factors and their offsets (GET_LIFT_DEGS,
+%                          POSCOPVAR_DIRECT);
+%                          Default for psatz and psatz_offset: the fields
+%                          psatz, psatz_offset of the settings tier
+%                          (st.lpi.ineq) when present, else 'auto';
 %            like          'cdopvar' or 'copvar' object, or a cell of them,
 %                          with variables among those of P: their pooled
 %                          support is read instead of that of P. Default
@@ -217,6 +226,14 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                its defaults ('fast', cache on). wR is no longer documented
 %                (no caller sets it; GET_LIFT_DEGS still reads it, default
 %                0).
+% MMP, 11/12/2026: The factor rows of the terms (GET_LIFT_DEGS rows and
+%                rows_offsets; opts.psatz_rows with a row of codes) passed
+%                to POSCOPVAR_DIRECT as psatz_rows: in two variables the
+%                default terms now carry the four corner products (the
+%                measurements in GET_LIFT_DEGS and POSCOPVAR_DIRECT).
+% MMP, 11/12/2026: The corner rows withdrawn from the 2-D default the same
+%                day (GET_LIFT_DEGS); the term set comes from the tier knob
+%                lpi.ineq.psatz when the tier has one ('corners' adds them).
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -259,6 +276,13 @@ elseif isfield(prog,'settings') && isfield(prog.settings,'lpi')             % MM
     tier = prog.settings.lpi.ineq;      % the settings of the program       % MMP, 11/12/2026
 else,                       tier = lpisettings_sop().lpi.ineq;  % none      % MMP, 11/12/2026
 end
+% The term set of the tier (lpi.ineq.psatz, psatz_offset), when the tier    % MMP, 11/12/2026
+% has one and the call gives none: 'faces' (the 'auto' terms), 'corners'    % MMP, 11/12/2026
+% (the faces and the corner products), 'none', 'product', or codes          % MMP, 11/12/2026
+if isfield(tier,'psatz') && ~isfield(opts,'psatz'),    opts.psatz = tier.psatz;    end % MMP, 11/12/2026
+if isfield(tier,'psatz_offset') && ~isfield(opts,'psatz_offset')            % MMP, 11/12/2026
+    opts.psatz_offset = tier.psatz_offset;                                  % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 pick = @(v) v(min(max(numel(P.vars),1),end));
 if ~isfield(opts,'dD') || isempty(opts.dD),     opts.dD = pick(tier.dD);    end
 if ~isfield(opts,'dw') || isempty(opts.dw)
@@ -307,12 +331,21 @@ if isfield(opts,'deg') && ~isempty(opts.deg)
             offs = reshape(opts.psatz_offset,1,[]);
             if isscalar(offs),  offs = repmat(offs,size(codes));    end
         end
+        rows = zeros(0,nv);     roffs = zeros(1,0);   % rows given with the codes % MMP, 11/12/2026
+        if isfield(opts,'psatz_rows') && ~isempty(opts.psatz_rows)          % MMP, 11/12/2026
+            rows = opts.psatz_rows;     roffs = zeros(1,size(rows,1));      % MMP, 11/12/2026
+            if isfield(opts,'psatz_rows_offset') && ~isempty(opts.psatz_rows_offset) % MMP, 11/12/2026
+                roffs = reshape(opts.psatz_rows_offset,1,[]);               % MMP, 11/12/2026
+            end                                                             % MMP, 11/12/2026
+        end                                                                 % MMP, 11/12/2026
     else
         ro = opts;  ro.deg = [];
         ro.wmin = [];   % the terms of a given deg without the floor, as before % MMP, 11/10/2026
         [~,t0,~] = get_lift_degs(P,ro);     codes = t0.codes;   offs = t0.offsets;
+        rows = t0.rows;     roffs = t0.rows_offsets;                        % MMP, 11/12/2026
     end
-    terms = struct('codes',codes,'offsets',offs);
+%     terms = struct('codes',codes,'offsets',offs);                         % MMP, 11/12/2026 (was)
+    terms = struct('codes',codes,'offsets',offs,'rows',rows,'rows_offsets',roffs); % MMP, 11/12/2026
 else
     % Degrees and terms read from the support
     [deg,terms,dinfo] = get_lift_degs(P,opts);
@@ -385,6 +418,9 @@ end
 
 % % % One positive operator, all terms, then the equality.
 popts = struct('psatz',terms.codes,'psatz_offset',terms.offsets);
+if ~isempty(terms.rows)     % the factor rows (POSCOPVAR_DIRECT psatz_rows) % MMP, 11/12/2026
+    popts.psatz_rows = terms.rows;  popts.psatz_rows_offset = terms.rows_offsets; % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 if prune && any(~cellfun(@isempty,include)),   popts.include = include;    end
 % % path and cache, when given                                              % MMP, 11/12/2026 (was)
 % for f = {'path','cache'}                                                  % MMP, 11/12/2026 (was)

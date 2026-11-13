@@ -63,6 +63,11 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                           2d+1 / 2d+2, d = 1..nv (g = (theta_d-a_d)/L_d
 %                           or (b_d-theta_d)/L_d, L_d = b_d-a_d); any
 %                           other value is an error;
+%                  psatz_rows, psatz_rows_offset
+%                           rows of per-direction factors and their
+%                           offsets, passed on to POSCOPVAR_DIRECT (its
+%                           help): the products of faces in different
+%                           directions;
 %                  sep      logical, scalar or 1 x nv: where true, the
 %                           lower and upper basis operators of that
 %                           direction are replaced by the full integral
@@ -155,6 +160,9 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  included, sets them. 'pos' was the only legal type, and
 %                  the check here repeated that of POSCOPVAR_DIRECT, which
 %                  also keeps path and cache (defaults 'fast', on).
+% MMP, 11/12/2026: Help text: psatz_rows and psatz_rows_offset (POSCOPVAR_DIRECT,
+%                  the products of faces in different directions) pass
+%                  through in OPTIONS; code unchanged.
 % MMP, 11/12/2026: DEG may be omitted: the degrees of the program settings,
 %                  lpi.pos, space by space, entry min(d,3) for a space in d
 %                  variables (phase 2 of the knob reduction; maintainer, for

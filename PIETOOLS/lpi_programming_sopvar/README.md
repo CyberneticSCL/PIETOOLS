@@ -206,7 +206,13 @@ are `lpi.ineq` of the program settings (`prog.settings`, light by default;
 structure, and a call that sets `dw` and not `wmin` keeps `w = reach + dw`. Terms `'auto'`: 1-D the
 plain term at `w` and the product at `w - 1` (the Markov-Lukacs
 pair), N-D the plain term at `w` and the `2N` faces at `w - 1` when every weight is at least 2, at
-`w` otherwise (changed 10/08/2026, see below); `opts.deg` bypasses the reader; `opts.like` reads
+`w` otherwise (changed 10/08/2026, see below). `'corners'` adds every two-direction corner product (a face of `s1` times a
+face of `s2`) to the `'auto'` terms, at the offset of the faces, also through the tier knob `lpi.ineq.psatz` (11/12/2026: on the edge-coupled 1-D/2-D heat
+cascade, reaction `r`, `r* = pi^2`, the light tier certified `0.48 r*` with the faces and `0.67 r*` with the
+corner products, at 1.5x the certificate variables; on the single-space 2-D heat benchmark and the
+in-domain coupled system they certify nothing more at 1.7-1.8x the variables, so they are not a default); `opts.psatz_rows` passes rows of per-direction
+factors (0 none, 1 lower face, 2 upper face, 3 box quadratic) to `poscopvar_direct`, whose terms are
+all such rows since 11/12/2026 (the codes converted); `opts.deg` bypasses the reader; `opts.like` reads
 the support of another operator instead, or of a cell of them, pooled. Without `opts.like` and
 `opts.deg` it reads the operators of `poscopvar` that `P` depends on, which `poscopvar` records in
 `prog.sop_pos`: a Lyapunov or KYP inequality is sized from its positive decision operator, not from

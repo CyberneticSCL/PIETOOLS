@@ -46,12 +46,19 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                          every w_d is at least 2, else at offset 0),
 %                          'none' (code 0), 'product' (codes [0 1], offsets
 %                          [0 1]), 'faces' (codes [0, 3:2nv+2], offsets 0),
+%                          'corners' (the 'auto' terms and every product
+%                          of two faces of different directions, at the
+%                          offset of the faces),
 %                          or a double row of term codes (0 plain, 1 box
 %                          product, 2d+1 / 2d+2 lower / upper face of
 %                          direction d, 2nv+2+d box quadratic of direction
 %                          d);
 %            psatz_offset  double, with a row of codes: the offset of each
 %                          term, or one for all (default 0);
+%            psatz_rows, psatz_rows_offset
+%                          with a row of codes: rows of per-direction
+%                          factors and their offsets (POSCOPVAR_DIRECT),
+%                          passed on;
 %            like          'cdopvar' or 'copvar' object, or a cell of them,
 %                          with variables among those of P: their pooled
 %                          support is read instead of that of P, and DEG is
@@ -65,7 +72,8 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %          double, wR);
 % - terms: 'struct' with fields codes and offsets, double rows of one
 %          length, the term codes and the amounts by which each lowers the
-%          weight degree;
+%          weight degree, and rows (R x nv double) and rows_offsets (1 x R),
+%          the factor rows (POSCOPVAR_DIRECT psatz_rows) and their offsets;
 % - info:  'struct' with fields Dmin, Dmax, Mdeg, J, D, w (1 x nv double),
 %          Jmax (1 x nv double, the largest total degree of a kernel
 %          monomial in the two variables of direction d: i + j over the
@@ -144,6 +152,26 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                the Poincare LPI of DEMO3 returned 1.218/pi, w = 2 gives
 %                1.00002/pi (settings_sopvar/README). Sizing from opts.like
 %                is unchanged; info.wmin.
+% MMP, 11/12/2026: Terms as factor rows as well (POSCOPVAR_DIRECT
+%                psatz_rows): 'auto' in two variables adds the four corner
+%                products, a face of each direction, at the offset of the
+%                faces; the named set 'corners' and opts.psatz_rows with
+%                a row of codes. MEASURED (the edge-coupled 1-D/2-D heat
+%                cascade, reaction r, r* = pi^2, light tier, 6-step
+%                bisections): certified to 0.48 r* without the corner
+%                products, to 0.67 r* with them. One variable and three or
+%                more variables are unchanged.
+% MMP, 11/12/2026: 'auto' keeps the faces in every dimension (the corner rows
+%                withdrawn from the 2-D default the same day, measured: no
+%                gain on the single-space 2-D heat benchmark, bench and
+%                heavy presets, nor on the in-domain coupled system, at
+%                1.7-1.8x the variables; maintainer: no variables that do
+%                nothing). 'corners' and opts.psatz_rows remain; LPI_INEQ_SOP
+%                reads the tier knob lpi.ineq.psatz.
+% MMP, 11/12/2026: 'corners' is the 'auto' terms plus the corner products at
+%                the offset of the faces (was: faces and corners at offset
+%                0; on the edge cascade at one slack raise that gave 2.29M
+%                variables against 762k, mixed-domain session's table).
 
 % Options; the defaults of dD, dw and wR
 if nargin<2 || isempty(opts),   opts = struct();    end
@@ -292,6 +320,19 @@ end
 % % % The terms
 ps = 'auto';
 if isfield(opts,'psatz') && ~isempty(opts.psatz),   ps = opts.psatz;    end
+% The corner products: a face of direction i times a face of direction      % MMP, 11/12/2026
+% j > i, as rows of per-direction factors (POSCOPVAR_DIRECT psatz_rows),    % MMP, 11/12/2026
+% the products the codes cannot express; none in one variable               % MMP, 11/12/2026
+cr = zeros(2*nv*(nv-1),nv);    k = 0;  rows = zeros(0,nv);   roffs = zeros(1,0); % MMP, 11/12/2026
+for i = 1:nv                                                                % MMP, 11/12/2026
+    for j = i+1:nv                                                          % MMP, 11/12/2026
+        for e = 1:2                                                         % MMP, 11/12/2026
+            for f = 1:2                                                     % MMP, 11/12/2026
+                k = k+1;    cr(k,:) = 0;    cr(k,i) = e;    cr(k,j) = f;    % MMP, 11/12/2026
+            end                                                             % MMP, 11/12/2026
+        end                                                                 % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
+end                                                                         % MMP, 11/12/2026
 % A row of codes with its offsets, or a named set of terms
 if isnumeric(ps)
     codes = reshape(ps,1,[]);   offs = zeros(size(codes));
@@ -299,6 +340,13 @@ if isnumeric(ps)
         offs = reshape(opts.psatz_offset,1,[]);
         if isscalar(offs),  offs = repmat(offs,size(codes));    end
     end
+    % Rows given with the codes, validated by POSCOPVAR_DIRECT              % MMP, 11/12/2026
+    if isfield(opts,'psatz_rows') && ~isempty(opts.psatz_rows)              % MMP, 11/12/2026
+        rows = opts.psatz_rows;     roffs = zeros(1,size(rows,1));          % MMP, 11/12/2026
+        if isfield(opts,'psatz_rows_offset') && ~isempty(opts.psatz_rows_offset) % MMP, 11/12/2026
+            roffs = reshape(opts.psatz_rows_offset,1,[]);                   % MMP, 11/12/2026
+        end                                                                 % MMP, 11/12/2026
+    end                                                                     % MMP, 11/12/2026
 else
     switch lower(char(ps))
         case 'auto'
@@ -306,16 +354,35 @@ else
 %           else,       codes = [0, 3:2*nv+2];  offs = zeros(size(codes));  % MMP, 10/08/2026 (was)
             else        % faces one below the plain term when every weight allows it, else at w
                 codes = [0, 3:2*nv+2];  offs = [0, double(min(w)>=2)*ones(1,2*nv)]; % MMP, 10/08/2026
+                % In two variables the four corner products at the offset   % MMP, 11/12/2026
+                % of the faces (MEASURED: the edge-coupled 1-D/2-D heat     % MMP, 11/12/2026
+                % cascade at the light tier certified to 0.67 r* with them, % MMP, 11/12/2026
+                % 0.48 r* without); three or more variables: faces only     % MMP, 11/12/2026
+                % (not measured)                                            % MMP, 11/12/2026
+%               if nv==2,   rows = cr;  roffs = offs(2)*ones(1,size(cr,1));    end % MMP, 11/12/2026 (was)
+                % Withdrawn the same day: no gain on the single-space 2-D heat % MMP, 11/12/2026
+                % benchmark (bench and heavy presets) nor on the in-domain coupled % MMP, 11/12/2026
+                % system (0.98 g* either way), 1.7-1.8x the variables; the corner % MMP, 11/12/2026
+                % rows are 'corners' or the tier knob lpi.ineq.psatz (LPI_INEQ_SOP) % MMP, 11/12/2026
             end
         case 'none',    codes = 0;              offs = 0;
         case 'product', codes = [0 1];          offs = [0 1];
         case 'faces',   codes = [0, 3:2*nv+2];  offs = zeros(1,2*nv+1);
+        case 'corners'  % the 'auto' terms and every two-direction corner product % MMP, 11/12/2026
+%           codes = [0, 3:2*nv+2];  offs = zeros(1,2*nv+1);                 % MMP, 11/12/2026 (was)
+%           rows = cr;              roffs = zeros(1,size(cr,1));            % MMP, 11/12/2026 (was)
+            % at the offset of the faces (the measured configuration; at offset 0 % MMP, 11/12/2026
+            % the slack of the edge cascade at one raise had 3x the variables) % MMP, 11/12/2026
+            codes = [0, 3:2*nv+2];  offs = [0, double(min(w)>=2)*ones(1,2*nv)]; % MMP, 11/12/2026
+            rows = cr;              roffs = offs(2)*ones(1,size(cr,1));     % MMP, 11/12/2026
         otherwise
-            error("'psatz' should be 'auto', 'none', 'product', 'faces' or a row of term codes.")
+%           error("'psatz' should be 'auto', 'none', 'product', 'faces' or a row of term codes.") % MMP, 11/12/2026 (was)
+            error("'psatz' should be 'auto', 'none', 'product', 'faces', 'corners' or a row of term codes.") % MMP, 11/12/2026
     end
 end
 % The outputs
-terms = struct('codes',codes,'offsets',offs);
+% terms = struct('codes',codes,'offsets',offs);                             % MMP, 11/12/2026 (was)
+terms = struct('codes',codes,'offsets',offs,'rows',rows,'rows_offsets',roffs); % MMP, 11/12/2026
 % info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'D',D,'w',w,'wR',wR,'dD',dD,'dw',dw,...
 %               'nv',nv,'M',M,'vars',{vars},'isR',isR);                     % MMP, 10/29/2026 (was)
 % info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'Jmax',Jmax,'D',D,'w',w,'wR',wR,...
