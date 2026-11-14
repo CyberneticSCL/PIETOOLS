@@ -47,6 +47,9 @@
 % MMP, 11/12/2026: POSCOPVAR takes the domain from the program (maintainer,
 %   11/12/2026: "Update demos first"); the argument repeated the domain
 %   given to LPIPROGRAM. Same programs.
+% MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
+%   domain off T and P (maintainer, 11/14/2026: the calls were "too
+%   complicated"). Same programs.
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -87,8 +90,10 @@ for iter = 1:n_iters
     % % Declare decision variables:
     % %   P:L2-->L2,    P>0
 %   [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],2);                           % MMP, 11/12/2026 (was)
-    [prog,P] = poscopvar(prog,1,{{'s'}},2);   % domain: that of prog        % MMP, 11/12/2026
-    P = P + 1e-4*eye_copvar_sop(1,{{'s'}},[0,1]);   % enforce P>=1e-4           % DJ (CC), 10/30/2026
+%   [prog,P] = poscopvar(prog,1,{{'s'}},2);   % domain: that of prog        % MMP, 11/14/2026 (was)
+    [prog,P] = poscopvar(prog,T,2);         % P on the output spaces of T   % MMP, 11/14/2026
+%   P = P + 1e-4*eye_copvar_sop(1,{{'s'}},[0,1]);   % enforce P>=1e-4       % MMP, 11/14/2026 (was)
+    P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4               % MMP, 11/14/2026
     
     % % Set inequality constraints:
     % %   A'*P*T + T'*P*A <= 0

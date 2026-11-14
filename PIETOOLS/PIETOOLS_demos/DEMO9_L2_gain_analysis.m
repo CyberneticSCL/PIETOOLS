@@ -62,6 +62,9 @@
 % MMP, 11/12/2026: POSCOPVAR takes the domain from the program (maintainer,
 %   11/12/2026: "Update demos first"); the argument repeated the domain
 %   given to LPIPROGRAM. Same program.
+% MMP, 11/14/2026: POSCOPVAR reads the spaces and the domain off T
+%   (maintainer, 11/14/2026: the calls were "too complicated"). Same
+%   program.
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -131,7 +134,8 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % MM
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
 % [prog,P] = poscopvar(prog,1,{{'s1','s2'}},[a,b;c,d],1);                   % MMP, 11/12/2026 (was)
-[prog,P] = poscopvar(prog,1,{{'s1','s2'}},1);   % domain: that of prog      % MMP, 11/12/2026
+% [prog,P] = poscopvar(prog,1,{{'s1','s2'}},1);   % domain: that of prog    % MMP, 11/14/2026 (was)
+[prog,P] = poscopvar(prog,T,1);         % P on the output spaces of T       % MMP, 11/14/2026
 
 % % Set inequality constraints:
 % %   Q <= 0

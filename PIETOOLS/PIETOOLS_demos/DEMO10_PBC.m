@@ -53,6 +53,9 @@
 % MMP, 11/12/2026: POSCOPVAR and LPIVAR_CDOPVAR take the domain from the
 %   program (maintainer, 11/12/2026: "Update demos first"); the arguments
 %   repeated the domain given to LPIPROGRAM. Same program.
+% MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
+%   domain off T (maintainer, 11/14/2026: the calls were "too
+%   complicated"). Same program.
 
 clc; clear; clear stateNameGenerator
 pvar s t;
@@ -74,7 +77,8 @@ T = PIE.pie2pde.x*PIE.T;    A = PIE.pie2pde.x*PIE.A;
 K = PIE.K;
 %% Take the deviation of the PDE state from the mean
 S = (1/2)*int2copvar(eye(1),T.vars,T.dom);  % S*x = 0.5*int_{-1}^{1} x(s) ds
-I = eye_copvar_sop(1,T.vars,T.dom);        % I*x = x;
+% I = eye_copvar_sop(1,T.vars,T.dom);        % I*x = x;                     % MMP, 11/14/2026 (was)
+I = eye_copvar_sop(T);                  % I*x = x;                          % MMP, 11/14/2026
 T = (I-S)*T;            A = (I-S)*A;
 % %% S*x is the spatial mean; test decay of (I-S)*x.
 % S = copvar(PIE.T.C(2,1))*F;
@@ -86,7 +90,8 @@ T = (I-S)*T;            A = (I-S)*A;
 prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 % Lyapunov decision PI variable (coercive)
 % [prog,P] = poscopvar(prog,1,{'s'},PIE.dom,struct('int',3,'mult',3,'joint',3)); % MMP, 11/12/2026 (was)
-[prog,P] = poscopvar(prog,1,{'s'},struct('int',3,'mult',3,'joint',3));      % MMP, 11/12/2026
+% [prog,P] = poscopvar(prog,1,{'s'},struct('int',3,'mult',3,'joint',3));    % MMP, 11/14/2026 (was)
+[prog,P] = poscopvar(prog,T,struct('int',3,'mult',3,'joint',3));            % MMP, 11/14/2026
 P = P + 1e-4*I;
 % Lagrange decision PI variable (indefinite)
 spaces.out = {[], {'s'}};  % R and L2[s]

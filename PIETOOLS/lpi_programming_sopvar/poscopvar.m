@@ -27,6 +27,11 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % cell prog.sop_pos, from which LPI_INEQ_SOP sizes an inequality that
 % depends on Pop.
 %
+% [PROG,POP,QCELL,BASIS_LIST] = POSCOPVAR(PROG,X,DEG,OPTIONS) declares Pop
+% on the output spaces of the 'copvar' or 'cdopvar' object X, with the
+% domain of X, so that X'*Pop*X is defined: for a PIE, X = T gives the P
+% of T'*P*T. For the input spaces of X, pass X'.
+%
 % INPUT
 % - prog:        'struct', the LPI program (LPIPROGRAM);
 % - dims:        double, M x 1 positive integers, dims(k) = m_k the number
@@ -42,6 +47,8 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                'struct' with fields vars ('cellstr') and dom (double, one
 %                row per name). Omitted, as POSCOPVAR(PROG,DIMS,SPACES,DEG,
 %                OPTIONS): the domain of PROG (LPIPROGRAM), by name;
+% - X:           'copvar' or 'cdopvar' object, in place of DIMS, SPACES
+%                and DOM (second form above);
 % - deg:         (optional; omitted or [], the degrees of the program
 %                settings, lpi.pos of LPIPROGRAM, space by space, with the
 %                include and sep they imply, which OPTIONS may then not set)
@@ -169,6 +176,11 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  two variables: "N-D rule"). SEP being per direction, a
 %                  direction owned by a space in two or more variables is
 %                  separable for every space. Before, DEG was required.
+% MMP, 11/14/2026: Operator form POSCOPVAR(PROG,X,DEG,OPTIONS): DIMS, SPACES
+%                  and DOM are the output spaces and the domain of X, read
+%                  by COPVAR_SPACE_LIST as in the executives (maintainer,
+%                  11/14/2026: the calls in the demos restated what T
+%                  carries and were too complicated).
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
 % DOM omitted: the 4th input is DEG (a scalar, a 'struct' without field     % MMP, 11/12/2026
@@ -176,6 +188,15 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % per element, since the varname of a polynomial vector is sorted while     % MMP, 11/12/2026
 % the rows of prog.dom follow the program order                             % MMP, 11/12/2026
 nin = nargin;                                                               % MMP, 11/12/2026
+% Operator form POSCOPVAR(PROG,X,DEG,OPTIONS): the output spaces of X and   % MMP, 11/14/2026
+% its domain stand for DIMS, SPACES, DOM; DEG and OPTIONS shift by two      % MMP, 11/14/2026
+if isa(dims,'copvar') || isa(dims,'cdopvar')                                % MMP, 11/14/2026
+    narginchk(2,4);                                                         % MMP, 11/14/2026
+    if nin>=4,  options = dom;  end                                         % MMP, 11/14/2026
+    if nin>=3,  deg = spaces;   end                                         % MMP, 11/14/2026
+    X = dims;   [spaces,dims] = copvar_space_list(X,'out');                 % MMP, 11/14/2026
+    dom = struct('vars',{X.vars},'dom',X.dom);  nin = nin+2;                % MMP, 11/14/2026
+end                                                                         % MMP, 11/14/2026
 % if nin>=4 && ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...   % MMP, 11/12/2026 (was)
 %                || (isstruct(dom) && isfield(dom,'dom')))                  % MMP, 11/12/2026 (was)
 %     if nin>=5,  options = deg;  end                                       % MMP, 11/12/2026 (was)

@@ -8,12 +8,18 @@ function Iop = eye_copvar_sop(dims,spaces,dom)
 % other block zero. It is the container counterpart of
 % mat2opvar(eye(n),dim,vars,dom), with any number of spatial variables.
 %
+% IOP = EYE_COPVAR_SOP(X) returns the identity on the output spaces of the
+% 'copvar' or 'cdopvar' object X, with the domain of X: for an operator P
+% of POSCOPVAR, P + e*EYE_COPVAR_SOP(P) is P + e*I.
+%
 % INPUT
 % - dims:   M x 1 component counts q_i (a scalar is expanded), or a struct
 %           with field 'out' (a field 'in' must then equal it);
 % - spaces: 1 x M cell of cellstr variable names, {} being R^q, or a
 %           struct with field 'out' (a field 'in' must then equal it);
-% - dom:    as for 'mat2copvar_sop'.
+% - dom:    as for 'mat2copvar_sop';
+% - X:      'copvar' or 'cdopvar' object, in place of DIMS, SPACES and DOM
+%           (second form above).
 %
 % OUTPUT
 % - Iop:    M x M 'copvar', diagonal, passing 'verify'. A space listed twice
@@ -58,7 +64,17 @@ function Iop = eye_copvar_sop(dims,spaces,dom)
 %                verbatim copy of the same parser, is deleted. Same meta on
 %                every input; a non-cell space list now raises the parser's
 %                message instead of MATLAB's brace-indexing error.
+% MMP, 11/14/2026: Operator form EYE_COPVAR_SOP(X): the output spaces and
+%                the domain of X, read by COPVAR_SPACE_LIST (maintainer,
+%                11/14/2026: P + 1e-4*I restated the spaces of P and was too
+%                complicated).
 
+% Operator form EYE_COPVAR_SOP(X): the output spaces and domain of X        % MMP, 11/14/2026
+if isa(dims,'copvar') || isa(dims,'cdopvar')                                % MMP, 11/14/2026
+    narginchk(1,1);                                                         % MMP, 11/14/2026
+    X = dims;   [spaces,dims] = copvar_space_list(X,'out');                 % MMP, 11/14/2026
+    dom = struct('vars',{X.vars},'dom',X.dom);                              % MMP, 11/14/2026
+end                                                                         % MMP, 11/14/2026
 % meta = spaces2meta_sop(dims,spaces,dom);                                  % MMP, 09/30/2026 (was)
 meta = parse_copvar_spaces(dims,spaces,dom);                                % MMP, 09/30/2026
 if ~isequal(meta.space_out,meta.space_in) || ~isequal(meta.dim_out,meta.dim_in)

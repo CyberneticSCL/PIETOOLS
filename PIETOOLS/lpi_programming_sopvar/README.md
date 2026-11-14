@@ -178,6 +178,11 @@ entry for the dimension of the output space and the right caps (`int(2)`, `in`) 
 space, so a block depends on its own two spaces only (1 for a program without settings, the former
 default). An explicit `deg` is unchanged.
 
+An operator may stand for `dims`, `spaces` and `dom` (11/14/2026): `poscopvar(prog,X,deg,options)`
+declares P on the output spaces of the `copvar` or `cdopvar` X, with the domain of X, so
+`poscopvar(prog,T,deg)` gives the P of `T'*P*T` and `poscopvar(prog,T',deg)` that of `T*P*T'`;
+`eye_copvar_sop(X)` is the identity on the output spaces of X, as in `P + 1e-4*eye_copvar_sop(P)`.
+
 Apart from an omitted `dom` of `poscopvar` or `lpivar_cdopvar` (11/12/2026), no container
 routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and
 DEMO2 with a program declared on no spatial variable build the same SDP and solve to the same
@@ -327,7 +332,7 @@ The arguments `dims`, `spaces` and `dom` follow the conventions of `lpivar_cdopv
 | function | result |
 |---|---|
 | `mat2copvar_sop(Mat,dims,spaces,dom[,opts])` | the container of a constant matrix: `copvar` for a `double`, `cdopvar` for a `dpvar`. A block acts as a multiplier in shared variables, is constant in output-only variables and is integrated over input-only ones. `opts.mult_only` refuses an integral block, as `mat2opvar` does. |
-| `eye_copvar_sop(dims,spaces,dom)` | the identity. Square only (`eye_copvar_sop:notSquare`). |
+| `eye_copvar_sop(dims,spaces,dom)`, `eye_copvar_sop(X)` | the identity; for a `copvar` or `cdopvar` X, on the output spaces of X with its domain (11/14/2026). Square only (`eye_copvar_sop:notSquare`). |
 | `zeros_copvar_sop(dims,spaces,dom)` | the zero operator. Rectangular is allowed. |
 
 All three pass `verify` and satisfy the canonical multiplier form. They replace the
