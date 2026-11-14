@@ -71,6 +71,9 @@ function R = test_mixed_domain_pde(parts,names)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 11/12/2026
+% MMP, 11/14/2026: KNOWN_LIMITATIONS is empty: since dbf458a2 (Declan) the
+%   converter converts S19 and its PIE passes every check, so a refusal of
+%   S19 is a FAIL again, and the 'ops' layer now checks S19.
 
 % Layers and systems to run
 if nargin<1 || isempty(parts), parts = {'convert','ops','exact'}; end
@@ -155,7 +158,9 @@ end
 function K = known_limitations()
 % K = KNOWN_LIMITATIONS() returns, per system, the text of the error that
 % records a measured limitation of the converter (11/12/2026).
-K = struct('S19_2d_integral_in_1d_bc','cannot be separated into conditions along a single spatial direction');
+% K = struct('S19_2d_integral_in_1d_bc','cannot be separated into conditions along a single spatial direction'); % MMP, 11/14/2026 (was)
+% S19 converts since dbf458a2 (D2 fixed): no limitation is recorded.        % MMP, 11/14/2026
+K = struct();                                                               % MMP, 11/14/2026
 end
 
 function e = check_pie(S,PIE,nrep)

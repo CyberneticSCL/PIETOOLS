@@ -58,6 +58,10 @@ function S = mixed_domain_systems(name,p)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 11/12/2026
+% MMP, 11/14/2026: S10, S11, S13 expect 'constrain a state of lower
+%   dimension', the refusal of the converter since dbf458a2 (Declan), which
+%   no longer names the compatibility conditions; S19 converts since
+%   dbf458a2 (D2 fixed), its row updated.
 
 if nargin<2, p = struct(); end
 if strcmp(name,'list')
@@ -205,7 +209,8 @@ switch name
                  subs(x2,s1,0)==0; subs(x2,s1,1)==0;
                  subs(x2,s2,0)==X; subs(x2,s2,1)==0];
         S.svars = {{},{'s1','s2'}};
-        S.expect = 'compatibility';
+%       S.expect = 'compatibility';                                         % MMP, 11/14/2026 (was)
+        S.expect = 'constrain a state of lower dimension';                  % MMP, 11/14/2026
     case 'S11_incompatible_neumann_corner'
         % x2_s1(0,s2)=0 and x2(s1,0)=x1(s1) require x1'(0)=0, which the
         % Dirichlet conditions of x1 leave free
@@ -215,7 +220,8 @@ switch name
                  subs(diff(x2,s1),s1,0)==0; subs(x2,s1,1)==0;
                  subs(x2,s2,0)==x1; subs(x2,s2,1)==0];
         S.svars = {{'s1'},{'s1','s2'}};
-        S.expect = 'compatibility';
+%       S.expect = 'compatibility';                                         % MMP, 11/14/2026 (was)
+        S.expect = 'constrain a state of lower dimension';                  % MMP, 11/14/2026
     case 'S12_domain_mismatch'
         % one variable s1 on two intervals: [0,1] for x1, [0,2] for x2
         x1 = pde_var(1,s1,[0,1]);  x2 = pde_var(1,[s1;s2],[0,2;0,1]);
@@ -236,7 +242,8 @@ switch name
                  subs(x3,s1,0)==0; subs(x3,s1,1)==0; subs(x3,s2,0)==0; subs(x3,s2,1)==0;
                  subs(x3,s3,0)==x2; subs(x3,s3,1)==0];
         S.svars = {{'s1'},{'s1','s2'},{'s1','s2','s3'}};
-        S.expect = 'compatibility';
+%       S.expect = 'compatibility';                                         % MMP, 11/14/2026 (was)
+        S.expect = 'constrain a state of lower dimension';                  % MMP, 11/14/2026
     case 'S13_chain_1d_2d_3d'
         % 1-D edge -> 2-D face -> 3-D heat; x1 also enters the 3-D face
         % s2=0 as (1-s3) x1(s1), so the edge s2=s3=0 is compatible
@@ -562,7 +569,8 @@ C = [row('S1_ode_heat1d_bc',[R,' x ',L1],'ODE in a Dirichlet BC of a 1-D heat','
      row('S16_io_indomain',[L1,' x ',L1,' x ',L12],'L2[s1,s2] input, scalar and L2[s1] (trace) outputs','semantics only');
      row('S17_transport_edge_diffusion',[L1,' x ',L12],'transport edge state, target of order 0 in s1','margin r2* = pi^2');
      row('S18_lib43_interior_delay',[L1,' x ',L12],'library PDE 43 (delay as 2-D transport), both signs','tau* = 1.034726 (sgn -1; library header: 1.0347, citing Caliskan 2009); unstable for every tau (sgn +1)');
-     row('S19_2d_integral_in_1d_bc',[L1,' x ',L12],'higher-dimensional state in a 1-D BC','PIE exists; converter rejects');
+%    row('S19_2d_integral_in_1d_bc',[L1,' x ',L12],'higher-dimensional state in a 1-D BC','PIE exists; converter rejects'); % MMP, 11/14/2026 (was)
+     row('S19_2d_integral_in_1d_bc',[L1,' x ',L12],'higher-dimensional state in a 1-D BC','PIE exists; converted since dbf458a2'); % MMP, 11/14/2026
      row('S20_reversed_var_order',[L1,' x ',L12],'2-D state declared on [s2;s1]','semantics only');
      row('S21_nonunit_domains',[L1,' x ',L12],'domains [-1,2] x [0.5,3], s1-dependent edge coefficient','semantics only');
      row('S22_vector_states',['L2^2[s1] x ',L12],'vector-valued edge state, matrix coupling','semantics only');
