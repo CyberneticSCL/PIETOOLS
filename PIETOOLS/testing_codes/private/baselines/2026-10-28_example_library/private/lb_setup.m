@@ -14,10 +14,17 @@ function info = lb_setup()
 %     files; heatNd_path then runs pietools_path_update, strips nested
 %     worktrees and asserts single resolution of the core functions.
 %   - The scratch folder stays first on the path through cd(here).
+%
+% MMP, 11/10/2026: heatNd_path and cx_resid, which it asserts, moved to
+%                  testing_codes/private/; both folders are added in place
+%                  of PIETOOLS_demos/sopvar_demos.
 
 here = fileparts(mfilename('fullpath'));
 restoredefaultpath;
-addpath('C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\PIETOOLS_demos\sopvar_demos');
+% addpath('C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\PIETOOLS_demos\sopvar_demos');  % MMP, 11/10/2026 (was)
+% heatNd_path and cx_resid: in testing_codes/private/ since 11/10/2026.     % MMP, 11/10/2026
+addpath('C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\testing_codes\private\PIETOOLS_demos\sopvar_demos', ...
+        'C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\testing_codes\private\sopvar\Testfolder\sdopvar\claude_tests\cx_exec');  % MMP, 11/10/2026
 hp = heatNd_path();
 cd(here);
 info = hp;

@@ -88,14 +88,15 @@ changed:
 |---|---|
 | `PIETOOLS_demos/cuadmm/bl_bisect.m` | `PIETOOLS_demos/cuadmm/heat2d_compare.m` and `PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m` (in `orphaned_file/private/` since 11/09/2026) |
 | `PIETOOLS_demos/cuadmm/bl_face.m`, `bl_fix.m`, `gpu/cuadmm_pinf_inf.patch` | `bl_bisect` |
-| `sopvar/Testfolder/sdopvar/apply_sopvar.m` | `PIESOS/@polyopvar/combine_factors`, `PIESOS/@tensopmat/apply_op`, `PIESOS/@tensopvar/apply_op`, `PIESOS/misc/tensopvar2polynomial` |
-| `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_resid.m`, `cx_shape.m` | `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m` (`cx_shape` through `cx_resid`) |
+| `sopvar/Testfolder/sdopvar/apply_sopvar.m` | `PIESOS/@polyopvar/combine_factors`, `PIESOS/@tensopmat/apply_op`, `PIESOS/@tensopvar/apply_op`, `PIESOS/misc/tensopvar2polynomial`; in `sopvar/misc/` since 11/10/2026 (below) |
+| `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_resid.m`, `cx_shape.m` | `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m` (`cx_shape` through `cx_resid`); all four moved here on 11/10/2026 (below) |
 | `PIESOS/Examples/LocalStability/Examples/Sim/BCs_test.m` | `Sim_PDE.m`: the boundary conditions of a simulation example, not a test |
 
 Functions that only tests call, kept as code under test or user functions: `Liediff`,
 `piesos_lpivar` and `piesos_poslpivar` (`PIESOS/sosprogramming/`); `kernel_degree` and
 `polyopvar_equal` (`PIESOS/Examples/LocalStability/`); `subs_dvar_sop` and the `examples/` of
-`lpi_programming_sopvar`; `opvar2d2copvar`, `pie2copvar` and `int2copvar`; the heatNd demo routines;
+`lpi_programming_sopvar`; `opvar2d2copvar`, `pie2copvar` and `int2copvar`; the heatNd demo routines (all but `heatNd_apply`
+moved here on 11/10/2026, below);
 the DEMOs that `run_phase0.sh` runs; and `pielr_ipm_ref` in the low-rank `private/`, which
 `pielr_bench` reaches through `pielr_private`.
 
@@ -163,6 +164,50 @@ Files that only retired code calls went to `orphaned_file/private/` the same day
 `Test_ctranspose_sopvar_2d`, `Test_mtimes_sopvar_2d`, `e2e_stability_2d` and `cx_stability_2D`
 (maintainer: "move to cleaning"; record in `cleaning/README.md`). `test_endtoend_sop('all')` runs
 E1, E2 and E4.
+
+## Added on 11/10/2026
+
+Functions that only tests reach (maintainer: "move testing only function to the testing folder",
+"that is, the testing codes folder in the root"), from a census of HEAD bf948f57 with callers as
+above. Each sits at its old path below `private/`.
+
+| File | Callers outside `testing_codes/` before the move |
+|---|---|
+| `PIETOOLS_demos/sopvar_demos/heatNd_pie.m`, `heatNd_path.m`, `heatNd_bisect.m` | none |
+| `PIETOOLS_demos/sopvar_demos/heatNd_lpi.m`, `heatNd_solve.m`, `heatNd_lindep.m` | `heatNd_bisect` |
+| `PIETOOLS_demos/sopvar_demos/heatNd_sdp.m` | `heatNd_bisect`, `heatNd_solve` |
+| `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_resid.m` | `heatNd_solve` |
+| `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_shape.m` | `cx_resid` |
+
+`PIETOOLS_demos/sopvar_demos/` keeps `heatNd_apply` and its README. `apply_sopvar`, which PIESOS
+and `qp_copvar` call, moved the same day from `sopvar/Testfolder/sdopvar/` to `sopvar/misc/`, with
+`int_semisep` from `sopvar/` (maintainer, on files in the wrong place: "do this"); `sopvar/Testfolder/`
+is gone. Not moved, although only tests call them:
+`heatNd_apply` and `copquadvar` (maintainer, 11/09/2026: "leave PIESOS files. This is still in
+development."), the PIESOS functions ("Leave PIESOS and PIESIM alone"), `SOSTOOLS400/sosposmatr`, and
+the DEMOs that `run_phase0.sh` runs. `degbalance` of `sopvar` and `sdopvar`, and `degbalance_core`,
+lose their last caller outside the tests (`heatNd_lpi`) and stay: class methods and their helper.
+
+Code changed, each marked "MMP, 11/10/2026":
+
+- `PIETOOLS_demos/sopvar_demos/heatNd_path.m`: `ROOT` is four levels up; `heatNd_apply` joins the
+  asserted names, since the `heatNd_*` files of its own folder no longer include it.
+- `baselines/2026-10-28_example_library/private/lb_setup.m`: adds the two new folders in place of
+  `PIETOOLS_demos/sopvar_demos`.
+
+READMEs updated: `PIETOOLS_demos/sopvar_demos/`, `lpi_programming_sopvar/`, and the cx helpers row
+of `cleaning/README.md`.
+
+Checked on exports of bf948f57 with and without the move (`restoredefaultpath`, then
+`pietools_path_update`): without `testing_codes/private` none of the nine names resolves and
+`heatNd_path` is not callable; with it, each resolves once at its new path and `heatNd_path` runs,
+with `ROOT` the tree. `heatNd_apply`, `apply_sopvar` and `degbalance_core` resolve once, unchanged.
+Identical on both trees: `test_copquadvar_faces`, `test_heatNd_lpi`, `test_dpvar_hinf_chain_sop`,
+`e2e_stability_1d`, `e2e_hinf_gain_1d` and `heatNd_poincare_validate('I0')` run without error;
+`test_heatNd_pie` stops at the `copvar` field `var1`, as on 11/08; `test_heatNd_poincare` stops at
+"b is not affine in lam (third-point error 6.7e-01)", as it does on exports of 864a00d8 (11/08),
+5388c808, b0e59c37 and 96b0b313, so before these moves (cause not traced). `lb_setup`, run on the
+working tree, reaches `heatNd_path` and stops at `lpisettings`, retired on 11/08/2026.
 
 ## Checked (11/08/2026, on the default path)
 

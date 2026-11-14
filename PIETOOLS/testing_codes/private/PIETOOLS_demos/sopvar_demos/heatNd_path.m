@@ -20,23 +20,32 @@ function info = heatNd_path()
 % CC, 09/28/2026 (move): folder moved from sopvar/Testfolder/sdopvar/
 %                  claude_tests/heatNd to PIETOOLS_demos/sopvar_demos, so
 %                  ROOT is two levels up, not five.
+% MMP, 11/10/2026 (move): moved to testing_codes/private/PIETOOLS_demos/
+%                  sopvar_demos with the heatNd routines only tests call, so
+%                  ROOT is four levels up; heatNd_apply, which stays in
+%                  PIETOOLS_demos/sopvar_demos, joins fns. The 09/28/2026
+%                  entry no longer applies.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 here = fileparts(mfilename('fullpath'));
 % ROOT = fileparts(fileparts(fileparts(fileparts(fileparts(here)))));   % .../PIETOOLS/PIETOOLS  % CC, 09/28/2026 (was)
-ROOT = fileparts(fileparts(here));          % .../PIETOOLS/PIETOOLS         % CC, 09/28/2026
+% ROOT = fileparts(fileparts(here));          % .../PIETOOLS/PIETOOLS       % MMP, 11/10/2026 (was)
+% ROOT: .../PIETOOLS/PIETOOLS, four levels above this folder.               % MMP, 11/10/2026
+ROOT = fileparts(fileparts(fileparts(fileparts(here))));                    % MMP, 11/10/2026
 run(fullfile(ROOT,'pietools_path_update.m'));
 p = strsplit(path,pathsep);
 bad = contains(p,'.claude') | contains(p,'worktrees');
 if any(bad),    path(strjoin(p(~bad),pathsep));     end
 MOSEK = 'C:\Program Files\Mosek\11.0\toolbox\r2019b';
 if isempty(which('mosekopt')) && exist(MOSEK,'dir'),    addpath(MOSEK);     end
+% heatNd_apply stays in PIETOOLS_demos/sopvar_demos, outside dir(here).     % MMP, 11/10/2026
 fns = {'sopvar','sdopvar','copvar','cdopvar','lpivar_cdopvar','poscopvar', ...
        'copquadvar','lpi_eq_cdopvar','lpi_eq_sdopvar','eq_opts_sopvar', ...
        'degbalance_core','int_semisep','sosquadvar','dpvar2sdvar', ...
        'sossolve','lpisolve','sosprogram','lpidecvar','lpiprogram', ...
        'spblkdiag','spantiblkdiag','Sedumi2Mosek','MosekSol2SedumiSol', ...
-       'pde_var','cx_resid'};
+       'pde_var','cx_resid','heatNd_apply'};                                % MMP, 11/10/2026
+%      'pde_var','cx_resid'};                                               % MMP, 11/10/2026 (was)
 d = dir(fullfile(here,'heatNd_*.m'));
 fns = [fns, cellfun(@(f) f(1:end-2),{d.name},'UniformOutput',false)];
 for k = 1:numel(fns)

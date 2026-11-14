@@ -362,8 +362,10 @@ checked by E4 below.
 
 The end-to-end checks E1–E4, `tests/e2e_*` (the examples of this folder until 10/21/2026), compare
 the container LPIs with the legacy ones. They use the cx_exec helpers
-(`sopvar/Testfolder/sdopvar/claude_tests/cx_exec`), `heatNd_apply` (`PIETOOLS_demos/sopvar_demos`),
-both on the path from `genpath`, and `tests/private/opcheck_sop`.
+(`testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/`; `cx_resid` and `cx_shape`
+since 11/10/2026, the others since 11/08/2026; add them as `testing_codes/README.md` says),
+`heatNd_apply` (`PIETOOLS_demos/sopvar_demos`, on the path from `genpath`), and
+`tests/private/opcheck_sop`.
 
 | command | what | time |
 |---|---|---|

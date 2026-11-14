@@ -33,7 +33,7 @@ record it; its logs say 24.
 
 **Moved and committed (CC, 09/28/2026).** The folder moved from
 `sopvar/Testfolder/sdopvar/claude_tests/heatNd` to `PIETOOLS_demos/sopvar_demos` and is now
-tracked; `heatNd_path` finds the root two levels up. Checked with `git` on 09/28/2026 (HEAD
+tracked; `heatNd_path` finds the root two levels up (four since 11/10/2026, §4). Checked with `git` on 09/28/2026 (HEAD
 `b3334203`): `Sedumi2Mosek.m` (a035aa8e) and `executives/*.m` (e6c78800) are committed, and
 `sossolve.m` and `repmat.m` have no working-tree changes. `copquadvar.m`, `lpi_eq_cdopvar.m` and
 `lpi_eq_sdopvar.m` are committed in e792cc40 (09/28/2026). Before that commit, `copquadvar`
@@ -224,8 +224,12 @@ the files in testing folder a private subfolder."). `heatNd_poincare` and `heatN
 which only those checks call, joined them on 11/09/2026 (maintainer: "move to testing folder"); §11
 describes them as before. `heatNd_ladder` and `heatNd_tailor`, which nothing called, moved to
 `orphaned_file/private/` the same day (maintainer: "move to orphaned code"); §7 and §12 describe
-them as before. From a clean MATLAB, call `heatNd_path`, then add that folder:
-`matlab -sd "<this folder>" -batch "heatNd_path; addpath(fullfile(pwd,'..','..','testing_codes','private','PIETOOLS_demos','sopvar_demos')); test_heatNd_pie"`.
+them as before. On 11/10/2026 the routines that only those checks reach followed (maintainer: "move
+testing only function to the testing folder"): `heatNd_path`, `heatNd_pie`, `heatNd_lpi`,
+`heatNd_sdp`, `heatNd_solve`, `heatNd_bisect` and `heatNd_lindep` to the same folder, and `cx_resid`
+and `cx_shape` to `testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/`. Only
+`heatNd_apply` stays here. From a clean MATLAB, add `testing_codes/private`, then call `heatNd_path`:
+`matlab -sd "<this folder>" -batch "addpath(genpath(fullfile(pwd,'..','..','testing_codes','private'))); heatNd_path; test_heatNd_pie"`.
 
 Paths are set up by `heatNd_path` (below); every other entry point calls it itself.
 Run each entry point from a clean working directory (for example this folder), with a
@@ -237,15 +241,15 @@ Semantics and the building blocks:
 
 | file | what it does |
 |---|---|
-| `heatNd_path.m` | Puts this checkout on the path and removes `.claude`/`worktrees` entries. It asserts that every routine the benchmark relies on resolves once, inside the checkout. |
-| `heatNd_pie.m` | `pie = heatNd_pie(N,r,bc,dom)` returns T, A and A0 (1×1 `copvar`), the vars, the domain, and `exact` (λ, λ1, k\*, eigenfunction, T/A eigenvalue factors). |
+| `heatNd_path.m` | In `testing_codes/private/` since 11/10/2026. Puts this checkout on the path and removes `.claude`/`worktrees` entries. It asserts that every routine the benchmark relies on resolves once, inside the checkout. |
+| `heatNd_pie.m` | In `testing_codes/private/` since 11/10/2026. `pie = heatNd_pie(N,r,bc,dom)` returns T, A and A0 (1×1 `copvar`), the vars, the domain, and `exact` (λ, λ1, k\*, eigenfunction, T/A eigenvalue factors). |
 | `heatNd_apply.m` | Applies a fixed `sopvar`/`copvar` to a function by quadrature, from the class definition. This is the tests' evaluator. |
-| `heatNd_lpi.m` | `[prog,meta] = heatNd_lpi(pie,d,k,ep,opts)` returns the unsolved Cor. 35 program at κ = pie.r + k (`meta.kappa`). `meta` holds stage times, memory, q, nP and the SDP shape. Passing `opts.base` reuses the κ-independent part (also across r). |
-| `heatNd_sdp.m` | `D = heatNd_sdp(prog,file,meta)` returns the pre-solve SeDuMi SDP (At, b, c, K) that `sossolve` would build, with nothing shadowed. It saves that SDP, or a given SDP struct, with metadata (v7.3): κ, the independent row set and the reference verdict with its route (§8). |
-| `heatNd_solve.m` | `v = heatNd_solve(prog, D or file, opts)` solves with MOSEK and returns a **certified** verdict (§5). `tight` sets MOSEK tolerances to 1e−10. For a dump file, the stored row set and reference route are the defaults. `route 'lpisolve'` cross-checks through `sossolve`. |
-| `heatNd_bisect.m` | `B = heatNd_bisect(pie,d,ep,opts,bopts)` bisects on κ over certified verdicts (§5), using the κ-affine SDP. It can resume (`trace0`, `kaff_file`), and it accepts an `oracle` in place of the solver for testing. |
+| `heatNd_lpi.m` | In `testing_codes/private/` since 11/10/2026. `[prog,meta] = heatNd_lpi(pie,d,k,ep,opts)` returns the unsolved Cor. 35 program at κ = pie.r + k (`meta.kappa`). `meta` holds stage times, memory, q, nP and the SDP shape. Passing `opts.base` reuses the κ-independent part (also across r). |
+| `heatNd_sdp.m` | In `testing_codes/private/` since 11/10/2026. `D = heatNd_sdp(prog,file,meta)` returns the pre-solve SeDuMi SDP (At, b, c, K) that `sossolve` would build, with nothing shadowed. It saves that SDP, or a given SDP struct, with metadata (v7.3): κ, the independent row set and the reference verdict with its route (§8). |
+| `heatNd_solve.m` | In `testing_codes/private/` since 11/10/2026. `v = heatNd_solve(prog, D or file, opts)` solves with MOSEK and returns a **certified** verdict (§5). `tight` sets MOSEK tolerances to 1e−10. For a dump file, the stored row set and reference route are the defaults. `route 'lpisolve'` cross-checks through `sossolve`. |
+| `heatNd_bisect.m` | In `testing_codes/private/` since 11/10/2026. `B = heatNd_bisect(pie,d,ep,opts,bopts)` bisects on κ over certified verdicts (§5), using the κ-affine SDP. It can resume (`trace0`, `kaff_file`), and it accepts an `oracle` in place of the solver for testing. |
 | `heatNd_ladder.m` | In `orphaned_file/private/` since 11/09/2026. `L = heatNd_ladder(rungs,lopts)` is a build-only sweep over (N, d, preset). It **prices each rung before building** and skips any projected over 24 GB or 20 min, logging what it skipped. Optional dumps (off by default) are named by κ and carry no reference verdict. |
-| `heatNd_lindep.m` | `keep = heatNd_lindep(At)` returns a maximal independent set of equality rows, from one sparse QR. It matched the SVD rank in every 1-D and 2-D case tested. MOSEK's presolve removes none of the dependent rows. |
+| `heatNd_lindep.m` | In `testing_codes/private/` since 11/10/2026. `keep = heatNd_lindep(At)` returns a maximal independent set of equality rows, from one sparse QR. It matched the SVD rank in every 1-D and 2-D case tested. MOSEK's presolve removes none of the dependent rows. |
 | `heatNd_validate.m` | `heatNd_validate('1d'/'2d'/'3d',vopts)` runs the validation below and writes straddling dumps. `vopts.dir` and `vopts.dumpdir` default under `tempdir`, which is **not durable**. `'3d'` resumes from a saved trace and can take a list of κ (`klist`). |
 | `heatNd_poincare_ops.m` | The Poincaré diagnostic's operators A_i, A0 and D_iT, and the SDP-free identity checks I0 (§11.1). In `testing_codes/private/` since 11/09/2026. |
 | `heatNd_poincare.m` | In `testing_codes/private/` since 11/09/2026. The λ-affine Poincaré LPI family (L2 and energy forms, full or per direction); modes build / test / bisect / objective / sdp (§11.2). Its bisection and tests run through `heatNd_bisect` (solve hook `bopts.oracle`). |
