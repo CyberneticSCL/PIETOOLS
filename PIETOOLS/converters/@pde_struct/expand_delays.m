@@ -85,6 +85,8 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 %                   instead of {0,1,2};
 % DJ, 11/09/2026: Support nonlinear PDEs with delay in linear terms;
 % DJ, 11/09/2026: Support delayed factors in nonlinear terms;
+% DJ (CC), 11/13/2026: Replace a term of a single factor as a whole,
+%                   fixing delayed inputs;
 
 if nargin==1
     suppress_summary = false;
@@ -453,7 +455,14 @@ for ii=1:ncomps
                 term_jj.delay = 0;
             end
         end
-        PDE.(Lobj){ii}.term{jj}(fctr_idx) = term_jj;                        % DJ, 11/09/2026
+        % A delayed input becomes a state, whose factor has other fields
+        % than that of the input, so a single factor (as for any input,
+        % which only appears linearly) replaces the whole term
+        if isscalar(PDE.(Lobj){ii}.term{jj})                                % DJ (CC), 11/13/2026
+            PDE.(Lobj){ii}.term{jj} = term_jj;
+        else
+            PDE.(Lobj){ii}.term{jj}(fctr_idx) = term_jj;                    % DJ, 11/09/2026
+        end
     end
 end
 

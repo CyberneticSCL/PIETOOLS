@@ -29,6 +29,11 @@ function display(PIE,name,width_max,expand)
 % - Terms that are zero or empty are omitted. The regulated output z and
 %   the observed output y are only displayed if the PIE has any, and the
 %   algebraic constraint only if it is nontrivial.
+% - If the PIE has no dynamics or outputs, i.e. if A, Bw, Bu, Cz, Dzw, Dzu,
+%   Cy, Dyw, Dyu are all zero, as for a PIE defining a boundary value problem
+%   (see "pde_struct/convert"), the first equation is displayed as
+%       x = T x^ + Tw w^ + Tu u^,
+%   with x the state of the PDE.
 % - Below the equations, after 'where' and indented, the operators are
 %   defined as the actual operators acting on the state and inputs, and
 %   after an empty line, the space of each nonempty state, input and output
@@ -76,6 +81,8 @@ function display(PIE,name,width_max,expand)
 % DJ, 11/06/2026: Get the names of PIE states and the subscripts from
 %                   'varname2display';
 % DJ, 11/06/2026: Display the time derivative as d_t, unless 'use_unicode';
+% DJ, 11/12/2026: Display only T and K operators in case of no dynamics
+%                   (converted BVP);
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -172,15 +179,29 @@ end
 % of a left-hand side excludes the combining marks, which take no space.
 eq_lhs = {[dt_sym,' (',strjoin(eq_terms{1},' + '),')(t) ='], [sig_names.z,'(t) ='], [sig_names.y,'(t) ='], '0 ='};
 eq_shown = [true, ~isempty(PIE.space.z.dims), ~isempty(PIE.space.y.dims), ~isempty(eq_terms{5})];
+
+% Without dynamics or outputs, the first equation is 
+%   x = T x^ + Tw w^ + Tu u^,
+is_BVP = ~is_nl && ~any(any(is_used(2:4,:)));                               % DJ, 11/12/2026
+if is_BVP
+    eq_lhs{1} = [varname2display('x'),' ='];
+    eq_terms{2} = eq_terms{1};
+end
+
 lhs_widths = cellfun(@(a) numel(a)-nnz(a>=768 & a<=879),eq_lhs);     % combining marks U+0300-U+036F
-if use_unicode()
+if use_unicode() && ~is_BVP
     lhs_widths(1) = lhs_widths(1)-1;    % the space after dt_sym makes up for the narrow subscript t
 end
 pie_type = 'linear';
 if is_nl
     pie_type = 'nonlinear';
 end
-fprintf('\n  %s is a %s PIE of the form\n\n',name,pie_type);
+% Specify what "type" of PIE it is                                          % DJ, 11/12/2026
+if is_BVP
+    fprintf('\n  %s has no dynamics:\n\n',name);
+else
+    fprintf('\n  %s is a %s PIE of the form\n\n',name,pie_type);
+end
 for q=find(eq_shown)
     print_terms([repmat(' ',1,max(lhs_widths(eq_shown))-lhs_widths(q)),eq_lhs{q}],eq_terms{q+1},[],width_max);
 end

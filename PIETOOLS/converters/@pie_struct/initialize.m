@@ -19,6 +19,12 @@ function PIE = initialize(PIE)
 % - The operators T and A are mandatory. Any other of the operators that
 %   has not been specified is initialized as a zero operator between the
 %   spaces specified by the other operators.
+% - A PIE without dynamics, e.g. from a boundary value problem, only has
+%   the operators T, Tw, Tu and K, Kw, Ku specified (K without rows if
+%   there is no constraint), and none of A, Bw, Bu, Cz, Dzw, Dzu, Cy, Dyw,
+%   Dyu. Then, A is not mandatory, and the output (row) spaces of T, Tw, Tu,
+%   those of x_pde=T*x+Tw*w+Tu*u, need not match the input (column) spaces,
+%   the components of x, which are those of the columns of T and K.
 % - Operators specified as 'opvar' or 'opvar2d' objects are converted to
 %   'copvar' objects, which do not involve dummy variables. Dummy variables
 %   of the operators are first renamed to follow the convention of the PIE,
@@ -74,6 +80,8 @@ function PIE = initialize(PIE)
 %                   to copvar, spaces and maps between PDE and PIE checked;
 % DJ, 11/08/2026: Keep a specified PIE.space for a component (output) that
 %                   is just zero;
+% DJ, 11/11/2026: Support a PIE without dynamics (only T and K operators
+%                   specified), as converted from a BVP;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -92,6 +100,15 @@ for n = opnames(5,~has_rows)
     if any(has_rows)
         PIE.(n{1}) = [];
     end
+end
+% A PIE without dynamics, e.g. converted from a BVP, has operators T and K
+% specified (K possibly without rows), but none of those of the dynamics or
+% outputs. The outputs of T, Tw, Tu, defining x_pde, are of a space 'p' 
+% that need not match x.
+is_BVP = all(all(cellfun(@(n) is_unset(PIE.(n)),opnames(2:4,:)))) &&...
+            any(cellfun(@(n) ~is_unset(PIE.(n)),opnames(5,:)));
+if is_BVP
+    row_type{1} = 'p';
 end
 
 % % % Establish the spatial variables and domain of the PIE.
@@ -133,7 +150,7 @@ for k = 1:numel(opnames)
     Pop = PIE.(fname);
     if is_unset(Pop)
         % The operator has not been specified.
-        if any(strcmp(fname,{'T','A'}))
+        if strcmp(fname,'T') || (strcmp(fname,'A') && ~is_BVP)              % DJ, 11/11/2026
             error(['PIE.',fname,' is a mandatory element of PIE structure and cannot be defaulted to zero']);
         end
         continue
@@ -171,7 +188,7 @@ end
 % spaces of all the operators involving this component, in the form of a
 % depmat indicating on which variables each space depends, and the number of
 % components in the space.
-spaces = struct('x',[],'w',[],'u',[],'z',[],'y',[],'k',[]);
+spaces = struct('x',[],'w',[],'u',[],'z',[],'y',[],'k',[],'p',[]);          % DJ, 11/11/2026
 for ii=1:numel(opnames)
     fname = opnames{ii};
     if is_unset(PIE.(fname))

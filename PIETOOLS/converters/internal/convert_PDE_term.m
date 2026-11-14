@@ -1,56 +1,46 @@
-function [Pterm,Pblk] = convert_PDE_term(term,Tops,PDE,opts)
-% [Pterm,Pblk] = CONVERT_PDE_TERM(term,Tops,PDE,opts) converts a
-% single term of a PDE, a product of factors
+function [Pblk,Px] = convert_PDE_term(term,Tops,PDE,opts)
+% [Pblk,Px] = CONVERT_PDE_TERM(term,Tops,PDE,opts) converts a term of a
+% PDE, a product of factors
 %   term = fctr_1.*...*fctr_m,
-%   fctr_k = int_{I{1}} ... int_{I{p}} C(s,theta)*D^{D}x_r(loc) dtheta,
-% (with x_r replaced by w_r or u_r for an input), to the associated term
-% in the PIE, a function of the fundamental state xf and fundamental
-% inputs wf and uf. This uses the operators Tops, with D^{alpha}x_r =
-% Tops.x*xf + Tops.w*wf + Tops.u*uf. Each factor is converted to a row
-% of PI operators, and the term is their elementwise product, split as
-%       term = Pterm.x(xf) + Pterm.w(wf) + Pterm.u(uf).
+%   fctr_k = int_{I{1}} ... int_{I{p}} C(s,theta)*D^{D}x_r(loc) dtheta
+% (with x_r replaced by w_r or u_r for an input), to the corresponding
+% term of the PIE, in the fundamental state xf and inputs wf, uf, using
+% the operators D^{alpha}x_r = Tops.x*xf + Tops.w*wf + Tops.u*uf.
 %
 % INPUT
-% - term:   m x 1 struct array of the m factors, with fields x, w or u, D,
-%           loc, C, I (and delay), as in the terms of a PDE;
+% - term:   m x 1 struct array of the m factors, with fields x, w or u,
+%           D, loc, C, I (and delay), as the terms of a PDE;
 % - Tops:   struct with fields
-%           - x:    nx x 1 cell, with Tops.x{k}{alpha+1} a 1 x nV 'copvar'
-%                   (or 'tensopmat') mapping xf --> D^{alpha}x_k, as
-%                   Tops.x of solve_PIETOOLS_BVP with the derivatives (an
-%                   error is thrown for a derivative that was not
-%                   computed);
-%           - w,u:  the same for wf and uf ([] if no such inputs),
-%           and, if the term involves inputs w_r or u_r,
-%           - Iw,Iu:    cells with Tops.Iw{r} the operator wf --> w_r (the
-%                   fields Gops.Iw, Gops.Iu of solve_PIETOOLS_BVP); empty
-%                   for inputs decomposed in BCs;
+%           - x:    nx x 1 cell, with Tops.x{k}{alpha+1} the 1 x nV
+%                   'copvar' (or 'tensopmat') xf --> D^{alpha}x_k, as
+%                   Tops.x of convert_PIETOOLS_BVP with derivatives;
+%           - w,u:  the same for wf and uf ([] if no such inputs);
+%           - Iw,Iu:    (if the term involves inputs w_r or u_r) cells
+%                   with Iw{r} the operator wf --> w_r, see info.Iw of
+%                   convert_PIETOOLS_BVP ([] for inputs in the BCs);
 % - PDE:    initialized 'pde_struct' object;
-% - opts:   (optional) 'nonlinear' or a logical (default PDE.is_nonlinear),
-%           or a struct with fields nonlinear and outvars (cellstr: the
-%           variables of the equation in which the term appears, e.g. a
-%           constant term in an equation for x(s) is a function of s). For
-%           a linear PDE the term must have a single factor;
+% - opts:   struct with fields nonlinear (true for a nonlinear PDE, the
+%           only case in which a term can have several factors) and
+%           outvars (cellstr, the variables of the equation of the term:
+%           e.g. a constant term in an equation for x(s) depends on s);
 %
 % OUTPUT
-% - Pterm:  struct with fields x, w, u: 'polyopvar' objects ([] if there
-%           is no contribution), the contribution to the term as a
-%           polynomial in the states x01_pie,...,wf1,...,uf1,... (named
-%           by Pterm.x.varname; states on which the term does not depend
-%           are omitted);
-% - Pblk:   (single factor only) struct with fields x, w, u, each a struct
-%           with B (cell with the 'sopvar' block acting on each column of
-%           xf, wf or uf, [] for zero blocks, so that the term is the
-%           row [B{:}] applied to xf, wf or uf) and cols (spaces of the
-%           columns), or [] if there is no contribution;
+% - Pblk:   struct with fields x, w, u, for a term with a single factor
+%           a struct with fields B (cell with the 'sopvar' block acting
+%           on each column of xf, wf or uf, [] for zero blocks) and cols
+%           (the spaces of the columns), or [] if there is no
+%           contribution;
+% - Px:     for a nonlinear PDE, the contribution of xf to the term, as a
+%           'polyopvar' object in the PIE state components x01_pie,...;
+%           [] if there is none, and for a linear PDE;
 %
 % NOTES
-% - Inputs can only appear linearly: an error is thrown if a term with
-%   several factors involves an input, or a state that depends on inputs.
-% - Evaluating a state at a boundary requires a PI operator on xf (see
-%   the 'subs' method of 'sopvar'). Delays are not supported. An integral
-%   over a variable at a boundary position is not supported; for I{k}
-%   use [a,s_k], [s_k,b] or [a,b], with C depending only on the s_j and
-%   the dummy variables of the integrated variables.
+% - Inputs can only appear linearly: a term with several factors cannot
+%   involve inputs, or states that depend on inputs.
+% - Delays are not supported. Integrals are supported over [a,s_k],
+%   [s_k,b] or [a,b], not over a variable in which the state is
+%   evaluated at a boundary, with C depending only on the s_j and on the
+%   dummy variables of the integrated variables.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,29 +68,10 @@ function [Pterm,Pblk] = convert_PDE_term(term,Tops,PDE,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding;
+% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
+% DJ (CC), 11/13/2026: Return the blocks first, and the polynomial only for
+%                   a nonlinear PDE (of xf only); opts is a struct;
 
-% % % Check the inputs
-% opts may be a struct, a string, or a logical flag for nonlinear
-if nargin<4
-    opts = [];
-end
-is_nonlinear = [];                  % default: as specified by the PDE
-vars_eq = cell(1,0);
-if isstruct(opts)
-    if isfield(opts,'nonlinear')
-        is_nonlinear = logical(opts.nonlinear);
-    end
-    if isfield(opts,'outvars')
-        vars_eq = reshape(opts.outvars,1,[]);
-    end
-elseif ischar(opts) || isstring(opts) || iscellstr(opts)
-    is_nonlinear = any(strcmpi(cellstr(opts),'nonlinear'));
-elseif (islogical(opts) || isnumeric(opts)) && ~isempty(opts)
-    is_nonlinear = logical(opts(1));
-end
-if ~isstruct(term) || isempty(term)
-    error("The term must be specified as a 'struct' array of factors.")
-end
 term = term(:);
 nfactors = numel(term);
 % The PIE is linear in wf and uf, so an input cannot be a factor in a
@@ -108,22 +79,8 @@ nfactors = numel(term);
 if nfactors>1 && any(arrayfun(@(f) (isfield(f,'w') && ~isempty(f.w)) || (isfield(f,'u') && ~isempty(f.u)),term))
     error("convert_PDE_term:inputNonlinear","An input appears in a nonlinear or bilinear term, which is not supported.")
 end
-if ~isa(PDE,'pde_struct')
-    error("The PDE must be specified as a 'pde_struct' object.")
-end
-if ~PDE.is_initialized
-    PDE = initialize(PDE,true);
-end
-% The operators are 'copvar' objects for a linear PDE, and 'tensopmat'
-% objects for a nonlinear one, unless specified otherwise in opts.
-if isempty(is_nonlinear)
-    is_nonlinear = PDE.is_nonlinear;
-end
-if nfactors>1 && ~is_nonlinear
+if nfactors>1 && ~opts.nonlinear
     error("A term of a linear PDE can only have a single factor; use the option 'nonlinear'.")
-end
-if ~isstruct(Tops) || ~isfield(Tops,'x')
-    error("The operators Tops must be specified as a struct with field 'x'.")
 end
 
 % % % Convert the factors to operators on the fundamental state and inputs
@@ -132,53 +89,44 @@ end
 % inputs would make the inputs appear nonlinearly, which is not supported.
 Pfactors = cell(nfactors,1);
 for k=1:nfactors
-    Pfactors{k} = convert_PDE_factor(term(k),Tops,PDE,vars_eq);
+    Pfactors{k} = convert_PDE_factor(term(k),Tops,PDE,reshape(opts.outvars,1,[]));
     if nfactors>1 && (~isempty(Pfactors{k}.w) || ~isempty(Pfactors{k}.u))
         error("convert_PDE_term:inputNonlinear","A state in a nonlinear term depends on the inputs, which then appear in a nonlinear or bilinear manner; this is not supported.")
     end
 end
+% Blocks are only returned for a single factor, as for a product they
+% are not linear operators
+Pblk = struct('x',[],'w',[],'u',[]);
+if nfactors==1
+    Pblk = Pfactors{1};
+end
 
-% % % Take the product of the factors, for the contribution of each of the
-% % % fundamental state and inputs
-Pterm = struct('x',[],'w',[],'u',[]);
-Pblk = Pterm;
-% Names of the variables: as the default names of the components of the PIE
-% state (x01_pie,...) for xf, and wf1,..., uf1,... for the inputs
-prefix = struct('x','x','w','wf','u','uf');         suffix = struct('x','_pie','w','','u','');
-for obj_type={'x','w','u'}
-    obj = obj_type{1};
-    % A product is zero if any factor has no contribution from xf, wf or
-    % uf
-    if any(cellfun(@(p) isempty(p.(obj)),Pfactors))
-        continue
-    end   % no contribution
-    for k=1:nfactors
-        % Declare the states X that the factor acts on (for nonzero blocks
-        % only), so that the factor is the row B_cell acting on X, and the
-        % product F = F1.*F2.*... a polynomial in X
-        B_cell = Pfactors{k}.(obj).B;        
-        col_spaces = Pfactors{k}.(obj).cols;
-        nz_idcs = find(~cellfun(@isempty,B_cell));
-        state_names = arrayfun(@(j) sprintf('%s%0*d%s',prefix.(obj),numel(num2str(numel(B_cell))),j,suffix.(obj)),nz_idcs,'UniformOutput',false)';
-        [vars_X,uniq_idcs] = unique([col_spaces(nz_idcs).vars],'stable');
-        vars_X = reshape(vars_X,1,[]);      dom_X = vertcat(col_spaces(nz_idcs).dom);      dom_X = dom_X(uniq_idcs,:);
-        if isempty(vars_X)
-            X = polyopvar(state_names,[col_spaces(nz_idcs).dim]');
-        else
-            X = polyopvar(state_names,[col_spaces(nz_idcs).dim]',vars_X,dom_X,cell2mat(arrayfun(@(j) ismember(vars_X,col_spaces(j).vars),nz_idcs','UniformOutput',false)));
-        end
-        F_factor = tensopmat(B_cell(nz_idcs))*X;
-        if k==1
-            F = F_factor;
-        else
-            F = F.*F_factor;
-        end
+% % % For a nonlinear PDE, the product of the factors, as a polynomial in
+% % % the components of xf (zero if a factor has no contribution)
+Px = [];
+if ~opts.nonlinear || any(cellfun(@(p) isempty(p.x),Pfactors))
+    return
+end
+for k=1:nfactors
+    % Declare the components X that the factor acts on (for nonzero blocks
+    % only), named as the PIE state components (x01_pie,...), so that the
+    % factor is the row B_cell acting on X, and the product a polynomial
+    B_cell = Pfactors{k}.x.B;
+    col_spaces = Pfactors{k}.x.cols;
+    nz_idcs = find(~cellfun(@isempty,B_cell));
+    state_names = arrayfun(@(j) sprintf('x%0*d_pie',numel(num2str(numel(B_cell))),j),nz_idcs,'UniformOutput',false)';
+    [vars_X,uniq_idcs] = unique([col_spaces(nz_idcs).vars],'stable');
+    vars_X = reshape(vars_X,1,[]);      dom_X = vertcat(col_spaces(nz_idcs).dom);      dom_X = dom_X(uniq_idcs,:);
+    if isempty(vars_X)
+        X = polyopvar(state_names,[col_spaces(nz_idcs).dim]');
+    else
+        X = polyopvar(state_names,[col_spaces(nz_idcs).dim]',vars_X,dom_X,cell2mat(arrayfun(@(j) ismember(vars_X,col_spaces(j).vars),nz_idcs','UniformOutput',false)));
     end
-    Pterm.(obj) = F;
-    % Blocks are only returned for a single factor, as for a product they
-    % are not linear operators
-    if nfactors==1
-        Pblk.(obj) = Pfactors{1}.(obj);
+    F_factor = tensopmat(B_cell(nz_idcs))*X;
+    if k==1
+        Px = F_factor;
+    else
+        Px = Px.*F_factor;
     end
 end
 end
@@ -270,7 +218,7 @@ if ~is_input
             end
             Tops_rows.(obj_type{1}) = R_cell{D_idcs{:}};
             if isempty(Tops_rows.(obj_type{1})) && strcmp(obj_type{1},'x')
-                error('convert_PDE_term:derivativeMissing',"The derivative D^{%s} of x_%d was not computed by solve_PIETOOLS_BVP: request it in the derivatives specified for solve_PIETOOLS_BVP.",mat2str(D),comp_idx)
+                error('convert_PDE_term:derivativeMissing',"The derivative D^{%s} of x_%d was not computed by convert_PIETOOLS_BVP: request it in the derivatives specified for convert_PIETOOLS_BVP.",mat2str(D),comp_idx) % DJ, 11/11/2026
             end
         end
     end

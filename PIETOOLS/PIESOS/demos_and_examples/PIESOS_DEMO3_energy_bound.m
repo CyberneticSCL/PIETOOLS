@@ -41,6 +41,7 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 11/08/2026: Initial coding;
+% DJ, 11/11/2026: Use `convert` to solve the BVP;
 
 clc; clear; clear stateNameGenerator
 echo on
@@ -67,12 +68,12 @@ n_iters = 10;
 % Declare the Allen-Cahn PDE, only to obtain the PIE state x = u_{ss} and
 % the map u = T*x from x to the PDE state
 u = pde_var(s,dom);
-BVP = [diff(u,t)==diff(u,s,2)+r*u-u^3;
+PDE = [diff(u,t)==diff(u,s,2)+r*u-u^3;
        subs(u,s,dom(1))==0;
        subs(u,s,dom(2))==0];
-Top = solve_PIETOOLS_BVP(BVP);
-x = polyopvar('x',s,dom);
-u = Top.x*x;
+PIE = convert(PDE);
+x = PIE.x;
+u = PIE.T*x;
 
 % Declare the energy, using int u_{s}^2 ds = -<u,u_{ss}> = -<u,x>
 u2 = u.^2;
@@ -122,4 +123,4 @@ fprintf('\n E(u) >= %g was verified for all u.\n',gam_min)
 % For r>0, the exact minimum E(u*) = -||u*||_4^4/2 can be computed from the
 % boundary value problem u_{ss} + r*u - u^3 = 0, using a guess 
 % u = a*sin(pi*s)
-fprintf(' For r=12, the exact minimum of E is -1.5218.\n')
+fprintf(' For r=12, the true minimum of E is -1.5218.\n')

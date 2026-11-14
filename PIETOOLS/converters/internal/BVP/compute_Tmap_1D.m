@@ -30,17 +30,17 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 %       the integral term in the BCs. Can depend on at most 1 variable;
 % - dom:    1x2 array specifying the lower and upper boundaries [a,b] of
 %           the interval on which u(s) is defined;
-% - vars:   (optional) 1x2 array of type 'polynomial', specifying the
-%           spatial variable s and a corresponding dummy variable theta;
-% - orders: (optional) array of the orders i of the derivatives (d/ds)^{i}
-%           for which to compute Rops and Qops.Rp, 0:d (all) by default;
+% - vars:   1x2 'pvar' array, the spatial variable s and a dummy
+%           variable theta;
+% - orders: array of the orders i of the derivatives (d/ds)^{i} for which
+%           to compute Rops and Qops.Rp, e.g. 0:d for all;
 %
 % OUTPUT
 % All operators are 'copvar' objects, each a 1 x 1 container holding a
 % single 'sopvar' block, so that every operator maps between just one
 % input and one output space (R^{p} or L2^{p}[a,b]). The spatial variable
-% is vars(1) (or the variable of F, or the default of 'opvar'), and the
-% dummy variable is <vars(1)>_dum, as 'sopvar' does not record the dummy.
+% is vars(1), and the dummy variable is <vars(1)>_dum, as 'sopvar' does
+% not record the dummy.
 % Here m = n_tot-rank(G) is the number of auxiliary values, mK = q-rank(G)
 % the number of constraints on the fundamental state (mK=m if q=n_tot),
 % and |n| = sum(n).
@@ -129,24 +129,19 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 %   values (v0) and the number mK=q-r of constraints on v1 differ for
 %   q>n_tot, so K1,Kw are declared whenever mK>0 (was m>0), and w has q
 %   entries (was n_tot);
+% DJ (CC), 11/13/2026: Require vars and orders;
 
 
-% % Convert BCs to canonical form (which checks the inputs),
+% % Convert BCs to canonical form,
 % %   G*Lambda_a u + int_{a}^{b} H(s)*v1(s) ds = w
 % % with J*[BCs] reordered such that the first r rows involve Lambda_a u.
-if nargin<5
-    vars = [];
-end
-[G,H,p,J,vars] = compute_canonical_BCs(n,E,F,dom,vars);
+[G,H,p,J] = compute_canonical_BCs(n,E,F,dom,vars);
 % A 'sopvar' does not record the dummy variable, so the convention
 % <var1>_dum is used (as in opvar2sopvar), whatever dummy was specified
 var1 = vars(1);     var2 = pvar([char(var1.varname{1}),'_dum']);
 a = dom(1);         b = dom(2);
 
 d = numel(n)-1;
-if nargin<6
-    orders = 0:d;
-end
 n_tot = sum((1:d).*n(2:end));       % number of boundary values
 n_all = sum(n);                     % dimension of the state [u_0;...;u_d]
 r = numel(p);

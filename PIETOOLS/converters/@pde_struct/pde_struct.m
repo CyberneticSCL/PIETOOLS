@@ -81,6 +81,7 @@ classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pd
 %
 % Initial coding DJ - 07/08/2022
 % DJ, 02/17/2026: Add "is_nonlinear" field;
+% DJ (CC), 11/13/2026: Copy the field tau of a struct to tau (was dom);
 
     
 properties
@@ -152,7 +153,7 @@ methods
                     obj.dom = varargin{1}.dom;
                 end
                 if isfield(varargin{1},'tau')
-                    obj.dom = varargin{1}.tau;
+                    obj.tau = varargin{1}.tau;
                 end
                 
                 if isfield(varargin{1},'x')

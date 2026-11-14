@@ -54,6 +54,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding, AT, 11/10/2026: modeled on DEMO3_poincare_inequality.
+% DJ, 11/11/2026: Call `convert` to solve BVP;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -70,9 +71,9 @@ xa = pde_var('in',1);        % xa
 BVP = subs(x,s,a)==xa;
 
 % % Parameterize all x in H1:  x = Top*[w; xf],  xf = x_s
-Top = solve_PIETOOLS_BVP(BVP,'all');
-H0op = [Top.w{1}{1}, Top.x{1}{1}];  % (H0op*[w;xf]) = x
-H1op = [Top.w{1}{2}, Top.x{1}{2}];  % (H1op*[w;xf]) = x_{s}
+BVP_sol = convert(BVP);                                                         % DJ (CC), 11/11/2026
+H0op = [BVP_sol.Tw, BVP_sol.T];     % (H0op*[w;xf]) = x
+H1op = diff(H0op,s);                % (H1op*[w;xf]) = x_{s}
 E0op = subs(H0op,s,a);              % (E0op*[w;xf]) = x(a)
 E1op = subs(H0op,s,b);              % (E1op*[w;xf]) = x(b)
 

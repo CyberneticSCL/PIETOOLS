@@ -63,7 +63,8 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, AT, 11/10/2026: 2D extension of DEMO13_trace_inequality. 
+% Initial coding, AT, 11/10/2026: 2D extension of DEMO13_trace_inequality.
+% DJ, 11/11/2026: Use `convert` to solve the BVP;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -105,18 +106,18 @@ end
 
 % % Parameterize all x in H1:  x = H0op*xf, and its first derivatives
 % xf = [int_0^1 int_0^1 x; int_0^1 x_{s1} ds2; int_0^1 x_{s2} ds1; x_{s1 s2}]
-Top = solve_PIETOOLS_BVP(BVP,'all');
-H0op = Top.x{1}{1,1};               % (H0op*xf) = x
-H1op = Top.x{1}{2,1};               % (H1op*xf) = x_{s1}
-H2op = Top.x{1}{1,2};               % (H2op*xf) = x_{s2}
+BVP_sol = convert(BVP);
+H0op = BVP_sol.T;               % (H0op*xf) = x
+H1op = diff(H0op,s1);           % (H1op*xf) = x_{s1}
+H2op = diff(H0op,s2);           % (H2op*xf) = x_{s2}
 
 if strcmp(option,'inputs')
     % Prepend the input components w to the state
 
     % [w, x] = [x(0,0); x_s1(s1, 0);  x_s2(0, s2); x_s1s2(s1,s2)]
-    H0op = [Top.w{1}{1,1}, H0op];  % (H0op*[w;xf]) = x
-    H1op = [Top.w{1}{2,1}, H1op];  % (H1op*[w;xf]) = x_{s1}
-    H2op = [Top.w{1}{1,2}, H2op];  % (H2op*[w;xf]) = x_{s2}
+    H0op = [BVP_sol.Tw, H0op];     % (H0op*[w;xf]) = x
+    H1op = diff(H0op,s1);          % (H1op*[w;xf]) = x_{s1}
+    H2op = diff(H0op,s2);          % (H2op*[w;xf]) = x_{s2}
 end
 
 % % Edge values of x, as operators from xf to L2 of the other variable

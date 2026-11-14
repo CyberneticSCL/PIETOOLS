@@ -1,58 +1,37 @@
 function [PDEs,info] = decouple_BVPs(PDE)
-% [PDEs,info] = DECOUPLE_BVPS(PDE) splits the boundary conditions (BCs) of
-% a PDE into groups that do not share any state or input, and returns a
-% boundary value problem (BVP) for each group. The BCs in different groups
-% constrain different components, so that their solution operators (the T
-% operators) are independent, and can be computed separately, for smaller
-% problems. Two BCs are in the same group if they involve the same state or
-% input, or if they are linked through a chain of BCs that do.
-% Only the BCs are considered; the dynamics of the PDE are ignored.
+% [PDEs,info] = DECOUPLE_BVPS(PDE) splits the boundary conditions (BCs)
+% of a PDE into groups that share no state or input, and returns a
+% boundary value problem (BVP) for each group, so that they can be
+% solved separately. Two BCs are in the same group if they involve the
+% same state or input, or are linked by a chain of BCs that do. The
+% dynamics are ignored.
 %
 % INPUT
-% - PDE:    'pde_struct' (or 'struct') object defining a PDE in the terms
-%           format, see also "@pde_struct/initialize";
+% - PDE:    initialized 'pde_struct' object in the terms format;
 %
 % OUTPUT
-% - PDEs:   1 x nG cell, with PDEs{g} a 'pde_struct' object defining the
-%           BVP of group g, for the same spatial variables (those that its
-%           components depend on), domain, and delays as PDE:
-%           - the states of PDEs{g} are the components of PDE involved in
-%             its BCs, with the same dimension, domain and orders of
-%             differentiability, and no equation (tdiff=nan);
-%           - the inputs w and u of PDEs{g} are the inputs of PDE involved
-%             in its BCs;
-%           - the BCs of PDEs{g} are the BCs of PDE involving these
-%             components, with the terms unchanged except for the indices
-%             of the states and inputs. The BCs are in their original
-%             order;
-%           The first groups are those with BCs, ordered by the first BC
-%           they contain. They are followed by the states that do not
-%           appear in any BC, each defining its own BVP without BCs (so
-%           that it is unconstrained). Inputs that do not appear in any BC
-%           are not part of any BVP;
-% - info:   struct with fields describing how PDEs relates to PDE:
-%           - BC_idcs:  1 x nG cell, with PDEs{g}.BC{k} =
-%                                               PDE.BC{BC_idcs{g}(k)};
-%           - x_idcs:   1 x nG cell, with PDEs{g}.x{k} =
-%                                               PDE.x{x_idcs{g}(k)};
-%           - w_idcs:   1 x nG cell, with PDEs{g}.w{k} =
-%                                               PDE.w{w_idcs{g}(k)};
-%           - u_idcs:   1 x nG cell, with PDEs{g}.u{k} =
-%                                               PDE.u{u_idcs{g}(k)};
+% - PDEs:   1 x nG cell, with PDEs{g} the 'pde_struct' of the BVP of
+%           group g: the states and inputs of PDE in its BCs (with the
+%           same sizes, domains and orders, and no equations), and these
+%           BCs (in their original order, with the indices of the states
+%           and inputs of the group), on the variables that these
+%           components depend on, with the delays of PDE. The groups with
+%           BCs come first, ordered by their first BC, followed by the
+%           states in no BC, each a BVP without BCs (unconstrained).
+%           Inputs in no BC are in no group;
+% - info:   struct with fields BC_idcs, x_idcs, w_idcs, u_idcs, 1 x nG
+%           cells, with e.g. PDEs{g}.x{k} = PDE.x{x_idcs{g}(k)};
 %
 % NOTES
-% - Components are grouped as a whole, so that e.g. a state of dimension 2
-%   is in a single group, even if one BC only involves its first element.
-% - The BCs along the directions of a group require its states to depend on
-%   the same variables. A group that would have states on different
-%   variables because their BCs share an input (e.g. x1(s1)=w and x2(s2)=w)
-%   is therefore split into the groups that share a state, and the input
-%   is part of each of these groups (w_idcs of the groups overlap).
-% - If none of the components of a group depends on a spatial variable,
-%   e.g. a BC involving only an ODE state, the BVP retains all spatial
-%   variables of PDE, as initialize requires BCs to be constant in at least
-%   one variable.
-%
+% - Components are grouped as a whole, so that e.g. a state of size 2 is
+%   in a single group, even if one BC only involves its first element.
+% - The BCs of a group need its states to depend on the same variables.
+%   A group that would have states on different variables because their
+%   BCs share an input (e.g. x1(s1)=w and x2(s2)=w) is split into the
+%   groups that share a state, each including the input.
+% - If no component of a group depends on a spatial variable (e.g. a BC
+%   of an ODE state only), the BVP keeps all variables of PDE, as
+%   initialize requires BCs to be constant in at least one variable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - decouple_BVPs
@@ -79,12 +58,8 @@ function [PDEs,info] = decouple_BVPs(PDE)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 11/02/2026: Initial coding;
+% DJ (CC), 11/13/2026: Require an initialized 'pde_struct' (no check);
 
-% % % Make sure the PDE is initialized
-PDE = pde_struct(PDE);
-if ~PDE.is_initialized
-    PDE = initialize(PDE,true);
-end
 N = size(PDE.vars,1);
 nBC = numel(PDE.BC);
 nx = numel(PDE.x);      nw = numel(PDE.w);      nu = numel(PDE.u);

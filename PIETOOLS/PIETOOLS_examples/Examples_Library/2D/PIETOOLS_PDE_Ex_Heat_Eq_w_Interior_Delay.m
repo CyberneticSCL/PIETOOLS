@@ -63,7 +63,7 @@ end
 clear stateNameGenerator
 x1 = pde_var(s1,[a,b]);
 x2 = pde_var([s1;s2],[a,b;0,tau],[2;1]);    % x2 must be 2nd order differentiable wrt s1, and 1st order wrt s2
-PDE_t = [diff(x1,'t')==c*diff(x1,s1,2)+a0*x1+a1*subs(x2,s2,tau);
+PDE_t = [diff(x1,'t')==c*diff(x1,s1,2)+a0*x1-a1*subs(x2,s2,tau);
          diff(x2,'t')==-diff(x2,s2);
          subs([x1;x2],s1,a)==0;     subs([x1;x2],s1,b)==0;
          subs(x2,s2,0)==x1];

@@ -1,92 +1,60 @@
 function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % PIE = CONVERT_PIETOOLS_PDE(PDE,FLAG) converts a PDE in the terms format,
 % possibly coupling ODE states with PDE states on several spatial
-% variables, and possibly nonlinear, to an equivalent PIE.
+% variables, and possibly nonlinear, to an equivalent PIE
+%   d/dt (T*xf + Tw*wf + Tu*uf) = A*xf + Bw*wf + Bu*uf;
+%                             z = Cz*xf + Dzw*wf + Dzu*uf;
+%                             y = Cy*xf + Dyw*wf + Dyu*uf;
+%                          K*xf = 0,
+% with fundamental state xf and fundamental inputs wf, uf. For a
+% nonlinear PDE, A*xf, Cz*xf and Cy*xf are polynomials f, gz and gy.
 %
 % INPUT
-% - PDE:    'pde_struct' object defining a PDE in the terms format (see
-%           also "@pde_struct/initialize"). A PDE in one of the legacy
-%           formats (batch, or 'terms_legacy') is passed on to the legacy
-%           converters of PIETOOLS, as in the PIETOOLS converter;
-% - flag:   (optional) 'char' or cell of 'char' objects, containing
-%           'silent' to suppress the display of an overview of how the
-%           fundamental state and inputs of the PIE relate to those of the
-%           PDE, and/or 'Top' (or 'return_Top') to stop the conversion
-%           after the T operators (from fundamental to PDE state) have been
-%           computed, and/or 'nonlinear' to return the PIE in the nonlinear
-%           format, with polynomials f, gz, gy, also if the PDE is linear
-%           (needed for the SOS programming of PIESOS). For compatibility,
-%           FLAG may also be
-%           specified as third input, following a (not supported) argument
-%           comp_order;
+% - PDE:    'pde_struct' object in the terms format (see also
+%           "@pde_struct/initialize"). A PDE in a legacy format (batch,
+%           or 'terms_legacy') is passed on to the legacy converters;
+% - flag:   (optional) char or cellstr, with 'silent' to suppress the
+%           summary of how the PIE relates to the PDE (and the warning
+%           for more BCs than the states require), 'Top' to stop
+%           after computing T, Tw, Tu and K, and/or 'nonlinear' to return
+%           an 'npie_struct' also for a linear PDE (as PIESOS needs). For
+%           compatibility, FLAG may be the third input, after an empty
+%           (not supported) argument comp_order;
 %
 % OUTPUT
-% - PIE:    'pie_struct' object if the PDE is linear, and 'npie_struct'
-%           object if it is nonlinear or the flag 'nonlinear' is
-%           specified (see "@pie_struct/pie_struct"),
-%           describing the PIE
-%           d/dt (T*xf + Tw*wf + Tu*uf) = A*xf + Bw*wf + Bu*uf;
-%                                        z = Cz*xf + Dzw*wf + Dzu*uf;
-%                                        y = Cy*xf + Dyw*wf + Dyu*uf;
-%                                K*xf = 0,
-%           with the fundamental state xf, and the fundamental exogenous
-%           and actuator inputs wf and uf. For a nonlinear PDE, A*xf,
-%           Cz*xf, and Cy*xf are replaced by the polynomials f, gz,
-%           and gy. The operators are 'copvar' objects (linear PDE) or
-%           'tensopmat' objects (nonlinear PDE). The components of xf
-%           are the blocks info.blocks of solve_PIETOOLS_BVP, one for each
-%           state in each component of the fundamental state, and those of
-%           wf and uf the fundamental inputs info.inputs.w and
-%           info.inputs.u. The
-%               fields space, space_pde, pie2pde, pde2pie
-%           describe the function spaces of the PIE and PDE, and how the
-%           PIE state and inputs are derived from those of the PDE: for
-%           each component b of xf, the PDE state idx, the derivative
-%           diff taken of it, and the operator C (see
-%           "@pie_struct/pie_struct"). If flag contains 'Top', PIE only has
-%           the fields space, T, Tw, Tu and K;
+% - PIE:    'pie_struct' object with 'copvar' operators for a linear PDE,
+%           'npie_struct' object with 'tensopmat' operators if the PDE is
+%           nonlinear or the flag 'nonlinear' is set. The components of
+%           xf are the blocks of convert_PIETOOLS_BVP (one for each state
+%           and component of the fundamental state), ordered by their
+%           number of variables, and those of wf and uf its fundamental
+%           inputs. The fields space, space_pde, pde2pie and pie2pde
+%           describe the function spaces of the PIE and PDE, and how xf,
+%           wf and uf are derived from the PDE (see
+%           "@pie_struct/pie_struct"). With 'Top', PIE only has the
+%           fields space, T, Tw, Tu and K;
 %
 % NOTES
-% - Each PDE state has one "main" block of xf, its highest derivative in
-%   each variable. T has a row for each block: for a main block the row of
-%   T defining x_pde, and for any other (auxiliary) block xf_b, a moment
-%   of x_pde (xf_b=F*x_pde, or F*D^{a}x_pde if the moment is taken of a
-%   derivative in the other variables, e.g. for BCs that are periodic in
-%   one of several variables), the row of T defining F*x_pde: the selector
-%   of xf_b if a=0, and F times the row of x_pde otherwise. The
-%   right-hand side of that row is F times that of x_pde, and the
-%   constraint K*xf=0 ties xf_b to x_pde.
-% - The inputs in the boundary conditions are decomposed into fundamental
-%   inputs wf and uf, as in solve_PIETOOLS_BVP: each is a derivative of an
-%   element of an input of the PDE, evaluated at the lower boundary in some
-%   variables (e.g. for a state with BCs along both s1 and s2, the corner
-%   value of an input, and its derivatives along the boundaries). This is
-%   stored in pde2pie (idx, diff, loc, and C selecting the elements), see
-%   the description of Dmap in solve_PIETOOLS_BVP. This requires all
-%   directions of the group of BCs to be admissible (e.g. no periodic
-%   BCs), and each BC with an input to have a single element of a single
-%   input as right-hand side. An input of fewer variables than its
-%   boundary is constant in the others, which restricts the other inputs
-%   (e.g. scalar inputs on all faces of a 2D state must be equal, so there
-%   is one fundamental input). An input that is shared by the BCs of
-%   states on different variables is one fundamental input (see
-%   solve_PIETOOLS_BVP). An input that does not appear in the BCs is its
-%   own fundamental input (see append_inputs). An input that appears both
-%   in a BC and elsewhere in the PDE is not supported. The map pie2pde.w,
-%   pie2pde.u from PIE inputs to PDE inputs is only specified for the
-%   inputs not in the BCs.
-% - The right-hand side of the PIE is derived by convert_PDE_term, so that
-%   inputs can only appear linearly.
-% - Delays (also of factors in nonlinear terms) are modeled by transport
-%   states (expand_delays), and higher-order temporal derivatives (linear 
-%   PDEs, any number of spatial variables) by additional states 
-%   (expand_tderivatives); pde2pie.x. delay and pde2pie.x.tdiff describe 
-%   these components. Expansion is not supported for states with boundary 
-%   inputs.
-% - ODE states, and states of lower dimension, may appear in the BCs of
-%   other states, see solve_PIETOOLS_BVP; the T operators then map the
-%   fundamental state of the former to the latter.
-%
+% - Each PDE state has one main block of xf, its highest derivative in
+%   each variable. The other (auxiliary) blocks xf_b are moments F*x_pde
+%   (e.g. for BCs that are periodic in a variable): their rows of T are
+%   F times the row of x_pde (the selector of xf_b if F involves no
+%   derivative), their right-hand sides F times that of x_pde, and
+%   K*xf=0 ties them to x_pde.
+% - The inputs in the BCs are decomposed into fundamental inputs, see
+%   convert_PIETOOLS_BVP; the other inputs are their own fundamental
+%   inputs. An input in a BC and elsewhere in the PDE is not supported,
+%   and pie2pde.w, pie2pde.u only map the inputs not in the BCs. Inputs
+%   can only appear linearly.
+% - Delays are modeled by transport states (expand_delays), and
+%   higher-order temporal derivatives by additional states
+%   (expand_tderivatives), described by pde2pie.x.delay and
+%   pde2pie.x.tdiff. This is not supported for states with inputs in
+%   their BCs.
+% - Static constraints 0=E(s) (outputs listed in PDE.constraint_ID),
+%   linear in the state, are added to K. ODE states and states of lower
+%   dimension may enter the BCs of other states, see
+%   convert_PIETOOLS_BVP.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
@@ -116,7 +84,11 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 11/06/2026: Display PIE states and inputs with a hat in the summary;
 % DJ, 11/06/2026: Get the names of components and variables in the summary
 %                   from 'varname2display';
-% DJ, 11/08/2026: Drop the zero maps of the inputs by info.input_maps;;
+% DJ, 11/08/2026: Drop the zero maps of the inputs by info.input_maps;
+% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
+% DJ (CC), 11/13/2026: Constraints and hotd for an 'npie_struct'; summary
+%                   from space, space_pde, pde2pie; Iw, Iu from info; warn
+%                   for surplus BCs; inline permute_cols; shorter errors;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, as the
 % % % PIETOOLS converter does, and convert other structures to pde_struct
@@ -152,31 +124,48 @@ if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
 % DB 11/07/2026: outputs flagged as static constraints 0=E(s) (see
-% initialize) are not outputs of the PIE; their operator is added to K: the PDE is
-% converted without them, and with only them, which have the same
-% fundamental state, and their rows Cz are the rows of K that are added
+% initialize) are not outputs of the PIE; their operator is added to K:
+% the PDE is converted without them, and with only them, which have the
+% same fundamental state, and their rows Cz are the rows of K that are
+% added. For an 'npie_struct', these rows are the polynomial gz, which is
+% linear in the state.
 if ~isempty(PDE.constraint_ID) && ~return_Top
     z_IDs = cellfun(@(zi) zi.ID,PDE.z);
     is_con = ismember(z_IDs(:),PDE.constraint_ID(:));
+    if any(cellfun(@(zi) any(cellfun(@numel,zi.term)>1),PDE.z(is_con)))    % DJ (CC), 11/13/2026
+        error("convert_PIETOOLS_PDE:nonlinearConstraint","Static constraints 0=F(s) must be linear in the state.")
+    elseif any(cellfun(@(zi) any(cellfun(@(tm) any(isfield(tm,{'w','u'})),zi.term)),PDE.z(is_con)))
+        error("Constraints 0=F(s) cannot involve the inputs w or u.")
+    end
     PDE_con = PDE;      PDE_con.constraint_ID = [];
     PDE_con.z = PDE.z(is_con);          PDE_con.z_tab = PDE.z_tab(is_con,:);
     PDE_con.z_tab(:,1) = (1:nnz(is_con))';
     PDE_main = PDE;     PDE_main.constraint_ID = [];
     PDE_main.z = PDE.z(~is_con);        PDE_main.z_tab = PDE.z_tab(~is_con,:);
     PDE_main.z_tab(:,1) = (1:nnz(~is_con))';
-    PIE = convert_PIETOOLS_PDE(PDE_main,[flag(:)',{'constraint_main'}]);
+    PIE = convert_PIETOOLS_PDE(PDE_main,flag);
     PIE_con = convert_PIETOOLS_PDE(PDE_con,[flag(:)',{'silent'}]);
-    for ic=1:numel(PDE_con.z)
-        for jc=1:numel(PDE_con.z{ic}.term)
-            if any(isfield(PDE_con.z{ic}.term{jc},{'w','u'}))
-                error("Constraints 0=F(s) cannot involve the inputs w or u.")
-            end
-        end
-    end
-    if isempty(PIE.K) || isempty(PIE.K.C)
-        PIE.K = PIE_con.Cz;
+    if isa(PIE_con,'npie_struct')
+        % gz = K_con*xf: the coefficient of each monomial (a block of xf)
+        % is the block of K_con acting on it, as in npie2pie_struct
+        gz = combine_terms(PIE_con.gz);     sp = PIE_con.space;
+        is_lin = sum(gz.Z>0,2)==1;
+        [~,kcol] = ismember(gz.varname(sum(gz.Z(is_lin,:),2)),sp.x.varname);
+        K_con = gz.C;
+        K_con.ops = cell(size(gz.C.ops,1),numel(sp.x.dims));
+        K_con.ops(:,kcol) = gz.C.ops(:,is_lin);
+        [vars_srt,ord] = sort(sp.vars);
+        K_con.dims.in = sp.x.dims;          K_con.vars.in = vars_srt;
+        K_con.dom.in = sp.dom(ord,:);       K_con.depmat.in = double(sp.x.depmat(:,ord));
+        no_K = size(PIE.K,1)==0;
     else
-        PIE.K = [PIE.K; PIE_con.Cz];
+        K_con = PIE_con.Cz;
+        no_K = isempty(PIE.K) || isempty(PIE.K.C);
+    end
+    if no_K
+        PIE.K = K_con;
+    else
+        PIE.K = [PIE.K; K_con];
     end
     return
 end
@@ -195,9 +184,9 @@ if PDE.has_delay
     end
     [PDE,del_tab] = expand_delays(PDE);
 end
-% Higher-order temporal derivatives (linear PDEs): the PIE is first derived
-% with these, and expanded to first order afterwards, see
-% expand_tderivatives
+% Higher-order temporal derivatives: the PIE is first derived with these,
+% and expanded to first order afterwards, see expand_tderivatives (of
+% 'pie_struct' or 'npie_struct')
 tdiff_pde = ones(numel(PDE.x),1);
 for i=1:numel(PDE.x)
     if isfield(PDE.x{i},'tdiff')
@@ -206,9 +195,6 @@ for i=1:numel(PDE.x)
 end
 has_hotd = any(tdiff_pde>1);
 is_nonlinear = PDE.is_nonlinear || force_nonlinear;
-if has_hotd && is_nonlinear
-    error("Higher-order temporal derivatives in nonlinear PDEs are not yet supported.")
-end
 N = size(PDE.vars,1);
 nx = numel(PDE.x);
 vars_pde = arrayfun(@(i) PDE.vars(i,1).varname{1},1:N,'UniformOutput',false);
@@ -238,7 +224,7 @@ op_matrix = @(row_sp,col_sp,hit,X) cell2op(arrayfun(@(r,j) select_cell({zero_op(
 
 
 % % % Derive the map from the fundamental state and inputs to the PDE
-% % % state, with a block for each state (see solve_PIETOOLS_BVP)
+% % % state, with a block for each state (see convert_PIETOOLS_BVP)
 opts = {'all_inputs','blocks'};
 % 'tensopmat' blocks for a nonlinear PDE, or if the flag 'nonlinear' is set
 if is_nonlinear
@@ -249,8 +235,10 @@ diffs = 'terms';
 if return_Top
     diffs = [];
 end
-[Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts);
-Gops = info.Gops;
+[Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts);               % DJ, 11/11/2026
+if info.surplus && ~suppress_summary
+    fprintf('\n Warning: There are more boundary conditions than the orders of the states require; the PDE may be overdetermined.\n')
+end
 blocks = info.blocks;       nblocks = numel(blocks);
 spaces_pde = arrayfun(@(k) get_space(PDE.x_tab,k),1:nx);
 
@@ -259,7 +247,7 @@ spaces_pde = arrayfun(@(k) get_space(PDE.x_tab,k),1:nx);
 % xf_b=F*x_pde, with x_idcs(b) the state of block b and F_cell{b} the
 % block of F
 if any(Dmap.x.idx==0)
-    error("convert_PIETOOLS_PDE:blocks","Fundamental state components that cannot be split into one block per state are not supported.")
+    error("convert_PIETOOLS_PDE:blocks","Rank-deficient (e.g. periodic) boundary conditions that couple states in a shared moment are not supported.")
 end
 % List the blocks by the number of variables they depend on, ascending:
 % the finite-dimensional blocks (ODE states, moments) first, as in the old
@@ -278,9 +266,21 @@ if ~isequal(perm,1:nblocks)
             info.space.x.(fn{1}) = info.space.x.(fn{1})(perm,:);
         end
     end
-    Tops.x = permute_cols(Tops.x,perm,is_nonlinear);
+    % The block columns of the operators on xf: Tops.x is one operator
+    % for 'Top', and a cell of operators for each state otherwise
+    perm_cols = @(B) B(:,perm);
+    permute_op = @(P) cell2op(perm_cols(get_blocks(P)));
+    if return_Top
+        Tops.x = permute_op(Tops.x);
+    else
+        for k=1:nx
+            for l=find(~cellfun(@isempty,Tops.x{k}(:)))'
+                Tops.x{k}{l} = permute_op(Tops.x{k}{l});
+            end
+        end
+    end
     if size(Kops.x,1)>0
-        Kops.x = permute_cols(Kops.x,perm,is_nonlinear);
+        Kops.x = permute_op(Kops.x);
     end
 end
 x_idcs = Dmap.x.idx(:)';
@@ -325,9 +325,7 @@ for obj_type={'x','w','u'}
 end
 % The maps to the derivatives, and from wf to the PDE inputs, for the terms
 Tops_term = Tops;
-if isfield(Gops,'Iw')
-    Tops_term.Iw = Gops.Iw;     Tops_term.Iu = Gops.Iu;
-end
+Tops_term.Iw = info.Iw;     Tops_term.Iu = info.Iu;
 % Sum the terms of each equation: the contributions of the state of a
 % nonlinear PDE in poly_struct (polyopvar), the others as operators
 for obj={'x','z','y'}
@@ -342,12 +340,12 @@ for obj={'x','z','y'}
     for i=1:numel(PDE.(obj{1}))
         vars_eq = vars_pde(logical(obj_tab(i,3:2+N)));
         for j=1:numel(PDE.(obj{1}){i}.term)
-            [Pterm,Pblk] = convert_PDE_term(PDE.(obj{1}){i}.term{j},Tops_term,PDE,struct('nonlinear',is_nonlinear,'outvars',{vars_eq}));
-            if is_nonlinear && ~isempty(Pterm.x)
+            [Pblk,Px] = convert_PDE_term(PDE.(obj{1}){i}.term{j},Tops_term,PDE,struct('nonlinear',is_nonlinear,'outvars',{vars_eq}));
+            if ~isempty(Px)
                 if isempty(poly_struct.(obj{1}){i})
-                    poly_struct.(obj{1}){i} = Pterm.x;
+                    poly_struct.(obj{1}){i} = Px;
                 else
-                    poly_struct.(obj{1}){i} = poly_struct.(obj{1}){i}+Pterm.x;
+                    poly_struct.(obj{1}){i} = poly_struct.(obj{1}){i}+Px;
                 end
             end
             for obj_type={'x','w','u'}
@@ -449,13 +447,11 @@ if is_nonlinear
     for b=find(is_aux)'
         % F*f is not supported for f of degree>1: periodic BCs with a
         % nonlinear right-hand side error with a clear message
-%        f_rows{b} = tensopmat(F_cell{b})*poly_struct.x{x_idcs(b)};         % DJ (CC), 11/02/2026 (was)
         try                                                                 % DJ (CC), 11/02/2026
-            f_rows{b} = tensopmat(F_cell{b})*poly_struct.x{x_idcs(b)};      % DJ (CC), 11/02/2026
-        catch ME                                                            % DJ (CC), 11/02/2026
-            error("convert_PIETOOLS_PDE:nonlinearAux",...
-                "Moments of the state (periodic BCs) with a nonlinear right-hand side are not supported: %s",ME.message)    % DJ (CC), 11/02/2026
-        end                                                                 % DJ (CC), 11/02/2026
+            f_rows{b} = tensopmat(F_cell{b})*poly_struct.x{x_idcs(b)};
+        catch
+            error("convert_PIETOOLS_PDE:nonlinearAux","Rank-deficient (e.g. periodic) boundary conditions of a state with a nonlinear equation are not supported.")
+        end
     end
     PIE.f = vertcat(f_rows{:});
     if ~isempty(poly_struct.z)
@@ -492,11 +488,11 @@ for obj_type={'x','w','u','y','z'}
 end
 PIE.space_pde = space_pde;
 
-% % % Maps from the PDE to the PIE, as Dmap of solve_PIETOOLS_BVP: 
+% % % Maps from the PDE to the PIE, as Dmap of convert_PIETOOLS_BVP: 
 % % %   xf_b = C_b*D^{diff}x_pde_idx(b), 
-% % % with C_b the block F_b of Dmap.x.C, the identity for the main blocks 
-% % % and the integral for the auxiliary ones. The inputs are evaluated at 
-% % % the lower boundary of the variables they no longer depend on, and C=I.
+% % % with C_b the block F_b of Dmap.x.C, the identity for the main blocks
+% % % and the integral for the auxiliary ones. The inputs are evaluated at
+% % % the lower boundary of the variables they no longer depend on, C=I.
 pde2pie_s = PIE.pde2pie;
 % Components added by expand_delays are the history of a state or input of
 % the original PDE (see del_tab): they depend on the delay variable, in
@@ -590,16 +586,18 @@ end
 % variables.
 if ~suppress_summary
     for obj_summary = {'x','u','w','y','z'}
-        if strcmp(obj_summary{1},'x') && any(is_aux)
+        if isempty(PIE.space.(obj_summary{1}).dims)
+            continue
+        elseif strcmp(obj_summary{1},'x') && any(is_aux)
             % DB 11/07/2026: usual summary, where the auxiliary states are
-            % displayed as the operator F applied to x, and a note on K*xf=0
-            if size(PIE.x_tab,1)>=1
-                print_convert_summary(PIE,'x',tdiff_tab(:,2),'',find(is_aux)',F_cell(is_aux));
-            end
+            % displayed as the operator F applied to x, and a note on
+            % K*xf=0 (tdiff_tab(:,1): the component each one derives from)
+            aux_idcs = find(is_aux(tdiff_tab(:,1)))';
+            print_convert_summary(PIE,'x',aux_idcs,F_cell(tdiff_tab(aux_idcs,1)));
             fprintf('\nThe PIE state must satisfy PIE.K*xf = 0.\n');
             fprintf('The states are defined by PIE.pde2pie.x.C.\n');
-        elseif size(PIE.([obj_summary{1},'_tab']),1)>=1
-            print_convert_summary(PIE,obj_summary{1},tdiff_tab(:,2));
+        else
+            print_convert_summary(PIE,obj_summary{1});
         end
     end
 end
@@ -609,154 +607,117 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function print_convert_summary(PIE,obj,tdiff_list,aux_msg,aux_idcs,F_aux)
-% PRINT_CONVERT_SUMMARY(PIE,obj,tdiff_list) prints information in the
-% command window on how the state variables, inputs, and outputs in the
-% computed PIE structure relate to those in the original PDE.
+function print_convert_summary(PIE,obj,aux_idcs,F_aux)
+% PRINT_CONVERT_SUMMARY(PIE,obj,aux_idcs,F_aux) prints how the components
+% of the state, inputs or outputs of the PIE (PIE.space) relate to those
+% of the PDE (PIE.space_pde), as described by PIE.pde2pie.
 %
 % INPUT
-% - PIE:    'pie_struct' object defining a PIE;
-% - obj:    char 'x', 'u', 'w', 'y', or 'z', indicating for which
-%           object to display how they relate to the associated object in
-%           the PDE;
-% - tdiff_list: if obj='x', an nx x 1 array indicating for each of the nx
-%           (vector-valued) fundamental state components what temporal
-%           derivative of the corresponding PDE state component they
-%           correspond to;
-%
-% OUTPUT
-% Displays information in the command window on how the state components,
-% inputs, and outputs in the PIE relate to those in the PDE.
-% Set a name associated to each object.
-if strcmp(obj,'x')
-    object_name = 'fundamental state component';
-elseif strcmp(obj,'y')
-    object_name = 'observed output';
-elseif strcmp(obj,'z')
-    object_name = 'regulated output';
-elseif strcmp(obj,'u')
-    object_name = 'actuator input';
-elseif strcmp(obj,'w')
-    object_name = 'exogenous input';
-end
-obj_tab = PIE.([obj,'_tab']);
-ncomps = size(obj_tab,1);
-nvars = size(PIE.vars,1);
-has_diffs = false;
-if all(obj_tab(:,1)==(1:ncomps)') && (size(obj_tab,2)<=2+nvars || ~any(any(obj_tab(:,3+nvars:2+2*nvars))))
-    % The components in the PIE correspond exactly to the components in the
-    % PDE.
-    return
-elseif size(obj_tab,2)<=2+nvars || ~any(any(obj_tab(:,3+nvars:2+2*nvars)))
-    % Otherwise, we list the new order of the components.
-    fprintf(['\n','The ',object_name,'s have been reindexed as:\n']);
-else
-    % Indicate how the new components relate to those in the PDE
-    has_diffs = true;
-    fprintf(['\n','The following ',object_name,'s have been introduced:\n']);  
-    if nargin>=4 && ~isempty(aux_msg)
-        fprintf(aux_msg);       % DB 11/07/2026
+% - PIE:    'pie_struct' or 'npie_struct' object;
+% - obj:    'x', 'u', 'w', 'y' or 'z', the object to display;
+% - aux_idcs, F_aux:  (optional) the components of the PIE state that are
+%           auxiliary states xf=F*x, displayed as F*x, and their F;
+names = struct('x','fundamental state component','y','observed output','z','regulated output',...
+               'u','actuator input','w','exogenous input');
+object_name = names.(obj);
+sp = PIE.space.(obj);       p2p = PIE.pde2pie.(obj);
+ncomps = numel(sp.dims);    nvars = numel(PIE.space.vars);
+% Derivatives in space (diff) and time (tdiff), position at a boundary
+% (loc: -1 lower, 1 upper) and delay variable (delay) of the PDE component
+% that each component is; zero if not specified
+maps = struct('diff',zeros(ncomps,nvars),'tdiff',zeros(ncomps,1),'loc',zeros(ncomps,nvars),'delay',zeros(ncomps,1));
+for fn=fieldnames(maps)'
+    if isfield(p2p,fn{1}) && size(p2p.(fn{1}),1)==ncomps
+        maps.(fn{1}) = p2p.(fn{1});
     end
 end
+% The PDE component of each component: of type src_type and index src (a
+% component of the PIE state may be the history of a delayed input)
+src_type = repmat({obj},ncomps,1);
+[src,col] = max(p2p.idx,[],2);
+if strcmp(obj,'x')
+    xwu = {'x','w','u'};
+    src_type = xwu(col)';
+end
+% The variables of the PDE in those of the PIE (the same, if renamed)
+[~,vmap] = ismember(PIE.space_pde.vars,PIE.space.vars);
+if any(vmap==0)
+    vmap = 1:numel(PIE.space_pde.vars);
+end
+has_sdiff = any(maps.diff(:));
+has_diffs = has_sdiff || any(maps.tdiff) || any(maps.delay) || ~all(strcmp(src_type,obj));
+if ~has_diffs && all(src==(1:ncomps)')
+    % The components in the PIE correspond exactly to those in the PDE
+    return
+elseif ~has_diffs
+    % Otherwise, we list the new order of the components...
+    fprintf(['\n','The ',object_name,'s have been reindexed as:\n']);
+else
+    % ...or how the new components relate to those in the PDE
+    fprintf(['\n','The following ',object_name,'s have been introduced:\n']);
+end
 
-% Use UNICODE to add subscript indices to different components.
+% Use UNICODE for the partial derivatives, and for the superscript orders
+% of the derivatives (sup_num{k+1} for order k)
 thin_space = char(8201);
 partial = '\x2202';
-sub_t = '\x209C';
-% The PIE state and inputs are indicated as such in their names (a hat), unlike
-% those of the PDE; the names are given by 'varname2display'
+sup_num = {'\x2070';'\xB9';'\xB2';'\xB3';'\x2074';'\x2075';'\x2076';'\x2077';'\x2078';'\x2079'};
+% The PIE state and inputs are indicated as such in their names (a hat),
+% unlike those of the PDE; the names are given by 'varname2display'
 pie_tag = '';
 if any(strcmp(obj,{'x','u','w'}))
     pie_tag = '_pie';
 end
-%sub_s = '\x209B';
-%int = '\x222B';
-%xdot = '\x1E8B';
-%xdot = [partial,sub_t,' x'];
-% Also use UNICODE for superscript orders of the temporal derivative
-sup_num = cell(10,1);    % Superscripts
-sup_num{1} = '\x2070';  % Superscript 0
-sup_num{2} = '\xB9';
-sup_num{3} = '\xB2';
-sup_num{4} = '\xB3';
-sup_num{5} = '\x2074';
-sup_num{6} = '\x2075';
-sup_num{7} = '\x2076';
-sup_num{8} = '\x2077';
-sup_num{9} = '\x2078';
-sup_num{10} = '\x2079';
-
 % Determine how many subscripts will be needed.
 n_digits = 1+floor(log(ncomps)/log(10));
 
 
-% % For the purpose of clearer display, we make an estimate of how long the
-% % display will be. 
-% First, determine which variables appear in the different state variables.
-global_vars_obj = PIE.vars(any(PIE.([obj,'_tab'])(:,3:2+nvars),1),:);
-lngth_varnames = 3;      % just three characters: (t)
-if ~isempty(global_vars_obj) || has_diffs
-    varname_cell = cell(nvars,1);
-    if nvars==1
-        varname_cell{1} = 's';
-        lngth_varnames = lngth_varnames+2;    % add two characters: ,s
-    else
-        varname_cell{1} = varname2display('s1');
-        lngth_varnames = lngth_varnames+2;    % add three characters: ,s1
-        for kk=2:nvars
-            varname_cell{kk} = varname2display(sprintf('s%d',kk));
-            lngth_varnames = lngth_varnames+2;    % add three characters: ,sj
-        end
-    end
+% % For a clearer display, estimate how long the display will be: the
+% % names of the variables, and the length of the component names
+varname_cell = {'s'};
+if nvars>1
+    varname_cell = arrayfun(@(kk) varname2display(sprintf('s%d',kk)),(1:nvars)','UniformOutput',false);
 end
-% Then, estimate the size of the string of characters denoting the
-% components "PDE.x{ii}".
-nvars_max = max(sum(PIE.([obj,'_tab'])(:,3:2+nvars),2));
+lngth_varnames = 3;      % just three characters: (t)
+if any(sp.depmat(:)) || has_sdiff
+    lngth_varnames = lngth_varnames+2*nvars;    % add ,sj for each variable
+end
+nvars_max = max(sum(sp.depmat,2));
 lngth_varnames_mean = ceil(lngth_varnames*nvars_max/nvars);
-LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3)', 
+LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3)',
 
 
 % % For each of the components, display its size, and which variables it
 % % depends on.
 for ii=1:ncomps
-    old_ID = obj_tab(ii,1);
-    % Check if this component is derived from some higher-dimensional
-    % component in the original PDE (e.g. a boundary value of some input)
-    comp_idx = find(obj_tab(:,1)==old_ID,1,'last');
-
     % Establish the names of the variables on which the component depends.
     varnames_LHS_t = 't';
     LHS_length = 1;
-    var_idcs = find(obj_tab(ii,3:2+PIE.dim));
-    for kk=var_idcs
+    for kk=find(sp.depmat(ii,:))
         varnames_LHS_t = [varnames_LHS_t,',',varname_cell{kk}];
         LHS_length = LHS_length+3;  % add 3 characters: ,s1
     end
-    if ii~=comp_idx
-        % In case the current component is derived from some other
-        % component, it may not depend on the same variables
-        var_idcs_RHS = find(obj_tab(comp_idx,3:2+PIE.dim));
-        varnames_RHS_t = 't';
-        for kk=var_idcs_RHS
-            is_var = ismember(kk,var_idcs);
-            if is_var
-                % The new component still depends on this variable
-                varnames_RHS_t = [varnames_RHS_t,',',varname_cell{kk}];
-            else
-                % The component is evaluated at the lower boundary w/r to
-                % this spatial variable
-                varnames_RHS_t = [varnames_RHS_t,',',num2str(PIE.dom(kk,1))];
-            end
-        end
-    else
-        varnames_RHS_t = varnames_LHS_t;
+    % The PDE component, on its own variables, at time t+s_k for a delay
+    % in s_k, and at the boundary loc (lower by default) in the variables
+    % that the component of the PIE does not depend on
+    varnames_RHS_t = 't';
+    if maps.delay(ii)>0
+        varnames_RHS_t = ['t+',varname_cell{maps.delay(ii)}];
     end
-    
+    dep_src = false(1,nvars);
+    dep_src(vmap) = PIE.space_pde.(src_type{ii}).depmat(src(ii),:);
+    for kk=find(dep_src)
+        if sp.depmat(ii,kk) && maps.loc(ii,kk)==0
+            varnames_RHS_t = [varnames_RHS_t,',',varname_cell{kk}];
+        else
+            varnames_RHS_t = [varnames_RHS_t,',',num2str(PIE.space.dom(kk,1+(maps.loc(ii,kk)==1)))];
+        end
+    end
+
     % Establish the index for the new component, displayed as a subscript.
-    new_idx = ii;
     Lcomp_idx = '';
     if ncomps>1
-        Lcomp_idx = num2str(new_idx);
+        Lcomp_idx = num2str(ii);
         LHS_length = LHS_length + length(Lcomp_idx);
     end
     % Set the name of the component, including its dependence on spatial
@@ -767,15 +728,15 @@ for ii=1:ncomps
     % Establish the index for the old component
     Rcomp_idx = '';
     if ncomps>1
-        Rcomp_idx = num2str(old_ID);
+        Rcomp_idx = num2str(src(ii));
     end
     % Set the name of the component, including its dependence on spatial
     % variables.
-    RHS_name = [thin_space,varname2display([obj,Rcomp_idx]),'(',varnames_RHS_t,')'];
+    RHS_name = [thin_space,varname2display([src_type{ii},Rcomp_idx]),'(',varnames_RHS_t,')'];
     % For state components, also indicate what spatial/temporal derivative
     % of the PDE state they correspond to.
-    if strcmp(obj,'x') && any(tdiff_list)
-        tdiff = tdiff_list(ii);
+    if strcmp(obj,'x') && any(maps.tdiff)
+        tdiff = maps.tdiff(ii);
         if tdiff==0
             diff_str = ['       ',thin_space];
         elseif tdiff==1
@@ -787,10 +748,9 @@ for ii=1:ncomps
     else
         diff_str = '';
     end
-    if has_diffs
-        Dvals = obj_tab(ii,2+nvars+1:2+2*nvars);
+    if has_sdiff
         for jj=1:nvars
-            sdiff = Dvals(jj);
+            sdiff = maps.diff(ii,jj);
             if sdiff==0
                 diff_str = ['        ',diff_str,thin_space];
             elseif sdiff==1
@@ -800,9 +760,11 @@ for ii=1:ncomps
                 diff_str = [diff_str,'(',partial,'/',partial,varname_cell{jj},')',s_sup,thin_space];
             end
         end
+    end
+    if has_diffs
         RHS_name = [diff_str,RHS_name];
     end
-    if nargin>=6 && ismember(ii,aux_idcs)
+    if nargin>=3 && ismember(ii,aux_idcs)
         % DB 11/07/2026: auxiliary state xf=F*x, displayed as the integral
         % form of F*x (not as a boundary value of x)
         F_str = 'F*x';
@@ -827,37 +789,6 @@ for ii=1:ncomps
     % % % Finally, display:
     MT_space = max(LHS_length_max-LHS_length,1);
     fprintf(['  ',LHS_name,repmat(' ',[1,MT_space]),' <--  ',RHS_name,'\n']);
-end
-end
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-
-
-%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function P = permute_cols(P,perm,is_nonlinear)
-% P = PERMUTE_COLS(P,PERM,IS_NONLINEAR) reorders the block columns of the
-% operator P, or of each operator in a cell array of operators.
-%
-% INPUT
-% - P:      'copvar' object (IS_NONLINEAR false), 'tensopmat' object
-%           (IS_NONLINEAR true), [], or a cell array of such objects;
-% - perm:   permutation of the block columns of P;
-% - is_nonlinear:   true if the operators are 'tensopmat' objects;
-%
-% OUTPUT
-% - P:      the same operators, with block column j of the output the
-%           block column perm(j) of the input;
-%
-% DJ (CC), 11/02/2026: Initial coding;
-if iscell(P)
-    P = cellfun(@(Pk) permute_cols(Pk,perm,is_nonlinear),P,'UniformOutput',false);
-elseif ~isempty(P)
-    if is_nonlinear
-        B = cellfun(@(o) o.ops{1},P.ops,'UniformOutput',false);
-        P = tensopmat(B(:,perm));
-    else
-        P = copvar(P.C(:,perm));
-    end
 end
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

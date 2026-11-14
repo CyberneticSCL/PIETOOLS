@@ -58,6 +58,7 @@
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 % DJ, 11/06/2026: Use BVP instead of PDE
+% DJ, 11/11/2026: Use `convert` to solve the BVP;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -75,8 +76,8 @@ BVP = [subs(x,s,a)==0;
 
 % % Solve the boundary value problem
 % %     x = Top * v     v in L2[0,1]
-Top = solve_PIETOOLS_BVP(BVP);
-H2op = Top.x;                       % (H2op*x_{ss}) = x;
+BVP_sol = convert(BVP);
+H2op = BVP_sol.T;                   % (H2op*x_{ss}) = x;
 H1op = diff(H2op,s);                % (H1op*x_{ss}) = x_{s}
 
 
