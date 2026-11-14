@@ -14,11 +14,13 @@ function R = test_heatNd_poincare()
 %          identity T*A_i = -(D_iT)*(D_iT) is blind to the sign, which is
 %          why I0 has three layers;
 %  (3) SDP shapes against the reference pricing formulas (c = (d+1)(5d+3),
-%      c_p = (d+1)(5d+7)): L2 none m = 2^(N-1) c^N, product 2^(N-1) c_p^N,
-%      faces 2^(N-1) [c^N + 2N(d+1) c^(N-1)], Gram (2(d+1)^2)^N; energy
-%      faces 1-D m 24 [10], 2-D full 920 [96], per direction 844 [80]
-%      (stock, measured); At identical at 3 lam and b affine (<= 1e-12);
-%      the multi-indices equal 'eq_opts_sopvar''s support rule;
+%      c_p = (d+1)(5d+7)), which count m + ndup, the rows written plus the
+%      equations left out as multiples: L2 none 2^(N-1) c^N, product
+%      2^(N-1) c_p^N, faces 2^(N-1) [c^N + 2N(d+1) c^(N-1)], Gram
+%      (2(d+1)^2)^N; energy faces 1-D 24 [10], 2-D full 920 [96], per
+%      direction 844 [80] (stock, measured); At identical at 3 lam and b
+%      affine (<= 1e-12); the multi-indices equal 'eq_opts_sopvar''s
+%      support rule;
 %  (4) 'op' and 'grad' targets give the same SDP (At equal, b to 1e-12);
 %  (5) values, 'objective' mode (one SDP + a fixed-lam re-certification):
 %      L2 faces d = 1 per direction 1.0000 (+-2e-4) in 1-D and 2-D, full 2-D
@@ -48,6 +50,10 @@ function R = test_heatNd_poincare()
 % MMP, 09/27/2026 (final reviews): (9) sign test by the Rayleigh-Ritz
 %   minimum over the tensor polynomial space, with the 1.001 mu control (it
 %   was 6 functions: the lowest mode and 5 random polynomials).
+% MMP, 11/10/2026: (3) compares m + ndup (R.shape.ndup, HEATND_POINCARE)
+%   with the formulas: since 11/01/2026 the equality writer leaves out
+%   equations that are multiples of a written one (2-D: 20 to 173 per
+%   family), and the eight 2-D checks of (3) failed on m alone.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 info = heatNd_path();
@@ -90,10 +96,17 @@ for N = 1:2
               'faces',2^(N-1)*(c^N + 2*N*(d+1)*c^(N-1)),nG*ones(1,1+2*N)};
         for g = 1:3
             Rg = heatNd_poincare(O,struct('form','L2','d',d,'gen',mx{g,1}),nof);
-            ok = Rg.shape.m==mx{g,2} && isequal(Rg.shape.Ks,mx{g,3}) && Rg.affine.At_same && ...
-                 Rg.affine.b_err<=1e-12 && Rg.include_eqopts && Rg.shape.uncovered==0;
-            R(end+1) = chk(sprintf('(3) N=%d L2 d=%d %s: m %d (formula %d), Ks %s, b affine %.0e, eq_opts %d', ...
-                           N,d,mx{g,1},Rg.shape.m,mx{g,2},mat2str(Rg.shape.Ks),Rg.affine.b_err,Rg.include_eqopts),Rg.shape.m,ok); %#ok<AGROW>
+%           ok = Rg.shape.m==mx{g,2} && isequal(Rg.shape.Ks,mx{g,3}) && Rg.affine.At_same && ... % MMP, 11/10/2026 (was)
+%                Rg.affine.b_err<=1e-12 && Rg.include_eqopts && Rg.shape.uncovered==0; % MMP, 11/10/2026 (was)
+%           R(end+1) = chk(sprintf('(3) N=%d L2 d=%d %s: m %d (formula %d), Ks %s, b affine %.0e, eq_opts %d', ... % MMP, 11/10/2026 (was)
+%                          N,d,mx{g,1},Rg.shape.m,mx{g,2},mat2str(Rg.shape.Ks),Rg.affine.b_err,Rg.include_eqopts),Rg.shape.m,ok); %#ok<AGROW> % MMP, 11/10/2026 (was)
+            % The formulas count the rows written plus those left out as    % MMP, 11/10/2026
+            % multiples of a written one (header (3)).                      % MMP, 11/10/2026
+            ok = Rg.shape.m+Rg.shape.ndup==mx{g,2} && isequal(Rg.shape.Ks,mx{g,3}) && Rg.affine.At_same && ...
+                 Rg.affine.b_err<=1e-12 && Rg.include_eqopts && Rg.shape.uncovered==0;  % MMP, 11/10/2026
+            R(end+1) = chk(sprintf('(3) N=%d L2 d=%d %s: m %d + ndup %d (formula %d), Ks %s, b affine %.0e, eq_opts %d', ...
+                           N,d,mx{g,1},Rg.shape.m,Rg.shape.ndup,mx{g,2},mat2str(Rg.shape.Ks),Rg.affine.b_err, ...
+                           Rg.include_eqopts),Rg.shape.m,ok);               %#ok<AGROW> % MMP, 11/10/2026
         end
     end
     sels = [{'full'}, num2cell(1:N)];
@@ -103,10 +116,15 @@ for N = 1:2
         elseif strcmp(num2str(sels{k}),'full'),  mk = 920;   gk = 96;
         else,                           mk = 844;   gk = 80;
         end
-        ok = Rg.shape.m==mk && isequal(Rg.shape.Ks,gk*ones(1,1+2*N)) && Rg.affine.At_same && ...
-             Rg.affine.b_err<=1e-12 && Rg.include_eqopts && Rg.shape.uncovered==0;
-        R(end+1) = chk(sprintf('(3) N=%d energy sel=%s d=1 faces: m %d (stock %d), Ks %s',N,num2str(sels{k}), ...
-                       Rg.shape.m,mk,mat2str(Rg.shape.Ks)),Rg.shape.m,ok);        %#ok<AGROW>
+%       ok = Rg.shape.m==mk && isequal(Rg.shape.Ks,gk*ones(1,1+2*N)) && Rg.affine.At_same && ... % MMP, 11/10/2026 (was)
+%            Rg.affine.b_err<=1e-12 && Rg.include_eqopts && Rg.shape.uncovered==0; % MMP, 11/10/2026 (was)
+%       R(end+1) = chk(sprintf('(3) N=%d energy sel=%s d=1 faces: m %d (stock %d), Ks %s',N,num2str(sels{k}), ... % MMP, 11/10/2026 (was)
+%                      Rg.shape.m,mk,mat2str(Rg.shape.Ks)),Rg.shape.m,ok);        %#ok<AGROW> % MMP, 11/10/2026 (was)
+        % The stock counts, measured before 11/01/2026, are m + ndup.       % MMP, 11/10/2026
+        ok = Rg.shape.m+Rg.shape.ndup==mk && isequal(Rg.shape.Ks,gk*ones(1,1+2*N)) && Rg.affine.At_same && ...
+             Rg.affine.b_err<=1e-12 && Rg.include_eqopts && Rg.shape.uncovered==0;  % MMP, 11/10/2026
+        R(end+1) = chk(sprintf('(3) N=%d energy sel=%s d=1 faces: m %d + ndup %d (stock %d), Ks %s',N,num2str(sels{k}), ...
+                       Rg.shape.m,Rg.shape.ndup,mk,mat2str(Rg.shape.Ks)),Rg.shape.m,ok); %#ok<AGROW> % MMP, 11/10/2026
     end
 end
 % % % (4) 'op' = 'grad'.

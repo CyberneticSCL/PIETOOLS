@@ -13,7 +13,8 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % direction of gamma), all-zero equations omitted; these hold exactly
 % when the block is the zero operator. Of each set of equations of a block
 % that are multiples of one another, only one is written (see entries.dup
-% in OUTPUT). A block [] or an all-zero 'sopvar' block gets no equation.
+% in OUTPUT); equations without a decision variable are all written. A
+% block [] or an all-zero 'sopvar' block gets no equation.
 %
 % INPUT
 % - prog:   'struct', an LPI program (lpiprogram) whose
@@ -145,6 +146,8 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  they fragmented reflowed, the 'symmetric' guard note
 %                  shortened, See also without the retired lpi_eq; code
 %                  unchanged.
+% MMP, 11/10/2026: Help only: 'collect_eq_rows' writes every equation
+%                  without a decision variable (dup never lists one).
 
 % Inputs: a decision container and an LPI program
 if isa(P,'copvar')

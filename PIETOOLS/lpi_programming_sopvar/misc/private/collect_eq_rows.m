@@ -14,7 +14,8 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 % All-zero equations are omitted. Of each set of equations that are
 % multiples of one another, over all cells, only the one with the largest
 % absolute coefficient is kept (the first of equals); the others are
-% listed in Eq.dup.
+% listed in Eq.dup. Equations without a decision variable (every
+% coefficient of d at most 5e-13 |A_k(c)|) are all kept.
 %
 % INPUT
 % - prog:   'struct', an LPI program whose prog.decvartable (a cellstr, or
@@ -125,6 +126,14 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %                  code removed, the notes on the canonical positions, the
 %                  membership check and the row layout shortened; code
 %                  unchanged.
+% MMP, 11/10/2026: Equations without a decision variable are all kept
+%                  (drop_multiples; the 11/01 entry no longer holds for
+%                  them). Any two are multiples, so the one kept was the
+%                  largest |A_k(c)|: programs that differ only in A, such
+%                  as the lam-affine family of heatNd_poincare (target
+%                  Q0 + lam Q1), wrote different equations, and
+%                  test_heatNd_poincare failed from 11/01. Other equations
+%                  unchanged. Help: description and drop_multiples.
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -412,7 +421,8 @@ function [Cs,cols,dup] = drop_multiples(Cs,cols)
 % compared times its largest absolute entry; columns with the same rows of
 % entries compared, and scaled entries there that agree to 1e-12, form a
 % group, and of each group only the column of largest |s| (the first of
-% equals) is kept. COLS is pruned with CS.
+% equals) is kept. COLS is pruned with CS. Columns whose only entry
+% compared is in row 1, the constant term, are all kept.
 % INPUT  Cs:   1 x nk cell; Cs{k} [] or a sparse (q+1) x L_k 'double'
 %              block with no all-zero column;
 %        cols: 1 x nk cell; cols{k} the L_k positions of the columns of
@@ -472,6 +482,10 @@ end
 % its group, so the refused candidates are grouped again among themselves.
 key = [cnt, fr, round(h*1e8)];
 act = (1:nt)';      drop = zeros(0,1);      r = zeros(0,1);     gathered = false;
+% Columns whose only entry compared is row 1 (no decision variable) stay:   % MMP, 11/10/2026
+% any two are multiples, so the one kept would follow the constant terms,   % MMP, 11/10/2026
+% and programs that differ only in those would write different equations.   % MMP, 11/10/2026
+act = act(~(cnt==1 & fr==1));                                               % MMP, 11/10/2026
 while numel(act)>=2
     % Groups of act; cand the members that are not representatives, rc
     % their representatives

@@ -17,7 +17,7 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % form, which every 'sdopvar' object has, these equations hold exactly
 % when P is the zero operator. Of each set of these equations that are
 % multiples of one another (to 1e-12 of the largest coefficient), only
-% one is written.
+% one is written; equations without a decision variable are all written.
 %
 % INPUT
 % - prog:   'struct', an LPI program (lpiprogram) whose
@@ -116,6 +116,8 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 %                  (measurements to one figure), See also without the
 %                  retired lpi_eq, the BEGIN note names misc/private; code
 %                  unchanged.
+% MMP, 11/10/2026: Help only: 'collect_eq_rows' writes every equation
+%                  without a decision variable.
 
 
 % BEGIN MMP, 09/30/2026: the three modes split. Moved verbatim to

@@ -55,6 +55,16 @@ lpi_programming/examples folder to the cleaning folder"). No code or test calls 
 or the DEMOs, so none moved with them. `misc/copquadvar` and its four `misc/private/` helpers have
 none (`poscopvar` names `copquadvar` only in an error message) and stay (maintainer, 11/09/2026:
 in development).
+MMP, 11/10/2026: the equality writer (`misc/private/collect_eq_rows`) writes every equation
+without a decision variable (0 = A_k(c)). The 11/01/2026 rule kept only the largest of them, so
+the one written followed the constant terms: programs that differ only in those wrote different
+equations, and `test_heatNd_poincare` failed from 11/01/2026 (the lam-affine family of
+`heatNd_poincare`; maintainer: "Yes, do both"). Measured on exports of 8c416566 without and with
+the change: the heatNd stability LPI of E4 (preset 'bench', d = 0) at N = 1, 2, 3 has no such
+equation and keeps m (47, 1,181, 29,774), nnz and five weighted sums of At and b to 17 digits;
+the (7) family of `test_heatNd_poincare` is again the program of e56c7981 bit for bit (m 6 -> 10);
+`bench_lpi_eq_sop` (q = 1e4–1e6, N = 1–3) writes the same rows with the same peak memory
+(45.8–47.0 MB at q = 1e6), in 1.05–1.11 s against 1.07–1.13 s at q = 1e6.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:

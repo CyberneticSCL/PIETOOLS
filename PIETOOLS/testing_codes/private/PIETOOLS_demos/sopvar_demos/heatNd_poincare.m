@@ -101,15 +101,18 @@ function R = heatNd_poincare(pie,spec,popts)
 % OUTPUT struct R: spec, N, bc, dom, mu (exact for this sel), lambda1, include,
 %   include_eqopts (true if equal to 'eq_opts_sopvar's), sep (its sep),
 %   shape (m, nx, Kf, Ks, nnz, zero_rows, uncovered: zero rows of At with b
-%   ~= 0 at some lam), affine (At_same, b_err, lams), t (s: ops, target,
+%   ~= 0 at some lam, ndup: the equations LPI_EQ_CDOPVAR leaves out as
+%   multiples of a written one, so m + ndup is the number of nonzero
+%   equations), affine (At_same, b_err, lams), t (s: ops, target,
 %   posvar, eq (per build), sdp, total), mem (MB, process peak private
 %   bytes, lifetime), and per mode: test / B (HEATND_BISECT output, lam in
 %   the kappa fields: lo, hi, gap = [max(0,mu-hi), mu-lo], trace with MOSEK
 %   thread count per attempt), obj (lamhat, v, recert); F, aux if keepF.
 %
 % Cost (MEASURED shapes, reference study; c = (d+1)(5d+3)): L2 no generator
-% m = 2^(N-1) c^N, faces m = 2^(N-1) [c^N + 2N(d+1) c^(N-1)], Gram blocks
-% (2(d+1)^2)^N, 1 + 2N with faces. 3-D d = 1 faces: m = 28672, 7 x 512.
+% m + ndup = 2^(N-1) c^N, faces m + ndup = 2^(N-1) [c^N + 2N(d+1)
+% c^(N-1)], Gram blocks (2(d+1)^2)^N, 1 + 2N with faces. 3-D d = 1 faces:
+% m + ndup = 28672, 7 x 512.
 % Nothing dense in the decision count: the three builds share one positive
 % variable; b updates are O(m). MEASURED 3-D d = 1 (MOSEK 11, 24 threads,
 % all rows, tight): all faces ~110 s/iteration (L2) and ~140 s (energy,
@@ -130,6 +133,11 @@ function R = heatNd_poincare(pie,spec,popts)
 % MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
 %   N > 2, so the hand-built copy for N > 2 is commented out. Same program
 %   (lpiprogram builds exactly what the copy built).
+% MMP, 11/10/2026: R.shape.ndup, from the row record of LPI_EQ_CDOPVAR
+%   (prog.sopeq): since 11/01/2026 the writer leaves out equations that
+%   are multiples of a written one, so the pricing formulas count m + ndup
+%   (2-D: 20 to 173 per family of TEST_HEATND_POINCARE (3); 1-D: none).
+%   Help: OUTPUT shape, Cost.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2 || isempty(spec),   spec = struct();    end
@@ -279,9 +287,13 @@ t.posvar = toc(t0);
 % % % Three builds: At must be identical, b affine in lam.
 lams = [0.5 0.75 0.9]*mu;
 D = cell(1,3);
+prog.sopeq = {};            % row record on: its dup lists give shape.ndup  % MMP, 11/10/2026
 for j = 1:3
     t0 = tic;
     p = lpi_eq_cdopvar(prog,G - (Q0 + lams(j)*Q1),'symmetric');     t.eq(j) = toc(t0);
+    if j==1                 % equations left out as multiples (At is fixed) % MMP, 11/10/2026
+        ndup = sum(arrayfun(@(e) numel(e.dup.col),p.sopeq{end}.entries));   % MMP, 11/10/2026
+    end                                                                     % MMP, 11/10/2026
     t0 = tic;   D{j} = heatNd_sdp(p);   t.sdp(j) = toc(t0);
     if j==1 && keepaux,    aux = struct('prog',p,'G',G,'Q0',Q0,'Q1',Q1,'RR',D{1}.RR,'lam',lams(1));   end
     clear p
@@ -303,6 +315,7 @@ Rb = struct('spec',spec,'N',N,'bc',{O.bc},'dom',dom,'include',Iinc,'include_eqop
                            'zero_rows',nnz(zr),'uncovered',nnz(unc)), ...
             'affine',struct('At_same',same,'b_err',berr,'lams',lams),'t',t, ...
             'mem',struct('peak_private',peakMB()));
+Rb.shape.ndup = ndup;       % m + ndup: the nonzero equations               % MMP, 11/10/2026
 if verbose
     fprintf(['heatNd_poincare: N=%d %s sel=%s d=%d gen=%s: m %d, Ks %s, Kf %d, nnz %d, uncovered %d; ' ...
              'At identical at 3 lam, b affine err %.1e; include = eq_opts %d; posvar %.1f s, eq %.1f s\n'], ...
