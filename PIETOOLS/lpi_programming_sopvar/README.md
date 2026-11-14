@@ -181,7 +181,11 @@ default). An explicit `deg` is unchanged.
 An operator may stand for `dims`, `spaces` and `dom` (11/14/2026): `poscopvar(prog,X,deg,options)`
 declares P on the output spaces of the `copvar` or `cdopvar` X, with the domain of X, so
 `poscopvar(prog,T,deg)` gives the P of `T'*P*T` and `poscopvar(prog,T',deg)` that of `T*P*T'`;
-`eye_copvar_sop(X)` is the identity on the output spaces of X, as in `P + 1e-4*eye_copvar_sop(P)`.
+`eye_copvar_sop(X)` is the identity on the output spaces of X, as in `P + 1e-4*eye_copvar_sop(P)`;
+`lpivar_cdopvar(prog,X,deg,options)` declares Z with the output and input spaces of X and its
+domain, so `lpivar_cdopvar(prog,B',deg)` gives the Z = K*P of a state-feedback LPI, from the state
+to the input. Each routine takes the operator form only when its second input is a `copvar` or
+`cdopvar`; any other input takes the original form, unchanged.
 
 Apart from an omitted `dom` of `poscopvar` or `lpivar_cdopvar` (11/12/2026), no container
 routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and

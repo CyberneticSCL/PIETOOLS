@@ -56,6 +56,9 @@
 % MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
 %   domain off T (maintainer, 11/14/2026: the calls were "too
 %   complicated"). Same program.
+% MMP, 11/14/2026: LPIVAR_CDOPVAR reads the spaces and the domain of X off
+%   K' (maintainer, 11/14/2026: the same form for "the lpivar indefinite
+%   operator structure"); SPACES is no longer needed. Same program.
 
 clc; clear; clear stateNameGenerator
 pvar s t;
@@ -94,10 +97,11 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % MM
 [prog,P] = poscopvar(prog,T,struct('int',3,'mult',3,'joint',3));            % MMP, 11/14/2026
 P = P + 1e-4*I;
 % Lagrange decision PI variable (indefinite)
-spaces.out = {[], {'s'}};  % R and L2[s]
-spaces.in  = [];         % R
+% spaces.out = {[], {'s'}};  % R and L2[s]                                  % MMP, 11/14/2026 (was)
+% spaces.in  = [];         % R                                              % MMP, 11/14/2026 (was)
 % [prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,PIE.dom,6); % MMP, 11/12/2026 (was)
-[prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,6);        % MMP, 11/12/2026
+% [prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,6);      % MMP, 11/14/2026 (was)
+[prog,X] = lpivar_cdopvar(prog,K',6);   % X with the spaces of K'           % MMP, 11/14/2026
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
 % all x(s,t) : Kx(s,t)=0, a <= s <= b
 Q = A'*P*T + T'*P*A + 2*alpha*T'*P*T + X*K + K'*X';

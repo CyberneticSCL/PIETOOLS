@@ -75,6 +75,9 @@
 % MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
 %   domain off T' (the input spaces of T) and P (maintainer, 11/14/2026:
 %   the calls were "too complicated"). Same program.
+% MMP, 11/14/2026: LPIVAR_CDOPVAR reads the spaces and the domain of Z off
+%   B2' (maintainer, 11/14/2026: the same form for "the lpivar indefinite
+%   operator structure"); SPACES is no longer needed. Same program.
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -124,9 +127,10 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % MM
 % P = P + 1e-3*eye_copvar_sop(1,{{'s'}},[0,1]);                             % MMP, 11/14/2026 (was)
 P = P + 1e-3*eye_copvar_sop(P);                                             % MMP, 11/14/2026
 % Indefinite operator variable Z: L2-->\R
-spaces.out = [];        spaces.in = {'s'};
+% spaces.out = [];        spaces.in = {'s'};                                % MMP, 11/14/2026 (was)
 % [prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,[0,1],2);    % MMP, 11/12/2026 (was)
-[prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,2);            % MMP, 11/12/2026
+% [prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,2);          % MMP, 11/14/2026 (was)
+[prog,Z] = lpivar_cdopvar(prog,B2',2);  % Z with the spaces of B2'          % MMP, 11/14/2026
 
 % % Set inequality constraints:
 % %   Q <= 0

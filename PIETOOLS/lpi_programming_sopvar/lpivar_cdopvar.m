@@ -22,6 +22,12 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % where gam_k = 1, is a separate decision variable; every other entry of
 % C_gam is zero.
 %
+% [PROG,POP] = LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS) declares Pop with the
+% output spaces, the input spaces and the domain of the 'copvar' or
+% 'cdopvar' object X, so that Pop has the shape of X: for a PIE with
+% control input operator B, X = B' gives the Z = K*P of a state-feedback
+% LPI, from the state to the input.
+%
 % INPUT
 % - prog:    'struct', the LPI program (LPIPROGRAM), with the field
 %            decvartable;
@@ -47,6 +53,8 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            ('double', one row [a,b] per name of vars). Optional: omitted,
 %            as LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DEG,OPTIONS), the domain
 %            of PROG (LPIPROGRAM), by name;
+% - X:       'copvar' or 'cdopvar' object, in place of DIMS, SPACES and
+%            DOM (second form above);
 % - deg:     (optional) the degree caps, nonnegative integers (default: per
 %            block, from lpi.var.deg in the program settings, LPIPROGRAM,
 %            the left caps mult, int(1) and out at the entry of the
@@ -166,6 +174,12 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  under which a block changed when a space of another
 %                  dimension joined the container). Same blocks as that
 %                  rule when the spaces other than R^n share one dimension.
+% MMP, 11/14/2026: Operator form LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS): DIMS,
+%                  SPACES and DOM are the output and input spaces and the
+%                  domain of X, read by COPVAR_SPACE_LIST as in POSCOPVAR
+%                  (maintainer, 11/14/2026: the same form for "the lpivar
+%                  indefinite operator structure", the original form kept).
+%                  Any other DIMS takes the original form, unchanged.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 % DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'   % MMP, 11/12/2026
@@ -173,6 +187,18 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % PROG by name, per element, since the varname of a polynomial vector is    % MMP, 11/12/2026
 % sorted while the rows of prog.dom follow the program order                % MMP, 11/12/2026
 nin = nargin;                                                               % MMP, 11/12/2026
+% Operator form LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS): the output and input    % MMP, 11/14/2026
+% spaces of X and its domain stand for DIMS, SPACES, DOM; DEG and OPTIONS   % MMP, 11/14/2026
+% shift by two. Any other DIMS: the original form                           % MMP, 11/14/2026
+if isa(dims,'copvar') || isa(dims,'cdopvar')                                % MMP, 11/14/2026
+    narginchk(2,4);                                                         % MMP, 11/14/2026
+    if nin>=4,  options = dom;  end                                         % MMP, 11/14/2026
+    if nin>=3,  deg = spaces;   end                                         % MMP, 11/14/2026
+    X = dims;   dims = struct();    spaces = struct();                      % MMP, 11/14/2026
+    [spaces.out,dims.out] = copvar_space_list(X,'out');                     % MMP, 11/14/2026
+    [spaces.in,dims.in] = copvar_space_list(X,'in');                        % MMP, 11/14/2026
+    dom = struct('vars',{X.vars},'dom',X.dom);  nin = nin+2;                % MMP, 11/14/2026
+end                                                                         % MMP, 11/14/2026
 if nin<4 || ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
               || (isstruct(dom) && isfield(dom,'dom')))                     % MMP, 11/12/2026
     if nin>=5,  options = deg;  end                                         % MMP, 11/12/2026

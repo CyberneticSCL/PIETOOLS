@@ -23,7 +23,8 @@
 %
 % NOTE: the PIE is converted to a 'pie_struct' whose operators are 'copvar'
 % objects, see `pie2copvar`. The LPI program is declared on PIE.vars and
-% PIE.dom, and the operator variables use PIE.space.vars and PIE.space.dom.
+% PIE.dom; P takes its spaces and domain from T', on which it acts in
+% T*P*T', and Z those of B', since Z = K*P maps the state to the input.
 %
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
@@ -62,6 +63,15 @@
 %             program, and LPI_INEQ_SOP infers 'like' = P from the operator
 %             POSCOPVAR declared (maintainer, 11/12/2026: "Update demos
 %             first"). Same program.
+% MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
+%             domain off T' (the input spaces of T) and P (maintainer,
+%             11/14/2026: "switch DEMO11 to the operator form too"). DOM
+%             and I are no longer needed; the NOTE above says where P and Z
+%             take their spaces. Same program.
+% MMP, 11/14/2026: LPIVAR_CDOPVAR reads the spaces and the domain of Z off
+%             B' (maintainer, 11/14/2026: the same form for "the lpivar
+%             indefinite operator structure"); VARS and SPACES are no
+%             longer needed. Same program.
 clear; clc; clear stateNameGenerator
 pvar s1 s2
 c1 = 1; c2 = 1; lam = 2*pi^2+1; ne = 1;
@@ -77,18 +87,21 @@ PDE_t = [diff(x,'t')==lam*x+c1*diff(x,s1,2)+c2*diff(x,s2,2)+b*u;
 PIE = convert(PDE_t,'pie');
 PIEc = pie2copvar(PIE);
 T = PIEc.T; A = PIEc.A; B = PIEc.Bu;
-vars = PIE.space.vars;      dom = PIE.space.dom;
-I = eye_copvar_sop(ne,vars,dom);
+% vars = PIE.space.vars;      dom = PIE.space.dom;                          % MMP, 11/14/2026 (was)
+% I = eye_copvar_sop(ne,vars,dom);                                          % MMP, 11/14/2026 (was)
 
 %% Positive PI Lyapunov variable and free auxiliary feedback variable.
 % prog = lpiprogram_sop(T);                                                 % DB, 11/04/2026 (retired)
 prog = lpiprogram(PIE.vars,PIE.dom);                                               % DB, 11/04/2026
 % [prog,P] = poscopvar(prog,ne,vars,dom,0);                                 % MMP, 11/12/2026 (was)
-[prog,P] = poscopvar(prog,ne,vars,0);       % domain: that of prog          % MMP, 11/12/2026
-P = P + 1e-4*I;
-spaces.out = []; spaces.in = vars;
+% [prog,P] = poscopvar(prog,ne,vars,0);       % domain: that of prog        % MMP, 11/14/2026 (was)
+[prog,P] = poscopvar(prog,T',0);        % P on the input spaces of T        % MMP, 11/14/2026
+% P = P + 1e-4*I;                                                           % MMP, 11/14/2026 (was)
+P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4                   % MMP, 11/14/2026
+% spaces.out = []; spaces.in = vars;                                        % MMP, 11/14/2026 (was)
 % [prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,dom,2);    % MMP, 11/12/2026 (was)
-[prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,2);          % MMP, 11/12/2026
+% [prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,2);        % MMP, 11/14/2026 (was)
+[prog,Z] = lpivar_cdopvar(prog,B',2);   % Z with the spaces of B'           % MMP, 11/14/2026
 
 %% Dual LPI: (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0.
 APBZ = A*P+B*Z;
