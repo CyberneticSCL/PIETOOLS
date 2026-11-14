@@ -84,6 +84,16 @@ the path cannot create a second class or private definition.
   E4. The Phase 0 and class-ops baselines, which name `opvar2d` too, stay: they run on exports of
   older trees.
 
+- A test that needs the retired `opvar` (11/13/2026, maintainer: "Yes, apply both", the move and the
+  update of `Test_sopvar_diff`, after a triage of the tests failing on 019b383e) – from
+  `testing_codes/private/` to `private/dead_code/PIETOOLS/testing_codes/private_files/`:
+  `sopvar/Testfolder/sdopvar/Test_apply_sopvar_1d`, which stops at `rand_opvar` (line 29); its
+  subject was `apply_sopvar` against `apply_opvar` on a random `opvar`. `Test_int2sopvar` checks
+  `apply_sopvar` against `int` of the kernel in 1 to 3 variables, but stops in its first
+  configuration until the `int2sopvar` defect of 11/08/2026 (791da3fb) is fixed. Measured on an
+  export of 019b383e, 11/12/2026. The last section of `Test_sopvar_diff`, the one other test that
+  used `opvar`, was rewritten in place on 11/13/2026.
+
 - `copvar2opvar`, `copvar2opvar2d`, `sopvar2opvar` and 7 failing tests (11/08/2026, maintainer: "Move
   copvar2opvar, copvar2opvar2d and sopvar2opvar, as well as the failing tests into the clean folder
   for deletion") â€“ to `private/dead_code/PIETOOLS/sopvar/{copvar,sopvar}_class/`. All three build an
@@ -408,6 +418,7 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_ctranspose_sopvar_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_ctranspose_sopvar_2d.m` | Declan, 2026-05-27, 4da69e4f |
 | `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar_2d.m` | Declan, 2026-05-27, 5135d8f5 |
 | `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/sopvar2opvar2d.m` (a `sopvar` method until 11/09/2026) | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/sopvar2opvar2d.m` | Declan, 2026-05-27, efd66d8f |
+| `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_apply_sopvar_1d.m` (11/13/2026, maintainer: "Yes, apply both"; needs the retired `opvar`) | `dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_apply_sopvar_1d.m` | Declan, 2026-06-07, 46aed89c |
 | `PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/e2e_stability_2d.m` | `dead_code/PIETOOLS/testing_codes/private_files/lpi_programming_sopvar/tests/e2e_stability_2d.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
 | `PIETOOLS/testing_codes/private/converters/operator_converters/opvar2d2copvar.m` | `dead_code/PIETOOLS/testing_codes/private_files/converters/operator_converters/opvar2d2copvar.m` | MATTHEW M PEET, 2026-09-19, 2ba10689 |
 | `PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m` | `definitely/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m` | MATTHEW M PEET, 2026-09-25, 2be2e6b5 |

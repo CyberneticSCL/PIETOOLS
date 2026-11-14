@@ -8,10 +8,18 @@
 % terms, stacked derivatives, non-output variables, and the 1D opvar 'diff'
 % with option 'pure' as an independent implementation of the same Leibniz
 % rule.
+% (MMP, 11/13/2026: the last check is now the Leibniz rule in closed form,
+% evaluated with 'polynomial' calculus; see the header log.)
 %
 % Run pietools_path_update first.
 
 % DJ (CC), 10/20/2026: Initial coding;
+% MMP, 11/13/2026: The last section compared with the 1D 'opvar' diff(P,s,'pure'),
+%   which is retired (off the path since 11/08/2026), so the test stopped at
+%   'opvar opP'. It now compares with the Leibniz rule for a lower and an
+%   upper integral, evaluated with 'polynomial' calculus only, which shares
+%   no code with diff or apply_sopvar. The operator is built with int2sopvar
+%   from the same random kernels R1, R2;
 
 rng(7);
 tol = 1e-9;
@@ -164,22 +172,47 @@ ref = [0*Px; diff(Px,s1)];
 [npass,nfail] = tally(throws(@() diff(1,P,1),"sopvar"),npass,nfail,'not a sopvar');
 [npass,nfail] = tally(throws(@() diff(P,{'s1'},[1,1]),"each of the spatial"),npass,nfail,'order size');
 
-%% Independent implementation: 1D opvar diff(P,s,'pure')
+% % % Start of changes MMP, 11/13/2026: 'opvar' is retired, so the 1D opvar
+% % % diff(P,s,'pure') below (DJ (CC), 10/20/2026) is replaced by the Leibniz rule
+% %% Independent implementation: 1D opvar diff(P,s,'pure')
+% pvar s1 s1_dum
+% for trial=1:5
+%     nn = randi(3);      mm = randi(3);
+%     opvar opP;
+%     opP.I = [0.5,2];    opP.var1 = s1;      opP.var2 = s1_dum;
+%     opP.dim = [0,0;mm,nn];
+%     opP.R.R1 = rand_poly([mm,nn],[s1;s1_dum],2,5);
+%     opP.R.R2 = rand_poly([mm,nn],[s1;s1_dum],2,5);
+%     dopP = diff(opP,s1,1,'pure');
+%     sP = opvar2sopvar(opP);
+%     dsP = diff(sP,{'s1'},1);
+%     x = rand_poly([nn,1],s1,3,6);
+%     err = norm_poly(apply_opvar(dopP,x)-apply_sopvar(dsP,x));
+%     [npass,nfail] = tally(err<tol,npass,nfail,'vs opvar diff pure');
+% end
+%% Independent check: the Leibniz rule for a lower and an upper integral
+%   (P u)(s) = int_a^s R1(s,t) u(t) dt + int_s^b R2(s,t) u(t) dt,
+%   d/ds (P u)(s) = (R1(s,s)-R2(s,s)) u(s) + int_a^s d/ds R1 u dt + int_s^b d/ds R2 u dt,
+% the reference in 'polynomial' calculus only (no diff or apply_sopvar)
 pvar s1 s1_dum
+dom1 = [0.5,2];
 for trial=1:5
     nn = randi(3);      mm = randi(3);
-    opvar opP;
-    opP.I = [0.5,2];    opP.var1 = s1;      opP.var2 = s1_dum;
-    opP.dim = [0,0;mm,nn];
-    opP.R.R1 = rand_poly([mm,nn],[s1;s1_dum],2,5);
-    opP.R.R2 = rand_poly([mm,nn],[s1;s1_dum],2,5);
-    dopP = diff(opP,s1,1,'pure');
-    sP = opvar2sopvar(opP);
+    R1 = rand_poly([mm,nn],[s1;s1_dum],2,5);
+    R2 = rand_poly([mm,nn],[s1;s1_dum],2,5);
+    % Kernels in s1 and s1_dum: quadPoly, right variable renamed to s1 (int2sopvar)
+    Q1 = quadPoly.polynomial2quadPoly(R1,{'s1'},{'s1_dum'});    Q1.nt = {'s1'};
+    Q2 = quadPoly.polynomial2quadPoly(R2,{'s1'},{'s1_dum'});    Q2.nt = {'s1'};
+    sP = int2sopvar(Q1,{'s1'},dom1,{dom1(1),'s1'}) + int2sopvar(Q2,{'s1'},dom1,{'s1',dom1(2)});
     dsP = diff(sP,{'s1'},1);
     x = rand_poly([nn,1],s1,3,6);
-    err = norm_poly(apply_opvar(dopP,x)-apply_sopvar(dsP,x));
-    [npass,nfail] = tally(err<tol,npass,nfail,'vs opvar diff pure');
+    xt = subs(x,s1,s1_dum);
+    ref = (subs(R1,s1_dum,s1)-subs(R2,s1_dum,s1))*x ...
+        + int(diff(R1,s1)*xt,s1_dum,dom1(1),s1) + int(diff(R2,s1)*xt,s1_dum,s1,dom1(2));
+    err = norm_poly(apply_sopvar(dsP,x)-ref);
+    [npass,nfail] = tally(err<tol,npass,nfail,'Leibniz rule, lower and upper integral');
 end
+% % % End of changes MMP, 11/13/2026
 
 fprintf('\nTest_sopvar_diff: %d passed, %d failed (%d random cases with nonzero derivative).\n',npass,nfail,n_nontriv);
 if nfail>0
