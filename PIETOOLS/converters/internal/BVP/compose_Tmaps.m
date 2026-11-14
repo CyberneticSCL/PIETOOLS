@@ -1,104 +1,85 @@
-function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,sources)
-% [Tops,Kops,Fop,info,Gops]=COMPOSE_TMAPS(maps,vars,dom,sizes,Delta,
-% alphas,sources) composes the solution operators of the 1D boundary value
-% problems (BVPs) along the N directions of a group of states on the same
-% variables, as a tensor product, after checking that they are compatible.
-% This gives the operators of the ND fundamental state space Y, so that
-% for all x_pde in the PDE domain D, with xf in Y and fundamental inputs
-% wf and uf (the exogenous and actuator inputs in the BCs),
+function [Tops,Kop,Fop,info] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,sources)
+% [Tops,Kop,Fop,info] = COMPOSE_TMAPS(maps,vars,dom,sizes,Delta,alphas,
+% sources) composes the solutions of the 1D boundary value
+% problems along the N directions of a group of states on the same
+% variables, after checking that they are compatible, into operators of
+% the ND fundamental state xf and fundamental inputs wf, uf (of the
+% inputs in the BCs), such that for every state x_pde satisfying the BCs
 %       D^{alpha}x_pde_k = Tops.x{k}{alpha+1}*xf
 %                          + Tops.w{k}{alpha+1}*wf
-%                          + Tops.u{k}{alpha+1}*uf,
-%       Kops.x*xf + Kops.w*wf + Kops.u*uf = 0.
+%                          + Tops.u{k}{alpha+1}*uf,       Kop*xf = 0.
 %
 % INPUT
-% - maps:   1 x N struct array with fields Tops, Kops, Fop, info (the
-%           outputs of solve_BVP_1D along direction i, involving all states
-%           in the order of the group; empty for a direction in which no
-%           state is differentiable), and optionally Qops (the fifth
-%           output), forced (struct with logical arrays w, u, the
-%           conditions along direction i with such inputs) and source
-%           (struct with fields w, u, each with the fields pde, elem,
-%           scale, dep of the field src of fund_inputs);
+% - maps:   1 x N struct array, describing the 1D problem along s_i with
+%           the fields Tops, Rops, Kops, Fop and Qops (the outputs of
+%           compute_Tmap_1D, Qops only if the BCs along s_i have
+%           inputs), info (the 1D problem, see split_BVPs), forced
+%           (struct with fields w, u: logical arrays, the rows of the BCs
+%           with such inputs; [] if there are none) and source (struct
+%           with fields w, u, see the field src of fund_inputs). Empty
+%           for a direction in which no state is differentiable;
 % - vars:   1 x N cellstr, the names of the variables;
 % - dom:    N x 2 array, the intervals of the variables;
-% - sizes:  1 x q array, the dimensions of the q states;
+% - sizes:  1 x q array, the sizes of the q states;
 % - Delta:  q x N array, the orders of each state in each variable;
-% - alphas: (optional) nal x N array of derivative orders alpha for which
-%           to compute the operators in Tops, 'all' (default) for all
-%           alpha<=Delta, or [] for none. The operator for alpha=0 (the
-%           state itself) is always computed;
-% - sources: (optional) true if all inputs in the BCs are determined by
-%           other states (lifted states of lower dimension, see
-%           convert_PIETOOLS_BVP), so that they satisfy the conditions along
-%           rank-deficient directions, which are then passed through
-%           (default false);
+% - alphas: nal x N array of the derivative orders alpha for which to
+%           compute Tops, or 'all' for all alpha<=Delta. Alpha=0 (the
+%           states themselves) is always included;
+% - sources: true if the inputs in the BCs are determined by other states
+%           (lifted states of lower dimension, see convert_PIETOOLS_BVP),
+%           so that they satisfy the BCs along rank-deficient directions,
+%           which are then passed through;
 %
 % OUTPUT
-% All operators are 'copvar' objects, with the nV components xf_c of
-% xf as columns.
+% All operators are 'copvar' objects, with the nV components xf_c of xf
+% as columns.
 % - Tops:   struct with fields x, w, u: q x 1 cells, with
 %           x{k}{alpha_1+1,...,alpha_N+1} the 1 x nV operator
-%           xf --> D^{alpha}x_pde_k for alpha<=Delta_k in alphas ([]
-%           for the others), and w{k}, u{k} the same for wf, uf;
-% - Kops:   struct with fields x, w, u, the operators of the constraints
-%           Kops.x*xf + Kops.w*wf + Kops.u*uf = 0, with a row for each
-%           constraint (no rows if there are none), and columns for the
-%           components of xf, wf and uf. The inputs do not enter the
-%           constraints, so Kops.w and Kops.u are zero;
-% - Fop:    nV x q operator such that xf_c = sum_k Fop_{c,k}*
-%           D^{Dorder_{c,k}}x_pde_k, with Dorder as in info.fund(c).Dorder;
+%           xf --> D^{alpha}x_pde_k for alpha<=Delta_k in alphas ([] for
+%           the others), and w{k}, u{k} the same for wf, uf ([] if there
+%           are no such inputs);
+% - Kop:    the constraints Kop*xf=0, a row for each ([] if none);
+% - Fop:    nV x q operator such that
+%           xf_c = sum_k Fop_{c,k}*D^{Dorder_{c,k}}x_pde_k, with Dorder
+%           of info.fund(c);
 % - info:   struct with fields
 %           - vars:     the names of the variables;
 %           - pass:     1 x N logical, true for the rank-deficient
-%                       directions that are passed through (sources only);
-%           - fund:     struct array describing each xf_c: vars, dom,
-%                       dim, Dorder (q x N) and p (xf_c stacks the
-%                       states for each auxiliary value if p=sum(sizes));
-%           - inputs:   struct with fields w, u: struct arrays describing
-%                       each component c of wf, uf: vars, dom, dim,
-%                       pde, Dorder, loc, sel (component c is the
-%                       derivative of order Dorder of the elements sel of
-%                       the input pde of the group, evaluated at the lower
-%                       boundary where loc is -1);
-%           - rhs:      struct with fields w, u: for each direction with
-%                       such inputs, the stacked right-hand sides g_i of
-%                       its conditions (fields dir, vars, dom, nrow, rows,
-%                       the rows with such inputs);
-% - Gops:   struct with fields w, u: operators wf (uf) --> the
-%           rows of g^w (g^u) with such inputs, one block row for each
-%           element of info.rhs (fundamental inputs only, [] otherwise);
+%                       directions that are passed through (sources);
+%           - fund:     for each xf_c: vars, dom, dim, Dorder (q x N) and
+%                       p (xf_c stacks the states for each auxiliary
+%                       value if p=sum(sizes));
+%           - inputs:   struct with fields w, u: for each component of wf
+%                       (uf) its vars, dom and dim, and the input pde of
+%                       the group, elements sel and derivative Dorder that
+%                       it is, at the lower boundary where loc is -1;
+%           - surplus:  true if a direction has more conditions than the
+%                       order of the states;
 %
 % NOTES
-% - Let T_{1,i}, T_{0,i}, F_i, K_i, R_i be the inverse of the highest
-%   derivative, the map from the auxiliary values, the auxiliary values,
-%   the constraint and the derivative operators of the 1D BVP along s_i
-%   (solve_BVP_1D). Let A be the directions with m_i=0 (admissible) and R
-%   those with m_i>0 (rank deficient). Then xf consists of xf_I for
-%   all subsets I of R, with D_i the highest derivative in s_i,
+% - Let T_{1,i}, T_{0,i}, F_i, K_i be the inverse of the highest
+%   derivative, the map from the auxiliary values, the auxiliary values
+%   and the constraints of the 1D problem along s_i. Let A be the
+%   directions with m_i=0 auxiliary values (admissible), and R those with
+%   m_i>0 (rank deficient). Then xf consists of xf_I for all subsets I of
+%   R, with D_i the highest derivative in s_i,
 %       xf_I = (prod_{i in R\I} F_i)(prod_{i in I u A} D_i) x_pde,
 %       x_pde = (prod_{j in A} T_{1,j})
 %                       (sum_I prod_{i in R} T_i^{[I]} xf_I),
 %   with T_i^{[I]}=T_{1,i} for i in I and T_{0,i} otherwise, and
-%   K_i xf_I=0 for i in I and for i in A with nonempty K_i (more conditions
-%   than the order of the states). D^{alpha}x_pde follows by replacing each
-%   T by its derivative.
-% - The construction is valid if the BCs along each direction are order
-%   compatible, the T_{1,j} of the admissible directions preserve the BCs
-%   along all other directions, and all but one rank-deficient direction
-%   are scalar (same conditions and order for every component); this is
-%   tested at the start of the composition.
-% - Inputs are supported in the conditions along admissible directions,
-%   if all directions are admissible. Fundamental inputs are free functions
-%   such that x_pde is in D, and every x_pde in D with compatible inputs is
-%   of this form (see fund_inputs), so that the user need not enforce any
-%   compatibility. The inputs w and u are decomposed separately. Inputs are
-%   not supported along directions with more conditions than the order of
-%   the states (K_i with more rows than auxiliary values).
-% - A K_i for i in A (more conditions than the order of the states) should
-%   be scalar (same conditions for every component), so that it commutes
-%   with the maps along the other directions, unless there are no others.
-%
+%   K_i xf_I=0 for i in I and for i in A with nonempty K_i (more
+%   conditions than the order of the states). D^{alpha}x_pde follows by
+%   replacing each T by its derivative.
+% - This is valid if the BCs along each direction are order compatible,
+%   the T_{1,j} of the admissible directions preserve the BCs along all
+%   other directions, and all but one rank-deficient direction are scalar
+%   (same conditions and order for every component); this is tested
+%   first. A K_i for i in A should be scalar too, unless there are no
+%   other directions.
+% - Inputs are only supported if all directions are admissible, without
+%   more conditions than the order of the states. They are decomposed
+%   into free fundamental inputs (see fund_inputs), so that the user need
+%   not enforce any compatibility.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - compose_Tmaps
@@ -131,34 +112,38 @@ function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 %   (m_j=0, K_j nonempty), which were treated as unconstrained (silently
 %   dropping K_j). Not supported (error): non-scalar K_j with other
 %   directions, and inputs with surplus conditions;
+% DJ (CC), 11/13/2026: Take the 1D problems from split_BVPs and
+%   compute_Tmap_1D; return Kop instead of Kops, and info.surplus; drop
+%   the outputs Gops and info.rhs;
 
 % % % Dimensions: N directions, q states of the group, ns scalar
-% % % components. The 1D solutions are expressed in the states regrouped by
-% % % order in direction i (maps(i).info.x_order); regroup_idcs{i} gives the
-% % % position in x_pde of each regrouped component, to transform back to
-% % % the ordering of the states.
+% % % components. The 1D solutions are expressed in the states regrouped
+% % % by order in direction i (maps(i).info.x_order); regroup_idcs{i}
+% % % gives the position in x_pde of each regrouped component, to
+% % % transform back to the ordering of the states.
 vars = reshape(vars,1,[]);
 N = numel(vars);        q = numel(sizes);       ns = sum(sizes);
 cs_end = cumsum(sizes);     cs_start = cs_end-sizes+1;
 d = max(Delta,[],1);                        % highest order in each direction
 triv = arrayfun(@(mp) isempty(mp.info),maps);
 m = zeros(1,N);                             % number of auxiliary values
-nK = zeros(1,N);                            % number of constraints K*v1=0, nK>=m  % DJ (CC), 11/06/2026
-regroup_idcs = cell(1,N);                            % position in u of the regrouped state
+nK = zeros(1,N);                            % number of constraints K*v1=0, nK>=m
+regroup_idcs = cell(1,N);                   % position in u of the regrouped state
 for i=find(~triv)
-    m(i) = maps(i).info.m;
-    nK(i) = sum(maps(i).Kops.x.dim_out);
+    if ~isempty(maps(i).Fop)
+        m(i) = maps(i).Fop.dim_out(1);
+    end
+    if ~isempty(maps(i).Kops.K1)
+        nK(i) = sum(maps(i).Kops.K1.dim_out);
+    end
     regroup_idcs{i} = cell2mat(arrayfun(@(k) cs_start(k):cs_end(k),maps(i).info.x_order,'UniformOutput',false));
 end
 
 
-% % % Directions with inputs: the inputs need all directions to be admissible,
-% % % except that, for sources, rank-deficient directions without inputs are
-% % % passed through: the data of the inputs are functions of the variables,
-% % % and need not be parametrized along these directions
-if nargin<7
-    sources = false;
-end
+% % % Directions with inputs: the inputs need all directions to be
+% % % admissible, except that, for sources, rank-deficient directions
+% % % without inputs are passed through: the data of the inputs are
+% % % functions of the variables, not parametrized along these directions
 pass = sources & (m>0);
 itypes = {'w','u'};                         % types of inputs, w and u
 forced = struct('w',false(1,N),'u',false(1,N));     % directions with inputs
@@ -174,8 +159,9 @@ if any(any_forced) && any(m>0) && (~sources || any(any_forced & m>0))
     error('compose_Tmaps:inputsRankDeficient',['The boundary conditions have inputs, but the directions ',strjoin(vars(m>0),', '),' are rank deficient; inputs in the boundary conditions are only supported if all directions are admissible.'])
 end
 % Constraints K*v1=J2*w, beyond those of the auxiliary values (nK>m,
-% from more conditions than the order of the states), couple the inputs to the
-% fundamental state, which the fundamental inputs do not account for
+% from more conditions than the order of the states), couple the inputs
+% to the fundamental state, which the fundamental inputs do not account
+% for
 if any(any_forced) && any(nK>m)                                             % DJ (CC), 11/06/2026
     error('compose_Tmaps:inputsConstrained',['The boundary conditions have inputs, but along ',strjoin(vars(nK>m),', '),' there are more conditions than the order of the states; inputs are only supported if there are no such conditions.'])
 end
@@ -189,9 +175,9 @@ for ty=itypes
 end
 
 % % % Check compatibility, and determine the roles of the directions:
-% % % admissible (adm_idcs, m=0), rank deficient (rk_idcs, m>0), of which at
-% % % most one non-scalar direction gen_idx (the general direction), and the
-% % % scalar ones scalar_idcs
+% % % admissible (adm_idcs, m=0), rank deficient (rk_idcs, m>0), of which
+% % % at most one non-scalar direction gen_idx (the general direction),
+% % % and the scalar ones scalar_idcs
 % Checks (see NOTES): order compatibility and scalar directions, and
 % preservation of the BCs by the inverses T_{1,j}
 scalar = false(1,N);
@@ -251,7 +237,7 @@ for i=find(~triv)
     for class_k=unique(class_id)'
         rank_class = rank(Mmat(:,col_class==class_k),tol);
         % With a single class, more conditions than the order of the
-        % states are surplus conditions (constraints), not an incompatibility
+        % states are surplus conditions (constraints), not incompatible
         if rank_class>sum(sizes(class_id==class_k).*Delta(class_id==class_k,i)') && max(class_id)>1  % DJ (CC), 11/06/2026
             error('compose_Tmaps:orderIncompatible',['The boundary conditions along ',vars{i},' are order incompatible.'])
         end
@@ -323,9 +309,10 @@ for i=find(~triv)
 end
 adm_idcs = find(~triv & m==0);       rk_idcs = find(m>0);
 % Admissible directions with constraints K*v1=0 (more conditions than
-% the order of the states), which apply to every component xf_I of xf, as T_{1,j}
-% is always used. For K to commute with the maps along the other directions,
-% the conditions should be scalar, unless there are no other directions
+% the order of the states), which apply to every component xf_I of xf,
+% as T_{1,j} is always used. For K to commute with the maps along the
+% other directions, the conditions should be scalar, unless there are no
+% other directions
 adm_K = adm_idcs(nK(adm_idcs)>0);                                           % DJ (CC), 11/06/2026
 if any(~scalar(adm_K)) && nnz(~triv)>1
     error('compose_Tmaps:coupledConstrained',['The boundary conditions along ',strjoin(vars(adm_K(~scalar(adm_K))),', '),' have more conditions than the order of the states, and couple components; this is only supported if there are no other directions with boundary conditions.'])
@@ -348,26 +335,22 @@ if any(any_forced & (triv | m>0))
 end
 
 
-% % % The derivative orders alpha (rows of alphas, with alpha=0 the first) for
-% % % which to compute the operators, and the orders in each direction that
-% % % this requires from the 1D operators
-% alphas: the requested multi-indices, with alpha=0 first (all alpha<=d by
-% default, with the first direction varying slowest)
-if nargin<6 || strcmp(alphas,'all')
+% % % The derivative orders alpha (rows of alphas, with alpha=0 the first)
+% % % for which to compute the operators, and the orders in each direction
+% % % that this requires from the 1D operators
+% alphas: the requested multi-indices, with alpha=0 first (for 'all',
+% all alpha<=d, with the first direction varying slowest)
+if ischar(alphas)
     alphas = zeros(1,0);
     for i=1:N
         alphas = [repmat(alphas,d(i)+1,1),kron((0:d(i))',ones(size(alphas,1),1))];
     end
+elseif N>0 && ~isempty(alphas)
+    alphas = [zeros(1,N);alphas];
+    [~,keep] = unique(alphas,'rows','stable');
+    alphas = alphas(keep,:);
 else
-    alphas_in = alphas;
-    if ~isempty(alphas) && (size(alphas,2)~=N || any(alphas(:)<0) || any(alphas(:)~=round(alphas(:))) || any(any(alphas>d,2)))
-        error('compose_Tmaps:alphas','The derivative orders must be nonnegative integers, N per row, not exceeding the orders of the states.')
-    end
     alphas = zeros(1,N);
-    if N>0 && ~isempty(alphas_in)
-        [~,keep] = unique([alphas;alphas_in],'rows','stable');
-        alphas = [alphas;alphas_in];       alphas = alphas(keep,:);
-    end
 end
 nal = size(alphas,1);
 
@@ -386,20 +369,19 @@ for i=find(~triv)
     % Derivatives of order a of all components, in the order of the states,
     % for the orders a in the requested alphas
     for a=unique(alphas(:,i))'
-        X = stack_rows(maps(i).Tops.R1,n,a,d(i),perm_back);
+        X = stack_rows(maps(i).Rops.R1,n,a,d(i),perm_back);
         ops_1D(i).R1{a+1} = X(:,perm_back);
         if m(i)>0
-            ops_1D(i).R0{a+1} = stack_rows(maps(i).Tops.R0,n,a,d(i),perm_back);
+            ops_1D(i).R0{a+1} = stack_rows(maps(i).Rops.R0,n,a,d(i),perm_back);
         end
         if any_forced(i)
             ops_1D(i).Rp{a+1} = stack_rows(maps(i).Qops.Rp,n,a,d(i),perm_back);
         end
     end
-    if m(i)==0 && nK(i)>0                                                   % DJ (CC), 11/06/2026
-        ops_1D(i).K = maps(i).Kops.x.C{1,1}(:,perm_back);
+    if nK(i)>0                                  % also if m(i)>0, as nK>=m
+        ops_1D(i).K = maps(i).Kops.K1.C{1,1}(:,perm_back);
     end
     if m(i)>0
-        ops_1D(i).K = maps(i).Kops.x.C{1,1}(:,perm_back);
         ops_1D(i).F = maps(i).Fop.C{1,1}(:,perm_back);
         % With one auxiliary value for each component of the general
         % direction, these are ordered as the regrouped components in the
@@ -558,9 +540,9 @@ for c=1:ncomp
 end
 
 
-% % % Inputs of each type: operators of the fundamental inputs (fund_inputs),
-% % % and rhs_info of the conditions they enter in; the conditions with such
-% % % inputs are those with inputs of that type, the others homogeneous
+% % % Inputs of each type: operators of the fundamental inputs
+% % % (fund_inputs); the conditions without inputs of that type are
+% % % homogeneous
 % fund_inputs takes the structs group (the states and their layout in
 % x_pde) and dirs (the 1D problem along each direction, with the entries
 % of the boundary data), described in fund_inputs
@@ -568,8 +550,8 @@ group = struct('vars',{vars},'dom',{dom},'ns',{ns},'Delta',{Delta},'alphas',{alp
 group.stpos = repelem((1:numel(sizes))',sizes(:));      % state of each component of u
 group.cs_start = cs_start;
 % dirs(i): the 1D BVP along direction i, with the entries of the boundary
-% data ordered as the boundary values of solve_BVP_1D (for each order j,
-% the coefficients 0,...,j-1 of its n(j+1) states)
+% data ordered as the boundary values of compute_Tmap_1D (for each order
+% j, the coefficients 0,...,j-1 of its n(j+1) states)
 dirs = repmat(struct('triv',false,'adm',false,'forced',false,'rows_in',[],'R1',[],'Rp',[],'Cw',[],'d',[],'pos',[],'ell',[],'src',[]),1,numel(maps));
 for i=1:numel(maps)
     dirs(i).triv = triv(i) | pass(i);     dirs(i).adm = ~triv(i) & m(i)==0;
@@ -582,19 +564,14 @@ for i=find(any_forced)
     dirs(i).pos = cell2mat(arrayfun(@(j) repmat(regroup_idcs{i}(n_offs(j+1)+(1:n(j+1)))',j,1),1:d_i,'UniformOutput',false)');
     dirs(i).ell = cell2mat(arrayfun(@(j) repelem((0:j-1)',n(j+1),1),1:d_i,'UniformOutput',false)');
 end
-rhs_info = struct('w',[],'u',[]);     inputs_info = rhs_info;        inputs_ops = rhs_info;        rhs_ops = rhs_info;
+inputs_info = struct('w',[],'u',[]);        inputs_ops = inputs_info;
 for ty=itypes
     obj_type = ty{1};
-    rhs_info.(obj_type) = struct('dir',{},'vars',{},'dom',{},'nrow',{},'rows',{});
-    for i=find(forced.(obj_type))
-        rhs_info.(obj_type)(end+1) = struct('dir',i,'vars',{vars([1:i-1,i+1:N])},'dom',dom([1:i-1,i+1:N],:),'nrow',numel(maps(i).forced.(obj_type)),'rows',find(maps(i).forced.(obj_type)));
-    end
     for i=find(any_forced)
         dirs(i).forced = forced.(obj_type)(i);     dirs(i).rows_in = maps(i).forced.(obj_type);
         dirs(i).src = maps(i).source.(obj_type);
     end
-    rhs_ops.(obj_type) = cell(0,0);
-    [inputs_ops.(obj_type),inputs_info.(obj_type),rhs_ops.(obj_type)] = fund_inputs(group,dirs);
+    [inputs_ops.(obj_type),inputs_info.(obj_type)] = fund_inputs(group,dirs);
 end
 
 
@@ -624,25 +601,12 @@ end
 % % % Assemble the outputs; the input operators are empty if there are no
 % % % inputs of that type
 Tops = struct('x',{R_state},'w',[],'u',[]);
-Fop = copvar(F_blocks);
-Gops = struct('w',[],'u',[]);
 for ty=itypes
-    obj_type = ty{1};
-    if isempty(inputs_ops.(obj_type))
-        continue
+    if ~isempty(inputs_ops.(ty{1}))
+        Tops.(ty{1}) = R_inputs.(ty{1});
     end
-    Tops.(obj_type) = R_inputs.(obj_type);
-    % Map from the fundamental inputs to the right-hand sides of the
-    % conditions (Gops), with zero blocks where a component does not enter
-    for ii=1:numel(rhs_info.(obj_type))
-        for c=1:size(inputs_ops.(obj_type),1)
-            if isempty(rhs_ops.(obj_type){ii,c})        % direction in the set J of the component
-                rhs_ops.(obj_type){ii,c} = mat2sopvar(zeros(numel(rhs_info.(obj_type)(ii).rows),inputs_info.(obj_type)(c).dim),struct('in',{inputs_info.(obj_type)(c).vars},'out',{rhs_info.(obj_type)(ii).vars}),struct('in',inputs_info.(obj_type)(c).dom,'out',rhs_info.(obj_type)(ii).dom));
-            end
-        end
-    end
-    Gops.(obj_type) = copvar(rhs_ops.(obj_type));
 end
+Fop = copvar(F_blocks);
 Kop = [];
 if ~isempty(K_blocks)
     % Every column of the container needs a block to define its space
@@ -652,31 +616,10 @@ if ~isempty(K_blocks)
     end
     Kop = copvar(K_blocks);
 end
-% The spaces of the components of xf, wf and uf
-cols = struct('x',[],'w',[],'u',[]);
-comps = struct('x',fund,'w',inputs_info.w,'u',inputs_info.u);
-for ty={'x','w','u'}
-    comps_ty = comps.(ty{1});
-    if ~isstruct(comps_ty)
-        comps_ty = struct('dim',{},'vars',{});
-    end
-    cols.(ty{1}) = struct('dims',reshape([comps_ty.dim],[],1),'depmat',false(numel(comps_ty),numel(vars)));
-    for c=1:numel(comps_ty)
-        cols.(ty{1}).depmat(c,:) = ismember(vars,comps_ty(c).vars);
-    end
-end
-% Zero operators with the rows of Kop (none if there are no constraints)
-empty_op = @(P,sp) zeros_copvar_sop(struct('out',P.dim_out,'in',sp.dims),struct('out',{arrayfun(@(i) P.vars(P.space_out(i,:)),1:numel(P.dim_out),'UniformOutput',false)},'in',{arrayfun(@(i) vars(sp.depmat(i,:)),1:numel(sp.dims),'UniformOutput',false)}),struct('vars',{vars},'dom',dom));
-Kops = struct('x',Kop,'w',[],'u',[]);
-if isempty(Kop)
-    Kop = struct('dim_out',zeros(0,1),'vars',{cell(1,0)},'space_out',false(0,0));
-    Kops.x = empty_op(Kop,cols.x);
-end
-Kops.w = empty_op(Kop,cols.w);
-Kops.u = empty_op(Kop,cols.u);
 
-% % % Information on the components of xf, and the inputs
-info = struct('vars',{vars},'pass',pass,'fund',fund,'inputs',inputs_info,'rhs',rhs_info);
+% % % Information on the components of xf, and the inputs; nK>m along a
+% % % direction if it has more conditions than the order of the states
+info = struct('vars',{vars},'pass',pass,'fund',fund,'inputs',inputs_info,'surplus',any(nK>m));
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
@@ -690,7 +633,7 @@ function R_stacked = stack_rows(Rops_1D,n,a,d_i,perm_back)
 %
 % INPUT
 % - Rops_1D:    (d_i+1) x (d_i+1) cell of 'copvar' objects, e.g. the
-%           operators Tops.R1 of solve_BVP_1D, with Rops_1D{j+1,a+1}
+%           operators Rops.R1 of compute_Tmap_1D, with Rops_1D{j+1,a+1}
 %           mapping the 1D fundamental state to the derivative of order a
 %           of the n(j+1) states of order j;
 % - n:      1 x (d_i+1) array, with n(j+1) the number of states of order j;

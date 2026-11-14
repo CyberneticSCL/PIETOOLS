@@ -28,7 +28,7 @@ function PIE = convert(PDE,out_type)
 %   operators T, Tw, Tu and K, Kw, Ku specified, for which
 %       x_pde = T*xf + Tw*wf + Tu*uf,       K*xf + Kw*wf + Ku*uf = 0,
 %   for the fundamental state xf and inputs wf, uf. A PDE without dynamics
-%   cannot have static constraints 0=F(s) on the whole domain.
+%   cannot have static constraints 0=F(s) on the whole domain, nor delays.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,6 +65,9 @@ function PIE = convert(PDE,out_type)
 %                   only T and K operators, using "convert_PIETOOLS_BVP";
 % DJ, 11/12/2026: Give an error for a PDE without dynamics that has static
 %                   constraints;
+% DJ (CC), 11/13/2026: Error for states sharing a moment, as in
+%                   convert_PIETOOLS_PDE, and for delays in a PDE without
+%                   dynamics; shorter error messages;
 
 % We support only PDE to PIE conversion. The second argument is 'pie', or
 % flags of convert_PIETOOLS_PDE, with the 'pie' left out.
@@ -109,7 +112,7 @@ end
 function PIE = BVP2pie_struct(PDE)
 % PIE = BVP2PIE_STRUCT(PDE) converts a PDE without dynamics, i.e. a
 % boundary value problem, to a 'pie_struct' object with only the operators
-% T, Tw, Tu and K, Kw, Ku specified, solving the BVP by 
+% T, Tw, Tu and K, Kw, Ku specified, solving the BVP by
 % "convert_PIETOOLS_BVP".
 %
 % INPUT
@@ -129,8 +132,9 @@ function PIE = BVP2pie_struct(PDE)
 % Static constraints 0=F(s) would be dropped in solving BVP, and are thus
 % not supported.
 if ~isempty(PDE.constraint_ID)                                              % DJ, 11/12/2026
-    error(['Conversion to PIE is not supported: the PDE has no dynamics, but has ',...
-        ' static constraint(s) 0=F(s) on the whole spatial domain, which are not supported for a PDE without dynamics.'])
+    error('Static constraints 0=F(s) are not supported in a PDE without dynamics.')
+elseif PDE.has_delay
+    error('Delays are not supported in a PDE without dynamics.')
 end
 
 % Parameterize the states satisfying the BCs by the fundamental state xf
@@ -140,6 +144,9 @@ end
 % the states of coupled BCs that have been merged into one component.
 if any(Dmap.x.idx==0)
     [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,'blocks');
+end
+if any(Dmap.x.idx==0)                                                       % DJ (CC), 11/13/2026
+    error("convert_PIETOOLS_PDE:blocks","Rank-deficient (e.g. periodic) boundary conditions that couple states in a shared moment are not supported.")
 end
 space_pie = info.space;
 N = numel(space_pie.vars);     
@@ -169,12 +176,13 @@ get_space = @(dims,dep,i) struct('vars',{space_pie.vars(dep(i,:))},'dom',space_p
 identity_op = @(s) mat2sopvar(eye(s.dim),struct('in',{s.vars},'out',{s.vars}),struct('in',s.dom,'out',s.dom));
 x_sp = arrayfun(@(k) get_space(PDE.x_tab(:,2),logical(PDE.x_tab(:,3:2+N)),k),1:nx);
 
-% % % Maps from the PDE to the PIE: component c of xf is C_c applied to the
-% % % derivative D^{diff(c,:)} of the PDE state idx(c), and wf, uf consist of
-% % % derivatives of the PDE inputs, as Dmap of "convert_PIETOOLS_BVP". The
-% % % operator C of pde2pie is block diagonal, with the operators C_c, and
-% % % the other blocks [] (zero, with space following from the diagonal, so
-% % % that no ncomp^2 zero operators are constructed, ncomp=2^N for N variables)
+% % % Maps from the PDE to the PIE: component c of xf is C_c applied to
+% % % the derivative D^{diff(c,:)} of the PDE state idx(c), and wf, uf
+% % % consist of derivatives of the PDE inputs, as Dmap of
+% % % "convert_PIETOOLS_BVP". The operator C of pde2pie is block diagonal,
+% % % with the operators C_c, and the other blocks [] (zero, their spaces
+% % % following from the diagonal, so that no ncomp^2 zero operators are
+% % % constructed)
 pde2pie = PIE.pde2pie;
 idx_x = Dmap.x.idx(:);
 pde2pie.x.idx = [idx_x,zeros(ncomp,2)];

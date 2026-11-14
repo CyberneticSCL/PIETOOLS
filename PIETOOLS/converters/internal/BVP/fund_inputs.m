@@ -1,5 +1,5 @@
-function [inputs_ops,inputs_info,rhs_ops] = fund_inputs(group,dirs)
-% [inputs_ops,inputs_info,rhs_ops] = FUND_INPUTS(group,dirs) parametrizes
+function [inputs_ops,inputs_info] = fund_inputs(group,dirs)
+% [inputs_ops,inputs_info] = FUND_INPUTS(group,dirs) parametrizes
 % the inputs in the boundary conditions of a group of states by free
 % functions wf_c ("fundamental inputs", uf_c for actuator inputs),
 % such that every wf_c gives a state in the PDE domain, and every state
@@ -49,17 +49,13 @@ function [inputs_ops,inputs_info,rhs_ops] = fund_inputs(group,dirs)
 %           wf_c --> D^{alphas(a,:)}x_pde;
 % - inputs_info:  1 x nW struct array describing each wf_c, see
 %           info.inputs of compose_Tmaps;
-% - rhs_ops:    nF x nW cell, with rhs_ops{ii,c} the operator wf_c -->
-%           the rows with inputs of the right-hand side of the conditions
-%           along the ii-th direction with inputs. Empty where wf_c
-%           does not depend on that direction;
 %
 % EXAMPLE
 % For one state u(s1,s2) on [0,1]^2, second order in both variables, with
 % u(0,s2)=w1(s2), u(s1,0)=w2(s1), u(1,s2)=u(s1,1)=0, there are three
 % fundamental inputs: wf_1=w1(0), a number (the corner s1=s2=0),
 % wf_2(s1)=w2''(s1) and wf_3(s2)=w1''(s2). The right-hand sides w1
-% and w2 are combinations of these (rhs_ops), so that w1(0)=w2(0) holds
+% and w2 are combinations of these, so that w1(0)=w2(0) holds
 % automatically. With also u(1,s2)=w3(s2) and u(s1,1)=w4(s1) inputs, the
 % corner data are the four numbers w1(0), w1'(0), w3(0) and w3'(0): the
 % Taylor coefficients at the lower boundary of the inputs along s2 on
@@ -112,6 +108,7 @@ function [inputs_ops,inputs_info,rhs_ops] = fund_inputs(group,dirs)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 11/02/2026: Initial coding;
+% DJ (CC), 11/13/2026: Drop the output rhs_ops;
 
 % Directions: Td without conditions, Kd with conditions, Fd with inputs,
 % Hd with conditions without inputs (homogeneous, preserved by the T_{1,j})
@@ -255,7 +252,9 @@ nb = numel(blocks);
 % along a direction of J_b that is not in J_b2 are polynomials of lower
 % degree than the order of the derivative). Solving from the largest J
 % down, y_b=sum_b3 X_{b,b3}*p_b3 for the new coordinates p_b3, and the
-% operators on y are composed with X.
+% operators on y are composed with X. rhs_ops{ii,c} maps wf_c to the rows
+% with inputs of the BCs along the ii-th direction with inputs ([] if
+% wf_c does not depend on it), for the check at the end.
 inputs_info = struct('vars',{},'dom',{},'dim',{},'pde',{},'Dorder',{},'loc',{},'sel',{});
 inputs_ops = cell(0,nal);       rhs_ops = cell(nF,0);
 size_J = arrayfun(@(blk) numel(blk.J),blocks);
