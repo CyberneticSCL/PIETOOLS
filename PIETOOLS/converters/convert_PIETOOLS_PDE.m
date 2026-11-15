@@ -89,6 +89,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ (CC), 11/13/2026: Constraints and hotd for an 'npie_struct'; summary
 %                   from space, space_pde, pde2pie; Iw, Iu from info; warn
 %                   for surplus BCs; inline permute_cols; shorter errors;
+% DJ, 11/15/2026: Bugfix in case row of f, gz or gy has no terms;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, as the
 % % % PIETOOLS converter does, and convert other structures to pde_struct
@@ -441,6 +442,12 @@ if is_nonlinear
         obj_tab = PDE.([obj{1},'_tab']);
         for i=find(cellfun(@isempty,poly_struct.(obj{1}))')
             poly_struct.(obj{1}){i} = constant2polyopvar(zeros(obj_tab(i,2),1));
+            % Make sure the row maps to the correct space
+            dep_i = logical(obj_tab(i,3:2+N));
+            if any(dep_i)                                                   % DJ, 11/15/2026
+                poly_struct.(obj{1}){i} = lift_output(poly_struct.(obj{1}){i},...
+                    vars_pde(dep_i),PDE.dom(dep_i,:));
+            end
         end
     end
     f_rows = poly_struct.x(x_idcs);
