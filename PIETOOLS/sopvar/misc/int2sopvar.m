@@ -84,6 +84,8 @@ function Pop = int2sopvar(Kmat,vars,dom,int_dom)
 % DJ, 10/29/2026: Initial coding;
 % DJ, 11/08/2026: Read s_dum in a 'polynomial' kernel as the dummy variable
 %                   associated with s;
+% DJ, 11/15/2026: Bugfix: Rename s_dum to s in the right variables of the
+%                   'polynomial' kernel;
 
 % Check that the kernel is properly specified
 if ~isa(Kmat,'double') && ~isa(Kmat,'polynomial') && ~isa(Kmat,'quadPoly')
@@ -160,6 +162,10 @@ elseif isa(Kmat,'polynomial')
             strjoin(vname_Kmat(is_bad)',"', '"))
     end
     Kmat = quadPoly.polynomial2quadPoly(Kmat,vars.out,dvars);               % DJ, 11/08/2026
+    % bind_basis matches the right variables against vars.in, so rename each
+    % s_dum to s.
+    [~,idcs_t] = ismember(Kmat.nt,dvars);                                   % DJ, 11/15/2026
+    Kmat.nt = vars.in(idcs_t);
 end
 
 % Bind the monomial bases to the variables. The monomial index of the
