@@ -25,6 +25,16 @@ function varargout = subsref(P,s)
 %
 % A comma list read through a block, {P.C{i,j}.params{:}}, is served by
 % the block's subsref with the same count.
+%
+% The fields of a 'dopvar' (P, Q1, Q2, R) and of a 'dopvar2d' (R00 to
+% R22) are read from a container with that structure, P.Q1, P.R.R1,
+% P.R22{2,3}, by 'getfield_opvar1d' and 'getfield_opvar2d'; see
+% 'is_opvar1d' and 'is_opvar2d'. I, var1, var2 and dim are read as for a
+% 'dopvar' if P is opvar-like, and as for a 'dopvar2d' otherwise, so dim
+% is 2 x 2 or 4 x 2. A comma list of such a field, P.R22{:}, is not served.
+% The first such read of a session warns ('cdopvar:opvarField') that these
+% are not fields of the class, and that this support may be dropped in
+% future versions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - subsref (cdopvar)
@@ -57,6 +67,8 @@ function varargout = subsref(P,s)
 %                overloads, so the class would not load (measured, R2025b).
 % DJ, 11/14/2026: Use op_slice for ()-type subsref, instead of the
 %                error;
+% DJ, 11/15/2026: Support extracting fields of a 'dopvar' or 'dopvar2d' if
+%                   the operator has appropriate structure;
 
 if strcmp(s(1).type,'()')
     % The component slice P(I,J), or P(I). A comma-list brace after it      % DJ, 11/14/2026
@@ -73,6 +85,48 @@ if strcmp(s(1).type,'()')
     end
     % Any further indexing, P(I,J).C{1,1}, reads the slice, below.
     s = s(2:end);
+end
+% Support extracting fields of a 'dopvar' (1D) or 'dopvar2d' (2D), which
+% are not actual properties of the class.
+f1 = {'P','Q1','Q2','R'};
+f2 = {'R00','R0x','R0y','R02','Rx0','Rxx','Rxy','Rx2',...
+      'Ry0','Ryx','Ryy','Ry2','R20','R2x','R2y','R22'};
+f0 = {'I','var1','var2','dim'};                 % fields of both classes
+persistent warned                               % warning below given once
+if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
+    fname = s(1).subs;
+    % One value per field: a comma list would need the count beforehand
+    if numel(s)>1 && strcmp(s(2).type,'{}') && ~all(cellfun(@(x) isscalar(x) && isnumeric(x),s(2).subs))
+        error('cdopvar:fieldThenList','Read the field first, then the list: R = P.%s; R{:}.',fname)
+    end
+    % A shared field is read as for a 'dopvar' if P is opvar-like
+    if ~any(strcmp(fname,f2)) && is_opvar1d(P)                              % DJ, 11/15/2026
+        val = getfield_opvar1d(P,fname);
+    elseif ~any(strcmp(fname,f1)) && is_opvar2d(P)
+        val = getfield_opvar2d(P,fname);
+    elseif any(strcmp(fname,f1))
+        error('cdopvar:notOpvar1d',['''%s'' is a field of a ''dopvar'', but this cdopvar is not opvar-like: '...
+            'it needs at most one spatial variable, and R blocks before L2 blocks (see is_opvar1d).'],fname)
+    elseif any(strcmp(fname,f2))
+        error('cdopvar:notOpvar2d',['''%s'' is a field of a ''dopvar2d'', but this cdopvar is not opvar2d-like: '...
+            'it needs at most two spatial variables, and blocks ordered R, L2[x], L2[y], L2[x,y] (see is_opvar2d).'],fname)
+    else
+        error('cdopvar:notOpvar',['''%s'' is a field of a ''dopvar'' or ''dopvar2d'', but this cdopvar is neither: '...
+            'it needs at most two spatial variables, and blocks ordered R, L2[x], L2[y], L2[x,y] (see is_opvar2d).'],fname)
+    end
+    % Not a property, and this support may be dropped: say so, once per
+    % session so that loops over fields are not flooded
+    if isempty(warned)
+        warned = true;
+        warning('cdopvar:opvarField',['A cdopvar has no field ''%s''; it is computed from the blocks as for a ''dopvar'' or ''dopvar2d''. '...
+            'Extracting components this way may not be supported in future versions.'],fname)
+    end
+    if isscalar(s)
+        varargout = {val};
+    else
+        [varargout{1:nargout}] = subsref(val,s(2:end));
+    end
+    return
 end
 % The builtin called from this method has the class's own access, so it
 % would read protected properties that P.name outside the class may not.

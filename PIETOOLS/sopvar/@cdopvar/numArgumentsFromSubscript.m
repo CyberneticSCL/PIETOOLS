@@ -19,7 +19,9 @@ function n = numArgumentsFromSubscript(P,s,ctx)
 % comma list such as {P.C{:}} or [P.C{:}] silently kept only its first
 % element. The builtin count restores the behaviour of the class without
 % the overload. A read starting with '()' is the slice P(I,J), one object,
-% so it counts 1.
+% so it counts 1. So does a read of a 'dopvar' or 'dopvar2d' field, P.Q1,
+% P.R22{2,3}, which 'subsref' computes and serves as one value; the
+% builtin count errors on it, as it is not a property.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - numArgumentsFromSubscript (cdopvar)
@@ -47,9 +49,16 @@ function n = numArgumentsFromSubscript(P,s,ctx)
 %
 % Initial coding MMP, 09/29/2026, with 'subsref' and 'subsasgn'.
 % DJ, 11/14/2026: Return 1 for ()-type subsref;
+% DJ, 11/15/2026: Return 1 for a read of a 'dopvar' or 'dopvar2d' field,
+%                which 'subsref' now serves;
 
 % The slice P(I,J) is one object; assignment keeps the builtin count.
-if strcmp(s(1).type,'()') && ctx~=matlab.indexing.IndexingContext.Assignment
+% So is a 'dopvar'/'dopvar2d' field, which 'subsref' serves as one value.  % DJ, 11/15/2026
+opfields = {'P','Q1','Q2','R','I','var1','var2','dim','R00','R0x','R0y',...
+    'R02','Rx0','Rxx','Rxy','Rx2','Ry0','Ryx','Ryy','Ry2','R20','R2x','R2y','R22'}; % DJ, 11/15/2026
+% if strcmp(s(1).type,'()') && ctx~=matlab.indexing.IndexingContext.Assignment % DJ, 11/15/2026 (was)
+if ctx~=matlab.indexing.IndexingContext.Assignment && (strcmp(s(1).type,'()') ...
+        || (strcmp(s(1).type,'.') && any(strcmp(s(1).subs,opfields))))  % DJ, 11/15/2026
     n = 1;
     return
 end
