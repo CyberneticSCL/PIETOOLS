@@ -1,30 +1,28 @@
 function n = numArgumentsFromSubscript(P,s,ctx)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% N = NUMARGUMENTSFROMSUBSCRIPT(P,S,CTX) returns the builtin number of
-% outputs of the indexing expression S on the 'cdopvar' P, which MATLAB
-% passes to the overloaded 'subsref' / 'subsasgn' as nargout.
+% n = numArgumentsFromSubscript(P,s,ctx) returns the number of outputs of
+% the indexing expression s on the cdopvar object P, which MATLAB passes to
+% the overloaded 'subsref' / 'subsasgn' as nargout.
 %
-% INPUTS
-% - P:      container object, a 'cdopvar';
-% - s:      struct array of subscripts (fields 'type' and 'subs') of the
-%           indexing expression, as passed by MATLAB;
-% - ctx:    matlab.indexing.IndexingContext of the expression (statement,
-%           expression or assignment);
+% INPUT
+% P:    cdopvar class object
+% s:    struct array of subscripts (fields 'type' and 'subs') of the
+%       indexing expression, as passed by MATLAB
+% ctx:  matlab.indexing.IndexingContext of the expression (statement,
+%       expression or assignment)
 %
-% OUTPUTS
-% - n:      nonnegative integer, the number of outputs MATLAB should expect;
+% OUTPUT
+% n:    nonnegative integer, the number of outputs MATLAB should expect
 %
-% Why: once 'subsref' is overloaded, MATLAB's default count is 1, so a
+% NOTES:
+% Once 'subsref' is overloaded, MATLAB's default count is 1, so a
 % comma list such as {P.C{:}} or [P.C{:}] silently kept only its first
-% element (measured, R2025b). The builtin count restores the behaviour of
-% the class without the overload.
-%
-% See also SUBSREF, SUBSASGN, COPVAR.
-%
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% element. The builtin count restores the behaviour of the class without
+% the overload. A read starting with '()' is the slice P(I,J), one object,
+% so it counts 1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - numArgumentsFromSubscript(cdopvar)
+% PIETOOLS - numArgumentsFromSubscript (cdopvar)
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -48,7 +46,13 @@ function n = numArgumentsFromSubscript(P,s,ctx)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026, with 'subsref' and 'subsasgn'.
+% DJ, 11/14/2026: Return 1 for ()-type subsref;
 
+% The slice P(I,J) is one object; assignment keeps the builtin count.
+if strcmp(s(1).type,'()') && ctx~=matlab.indexing.IndexingContext.Assignment
+    n = 1;
+    return
+end
 n = builtin('numArgumentsFromSubscript',P,s,ctx);
 
 end

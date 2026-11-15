@@ -1,16 +1,17 @@
 function [out,varargout] = subsref(obj,s)                                   % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% out = subsref(obj,s) overloads indexing for sdopvar objects, so that
-% obj(I,J) returns the sub-operator mapping the input components J to the
-% output components I, rather than indexing the MATLAB object array.
+% [out,varargout] = subsref(obj,s) overloads indexing for sdopvar objects,
+% so that obj(I,J) returns the sub-operator mapping the input components J
+% to the output components I, rather than indexing the MATLAB object array.
 %
-% INPUTS
+% INPUT
 % obj:  sdopvar class object
 % s:    substruct specifying the indexing operation
 %
-% OUTPUTS
+% OUTPUT
 % out:  for s(1).type '.', the requested property; for '()', an sdopvar
 %       object of dimension [numel(I),numel(J)]
+% varargout: the remaining elements of a '.' comma list
 %
 % NOTES:
 % Rows of the coefficient matrix C_gamma are ordered with the matrix row
@@ -26,12 +27,13 @@ function [out,varargout] = subsref(obj,s)                                   % MM
 % fewer matrix rows and columns. The canonical multiplier form constrains
 % which ZR monomials may carry content in a multiplier direction, and that
 % is preserved by discarding whole (row,column) blocks, so a sub-block of a
-% canonical object is canonical.
-%
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% canonical object is canonical. The slice is computed by 'op_slice', which
+% also takes P(I) on a one-row or one-column operator.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2026 PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - subsref (sdopvar)
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -47,7 +49,7 @@ function [out,varargout] = subsref(obj,s)                                   % MM
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
@@ -67,6 +69,7 @@ function [out,varargout] = subsref(obj,s)                                   % MM
 %                  {P(I,J).Zd{:}}, now errors 'sdopvar:parenThenList'. A
 %                  '()' read gets one output, so the list silently kept its
 %                  first element.
+% DJ, 11/14/2026: Use op_slice for ()-type subsref;
 
 switch s(1).type
     case '.'
@@ -84,62 +87,13 @@ switch s(1).type
         end                                                                 % MMP, 09/29/2026
         out = builtin('subsref',obj,s);
     case '()'
-        if numel(s(1).subs)~=2
-            error('An sdopvar must be indexed with two subscripts, as P(I,J).')
-        end
         % A comma-list brace after the slice cannot be served (one output). % MMP, 09/29/2026
         for k = 2:numel(s)                                                  % MMP, 09/29/2026
             if strcmp(s(k).type,'{}') && ~all(cellfun(@(x) isscalar(x) && (isnumeric(x) || islogical(x)),s(k).subs)) % MMP, 09/29/2026
                 error('sdopvar:parenThenList','Slice first, then read the list: Y = P(I,J); Y.field{...}.') % MMP, 09/29/2026
             end                                                             % MMP, 09/29/2026
         end                                                                 % MMP, 09/29/2026
-        indr = s(1).subs{1};    % output components
-        indc = s(1).subs{2};    % input components
-
-        % Allow indices to be specified as e.g. (i,:)
-        if strcmp(indr,':')
-            indr = 1:obj.dims(1);
-        end
-        if strcmp(indc,':')
-            indc = 1:obj.dims(2);
-        end
-        if islogical(indr),     indr = find(indr);      end
-        if islogical(indc),     indc = find(indc);      end
-        % Tested with 'any' rather than 'max' so that an empty index set
-        % passes and gives an operator with a zero dimension, as it does for
-        % an sopvar; 'max' of an empty index returns [], which makes the
-        % surrounding '||' throw. Integrality is checked because a
-        % fractional index survives the range test and then selects a
-        % misaligned window of the coefficient matrix.
-        if any(indr<1) || any(indr>obj.dims(1)) || any(mod(indr,1))
-            error('row index into an sdopvar must be a positive integer no greater than %d',obj.dims(1))
-        end
-        if any(indc<1) || any(indc>obj.dims(2)) || any(mod(indc,1))
-            error('column index into an sdopvar must be a positive integer no greater than %d',obj.dims(2))
-        end
-
-        % Number of monomials on each side, and the row count of the
-        % unvectorized coefficient. The trailing 1 covers the case of no
-        % spatial variables, where the cell is empty and the product is 1.
-        NL = prod([cellfun(@numel,obj.ZL),1]);
-        NR = prod([cellfun(@numel,obj.ZR),1]);
-        nrow = obj.dims(1)*NL;
-
-        % Rows and columns of C_gamma kept, then their positions in
-        % vec(C_gamma). 'idx' is ordered column-major over the sub-block,
-        % which is the order of the new vec.
-        rows = reshape((indr(:).'-1)*NL + (1:NL).',[],1);
-        cols = reshape((indc(:).'-1)*NR + (1:NR).',[],1);
-        idx  = reshape(rows + (cols.'-1)*nrow,[],1);
-
-        params = obj.params;
-        for ii = 1:numel(params.A)
-            params.A{ii} = params.A{ii}(idx);
-            params.B{ii} = params.B{ii}(:,idx);
-        end
-
-        dims = [numel(indr),numel(indc)];
-        out = sdopvar(params,obj.vars,obj.Zd,obj.ZL,obj.ZR,obj.dom,dims);
+        out = op_slice(obj,s(1).subs{:});                                   % DJ, 11/14/2026
 
         % Continue any further indexing, e.g. P(1,1).dims. @sopvar/subsref
         % drops these subscripts and returns the sliced object instead.
