@@ -79,7 +79,7 @@ function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)                % DJ
 %
 % DJ (CC), 10/29/2026: Initial coding;
 % DJ (CC), 11/02/2026: Renamed from pie_pde_maps and moved to
-%   internal/legacy, with the old converters that call it;
+%   converters/legacy, with the old converters that call it;
 
 if nargin<3,    del_tab = [];   end
 if nargin<4,    Wop = 1;        end

@@ -152,7 +152,7 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 % DJ (CC), 10/29/2026: The operator F of the 1D PIE is no longer a field of
 %                   the PIE; check PIE_1D.misc.periodic for periodic BCs;
 % DJ (CC), 11/02/2026: Call convert_PIETOOLS_PDE_2D (the old converter,
-%   now in internal/legacy) for the 1D sub-PDEs;
+%   now in converters/legacy) for the 1D sub-PDEs;
 %
 
 % % % Extract the inputs
