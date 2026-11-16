@@ -47,9 +47,9 @@ function val = getfield_opvar1d(P,fname)
 % - A structurally zero block ([]) gives zeros. An absent space gives a
 %   component with zero rows or columns, as 'dopvar' does for a zero
 %   dimension.
-% - If P has no spatial variable, P: R^m -> R^p, then 'I' is 0 x 2 and
-%   'var1', 'var2' are 0 x 1, where a 'dopvar' would carry an unused
-%   default domain and variable.
+% - If P has no spatial variable, P: R^m -> R^p, then 'I' is 0 x 2, and
+%   'var1', 'var2' are s and s_dum, the default variables of a new 'dopvar'
+%   (P does not depend on them), so that s = P.var1 works on a new cdopvar.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - getfield_opvar1d (cdopvar)
@@ -97,9 +97,12 @@ switch fname
     case 'I'
         val = P.dom;
     case 'var1'
+        % Without a variable, the default s of a new 'dopvar'
         val = polynomial(vname);
+        if isempty(vname),  val = polynomial({'s'});    end                 % DJ, 11/15/2026
     case 'var2'
         val = polynomial(dname);
+        if isempty(dname),  val = polynomial({'s_dum'});    end             % DJ, 11/15/2026
     case 'dim'
         val = [sum(P.dim_out(~isL2_out)), sum(P.dim_in(~isL2_in));
                sum(P.dim_out(isL2_out)),  sum(P.dim_in(isL2_in))];

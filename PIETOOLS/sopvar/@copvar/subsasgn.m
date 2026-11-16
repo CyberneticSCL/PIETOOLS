@@ -33,6 +33,14 @@ function P = subsasgn(P,s,varargin)
 %   block in place (65 us on that params{1}):
 %       X = P.C{i,j};  P.C{i,j} = [];  X.params{k}(r,c) = v;  P.C{i,j} = X;
 %
+% The fields of an 'opvar' (P, Q1, Q2, R) and of an 'opvar2d' (R00 to R22),
+% and I, var1, var2, are set in a container with that structure by
+% 'setfield_opvar1d' and 'setfield_opvar2d': P.Q1 = X, P.R.R1 = X and
+% P.R22{2,3} = X set that component or parameter; P.Q1(1,2) = X reads the
+% field, assigns into it and sets it. The first such assignment of a session
+% warns ('copvar:opvarField') that these are not fields of the class, and
+% that this support may be dropped in future versions.
+%
 % See also SUBSREF, COPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -63,6 +71,8 @@ function P = subsasgn(P,s,varargin)
 %
 % Initial coding MMP, 09/29/2026. Q(1,2) = P built an object array (see
 %                NOTES); it is now an error.
+% DJ, 11/15/2026: Support setting fields of an 'opvar' or 'opvar2d' if the
+%                   operator has appropriate structure;
 
 if strcmp(s(1).type,'()')
     error('copvar:parenAssign',['Paren assignment P(...) = X is not '...
@@ -81,6 +91,67 @@ if ~iscell(hidden)
 end
 if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,hidden))
     error(message('MATLAB:class:SetProhibited',s(1).subs,'''copvar'''))
+end
+% Support setting fields of an 'opvar' (1D) or 'opvar2d' (2D), which are
+% not actual properties of the class.
+f1 = {'P','Q1','Q2','R'};
+f2 = {'R00','R0x','R0y','R02','Rx0','Rxx','Rxy','Rx2',...
+      'Ry0','Ryx','Ryy','Ry2','R20','R2x','R2y','R22'};
+f0 = {'I','var1','var2','dim'};                 % fields of both classes
+persistent warned                               % warning below given once
+if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
+    fname = s(1).subs;
+    if ~isscalar(varargin)
+        error('copvar:fieldListAssign','Assign one value to the field ''%s''.',fname)
+    end
+    val = varargin{1};
+    % A shared field is set as for an 'opvar' if P is opvar-like and the
+    % value has one variable
+    if any(strcmp(fname,f0))
+        use1 = is_opvar1d(P) && size(val,1)<=1;
+    else
+        use1 = any(strcmp(fname,f1));
+    end
+    if use1 && ~is_opvar1d(P)
+        error('copvar:notOpvar1d',['''%s'' is a field of an ''opvar'', but this copvar is not opvar-like: '...
+            'it needs at most one spatial variable, and R blocks before L2 blocks (see is_opvar1d).'],fname)
+    elseif ~use1 && ~is_opvar2d(P) && any(strcmp(fname,f2))
+        error('copvar:notOpvar2d',['''%s'' is a field of an ''opvar2d'', but this copvar is not opvar2d-like: '...
+            'it needs at most two spatial variables, and blocks ordered R, L2[x], L2[y], L2[x,y] (see is_opvar2d).'],fname)
+    elseif ~use1 && ~is_opvar2d(P)
+        error('copvar:notOpvar',['''%s'' is a field of an ''opvar'' or ''opvar2d'', but this copvar is neither: '...
+            'it needs at most two spatial variables, and blocks ordered R, L2[x], L2[y], L2[x,y] (see is_opvar2d).'],fname)
+    end
+    % The target: the field, one of R.R0-R.R2, or one parameter R22{i,j};
+    % deeper indexing, P.Q1(1,2) = X, assigns into the current value
+    target = fname;     cidx = [];      rest = s(2:end);
+    if ~isempty(rest) && strcmp(fname,'R') && strcmp(rest(1).type,'.') && any(strcmp(rest(1).subs,{'R0','R1','R2'}))
+        target = ['R.',rest(1).subs];   rest = rest(2:end);
+    elseif ~isempty(rest) && any(strcmp(fname,f2)) && strcmp(rest(1).type,'{}')
+        cidx = rest(1).subs;            rest = rest(2:end);
+    end
+    if ~isempty(rest)
+        if use1,    cur = getfield_opvar1d(P,target);
+        else,       cur = getfield_opvar2d(P,target);
+        end
+        if ~isempty(cidx),  cur = cur{cidx{:}};     end
+        val = subsasgn(cur,rest,val);
+    end
+    if use1
+        P = setfield_opvar1d(P,target,val);
+    else
+        lab = target;
+        if ~isempty(cidx),  lab = sprintf('%s{%s}',target,strjoin(cellfun(@num2str,cidx,'UniformOutput',false),','));  end
+        P = setfield_opvar2d(P,target,val,cidx,struct('label',lab));
+    end
+    % Not a property, and this support may be dropped: say so, once per
+    % session so that loops over fields are not flooded
+    if isempty(warned)
+        warned = true;
+        warning('copvar:opvarField',['A copvar has no field ''%s''; setting it changes the blocks as for an ''opvar'' or ''opvar2d''. '...
+            'Setting components this way may not be supported in future versions.'],fname)
+    end
+    return
 end
 P = builtin('subsasgn',P,s,varargin{:});
 
