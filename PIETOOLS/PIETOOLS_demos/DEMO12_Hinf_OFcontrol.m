@@ -22,7 +22,8 @@
 %    executive PIETOOLS_Hinf_gain_sop, applied to the PIE of the closed loop,
 %    and report the bound only when the solver certifies it and it is not
 %    below the numerical gain of the closed loop,
-%  - compare gam with the finite-dimensional H-infinity optimal controllers
+% -  and simulate the closed-loop dynamics using PIESIM.
+%  - One can compare gam with the finite-dimensional H-infinity optimal controllers
 %    (hinfsyn) for finite-difference discretizations of the PDE.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
