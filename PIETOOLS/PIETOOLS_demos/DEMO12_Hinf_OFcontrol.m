@@ -72,6 +72,18 @@
 %                 degrees as row lengths, len_inc = len_com = 7 (int 6),
 %                 len_sos [5;7;7] (mult 4; int 6) and cap 6 (joint 6).
 %                 accept. Same program.
+% MMP 11/18/2026: The inlined synthesis (DB 11/17/2026) read the tier fields
+%                 sop.max_raise and sop.dw_Q as scalars; they hold one entry
+%                 per number of spatial variables since 10/29/2026, so the
+%                 raise loop stopped at "Colon operands must be real scalars"
+%                 (demo pass before the commit of 11/18/2026). Both are now
+%                 reduced to the PIE's dimension before the loop, as the
+%                 executives do in EXEC_TOOLS_SOP; the inline format is kept.
+%                 Second defect of the same kind: R and V came from the
+%                 stock-format builder POSLPIVAR_SETTINGS_SOP, which reads
+%                 lpi.pos.mult, int, joint; the tiers carry the storage row
+%                 since 11/17/2026, so they are built by POSCOPVAR with DEG
+%                 omitted, as the executives build their storage.
 clear; clc; clear stateNameGenerator
 
 %% Declare the PDE and convert to a PIE
@@ -135,16 +147,28 @@ dimCn = struct('out',dmu,'in',dmi);   spCn = struct('out',{spu},'in',{spi});   %
 dimDn = struct('out',dmu,'in',dmy);   spDn = struct('out',{spu},'in',{spy});   % Dn : y -> u   % DB 11/17/2026
 
 %% raise the slack degree until a feasible solution is found   % DB 11/17/2026
-for dw = 0:settings.sop.max_raise   % DB 11/17/2026
+% The tier's raise count and weight raise hold one entry per number of      % MMP, 11/18/2026
+% spatial variables (settings_sopvar/README.md, "raises"); the executives   % MMP, 11/18/2026
+% reduce them to the PIE's dimension in EXEC_TOOLS_SOP, as here             % MMP, 11/18/2026
+nvp = PIE.dim;                                                              % MMP, 11/18/2026
+max_raise = settings.sop.max_raise;  max_raise = max_raise(min(nvp,end));   % MMP, 11/18/2026
+dw_Q      = settings.sop.dw_Q;          dw_Q = dw_Q(min(nvp,end));          % MMP, 11/18/2026
+%for dw = 0:settings.sop.max_raise   % DB 11/17/2026                       % MMP, 11/18/2026 (was)
+for dw = 0:max_raise   % DB 11/17/2026                                      % MMP, 11/18/2026
     prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),dom,settings);   % DB 11/17/2026
     prog.sopeq = {};   % DB 11/17/2026
     [prog,gamv] = lpidecvar(prog,'gam');           % gam >= 0, minimized   % DB 11/17/2026
     prog = lpi_ineq_sop(prog,gamv);   % DB 11/17/2026
     prog = lpisetobj(prog,gamv);   % DB 11/17/2026
     % Lyapunov variables R, V >= eppos I   % DB 11/17/2026
-    [prog,R] = poslpivar_settings_sop(prog,T,settings,'lf','in',dom);   % DB 11/17/2026
+    % R, V from the storage row of the tier (POSCOPVAR with DEG omitted, as % MMP, 11/18/2026
+    % the executives' POS_ROW of EXEC_TOOLS_SOP); the stock-format builder  % MMP, 11/18/2026
+    % reads mult, int, joint, which the tiers no longer carry               % MMP, 11/18/2026
+%   [prog,R] = poslpivar_settings_sop(prog,T,settings,'lf','in',dom);   % DB 11/17/2026 % MMP, 11/18/2026 (was)
+    [prog,R] = poscopvar(prog,dmi,spi,dom);   % DB 11/17/2026               % MMP, 11/18/2026
     R = R + Ieps;   % DB 11/17/2026
-    [prog,V] = poslpivar_settings_sop(prog,T,settings,'lf','in',dom);  %  DB 11/17/2026 
+%   [prog,V] = poslpivar_settings_sop(prog,T,settings,'lf','in',dom);  %  DB 11/17/2026  % MMP, 11/18/2026 (was)
+    [prog,V] = poscopvar(prog,dmi,spi,dom);   % DB 11/17/2026               % MMP, 11/18/2026
     V = V + Ieps;         % DB 11/17/2026 
     % get_lpivar_degs_sop(R): reads the monomial degrees actually used in the   % DB 11/17/2026
     %   positive operator R (multiplier, integral kernels), returned in the   % DB 11/17/2026
@@ -190,7 +214,8 @@ for dw = 0:settings.sop.max_raise   % DB 11/17/2026
           P14', P24',  P34',       -(gamv*Iz)];   % DB 11/17/2026
     Cp = [R, Tc;   % DB 11/17/2026
              Tc', V];                          % coupling [R T'T; T'T V] >= 0   % DB 11/17/2026
-    o = struct('like',R,'dw',settings.sop.dw_Q+dw,'margin',settings.sop.margin,'cap',[]);   % DB 11/17/2026
+%   o = struct('like',R,'dw',settings.sop.dw_Q+dw,'margin',settings.sop.margin,'cap',[]);   % DB 11/17/2026 % MMP, 11/18/2026 (was)
+    o = struct('like',R,'dw',dw_Q+dw,'margin',settings.sop.margin,'cap',[]);   % DB 11/17/2026
     prog = lpi_ineq_sop(prog,-Km,o);               % Km <= 0   % DB 11/17/2026
     prog = lpi_ineq_sop(prog,Cp,o);                % Cp >= 0   % DB 11/17/2026
     prog = lpisolve(prog,settings.sos_opts);   % DB 11/17/2026
@@ -208,7 +233,8 @@ for dw = 0:settings.sop.max_raise   % DB 11/17/2026
     end      % 1: inaccurate, 2: failed   % DB 11/17/2026
     gam = double(lpigetsol_sop(prog,gamv));   % DB 11/17/2026
     ok = pinf~=1 && dinf~=1 && nerr<=1;            % optimal or inaccurate   % DB 11/17/2026
-    if ok || dw==settings.sop.max_raise || ~(nerr==2 || pinf==1)   % DB 11/17/2026
+%   if ok || dw==settings.sop.max_raise || ~(nerr==2 || pinf==1)   % DB 11/17/2026 % MMP, 11/18/2026 (was)
+    if ok || dw==max_raise || ~(nerr==2 || pinf==1)   % DB 11/17/2026
         break   % DB 11/17/2026
     end   % DB 11/17/2026
 end   % DB 11/17/2026
