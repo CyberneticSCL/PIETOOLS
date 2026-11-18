@@ -79,6 +79,7 @@ function C = plus(A,B)
 %                  numeric summand is still plus:badInput. minus = plus(A,-B)
 %                  reaches the branch unchanged.
 % AT, 11/17/2026:  Allow for scalar inputs A + c = A + c I
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the container checks below.                                               % MMP, 09/29/2026
@@ -91,9 +92,9 @@ end                                                                         % MM
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('plus:badInput','Both summands must be copvar objects.')
 end
-if ~isequal(size(A),size(B))
+if ~isequal(size(A,'block'),size(B,'block'))                                % DJ, 11/18/2026
     error('plus:gridMismatch','Summands have block grids %s and %s.',...
-        mat2str(size(A)),mat2str(size(B)))
+        mat2str(size(A,'block')),mat2str(size(B,'block')))
 end
 % if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
 %     error('plus:registryMismatch',['Summands are built on different variable '...

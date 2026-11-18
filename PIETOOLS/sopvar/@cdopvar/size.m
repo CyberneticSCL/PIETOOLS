@@ -1,24 +1,32 @@
-function varargout = size(P,dim)
+function varargout = size(P,dim,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [M,N] = SIZE(P) returns the BLOCK dimensions of the 'cdopvar' P: the number
-% of output spaces M and input spaces N, i.e. size(P.C). SIZE(P,1) and
-% SIZE(P,2) return them individually.
-%
-% This is the block grid, NOT the total component count - which differs from
-% @sopvar/size, where the return is matrix dimensions. Component counts are
-% P.dim_out (M x 1) and P.dim_in (N x 1); the concatenated spaces have
-% sum(P.dim_out) and sum(P.dim_in) components. The grid is what a container
-% is indexed by and what 'verify' iterates over, and with mixed L2 spaces a
-% single component total is rarely the quantity wanted, so a caller who
-% needs one should name it.
+% [m,n] = SIZE(P) returns the row and column dimensions of the operator
+% represented by the 'cdopvar' P: the total numbers of output and input
+% components m = sum(P.dim_out) and n = sum(P.dim_in), as @sopvar/size
+% does for a single block. SIZE(P,'block') instead returns the block grid
+% [M,N] = size(P.C), the numbers of output and input spaces, and
+% SIZE(P,'split') the number of components of each of those spaces.
 %
 % INPUTS
 % - P:      'cdopvar' container;
-% - dim:    (optional) 1 or 2, the dimension of the block grid to return;
+% - dim:    (optional) 1 or 2, return only the row (1) or column (2) size;
+% - opts:   (optional) char specifying what size to return. One of:
+%           'tot':   Default, the total row/column dimension of the
+%                    operator, sum(P.dim_out) and sum(P.dim_in);
+%           'block': The number of operator blocks along the rows/columns,
+%                    size(P.C,1) and size(P.C,2);
+%           'split': The row/column dimension of each block row/column,
+%                    P.dim_out (M x 1) and P.dim_in (N x 1);
+%           'dim' and 'opts' may be passed in either order.
 %
 % OUTPUTS
-% - varargout:  with dim, the scalar size(P.C,dim); with one output, the
-%               1 x 2 vector [M,N]; with two outputs, M and N separately;
+% - varargout:  with dim, the size along that dimension only: a scalar for
+%               'tot' and 'block', the M x 1 or N x 1 array for 'split'.
+%               Without dim, two outputs return the row and column sizes
+%               separately, and one output returns the 1 x 2 array [m,n]
+%               for 'tot' and 'block', and the 1 x 2 cell
+%               {P.dim_out,P.dim_in} for 'split', as the two arrays may
+%               differ in length;
 %
 % See also VERIFY, CDOPVAR, COPVAR.
 %
@@ -54,15 +62,46 @@ function varargout = size(P,dim)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mdopvar/ with the class.
+% DJ, 11/18/2026: Update to support 'opts'.
 
-blkdim = [size(P.C,1),size(P.C,2)];
+% Default to the total size; accept size(P,opts) and size(P,opts,dim) as
+% well as size(P,dim) and size(P,dim,opts).
+if nargin<3
+    opts = 'tot';
+end
+if nargin<2
+    dim = [];
+end
+if ischar(dim) || isstring(dim)                                             % DJ, 11/18/2026
+    if nargin==3
+        [dim,opts] = deal(opts,dim);
+    else
+        [dim,opts] = deal([],dim);
+    end
+end
 
-if nargin==2
-    varargout = {blkdim(dim)};
-elseif nargout<=1
-    varargout = {blkdim};
+% Row and column size {row,col} for the requested option.
+switch lower(char(opts))                                                    % DJ, 11/18/2026
+    case 'tot'
+        sz = {sum(P.dim_out),sum(P.dim_in)};
+    case 'block'
+        sz = {size(P.C,1),size(P.C,2)};
+    case 'split'
+        sz = {P.dim_out,P.dim_in};
+    otherwise
+        error('cdopvar:size:opts','Size option must be one of ''tot'', ''block'' or ''split''.')
+end
+
+% 'split' returns a cell for a single output without dim, since dim_out
+% and dim_in need not have the same length.
+if ~isempty(dim)                                                            % DJ, 11/18/2026
+    varargout = {[sz{dim}]};
+elseif nargout>=2
+    varargout = sz;
+elseif strcmpi(opts,'split')
+    varargout = {sz};
 else
-    varargout = {blkdim(1),blkdim(2)};
+    varargout = {[sz{:}]};
 end
 
 end

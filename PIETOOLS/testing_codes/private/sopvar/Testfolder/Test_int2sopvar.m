@@ -13,6 +13,7 @@
 %                      [s,s], where it used to be evaluated at t = s.
 % DJ (CC), 11/08/2026: Also test polynomial kernels in s and s_dum, the dummy
 %                      variable of a variable s that is also an output.
+% DJ, 11/18/2026: Account for updated `size` function.
 clear;
 rng(1);
 pvar s1 s2 s3
@@ -142,7 +143,7 @@ assert(isequal(sort(Pop.vars.in),vars_c) && isequal(sort(Pop.vars.out),vars_c),"
 %% int2copvar: the same operator, as the block of a 1 x 1 copvar
 Pop = int2copvar(Kc,vars_c,dom_c,lims_c);
 info = verify(Pop);
-assert(isa(Pop,'copvar') && isequal(size(Pop),[1,1]) && info.true==1,"Output should be a valid 1 x 1 copvar.")
+assert(isa(Pop,'copvar') && isequal(size(Pop,'block'),[1,1]) && info.true==1,"Output should be a valid 1 x 1 copvar.")  % DJ, 11/18/2026
 check_equal(apply_sopvar(Pop.C{1,1},x),Pexp,tol);
 Pop = int2copvar(Kc,vars_s,dom_s);      % without integration domain
 check_equal(apply_sopvar(Pop.C{1,1},x),apply_sopvar(int2sopvar(Kc,vars_s,dom_s),x),tol);

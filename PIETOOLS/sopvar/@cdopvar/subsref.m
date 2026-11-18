@@ -15,8 +15,9 @@ function varargout = subsref(P,s)
 % NOTES:
 % Paren indexing counts COMPONENTS over the concatenated spaces, as for a
 % 'dopvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
-% 'end' counts components too (@cdopvar/end), while size(P) is the block
-% grid. How the indices cut the block rows and columns is in 'op_slice'.
+% 'end' and size(P) count components too, while size(P,'block') is the
+% block grid. How the indices cut the block rows and columns is in
+% 'op_slice'.
 %
 % '.' and '{}' pass the whole chain to the builtin, which still dispatches
 % to the blocks' own subsref (P.C{i,j}(k,l) slices block (i,j)). The

@@ -56,6 +56,7 @@ function Test_copvar()
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  Test_mopvar -> Test_copvar. File was 'Test_mopvar.m'.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
@@ -76,7 +77,8 @@ out_A = [1 3];          din_A = [1 2 3];
 qA = [2 3];             pA = [2 3 4];
 CA = mkgrid(S,dm,out_A,din_A,qA,pA,1,true(2,3));
 A = copvar(CA);
-[np,nf] = chk(np,nf,'size(A) is the block grid',isequal(size(A),[2,3]));
+[np,nf] = chk(np,nf,'size(A) is the total size, size(A,''block'') the block grid',...
+    isequal(size(A),[sum(qA),sum(pA)]) && isequal(size(A,'block'),[2,3]));  % DJ, 11/18/2026
 [np,nf] = chk(np,nf,'registry is the sorted union',...
     isequal(A.vars,{'s1','s2'}));
 [np,nf] = chk(np,nf,'domains held once',isequal(A.dom,[0 1;0 1]));
@@ -128,7 +130,7 @@ AB = A + B;
 info = verify(AB);
 [np,nf] = chk(np,nf,'verify(A+B) passes',info.true==1,strjoin(info.flags,' | '));
 [np,nf] = chk(np,nf,'A+B keeps the grid and spaces',...
-    isequal(size(AB),[2,3]) && isequal(AB.space_out,A.space_out) ...
+    isequal(size(AB,'block'),[2,3]) && isequal(AB.space_out,A.space_out) ...
     && isequal(AB.space_in,A.space_in));
 err = 0;
 for i = 1:2
@@ -163,7 +165,7 @@ At = A';
 info = verify(At);
 [np,nf] = chk(np,nf,'verify(A'') passes',info.true==1,strjoin(info.flags,' | '));
 [np,nf] = chk(np,nf,'grid and metadata transpose',...
-    isequal(size(At),[3,2]) && isequal(At.space_out,A.space_in) ...
+    isequal(size(At,'block'),[3,2]) && isequal(At.space_out,A.space_in) ...
     && isequal(At.space_in,A.space_out) ...
     && isequal(At.dim_out(:),A.dim_in(:)) && isequal(At.dim_in(:),A.dim_out(:)));
 % <y_i, A_{ij} x_j> over s^i  ==  <(A*)_{ji} y_i, x_j> over s^j.
@@ -189,7 +191,7 @@ AG = A*G;
 info = verify(AG);
 [np,nf] = chk(np,nf,'verify(A*G) passes',info.true==1,strjoin(info.flags,' | '));
 [np,nf] = chk(np,nf,'A*G has A''s output and G''s input structure',...
-    isequal(size(AG),[2,2]) && isequal(AG.space_out,A.space_out) ...
+    isequal(size(AG,'block'),[2,2]) && isequal(AG.space_out,A.space_out) ...
     && isequal(AG.space_in,G.space_in) ...
     && isequal(AG.dim_out(:),A.dim_out(:)) && isequal(AG.dim_in(:),G.dim_in(:)));
 err = 0;

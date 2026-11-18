@@ -82,6 +82,7 @@ function PIE = initialize(PIE)
 %                   is just zero;
 % DJ, 11/11/2026: Support a PIE without dynamics (only T and K operators
 %                   specified), as converted from a BVP;
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -293,7 +294,12 @@ for obj_type = {'x','w','u','z','y'}
     obj = obj_type{1};
     ncomps = numel(PIE.space.(obj).dims);
     for field = fieldnames(PIE.pde2pie.(obj))'
-        if ~isempty(PIE.pde2pie.(obj).(field{1})) && size(PIE.pde2pie.(obj).(field{1}),1)~=ncomps
+        % A copvar map (pde2pie.(obj).C) has one block row per component,
+        % but size(copvar,1) is its total row dimension.
+        map_k = PIE.pde2pie.(obj).(field{1});
+        nrows = size(map_k,1);
+        if isa(map_k,'copvar'),     nrows = size(map_k,1,'block');      end % DJ, 11/18/2026
+        if ~isempty(map_k) && nrows~=ncomps
             error(['The number of rows of PIE.pde2pie.',obj,'.',field{1},' does not match the number of components in PIE.space.',obj,'.'])
         end
     end

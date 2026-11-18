@@ -73,6 +73,7 @@ function PIE_out = pie2piesim(PIE)
 %   needs no operator class.
 % MMP, 11/04/2026: Moved from PIESIM/PIESIM_routines/PIESIM_Setup to
 %   converters/operator_converters, since PIE_WITNESS_SOP calls it too.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % Operators as 'copvar' objects; at most 2 spatial variables
 if ~isa(PIE,'pie_struct')
@@ -162,7 +163,7 @@ end
 
 % Kind of each output and input space: 1 for R, 2 for L2[s1], 3 for
 % L2[s2], 4 for L2[s1,s2]
-[M,N] = size(Pc);
+[M,N] = size(Pc,'block');                                                   % DJ, 11/18/2026
 kind_out = ones(M,1);       kind_in = ones(N,1);
 for kk=1:nvars
     is_var = strcmp(Pc.vars,vnames{kk});

@@ -424,15 +424,10 @@ settings.simplify = false;              % solver stalls (numerr=2) if simplified
 % 	PDE:    z_{t} = y;
 %           y_{t} = z_{ss} - 2*mu*y + a*z + z^3;
 % The linearization is exponentially stable iff a < lambda_1, the smallest
-% eigenvalue of -d^2/ds^2 under the boundary conditions: lambda_1=6.03 for
-% k=3, and a=5 is stabilized iff k > 1.754. The other equilibria have energy
-% ||z_{s}|| >= 1.8 for a=5, k=3, which bounds the radius of any region of
-% attraction in the energy norm ||z_{s}||^2 + ||y||^2.
-% No stability test could be verified with the PIESOS executives: for
-% mu=2, a=5, k=3 they stalled (numerr=2) with LF.mon_deg=1 and sos.mon_deg=
-% [1,1,2], and with LF.mon_deg=2 and sos.mon_deg=[2,2,3] (SDP of 249k x 20k,
-% 4 GB). The test `LocalStability_wave` certifies a radius of 0.0212 on the
-% ball of radius 0.3, using a quartic term in V and pointwise multipliers.
+% eigenvalue of -d^2/ds^2 under the boundary conditions. The other 
+% equilibria have energy ||z_{s}|| >= 1.8 for a=5, k=3, which bounds the 
+% radius of any region of attraction in the energy norm 
+% ||z_{s}||^2 + ||y||^2.
 
 mu = 2;                 % damping
 a = 5;                  % reaction parameter

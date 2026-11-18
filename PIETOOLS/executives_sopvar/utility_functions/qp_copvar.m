@@ -140,6 +140,7 @@ function [X,info] = qp_copvar(A,B,opts)
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
 %                gauss_legendre (one caller) inlined into the node loop of
 %                assemble_apply; its n==1 return is the first branch of an if.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 if nargin<3 || isempty(opts),  opts = struct();  end
 %o = struct('deg',4,'basis','monomial','assembly','container','solver','auto','lambda',0,'verbose',false);   % AT, 10/28/2026 (was)
@@ -151,8 +152,8 @@ end
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('A and B should be copvar objects.')
 end
-if size(B,2)~=1 || size(B,1)~=size(A,1)
-    error('B must be an M x 1 copvar with M = size(A,1).')
+if size(B,2,'block')~=1 || size(B,1,'block')~=size(A,1,'block')             % DJ, 11/18/2026
+    error('B must be an M x 1 copvar with M = size(A,1,''block'').')
 end
 if ~isscalar(o.lambda) || o.lambda<0,  error('lambda must be a scalar >= 0.');  end
 solver = lower(o.solver);
@@ -171,7 +172,7 @@ assembly = lower(o.assembly);
 if ~any(strcmp(assembly,{'container','apply'})),  error('qp_copvar:opts','Unknown assembly ''%s''.',assembly);  end
 basis = lower(o.basis);
 if ~any(strcmp(basis,{'monomial','legendre','chebyshev'})),  error('qp_copvar:opts','Unknown basis ''%s''.',basis);  end
-N = size(A,2);
+N = size(A,2,'block');                                                      % DJ, 11/18/2026
 nv = numel(A.vars);
 deg = o.deg(:)';
 if isscalar(deg),  deg = repmat(deg,1,nv);  end
@@ -310,7 +311,7 @@ function [H,f,c,Q] = assemble_apply(A,B,Xh,nj,off)
 % output space of each block row. H = W'*diag(weights)*W is a Gram matrix of
 % sampled functions, so it is positive semidefinite whatever the basis, and no
 % product of the monomial coefficients of the basis enters.
-M = size(A,1);   N = size(A,2);   n = off(end);   q = A.dim_out;
+[M,N] = size(A,'block');   n = off(end);   q = A.dim_out;                   % DJ, 11/18/2026
 Wp = cell(M,n);                                     % Wp{i,u} = polynomial q_i x 1, A_i phi_u
 for j = 1:N
     b = Xh.C{j,j};   p = b.dims(1);   nZ = nj(j)/p;

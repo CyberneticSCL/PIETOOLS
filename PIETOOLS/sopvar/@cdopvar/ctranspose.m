@@ -72,12 +72,13 @@ function At = ctranspose(A)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mdopvar/ with the class.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 if ~isa(A,'cdopvar')
     error('ctranspose:badInput','Input must be a cdopvar object.')
 end
 
-[M,N] = size(A);
+[M,N] = size(A,'block');                                                    % DJ, 11/18/2026
 CA = A.C;
 Ct = cell(N,M);
 for i = 1:M

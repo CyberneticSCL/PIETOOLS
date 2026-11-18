@@ -50,6 +50,7 @@ function Test_cdopvar()
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  Test_mdopvar -> Test_cdopvar, Test_mopvar -> Test_copvar.
 %                  File was 'Test_mdopvar.m'.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
@@ -99,7 +100,7 @@ Ds = Dm + cdopvar(D);
 Dt = Dm';
 [np,nf] = chk(np,nf,'ctranspose preserves it',verify(Dt).true==1);
 [np,nf] = chk(np,nf,'ctranspose transposes grid and metadata',...
-    isequal(size(Dt),[2,2]) && isequal(Dt.space_out,Dm.space_in) ...
+    isequal(size(Dt,'block'),[2,2]) && isequal(Dt.space_out,Dm.space_in) ...
     && isequal(Dt.dim_out(:),Dm.dim_in(:)));
 % Composed against a FIXED container, which is the case that arises:
 % P*A, T'*P*T. G: (R,L2[s1]) -> (L2[s1],L2[s1,s2]).
@@ -109,11 +110,11 @@ Dc = Dm*G;
     all(cellfun(@(b) isempty(b)||~isa(b,'sdopvar')||isequal(b.Zd,Dc.Zd),Dc.C(:))) ...
     && verify(Dc).true==1);
 [np,nf] = chk(np,nf,'D*G takes D''s output and G''s input structure',...
-    isequal(size(Dc),[2,2]) && isequal(Dc.space_out,Dm.space_out) ...
+    isequal(size(Dc,'block'),[2,2]) && isequal(Dc.space_out,Dm.space_out) ...
     && isequal(Dc.space_in,G.space_in) ...
     && isequal(Dc.dim_out(:),Dm.dim_out(:)) && isequal(Dc.dim_in(:),G.dim_in(:)));
 [np,nf] = chk(np,nf,'scalar factor keeps the metadata',...
-    verify(2*Dm).true==1 && isequal(size(2*Dm),[2,2]));
+    verify(2*Dm).true==1 && isequal(size(2*Dm,'block'),[2,2]));             % DJ, 11/18/2026
 
 %% ---------------------------------------------------------------- 3
 fprintf('\n-- 3. two decision factors are refused up front --\n');

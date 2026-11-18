@@ -103,6 +103,7 @@ function C = mtimes(A,B)
 %                  errors mtimes:nonScalarNumeric; dpvar(M) or
 %                  mat2copvar_sop give its multiplier) and the composition
 %                  body are unchanged.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % dpvar factor: the constant multiplier of legacy @opvar/mtimes. Before any % MMP, 09/29/2026
 % work, so the composition below is untouched.                              % MMP, 09/29/2026
@@ -129,7 +130,7 @@ end
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('mtimes:badInput','Factors must be copvar objects, or one a scalar.')
 end
-[M,K] = size(A);        [KB,N] = size(B);
+[M,K] = size(A,'block');        [KB,N] = size(B,'block');                   % DJ, 11/18/2026
 if K~=KB
     error('mtimes:gridMismatch','Inner block dimensions differ: A is %dx%d, B is %dx%d.',...
         M,K,KB,N)

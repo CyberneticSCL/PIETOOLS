@@ -15,8 +15,8 @@ function Psop = op_slice(P,varargin)
 %
 % NOTES:
 % - The indices count rows and columns of the full operator, not blocks:
-%   row r of block row i is row sum(P.dim_out(1:i-1))+r. Note that size(P)
-%   returns the number of blocks.
+%   row r of block row i is row sum(P.dim_out(1:i-1))+r, as in size(P);
+%   size(P,'block') returns the number of blocks.
 % - Each run of consecutive indices within one block row (column) of P
 %   becomes one block row (column) of Psop. The order of the indices is
 %   kept, and block rows (columns) of P that are not selected are dropped.

@@ -76,13 +76,14 @@ function At = ctranspose(A)
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) lines
 %                  of the 09/26/2026 doc change removed from the help text
 %                  (that entry records them); code unchanged.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % Transpose the grid, adjoining each populated block; [] stays []
 if ~isa(A,'copvar')
     error('ctranspose:badInput','Input must be a copvar object.')
 end
 
-[M,N] = size(A);
+[M,N] = size(A,'block');                                                    % DJ, 11/18/2026
 CA = A.C;
 Ct = cell(N,M);
 for i = 1:M

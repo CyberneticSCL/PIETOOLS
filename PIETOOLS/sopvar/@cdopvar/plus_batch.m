@@ -54,6 +54,7 @@ function C = plus_batch(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/01/2026
+% DJ, 11/18/2026: Account for updated `size` function.
 
 ops = varargin;     N = numel(ops);
 isc = cellfun(@(x) isa(x,'copvar'),ops);    isd = cellfun(@(x) isa(x,'cdopvar'),ops);
@@ -62,11 +63,11 @@ if ~all(isc | isd)
 end
 if N==1,    C = ops{1};     return,     end
 for k = find(isc),  ops{k} = cdopvar(ops{k});   end
-sz = size(ops{1});
+sz = size(ops{1},'block');                                                  % DJ, 11/18/2026
 for k = 2:N
-    if ~isequal(size(ops{k}),sz)
+    if ~isequal(size(ops{k},'block'),sz)
         error('plus:gridMismatch','Summands have block grids %s and %s.',...
-              mat2str(sz),mat2str(size(ops{k})))
+              mat2str(sz),mat2str(size(ops{k},'block')))
     end
 end
 % One registry for all operands (as '+' does pairwise), then the checks '+'

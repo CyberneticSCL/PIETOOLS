@@ -12,8 +12,8 @@ function out = end(P,k,n)
 %       or their product for linear indexing (n=1)
 %
 % NOTES:
-% - This counts rows and columns of the full operator, as P(I,J) does,
-%   whereas size(P) returns the number of blocks.
+% - This counts rows and columns of the full operator, as P(I,J) and
+%   size(P) do, whereas size(P,'block') returns the number of blocks.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - end (cdopvar)

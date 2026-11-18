@@ -100,6 +100,7 @@ function test_dpvar_ops_sop()
 %                (d), NOTES.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): a (was) comment
 %                line removed; code unchanged.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % Fixed seed; canonical-form warnings off; the check counts and the
 % relative tolerance of CKVAL
@@ -380,7 +381,7 @@ for nd = 1:3
     Ap = rand_copvar(struct('out',{sL},'in',{sL}),struct('out',2,'in',2),dom1,1,0.7);
     Dpt = Dp';  Bpt = Bp';  Cpt = Cp';
     Q = [-gam, Dpt, Bpt; Dp, -gam, Cp; Bp, Cpt, Ap];
-    ck(isa(Q,'cdopvar') && isequal(size(Q),[3 3]),tag('DEMO5 shape class and grid'));
+    ck(isa(Q,'cdopvar') && isequal(size(Q,'block'),[3 3]),tag('DEMO5 shape class and grid'));  % DJ, 11/18/2026
     ckok(Q,tag('DEMO5 shape'));
     O = {-gam, Dpt, Bpt; Dp, -gam, Cp; Bp, Cpt, Ap};
     mq = metadata(Q);   xq = rand_funs(mq,2);   Tq = rand_pts(mq);
@@ -434,7 +435,7 @@ for nd = 1:3
     ckval(act(fix_op(R,NAMES,VALS),xb,Tb),{Yb{1}*Dbv.'},tag('Db*Xb'));
     ckerr(@() gam*Xdb,'cdopvar:decisionTimesDecision',tag('gam*Xdb refused'));
     D21b = rand_dp(2,1,gam,h);
-    R = [D21b, Xb];     ck(isa(R,'cdopvar') && isequal(size(R),[1 2]),tag('[D21, Xb] is a 1x2 container'));
+    R = [D21b, Xb];     ck(isa(R,'cdopvar') && isequal(size(R,'block'),[1 2]),tag('[D21, Xb] is a 1x2 container'));  % DJ, 11/18/2026
     ckok(R,tag('[D21, Xb]'));
     mr = metadata(R);   xr = rand_funs(mr,2);   Tr = rand_pts(mr);
     ckval(act(fix_op(R,NAMES,VALS),xr,Tr),grid_act({D21b,Xb},xr,Tr,NAMES,VALS),tag('[D21, Xb]'));

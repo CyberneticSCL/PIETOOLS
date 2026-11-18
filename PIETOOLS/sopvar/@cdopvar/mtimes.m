@@ -127,6 +127,7 @@ function C = mtimes(A,B)
 %                  the '(was)' lines, is deleted (no caller since 09/26/2026).
 % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/26/2026
 %                  entry condensed; code unchanged.
+% DJ, 11/18/2026: Account for updated `size` function.
 
 % dpvar factor: the constant multiplier of legacy @dopvar/mtimes. Before    % MMP, 09/29/2026
 % any work, so the composition below is untouched.                          % MMP, 09/29/2026
@@ -166,7 +167,7 @@ if ~isa(A,'cdopvar') || ~isa(B,'cdopvar')
         'Factors must be cdopvar or copvar objects, or one a scalar.')
 end
 
-[M,K] = size(A);        [KB,N] = size(B);
+[M,K] = size(A,'block');        [KB,N] = size(B,'block');                   % DJ, 11/18/2026
 if K~=KB
     error('mtimes:gridMismatch','Inner block dimensions differ: A is %dx%d, B is %dx%d.',...
         M,K,KB,N)

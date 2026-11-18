@@ -104,6 +104,7 @@ function [Pinv,info] = inv(P,opts)
 %                cheb_fit, cheb_grid into fits, gl_grid (with gauss1 inside
 %                it) into kmat, each with its header as the comment of the
 %                block; tensor_points stays, called from both grids.
+% DJ, 11/18/2026: Account for updated `size` function.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2,    opts = struct();    end
@@ -111,7 +112,7 @@ if ~isa(P,'copvar'),    error('copvar:inv:class','Input must be a copvar.');   e
 % if numel(P.vars)>1                                                        % MMP, 11/04/2026 (was)
 %     error('copvar:inv:nd','INV is implemented for one spatial variable; this container has %d (%s).',numel(P.vars),strjoin(P.vars,',')); % MMP, 11/04/2026 (was)
 % end                                                                       % MMP, 11/04/2026 (was)
-[M,Nc] = size(P);
+[M,Nc] = size(P,'block');                                                   % DJ, 11/18/2026
 if M~=Nc || ~isequal(P.space_out,P.space_in) || ~isequal(P.dim_out(:),P.dim_in(:))
     error('copvar:inv:square','The container must map a space list to itself (same spaces and dimensions in and out).');
 end
@@ -195,7 +196,7 @@ for f = fieldnames(o)'
 end
 if isfield(opts,'deg') && ~isempty(opts.deg),   o.deg0 = opts.deg;  o.degmax = opts.deg;    end
 % Each space: its variables (registry order), domain and dimension
-nsp = size(P,1);    q = P.dim_out(:);
+nsp = size(P,1,'block');    q = P.dim_out(:);                               % DJ, 11/18/2026
 V = cell(nsp,1);    D = cell(nsp,1);
 for i = 1:nsp
     V{i} = P.vars(P.space_out(i,:));    D{i} = P.dom(P.space_out(i,:),:);
