@@ -79,7 +79,7 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 % DJ (CC), 10/29/2026: The operator F of the 1D PIEs is read from
 %                   PIE.misc.periodic.F, as F is no longer a field of the PIE;
 % DJ (CC), 11/02/2026: Call convert_PIETOOLS_PDE_2D (the old converter,
-%   now in internal/legacy) for the 1D sub-PDEs;
+%   now in converters/legacy) for the 1D sub-PDEs;
 
 id_unsup = 'PIETOOLS:convert:Periodic2D';
 dom = PDE.dom;      vars = PDE.vars;

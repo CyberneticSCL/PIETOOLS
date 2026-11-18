@@ -73,6 +73,11 @@ the path cannot create a second class or private definition.
   included. `pielr_ipm_ref`, uncalled by name too, stays: the low-rank benches reach it through
   `pielr_private(name)`.
 
+- `getDifferentiability` (11/16/2026, maintainer: "Yes, orphan it") – from `parser/misc/` to
+  `orphaned_file/private/`. No caller anywhere, tests and retired code included. `poly2double`, from
+  the same folder, went to `parser/legacy/`: its callers are the legacy parser and
+  `converters/legacy/convert_PIETOOLS_PDE_terms.m`.
+
 - Tests that need the retired `opvar2d` (11/09/2026, maintainer: "move to cleaning") – from
   `testing_codes/private/` to `private/dead_code/PIETOOLS/testing_codes/private_files/`:
   `sopvar/Testfolder/sdopvar/Test_apply_sopvar_2d`, `Test_ctranspose_sopvar_2d` and
@@ -122,7 +127,7 @@ the path cannot create a second class or private definition.
   put it on 11/06/2026 (from `converters/`), to `private/dead_code/PIETOOLS/converters/`. In
   `cleaning/` it was on the MATLAB path, since `genpath` skips only `private/`. It builds `opvar`
   and `opvar2d` objects, so it failed when called once `opvar/` left the path ("Unrecognized
-  function or variable 'opvar'", 11/08/2026). Its one caller, lines 316–323 of `converters/piess.m`,
+  function or variable 'opvar'", 11/08/2026). Its one caller, lines 316–323 of `parser/piess.m`,
   is reached only by an opvar-class input (see the dead branches below).
 
 - `getController_direct_sop` (11/08/2026, maintainer: "move the unused files to cleaning and
@@ -170,7 +175,7 @@ the path cannot create a second class or private definition.
 | Files | Reason kept |
 |---|---|
 | 12 helpers in `PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/` (`cx_exec/cx_PIE2PDEstability`, `cx_plant`, `cx_resid`, `cx_settings`, `cx_shape`, `cx_solve`, `cx_space_list`, `cx_stability_2D`, `cx_stability_eq_opts_2D`, `cx_stability_pos2d`; `pi_dpvar_eval`, `pi_poly_grid`) | called by 9 tests in `lpi_programming_sopvar/tests/` and by `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m`; since 11/08/2026 ten of them are with the tests, now in `testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/`, and `cx_resid` and `cx_shape`, which the two demos call, joined them on 11/10/2026 with the two demos (`testing_codes/README.md`); `cx_stability_2D` went to `definitely/` on 11/09/2026 (it needs the retired `opvar2d`) |
-| `PIETOOLS/converters/internal/legacy/` (8 files) | called by `PIETOOLS_DDE.m`, `convert_PIETOOLS_PDE.m` and `initialize_PIETOOLS_PDE.m` |
+| `PIETOOLS/converters/legacy/` (8 files) | called by `PIETOOLS_DDE.m`, `convert_PIETOOLS_PDE.m` and `initialize_PIETOOLS_PDE.m` |
 | `PIETOOLS/opvar/2D/@opvar2d/*_legacy.m`, `@dopvar2d/*_legacy.m` (6 files) | called by the 2-D H-infinity executives; moved with `opvar/` on 11/08/2026 |
 | `PIETOOLS/opvar/inv_opvar_old.m` | called by `inv_opvar.m`; moved with `opvar/` on 11/08/2026 |
 | `PIETOOLS/opvar/inv_opvar_2.m` | the reference of `sopvar/Testfolder/Test_copvar_inv.m`; moved with `opvar/` on 11/08/2026 |
@@ -195,9 +200,9 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   `getObserver`. The legacy sections of `test_dpvar_ops_sop`, `test_lpi_eq_sop`, `test_lpi_ineq_sop`,
   `test_tier1_fixes_sop`, `test_translators_sop` and `test_getsol_sop` (iii) were deleted later on
   11/08/2026 (Phase 3 cleanup).
-- `converters/internal/2D/PIETOOLS_FTC_Expansion_2D.m:225`, the 2-D nonlinear converter, builds
+- `converters/legacy/2D/PIETOOLS_FTC_Expansion_2D.m:225`, the 2-D nonlinear converter, builds
   opvars; so do the legacy 2-D converter chain and `convert_PIETOOLS_PDE_sopvar` (static).
-- The 2022 declaration format: the `parser/@state` and `@terms` methods build opvars (static;
+- The 2022 declaration format: the `parser/legacy/@state` and `@terms` methods build opvars (static;
   decision 2), and the GUI follows it.
 - `PIETOOLS_examples/examples_PDE_library_PIETOOLS.m:1060, 1069` called `PIETOOLS_auto_execute`, which
   already failed on every copvar PIE, until 11/08/2026 (96529608); they now call its container
@@ -218,7 +223,7 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   retired functions until 11/08/2026. E3, `cx_stability_2D` and `opvar2d2copvar` are in `private/`
   since 11/09/2026 (above).
 - Branches that only an opvar-class input reaches, now dead: `piesos_getsol`, `piesos_ineq`,
-  `dopvar2sdopvar` (static), and lines 316–323 of `converters/piess.m`, which call `piess_opvar`
+  `dopvar2sdopvar` (static), and lines 316–323 of `parser/piess.m`, which call `piess_opvar`
   (off the path since 11/08/2026). `lpi_ineq_sop`, `lpi_eq_sop`, `getsol_lpivar_sop`, `lpigetsol_sop`,
   `poslpivar_sop` and `get_lpivar_degs_sop` raise their own errors for such an input since
   11/08/2026.

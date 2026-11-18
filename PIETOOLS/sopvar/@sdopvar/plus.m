@@ -62,11 +62,14 @@ function C = plus(A,B)
 %                  entries condensed to defect and fix, the deletion note in
 %                  the body shortened, a (was) line of a comment removed;
 %                  code unchanged.
+% AT, 11/17/2026:  Allow for scalar inputs A + c = A + c I
 %
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the call to 'plus_batch' below.                                           % MMP, 09/29/2026
-if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+% A numeric scalar is the same as a constant dpvar scalar: scalar*I.        % AT, 11/17/2026
+if isa(A,'dpvar') || isa(B,'dpvar') || ...                                  % AT, 11/17/2026
+        (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))      % AT, 11/17/2026
     C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
     return                                                                  % MMP, 09/29/2026
 end                                                                         % MMP, 09/29/2026

@@ -24,13 +24,13 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %           fit degree, 4), degmax (largest fit degree, 16), deg (one fixed
 %           fit degree, in place of deg0, degmax, tol), tol_rank (relative
 %           SVD cut of the kernel ranks, 1e-13). And the method:
-%             method     'inv' (default), the gain L = P^{-1}*Z above (in
-%                        several variables an error for a non-separable P),
-%                        or 'qp', the gain L of bounded degree minimizing
-%                        ||P*L - Z||^2 by QP_COPVAR, with no inverse of P
-%                        (P must be self-adjoint), for any number of spatial
-%                        variables and required for a non-separable P in
-%                        several. The options of the 'qp' method, passed to
+%             method     'qp' (default), the gain L of bounded degree
+%                        minimizing ||P*L - Z||^2 by QP_COPVAR, with no
+%                        inverse of P (P must be self-adjoint), for any number
+%                        of spatial variables and required for a non-separable
+%                        P in several; or 'inv', the gain L = P^{-1}*Z above
+%                        (in several variables an error for a non-separable
+%                        P). The options of the 'qp' method, passed to
 %                        QP_COPVAR: qp_deg (maximal degree
 %                        of L in the spatial variable), qp_basis
 %                        ('monomial', 'legendre' or 'chebyshev'), qp_assembly
@@ -109,14 +109,16 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 % MMP, 11/09/2026: Dead opvar branch removed (maintainer, 11/09/2026): the
 %                OPVAR2COPVAR conversions of P and Z are gone with the
 %                retired classes; help to match.
+% AT, 11/17/2026: The default of opts.method is 'qp' (was 'inv'); 'inv' is
+%                selected with opts.method = 'inv'. Help to match.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Default options                                                           % MMP, 11/09/2026
 if nargin<3,    opts = struct();    end
 % if isa(P,'opvar'),  P = opvar2copvar(P);    end                           % MMP, 11/09/2026 (was)
 % if isa(Z,'opvar'),  Z = opvar2copvar(Z);    end                           % MMP, 11/09/2026 (was)
-% The method: 'inv' (default) or 'qp'
-method = 'inv';                                                             % AT, 10/28/2026
+% The method: 'qp' (default) or 'inv'                                       % AT, 11/17/2026 (was 'inv' default)
+method = 'qp';                                                              % AT, 11/17/2026
 if isfield(opts,'method'),  method = opts.method;   end                     % AT, 10/28/2026
 if ~any(strcmpi(method,{'inv','qp'}))                                       % AT, 10/28/2026
     error('getObserver_sop:method','opts.method must be ''inv'' or ''qp''.');     % AT, 10/28/2026
