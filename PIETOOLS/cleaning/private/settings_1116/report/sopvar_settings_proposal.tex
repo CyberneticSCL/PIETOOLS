@@ -1,0 +1,531 @@
+\documentclass[12pt]{article}
+
+% Self-contained preamble, as sopvar_lift_notes.tex, so that the file compiles
+% from the repository (MiKTeX, pdflatex) and in the Overleaf project
+% "ndopvar Structure".
+\usepackage[a4paper,margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Sym}{\mathbb{S}}
+\newcommand{\mcl}[1]{\mathcal{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\bmat}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\path{#1}}      % a file name, breakable at underscores
+\newcommand{\ba}{\mathrm{a}}
+\newcommand{\bb}{\mathrm{b}}
+\newcommand{\bc}{\mathrm{c}}
+\setlength{\emergencystretch}{2em}
+\newcommand{\tiersref}{the report \texttt{settings\_report\_2026-11-16.pdf}, Section~6}
+\newcommand{\termsref}{Section~6.4 of that report}
+\newcommand{\knobsref}{the slack-settings tables of Section~6.3 of that report}
+\newcommand{\readerref}{Section~6.1 of that report}
+\newcommand{\liftref}{the first table of Section~9 of that report}
+\newcommand{\blcrossref}{Section~10.6 of that report}
+\newcommand{\gapsref}{Section~11 of that report}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Settings for the positive operators from the lift structure \\
+\large a proposal for one and $N$ spatial variables; companion to
+\emph{Positive operators in separated form} (\file{sopvar_lift_notes})}
+\author{M.~M.~Peet, with Claude (Anthropic)}
+\date{November 15, 2026; revised November 16, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Purpose}
+
+The container executives declare the positive operators of every LPI, the storage and the slack, from a settings structure, and the degrees of those operators are set in three vocabularies. In one spatial variable \code{lpi.pos} holds \code{mult}, \code{int}, \code{joint} and \code{sep}. In two, \code{settings\_2d} holds the cap tables \code{dx}, \code{dy} and \code{d2} over sixteen bases, with \code{exclude} and \code{sep}. In three or more, entry 3 of \code{lpi.pos} is read by a rule of \code{exec\_tools\_sop} that keeps two basis operators per space. None of the three names the factors of the certificate: in each, one number sets the degree of the moment lift and the degree of the sum-of-squares multiplier together, and the Positivstellensatz terms of the storage have no field. Two consequences were measured in November 2026. Routing the 2-D executives through the per-space defaults of \code{lpi.pos}, which cannot write the stock 2-D block, collapsed the heavy and veryheavy tiers to the light program on the \code{fin2} gain and loosened the 2-D estimator of library PDE~48 by 20\% at equal size (routing record, 11/13/2026). The heavy 2-D cap tables are not nested in the light ones, $[1;1;1]$ against $[1;1;2]$ on the 1-D-space bases, and the mixed-domain gain S24 came out $60\times$ looser at heavy than at light (\code{test\_mixed\_domain\_pde}, 11/14/2026).
+
+This note proposes one vocabulary for every number of variables, taken from the separated form $\mcl P=\mcl A^*\mcl M\mcl A$ of the lift notes: the lengths of the monomial vectors of the moment lift, of the blocks of the multiplier and of the Positivstellensatz terms are set independently, direction by direction. Section~\ref{sec:1d} states the form in one variable with the conjecture behind it and derives what each length does to the kernel. Section~\ref{sec:conv} fixes the conventions. Section~\ref{sec:nd} extends the form to $N$ variables, where the set of Positivstellensatz terms is a setting. Section~\ref{sec:settings} gives the settings row, a tier layout and the one routine that reads it. Section~\ref{sec:tiers} writes the present tiers in the row and lists what the row cannot express. Section~\ref{sec:measure} lists the measurements that a change of defaults requires, and Section~\ref{sec:open} the open decisions.
+
+\paragraph{Notation.} $n\ge1$ is the number of components of the state. For an integer $d\ge0$, $z_d(t)=\bmat{1&t&\cdots&t^{d-1}}^T\in\R^{d}$ is the vector of the first $d$ monomials, of degree $d-1$; $z_0$ is empty. $Z_d=I_n\otimes z_d$. $\Sym^m$ is the set of symmetric $m\times m$ matrices, and $Q\succeq0$ means positive semidefinite. $L_2^n[a,b]$ is the space of square-integrable functions $[a,b]\to\R^n$ with $\ip{\mbf u}{\mbf v}=\int_a^b\mbf u^T\mbf v$, and $\mcl A^*$ is the adjoint. A block whose monomial vector is empty is absent, together with its rows and columns in every matrix it indexes.
+
+\section{One spatial variable}\label{sec:1d}
+
+\subsection{The certificate and the conjecture behind it}
+
+Fix $a<b$. For integers $d_1,d_2\ge0$ the \textbf{moment lift} $\mcl A_{d_1,d_2}:L_2^n[a,b]\to L_2^{n(1+d_2+d_1)}[a,b]$ is
+\begin{equation}\label{eq:lift}
+(\mcl A_{d_1,d_2}\mbf u)(s)=\bmat{\mbf u(s)\\[3pt] \int_a^b Z_{d_2}(t)\,\mbf u(t)\,dt\\[3pt] \int_a^s Z_{d_1}(t)\,\mbf u(t)\,dt},
+\end{equation}
+the evaluation, the complete moments of length $d_2$ and the incomplete moments of length $d_1$. A \textbf{block} is one of these three parts of the lifted vector $\mcl A_{d_1,d_2}\mbf u$: the evaluation block $\ba$, which is $\mbf u$ itself ($n$ rows); the complete-moment block $\bb$, the $nd_2$ integrals over the whole interval; the incomplete-moment block $\bc$, the $nd_1$ running integrals. The multiplier $S$ below is partitioned the same way, $S_{xy}$ being its sub-matrix between blocks $x$ and $y$, and every length indexed by a block ($d_{3x}$, $d_{4x}$ in Section~\ref{sec:mult}) is the length of the monomial vector that block carries. For a bounded measurable $S:[a,b]\to\Sym^{n(1+d_2+d_1)}$ the \textbf{multiplier} is $(\mcl M_S\mbf v)(s)=S(s)\mbf v(s)$, and the certificate is
+\begin{equation}\label{eq:cert}
+\mcl P=\mcl A_{d_1,d_2}^*\,\mcl M_S\,\mcl A_{d_1,d_2}.
+\end{equation}
+If $S(s)\succeq0$ for almost every $s$, then $\ip{\mbf u}{\mcl P\mbf u}=\int_a^b(\mcl A_{d_1,d_2}\mbf u)^TS\,(\mcl A_{d_1,d_2}\mbf u)\ge0$ for every $\mbf u$, so \eqref{eq:cert} is positive. The conjecture is the converse.
+
+\begin{conjecture}[necessity of the moment representation]\label{conj}
+Let $n\ge1$ and $a<b$. Suppose $M:[a,b]\to\Sym^n$ and $K:[a,b]^2\to\R^{n\times n}$ are polynomial and the operator
+\[
+(\mcl P\mbf u)(s)=M(s)\mbf u(s)+\int_a^sK(s,t)\mbf u(t)\,dt+\int_s^bK(t,s)^T\mbf u(t)\,dt
+\]
+satisfies $\ip{\mbf u}{\mcl P\mbf u}\ge0$ for all $\mbf u\in L_2^n[a,b]$. Then there exist integers $d_1,d_2\ge0$ and a bounded measurable $S:[a,b]\to\Sym^{n(1+d_2+d_1)}$ with $S(s)\succeq0$ for almost every $s\in[a,b]$ such that $\mcl P=\mcl A_{d_1,d_2}^*\mcl M_S\mcl A_{d_1,d_2}$, with $\mcl A_{d_1,d_2}$ as in \eqref{eq:lift} and $(\mcl M_S\mbf v)(s)=S(s)\mbf v(s)$.
+\end{conjecture}
+In words: every positive PI operator with polynomial parameters is a positive bounded weight between a moment lift of finite length and its adjoint. The conjecture is the necessity assumption of the proof program (lift notes, Sec.~7) and is unproven. The design below uses only the direction established after \eqref{eq:cert}: a certificate found at any $(d_1,d_2)$ is valid, and the conjecture governs whether a search over $(d_1,d_2)$ can be complete. Two facts of the proof program bound what completeness can mean. A polynomial $S$ exists only under a margin, $\mcl P\succeq\delta\,e_D$ for some $\delta>0$ (lift notes, Sec.~7), so the polynomial multiplier of Section~\ref{sec:mult} is a second approximation beyond the conjecture. And the critical Poincar\'e operator has no bounded weight at the lift degree its kernel support suggests and one at the next degree: in lengths, its support asks for $d_1=2$ and its certificate needs $d_1=3$.
+
+\subsection{What each length does to the kernel}
+
+Partition $S$ into the blocks $S_{xy}$, $x,y\in\{\ba,\bb,\bc\}$, paired with the blocks of \eqref{eq:lift}, and write
+\[
+\Sigma_{\bb\bb}=\int_a^bS_{\bb\bb}(r)\,dr,\qquad \Sigma_{\bb\bc}(t)=\int_t^bS_{\bb\bc}(r)\,dr,\qquad \Sigma_{\bc\bc}(s)=\int_s^bS_{\bc\bc}(r)\,dr .
+\]
+
+\begin{lemma}[the kernel of the certificate]\label{lem:kernel}
+Let $n\ge1$, $a<b$, let $d_1,d_2\ge0$ be integers and let $S:[a,b]\to\Sym^{n(1+d_2+d_1)}$ be bounded and measurable. Then $\mcl P=\mcl A_{d_1,d_2}^*\mcl M_S\mcl A_{d_1,d_2}$ has the form of Conjecture~\ref{conj} with $M(s)=S_{\ba\ba}(s)$ and, for $a\le t<s\le b$,
+\begin{equation}\label{eq:K}
+\begin{aligned}
+K(s,t)={}&S_{\ba\bc}(s)Z_{d_1}(t)+Z_{d_1}(s)^T\Sigma_{\bc\bc}(s)Z_{d_1}(t)\\
+&+S_{\ba\bb}(s)Z_{d_2}(t)+Z_{d_2}(s)^TS_{\ba\bb}(t)^T+Z_{d_2}(s)^T\Sigma_{\bb\bb}Z_{d_2}(t)\\
+&+Z_{d_2}(s)^T\Sigma_{\bb\bc}(t)Z_{d_1}(t)+Z_{d_1}(s)^T\Sigma_{\bb\bc}(s)^TZ_{d_2}(t).
+\end{aligned}
+\end{equation}
+\end{lemma}
+In words: the evaluation block gives the multiplier, the incomplete block gives a kernel with a jump on the diagonal, and the complete block gives a kernel that is one polynomial on the whole square. With $d_1=0$ only the second line of \eqref{eq:K} survives and $K$ is separable; with $d_2=0$ only the first line survives.
+
+\begin{proof}[Method: expand the quadratic form]
+Write $\mbf v=\mcl A_{d_1,d_2}\mbf u$ with the blocks $\mbf v_\ba=\mbf u$, $\mbf v_\bb=\mbf m=\int_a^bZ_{d_2}\mbf u$, a constant, and $\mbf v_\bc(s)=\mbf z(s)=\int_a^sZ_{d_1}\mbf u$. An operator of the form of Conjecture~\ref{conj} is self-adjoint and satisfies $\ip{\mbf u}{\mcl P\mbf u}=\int_a^b\mbf u^TM\mbf u+2\int_a^b\!\!\int_a^s\mbf u(s)^TK(s,t)\mbf u(t)\,dt\,ds$, so $M$ and $K$ are read off from $\ip{\mbf u}{\mcl P\mbf u}=\int_a^b\mbf v^TS\mbf v$ by collecting the coefficient of $\mbf u(s)^T(\cdot)\,\mbf u(t)$ over the pairs $t<s$. The six blocks of $\int\mbf v^TS\mbf v$ contribute as follows.
+\begin{enumerate}\setlength\itemsep{0pt}
+\item $\int\mbf u^TS_{\ba\ba}\mbf u$ is the multiplier term, so $M=S_{\ba\ba}$.
+\item $2\int\mbf u(s)^TS_{\ba\bc}(s)\mbf z(s)\,ds=2\int_a^b\!\!\int_a^s\mbf u(s)^TS_{\ba\bc}(s)Z_{d_1}(t)\mbf u(t)\,dt\,ds$, the first term of \eqref{eq:K}.
+\item $\int\mbf z^TS_{\bc\bc}\mbf z=\int\!\!\int\mbf u(t)^TZ_{d_1}(t)^T\Sigma_{\bc\bc}(\max(t,t'))Z_{d_1}(t')\mbf u(t')\,dt\,dt'$ after the order of integration is exchanged; the integrand is symmetric in $(t,t')$, so the integral over the square is twice the integral over $t'<t$, the second term.
+\item $2\int\mbf u(s)^TS_{\ba\bb}(s)\mbf m\,ds$ equals $2\int\!\!\int\mbf u(s)^TS_{\ba\bb}(s)Z_{d_2}(t)\mbf u(t)\,dt\,ds$ over the square; the part with $t>s$, after the names are exchanged and the scalar transposed, is $2\int\!\!\int_{t<s}\mbf u(s)^TZ_{d_2}(s)^TS_{\ba\bb}(t)^T\mbf u(t)$: the third and fourth terms.
+\item $\mbf m^T\Sigma_{\bb\bb}\mbf m=\int\!\!\int\mbf u(s)^TZ_{d_2}(s)^T\Sigma_{\bb\bb}Z_{d_2}(t)\mbf u(t)$, symmetric, the fifth term.
+\item $2\int\mbf m^TS_{\bb\bc}(r)\mbf z(r)\,dr=2\int_a^b\mbf m^T\Sigma_{\bb\bc}(t)Z_{d_1}(t)\mbf u(t)\,dt=2\int\!\!\int\mbf u(s)^TZ_{d_2}(s)^T\Sigma_{\bb\bc}(t)Z_{d_1}(t)\mbf u(t)$ over the square, after the order of integration is exchanged and $\mbf m$ is expanded; split and renamed as in item~4, the last two terms. \qedhere
+\end{enumerate}
+\end{proof}
+
+In the lower-plus-complete lift without the evaluation block and with $d_1=d_2$, the four terms of \eqref{eq:K} with a $\Sigma$ are the bracket $\int_s^bW_{zz}+\int_s^bW_{zm}+\int_t^bW_{mz}+\int_a^bW_{mm}$ of the support lemma of the lift notes (Sec.~7), measured there on five degree pairs.
+
+\begin{corollary}[monomial support]\label{cor:support}
+Under the hypotheses of Lemma~\ref{lem:kernel}, suppose in addition that each block $S_{xy}$ is a polynomial of degree at most $\sigma_{xy}$. Then $M$ has degree at most $\sigma_{\ba\ba}$, and every monomial $s^it^j$ of $K$ satisfies
+\[
+\min(i,j)\le\max(d_1,d_2)-1,\qquad \max(i,j)\le\max\bigl(d_1+\sigma_{\bc\bc},\ d_1+\sigma_{\bb\bc},\ \sigma_{\ba\bc},\ \sigma_{\ba\bb},\ d_2-1\bigr).
+\]
+\end{corollary}
+In words: the lift lengths bound the smaller exponent of every kernel monomial, and the multiplier degrees bound the larger one. Reaching the support of a target is necessary for the equality $\mcl P=\mcl A^*\mcl M_S\mcl A$ and not sufficient: the Poincar\'e case above has its support reached at $d_1=2$ and its certificate at $d_1=3$.
+
+\begin{proof}[Method: read the degrees term by term]
+In \eqref{eq:K}, $Z_{d_1}$ and $Z_{d_2}$ have degree $d_1-1$ and $d_2-1$, $S_{xy}$ has degree at most $\sigma_{xy}$, and the primitives $\Sigma_{\bc\bc}$ and $\Sigma_{\bb\bc}$ have degree at most $\sigma_{\bc\bc}+1$ and $\sigma_{\bb\bc}+1$. Each of the seven terms is a product of a factor in $s$ and a factor in $t$, of which one is $Z_{d_1}$ or $Z_{d_2}$, which gives the first bound; the degrees of the other factors are, term by term, $\sigma_{\ba\bc}$, $d_1+\sigma_{\bc\bc}$, $\sigma_{\ba\bb}$, $\sigma_{\ba\bb}$, $d_2-1$, $d_1+\sigma_{\bb\bc}$ and $d_1+\sigma_{\bb\bc}$, which gives the second.
+\end{proof}
+
+With one length $d$ for the lift, $d_1=d_2=d$, and one length $e$ for the multiplier, so that $\sigma_{xy}=2(e-1)$ for every block (the plain term of Section~\ref{sec:mult}), the corollary gives $\min(i,j)\le d-1$ and $\max(i,j)\le d+2e-2$. This is the support rule of \code{get\_lift\_degs}, $\min(i,j)\le D$ and $\max(i,j)\le D+2w+1$, at $D=d-1$ and $w=e-1$.
+
+\subsection{The multiplier}\label{sec:mult}
+
+The multiplier is declared as a polynomial matrix, positive on $[a,b]$ by the sum-of-squares form with the box weight $g(s)=(s-a)(b-s)$. For lengths $d_3=(d_{3\ba},d_{3\bb},d_{3\bc})$ and $d_4=(d_{4\ba},d_{4\bb},d_{4\bc})$,
+\begin{equation}\label{eq:S}
+S(s)=Z_{d_3}(s)^TQ_1Z_{d_3}(s)+g(s)\,Z_{d_4}(s)^TQ_2Z_{d_4}(s),\qquad Q_1,Q_2\succeq0,
+\end{equation}
+\begin{equation}\label{eq:Z3}
+Z_{d_3}(s)=\bmat{I_n\otimes z_{d_{3\ba}}(s)&&\\&I_{nd_2}\otimes z_{d_{3\bb}}(s)&\\&&I_{nd_1}\otimes z_{d_{3\bc}}(s)},
+\end{equation}
+and $Z_{d_4}$ likewise. Block $(x,y)$ of the first term of \eqref{eq:S} has degree $d_{3x}+d_{3y}-2$ and block $(x,y)$ of the second has degree $d_{4x}+d_{4y}$. One length for the three blocks, $Z_{d_3}=I_{n(1+d_2+d_1)}\otimes z_{d_3}$, is the case $d_{3\ba}=d_{3\bb}=d_{3\bc}$. The per-block lengths are a freedom the stock tiers use: the evaluation block of the 2-D light storage is constant while its moment blocks are not (Section~\ref{sec:tiers}).
+
+\begin{lemma}[Markov--Luk\'acs, in lengths]\label{lem:ml}
+Let $m\ge1$ and $e\ge1$ be integers, let $a<b$, and let $S:[a,b]\to\Sym^m$ be a polynomial matrix.
+\begin{enumerate}\setlength\itemsep{0pt}
+\item[(i)] If $S$ has degree at most $2(e-1)$, then $S(s)\succeq0$ for all $s\in[a,b]$ if and only if there exist positive semidefinite $Q_1\in\Sym^{me}$ and $Q_2\in\Sym^{m(e-1)}$ such that, for all $s$,
+\[
+S(s)=\bigl(I_m\otimes z_{e}(s)\bigr)^TQ_1\bigl(I_m\otimes z_{e}(s)\bigr)+(s-a)(b-s)\,\bigl(I_m\otimes z_{e-1}(s)\bigr)^TQ_2\bigl(I_m\otimes z_{e-1}(s)\bigr).
+\]
+\item[(ii)] If $S$ has degree at most $2e-1$, then $S(s)\succeq0$ for all $s\in[a,b]$ if and only if there exist positive semidefinite $Q_1,Q_2\in\Sym^{me}$ such that, for all $s$,
+\[
+S(s)=(s-a)\,\bigl(I_m\otimes z_{e}(s)\bigr)^TQ_1\bigl(I_m\otimes z_{e}(s)\bigr)+(b-s)\,\bigl(I_m\otimes z_{e}(s)\bigr)^TQ_2\bigl(I_m\otimes z_{e}(s)\bigr).
+\]
+\end{enumerate}
+\end{lemma}
+In words: in one variable, for even degree, once the length $e$ of the plain term is chosen a box term of length $e-1$ loses nothing; for odd degree, the two face terms at length $e$ with no plain term lose nothing. The lemma is cited, not proven here. The scalar case, $m=1$, is the theorem of Markov and Luk\'acs (Karlin and Studden, 1966; chapter to be verified). The matrix case is the one the lift notes use (Sec.~3), where its attribution to the matrix literature is flagged as unchecked; it remains unchecked here (Dette and Studden, 2002, to be verified).
+
+\subsection{The lengths of one variable}\label{sec:knobs}
+
+Table~\ref{tab:knobs} lists the settings of one variable, what a zero means for each, and the field that carries each today. A zero never reaches the code as a length: Section~\ref{sec:conv}.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{1.4cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{5.1cm}}
+\toprule
+setting & factor of the certificate & zero means & today \\
+\midrule
+$d_1$ & incomplete moments, block $\bc$ of \eqref{eq:lift} & no block $\bc$; $K$ a polynomial on the square & \code{mult} cap of the lower and upper operators, $+1$; \code{sep} drops them \\
+$d_2$ & complete moments, block $\bb$ & no block $\bb$ & \code{mult} cap of the full operator, $+1$ (\code{sep}); else of the upper one \\
+$d_{3\ba}$ & multiplier length of block $\ba$ & no multiplier $M$ & \code{mult} of \code{lpi.pos}, $+1$ \\
+$d_{3\bb},d_{3\bc}$ & multiplier lengths of blocks $\bb$, $\bc$ & the block absent & \code{int} of \code{lpi.pos}, $+1$ \\
+$F$ & the term set: none, box & plain term only & none for the storage; \code{psatz} \code{'auto'} for the slack \\
+$d_4$ & lengths of the box term & term absent & \code{psatz\_offset} $=d_3-d_4$, one for every block \\
+\bottomrule
+\end{tabular}
+\caption{The settings of one spatial variable.}\label{tab:knobs}
+\end{table}
+
+The present 1-D storage uses the lower and the upper moments where \eqref{eq:lift} uses the lower and the complete ones. The two agree.
+
+\begin{proposition}[lower-plus-upper and lower-plus-complete]\label{prop:span}
+Let $n\ge1$, $a<b$, and let $d\ge1$ and $e\ge1$ be integers. Let $\mcl C$ be the set of operators $\mcl A_{d,d}^*\mcl M_S\mcl A_{d,d}$ with $\mcl A_{d,d}$ the lift \eqref{eq:lift} and $S$ of the form \eqref{eq:S} with $d_{3\bb}=d_{3\bc}=e$ and $d_{4\bb}=d_{4\bc}$, and let $\mcl C'$ be the set obtained in the same way when the complete moments in \eqref{eq:lift} are replaced by the upper moments $\int_s^bZ_d(t)\mbf u(t)\,dt$. Then $\mcl C=\mcl C'$.
+\end{proposition}
+In words: the stock lower-plus-upper lift and the lower-plus-complete lift of the conjecture give the same certificates whenever the two moment blocks share their multiplier lengths, which every present tier does; the translation of Section~\ref{sec:tiers} is exact. The proof uses $d_{3\bb}=d_{3\bc}$; without it the change of basis below does not preserve the block form \eqref{eq:Z3}, and nothing is asserted.
+
+\begin{proof}[Method: a constant change of basis]
+The upper moments are $\int_s^bZ_d\mbf u=\int_a^bZ_d\mbf u-\int_a^sZ_d\mbf u$, so the second lift is $T\mcl A_{d,d}$ with the constant invertible matrix $T$ that is the identity except for the block $(\bb,\bc)$, equal to $-I_{nd}$. Since $T$ is constant, $(T\mcl A_{d,d})^*\mcl M_S(T\mcl A_{d,d})=\mcl A_{d,d}^*\mcl M_{T^TST}\mcl A_{d,d}$. With $d_{3\bb}=d_{3\bc}$ the blocks $\bb$ and $\bc$ of $Z_{d_3}$ carry the same vector $I_{nd}\otimes z_e$, so $Z_{d_3}T=T'Z_{d_3}$ with $T'$ the identity except for the block $(\bb,\bc)$, equal to $-I_{nde}$; hence $T^TZ_{d_3}^TQ_1Z_{d_3}T=Z_{d_3}^T(T'^TQ_1T')Z_{d_3}$, and in the same way for the box term since $d_{4\bb}=d_{4\bc}$. As $Q_1$ and $Q_2$ range over the positive semidefinite matrices, so do $T'^TQ_1T'$ and its counterpart, so $\mcl C'\subseteq\mcl C$; the inverse change of basis gives $\mcl C\subseteq\mcl C'$.
+\end{proof}
+
+\section{Conventions}\label{sec:conv}
+
+\paragraph{Lengths, not degrees.} Every setting is the length of a monomial vector, zero included. Every routine of the toolbox keeps degrees: \code{copquadvar}, \code{poscopvar\_direct}, \code{get\_lift\_degs}, \code{lpivar\_cdopvar} and the polynomial classes. The conversion, length $=$ degree $+1$, lives in one routine, the reader of Section~\ref{sec:reader}, and nowhere else, and the field names carry the word \code{len}. The \code{dpvar} class header, which states a layout convention wrongly and was found so months later, is the reason for both rules.
+
+\paragraph{Zero is absent.} The code never builds an empty monomial vector: \code{build\_exponent\_grid} refuses a negative cap and returns the constant monomial at cap zero, and absence is expressed by the \code{include} list of basis operators and by the list of terms. The reader maps zeros onto those lists. A lift block of length zero is not a basis operator; a block whose multiplier length is zero has no rows in $S$, which removes the block, so a block is present exactly when its lift length and its multiplier length are both positive; a term with length zero is not declared. The negative-degree sentinel of \code{lpi.pos}, \code{int < 0} for no integral basis, disappears.
+
+\paragraph{Per direction.} In $N$ variables every length is a row over the directions of the space, and every monomial vector is the tensor product of the per-direction vectors, of length equal to the product. A zero in one direction empties the product, so a block or a term with a zero entry is absent. A cap on the total degree is not part of the vocabulary; Section~\ref{sec:cannot} lists what this excludes.
+
+\paragraph{Spaces without a spatial variable.} The block of an $\R^q$ space is the identity, with one setting, its multiplier length, at the default $1$ (the identity basis; \code{wR} of \code{get\_lift\_degs} is that length less one).
+
+\paragraph{Storage and slack.} The \textbf{storage} is the positive PI operator $\mcl P$ of the Lyapunov functional $V(\mbf x)=\ip{\mbf x}{\mcl P\mbf x}$ that an executive declares through \code{poscopvar}, the operator whose row the settings of this document fix; the stock tiers call it \code{LF} and \code{lpi.pos}. The \textbf{slack} of an inequality $\mcl D\preceq0$, or $\mcl P-\mcl P_0\succeq0$ for a fixed $\mcl P_0$, is the positive operator that \code{lpi\_ineq\_sop} declares to certify it, sized by \code{get\_lift\_degs} from the support of the inequality (Section~\ref{sec:settings}); the terms of this document belong to the slack, and the storage carries none.
+
+\paragraph{Blocks.} The word block is reserved for the three parts $\ba$, $\bb$, $\bc$ of the lifted vector (Section~\ref{sec:1d}) and for the sub-matrices of the multiplier between them. Three other objects are named differently: a positive semidefinite matrix variable of the SDP is a \textbf{PSD block}; the part of an operator on a mixed registry that maps one space into another is a \textbf{sub-operator}; and the storage that the stock 2-D tier files declare for a space is the \textbf{stock 2-D storage} of that space.
+
+\section{$N$ spatial variables}\label{sec:nd}
+
+\subsection{The tensor lift}\label{sec:tensor}
+
+Let $\Omega=\prod_{k=1}^N[a_k,b_k]$ with $a_k<b_k$, and $s=(s_1,\dots,s_N)$. A \textbf{pattern} $\alpha\in\{\ba,\bb,\bc\}^N$ chooses in each direction the evaluation, the complete moment or the incomplete moment. For lengths $d_1,d_2\in\N^N$ the component of pattern $\alpha$ is
+\begin{equation}\label{eq:comp}
+(\mcl A_\alpha\mbf u)(s)=\int_\Omega\Bigl(\bigotimes_{k=1}^N\kappa_{\alpha_k,k}(s_k,t_k)\Bigr)\otimes I_n\;\mbf u(t)\,dt,
+\end{equation}
+with the per-direction kernels
+\[
+\kappa_{\ba,k}(s_k,t_k)=\delta(t_k-s_k),\qquad \kappa_{\bb,k}(s_k,t_k)=z_{d_{2,k}}(t_k),\qquad \kappa_{\bc,k}(s_k,t_k)=\mathbf 1[t_k\le s_k]\,z_{d_{1,k}}(t_k),
+\]
+and $n\prod_k\ell_k(\alpha_k)$ rows, where $\ell_k(\ba)=1$, $\ell_k(\bb)=d_{2,k}$ and $\ell_k(\bc)=d_{1,k}$. The lift $\mcl A$ is the stack of the components of a \textbf{pattern set} $\Pi\subseteq\{\ba,\bb,\bc\}^N$, and the certificate is $\mcl A^*\mcl M_S\mcl A$ with $S(s)\succeq0$ on $\Omega$, as in \eqref{eq:cert}. A pattern with a zero factor is absent. Two named sets: \code{uniform}, the patterns $(\ba,\dots,\ba)$, $(\bb,\dots,\bb)$ and $(\bc,\dots,\bc)$, which is the structure of every present tier in two or more variables; and \code{all}, the $3^N$ patterns, the tensor product of the one-variable lifts \eqref{eq:lift} and the $N$-variable form of the conjecture. In the codes of \code{copquadvar}, $\ba$, $\bb$ and $\bc$ are the multi-index entries $1$, $4$ and $2$; the upper entry $3$ is not used. In the stock lifts that use it, the argument of Proposition~\ref{prop:span} applies direction by direction when the blocks $\bb$ and $\bc$ share their multiplier lengths in that direction.
+
+\subsection{The multiplier on the box}
+
+$S$ is blocked by pattern. Block $\alpha$ has the monomial vector $\bigotimes_kz_{d_{3,\alpha_k,k}}(s_k)$, so the multiplier lengths form a $3\times N$ table $d_3$, row $x\in\{\ba,\bb,\bc\}$ and column $k$: the per-block lengths of Section~\ref{sec:mult}, direction by direction. In the code the length may differ for every pattern and direction, one specification per basis operator; the table is the restriction in which it depends on the type of the block in that direction alone, and no present tier needs more.
+
+\subsection{The Positivstellensatz terms}\label{sec:terms}
+
+The factors of direction $k$ are
+\[
+f_{k,1}(s)=\frac{s_k-a_k}{L_k},\qquad f_{k,2}(s)=\frac{b_k-s_k}{L_k},\qquad f_{k,3}(s)=(s_k-a_k)(b_k-s_k),\qquad L_k=b_k-a_k,
+\]
+the two faces of direction $k$, each vanishing at one end of $[a_k,b_k]$, and its box quadratic, vanishing at both; $L_k$ normalizes the faces. A \textbf{weight} is a product of such factors with at most one factor per direction,
+\[
+g(s)=\prod_{k\in J}f_{k,j_k}(s),\qquad J\subseteq\{1,\dots,N\},\quad j_k\in\{1,2,3\},
+\]
+nonnegative on $\Omega$, with $g=1$ for $J=\emptyset$. A \textbf{term} of the multiplier is a weight times a sum of squares, $g(s)Z(s)^TQZ(s)$ with $Q\succeq0$, and a \textbf{term set} $F$ is a finite set of weights other than $1$; the plain term, with $g=1$, is always present. The multiplier is
+\begin{equation}\label{eq:SN}
+S(s)=Z_{d_3}(s)^TQ_0Z_{d_3}(s)+\sum_{g\in F}g(s)\,Z_{d_{4,g}}(s)^TQ_gZ_{d_{4,g}}(s),\qquad Q_0,Q_g\succeq0,
+\end{equation}
+with $Z_{d_3}$ the block-diagonal matrix of the per-block vectors, as in \eqref{eq:Z3}, and $Z_{d_{4,g}}$ the same at the lengths of the term with weight $g$. Named sets: \code{none}, $F=\emptyset$, the plain term alone; \code{box}, the $N$ box quadratics $f_{k,3}$, one weight each; \code{product}, the single product $\prod_kf_{k,3}$ of all box quadratics; \code{preorder}, the products of the box quadratics over every nonempty set of directions ($2^N-1$ weights, the preordering generated by the box quadratics); \code{faces}, the $2N$ faces, one weight each; \code{corners}, the faces together with the products of one face of a direction $j$ and one face of a direction $k\ne j$ ($4\binom N2$ products; in two variables $f_{1,1}f_{2,1}$, $f_{1,1}f_{2,2}$, $f_{1,2}f_{2,1}$, $f_{1,2}f_{2,2}$, each vanishing on the two edges that meet at one corner of the box, hence the name); \code{full}, every product of distinct faces, the two faces of one direction multiplying to its box quadratic ($4^N-1$ weights, the preordering generated by the faces). In one variable \code{box} and \code{faces} are the two forms of Lemma~\ref{lem:ml}. In the code a weight is written as a row $r\in\{0,1,2,3\}^N$, $r_k$ the index $j_k$ of its factor in direction $k$ and $0$ where it has none (the option \code{psatz\_rows} of \code{poscopvar\_direct}).
+
+\begin{lemma}[sufficiency]\label{lem:suff}
+Let $N\ge1$, $\Omega=\prod_{k=1}^N[a_k,b_k]$ with $a_k<b_k$, and let $F$ be a finite set of weights, products of the factors $f_{k,j}$ with at most one factor per direction. For each $g\in F\cup\{1\}$ let $Z_g$ be a polynomial matrix and $Q_g\succeq0$ of matching size, and let $S(s)=\sum_{g\in F\cup\{1\}}g(s)Z_g(s)^TQ_gZ_g(s)$. Then $S(s)\succeq0$ for every $s\in\Omega$.
+\end{lemma}
+In words: every term set at every length gives a valid certificate; what a term set buys is a question of completeness and of cost.
+
+\begin{proof}[Method: direct]
+For $s\in\Omega$ every factor $f_{k,j}(s)$ is nonnegative, so $g(s)\ge0$; each $Z_g(s)^TQ_gZ_g(s)$ is positive semidefinite since $Q_g$ is; a nonnegative combination of positive semidefinite matrices is positive semidefinite.
+\end{proof}
+
+The converse statements for $N\ge2$ are the Positivstellens\"atze, proven for scalar polynomials and without a bound on the lengths (citations to be verified). Schm\"udgen (1991, Math.\ Ann.): a polynomial strictly positive on $\Omega$ lies in the preordering of the generators, the sums of products of distinct generators with sum-of-squares multipliers; with the faces as generators this is $F=$ \code{full}, with the box quadratics $F=$ \code{preorder}. Putinar (1993, Indiana Univ.\ Math.\ J.): it lies in the quadratic module, the generators alone, $F=$ \code{faces} or $F=$ \code{box}, whenever the module is Archimedean, which holds for the box with either set of generators: with the faces, each box quadratic $f_{k,1}f_{k,2}=f_{k,1}f_{k,2}^2+f_{k,2}f_{k,1}^2$ (since $f_{k,1}+f_{k,2}=1$) lies in the module, and on $[-1,1]^N$ the box quadratics sum to $N-\sum_ks_k^2$. The matrix-valued versions are those of Scherer and Hol (2006, Math.\ Program.). None of these bounds the lengths, and none is stated for the kernels of a PI operator, where the weight multiplies a polynomial in the kernel variables and the certificate rests on Lemma~\ref{lem:suff} alone; the one degree-exact statement is Lemma~\ref{lem:ml}, in one variable: the pair for even degree, the two faces for odd. So in one variable the tiers carry the product, as the lemma says, and for $N\ge2$ both $F$ and the lengths of the terms are settings fixed by measurement (Section~\ref{sec:program}), with the record that the 2-D heat benchmark needed the face terms where the single product $g_1g_2$ certified nothing (\code{copquadvar} header, 09/27/2026).
+
+\subsection{The lengths of the terms}\label{sec:d4}
+
+The length of block $x$ of the term with weight $g$ in direction $k$ is set through an offset from the plain term,
+\begin{equation}\label{eq:d4}
+d_{4,g,x,k}=d_{3,x,k}-o_{g,k},\qquad o_g\in\N^N,
+\end{equation}
+with the default $o_{g,k}=1$ in the directions where $g$ has a factor and $o_{g,k}=0$ elsewhere. Under the default, in every direction the degree of the term in block $(x,y)$ is at most the degree of the plain term: equal for a box factor, $2+(d_{3x}-2)+(d_{3y}-2)=d_{3x}+d_{3y}-2$, and one less for a face factor. In one variable it is the box term of Lemma~\ref{lem:ml}. The offsets are the \code{psatz\_rows\_offset} of \code{poscopvar\_direct}, with two differences from what the builder accepts today: an offset of the builder is one number per weight, applied in every direction, where \eqref{eq:d4} applies it in the directions of the factors; and the slack rule \code{'auto'} of \code{get\_lift\_degs} puts the faces at offset $1$ when every weight degree is at least $2$ and at offset $0$ otherwise, which in lengths is $o_{g,k}=1$ when every $d_{3,x,k}\ge3$ and $0$ otherwise. The local function \code{reduce\_spec} already takes a per-direction offset row, so the first difference is in the parsing of the option; the second is a choice of default (Section~\ref{sec:open}).
+
+\subsection{Size}
+
+The Gram matrix of the plain term has $n\sum_{\alpha\in\Pi}\prod_k\ell_k(\alpha_k)\,d_{3,\alpha_k,k}$ rows, and each term of $F$ adds a Gram of the same form at its lengths. Table~\ref{tab:size} counts rows per component for the lengths of the present tiers and for the full tensor lift. The count of today's bases is lower than that of the row at the same lengths because of the total-degree caps (Section~\ref{sec:cannot}). The header of \code{exec\_tools\_sop} (10/29/2026) records that in three variables the lift with all $27$ patterns at degree $1$ gave a heat stability SDP past what MOSEK solves on the development workstation, which is why the $N$-D rule keeps two patterns.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lllrr}
+\toprule
+$N$ & $(d_1,d_2,d_{3\ba},d_{3\bb})$ & patterns & rows per component & today \\
+\midrule
+2 & $(0,2,1,2)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $1+16=17$ & $1+7=8$ (light) \\
+2 & $(2,2,2,2)$ & \code{uniform} & $4+16+16=36$ & -- \\
+2 & $(2,2,2,2)$ & \code{all} ($9$) & $(1\cdot2+2\cdot2+2\cdot2)^2=100$ & -- \\
+3 & $(0,2,1,2)$ & $(\ba,\ba,\ba)$, $(\bb,\bb,\bb)$ & $1+64=65$ & $1+22=23$ (all but stripped) \\
+3 & $(2,2,2,2)$ & \code{uniform} & $8+64+64=136$ & -- \\
+3 & $(2,2,2,2)$ & \code{all} ($27$) & $10^3=1000$ & -- \\
+\bottomrule
+\end{tabular}
+\caption{Rows of the plain Gram per state component, counted from \eqref{eq:comp} and \eqref{eq:SN}, with every direction at the lengths $(d_1,d_2,d_{3\ba},d_{3\bb})$ shown ($d_{3\bc}=2$ where block $\bc$ is present); the last column is the count of the present bases at the same lengths, with their caps.}\label{tab:size}
+\end{table}
+
+\subsection{The construction on a mixed registry}\label{sec:mixed-construction}
+
+The sections above build one space. A PIE with spaces of different numbers of variables has one \textbf{registry} $V=\{s_1,\dots,s_N\}$, the set of all its spatial variables, with the box $\Omega=\prod_{k=1}^N[a_k,b_k]$, and $M$ spaces $X_1,\dots,X_M$, each $\R^{q_i}$ or $L_2^{n_i}$ on the sub-box $\Omega_i=\prod_{k\in V_i}[a_k,b_k]$ of the variables $V_i\subseteq V$ it owns; the state is $\mbf x=(\mbf x_1,\dots,\mbf x_M)$. Three objects of the one-space construction change meaning, and one does not.
+
+\paragraph{The lift.} $\mcl A=\operatorname{diag}(\mcl A_1,\dots,\mcl A_M)$ with $\mcl A_i$ the tensor lift of Section~\ref{sec:tensor} of space $i$ in its own variables $V_i$, at the lengths $(d_1,d_2)$ of the entry of $|V_i|$ variables, and the identity on $\R^{q_i}$. The lifted vector $\mbf v=\mcl A\mbf x$ has one component per space and block, $\mbf v_{i,x}(s_{V_i})$, a function of the variables of space $i$ alone.
+
+\paragraph{The multiplier.} $S$ is one polynomial matrix in all the registry variables, $S:\Omega\to\Sym$, with sub-matrices $S_{(i,x),(j,y)}(s)$ between block $x$ of space $i$ and block $y$ of space $j$, and the certificate is
+\begin{equation}\label{eq:mixedcert}
+\ip{\mbf x}{\mcl P\mbf x}=\int_\Omega\mbf v(s)^TS(s)\,\mbf v(s)\,ds,
+\end{equation}
+the integral over the whole registry box. A component $\mbf v_{i,x}$ is constant in the variables space $i$ does not own, so in \eqref{eq:mixedcert} those variables integrate out: the sub-operator of $\mcl P$ between spaces $i$ and $j$ has the kernel $\int S_{(i,\cdot),(j,\cdot)}(s)\,ds_{V\setminus(V_i\cup V_j)}$ composed with the two lifts, a kernel in the variables $V_i\cup V_j$. So the sub-operator of a 1-D space on the registry $\{s_1,s_2\}$ has a kernel in $s_1$ whose coefficients are integrals over $s_2$ of the entries of $S$, and the sub-operator between the 1-D space and the 2-D space has a kernel in $(s_1,s_2)$: this is how one polynomial matrix on the registry box parameterizes every sub-operator of a positive operator on $X_1\oplus\dots\oplus X_M$.
+
+\paragraph{The terms.} The weights of Section~\ref{sec:terms} are polynomials on the registry box $\Omega$, products of face factors and box quadratics of registry directions, and
+\begin{equation}\label{eq:mixedS}
+S(s)=Z(s)^TQ_0Z(s)+\sum_{g\in F}g(s)\,Z_g(s)^TQ_gZ_g(s),\qquad Q_0,Q_g\succeq0,
+\end{equation}
+with $Z$ block-diagonal over the pairs (space, block) and $Z_g$ the same at the lengths of the term with weight $g$. Each weight multiplies the whole of $S$, the sub-matrices of every space included; a face of $s_2$ enters the sub-operator of a 1-D space in $s_1$ through the integration over $s_2$ in \eqref{eq:mixedcert}, which is why the registry faces are necessary for that space as well (\liftref).
+
+\paragraph{The monomials and their lengths.} The monomial vector of block $x$ of space $i$ in \eqref{eq:mixedS} is a tensor product over all $N$ registry directions,
+\begin{equation}\label{eq:mixedZ}
+Z_{i,x}(s)=I_{m_{i,x}}\otimes\bigotimes_{k=1}^{N}z_{\ell_{i,x,k}}(s_k),
+\end{equation}
+with $m_{i,x}$ the number of rows of the block and $z_\ell(s_k)$ the monomials of $s_k$ up to degree $\ell-1$, so every block of every space carries monomials in every registry variable, those it owns and those it does not. The lengths $\ell_{i,x,k}$ are: in a direction $k\in V_i$, the $d_{3,x,k}$ of the entry of space $i$; for an $\R^q$ space, which owns no direction, the length \code{len\_R} of the row in every direction, so that its block carries $I_q\otimes z_{\mathrm{len\_R}}(s)$ on a registry $\{s\}$, the identity for \code{len\_R} $=1$, the value of every present tier; for an $L_2$ space in a direction $k\notin V_i$, the largest $d_{3,x,k'}$ the block carries in its own directions $k'\in V_i$, the rule of the reader (Section~\ref{sec:reader}; measured in \readerref). Under \eqref{eq:mixedcert} the monomials in a direction a space does not own are integrated out, so the sub-operator of the 1-D space is one-dimensional, with a kernel in $s_1$ whose coefficients are the integrals of products of $z_\ell(s_2)$ against the entries of $Q$. For the slack of an inequality the lengths $D_k$ and $w_k$ are computed once per registry direction from the support of every sub-operator of the inequality and given to every space in the directions it owns, with $w_k$ in every registry direction for every space. The length of a non-owned direction of an $L_2$ space is the cross length, a setting of the row, \code{len\_cross} ($1$: none), and of the slack, \code{wcross} ($0$: none), with the rules above as its other values. On the mixed suite the value none loses no certificate of the storage, at $0.2$ to $1\%$ fewer variables, and one direct-test case of the slack, S17 at half its margin with the full-length faces, at $10$ to $22\%$ fewer variables (\blcrossref).
+
+\begin{lemma}[sufficiency on a mixed registry]\label{lem:mixedsuff}
+Let $V$, $\Omega$, the spaces $X_i$ with their variables $V_i\subseteq V$ and the lift $\mcl A$ be as above, let $F$ be a finite set of weights on $\Omega$, products of the factors $f_{k,j}$ of the registry directions with at most one factor per direction, and let $S$ be of the form \eqref{eq:mixedS} with polynomial matrices $Z$, $Z_g$ and $Q_0,Q_g\succeq0$ of matching sizes. Then the operator $\mcl P$ defined by \eqref{eq:mixedcert} satisfies $\ip{\mbf x}{\mcl P\mbf x}\ge0$ for every $\mbf x\in X_1\oplus\dots\oplus X_M$.
+\end{lemma}
+In words: a weighted sum of squares on the registry box certifies positivity on the direct sum of the spaces, whatever the dimensions of the spaces. The lemma says nothing about which positive operators have such a certificate.
+
+\begin{proof}[Method: direct]
+Let $\mbf x$ be given and $\mbf v=\mcl A\mbf x$. For every $s\in\Omega$, every factor $f_{k,j}(s)$ is nonnegative by its definition in Section~\ref{sec:terms}, so every weight $g(s)\ge0$; each $Z_g(s)^TQ_gZ_g(s)$ is positive semidefinite since $Q_g$ is; hence $S(s)\succeq0$ by \eqref{eq:mixedS}, and $\mbf v(s)^TS(s)\mbf v(s)\ge0$. Integrating over $\Omega$ in \eqref{eq:mixedcert} gives $\ip{\mbf x}{\mcl P\mbf x}\ge0$.
+\end{proof}
+
+What the construction does not define is completeness. The Positivstellens\"atze of Section~\ref{sec:terms} concern one polynomial ring; \eqref{eq:mixedcert} is a quadratic form whose components live on different sub-boxes, and no theorem of that kind is cited here for it. The one alternative construction, a weight set per sub-operator with weights in $s_{V_i\cup V_j}$ for the sub-operator between spaces $i$ and $j$, is not built by \code{poscopvar\_direct} today and is the open item of Section~\ref{sec:open}. On the 26-system mixed suite the registry construction with the faces certified every case it was asked except S17 and S18 at $0.9$ of their margins (\liftref\ and the direct tests of Section~\ref{sec:program}).
+
+\section{The settings}\label{sec:settings}
+
+\subsection{The row}
+
+For a space in $N$ variables the storage is one row
+\[
+\begin{aligned}
+&\bigl(d_1,\ d_2,\ d_3,\ \Pi,\ F,\ o\bigr),\qquad d_1,d_2\in\N^N,\quad d_3\in\N^{3\times N},\\
+&\Pi\ \text{a name or rows},\quad F\ \text{a name or rows},\quad o\in\N^{|F|\times N}\ \text{or empty for the default},
+\end{aligned}
+\]
+and in one variable $\Pi$ is every pattern with a positive length. The storage carries no term: $F=$ \code{none} in every tier.
+
+\input{settings_report_settings_ref.tex}
+
+\subsection{The reader}\label{sec:reader}
+
+One routine turns a row into the arguments of \code{poscopvar}, and replaces the three branches of \code{exec\_tools\_sop} and the omitted-\code{DEG} rule of \code{poscopvar}. For a space in $N$ variables:
+\begin{enumerate}\setlength\itemsep{0pt}
+\item the basis operators are the patterns of $\Pi$ whose factors are all positive, as \code{include} rows in the codes $1$, $4$, $2$ of $\ba$, $\bb$, $\bc$;
+\item basis operator $\alpha$ gets the degrees \code{mult}$_k=\ell_k(\alpha_k)-1$ ($0$ for $\ba$, the canonical multiplier form) and \code{int}$_k=d_{3,\alpha_k,k}-1$, one specification per basis operator;
+\item $F$, a name expanded to its rows, is \code{psatz\_rows}, with \code{psatz\_rows\_offset} the per-direction offsets $o$, the default rule of \eqref{eq:d4} when $o$ is empty;
+\item an $\R^q$ space gets the identity basis at \code{int} $0$;
+\item \code{sep}, \code{exclude}, \code{joint} and \code{subset} are not set.
+\end{enumerate}
+The executives route the storage of every dimension through this routine. The stock 2-D storage is not a setting of the proposed structure; a caller who needs a storage the row cannot write (Section~\ref{sec:cannot}) gives the degree argument of \code{poscopvar} explicitly, in an application-specific settings file (Section~\ref{sec:app-settings}); the parked routing patch of 11/13/2026 is the 2-D branch of this change with the present \code{lpi.pos} in place of the row. The \code{'stock'} slack mode has its own fields and is untouched. Nothing in the operator classes, in \code{copquadvar} or in \code{poscopvar\_direct} changes except the parsing of a per-direction row offset.
+
+\section{The present tiers in the row}\label{sec:tiers}
+
+The tables below were read from the tier files \file{settings_sopvar_*.m} of \file{settings_sopvar/} at commit 8659c287 and from the readers \code{poslpivar\_settings\_sop} (1-D), \code{poslpivar\_settings\_2d\_sop} (2-D) and the local \code{pos\_nd} of \code{exec\_tools\_sop} ($N\ge3$). Every storage has $F=$ \code{none}. In one variable the translation is exact by Proposition~\ref{prop:span}; in two or more, the row is the smallest tensor row that contains the tier basis, and Section~\ref{sec:cannot} gives what it adds.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lrrrrrl}
+\toprule
+tier (1-D, \code{lpi.pos} entry 1) & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $d_{3\bc}$ & from \\
+\midrule
+light, stripped, custom & 2 & 2 & 2 & 2 & 2 & \code{mult} 1, \code{int} 1, \code{joint} 2 (no cap), \code{sep} 0 \\
+heavy & 2 & 2 & 3 & 2 & 2 & \code{mult} 2, \code{int} 1, \code{joint} 2 \\
+veryheavy & 4 & 4 & 4 & 4 & 4 & \code{mult} 3, \code{int} 3, \code{joint} 6 (no cap) \\
+extreme & 0 & 0 & 2 & -- & -- & \code{mult} 1, \code{int} $-1$ (no integral basis) \\
+\bottomrule
+\end{tabular}
+\caption{The 1-D storage of each tier. The slack of every tier is sized from its target with \code{dD} 1, \code{dw} 1 and the term set \code{'auto'}, the box at offset 1.}\label{tab:1d}
+\end{table}
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrll}
+\toprule
+tier (2-D) & space & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $\Pi$ & kept / tensor \\
+\midrule
+light, stripped, custom & $L_2[x]$ & 0 & 2 & 2 & 2 & $\ba$, $\bb$ & $4/4$ \\
+ & $L_2[x,y]$ & $(0,0)$ & $(2,2)$ & $(1,1)$ & $(2,2)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $7/16$ \\
+heavy & $L_2[x]$ & 0 & 2 & 2 & 2 & $\ba$, $\bb$ & $3/4$ ($x\,\theta$ dropped) \\
+ & $L_2[x,y]$ & $(0,0)$ & $(2,2)$ & $(2,2)$ & $(2,2)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $9/16$ \\
+veryheavy & $L_2[x]$ & 3 & 3 & 2 & 3 & $\ba$, $\bb$, $\bc$ & $6/9$ \\
+ & $L_2[x,y]$ & $(0,0)$ & $(3,3)$ & $(2,2)$ & $(3,3)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $26/81$ \\
+extreme & $L_2[x]$ & 0 & 0 & 1 & -- & $\ba$ & $1/1$ \\
+ & $L_2[x,y]$ & $(0,0)$ & $(0,0)$ & $(1,1)$ & -- & $(\ba,\ba)$ & $1/1$ \\
+\bottomrule
+\end{tabular}
+\caption{The 2-D storage (\code{settings\_2d}) of each tier, by the number of variables of the space. The last column is the number of (lift monomial, multiplier monomial) pairs the cap tables keep in the complete-moment block, over the number in the tensor row; $\theta$ is the multiplier variable (\code{tt}, \code{nu} in the tier files). The row for $L_2[x,y]$ omits the mixed patterns $(\ba,\bb)$ and $(\bb,\ba)$, which \code{exclude} drops in every tier. The veryheavy $L_2[x]$ space keeps the lower and upper moments apart (\code{sep} off), with $d_{3\bc}=3$.}\label{tab:2d}
+\end{table}
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lrrrrll}
+\toprule
+tier ($N\ge3$) & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $\Pi$ & kept / tensor, $N=3$ \\
+\midrule
+every tier but stripped & $0$ & $2$ & $1$ & $2$ & $(\ba,\dots,\ba)$, $(\bb,\dots,\bb)$ & $22/64$ \\
+stripped & $0$ & $1$ & $1$ & $1$ & the same & $1/1$ \\
+\bottomrule
+\end{tabular}
+\caption{The storage in three or more variables (\code{lpi.pos} entry 3), per direction, every direction equal. Light, heavy, veryheavy, custom and extreme coincide: entry 3 of \code{mult}, \code{int} and \code{joint} is $0$, $1$, $2$ in each of them; the \code{joint} cap $2$ keeps $22$ of the $64$ pairs in three variables.}\label{tab:nd}
+\end{table}
+
+\paragraph{The 2-D struct of the present tiers.} \code{settings\_2d}, a struct, is the stock 2-D storage construction, read in two variables in place of \code{lpi.pos} and \code{lpi.var}. Its fields are \code{is2D}; for the storage, \code{LF\_deg} (the degrees \code{dx}, \code{dy}, \code{d2} of the $16$ bases), \code{LF\_opts} (\code{sep}, \code{exclude}, \code{psatz}), \code{LF\_use\_psatz}, \code{LF\_opts\_psatz} and \code{LF\_deg\_psatz}; for the free operator, \code{Zop\_deg}, twice the degrees of the storage, of which only the largest entry is read, and \code{Zop\_opts}, read by no container executive; for the \code{'stock'} slack, \code{use\_sosineq} with \code{ineq\_opts}, or \code{eq\_deg}, \code{eq\_opts}, \code{eq\_use\_psatz}, \code{eq\_opts\_psatz} and \code{eq\_deg\_psatz}. The proposed structure has no such field: in two variables the storage is the 2-D entry of the row, and the executives route every dimension through \code{poscopvar} with the row (work package 4, 11/17/2026). A storage the row cannot write (Section~\ref{sec:cannot}) is reached only through the explicit degree argument of \code{poscopvar}, outside the settings. The struct itself is now the explicit object \code{settings\_2d\_stock(level)} of \file{settings_sopvar/}, the former 2-D section of the tier file of each level (identical to it in all $18$ level-and-workspace comparisons, 11/17/2026), read by the lowrank and cuadmm demos (\code{heat2d\_compare}, \code{set2d\_deg}, \code{pielr\_lpi}); the tier files no longer carry it.
+
+\subsection{What the row cannot express}\label{sec:cannot}
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item \textbf{Total-degree caps.} The 2-D cap tables and the $N$-D \code{joint} cap keep a subset of the tensor pairs (the last columns of Tables~\ref{tab:2d} and \ref{tab:nd}): the light stock storage of $L_2[x,y]$ keeps, of the $16$ pairs at lengths $2$, the seven with no monomial mixing the two directions; heavy keeps nine, dropping $x\theta_x$ and $y\theta_y$ instead and keeping the mixed pairs, which is why neither contains the other; the $N$-D cap keeps the pairs of total degree at most $2$ over $2N$ variables. The row has no cap. The measured record on caps: in the 1-D $H_\infty$ gain the stock \code{joint} cap $3$ cost nothing in the $Q$ form and $4\times10^{-3}$ in the coercive form (lift notes, Sec.~7), and in 2-D the uncapped faces at the weight degree cost $10^6$ variables where the capped stock sizing is affordable (lift notes, heat benchmark, 10/08/2026).
+\item \textbf{The 2-D \code{sep} ties.} The stock 2-D storage keeps four basis operators, lower and upper in each direction, and equates the four kernels of the result; the row has one complete-moment basis operator. A Gram on the single operator is a Gram on the four with equal blocks, so the single-basis family is contained in the tied family; the reverse inclusion has not been established.
+\item \textbf{The 1-D spaces of a 2-D PIE.} The 2-D tiers give a 1-D space the complete moment alone ($d_1=0$, Table~\ref{tab:2d}) where the 1-D tiers give it both moments ($d_1=2$, Table~\ref{tab:1d}). The row, indexed by the number of variables of the space, holds one of the two. The routing record of 11/13/2026 measured the 1-D entry on the 1-D spaces of a 2-D PIE: the edge cascades S3 and S8 certified at $0.9\,r^*$ with no raise where the stock block returned UNKNOWN after one.
+\end{enumerate}
+
+\section{Requirements from the mixed-domain measurements of 11/16/2026}\label{sec:mixed}
+
+The row of Section~\ref{sec:settings} is the vocabulary of the replacement settings. This section fixes, by measurement, which of its knobs must be open in every entry and how the default stability test uses them. The instruments are three fixed positive operators and two LPIs on the mixed-domain suite (\file{testing_codes/private/converters/tests/mixed_domain}): S3, a 1-D heat state as Dirichlet datum on an edge of a 2-D heat state; S17, the same cascade with a transport state as the datum and a target of order $0$ in $s_1$; S18, library PDE~43 with the delay as a 2-D transport state. Every row is MOSEK at the light tier; ``in'' and ``out'' are MOSEK certificates of feasibility and of infeasibility; records in \file{sopvar/psatz_faces_results/mixed_domain/parameterization.md} and its tables.
+
+\subsection{Incomplete moments in every space}\label{sec:mixed-d1}
+
+The PDE norm itself is the first fixed operator: $\mcl T^*\mcl T$ on the fundamental spaces of each PIE, the operator that PIE-to-PDE stability compares the storage against. The equality $\mcl T^*\mcl T=\mcl P$ over the Gram variables of a storage decides whether the storage contains it.
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lccccc}
+\toprule
+fixed operator & \code{uniform}, light & \code{uniform}, raised & \code{separable}, light & \code{separable}, raised & \code{all}, raised \\
+\midrule
+$\mcl T^*\mcl T$ (S17, S3, S18; the $x_2$ of S17 alone) & out & out & out & out & in \\
+the storage that certifies S18 & out & out & out & in & in \\
+the storage that certifies S3 & in & in & in & in & in \\
+\bottomrule
+\end{tabular}
+\caption{Membership of fixed operators in the storage cones. Light: $d_2=2$, $d_{3\ba}=1$ (2-D space), $2$ (1-D space); raised: $d_2=d_1=3$, $d_{3\ba}=2$, total cap $4$. The uniform set is the present storage of every tier; the 1-D space of a mixed PIE is separable in it as well.}\label{tab:cone}
+\end{table}
+
+No storage with $d_1=0$ contains $\mcl T^*\mcl T$, for any of the three PIEs and for the pure 2-D state of order $(0,2)$ alone. So every entry of the row, in every number of variables and for the 1-D spaces of a mixed PIE, carries $d_1\ge1$; the rule of \code{poscopvar} that makes every direction of a 2-D space separable when \code{DEG} is omitted does not survive, and item~3 of Section~\ref{sec:cannot} is settled for the 1-D entry. The slack, which the reader sizes with every pattern, certified every fixed target tried ($\mcl T^*\mcl T$, its restrictions to each space, $\mcl A^*\mcl A$, the certifying storages); the gap is the storage.
+
+\subsection{The pattern set}\label{sec:mixed-patterns}
+
+S18 at $0.5\tau^*$ certifies in the direct form \code{'P'} with the pattern set $\{\ba,\bb\}^2$ at $d_2=3$, $d_{3\ba}=2$, cap $4$ (767\,305 variables, 64~s), and at $0.9\tau^*$; it is infeasible with the uniform set at the same lengths (109\,921 variables), with every set at the light lengths, and in the heavy stock storage of 11/12 (6.7M variables, UNKNOWN). The mixed patterns, a multiplier in one direction and an integral in the other, are what the uniform set lacks. Three named sets replace the two of Section~\ref{sec:tensor}: \code{uniform}, $\{(\ba,\dots,\ba),(\bb,\dots,\bb)\}$; \code{separable}, $\{\ba,\bb\}^N$; \code{all}, $\{\ba,\bb,\bc\}^N$. S18 is the PIE that item~4 of Section~\ref{sec:open} asked for: \code{uniform} fails and a strict subset of \code{all} certifies. Rows of the plain Gram per component at these lengths: $17$ (uniform, light), $36$ (uniform, raised), $121$ (\code{separable}, raised), $100$ (\code{all} at $(2,2,2,2)$, Table~\ref{tab:size}).
+
+\subsection{The default test needs no storage}\label{sec:mixed-q}
+
+PIE-to-PDE stability, the default test, asks for $\mcl Q$ with $\mcl Q\mcl T$ symmetric, $\mcl Q\mcl T\succeq\varepsilon\mcl T^*\mcl T$ and $\mcl Q\mcl A+\mcl A^*\mcl Q^*\preceq0$. The executive builds it in one variable with a storage $\mcl P$ and the equality $\mcl T^*\mcl Q=\mcl P$, and poses it as the \code{'P'} form in two or more. With the equality allowed in two variables, the construction fails on S3 (infeasible at $\mathrm{dw}=0$, UNKNOWN at $\mathrm{dw}=1$), which certifies in the \code{'P'} form with the same storage, and on S17 and S18 with every storage of Table~\ref{tab:cone}: $\mcl T^*\mcl Q$ carries the incomplete moments of $\mcl T$ and of $\mcl Q$, and the storage cannot hold them. Built as stated, with no storage, the test certifies all three:
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llllllll}
+\toprule
+system & $(2,0)$ & $(2,1)$ & $(3,0)$ & $(3,1)$ & $1.1\times$ & $\varepsilon=0.1$ & $0.9\times$ \\
+\midrule
+S3, $0.9r^*$ & in, $383$k, $15$~s & in & in & in & -- & -- & -- \\
+S17, $0.5r_2^*$ & in, $435$k, $22$~s & U & in, $1.16$M, $82$~s & in, $2.10$M, $257$~s & out & in & U \\
+S18, $0.5\tau^*$ & in, $228$k, $11$~s & in & in & in & out & in & U \\
+\bottomrule
+\end{tabular}
+\caption{The direct form of the default test: $\mcl Q$ free with the shape of $\mcl T$ (\code{lpivar\_cdopvar}, every cap at the length shown), the symmetry an equality, the two positivity constraints certified by the reader from their supports, $\varepsilon=10^{-4}$ unless shown. Columns $(\ell,\mathrm{dw})$: the length of $\mcl Q$ and the weight raise; then the margin at $1.1\times$ and $0.9\times$ its value, and $\varepsilon=0.1$, all at $(2,0)$. ``in'' is MOSEK optimal with $\eta<10^{-8}$, ``U'' UNKNOWN; the unstable cases are infeasible with a certificate; the certificates stand at $\varepsilon=0.1$.}\label{tab:qdirect}
+\end{table}
+
+S17 has no certificate in the \code{'P'} form at any length: \file{mixed_domain/S17_obstruction.md} proves that no coercive bounded quadratic form in the PDE state is a Lyapunov functional for it, and MOSEK returns infeasibility certificates once the scale of $\mcl P$ is fixed. The direct form escapes because $\mcl T^*\mcl Q$ need not factor as $\mcl T^*\mcl P\mcl T$. Consequences for the settings: the default test uses the free operator's lengths (\code{lpi.var.deg}: \code{mult}, \code{int}, \code{out}, \code{in}) and the reader's \code{dD}, \code{dw}, $F$, and does not read the storage row; the storage row serves the \code{'P'} forms (the gains, the norms, synthesis). The executive's \code{'Q'} branch is replaced by this construction in every number of variables.
+
+\subsection{The terms are necessary for the lift of the PDE norm}\label{sec:mixed-terms}
+
+The second fixed operator is $\gamma I-\mcl T^*\mcl T$ on the fundamental spaces, strictly positive for $\gamma>\|\mcl T\|^2$. With $\lambda$ a Rayleigh lower bound of $\|\mcl T\|^2$ over orthonormal Legendre products (degree $6$ on a 1-D space, $4$ per variable on a 2-D space), a bisection in $\gamma$ of the reader's certificate gives its reach:
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llllll}
+\toprule
+PIE & $\lambda$ & $F=\emptyset$ at $4\lambda$ & faces, light & faces, raised & sharp constant \\
+\midrule
+S17 & $0.5420$ & U & $\gamma_{\min}/\lambda=1.0117$ & $1.0117$ & $1.00002$ \\
+S3 & $0.01370$ & out & $1.0117$ & $1.0117$ & $1.00002$ \\
+S18 ($[0,\pi]\times[0,\tau]$) & $1.5494$ & -- & -- & -- & $1.00002$ \\
+the $x_2$ of S17 alone, order $(0,2)$ & $0.010266=\pi^{-4}$ & out & $1.0117$ & $1.0117$ & -- \\
+1-D transport, $x(0)=0$ & $0.405285=4/\pi^2$ & out & $1.0117$ & $1.0117$ & $1.00002$ \\
+\bottomrule
+\end{tabular}
+\caption{Reach of the certificate of $\gamma I-\mcl T^*\mcl T$: bracket $[\lambda,4\lambda]$, 8 steps (resolution $1.2\%$ of $\lambda$, so $1.0117$ is the resolution). Third column: the plain term alone at $\gamma=4\lambda$ (``out'' infeasible with a certificate, ``U'' UNKNOWN); the last column is the sharp-constant run of Table~\ref{tab:poinc2}. $\lambda$ equals the exact norm where it is known.}\label{tab:poinc}
+\end{table}
+
+Without a term the PDE norm is not certifiable at four times its value, by a Farkas certificate on S3; with the faces it is certified to the resolution of the bisection above the Rayleigh bound. This is the mixed-domain form of the 1-D result of 09/28/2026 (DEMO3): $\gamma\mcl H_1^*\mcl H_1-\mcl H_2^*\mcl H_2$ lies outside the cone without the box weight for every $\gamma$ and every length, and inside it with the weight from length $3$. So $F=\emptyset$ is not a default for the slack in any number of variables, and the question of the terms on mixed domains is which faces and products, at which offsets, the reader should carry: Section~\ref{sec:program}.
+
+\section{Experimental program for the terms on mixed domains}\label{sec:program}
+
+No theorem gives the term set of a mixed-domain certificate. The psatz-faces run of 11/15 (\file{sopvar/psatz_faces_results/SUMMARY.md}) settled the pure $N$-D case at $w\ge2$ (every set ties; the faces at offset $0$ carry the odd-degree half step at $w=1$ and in three variables) and found the term set irrelevant on the mixed-domain verdicts of S3, S8, S24, S17 and S18, where the storage and the form decide. What remains is the cost at equal verdict and the terms of the two inequalities of the direct test. The program:
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item \textbf{Registry faces against owned faces.} A term acts in every registry direction; for a 1-D space inside a 2-D PIE the faces of the direction it does not own are a weight in a variable its block does not see. Instrument: $\gamma I-\mcl T^*\mcl T$ and the two inequalities of Table~\ref{tab:qdirect} with the face rows restricted to the directions each space owns, against the registry faces, at equal lengths: reach and variables.
+\item \textbf{Products across directions.} The corner rows changed no verdict in two variables; the mixed-domain suite has no case that needs a weight vanishing on two faces at once. Instrument: the coercivity inequality $\mcl T^*\mcl Q\succeq\varepsilon\mcl T^*\mcl T$ at $\varepsilon$ near the reach of each term set, which is where a missing product would show.
+\item \textbf{Offsets per direction.} The run of 11/15 found the per-direction offset right for the box factors and wrong for the face rows in pure 2-D. On a mixed PIE the offset of a face in a direction a space does not own lowers nothing in that block. Instrument: the same two inequalities with the scalar and the per-direction rules, at $w=1$ and $w=2$.
+\item \textbf{The 1-D space of a mixed PIE.} Its own theory is the box factor at offset $1$ (Markov--Luk\'acs); the registry gives it faces. Instrument: S3, S8, S17 and S18 with the 1-D space's rows set to the box factor, the faces, and both, at the lengths of the 1-D tier.
+\item \textbf{The delayed PDEs, 0-D--1-D--2-D.} Library PDEs 42 and 43 and the DDE rows carry an $\R^q$ space, a 1-D space and a 2-D transport state; they are the only baselines with three kinds of space. Instrument: the direct test at $0.5$ and $0.9$ of the known margins, every named term set.
+\end{enumerate}
+
+Unit costs measured on 11/16 at light: a certificate of $\gamma I-\mcl T^*\mcl T$, $1$--$10$~s; a direct-test solve, $11$--$260$~s (Table~\ref{tab:qdirect}); an executive solve on the suite, $5$--$150$~s. Items 1--4 are one night on the workstation in 20-minute batches; item 5 depends on the delayed rows' sizes, which the 11/12 record puts at $0.5$M--$7$M variables. Three variables (S13, the heat benchmark) go to Sol: the C5c run of 11/15--16 (job 1621028) took $9.5$~h for ten interior-point iterations on a $77$k-row program and did not finish, so a 3-D row is priced from a measured iteration time, not from a memory rule.
+
+\subsection{Baselines for the replacement}\label{sec:baselines}
+
+The replacement is accepted against the baselines of each kind of space, at the tier whose lengths are entrywise no smaller than today's (so that nothing certified today is lost) and at equal size where a verdict changes: the 1-D library at light and heavy (bit-identical programs where Proposition~\ref{prop:span} applies); the 2-D rows 33--35, 37, 39, 40, 45--48 and the \code{fin2} ladder; the 3-D heat benchmark on Sol; the 0-D--1-D rows (ODE--PDE couplings, library PDEs 42, 43); the mixed-domain suite (41 checks) with S3, S8, S17, S18 and S24 at $0.9$ of their margins; and the direct test on every row where the executive's \code{'Q'} branch ran before. Each run records the verdict, the variables, $m$ and the time, as the tables of this note do.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llll}
+\toprule
+PIE & $\lambda$ & faces, light: $\gamma_{\min}/\lambda$ & faces, raised \\
+\midrule
+S17 (unit square) & $0.541992$ & $1.00002$ & $1.00002$ \\
+S3 (unit square) & $0.013704$ & $1.00002$ & $1.00002$ \\
+S18 ($[0,\pi]\times[0,\tau]$) & $1.549369$ & $1.00002$ & $1.00002$ \\
+1-D transport, $x(0)=0$ & $0.405285=4/\pi^2$ & $1.00002$ & $1.00002$ \\
+\bottomrule
+\end{tabular}
+\caption{Reach of the certificate of $\gamma I-\mcl T^*\mcl T$ near the sharp constant: bracket $[\lambda,1.1\lambda]$, $12$ bisection steps (resolution $2.4\times10^{-5}$), the reader's default terms at the light lengths and at $\mathrm{dD}=\mathrm{dw}=2$. The certified $\gamma$ is an upper bound of $\|\mcl T\|^2$ and $\lambda$ a lower bound, so the norm is pinned to five digits on each PIE.}\label{tab:poinc2}
+\end{table}
+
+\section{Measurements before a change of defaults}\label{sec:measure}
+
+The row is a different family from every stock block in two or more variables, so no default moves without the comparison below, at equal lengths and at equal size, with the stock block as the reference. Each item names its record.
+\begin{enumerate}\setlength\itemsep{0pt}
+\item The \code{fin2} gain ladder (\file{settings_sopvar/README.md}; exact $0.068606888$): stock gaps $5.0\times10^{-3}$, $4.7\times10^{-4}$, $3.7\times10^{-5}$, $2.4\times10^{-5}$ at stripped, light, heavy, veryheavy, with $107$k, $192$k, $759$k, $2.39$M variables. The per-space defaults gave $4.8\times10^{-4}$ at every tier above stripped.
+\item The 2-D $H_\infty$ estimator of library PDE~48: stock light $0.0061794$ at $196$k variables; the best bound measured $0.0024154$ at $2.41$M variables (per-space defaults with \code{mult} 1, \code{int} 2, \code{joint} 4).
+\item Library 2-D rows 33--35, 37, 39, 40 (stability, form \code{'P'}) and 45--47 (gains): identical outcomes and sizes within $0.1\%$ under the per-space defaults.
+\item The mixed-domain suite, \code{test\_mixed\_domain\_pde('exec')}: $41$ checks, of which $28$ pass under either storage; the five $H_\infty$ gains at light and heavy (gaps $1.2\times10^{-4}$ to $3.7\times10^{-3}$); S3 and S8 at $0.9\,r^*$.
+\item Three variables: the heat stability and gain rows of \code{heatNd} (light certified in $289$ s; the gain $41\%$ above exact at light), under the $N$-D row with and without the \code{joint} cap, and with \code{uniform} against \code{all} patterns where the SDP solves.
+\item The 1-D library baselines at light and heavy, which Proposition~\ref{prop:span} predicts unchanged; a bit-identical program is the check.
+\end{enumerate}
+
+\section{Open decisions}\label{sec:open}
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item \textbf{Offsets per direction.} Rule \eqref{eq:d4} lowers the length of a term in the directions of its factors; the builder lowers every direction. The rule keeps every term within the degree of the plain term and no smaller; the measurement is the cost and the bound of the faces in 2-D and 3-D under each.
+\item \textbf{Faces at $d_3=2$.} The slack rule \code{'auto'} keeps the faces at the plain length when any weight degree is $1$, so that no face carries a constant multiplier; rule \eqref{eq:d4} gives them length $1$ there. Which to make the default is a measurement on the 2-D heat benchmark, where the faces were needed.
+\item \textbf{Caps.} Three options: no cap, the row as stated; an optional total-degree cap per block, one number, the \code{joint} field of the code, which writes the $N$-D tiers and not the 2-D ones; or the 2-D cap tables, given through the explicit degree argument of \code{poscopvar} outside the settings (Section~\ref{sec:app-settings}). The first two are a measurement of item~1 of Section~\ref{sec:measure}; the third is the present state.
+\item \textbf{Patterns in two or more variables} (settled 11/16, Section~\ref{sec:mixed-patterns}: S18 is the PIE that \code{uniform} fails and \code{separable} certifies). \code{uniform} is the default of every present tier; \code{all} is the form of the conjecture, at the cost of Table~\ref{tab:size}. The named sets suffice until a PIE is found that \code{uniform} fails and a strict subset of \code{all} certifies.
+\item \textbf{The 1-D spaces of an $N$-D PIE} (settled 11/16, Section~\ref{sec:mixed-d1}: $d_1\ge1$ in every entry). Item~3 of Section~\ref{sec:cannot}: the 1-D entry, measured once in favour on S3 and S8, or the complete moment alone, as the 2-D tiers have it.
+\item \textbf{The lengths of the free operator.} The default test (Section~\ref{sec:mixed-q}) reads \code{lpi.var.deg} and not the storage row; its four caps (\code{mult}, \code{int}, \code{out}, \code{in}) per entry are knobs of the same standing as $d_1$, $d_2$, $d_3$, and their tier values are a measurement on the baselines of Section~\ref{sec:baselines} (length $2$ certified S3, S17 and S18 at half their margins; the reach at $0.9$ of the margins needs more).
+\item \textbf{Names.} The field names of the layout are provisional; the length convention in each name is not.
+\item \textbf{Citations.} Karlin and Studden (1966) for the scalar Markov--Luk\'acs theorem, Dette and Studden (2002) for the matrix case, Schm\"udgen (1991), Putinar (1993) and Scherer and Hol (2006) are cited from memory and are to be verified before any of this enters the manual.
+\item \textbf{The conjecture.} Unproven; the Poincar\'e case shows that the least $d_1$ is not read from the support, so no rule of Section~\ref{sec:settings} is complete. The role of the row is to make every certificate the code can build nameable in the factors of \eqref{eq:cert}, not to decide which one exists.
+\end{enumerate}
+
+\end{document}

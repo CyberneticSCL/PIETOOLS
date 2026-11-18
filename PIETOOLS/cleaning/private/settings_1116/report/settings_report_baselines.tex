@@ -1,0 +1,204 @@
+Every row below is the executive path at the light tier (\code{PIETOOLS\_stability\_sop}, \code{PIETOOLS\_Hinf\_gain\_sop}, \code{PIETOOLS\_Hinf\_estimator\_sop}, form \code{'P'}; the executive's own raise loop and slack terms) with the storage replaced by a row of Section~\ref{sec:tiers-values} through the reader; ``stock'' is the repository's storage (the 1-D tier entry and the 2-D cap tables). Counts are the decision variables of the SDP; ``in'' is MOSEK optimal with the certified flag, ``out'' MOSEK infeasible after the executive's raises, ``U'' UNKNOWN; records in \file{sopvar/psatz_faces_results/mixed_domain/baselines_results.md}.
+
+\subsection{Single domains: the library}\label{sec:bl-lib}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{1.8pt}
+\begin{tabular}{llrlrlrlrlrl}
+\toprule
+row & LPI & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{Rdef} & \multicolumn{2}{c}{Rlight0} & \multicolumn{2}{c}{Rlight} & \multicolumn{2}{c}{Rlight2} \\
+\midrule
+PDE 1 & stab & $280$ & in & $216$ & in & $280$ & in & $280$ & in & $280$ & in \\
+PDE 2,13,17,21 & stab & $1\,120$ & in & $864$ & in & $1\,120$ & in & $1\,120$ & in & $1\,120$ & in \\
+PDE 3 & stab & $2\,520$ & in & $8\,424$ & out (dw $2$) & $2\,520$ & in & $2\,520$ & in & $2\,520$ & in \\
+PDE 5 & stab & $568$ & in (dw $1$) & $504$ & in (dw $1$) & $568$ & in (dw $1$) & $568$ & in (dw $1$) & $568$ & in (dw $1$) \\
+PDE 8 & stab & $4\,880$ & out & $4\,560$ & out & $4\,880$ & out & $4\,880$ & out & $4\,880$ & out \\
+PDE 33, 35, 37 & stab & $103\,744$ & in & $103\,969$ & in & $104\,305$ & in & $190\,321$ & in & $608\,561$ & in (33) \\
+PDE 34 & stab & $187\,984$ & in (dw $1$) & $188\,209$ & in (dw $1$) & $188\,545$ & in (dw $1$) & $190\,321$ & in & -- & \\
+PDE 39 & stab & $933\,696$ & in, $228$~s & $935\,721$ & in, $200$~s & $938\,745$ & in, $340$~s & $1\,712\,889$ & in, $1\,254$~s & -- & \\
+PDE 40 & stab & $105\,206$ & in & $105\,449$ & in & $105\,801$ & in & $192\,225$ & in & -- & \\
+PDE 45 & gain & $200\,425$ & $0.111982$ & $200\,650$ & $0.111982$ & $200\,986$ & $0.111982$ & $800\,275$ & $0.111976$ & $2\,471\,907$ & $0.111015$ \\
+PDE 46 & gain & $200\,425$ & $0.171722$ & $200\,650$ & $0.171722$ & $200\,986$ & $0.171737$ & $800\,275$ & $0.171712$ & -- & \\
+PDE 47 & gain & $200\,425$ & $0.208535$ & $200\,650$ & $0.208535$ & $200\,986$ & $0.208535$ & $800\,275$ & $0.208534$ & -- & \\
+PDE 48 & estimator & $195\,815$ & $0.006179$ & $196\,040$ & $0.006929$ & $196\,376$ & $0.004686$ & $769\,688$ & $0.004477$ & $2\,417\,576$ & $0.002214$ \\
+\bottomrule
+\end{tabular}
+\caption{Library rows (1-D: PDE 1--21; 2-D: PDE 33--48) under the stock storage and four rows, light tier. Rdef: the omitted-\code{DEG} default of \code{poscopvar} as a row (\code{uniform} in every entry, $d_1=0$; the 1-D entry $d_2=2$, $d_3=(2,2,\cdot)$). The other three share the 1-D entry $d_1=d_2=2$, $d_3=(2,2,2)$, \code{all} (the stock 1-D storage, so their 1-D rows coincide) and differ in the 2-D entry: Rlight0 $d_1=0$, $d_2=2$, $d_3=(1,2,\cdot)$, \code{separable} (the stock light lengths); Rlight $d_1=1$, $d_2=2$, $d_3=(1,2,2)$, \code{all}; Rlight2 $d_1=0$, $d_2=3$, $d_3=(2,3,\cdot)$, \code{separable} (the stock veryheavy lengths), run on three rows. Times where they exceed a minute; gains and estimator bounds as certified.}\label{tab:bl-lib}
+\end{table}
+
+In one variable the row with every pattern at the stock lengths is the stock storage: the same variables, rows and verdicts on all eight rows (the translation of Proposition~\ref{prop:span}). The uniform 1-D row, without incomplete moments, is $23\%$ smaller and loses PDE~3, so $d_1\ge1$ stays in the 1-D entry of every tier. In two variables the uniform and the separable rows at the stock light lengths match the stock sizes within $0.6\%$ with the same verdicts, gains within $10^{-4}$ of stock (the separable row $8\times10^{-5}$ above it on PDE~46), and PDE~39 at $0.9\times$ and $1.5\times$ the stock time; the row with every pattern and $d_1=1$ certifies the same rows at $1.8\times$ the variables on the heat rows, $4\times$ on the gains (tighter by $10^{-5}$) and $1.8\times$ the variables and $5.5\times$ the time on PDE~39; the separable row at $d_2=3$ costs $6$--$12\times$ the stock variables and $17$--$73\times$ the time and is the first row to move the PDE~45 gain, by $0.9\%$. The PDE~48 estimator bounds fall with every enlargement of the row but also under the per-direction cap (Section~\ref{sec:bl-cap}), so they are certified bounds, not a ranking of rows.
+
+\subsection{Mixed domains}\label{sec:bl-mixed}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrlrlrlrl}
+\toprule
+row & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{Rdef} & \multicolumn{2}{c}{Rlight} & \multicolumn{2}{c}{Rlight2} \\
+\midrule
+S1 (ODE, 1-D heat) & $339$ & in & $267$ & in & $339$ & in & $339$ & in \\
+S3 (edge cascade) & $508\,228$ & U, $50$~s & $318\,361$ & in, $8$~s & $260\,541$ & in, $13$~s & $1\,512\,873$ & in, $171$~s \\
+S8 (two edges) & $1\,336\,720$ & U, $139$~s & $335\,761$ & in, $13$~s & $342\,001$ & in, $22$~s & $3\,737\,921$ & in, $744$~s \\
+S4 (Wentzell) & $317\,716$ & in, $8$~s & $318\,361$ & in, $8$~s & $260\,541$ & in, $15$~s & $1\,512\,873$ & in, $171$~s \\
+S6 (1-D in 2-D) & $525\,364$ & in, $29$~s & $526\,645$ & in, $30$~s & $431\,112$ & in, $30$~s & $2\,256\,848$ & in, $362$~s \\
+S7 (ODE, 2-D) & $528\,666$ & in, $33$~s & $530\,101$ & in, $34$~s & $537\,081$ & in, $149$~s & $5\,394\,189$ & in, $1\,940$~s \\
+S9 (ODE, 2-D flux) & $417\,895$ & in, $19$~s & $418\,570$ & in, $18$~s & $341\,708$ & in, $25$~s & -- & \\
+S26 (PDE 42) & $336\,926$ & in, $23$~s & $338\,249$ & in, $23$~s & $344\,585$ & in, $32$~s & -- & \\
+S2 (ODE, 2-D edge) & $417\,895$ & in, $32$~s & $418\,570$ & in, $29$~s & $341\,708$ & in, $36$~s & -- & \\
+S5 (ODE, 1-D, 2-D) & $320\,270$ & in, $14$~s & $320\,945$ & in, $8$~s & $262\,785$ & in, $19$~s & -- & \\
+S18 (PDE 43), $0.5\tau^*$ & $508\,228$ & out, $67$~s & $508\,873$ & out, $77$~s & $1\,027\,881$ & U, $132$~s & $1\,512\,873$ & in, $436$~s \\
+S18, $0.9\tau^*$ & $508\,228$ & out, $60$~s & $508\,873$ & out, $64$~s & $1\,027\,881$ & U, $175$~s & $1\,512\,873$ & in, $366$~s \\
+\bottomrule
+\end{tabular}
+\caption{The mixed suite, stability \code{'P'} at $0.9$ of the margin (S2, S5 at $a=0.5$; S18 at $0.5\tau^*$ and $0.9\tau^*$), light tier, under the stock storage and three rows. ``U'' is UNKNOWN after the light tier's one raise, ``out'' infeasible after it. The rows as in Table~\ref{tab:bl-lib}; Rlight2 was run on the rows shown.}\label{tab:bl-mixed}
+\end{table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrlrlrl}
+\toprule
+row & exact gain & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{Rdef} & \multicolumn{2}{c}{Rlight} \\
+\midrule
+S23 (2-D in-domain) & $0.0093385782$ & $875\,650$ & $9.3$, $146$~s & $876\,931$ & $10.0$, $210$~s & $1\,768\,518$ & $3.0$, $482$~s \\
+S24 (ODE, 2-D edge) & $0.5$ & $674\,256$ & $4.3$, $91$~s & $674\,931$ & $4.6$, $81$~s & $1\,356\,565$ & $0.0$, $243$~s \\
+S25 (Wentzell) & $0.0692045143$ & $535\,810$ & $367$, $81$~s & $536\,455$ & $366$, $68$~s & $1\,081\,659$ & $224$, $285$~s \\
+\bottomrule
+\end{tabular}
+\caption{The mixed-suite gains, \code{'P'} form, light tier: variables, the relative gap of the certified gain above the exact value in units of $10^{-5}$, and the time.}\label{tab:bl-mixed-gain}
+\end{table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrlrlrlrl}
+\toprule
+row & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{Rdef (\code{uniform})} & \multicolumn{2}{c}{Rlight0 (\code{separable})} & \multicolumn{2}{c}{Rlight\_cap1 (\code{all}, $d_1=1$, $c=1$)} \\
+\midrule
+S1 & $339$ & in & $267$ & in & $339$ & in & $339$ & in \\
+S3 & $508\,228$ & U & $318\,361$ & in & $319\,545$ & in & $320\,656$ & in \\
+S8 & $1\,336\,720$ & U & $335\,761$ & in & $338\,305$ & in & $339\,856$ & in \\
+S4 & $317\,716$ & in & $318\,361$ & in & $319\,545$ & in & $320\,656$ & in \\
+S6 & $525\,364$ & in & $526\,645$ & in & $529\,317$ & in & $530\,974$ & in \\
+S7 & $528\,666$ & in, $33$~s & $530\,101$ & in, $34$~s & $533\,289$ & in, $170$~s & $534\,884$ & in, $175$~s \\
+S9 & $417\,895$ & in & $418\,570$ & in & $419\,990$ & in & $421\,123$ & in \\
+S26 & $336\,926$ & in & $338\,249$ & in & $340\,841$ & in & $342\,414$ & in \\
+S2 & $417\,895$ & in & $418\,570$ & in & $419\,990$ & in & $421\,123$ & in \\
+S5 & $320\,270$ & in & $320\,945$ & in & $322\,161$ & in & $323\,294$ & in \\
+S18, $0.5\tau^*$ & $508\,228$ & out & $508\,873$ & out & $510\,057$ & out & $511\,168$ & U \\
+S23 (gap) & $875\,650$ & $9.3$ & $876\,931$ & $10.0$ & $879\,603$ & $2.9$ & $881\,260$ & $1.6$ \\
+S24 (gap) & $674\,256$ & $4.3$ & $674\,931$ & $4.6$ & $676\,351$ & $1.4$ & $677\,484$ & $1.9$ \\
+S25 (gap) & $535\,810$ & $367$ & $536\,455$ & $366$ & $537\,639$ & $320$ & $538\,750$ & $273$ \\
+PDE 39 (time) & $933\,696$ & $228$~s & $935\,721$ & $200$~s & $938\,745$ & $340$~s & $944\,784$ & $460$~s \\
+\bottomrule
+\end{tabular}
+\caption{The three stock-sized light 2-D candidates, light tier: the mixed suite (stability at the margins of Table~\ref{tab:bl-mixed}, gains as relative gaps in units of $10^{-5}$) and the largest library row. Every candidate replicates the stock 2-D library at the stock size (Table~\ref{tab:bl-lib}).}\label{tab:bl-light}
+\end{table}
+
+The three candidates lie within $1.5\%$ of one another in variables on every row and agree on every verdict; they differ in time on the largest rows (S7 at $170$--$175$~s against $34$~s for the uniform row, PDE~39 at $1.7$--$2.3\times$) and in the mixed gains, where the separable and the capped rows come $2$--$3\times$ closer to the exact value than the uniform row on S23 and S24 and $13$--$25\%$ closer on S25.
+
+Verdicts first. The uniform row and the all-pattern row certify every stability row of the suite but S18, and every gain; the stock storage returns UNKNOWN after its raise on the two edge cascades S3 and S8 (the routing record of 11/13/2026, item~3 of Section~\ref{sec:cannot}) and is infeasible on S18 at both margins. S18 certifies under the separable row at $d_2=3$ alone, at $0.5\tau^*$ and at $0.9\tau^*$ (the pattern finding of Section~\ref{sec:mixed-patterns}; the all-pattern row at $d_1=1$, $d_2=2$ is UNKNOWN at twice the stock variables). Cost next. Where the stock storage certifies, the uniform row matches it within $0.4\%$ in variables and within $20\%$ in time; the all-pattern row costs $0.65$--$1.0\times$ the variables on the stability rows (the 1-D entry with $d_1=2$ makes the slack of the 1-D space smaller than the uniform 1-D entry does) and $2.0\times$ on the three gains, at $1.5$--$4.5\times$ the time, and tightens the gains: S24 to the exact value where the stock row is $4\times10^{-5}$ above it, S23 by a factor $3$, S25 by $1.6$. The separable row at $d_2=3$ costs $3$--$10\times$ the stock variables and $5$--$60\times$ the time on the rows that do not need it.
+
+\subsection{The 2-D ladder and three variables}\label{sec:bl-fin2}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrlrlrlrlrl}
+\toprule
+LPI, tier & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{Rdef} & \multicolumn{2}{c}{Rlight0} & \multicolumn{2}{c}{Rlight} & \multicolumn{2}{c}{Rlight2} \\
+\midrule
+fin2, L & $191\,605$ & $47$, $13$~s & $191\,830$ & $48$, $10$~s & $192\,166$ & $47$, $15$~s & $761\,590$ & $15$, $68$~s & $2\,403\,654$ & $2.2$, $1\,036$~s \\
+rd2, L & $187\,984$ & in$^{1}$, $12$~s & $188\,209$ & in$^{1}$, $12$~s & $188\,545$ & in$^{1}$, $14$~s & $190\,321$ & in, $11$~s & $608\,561$ & in, $79$~s \\
+fin2, H & $759\,358$ & $3.7$, $105$~s & -- & & -- & & $761\,590$ & $15$, $85$~s & $2\,403\,654$ & $2.2$, $794$~s \\
+rd2, H & $751\,849$ & in, $73$~s & -- & & -- & & $754\,081$ & in, $60$~s & $2\,390\,321$ & in, $470$~s \\
+3-D heat, L & $907\,729$ & out, $230$~s & -- & & -- & & $911\,425$ & out, $318$~s & -- & \\
+3-D heat, L, no slack bound & \multicolumn{10}{l}{$20.9$M variables, $m=126\,681$, every storage; stopped at $20$~min, $49$~GB} \\
+\bottomrule
+\end{tabular}
+\caption{The 2-D ladder: the heat gain fin2 (exact $0.068606888$; the relative gap of the certified gain in units of $10^{-5}$) and the stability of the 2-D heat equation at $0.9$ of its margin (rd2; in$^1$: after one raise), light and heavy tiers, and the 3-D heat benchmark at $0.9\kappa^*$ (DD$\times$DN$\times$DN) at light. The heavy tier differs from light in the stock 2-D storage (multiplier degree $2$, nine of the sixteen pairs) and in the stability raise \code{dw\_feas}; the row storages are the same in both. Rows as in Table~\ref{tab:bl-lib}.}\label{tab:bl-fin2}
+\end{table}
+
+At light, the uniform and the separable rows reproduce the stock gain within $2\%$ of its gap and the stock size within $0.3\%$; the all-pattern row with $d_1=1$ costs $4\times$ the variables for a gap $3\times$ smaller, and the separable row at $d_2=3$ $12.5\times$ for $21\times$. On rd2 every row certifies, the stock and uniform rows after one raise, the others at none. At heavy, the row storages are unchanged and the stock heavy 2-D storage gives the smallest gap of the ladder below the veryheavy lengths, at the size of the uniform row at the heavy lengths (Table~\ref{tab:bl-heavy}).
+
+\subsection{The heavy 2-D entry}\label{sec:bl-heavy}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrlrlrl}
+\toprule
+row & tier & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{Rheavy\_u (\code{uniform})} & \multicolumn{2}{c}{Rheavy\_s (\code{separable})} \\
+\midrule
+fin2 & heavy & $759\,358$ & $3.7$, $105$~s & $759\,589$ & $15$, $71$~s & $760\,485$ & $19$, $70$~s \\
+rd2 at $0.9$ & heavy & $751\,849$ & in, $73$~s & $752\,080$ & in, $55$~s & $752\,976$ & in, $58$~s \\
+PDE 48 & heavy / light & $767\,456$ & $0.004533$, $89$~s & $767\,687$ & $0.004673$, $109$~s & $768\,583$ & $0.004384$, $93$~s \\
+S3, $0.9r^*$ & light & $508\,228$ & U, $76$~s & -- & & $511\,753$ & in, $33$~s \\
+S18, $0.5\tau^*$ & light & $508\,228$ & out, $64$~s & -- & & $1\,725\,385$ & U, $341$~s \\
+\bottomrule
+\end{tabular}
+\caption{The heavy 2-D entry: the present heavy lengths ($d_1=0$, $d_2=2$, $d_{3\ba}=2$, $d_{3\bb}=2$) as a uniform and as a separable row against the stock heavy 2-D storage; fin2 gaps in units of $10^{-5}$. PDE~48: the stock 2-D storage at the heavy tier, the rows at light (the storage is the object compared; the slack tier of the estimator is the same in 2-D). The all-pattern row at $d_1=2$, $d_2=3$, $d_3=(2,3,3)$ (289 Gram rows per component) was stopped on fin2 at $18.8$~GB after $30$~min of MOSEK and is not a tier.}\label{tab:bl-heavy}
+\end{table}
+
+The separable row at the heavy lengths is stock-heavy-sized on every row (within $0.2\%$ in variables), certifies S3 where the stock 2-D storage is UNKNOWN, does not reach S18 (which needs $d_2=3$), and gives the fin2 gap at the level of the all-pattern light row ($15$--$19$), not the stock heavy's $3.7$; on PDE~48 the three storages lie within $\pm3\%$ of one another, inside the solver's variation. The heavy entry of Table~\ref{tab:tiers} is this row: the present heavy lengths with the separable patterns.
+
+\subsection{The per-direction cap}\label{sec:bl-cap}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrlrlrl}
+\toprule
+row & LPI & \multicolumn{2}{c}{stock} & \multicolumn{2}{c}{\code{all}, $d_1=1$, $c=\infty$ (Rlight)} & \multicolumn{2}{c}{\code{all}, $d_1=1$, $c=1$ (Rlight\_cap1)} \\
+\midrule
+fin2 & gain & $191\,605$ & $+4.7\cdot10^{-4}$, $17$~s & $761\,590$ & $+1.5\cdot10^{-4}$, $82$~s & $192\,837$ & $+5.0\cdot10^{-4}$, $15$~s \\
+PDE 48 & estimator & $195\,815$ & $0.006179$, $16$~s & $769\,688$ & $0.004477$, $124$~s & $197\,047$ & $0.003774$, $20$~s \\
+S3, $0.9r^*$ & stab & $508\,228$ & U, $76$~s & $260\,541$ & in, $20$~s & $320\,656$ & in, $18$~s \\
+S18, $0.5\tau^*$ & stab & $508\,228$ & out, $64$~s & $1\,027\,881$ & U, $120$~s & $511\,168$ & U, $73$~s \\
+\bottomrule
+\end{tabular}
+\caption{The per-direction cap on the all-pattern row at the light lengths (light tier). The cap $c=2$ is no restriction at these lengths and reproduced the uncapped column exactly (same variables, rows, values and verdicts) on all four rows; $c=1$ drops the within-direction products $\theta_k s_k$, nine of the sixteen pairs of the complete-moment block kept.}\label{tab:bl-cap}
+\end{table}
+
+The cap at $1$ brings the all-pattern row with $d_1=1$ to the stock size on every row ($0.6$--$1.0\times$ the stock variables, $1.0$--$1.2\times$ the time), keeps the S3 certificate the stock storage misses, and costs $6\%$ of the fin2 gap against stock ($3.3\times$ against the uncapped row). The PDE~48 bound under the cap, $0.003774$, lies below the uncapped row's $0.004477$ although the capped family is contained in the uncapped one: the larger program's MOSEK solve is not at its optimum (the estimator's known solver limit, decisions D23 and D50 of the record), so the estimator does not rank rows and its values are certified bounds only. S18 at $0.5\tau^*$ is UNKNOWN under every light row, capped or not.
+
+Run on the whole 2-D library and the mixed suite, the capped row stays stock-sized (within $1.2\%$ of the stock variables on the library, within $1\%$ of the uniform row on the mixed suite), keeps every stock verdict and every mixed verdict of the uniform row (all but S18), holds the library gains within $10^{-5}$ of stock, and gives the mixed gains between the stock and the uncapped row (S23 $1.6$, S24 $1.9$, S25 $273$ in units of $10^{-5}$ against $9.3$, $4.3$, $367$ for stock); its one cost is time on the largest row, PDE~39 at $460$~s against $228$~s, from $25\,005$ equality rows against $18\,411$ (Table~\ref{tab:bl-light}). So an all-pattern entry with incomplete moments is affordable at light under the per-direction cap; it is not the light entry of Table~\ref{tab:tiers} because the heavy and veryheavy entries, separable without the $\bc$ block, would not contain it, and the tiers are to nest.
+
+\subsection{The cross length}\label{sec:bl-cross}
+
+The cross length is the length of the monomials an $L_2$ space carries in a registry direction it does not own: for the storage the row field \code{len\_cross} ($1$: none, the 0-D/1-D construction; the rule of the reader gives the largest own multiplier length of the operator, $2$ at the light lengths and $3$ at the veryheavy ones), for the slack the option \code{wcross} of \code{get\_lift\_degs} ($0$: none; the rule gives the registry weight degree $w_k$). Records in \file{sopvar/psatz_faces_results/mixed_domain/terms_results.md}, section ``The cross length''.
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrr}
+\toprule
+row & cross $1$ & cross $2$ & cross $3$ \\
+\midrule
+S3 & in, $318\,745$ & in, $319\,545$ & in, $320\,545$ \\
+S8 & in, $336\,105$ & in, $338\,305$ & in, $341\,305$ \\
+S4 & in, $318\,745$ & in, $319\,545$ & in, $320\,545$ \\
+S6 & in, $527\,117$ & in, $529\,317$ & in, $532\,370$ \\
+S5 & in, $321\,341$ & in, $322\,161$ & in, $323\,181$ \\
+S26 & in, $338\,601$ & in, $340\,841$ & in, $343\,881$ \\
+S18, $0.5\tau^*$, Rlight2 & in, $1\,510\,153$ & in, $1\,512\,873$ & in, $1\,515\,793$ \\
+\bottomrule
+\end{tabular}
+\caption{The storage by cross length \code{len\_cross}: verdict and variables. The separable light row Rlight0, stability \code{'P'} at $0.9$ of the margin (S5 at $0.5$), light tier; S18 at $0.5\tau^*$ under the veryheavy row Rlight2. The rule of the reader is cross length $2$ under Rlight0 and $3$ under Rlight2.}\label{tab:bl-cross-storage}
+\end{table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llll}
+\toprule
+PIE & margin & facesS, \code{wcross} $0$ (rule) & faces0, \code{wcross} $0$ (rule) \\
+\midrule
+S3 & $0.5$, $0.9$ & in, $86\,078$ (in, $96$k) & in, $334\,010$ (in, $383$k) \\
+S8 & $0.5$, $0.9$ & in, $101\,424$ (in, $123$k) & in, $383\,328$ (in, $492$k) \\
+S17 & $0.5$ & in, $98\,410$ (in, $109$k) & U$^{\dagger}$, $382\,650$ (in, $435$k) \\
+S17 & $0.9$ & out (out) & U (U) \\
+S18 & $0.5$ & out (out) & in, $201\,050$ (in, $228$k) \\
+S18 & $0.9$ & out (out) & U (U) \\
+S26 & $0.5$, $0.9$ & in, $69\,915$ (in, $83$k) & in, $235\,675$ (in, $300$k) \\
+\bottomrule
+\end{tabular}
+\caption{The slack without cross monomials (\code{wcross} $0$): the direct PIE-to-PDE test at $\mcl Q$ of length $2$, $\mathrm{dw}=0$, with the term sets facesS and faces0 of Table~\ref{tab:t2}, at $0.5$ and $0.9$ of the margins; verdict and variables, in parentheses those of the rule (Table~\ref{tab:t2}). $^{\dagger}$UNKNOWN with numerical problems.}\label{tab:bl-cross-slack}
+\end{table}
+
+At cross length $1$ the separable light row certifies every mixed row of Table~\ref{tab:bl-cross-storage}, and the veryheavy row certifies S18 at $0.5\tau^*$, with $0.2$ to $1\%$ fewer variables than the rule. The rule v1 of 11/16, which lost S3, was cross length $1$ under the uniform row Rdef; with the separable patterns cross length $1$ loses nothing. The slack without cross monomials certifies every case the rule certifies except S17 at $0.5r_2^*$ with faces0, UNKNOWN with numerical problems while facesS still certifies it, at $10$ to $22\%$ fewer variables (Table~\ref{tab:bl-cross-slack}). The lift of the PDE norm with the faces and \code{wcross} $0$ reaches the resolution $1.0001$ on S3, S17 and S18, as with the rule, so on this suite both cross lengths can be set to none, \code{len\_cross} $1$ in the row and \code{wcross} $0$ in \code{lpi.ineq}, with the former rules as other values.
+
+\input{settings_report_inhom.tex}

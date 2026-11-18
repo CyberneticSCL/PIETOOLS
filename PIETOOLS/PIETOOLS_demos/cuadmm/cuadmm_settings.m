@@ -38,6 +38,9 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 %   from LPISETTINGS_STOCK_SOP(base): the stock slack left the tiers
 %   (maintainer, 11/12/2026: phase 2 of the knob reduction), and the
 %   executives refuse the top-level fields. The same slack for tl.slack.
+% MMP, 11/17/2026: the settings_2d.eppos line is inert (the tiers carry no
+%   settings_2d since 11/17/2026, work package 5); the 2-D margin stays
+%   1e-2 through S.eppos, copied by EXEC_SOP_SETTINGS. Comment only.
 %
 % ---------------------------------------------------------------------------
 % WHAT TRANSFERS FROM pielr_settings, AND WHY
@@ -197,6 +200,8 @@ S.sos_opts.solver = 'sedumi';
 
 % ---- eppos pinned at 1e-2 on every tier (see header)
 S.eppos = 1e-2;   S.eppos2 = 1e-2;
+% Inert since 11/17/2026 (no tier settings_2d); S.eppos above is the one    % MMP, 11/17/2026
+% margin, which EXEC_SOP_SETTINGS copies into every dimension               % MMP, 11/17/2026
 if isfield(S,'settings_2d'), S.settings_2d.eppos = 1e-2*ones(4,1); end
 
 % ---- negativity psatz and the Dup bump on the slack -- as pielr_settings

@@ -27,12 +27,14 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   full integral. Entry 1 holds the stock 1-D storage of each level (light `mult 1, int 1, joint 2`, the
   former `dd1 = {1,[1 1 2],[1 1 2]}`), entry 3 the former `settings_nd` (`int` 1, `mult` 0; stripped
   `int` 0 since adacec41). The free operator of the synthesis LPIs is `lpi.var.deg`, one degree
-  specification per dimension (light `{[2 2 2],1,1}`, entry 1 the former `ddZ`). In two variables the
-  stock `settings_PIETOOLS_<level>_2D` (`settings_2d`, read by `poslpivar_settings_2d_sop`). The programs
-  are those of the stock-format fields they replace (measured 11/12/2026, below). Each tier file sets
-  its values itself (since 11/09/2026), so `settings_sopvar` calls no file outside this folder, and a
-  copy of `settings_sopvar_custom.m` runs from any folder. The `extreme` tier (11/08/2026) takes the
-  stock extreme storage with the container options of `stripped`.
+  specification per dimension (light `{[2 2 2],1,1}`, entry 1 the former `ddZ`).
+  Since 11/17/2026 (MMP) the row `lpi.pos` is read in two variables too; the stock 2-D struct
+  (`settings_2d`, read by `poslpivar_settings_2d_sop`) is no tier field but `settings_2d_stock(level)`,
+  set by a caller as `st.settings_2d`. The programs are those of the stock-format fields
+  they replace (measured 11/12/2026, below). Each tier file sets its values itself (since
+  11/09/2026), so `settings_sopvar` calls no file outside this folder, and a copy of
+  `settings_sopvar_custom.m` runs from any folder. The `extreme` tier (11/08/2026) takes the stock
+  extreme storage with the container options of `stripped`.
 - **Stock slack**: the `'stock'` slack mode (`sop.slack = 'stock'`), which reproduces the slack of the
   stock executives for the baselines, reads `sop.stock` (`dd2`, `options2`, `override2`, `dd3`,
   `options3`). The tiers no longer carry it (11/12/2026); `lpisettings_stock_sop(tier)` returns the tier
@@ -41,9 +43,9 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   `settings_nd.LF_int`) with an error that names the replacement.
 - **Layout of a tier file** (11/09/2026; 11/12/2026), the same in every tier, so that `diff` of two tier
   files shows their values: (1) the positive and free operators (`lpi.pos`, `lpi.var`), (2) two
-  variables (`settings_2d`), (3) the margin, decay rate and solver, (4) the executive options (`sop`),
-  (5) the options of `lpi_ineq_sop` (`lpi.ineq`, 11/10/2026). Each section names the function that
-  reads its fields. `ineq_opts` and `Zop_opts` of `settings_2d` are marked, which no container
+  variables (`settings_2d`; in `settings_2d_stock` since 11/17/2026, MMP), (3) the margin, decay rate
+  and solver, (4) the executive options (`sop`), (5) the options of `lpi_ineq_sop` (`lpi.ineq`, 11/10/2026). Each section names the function that
+  reads its fields. `ineq_opts` and `Zop_opts` of `settings_2d_stock` are marked, which no container
   executive reads; `use_sosineq` is read from the base workspace when it exists there, as in the stock
   settings files. `lpisettings_sop` overwrites `epneg` and `sos_opts.simplify` with its inputs.
 - **cap_delta**: per-direction bounds theta_k + s_k <= Jmax_k(T) + delta on the slack bases
@@ -69,6 +71,15 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   | PDE 36 | infeasible | 2: 8,504 → 12,248 | 175 s (1,643 s of solve on 10/28) |
   | PDE 38 | infeasible | 2: 8,504 → 12,248 | 217 s (1,621 s of solve on 10/28) |
   | PDE 39 | certified | 1: 19,143 | 220 s |
+- **deg_Q, max_raise_Q, raise_Q** (11/18/2026, MMP): the direct stability form `'Q'` of
+  `PIETOOLS_stability_sop` reads its own degrees of Q (`deg_Q`, a cell per dimension as `lpi.var.deg`,
+  which stays the degree of the synthesis free operators; `[]` falls back to it), its own raise count
+  (`max_raise_Q`; `[]` falls back to `max_raise_feas`) and what a raise adds (`raise_Q`: `'slack'`, the
+  weight of the slacks as before; `'deg'`, the first entry of `deg_Q`; `'both'`). Each tier carries its
+  `lpi.var.deg` and `max_raise_feas` values and `'slack'`, so the programs of 11/17/2026 are unchanged.
+  Measured reason (DECISIONS D92, D94): at light, Q at [2 2 2] cannot represent P*T of the light storage
+  (kernel degree 2) and a T of degree 1 on the DDE PIEs, and no slack raise recovers the five thresholds
+  that [4 2 2] restores. Q is the generalized storage T'*Q; the form `'P'` is the case Q = P*T.
 - **dual, witness**: `keepdual` (the dual kernel of the negativity constraint) and `witness` (the 1-D
   numerical counterpart: frequency sweep, spectrum or H2 norm, on a Legendre Galerkin model).
 - **Margin and decay rate** (11/09/2026; maintainer: "I see no reason to treat the eppos and epneg
@@ -131,6 +142,64 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   the floor moves 1.000015 to 1.000004 at 2.5 times the variables (1,892,800 → 4,702,425), 6.7 times the
   solve time (1,446 → 9,715 s) and 3.4 times the peak memory (14.7 → 49.1 GB). The heat rows were not run
   in 3-D: the projected Schur complement is 180 GB at the rule and 405 GB with the floor.
+
+- **Dmax, cap_inc** (11/18/2026, MMP; `lpi.ineq`, passed by `lpi_ineq_sop` to `get_lift_degs` and
+  `poscopvar_direct`): `Dmax` true sets the lift degree of a certificate to the largest exponent of the
+  target's kernel in a direction (Shivakumar's note of 11/17/2026, Theorem 1.4: a Gram factor of a purely
+  integral target of degree p exists with input degree at most p), in place of Dmin + dD; `cap_inc`
+  ('auto' = Dmax - 1, or one cap per direction) bounds theta + s on the lower and upper basis operators
+  only (Lemma 1.2 there: the triangular part has total degree at most p - 1). Both off in every tier; the
+  derivative targets of the executives are purely integral on L2, so the bounds apply to the slacks that
+  set the cost (measurements on the 1-D library rows: cleaning/private/settings_1116/newton_polytope_guidance.md).
+- **Posopvar structure** (positive operators, slack sizing): the weight raise by kind of LPI (1-D
+  feasibility certifies at dw 0 with 2.0-3.7x fewer variables in the same time; 2-D at dw 1 in 2.5 s
+  against 6.6 s at dw 2; coercive 1-D at dw 2 reaches the 1.1e-6 floor; Q forms gain nothing above 1),
+  the lift offset dD 1 (the default of `get_lift_degs`), the stock storage translation, and eppos 1e-2
+  for stability (relative residuals unchanged over eppos 1e-6..1, measured 09/23; replaced on
+  11/09/2026 by the one margin 1e-4 of every LPI).
+- **New Posopvar and Duality** (degree loop, dual): raises by kind (a raise is one build and one solve;
+  metric LPIs start at their measured weight because an UNKNOWN pass can take 15-95 s in 2-D), the dual
+  and the witness off at stripped (read-back 1-3 ms per build, witness 0.2 s per gain sweep), witness order
+  24 and 240 frequencies (32 and 480 at veryheavy, inferred), slack 'like' in every tier ('stock' slack
+  reproduces the stock program and its UNKNOWN on every coercive form).
+- **cuADMM** (solvers): MOSEK in every tier with SeDuMi as fallback, default MOSEK tolerances (12-16
+  interior-point iterations, flat in the row count), simplify off. No GPU or first-order solver in any
+  tier: cuADMM was 265x slower than MOSEK on the H-infinity class and never reached 1e-8; SDPT3 returned a
+  nonzero termcode on 17 of 20 library examples; SDPNAL+ returned X = 0 or an indefinite X.
+
+The runs above changed three of the recommendations:
+1. stripped and light take the stock light 1-D storage: the stock stripped storage certified no H-infinity
+   or H2 bound, and no coercive stability at f = 0.9;
+2. heavy takes the stock stripped 2-D storage, and veryheavy the stock heavy 2-D storage (12.6x the
+   variables and 73x the time of light for 2-D stability);
+3. veryheavy keeps dw_P = 2: dw_P = 3 gave the coercive gap 1.0e-6 against 8.9e-7, with 33% more variables.
+
+## Not settings
+
+The functions size these, and the tiers leave them alone: the support the slack is sized from ('like',
+passed by the executives), the lift and weight rule (`get_lift_degs`; its offsets and floor for
+hand-written LPIs are `lpi.ineq` since 11/10/2026), the term set ('auto': plain
++ product at w-1 in 1-D, plain + faces at w-1 in N-D), the zero-diagonal prune, the construction route
+(`poscopvar_direct`) and its cache. `margin` changes the certified statement and stays 0; `gam_fixed` is
+per call; `verbose` is printing.
+
+## Open
+
+- eppos 0 against 1e-4 in the gain LPIs (allowed by the maintainer; not measured, under 1 min).
+- SeDuMi on the container executives: every number above is MOSEK.
+- Pinned-gamma bisection as a fallback for an objective LPI that ends with numerr >= 1: not implemented in
+  `executives_sopvar`.
+- MOSEK's thread count has changed a 2-D verdict (09/29/2026); no tier pins it.
+- veryheavy 1-D on fin: the Q-form gap 5.0e-6 is larger than light's 1.6e-6 at 7.4x the variables; not
+  explained.
+- 2-D storages between the stock stripped and heavy 2-D levels, and (2,3)/(3,2) faces, are over the
+  20-minute daytime budget.
+- 3-D on this workstation: no tier solves two coupled PDE fields, heavy builds but is not solved, and
+  veryheavy is not built (10/29/2026).
+- Smaller 3-D storage does not rescue two coupled fields (10/30/2026). Storage integral degree 0, or a
+  multiplier alone, brings two fields to 54,416 or 52,480 rows, but degree 0 is infeasible on one field
+  at r = 5, which light certifies (33,231 rows). Degree 0 with lift increment dD 0 gives 15,497 rows and
+  is infeasible even on one field at r = 0.
 
 ## Measured cost and value (10/28/2026, MOSEK 11.0.30, this workstation)
 
@@ -199,52 +268,3 @@ one (751,849 against 187,984 variables), which is why the tiers here do not foll
 
 The values were recommended by three sessions on 10/28/2026, from their banked measurements, and checked
 by the runs above:
-- **Posopvar structure** (positive operators, slack sizing): the weight raise by kind of LPI (1-D
-  feasibility certifies at dw 0 with 2.0-3.7x fewer variables in the same time; 2-D at dw 1 in 2.5 s
-  against 6.6 s at dw 2; coercive 1-D at dw 2 reaches the 1.1e-6 floor; Q forms gain nothing above 1),
-  the lift offset dD 1 (the default of `get_lift_degs`), the stock storage translation, and eppos 1e-2
-  for stability (relative residuals unchanged over eppos 1e-6..1, measured 09/23; replaced on
-  11/09/2026 by the one margin 1e-4 of every LPI).
-- **New Posopvar and Duality** (degree loop, dual): raises by kind (a raise is one build and one solve;
-  metric LPIs start at their measured weight because an UNKNOWN pass can take 15-95 s in 2-D), the dual
-  and the witness off at stripped (read-back 1-3 ms per build, witness 0.2 s per gain sweep), witness order
-  24 and 240 frequencies (32 and 480 at veryheavy, inferred), slack 'like' in every tier ('stock' slack
-  reproduces the stock program and its UNKNOWN on every coercive form).
-- **cuADMM** (solvers): MOSEK in every tier with SeDuMi as fallback, default MOSEK tolerances (12-16
-  interior-point iterations, flat in the row count), simplify off. No GPU or first-order solver in any
-  tier: cuADMM was 265x slower than MOSEK on the H-infinity class and never reached 1e-8; SDPT3 returned a
-  nonzero termcode on 17 of 20 library examples; SDPNAL+ returned X = 0 or an indefinite X.
-
-The runs above changed three of the recommendations:
-1. stripped and light take the stock light 1-D storage: the stock stripped storage certified no H-infinity
-   or H2 bound, and no coercive stability at f = 0.9;
-2. heavy takes the stock stripped 2-D storage, and veryheavy the stock heavy 2-D storage (12.6x the
-   variables and 73x the time of light for 2-D stability);
-3. veryheavy keeps dw_P = 2: dw_P = 3 gave the coercive gap 1.0e-6 against 8.9e-7, with 33% more variables.
-
-## Not settings
-
-The functions size these, and the tiers leave them alone: the support the slack is sized from ('like',
-passed by the executives), the lift and weight rule (`get_lift_degs`; its offsets and floor for
-hand-written LPIs are `lpi.ineq` since 11/10/2026), the term set ('auto': plain
-+ product at w-1 in 1-D, plain + faces at w-1 in N-D), the zero-diagonal prune, the construction route
-(`poscopvar_direct`) and its cache. `margin` changes the certified statement and stays 0; `gam_fixed` is
-per call; `verbose` is printing.
-
-## Open
-
-- eppos 0 against 1e-4 in the gain LPIs (allowed by the maintainer; not measured, under 1 min).
-- SeDuMi on the container executives: every number above is MOSEK.
-- Pinned-gamma bisection as a fallback for an objective LPI that ends with numerr >= 1: not implemented in
-  `executives_sopvar`.
-- MOSEK's thread count has changed a 2-D verdict (09/29/2026); no tier pins it.
-- veryheavy 1-D on fin: the Q-form gap 5.0e-6 is larger than light's 1.6e-6 at 7.4x the variables; not
-  explained.
-- 2-D storages between the stock stripped and heavy 2-D levels, and (2,3)/(3,2) faces, are over the
-  20-minute daytime budget.
-- 3-D on this workstation: no tier solves two coupled PDE fields, heavy builds but is not solved, and
-  veryheavy is not built (10/29/2026).
-- Smaller 3-D storage does not rescue two coupled fields (10/30/2026). Storage integral degree 0, or a
-  multiplier alone, brings two fields to 54,416 or 52,480 rows, but degree 0 is infeasible on one field
-  at r = 5, which light certifies (33,231 rows). Degree 0 with lift increment dD 0 gives 15,497 rows and
-  is infeasible even on one field at r = 0.

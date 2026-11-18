@@ -115,7 +115,7 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % MM
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-popts.sep = 1;                  % set the lower and upper kernels equal
+popts.sep = 0;                  % set the lower and upper kernels equal
 [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],4,popts);                         % DJ (CC), 10/30/2026
 % Indefinite operator variable Z: \R-->L2
 spaces.out = {'s'};     spaces.in = [];
@@ -139,7 +139,8 @@ gam_val = double(lpigetsol_sop(prog_sol,gam));                              % DJ
 Pval = lpigetsol_sop(prog_sol,P);                                           % DJ (CC), 10/30/2026
 Zval = lpigetsol_sop(prog_sol,Z);                                           % DJ (CC), 10/30/2026
 % Build optimal observer operator L
-[Lval,~,~] = getObserver_sop(Pval,Zval);                                    % DJ (CC), 10/30/2026
+opts.method='qp'
+[Lval,~,~] = getObserver_sop(Pval,Zval,opts);                                    % DJ (CC), 10/30/2026
 
 % % Construct the closed-loop PIE system
 % Declare Luenberger estimator with input y

@@ -1,0 +1,223 @@
+@@AB git 33d30877 dirty: M PIETOOLS_demos/DEMO12_Hinf_OFcontrol.m |  M PIETOOLS_demos/DEMO3_poincare_inequality.m |  M PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m |  M PIETOOLS_demos/cuadmm/cuadmm_outdir.m |  M PIETOOLS_demos/cuadmm/cuadmm_settings.m |  M PIETOOLS_demos/cuadmm/heat2d_compare.m |  M PIETOOLS_demos/lowrank_2d_stability/pielr_settings.m |  M PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m |  M PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m |  M PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m |  M PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m |  M PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m |  M PIETOOLS_documentation/for_developers.txt |  M PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m |  M PIETOOLS_examples/examples_PDE_library_PIETOOLS.m |  M executives_sopvar/PIETOOLS_H2_norm_sop.m |  M executives_sopvar/PIETOOLS_Hinf_estimator_sop.m |  M executives_sopvar/PIETOOLS_Hinf_gain_sop.m |  M executives_sopvar/PIETOOLS_stability_sop.m |  M executives_sopvar/utility_functions/exec_sop_settings.m |  M executives_sopvar/utility_functions/exec_tools_sop.m |  M lpi_programming_sopvar/lpi_ineq_sop.m |  M lpi_programming_sopvar/misc/get_lift_degs.m |  M lpi_programming_sopvar/misc/poscopvar_direct.m | R  orphaned_file/private/poscopvar_lift.m -> lpi_programming_sopvar/misc/poscopvar_lift.m | R  orphaned_file/private/posmult_cdopvar.m -> lpi_programming_sopvar/misc/posmult_cdopvar.m |  M lpi_programming_sopvar/poscopvar.m |  M settings_sopvar/README.md |  M settings_sopvar/lpisettings_sop.m |  M settings_sopvar/lpisettings_stock_sop.m |  M settings_sopvar/settings_sopvar_custom.m |  M settings_sopvar/settings_sopvar_extreme.m |  M settings_sopvar/settings_sopvar_heavy.m |  M settings_sopvar/settings_sopvar_light.m |  M settings_sopvar/settings_sopvar_stripped.m |  M settings_sopvar/settings_sopvar_veryheavy.m |  M testing_codes/private/PIETOOLS_demos/cuadmm/BASELINE_REPORT.md |  M testing_codes/private/PIETOOLS_demos/cuadmm/SUITES.md |  M testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab2.m |  M testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m |  M testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/BENCH.md |  M testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench.m |  M testing_codes/private/converters/tests/mixed_domain/MIXED_DOMAIN_REPORT.md |  M testing_codes/private/converters/tests/mixed_domain/mixed_domain_systems.m
+  [stability_sop Q] dw 0: optimal, residual 8.0e-09, eta 2.9e-11, objective NaN, 6196 decision variables, 582 rows, build 2.7 s, solve 0.2 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6196 decision variables, 582 rows, build 0.6 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 12404 decision variables, 724 rows, build 0.4 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.7e-01, objective NaN, 20932 decision variables, 866 rows, build 0.4 s, solve 0.5 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 3.6e-05, eta 1.5e-10, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 1.7e-05, eta 9.1e-11, objective NaN, 12404 decision variables, 724 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.7e-06, eta 1.7e-11, objective NaN, 20932 decision variables, 866 rows, build 0.2 s, solve 0.6 s
+  [stability_sop Q] dw 0: optimal, residual 2.1e-08, eta 2.0e-11, objective NaN, 6196 decision variables, 582 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 3.7e-09, eta 1.1e-12, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 6.8e-08, eta 7.7e-12, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.4 s
+  [stability_sop Q] dw 0: optimal, residual 2.8e-07, eta 8.2e-12, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 0: optimal, residual 2.9e-06, eta 4.8e-11, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 0: optimal, residual 2.0e-07, eta 8.9e-12, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 0: optimal, residual 7.2e-06, eta 1.3e-10, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 0: optimal, residual 8.3e-07, eta 1.5e-11, objective NaN, 6196 decision variables, 582 rows, build 0.4 s, solve 0.2 s
+@@AB new            DDE:DDE01  converged  result 2.0180859  n=11 ndv=6196  13.1s | bracket [1.53 2.55] final [2.01809 2.02008] | steps 1.53:C(3s) 2.55:F(2s) 2.04:U(2s) 1.785:C(0s) 1.9125:C(0s) 1.97625:C(1s) 2.00813:C(1s) 2.02406:U(1s) 2.01609:C(1s) 2.02008:U(0s) 2.01809:C(1s) | last: PIETOOLS_stability_sop/Q fr=0.986 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.2s m=582 nx=6196
+  [stability_sop Q] dw 0: optimal, residual 2.5e-09, eta 1.4e-11, objective NaN, 23540 decision variables, 2081 rows, build 0.4 s, solve 0.4 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 2.9e-02, objective NaN, 23540 decision variables, 2081 rows, build 0.5 s, solve 1.3 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 2.8e-02, objective NaN, 47828 decision variables, 2629 rows, build 0.3 s, solve 2.3 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 2.6e-02, objective NaN, 81396 decision variables, 3177 rows, build 0.4 s, solve 2.9 s
+  [stability_sop Q] dw 0: optimal, residual 2.9e-07, eta 5.1e-11, objective NaN, 23540 decision variables, 2081 rows, build 0.4 s, solve 0.5 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 3.2e-02, objective NaN, 23540 decision variables, 2081 rows, build 0.2 s, solve 1.4 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 3.1e-02, objective NaN, 47828 decision variables, 2629 rows, build 0.3 s, solve 1.9 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 2.9e-02, objective NaN, 81396 decision variables, 3177 rows, build 0.5 s, solve 2.6 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 3.4e-02, objective NaN, 23540 decision variables, 2081 rows, build 0.3 s, solve 0.9 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 3.3e-02, objective NaN, 47828 decision variables, 2629 rows, build 0.3 s, solve 1.8 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.1e-02, objective NaN, 81396 decision variables, 3177 rows, build 0.6 s, solve 2.8 s
+  [stability_sop Q] dw 0: optimal, residual 1.4e-07, eta 1.9e-11, objective NaN, 23540 decision variables, 2081 rows, build 0.3 s, solve 1.4 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 3.4e-02, objective NaN, 23540 decision variables, 2081 rows, build 0.3 s, solve 1.3 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 3.4e-02, objective NaN, 47828 decision variables, 2629 rows, build 0.3 s, solve 3.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.2e-02, objective NaN, 81396 decision variables, 3177 rows, build 0.4 s, solve 3.0 s
+  [stability_sop Q] dw 0: optimal, residual 9.1e-07, eta 6.0e-11, objective NaN, 23540 decision variables, 2081 rows, build 0.3 s, solve 0.7 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 3.7e-02, objective NaN, 23540 decision variables, 2081 rows, build 0.3 s, solve 1.3 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 3.4e-02, objective NaN, 47828 decision variables, 2629 rows, build 0.4 s, solve 2.3 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.6e-01, eta 3.7e-11, objective NaN, 81396 decision variables, 3177 rows, build 0.4 s, solve 4.7 s
+  [stability_sop Q] dw 0: optimal, residual 6.5e-08, eta 7.5e-12, objective NaN, 23540 decision variables, 2081 rows, build 0.4 s, solve 1.2 s
+  [stability_sop Q] dw 0: optimal, residual 1.2e-05, eta 3.3e-10, objective NaN, 23540 decision variables, 2081 rows, build 0.3 s, solve 1.1 s
+@@AB new            DDE:DDE02  converged  result 2.0839844  n=11 ndv=23540  47.1s | bracket [1.5 2.5] final [2.08398 2.08594] | steps 1.5:C(1s) 2.5:F(8s) 2:C(1s) 2.25:F(7s) 2.125:F(7s) 2.0625:C(2s) 2.09375:F(8s) 2.07812:C(1s) 2.08594:F(9s) 2.08203:C(2s) 2.08398:C(1s) | last: PIETOOLS_stability_sop/Q fr=0.999 pinf=0 dinf=0 numerr=0 iter=18 cpu=1.1s m=2081 nx=23540
+  [stability_sop Q] dw 0: optimal, residual 7.1e-09, eta 1.2e-10, objective NaN, 1712 decision variables, 179 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1712 decision variables, 179 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3332 decision variables, 217 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5532 decision variables, 255 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1712 decision variables, 179 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3332 decision variables, 217 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 6.2e-04, eta 2.3e-11, objective NaN, 5532 decision variables, 255 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 0: optimal, residual 4.7e-09, eta 4.9e-11, objective NaN, 1712 decision variables, 179 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 7.9e-09, eta 5.2e-11, objective NaN, 1712 decision variables, 179 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 1.0e-09, eta 4.8e-12, objective NaN, 1712 decision variables, 179 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 8.2e-10, eta 3.2e-12, objective NaN, 1712 decision variables, 179 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 2.5e-09, eta 4.0e-12, objective NaN, 1712 decision variables, 179 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 9.1e-09, eta 2.3e-11, objective NaN, 1712 decision variables, 179 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 2.6e-08, eta 3.8e-11, objective NaN, 1712 decision variables, 179 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 5.1e-08, eta 4.4e-11, objective NaN, 1712 decision variables, 179 rows, build 0.2 s, solve 0.0 s
+@@AB new            DDE:DDE03  converged  result 1.7161724  n=11 ndv=1712  5.4s | bracket [1.28839 2.14731] final [1.71617 1.71785] | steps 1.28839:C(0s) 2.14731:F(1s) 1.71785:F(1s) 1.50312:C(0s) 1.61048:C(0s) 1.66417:C(0s) 1.69101:C(0s) 1.70443:C(0s) 1.71114:C(0s) 1.71449:C(0s) 1.71617:C(0s) | last: PIETOOLS_stability_sop/Q fr=0.989 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.0s m=179 nx=1712
+  [stability_sop Q] dw 0: optimal, residual 1.8e-08, eta 5.0e-11, objective NaN, 6196 decision variables, 582 rows, build 0.5 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 5.8e-02, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 5.5e-02, objective NaN, 12404 decision variables, 724 rows, build 0.2 s, solve 0.3 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 7.2e-01, eta 2.9e-10, objective NaN, 20932 decision variables, 866 rows, build 0.3 s, solve 0.5 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 5.6e-04, eta 7.2e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 1.3e-04, eta 1.2e-10, objective NaN, 12404 decision variables, 724 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 5.1e-04, eta 1.3e-10, objective NaN, 20932 decision variables, 866 rows, build 0.3 s, solve 0.6 s
+  [stability_sop Q] dw 0: optimal, residual 3.3e-09, eta 7.3e-12, objective NaN, 6196 decision variables, 582 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 2.1e-08, eta 3.4e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 1.8e-08, eta 3.7e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 4.0e-08, eta 7.0e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 3.6e-09, eta 5.9e-12, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 1.9e-07, eta 2.3e-10, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 8.0e-09, eta 1.3e-11, objective NaN, 6196 decision variables, 582 rows, build 0.5 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 3.4e-09, eta 3.4e-12, objective NaN, 6196 decision variables, 582 rows, build 0.5 s, solve 0.1 s
+@@AB new            DDE:DDE04  converged  result 6.1665521  n=11 ndv=6196  8.1s | bracket [4.62943 7.71572] final [6.16655 6.17258] | steps 4.62943:C(1s) 7.71572:F(2s) 6.17258:F(2s) 5.40101:C(1s) 5.78679:C(0s) 5.97969:C(0s) 6.07613:C(0s) 6.12436:C(0s) 6.14847:C(0s) 6.16052:C(1s) 6.16655:C(1s) | last: PIETOOLS_stability_sop/Q fr=0.996 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=582 nx=6196
+  [stability_sop Q] dw 0: optimal, residual 8.3e-08, eta 1.4e-09, objective NaN, 1549 decision variables, 147 rows, build 0.6 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 4.5e-01, objective NaN, 5233 decision variables, 219 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 0: optimal, residual 1.2e-08, eta 1.6e-10, objective NaN, 1549 decision variables, 147 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5233 decision variables, 219 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5233 decision variables, 219 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5233 decision variables, 219 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5233 decision variables, 219 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5233 decision variables, 219 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3101 decision variables, 183 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.0e-01, objective NaN, 5233 decision variables, 219 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 3.7e-02, eta 4.2e-10, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.1e-01, eta 1.2e-10, objective NaN, 5233 decision variables, 219 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1549 decision variables, 147 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 1.5e-02, eta 7.3e-11, objective NaN, 3101 decision variables, 183 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.5e-01, objective NaN, 5233 decision variables, 219 rows, build 0.2 s, solve 0.1 s
+@@AB new            DDE:DDE05  converged  result 1.5707  n=11 ndv=5233  9.8s | bracket [1.17802 1.96338] final [1.5707 1.57223] | steps 1.17802:C(1s) 1.96338:F(1s) 1.5707:C(0s) 1.76704:F(1s) 1.66887:F(1s) 1.61978:F(1s) 1.59524:F(1s) 1.58297:F(1s) 1.57684:F(1s) 1.57377:F(1s) 1.57223:F(1s) | last: PIETOOLS_stability_sop/Q fr=-1 pinf=1 dinf=0 numerr=0 iter=24 cpu=0.1s m=219 nx=5233
+  [stability_sop Q] dw 0: optimal, residual 5.5e-09, eta 1.0e-10, objective NaN, 5885 decision variables, 523 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.9e-01, objective NaN, 5885 decision variables, 523 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.8e-02, objective NaN, 11957 decision variables, 661 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 7.2e-02, objective NaN, 20349 decision variables, 799 rows, build 0.3 s, solve 0.5 s
+  [stability_sop Q] dw 0: optimal, residual 7.5e-09, eta 3.4e-11, objective NaN, 5885 decision variables, 523 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.6e-02, objective NaN, 5885 decision variables, 523 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.1e-02, objective NaN, 11957 decision variables, 661 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.7e-02, objective NaN, 20349 decision variables, 799 rows, build 0.2 s, solve 0.4 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.4e-02, objective NaN, 5885 decision variables, 523 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.2e-02, objective NaN, 11957 decision variables, 661 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.7e-02, objective NaN, 20349 decision variables, 799 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.3e-02, objective NaN, 5885 decision variables, 523 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.2e-02, objective NaN, 11957 decision variables, 661 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.7e-02, objective NaN, 20349 decision variables, 799 rows, build 0.3 s, solve 0.4 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.7e-02, objective NaN, 5885 decision variables, 523 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.2e-02, objective NaN, 11957 decision variables, 661 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.7e-02, objective NaN, 20349 decision variables, 799 rows, build 0.3 s, solve 0.5 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.5e-02, objective NaN, 5885 decision variables, 523 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.1e-02, objective NaN, 11957 decision variables, 661 rows, build 0.2 s, solve 0.3 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.7e-02, objective NaN, 20349 decision variables, 799 rows, build 0.2 s, solve 0.3 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.8e-02, objective NaN, 5885 decision variables, 523 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.3e-02, objective NaN, 11957 decision variables, 661 rows, build 0.3 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.6e-02, objective NaN, 20349 decision variables, 799 rows, build 0.2 s, solve 0.3 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 7.8e-02, objective NaN, 5885 decision variables, 523 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.0e-02, objective NaN, 11957 decision variables, 661 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.7e-02, objective NaN, 20349 decision variables, 799 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 8.1e-02, objective NaN, 5885 decision variables, 523 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 6.9e-02, objective NaN, 11957 decision variables, 661 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.3e-02, objective NaN, 20349 decision variables, 799 rows, build 0.3 s, solve 0.5 s
+@@AB new            DDE:DDE06  converged  result 3  n=11 ndv=20349  15.8s | bracket [2.25 3.75] final [3 3.00293] | steps 2.25:C(0s) 3.75:F(2s) 3:C(0s) 3.375:F(2s) 3.1875:F(2s) 3.09375:F(2s) 3.04688:F(2s) 3.02344:F(2s) 3.01172:F(2s) 3.00586:F(1s) 3.00293:F(2s) | last: PIETOOLS_stability_sop/Q fr=-1 pinf=1 dinf=0 numerr=0 iter=21 cpu=0.4s m=799 nx=20349
+  [stability_sop Q] dw 0: optimal, residual 6.0e-09, eta 3.7e-11, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 12404 decision variables, 724 rows, build 0.3 s, solve 0.4 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 4.0e-01, objective NaN, 20932 decision variables, 866 rows, build 0.3 s, solve 0.5 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 3.0e-01, objective NaN, 12404 decision variables, 724 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.1e-01, objective NaN, 20932 decision variables, 866 rows, build 0.3 s, solve 0.5 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 12404 decision variables, 724 rows, build 0.2 s, solve 0.3 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 2.8e-01, objective NaN, 20932 decision variables, 866 rows, build 0.3 s, solve 0.4 s
+  [stability_sop Q] dw 0: optimal, residual 5.2e-09, eta 7.9e-12, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 6.1e-01, objective NaN, 12404 decision variables, 724 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.0e-01, objective NaN, 20932 decision variables, 866 rows, build 0.2 s, solve 0.5 s
+  [stability_sop Q] dw 0: optimal, residual 7.5e-09, eta 2.2e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 5.4e-09, eta 5.8e-12, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 12404 decision variables, 724 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 2.6e-01, eta 1.7e-09, objective NaN, 20932 decision variables, 866 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 6.5e-01, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 4.6e-02, eta 3.3e-10, objective NaN, 12404 decision variables, 724 rows, build 0.2 s, solve 0.2 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.3e-01, eta 2.5e-09, objective NaN, 20932 decision variables, 866 rows, build 0.2 s, solve 0.3 s
+  [stability_sop Q] dw 0: optimal, residual 9.0e-08, eta 4.7e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+@@AB new            DDE:DDE07  converged  result 1.3721821  n=11 ndv=6196  11.0s | bracket [1.3 1.71525] final [1.37218 1.37299] | steps 1.3:C(0s) 1.71525:F(2s) 1.50762:F(2s) 1.40381:F(2s) 1.35191:C(0s) 1.37786:F(2s) 1.36488:C(0s) 1.37137:C(0s) 1.37462:F(1s) 1.37299:F(1s) 1.37218:C(0s) | last: PIETOOLS_stability_sop/Q fr=0.999 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.1s m=582 nx=6196
+  [stability_sop Q] dw 0: optimal, residual 1.0e-08, eta 4.4e-11, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3824 decision variables, 294 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2068 decision variables, 252 rows, build 0.1 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3824 decision variables, 294 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.2e+00, objective NaN, 2068 decision variables, 252 rows, build 0.1 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3824 decision variables, 294 rows, build 0.1 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3824 decision variables, 294 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 8.2e-09, eta 3.1e-11, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3824 decision variables, 294 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 3.3e-08, eta 4.9e-11, objective NaN, 2068 decision variables, 252 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 9.9e-01, objective NaN, 3824 decision variables, 294 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 0: optimal, residual 1.3e-07, eta 6.0e-11, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: optimal, residual 3.6e-08, eta 6.4e-12, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2068 decision variables, 252 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3824 decision variables, 294 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 2.7e-01, eta 1.4e-09, objective NaN, 6160 decision variables, 336 rows, build 0.2 s, solve 0.1 s
+@@AB new            DDE:DDE08  converged  result 1.42229  n=12 ndv=6160  6.9s | bracket [1.1 4.9375] final [1.42229 1.42604] | steps 1.1:C(0s) 4.9375:F(1s) 3.01875:F(1s) 2.05938:F(1s) 1.57969:F(1s) 1.33984:C(0s) 1.45977:F(1s) 1.3998:C(0s) 1.42979:F(1s) 1.41479:C(0s) 1.42229:C(0s) 1.42604:F(1s) | last: PIETOOLS_stability_sop/Q fr=-1 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.1s m=336 nx=6160
+  [stability_sop Q] dw 0: optimal, residual 1.0e-07, eta 4.3e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.3 s, solve 0.4 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 4.8e-02, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 1.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.6e-01, eta 9.3e-10, objective NaN, 47828 decision variables, 2645 rows, build 0.2 s, solve 1.7 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.5e+00, eta 5.5e-10, objective NaN, 81396 decision variables, 3193 rows, build 0.3 s, solve 3.0 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 1.7e+00, eta 3.1e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 1.2 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 4.8e+00, eta 3.1e-10, objective NaN, 47828 decision variables, 2645 rows, build 0.3 s, solve 2.2 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.5e-01, eta 3.4e-10, objective NaN, 81396 decision variables, 3193 rows, build 0.2 s, solve 2.2 s
+  [stability_sop Q] dw 0: optimal, residual 4.3e-08, eta 1.3e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 0.5 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 3.7e-01, eta 7.8e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.3 s, solve 0.9 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 3.0e-01, eta 7.3e-10, objective NaN, 47828 decision variables, 2645 rows, build 0.2 s, solve 1.7 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.4e-01, eta 1.8e-09, objective NaN, 81396 decision variables, 3193 rows, build 0.3 s, solve 2.7 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 2.4e-01, eta 5.5e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 1.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 1.7e-01, eta 5.3e-10, objective NaN, 47828 decision variables, 2645 rows, build 0.2 s, solve 2.0 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.0e-02, eta 4.2e-10, objective NaN, 81396 decision variables, 3193 rows, build 0.5 s, solve 4.3 s
+  [stability_sop Q] dw 0: optimal, residual 8.4e-08, eta 2.5e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 0.5 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 1.2e-02, eta 3.6e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 1.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 6.9e-03, eta 8.8e-10, objective NaN, 47828 decision variables, 2645 rows, build 0.3 s, solve 2.3 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.6e-02, eta 2.9e-10, objective NaN, 81396 decision variables, 3193 rows, build 0.3 s, solve 3.5 s
+  [stability_sop Q] dw 0: optimal, residual 1.3e-05, eta 9.6e-09, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 0.7 s
+  [stability_sop Q] dw 0: optimal, residual 8.6e-09, eta 2.7e-11, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 0.6 s
+  [stability_sop Q] dw 0: optimal, residual 1.1e-07, eta 3.5e-10, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 0.5 s
+  [stability_sop Q] dw 0: optimal, residual 1.3e-08, eta 3.2e-11, objective NaN, 23540 decision variables, 2097 rows, build 0.2 s, solve 0.6 s
+@@AB new            NDSDDF:NDS05 converged  result 1.5784509  n=12 ndv=23540  41.3s | bracket [1.1853 2.55] final [1.57845 1.57978] | steps 1.1853:C(1s) 2.55:F(7s) 1.86765:F(6s) 1.52648:C(1s) 1.69706:F(6s) 1.61177:F(8s) 1.56912:C(1s) 1.59045:F(8s) 1.57978:U(1s) 1.57445:C(1s) 1.57712:C(1s) 1.57845:C(1s) | last: PIETOOLS_stability_sop/Q fr=0.99 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.6s m=2097 nx=23540
+  [stability_sop Q] dw 0: optimal, residual 8.4e-06, eta 1.3e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.8 s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 9.1e-03, objective NaN, 24784 decision variables, 2348 rows, build 0.3 s, solve 1.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 7.3e-03, objective NaN, 49616 decision variables, 2912 rows, build 0.3 s, solve 2.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 6.8e-03, objective NaN, 83728 decision variables, 3476 rows, build 0.3 s, solve 2.7 s
+  [stability_sop Q] dw 0: unknown (divergent), residual 1.8e+00, eta 4.4e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.3 s, solve 1.4 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.4e-01, eta 1.9e-09, objective NaN, 49616 decision variables, 2912 rows, build 0.3 s, solve 1.5 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 1.4e+00, eta 1.8e-09, objective NaN, 83728 decision variables, 3476 rows, build 0.4 s, solve 2.2 s
+  [stability_sop Q] dw 0: optimal, residual 7.8e-06, eta 1.3e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.6 s
+  [stability_sop Q] dw 0: optimal, residual 5.8e-07, eta 1.4e-10, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.4 s
+  [stability_sop Q] dw 0: optimal, residual 8.1e-06, eta 1.6e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.6 s
+  [stability_sop Q] dw 0: optimal, residual 1.2e-05, eta 1.8e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.8 s
+  [stability_sop Q] dw 0: optimal, residual 6.1e-06, eta 1.2e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 1.1 s
+  [stability_sop Q] dw 0: optimal, residual 2.3e-05, eta 2.4e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.6 s
+  [stability_sop Q] dw 0: optimal, residual 1.5e-05, eta 1.9e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.5 s
+  [stability_sop Q] dw 0: optimal, residual 2.0e-05, eta 4.6e-09, objective NaN, 24784 decision variables, 2348 rows, build 0.2 s, solve 0.7 s
+@@AB new            NDSDDF:NDS08 converged  result 0.027388574  n=11 ndv=24784  21.3s | bracket [0.0206625 0.0344375] final [0.0273886 0.0274155] | steps 0.0206625:C(1s) 0.0344375:F(7s) 0.02755:F(6s) 0.0241063:C(1s) 0.0258281:C(1s) 0.0266891:C(1s) 0.0271195:C(1s) 0.0273348:C(1s) 0.0274424:U(1s) 0.0273886:C(1s) 0.0274155:U(1s) | last: PIETOOLS_stability_sop/Q fr=1.41 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.7s m=2348 nx=24784
+@@AB done 17-Nov-2026 22:38:28
+## END rc=0 killed=0 wall=202s

@@ -40,6 +40,10 @@ function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC
 %   'Q'/'Qd' assemble of PIETOOLS_Hinf_gain_sop with the stock slack branch;
 %   opvar, poslpivar, lpivar, lpi_eq and lpi_ineq left the path (f83486c8,
 %   433980d7). The opvar body of 09/23/2026 and 09/24/2026 is deleted.
+% CC, 11/17/2026: the program carries ST (LPIPROGRAM's last input), as in
+%   the executives since 11/12/2026: since 11/17/2026 EXEC_TOOLS_SOP takes
+%   the storage from prog.settings.lpi.pos, and a program without settings
+%   gets the light tier's row at every tier.
 
 % BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026
 % and 09/24/2026)
@@ -64,7 +68,10 @@ Tm  = PIE.T;     Am = PIE.A;
 Bw  = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
 Iw  = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 % gam: a decision variable with gam >= 0 and min gam, or the fixed number
-prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+% prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                   % CC, 11/17/2026 (was)
+% The storage reads prog.settings.lpi.pos (POS_ROW of EXEC_TOOLS_SOP):      % CC, 11/17/2026
+% without ST every tier gets the light row; ST as in the executive          % CC, 11/17/2026
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);                  % CC, 11/17/2026
 if isfield(st,'gamfix') && ~isempty(st.gamfix)
     gamv = st.gamfix;
 else

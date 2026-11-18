@@ -1,0 +1,69 @@
+No theorem gives the term set of a certificate on a mixed domain, so the term knob $F$ and its offsets $o$ were measured on the mixed-domain suite (\file{testing_codes/private/converters/tests/mixed_domain}): S3, a 1-D heat state as Dirichlet datum on an edge of a 2-D heat state; S8, two such edge states; S17, a transport state as the datum of a target of order $0$ in $s_1$; S18, library PDE~43 with the delay as a 2-D transport state on $[0,\pi]\times[0,\tau]$; S26, library PDE~42, an ODE and a heat state with a delay, the only row with spaces of three kinds ($\R$, $L_2[s_1]$, $L_2[s_2]$, $L_2[s_1,s_2]$). Two instruments, both reader-sized at the light lengths: the lift of the PDE norm $\gamma I-\mcl T^*\mcl T$ (a fixed positive operator, strictly positive above $\|\mcl T\|^2$; the reach is the smallest certified $\gamma$ over a Rayleigh lower bound $\lambda$ of the norm) and the direct PIE-to-PDE test of Section~\ref{sec:mixed-q} at $0.5$ and $0.9$ of the margins. Twelve term sets, each a set of weights of Section~\ref{sec:terms}, products of face factors and box quadratics with at most one factor per direction; on the registry $[a_1,b_1]\times[a_2,b_2]$ the face factors are $s_k-a_k$ and $b_k-s_k$ and the box factor of direction $k$ is their product. Each term is a weight times a square, $g(s)Z(s)^TQZ(s)$, and its offset is the number of degrees by which the monomial vector $Z$ of the weighted term is shorter than that of the unweighted term \eqref{eq:d4}: at offset $0$ a face term has total degree one higher than the unweighted term, which is odd, and at offset $1$ one lower. The sets: \code{none}, the plain term alone; \code{auto}, the reader's default rule; \code{faces}, \code{facesS} and \code{faces0}, the four face factors as weights, at the per-direction offset $1$, at the scalar offset $1$ and at offset $0$; \code{box}, the two box factors; \code{corners}, the four face factors and the four products of a face factor of $s_1$ with a face factor of $s_2$, namely $(s_1-a_1)(s_2-a_2)$, $(s_1-a_1)(b_2-s_2)$, $(b_1-s_1)(s_2-a_2)$ and $(b_1-s_1)(b_2-s_2)$, each of which vanishes on the two faces that meet at one corner of the registry, eight weights in all; \code{faces\_s1} and \code{faces\_s2}, the two face factors of one direction; \code{box\_s1} and \code{box\_s2}, one box factor; and \code{box\_s1+faces}, the box factor of $s_1$, the direction of the 1-D space, with the four face factors.
+
+\subsection{The lift of the PDE norm}\label{sec:t1}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrcccccccccccc}
+\toprule
+PIE & $\lambda$ & none & auto & facesS & faces0 & faces & box & corners & faces$_{s_1}$ & faces$_{s_2}$ & box$_{s_1}$ & box$_{s_2}$ & box$_{s_1}$+faces \\
+\midrule
+S17 & $0.5420$ & out & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & U & out & U & out & $1.0001$ \\
+S3 & $0.01370$ & out & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & U & out & U & out & $1.0001$ \\
+S8 & $0.01580$ & out & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & out & out & U & U & $1.0001$ \\
+S18 & $1.5494$ & U & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0415$ & U & $1.0500$ & U & $1.0001$ \\
+S26 & $2.1867$ & U & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & $1.0001$ & U & U & U & U & $1.0001$ \\
+\bottomrule
+\end{tabular}
+\caption{Reach $\gamma_{\min}/\lambda$ of the certificate of $\gamma I-\mcl T^*\mcl T$ by term set (bracket $[\lambda,1.1\lambda]$, $10$ bisection steps: $1.0001$ is the resolution); ``out'' a MOSEK infeasibility certificate at $1.1\lambda$, ``U'' UNKNOWN there. $\lambda$ over Legendre products orthonormal on each PIE's domain, degree $6$ on a 1-D space and $4$ per variable on a 2-D space.}\label{tab:t1}
+\end{table}
+
+Three facts, the same on all five systems. A weight in every registry direction is necessary: every set with faces or box factors in both directions reaches the resolution, every set confined to one direction certifies nothing on four systems and reaches $4$--$5\%$ above the norm on S18 with the $s_1$ weights. This includes the direction a 1-D space does not own, where its sub-operators carry the weight through the multiplier monomials of the registry. The cross products add nothing, and the offset rule, scalar or per direction, at $0$ or $1$, changes nothing at this resolution. The plain term alone certifies nothing on any mixed PIE, with Farkas certificates on S17, S3 and S8: the mixed-domain form of the 1-D DEMO3 result.
+
+\subsection{The direct test by term set}\label{sec:t2}
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llcccccccccc}
+\toprule
+PIE & margin & none & facesS & faces0 & faces & box & corners & faces$_{s_1}$ & faces$_{s_2}$ & box$_{s_1}$ & box$_{s_1}$+faces \\
+\midrule
+S3 & $0.5$, $0.9$ & out & in, $96$k & in, $383$k & in, $153$k & in, $115$k & in, $173$k & in & out & in & in \\
+S8 & $0.5$, $0.9$ & out & in, $123$k & in, $492$k & in, $197$k & in, $148$k & in, $222$k & out & in & out & in \\
+S26 & $0.5$, $0.9$ & out & in, $83$k & in, $300$k & in, $135$k & in, $98$k & in, $158$k & in & out & in & in \\
+S17 & $0.5$ & U & in, $109$k & in, $435$k & U & U & in, $196$k & out & U & out & U \\
+S17 & $0.9$ & out & out & U & out & out & out & out & U & out & out \\
+S18 & $0.5$ & out & out & in, $228$k & out & out & out & out & out & out & out \\
+S18 & $0.9$ & out & out & U & out & out & out & out & out & out & out \\
+\bottomrule
+\end{tabular}
+\caption{The direct PIE-to-PDE test (Section~\ref{sec:mixed-q}) at $\mcl Q$ of length $2$, $\mathrm{dw}=0$, both inequalities reader-sized at the light lengths with the term set shown: ``in'' MOSEK optimal (with the variables of the program), ``out'' infeasible with a certificate, ``U'' UNKNOWN. S3, S8 and S26 gave the same verdicts at $0.5$ and $0.9$ of their margins.}\label{tab:t2}
+\end{table}
+
+The plain term certifies nothing. On S3, S8 and S26 every set with weights in both directions certifies at both margins, the scalar-offset faces at the smallest size, and the faces of one direction suffice ($s_1$ on S3 and S26, $s_2$ on S8). S17 at half its margin needs the scalar-offset faces, the faces at offset $0$ or the corners, and nothing certifies it at $0.9$ at this length of $\mcl Q$. S18 at half its margin is certified by the faces at offset $0$ alone, every other set infeasible with a certificate: the odd-degree half step of the psatz-faces run of 11/15, the faces at offset $0$ reaching total degree $2w+1$ where the other sets reach $2w$. So the reader's rule \code{'auto'}, the faces at offset $0$ when the weight degree is $1$ and at the scalar offset $1$ above, is the default that loses no certified case on the mixed suite, at $3$--$4$ times the variables of the scalar-offset faces where those suffice; the box set and the corners are never needed, and the per-direction offset belongs to the box factors only.
+
+\subsection{The product sets}\label{sec:t3}
+
+The sets of Tables~\ref{tab:t1} and \ref{tab:t2} contain one product across directions, the corners, and no product of box quadratics; the theory names the products (Section~\ref{sec:terms}). Three further sets, each at the per-direction offset $1$ of \eqref{eq:d4} and at offset $0$, run on the same five PIEs, lengths and tolerances: \code{product2}, the preordering of the box quadratics $\{g_1,g_2,g_1g_2\}$; \code{mixedfb}, the four faces with the four products of a face of one direction and the box quadratic of the other, $f_{1,i}g_2$ and $g_1f_{2,j}$; \code{full16}, every product of distinct faces, the $15$ nonzero rows of $\{0,1,2,3\}^2$.
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llcccccc}
+\toprule
+PIE & margin & product2 & product2, $o=0$ & mixedfb & mixedfb, $o=0$ & full16 & full16, $o=0$ \\
+\midrule
+S3 & $0.5$, $0.9$ & in, $120$k & in, $307$k & in, $173$k & in, $690$k & in, $235$k & in, $1\,226$k \\
+S8 & $0.5$, $0.9$ & in, $154$k & in, $394$k & in, $222$k & in, $886$k & in, $301$k & in, $1\,574$k \\
+S26 & $0.5$, $0.9$ & in, $103$k & in, $240$k & in, $158$k & in, $541$k & in, $223$k & in, $961$k \\
+S17 & $0.5$ & in$^\dagger$, $136$k & in, $348$k & in, $196$k & U & U & U \\
+S17 & $0.9$ & out & U & out & U & out & U \\
+S18 & $0.5$ & out & out & out & in, $409$k & out & in, $728$k \\
+S18 & $0.9$ & out & out & out & U & out & U \\
+\bottomrule
+\end{tabular}
+\caption{The direct PIE-to-PDE test with the product sets, as Table~\ref{tab:t2} ($\mcl Q$ of length $2$, $\mathrm{dw}=0$, light lengths): ``in'' MOSEK optimal with $\eta<10^{-8}$ and the variables of the program, ``out'' infeasible with a certificate, ``U'' UNKNOWN; $\dagger$: optimal with $\eta=1.7\times10^{-8}$, above the gate. S3, S8 and S26 gave the same verdicts at both margins.}\label{tab:t3}
+\end{table}
+
+No product set reaches a case the faces miss. On S3, S8 and S26 every product set certifies at both margins, at $1.1$--$13\times$ the variables of the scalar-offset faces. On S17 at half its margin the preordering of the box quadratics certifies where the box quadratics alone were UNKNOWN (Table~\ref{tab:t2}), at $136$k against $109$k for the faces, and the full preordering is UNKNOWN; at $0.9r_2^*$ nothing certifies, as before. On S18 the only certifying sets are those that contain the faces at offset $0$ (the mixed set and the full preordering at $o=0$, at $1.8\times$ and $3.2\times$ the variables of the faces alone); at $0.9\tau^*$ they are UNKNOWN, as the faces were. So the mixed products across directions, face by box and face by face, and the products of box quadratics change no verdict on the suite; the half step of the offset-$0$ faces is the one effect of the term set, and it is an odd-degree effect, not a product. On the lift of the PDE norm (the instrument of Table~\ref{tab:t1}) every product set reaches the resolution $1.0001$ above the Rayleigh bound on S17, all six, and on S3, the three run before the pass was stopped at the end of the window (each bisection solve of a product set at offset $0$ has $1.4$M variables); the faces had reached the same resolution on all five PIEs.
+
+\input{settings_report_t4.tex}

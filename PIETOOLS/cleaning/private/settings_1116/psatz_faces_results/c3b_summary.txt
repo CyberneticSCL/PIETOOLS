@@ -1,0 +1,25 @@
+Phase 4 summary (io2 coercive gain through PIETOOLS_Hinf_gain_sop 'P', light, dw_P = dw_Q pinned, max_raise 0; closed-form gain 0.1710999); log c3b.log, 11/15/2026
+HINF def     none      oNaN pd1 dw2  cert=0 gam=20376492.9557146 gap=+1.19e+08  ndv=111701   m=3968   t=22
+HINF def     none      oNaN pd1 dw3  cert=0 gam=39.8027245 gap=+2.32e+02  ndv=351794   m=7012   t=74
+HINF def     box       o1   pd1 dw2  cert=1 gam=0.1717374  gap=+3.73e-03  ndv=211159   m=3986   t=21
+HINF def     box       o1   pd1 dw3  cert=1 gam=0.1717117  gap=+3.58e-03  ndv=747844   m=7034   t=107
+HINF def     product   o1   pd1 dw2  cert=1 gam=0.1717386  gap=+3.73e-03  ndv=233360   m=3988   t=18
+HINF def     product   o1   pd1 dw3  cert=1 gam=0.1717115  gap=+3.57e-03  ndv=859400   m=7036   t=132
+HINF def     faces     o1   pd1 dw2  cert=1 gam=0.1717195  gap=+3.62e-03  ndv=310617   m=3968   t=21
+HINF def     faces     o1   pd1 dw3  cert=1 gam=0.1717110  gap=+3.57e-03  ndv=1143894  m=7012   t=142
+HINF def     facesS    o1   pd0 dw2  cert=1 gam=0.1717299  gap=+3.68e-03  ndv=200505   m=3968   t=14
+HINF def     facesS    o1   pd0 dw3  cert=1 gam=0.1717119  gap=+3.58e-03  ndv=798018   m=7012   t=82
+HINF def     corners   o1   pd1 dw2  cert=1 gam=0.1717216  gap=+3.63e-03  ndv=399421   m=3968   t=28
+HINF def     corners   o1   pd1 dw3  cert=1 gam=0.1717112  gap=+3.57e-03  ndv=1590118  m=7012   t=164
+HINF stock   none      oNaN pd1 dw2  cert=0 gam=21308.2796529 gap=+1.25e+05  ndv=111621   m=3945   t=16
+HINF stock   none      oNaN pd1 dw3  cert=0 gam=44.8996494 gap=+2.61e+02  ndv=351714   m=6989   t=76
+HINF stock   box       o1   pd1 dw2  cert=1 gam=0.1717287  gap=+3.68e-03  ndv=211079   m=3963   t=18
+HINF stock   box       o1   pd1 dw3  cert=1 gam=0.1717117  gap=+3.58e-03  ndv=747764   m=7011   t=99
+HINF stock   product   o1   pd1 dw2  cert=1 gam=0.1717197  gap=+3.62e-03  ndv=233280   m=3965   t=19
+HINF stock   product   o1   pd1 dw3  cert=1 gam=0.1717119  gap=+3.58e-03  ndv=859320   m=7013   t=114
+HINF stock   faces     o1   pd1 dw2  cert=1 gam=0.1717221  gap=+3.64e-03  ndv=310537   m=3945   t=14
+HINF stock   faces     o1   pd1 dw3  cert=1 gam=0.1717111  gap=+3.57e-03  ndv=1143814  m=6989   t=98
+HINF stock   facesS    o1   pd0 dw2  cert=1 gam=0.1717221  gap=+3.64e-03  ndv=200425   m=3945   t=13
+HINF stock   facesS    o1   pd0 dw3  cert=1 gam=0.1717116  gap=+3.58e-03  ndv=797938   m=6989   t=71
+HINF stock   corners   o1   pd1 dw2  cert=1 gam=0.1717218  gap=+3.63e-03  ndv=399341   m=3945   t=35
+HINF stock   corners   o1   pd1 dw3  cert=1 gam=0.1717111  gap=+3.57e-03  ndv=1590038  m=6989   t=182

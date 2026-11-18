@@ -4,23 +4,35 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 % the settings structure of the container executives (PIETOOLS_*_sop) at
 % the tier TYPE, the structure SETTINGS_SOPVAR_<TYPE> returns, with the
 % decay rate, the simplification and the solver set by the other inputs.
-% The tiers set the storage degrees from a stock level and the container
-% options as follows:
+% The tiers set the storage row lpi.pos (POSCOPVAR with DEG omitted;        % MMP, 11/17/2026
+% settings report 11/16/2026, Sec. 6), lengths per direction, 0 = absent:   % MMP, 11/17/2026
 %
-%   TYPE       storage 1-D / 2-D   dw_feas  dw_P     dw_Q  max_raise_feas /   cap_delta
-%                                                          max_raise
-%   extreme    extreme / extreme   [0 1 1]  1        1     [1 1 0] / 0        [NaN NaN 0]
-%   stripped   light / light       [0 1 1]  1        1     [1 1 0] / 0        [NaN NaN 0]
-%   light      light / light       [0 1 1]  [2 2 1]  1     [2 1 0] / [1 1 0]  [NaN NaN 0]
-%   heavy      heavy / stripped    [1 2 2]  2        1     [2 2 0] / [1 1 0]  [NaN NaN 1]
-%   veryheavy  veryheavy / heavy   [1 2 2]  2        1     [3 3 0] / [2 2 0]  [NaN NaN 2]
-%   custom     as light
+%   TYPE       1-D d1,d2,d3(a,b,c)  2-D d2,d3(a,b),Pi   3-D d2,d3(a,b),Pi   % MMP, 11/17/2026
+%   extreme    0,0,[2 0 0]          0,[1 0],aa          0,[1 0],aaa         % MMP, 11/17/2026
+%   stripped   2,2,[2 2 2]          2,[1 2],uniform     1,[1 1],uniform     % MMP, 11/17/2026
+%   light      2,2,[2 2 2]          2,[1 2],separable   2,[1 2],uniform     % MMP, 11/17/2026
+%   heavy      2,2,[3 2 2]          2,[2 2],separable   2,[1 2],uniform     % MMP, 11/17/2026
+%   veryheavy  4,4,[4 4 4]          3,[2 3],separable   2,[1 2],uniform     % MMP, 11/17/2026
+%   custom     as light                                                     % MMP, 11/17/2026
 %
-% A vector holds the entries of 1, 2, and 3 or more variables; NaN in
-% cap_delta is no bound. The storage in 1 and in 3 or more variables is
-% lpi.pos (below); in 2 variables settings_2d. keepdual and witness are
-% false at extreme and stripped, true otherwise. The 'stock' slack, which
-% the tiers held until 11/12/2026, comes from LPISETTINGS_STOCK_SOP.
+% and the container options as follows:                                     % MMP, 11/17/2026
+%
+%   TYPE       dw_feas  dw_P     max_raise_feas  max_raise  cap_delta       % MMP, 11/17/2026
+%   extreme    [0 1 1]  1        [1 1 0]         0          [NaN NaN 0]     % MMP, 11/17/2026
+%   stripped   [0 1 1]  1        [1 1 0]         0          [NaN NaN 0]     % MMP, 11/17/2026
+%   light      [0 1 1]  [2 2 1]  [2 1 0]         [1 1 0]    [NaN NaN 0]     % MMP, 11/17/2026
+%   heavy      [1 2 2]  2        [2 2 0]         [1 1 0]    [NaN NaN 1]     % MMP, 11/17/2026
+%   veryheavy  [1 2 2]  2        [3 3 0]         [2 2 0]    [NaN NaN 2]     % MMP, 11/17/2026
+%   custom     as light                                                     % MMP, 11/17/2026
+%
+% A vector holds the entries of 1, 2, and 3 or more variables; NaN in       % MMP, 11/17/2026
+% cap_delta is no bound; dw_Q is 1 in every tier. The 1-D entry has the     % MMP, 11/17/2026
+% patterns 'all' (extreme: a alone), the 2-D and 3-D entries d1 = 0. The    % MMP, 11/17/2026
+% output options keepdual and witness, which the tiers do not carry, are    % MMP, 11/17/2026
+% set false here at extreme and stripped, and N_cheb, nfreq 32, 480 at      % MMP, 11/17/2026
+% veryheavy (the tier values until 11/17/2026); EXEC_SOP_SETTINGS supplies  % MMP, 11/17/2026
+% the others (true, true, 24, 240). The 'stock' slack, which the tiers      % MMP, 11/17/2026
+% held until 11/12/2026, comes from LPISETTINGS_STOCK_SOP.                  % MMP, 11/17/2026
 %
 % INPUT
 % - type:     (optional) char, 'extreme', 'stripped', 'light' (default),
@@ -35,64 +47,48 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %             status 'residual', never certified).
 %
 % OUTPUT
-% - st:       'struct' with fields
-%               settings_2d  'struct', settings_PIETOOLS_<level>_2D of the 2-D
-%                          storage level;
-%               eppos      double, 1e-4: the margin of the positive operator
-%                          on every space, in every dimension and every LPI
-%                          that imposes one (EXEC_SOP_SETTINGS);
-%               epneg      double, DERIVATIVE_STRICTNESS, the decay rate in
-%                          every dimension;
-%               sos_opts   'struct' with field simplify (0 or 1) and, when
-%                          SOLVER is given, solver;
-%               sop        'struct' of container options:
-%                 slack          char, 'like': each negativity slack sized
-%                                from the positive operator of the LPI;
-%                 dw_feas        1x3 double, the degree raise of that slack
-%                                in the stability and well-posedness LPIs,
-%                                in 1, 2, and 3 or more variables;
-%                 dw_P, dw_Q     double, a scalar or one entry per
-%                                dimension: the same in the coercive (and
-%                                synthesis) LPIs and in the Q forms;
-%                 max_raise_feas, max_raise  double, a scalar or one entry
-%                                per dimension: how many times the program
-%                                is rebuilt with that degree one higher
-%                                after the solver returns UNKNOWN or
-%                                INFEASIBLE (stability and well-posedness;
-%                                the other LPIs);
-%                 cap_delta      1x3 double, [NaN NaN delta]: no bound in
-%                                1-D and 2-D; in 3 or more variables the
-%                                slack bases are bounded per direction,
-%                                theta_k + s_k <= Jmax_k(T) + delta
-%                                (EXEC_SOP_SETTINGS);
-%                 margin        double, 0: no regularizer on the certified
-%                                inequality;
-%                 keepdual       logical: assemble the dual kernel of the
-%                                negativity constraint;
-%                 witness        logical: compute the 1-D numerical
-%                                counterpart of the certificate;
-%                 N_cheb, nfreq  double, its Legendre degree (24; 32 at
-%                                veryheavy) and number of frequencies (240;
-%                                480 at veryheavy);
-%               lpi        'struct' with fields
-%                 pos      'struct', the positive operator P = Z'*Q*Z, one
-%                          entry per dimension: mult, the degree of the
-%                          multiplier basis; int and joint, the degree of the
-%                          integral bases in each variable and in total (int
-%                          < 0: none); sep, one integral over the interval in
-%                          place of the lower and upper ones in 1 variable.
-%                          Light: mult [1 0 0], int [1 1 1], joint [2 2 2],
-%                          sep 0; the stock 1-D storage levels in entry 1;
-%                 var      'struct' with field deg, a 1x3 'cell' of degree
-%                          specifications of the free operator
-%                          (LPIVAR_CDOPVAR); light {[2 2 2],1,1};
-%                 ineq     the options of LPI_INEQ_SOP: dD 1 and dw 1,
-%                          added to the lift and
-%                          weight degrees read from the support, and wmin,
-%                          the least weight degree when the support is read
-%                          from the target itself, one entry per dimension:
-%                          [2 2 0] (light, heavy, veryheavy, custom), 0
-%                          (stripped, extreme).
+% - st:       'struct' with fields (settings report 11/16/2026, Sec. 5):    % MMP, 11/17/2026
+%               lpi        'struct' with fields                             % MMP, 11/17/2026
+%                 pos      'struct', the storage row read by POSCOPVAR      % MMP, 11/17/2026
+%                          with DEG omitted: len_R (1, the identity on      % MMP, 11/17/2026
+%                          R^q), and 1x3 cells, entry k for a space in k    % MMP, 11/17/2026
+%                          variables (the last for more): len_inc (d1),     % MMP, 11/17/2026
+%                          len_com (d2), len_sos (d3, rows a, b, c),        % MMP, 11/17/2026
+%                          patterns (Pi), cap (Inf: none), len_cross (1:    % MMP, 11/17/2026
+%                          none), terms ('none'), offsets ([]);             % MMP, 11/17/2026
+%                 ineq     the options of LPI_INEQ_SOP: dD 1 and dw 1,      % MMP, 11/17/2026
+%                          added to the lift and weight degrees read from   % MMP, 11/17/2026
+%                          the support; wmin, the least weight degree when  % MMP, 11/17/2026
+%                          the support is read from the target itself,      % MMP, 11/17/2026
+%                          [2 2 0] (0 at stripped, extreme); wcross 0, no   % MMP, 11/17/2026
+%                          weight in a direction a space does not own;      % MMP, 11/17/2026
+%                          psatz 'auto' and psatz_offset [], the rule;      % MMP, 11/17/2026
+%                 var      'struct' with field deg, a 1x3 'cell' of degree  % MMP, 11/17/2026
+%                          specifications of the free operator              % MMP, 11/17/2026
+%                          (LPIVAR_CDOPVAR); light {[2 2 2],1,1}, heavy     % MMP, 11/17/2026
+%                          {[4 2 2],2,1}, veryheavy {[6 6 6],2,1},          % MMP, 11/17/2026
+%                          extreme {[2 2 0],1,1};                           % MMP, 11/17/2026
+%               sop        'struct' of container options:                   % MMP, 11/17/2026
+%                 slack          char, 'like': each negativity slack sized  % MMP, 11/17/2026
+%                                from the positive operator of the LPI;     % MMP, 11/17/2026
+%                 dw_feas, dw_P, dw_Q, max_raise_feas, max_raise,           % MMP, 11/17/2026
+%                 cap_delta      double, a scalar or one entry per          % MMP, 11/17/2026
+%                                dimension, as in the table above           % MMP, 11/17/2026
+%                                (EXEC_SOP_SETTINGS);                       % MMP, 11/17/2026
+%                 margin         double, 0: no regularizer on the certified % MMP, 11/17/2026
+%                                inequality;                                % MMP, 11/17/2026
+%                 keepdual, witness  logical, false (extreme, stripped      % MMP, 11/17/2026
+%                                only): no dual kernel, no 1-D witness;     % MMP, 11/17/2026
+%                 N_cheb, nfreq  double, 32, 480 (veryheavy only): the      % MMP, 11/17/2026
+%                                Legendre degree and number of frequencies  % MMP, 11/17/2026
+%                                of the witness;                            % MMP, 11/17/2026
+%               eppos      double, 1e-4: the margin of the storage on       % MMP, 11/17/2026
+%                          every space, in every dimension and every LPI    % MMP, 11/17/2026
+%                          that imposes one (EXEC_SOP_SETTINGS);            % MMP, 11/17/2026
+%               epneg      double, DERIVATIVE_STRICTNESS, the decay rate in % MMP, 11/17/2026
+%                          every dimension;                                 % MMP, 11/17/2026
+%               sos_opts   'struct' with fields simplify (0 or 1) and       % MMP, 11/17/2026
+%                          solver ('' unless SOLVER is given).              % MMP, 11/17/2026
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -151,6 +147,15 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                and settings_nd; the 'stock' slack left for
 %                LPISETTINGS_STOCK_SOP (phase 2 of the knob reduction). Code
 %                unchanged.
+% MMP, 11/17/2026: The tiers take the structure of the settings report
+%                11/16/2026, Sec. 5 and 6 (work package 5): help text for
+%                the storage row lpi.pos and the fields that left
+%                (settings_2d; lpi.pos mult, int, joint, sep; sop
+%                keepdual, witness, N_cheb, nfreq). Code: keepdual and
+%                witness false at extreme and stripped, N_cheb 32 and
+%                nfreq 480 at veryheavy, the values the tier files carried
+%                until 11/17/2026, so the output of the executives at each
+%                tier is unchanged.
 
 % Admissible values and defaults of the inputs
 arguments
@@ -170,6 +175,13 @@ switch type
     case 'veryheavy',   st = settings_sopvar_veryheavy();
     case 'custom',      st = settings_sopvar_custom();
 end
+% Output options the tiers no longer carry (settings report, Sec. 5):       % MMP, 11/17/2026
+% their former tier values where they differ from the defaults of           % MMP, 11/17/2026
+% EXEC_SOP_SETTINGS (keepdual, witness true; N_cheb 24, nfreq 240)          % MMP, 11/17/2026
+switch type                                                                 % MMP, 11/17/2026
+    case {'extreme','stripped'},   st.sop.keepdual = false;   st.sop.witness = false; % MMP, 11/17/2026
+    case 'veryheavy',              st.sop.N_cheb = 32;        st.sop.nfreq = 480; % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
 % Decay rate, simplification and solver from the inputs
 % st.epneg = derivative_strictness;   st.settings_2d.epneg = derivative_strictness; % MMP, 11/09/2026 (was)
 st.epneg = derivative_strictness;                                           % MMP, 11/09/2026

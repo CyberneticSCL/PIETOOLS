@@ -939,8 +939,11 @@ recomposes the stability operator on containers (`stab_resid`) and reads contain
 
 ### Stability: same verdicts, fewer rows
 
-All 11 runnable 1-D/DDE stability cases certify, as before; on the 10 compared, BM returns the
-banked ranks (`lib-beam-eb` certifies at rel_op 2.85e-11, rank not compared). m now lies in
+All 12 1-D/DDE stability cases certify, as before; on the 10 compared, BM returns the banked
+ranks (`lib-beam-eb` certifies at rel_op 2.85e-11 and `lib-wave-damped` at rel_op 1.01e-08,
+rank [1 1 1]; ranks not compared). `lib-wave-damped` failed to convert, inside and outside this
+package, at `extract_static_constraints:2638` until DanBraghini's 8f3de467 (`initialize.m`);
+its interior-point reference now certifies at rel_op 5.78e-10. m now lies in
 [rankA, m stock]: the container equality writer drops verified-redundant rows (e3a1f667), which
 removes upstream part of the rank deficiency §10 measured. Gram block sizes are unchanged.
 
@@ -957,6 +960,7 @@ removes upstream part of the rank deficiency §10 measured. Gram block sizes are
 | dde-2state | 71 | 70 | 70 |
 | dde-2delay | 227 | 220 | 218 |
 | dde-2state-dual | 248 | 240 | 237 |
+| lib-wave-damped | 212 | 205 | 203 |
 
 2-D, `rd2d-deg3-f010`: m 3311 (stock 3456), Gram blocks [8 424], build 5.0 s. The SeDuMi
 reference certifies (rel_op 8.16e-07, 139 s); one rank-1 BM attempt stagnates at 4.35e-02 in
@@ -1020,9 +1024,6 @@ Tier 3 lands 2.8e-5 (relative) above tier 2; not investigated.
 
 ### What does not run
 
-- `lib-wave-damped`: the PDE-to-PIE converter fails at `extract_static_constraints:2638`
-  ("Unrecognized field name 'vars'"), reproduced outside this package. Converter code; not
-  patched here.
 - Not ported; each calls retired functions (MATLAB `exist` scan, 11/08): `build_stab_2d_st2`
   (no caller left), `pielr_certify`, `pielr_certify_pos`, `private/opcheck_2d`,
   `private/opcheck_pos2d`, `private/pielr_evalgram`, `demo_poincare_2d`, `tests_1d/*`, and the

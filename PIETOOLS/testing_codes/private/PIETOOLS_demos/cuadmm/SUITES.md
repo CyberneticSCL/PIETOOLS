@@ -112,14 +112,15 @@ under 90 s together.
 | `ERR` | did not build or solve |
 | `NEW` | no banked expectation yet; run with `'bank'` to record one |
 
-Expectations live in **`bl_expect.tsv` at the package root**, banked from the measured
-baseline; `results/2026-09-24/bl_expect.tsv` is the frozen snapshot of the same file, so don't
-edit that one. `'bank'` **appends to the tracked root file**, so commit or revert it
-afterwards. It only adds cases that have no expectation — it never overwrites one, so a
-regression cannot be silently absorbed by re-banking.
+Expectations live in **`bl_expect.tsv` in this folder**, which `bl_check.m` reads from its own
+folder. Its rows for the 27 cases of `structure`, `twod`, `objective2d` and `scaling` were
+re-recorded on 11/08/2026 on the container executives and the `lpisettings_sop` tiers; the H2
+and `nl_fisher_*` rows keep their stock-path values. `results/2026-09-24/bl_expect.tsv` is the
+frozen stock-path snapshot, so don't edit that one. `'bank'` **appends to the tracked file**,
+so commit or revert it afterwards. It only adds cases that have no expectation — it never
+overwrites one, so a regression cannot be silently absorbed by re-banking.
 
-**Not yet banked**: `stab2_rd_psz` and `stab2_rd_psz90` (the psatz rows in `twod`). The first
-`bl_check('twod','bank')` records them.
+`stab2_rd_psz` and `stab2_rd_psz90` (the psatz rows in `twod`) were first banked on 11/08/2026.
 
 ## Sol lists (added 2026-09-27)
 

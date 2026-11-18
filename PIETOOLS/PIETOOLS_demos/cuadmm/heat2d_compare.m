@@ -39,6 +39,13 @@
 %   stock slack; build_stab_2d_st2 is no longer called.
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
 %   number_tag (one caller) inlined into export_cuadmm_problem.
+% MMP, 11/17/2026: the stock 2-D struct from SETTINGS_2D_STOCK('light'):
+%   the tiers carry no settings_2d since 11/17/2026 (work package 5); the
+%   same values.
+% CC, 11/17/2026: the binary check accepts a WSL path (leading '/') on
+%   Windows: bl_bisect runs it inside WSL, where EXIST cannot look, so the
+%   cuADMM stage stopped with "cuADMM executable not found" on Windows. Set
+%   CUADMM_EXE there (pick_cuadmm_exe tests its candidates with EXIST).
 %% parameters
 n = 1;                          % Number of coupled heat-equation states.
 lam = 2;                        % Reaction coefficient in x_t = x_s1s1 + x_s2s2 + lam*x.
@@ -136,7 +143,8 @@ PIE = convert(sys, 'pie');
 t_pie = toc(t0);
 %% SDP settings
 % st = settings_PIETOOLS_light_2D();                                        % CC, 11/08/2026 (was)
-st = lpisettings_sop('light');  st = st.settings_2d;                        % CC, 11/08/2026
+% st = lpisettings_sop('light');  st = st.settings_2d;                      % MMP, 11/17/2026 (was)
+st = settings_2d_stock('light');    % no tier field since 11/17/2026        % MMP, 11/17/2026
 if ~isempty(dmult)
     st.LF_deg.d2{1,1} = dmult*ones(2,2);
 end
@@ -258,7 +266,9 @@ fprintf('  dump: %s\n', out.cuadmm.dumpfile);
 fprintf('  text problem dir: %s\n', out.cuadmm.problem_dir);
 fprintf('  export time: %.2f s\n', out.cuadmm.t_export);
 
-if isempty(cuadmm_exe) || exist(cuadmm_exe, 'file') ~= 2
+% if isempty(cuadmm_exe) || exist(cuadmm_exe, 'file') ~= 2                  % CC, 11/17/2026 (was)
+wsl_exe = ispc && strncmp(cuadmm_exe, '/', 1);  % run in WSL by bl_bisect   % CC, 11/17/2026
+if isempty(cuadmm_exe) || (exist(cuadmm_exe, 'file') ~= 2 && ~wsl_exe)      % CC, 11/17/2026
     error('cuADMM executable not found: %s', cuadmm_exe);
 end
 fprintf('  executable: %s\n', cuadmm_exe);

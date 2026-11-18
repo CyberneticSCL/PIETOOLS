@@ -1,0 +1,9 @@
+S24 mixed-domain gain (ODE -> 2-D edge, exact 0.5) through PIETOOLS_Hinf_gain_sop 'P', light, dw 2 pinned; log c3c.log, 11/15/2026
+HINF stock   facesS    o1   pd0 dw2  cert=1 gam=0.5000214  gap=+4.27e-05  ndv=674256   m=5229   t=41
+HINF stock   box       o1   pd1 dw2  cert=1 gam=0.5000272  gap=+5.44e-05  ndv=674526   m=5271   t=39
+HINF stock   faces     o1   pd1 dw2  cert=1 gam=0.5000363  gap=+7.26e-05  ndv=1013520  m=5229   t=52
+HINF stock   faces0    o0   pd1 dw2  cert=1 gam=0.5000269  gap=+5.39e-05  ndv=1676496  m=6630   t=118
+HINF def     facesS    o1   pd0 dw2  cert=1 gam=0.5000199  gap=+3.99e-05  ndv=674560   m=5234   t=36
+HINF def     box       o1   pd1 dw2  cert=1 gam=0.5000176  gap=+3.52e-05  ndv=674830   m=5276   t=40
+HINF def     faces     o1   pd1 dw2  cert=1 gam=0.5000089  gap=+1.78e-05  ndv=1013824  m=5234   t=57
+HINF def     faces0    o0   pd1 dw2  cert=1 gam=0.5000265  gap=+5.29e-05  ndv=1676800  m=6635   t=115

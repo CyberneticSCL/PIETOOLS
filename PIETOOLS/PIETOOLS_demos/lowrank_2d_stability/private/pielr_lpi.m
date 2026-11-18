@@ -49,6 +49,10 @@ function A = pielr_lpi(lpi)                                                 % CC
 %   poincare_adapter (into the switch) and stab_2d_settings (into stab_build)
 %   inlined; stab_build, l2g_build and poincare_build stay, being bodies of
 %   the build handles.
+% MMP, 11/17/2026: stab_build: in 2-D a tier struct without settings_2d
+%   (the tiers since 11/17/2026, work package 5) gets SETTINGS_2D_STOCK of
+%   its base tier (st.tier_base, else 'light'), the struct the tier carried;
+%   without this the whole tier struct was taken as the 2-D settings.
 
 switch lower(char(lpi))
     case 'stability'
@@ -98,6 +102,12 @@ function [prog,H] = stab_build(PIE,st,dual)
 % else                                                                      % CC, 11/08/2026 (was)
 %     [prog,H] = build_stab_1d(PIE,st,dual);                                % CC, 11/08/2026 (was)
 % end                                                                       % CC, 11/08/2026 (was)
+% A tier struct (no LF_deg) has no settings_2d since 11/17/2026: give it    % MMP, 11/17/2026
+% the stock 2-D struct of its base tier (tier_base of PIELR_SETTINGS)       % MMP, 11/17/2026
+if pie_dim(PIE)==2 && ~isfield(st,'settings_2d') && ~isfield(st,'LF_deg')   % MMP, 11/17/2026
+    lev = 'light';  if isfield(st,'tier_base'), lev = st.tier_base; end     % MMP, 11/17/2026
+    st.settings_2d = settings_2d_stock(lev);                                % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
 if pie_dim(PIE)==2 && ~isfield(st,'settings_2d')
     S2 = lpisettings_sop('light');
 %   S2.settings_2d = stab_2d_settings(st);                                  % MMP, 11/09/2026 (was)

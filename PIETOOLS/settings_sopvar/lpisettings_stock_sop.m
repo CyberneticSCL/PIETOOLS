@@ -7,7 +7,8 @@ function [st,stock] = lpisettings_stock_sop(type,varargin)
 % slack N = N1 + N2 is that of the stock level of the tier: N1 of dd2 and
 % options2, N2 (the psatz term) of dd3 and options3, omitted when override2
 % = 1; in two variables it is the stock slack of st.settings_2d; three or
-% more variables have none.
+% more variables have none. The tiers carry no settings_2d: set             % MMP, 11/17/2026
+% st.settings_2d = SETTINGS_2D_STOCK(TYPE) for the 2-D slack.               % MMP, 11/17/2026
 %
 % INPUT
 % - type:   (optional) char, a tier of LPISETTINGS_SOP: 'extreme',
@@ -66,6 +67,8 @@ function [st,stock] = lpisettings_stock_sop(type,varargin)
 %   creates an ad hoc settings file which reproduces the baselines"); its
 %   fields, top-level fields of every tier until 11/12/2026, are written out
 %   here under sop.stock.
+% MMP, 11/17/2026: Help: the 2-D stock slack needs st.settings_2d from
+%   SETTINGS_2D_STOCK, since the tiers no longer carry it (work package 5).
 
 if nargin<1 || isempty(type),   type = 'light';     end
 st = lpisettings_sop(type,varargin{:});

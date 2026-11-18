@@ -1,0 +1,22 @@
+\subsection{Raising the weight degree}\label{sec:t4}
+
+Table~\ref{tab:t4} repeats the direct PIE-to-PDE test on S18 and S17 with the weight degree raised by one, so that the even-degree weights reach the degree of the odd-degree faces.
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+PIE & margin & box & facesS & faces0 & product2 \\
+\midrule
+S18 & $0.5\tau^*$ & in $475\,107$ & in $440\,023$ & in $1\,290\,075$ & in $520\,579$ \\
+S18 & $0.9\tau^*$ & in $475\,107$ & in $440\,023$ & in $1\,290\,075$ & in $520\,579$ \\
+S17 & $0.5r_2^*$ & U $832\,470$ & U $788\,950$ & in $2\,203\,350$ & U $919\,510$ \\
+S17 & $0.9r_2^*$ & U $832\,470$ & U $788\,950$ & U $2\,203\,350$ & U $919\,510$ \\
+\bottomrule
+\end{tabular}
+\caption{The direct PIE-to-PDE test at one more weight degree ($\mathrm{dw}=1$, $\mcl Q$ of length $2$): the box quadratics, the faces with short and with full-length multipliers, and the products of the box quadratics; cells give the verdict and the variables of the program. At $\mathrm{dw}=0$ (Tables~\ref{tab:t2} and \ref{tab:t3}) S18 at $0.5\tau^*$ was certified by the full-length faces alone ($228$k) and S18 at $0.9\tau^*$ by no set.}\label{tab:t4}
+\end{table}
+
+At $\mathrm{dw}=1$ every set certifies S18 at both margins, with $440\,023$ variables for \code{facesS} and $1\,290\,075$ for \code{faces0}. At $\mathrm{dw}=0$ only \code{faces0} certified S18 at $0.5\tau^*$, with $228$k variables, and no set certified S18 at $0.9\tau^*$. On S17 at $0.5r_2^*$ only \code{faces0} certifies at $\mathrm{dw}=1$, with $2\,203\,350$ variables against $435$k at $\mathrm{dw}=0$. At $\mathrm{dw}=0$ the same case was also certified by \code{facesS} with $109$k variables and by \code{product2} with $136$k. S17 at $0.9r_2^*$ remains uncertified, and each of the seven U entries is a MOSEK return with numerical problems.
+
+In three variables the same raise was run on Sol on the heat benchmark at $0.985\kappa^*$ (job 1706087). The configuration carries the box quadratics at per-direction offset $1$ and raises the slack weight degree by one in $\mcl R$ and $\mcl Q$, with the lift and the free operator at the bench caps. MOSEK returns an optimal certificate, with relative residual $5.1\times10^{-7}$ in the equations and $3.8\times10^{-14}$ in the PSD cones. The program has $13\,913\,099$ PSD variables and $71\,349$ rows, in blocks of sizes $1200$, $800$, $720$, $720$ for $\mcl R$ and $2220$, $1480$, $1356$, $1356$ for $\mcl Q$. MOSEK takes $18\,235$~s ($5.07$~h) and $20$ iterations on $64$ threads, with $69.0$~GB of memory at its peak. The full-length faces at the lower degree (\code{faces0}) certify the same margin with $2\,713\,563$ variables in $759$~s on the workstation with $8$ threads. The raise therefore costs $5.1\times$ the variables and $24\times$ the time, with the two times measured on different machines. The earlier Sol run that also raised the free operator ($29.6$M variables) did not finish in $9.5$~h.

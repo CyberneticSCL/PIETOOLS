@@ -1,0 +1,5 @@
+453c453,454
+< [prog,P] = poscopvar(prog,dm,sp,dom);                                       % MMP, 11/13/2026
+---
+> % [prog,P] = poscopvar(prog,dm,sp,dom);                                     % MMP, 11/16/2026 (was); MMP, 11/13/2026
+> [prog,P] = pf_pos_sep(prog,X,side,dom,getappdata(0,'PF_SEP'));                 % MMP, 11/16/2026 (split kernels per direction, PF_POS_SEP)

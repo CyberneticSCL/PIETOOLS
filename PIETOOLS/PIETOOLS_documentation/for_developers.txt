@@ -18,4 +18,22 @@ Changes to core data structures must be tested all the way down the workflow.
 8) Be aware that typical usage of much of this code involves millions of decision variables in several spatial dimensions. Modifications should be rigorously tested for impact on both memory complexity and time-complexity for a suitably representative sampling of use cases.
 
 9) Also, the default for modifying files should be the minimal number of line changes and the fewest auxiliary functions necessary to achieve the objective
- 
+
+Special Rules for public releases:
+
+1) For new functions, all developer notes should be removed from the header and body of the file.
+
+2) All functions should have a header. This header should have the following parts:
+ 	a) a description of what the function does with sufficient detail and context to be able to understand how the function may be applied in a context for which it was not originally intended. When the function performs a mathematical operation, mathematical formulae should be given.
+	b) a description of all inputs, including how those inputs should be structured and inputs should be relatable to the description of the function.
+	c) a description of all outputs, including how those outputs should be structured and outputs should be relatable to the description of the function.
+
+3) Files should include the public license in the header
+
+4) At the end of the header, authors should include name, contact information, and date of initial coding.
+
+5) The body of the function should be clearly commented to indicate what action is being performed at each step, stated in the context of the header description.
+
+6) Descriptions and comments should not reference external documents or other functions or files. They should not be described proscriptively in an intended use case. They should describe what they do, not how they are used. They may contain, however, brief notes on observed performance, bottlenecks or limitations. 
+
+6) All these rules also apply to subroutines which are not called outside a given file. However, subroutines do not need to include a copy of the public license.

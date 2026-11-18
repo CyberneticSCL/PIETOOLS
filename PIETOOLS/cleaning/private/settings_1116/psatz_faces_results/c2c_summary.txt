@@ -1,0 +1,7 @@
+Phase 2 at rtol 1e-4 (2-D heat DD x DN, d = 0, R (1,1), Q (2,wQ); 24 solves / 1800 s budget); log c2c.log, 11/15/2026
+box       o1    pd1 QD=[2     lo=12.3367312  hi=13.5707061  reach=0.99998  res=0 nsolve=20  t=463   nx=358665   m=3943  nnz=1123343
+facesS    o1    pd0 QD=[2     lo=12.3367312  hi=13.5707061  reach=0.99998  res=0 nsolve=16  t=321   nx=339209   m=3943  nnz=904851
+faces     o1    pd1 QD=[2     lo=12.3367312  hi=13.5707061  reach=0.99998  res=0 nsolve=16  t=464   nx=526601   m=3943  nnz=1502341
+product   o1    pd1 QD=[2     lo=12.3367312  hi=13.5707061  reach=0.99998  res=0 nsolve=18  t=435   nx=395785   m=3943  nnz=1402452
+corners   o1    pd1 QD=[2     lo=12.3367312  hi=13.5707061  reach=0.99998  res=0 nsolve=16  t=591   nx=675081   m=3943  nnz=2171081
+faces0    o0    pd1 QD=[2     lo=12.3359773  hi=12.3367312  reach=0.99992  res=1 nsolve=17  t=144   nx=204809   m=3117  nnz=630999

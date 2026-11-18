@@ -96,6 +96,10 @@ function S = pielr_settings(tier,dim)                                      % CC,
 %
 % OUTPUT  S  a settings struct usable as pielr_solve's opts.settings, with
 %            S.poincare attached for the Poincare adapter and S.tier recorded.
+%
+% MMP, 11/17/2026: the settings_2d.eppos line is inert (the tiers carry no
+%   settings_2d since 11/17/2026, work package 5); the 2-D margin stays
+%   1e-2 through S.eppos, copied by EXEC_SOP_SETTINGS. Comment only.
 
 if nargin<1 || isempty(tier), tier = 1; end
 if nargin<2 || isempty(dim),  dim  = 1; end
@@ -125,6 +129,8 @@ S.sos_opts.solver = 'sedumi';
 % epsilon scale.  Relative metrics are invariant to it (measured across six
 % orders) but the Gram-level positivity margin is not.
 S.eppos = 1e-2;   S.eppos2 = 1e-2;
+% Inert since 11/17/2026 (no tier settings_2d); S.eppos above is the one    % MMP, 11/17/2026
+% margin, which EXEC_SOP_SETTINGS copies into every dimension               % MMP, 11/17/2026
 if isfield(S,'settings_2d'), S.settings_2d.eppos = 1e-2*ones(4,1); end
 
 % negativity psatz, and the degree bump on the slack

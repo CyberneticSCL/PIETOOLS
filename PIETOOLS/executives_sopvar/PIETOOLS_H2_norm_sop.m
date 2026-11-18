@@ -38,11 +38,12 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R
 %                       (of W in 'cco', 'oco');
-%               settings_2d   2-D degrees;
+%               lpi.pos        the storage row, in every dimension          % MMP, 11/17/2026
+%                              (POSCOPVAR); settings_2d (optional, no       % MMP, 11/17/2026
+%                              tier field) the 16-basis 2-D degrees,        % MMP, 11/17/2026
+%                              from SETTINGS_2D_STOCK;                      % MMP, 11/17/2026
 %               eppos     the margin of W in 'cco', 'oco', in every
 %                         dimension (EXEC_SOP_SETTINGS);
-%               settings_nd    degrees and margin in 3 or more variables
-%                              (EXEC_TOOLS_SOP);
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_Q for 'c'
 %                       and 'o', dw_P for 'cco' and 'oco', max_raise.
@@ -151,6 +152,12 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                11/12/2026: "Settings on the program"). Programs unchanged:
 %                every tier sets lpi.ineq.dD = 1, and with dw and like
 %                given wmin does not apply.
+% MMP, 11/17/2026: Help: settings_2d and settings_nd are no tier fields
+%                since work package 5; the storage is the row lpi.pos, and
+%                the stock 2-D struct is SETTINGS_2D_STOCK. Code unchanged.
+%                The lines read before: "settings_2d  2-D degrees;
+%                settings_nd  degrees and margin in 3 or more variables
+%                (EXEC_TOOLS_SOP);".
 
 % Default settings and form; check the PIE
 % if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)

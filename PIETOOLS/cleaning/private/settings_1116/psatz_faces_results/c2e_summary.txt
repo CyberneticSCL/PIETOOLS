@@ -1,0 +1,5 @@
+Phase 2, DD x DD half step (kappa* = 2 pi^2 = 19.739209, Q at (2,1), rtol 1e-4, 24-solve budget); log c2e.log, 11/15/2026
+box       o1    pd1 QD=[2     lo=19.6013145  hi=19.6109595  reach=0.99301  res=0 nsolve=24  t=82    nx=61449    m=2139  nnz=182339
+box0      o0    pd1 QD=[2     lo=19.6929414  hi=21.7131297  reach=0.99766  res=0 nsolve=24  t=175   nx=122889   m=4111  nnz=441539
+faces0    o0    pd1 QD=[2     lo=19.7315331  hi=21.7131297  reach=0.99961  res=0 nsolve=24  t=201   nx=204809   m=3125  nnz=631191
+facesS    o1    pd0 QD=[2     lo=16.3472571  hi=19.4322950  reach=0.82816  res=0 nsolve=24  t=72    nx=51209    m=2139  nnz=129369

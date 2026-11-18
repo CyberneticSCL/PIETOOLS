@@ -42,6 +42,11 @@ function R = pielr_bench(opts)                                             % CC,
 %              .tag (a label stored in R for diffing two runs)
 %              plus any pielr_solve option (lmit, maxrank, seeds, gate, ...)
 % OUTPUT R     struct array, one entry per case, plus R(1).meta
+%
+% CC, 11/17/2026: set_eppos takes a named tier from LPISETTINGS_STOCK_SOP
+%   (the tier plus sop.stock): the builders' stock slack reads sop.stock
+%   since 11/12/2026, and every 1-D case stopped with "The stock slack reads
+%   settings.sop.stock" (measured at HEAD 33d30877 and on the 11/17 tree).
 
 if nargin<1, opts = struct(); end
 def = struct('tier',1,'cases',[],'verbose',false,'skip_ipm',false,'tag','', ...
@@ -241,7 +246,8 @@ function st = set_eppos(c,ep)                                              % CC,
 % and why it can be exactly zero there.
 st = c.settings;
 % if ischar(st) || isstring(st), st = lpisettings(char(st)); end            % CC, 11/08/2026 (was)
-if ischar(st) || isstring(st), st = lpisettings_sop(char(st)); end          % CC, 11/08/2026
+% if ischar(st) || isstring(st), st = lpisettings_sop(char(st)); end        % CC, 11/17/2026 (was); CC, 11/08/2026
+if ischar(st) || isstring(st), st = lpisettings_stock_sop(char(st)); end    % CC, 11/17/2026
 if isempty(ep) || ~startsWith(c.lpi,'stability'), return, end
 if isfield(st,'eppos') && numel(st.eppos) == 4
     st.eppos = ep*ones(4,1);              % 2-D: [R, L2x, L2y, L2xy]

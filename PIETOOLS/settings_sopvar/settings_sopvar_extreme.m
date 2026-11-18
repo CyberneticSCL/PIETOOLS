@@ -3,34 +3,29 @@ function st = settings_sopvar_extreme()
 % ST = SETTINGS_SOPVAR_EXTREME() returns the settings of the 'extreme' tier
 % of LPISETTINGS_SOP: the degrees and options from which the container
 % executives build the positive operator P of an LPI, the margins of P, and
-% the options of the executives, those of the stripped tier. In one and two
-% spatial variables the degrees are those of the stock extreme level, the
-% lowest of the stock levels.
+% the options of the executives, those of the stripped tier. The storage    % MMP, 11/17/2026
+% is a row (POSCOPVAR, DEG omitted) of multiplier bases alone, in one       % MMP, 11/17/2026
+% variable the stock extreme storage, the lowest of the stock levels.       % MMP, 11/17/2026
 %
 % INPUT
 % none.
 %
 % OUTPUT
-% - st:   'struct' with fields
-%           settings_2d   'struct', the positive and free operators and the
-%                         'stock' slack in two spatial variables:
-%                         is2D, LF_deg, LF_opts, LF_use_psatz,
-%                         LF_opts_psatz, LF_deg_psatz (P); Zop_deg,
-%                         Zop_opts (free operator); use_sosineq and
-%                         ineq_opts or eq_deg, eq_opts, eq_use_psatz,
-%                         eq_opts_psatz, eq_deg_psatz ('stock' slack);
-%           eppos         'double', the margin of P on every space, in every
-%                         dimension;
-%           epneg         'double', the decay rate, in every dimension;
-%           sos_opts      'struct' with field simplify (0 or 1);
-%           sop           'struct', the options of the container executives:
-%                         slack, dw_feas, dw_P, dw_Q, max_raise_feas,
-%                         max_raise, cap_delta, margin, keepdual,
-%                         witness, N_cheb, nfreq;
-%           lpi           'struct' with fields pos and var, the positive and
-%                         free operators of the LPIs, and ineq, the degree
-%                         options of LPI_INEQ_SOP: dD, dw, wmin.
-%         The body gives the value of each field and what it does.
+% - st:   'struct' with fields (settings report 11/16/2026, Sec. 5, 6):     % MMP, 11/17/2026
+%           lpi       'struct' with fields pos, the storage row that        % MMP, 11/17/2026
+%                     POSCOPVAR reads with DEG omitted (len_R, len_inc,     % MMP, 11/17/2026
+%                     len_com, len_sos, patterns, cap, len_cross, terms,    % MMP, 11/17/2026
+%                     offsets); ineq, the slack options of LPI_INEQ_SOP     % MMP, 11/17/2026
+%                     (dD, dw, wmin, wcross, psatz, psatz_offset); var,     % MMP, 11/17/2026
+%                     field deg, the free operator of LPIVAR_CDOPVAR;       % MMP, 11/17/2026
+%           sop       'struct', the options of the container executives:    % MMP, 11/17/2026
+%                     slack, dw_feas, dw_P, dw_Q, max_raise_feas,           % MMP, 11/17/2026
+%                     max_raise, cap_delta, margin;                         % MMP, 11/17/2026
+%           eppos     'double', the margin of P on every space, in every    % MMP, 11/17/2026
+%                     dimension;                                            % MMP, 11/17/2026
+%           epneg     'double', the decay rate, in every dimension;         % MMP, 11/17/2026
+%           sos_opts  'struct' with fields simplify (0 or 1) and solver.    % MMP, 11/17/2026
+%         The body gives the value of each field and what it does.          % MMP, 11/17/2026
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -95,143 +90,98 @@ function st = settings_sopvar_extreme()
 %                which creates an ad hoc settings file which reproduces the
 %                baselines"); the slack comment of sop names it. Sections 5
 %                and 6 are now 4 and 5.
+% MMP, 11/17/2026: The structure of the settings report 11/16/2026, Sec. 5
+%                (A tier layout) and Sec. 6 (Tables of the storage rows
+%                and of the slack and raise knobs; work package 5): lpi.pos
+%                is the storage row that POSCOPVAR reads with DEG omitted
+%                in every dimension; lpi.ineq gains wcross 0, psatz 'auto'
+%                and psatz_offset [], and sos_opts the field solver ''.
+%                Deleted, described in the report, Sec. 7 (the present
+%                tiers): settings_2d (the stock 2-D storage LF_*, free
+%                operator Zop_* and 'stock' slack); the lpi.pos fields mult,
+%                int, joint, sep; the sop fields keepdual, witness, N_cheb,
+%                nfreq, which govern the output and not the program (now
+%                defaults of EXEC_SOP_SETTINGS and LPISETTINGS_SOP). The
+%                body of the entries of 11/09/2026, 11/10/2026 and
+%                11/12/2026 is replaced; their values stand only where the
+%                report keeps them.
+% MMP, 11/17/2026: lpi.ineq.psatz {'auto','faces1','auto'} (was 'auto';
+%                maintainer decision, work package 5): in two variables
+%                the plain term and the four faces one weight degree below
+%                it whatever w ('faces1', GET_LIFT_DEGS); 'auto' in one and
+%                in three or more. With wcross 0 and 'auto' (faces at
+%                offset 0 when w = 1) S17 at 0.5 r2* in the direct form is
+%                UNKNOWN (676,410 variables after one raise; terms_results.md,
+%                "The cross length"), where the faces at offset 1 keep the
+%                certificate; on every 2-D case measured on 11/17/2026
+%                (gap_results.md G1-G4; S1, S3, S4, S8, PDE 33) the offset-1
+%                faces certify whatever offset 0 certifies at about a
+%                quarter of the variables (S3 95,930 against 383,270; S8
+%                123,168 against 492,048; PDE 33 52,660 against 190,900).
+% MMP, 11/18/2026: Three fields of section 4 for the direct stability form
+%                'Q' (PIETOOLS_STABILITY_SOP; maintainer: "make the
+%                separation"): deg_Q, the degrees of its Q (this tier's
+%                lpi.var.deg, which stays the degree of the synthesis free
+%                operators), max_raise_Q, its raises (this tier's
+%                max_raise_feas), and raise_Q 'slack', what a raise adds
+%                (the slack weight, as before; 'deg' the first entry of
+%                deg_Q; 'both'). Values of 11/17/2026: programs unchanged.
+% MMP, 11/18/2026: lpi.ineq gains Dmax false and cap_inc [] (GET_LIFT_DEGS,
+%                same date): the lift degree at the support ceiling and the
+%                triangular cap of Shivakumar's bounds (11/17/2026), both
+%                off; programs unchanged.
 
-% BEGIN MMP, 11/09/2026: body reorganized, one margin and decay rate (header)
-
-%% 1. The positive and free operators: st.lpi.pos, st.lpi.var               % MMP, 11/12/2026
-% BEGIN MMP, 11/12/2026: native form (header). Deleted, of 11/09/2026: the
-% stock-format override1 = 1, options1, options12, dd1 = {1, [1 0 1], [1 0 1]} with options1.exclude [0 0 1 1]
-% and dd12 (unread), now entry 1 of pos; ddZ = [2 2 0], now entry 1 of var;
-% the 'stock' slack (sosineq_on, override2, options2, dd2, options3, dd3),
-% now LPISETTINGS_STOCK_SOP; and section 4 of 10/29/2026, settings_nd =
-% struct('LF_int',1,'LF_mult',0), now entry 3.
-% A vector holds the entries for 1, 2, and 3 or more spatial variables.
-% P = Z'*Q*Z, Q >= 0, on each space (POSCOPVAR): on R^n the identity
-% basis; on an L2 space the multiplier basis of degree mult and integral
-% bases of degree int in each variable and joint in total (int < 0: none):
-% in one variable the lower and upper integrals, or with sep = 1 one
-% integral over the whole interval; in two or more one full integral,
-% separable in every direction. The executives read entries 1 and 3
-% (POSLPIVAR_SETTINGS_SOP, EXEC_TOOLS_SOP; two variables: settings_2d,
-% section 2), POSCOPVAR without DEG the entry of each space.
-% int -1 in one variable: the multiplier basis alone.
-st.lpi.pos = struct('mult',[1 0 0],'int',[-1 1 1],'joint',[0 2 2],'sep',0);
-% Z, the free operator of the synthesis LPIs (LPIVAR_CDOPVAR): one degree
-% specification per dimension, in a form LPIVAR_CDOPVAR takes; in one
-% variable [d1 d2 d3], d1 the degree of the multiplier and of the maps to
-% and from R^n, d3 and d2 those of the integral kernels in s and in the
-% integration variable. The executives read entries 1 and 3,
-% LPIVAR_CDOPVAR without DEG the entry of its largest space.
-st.lpi.var = struct('deg',{{[2 2 0],1,1}});
-% END MMP, 11/12/2026
-
-%% 2. PIEs in two spatial variables (x,y): st.settings_2d
-% P = P0 + P1 + ..., each term Z'*Q*Z with Q >= 0
-% (POSLPIVAR_SETTINGS_2D_SOP, role 'lf'), Z built from the 16 bases
-% [R^n; Zx^o, Zx^a, Zx^b; Zy^o, Zy^a, Zy^b; Z2^oo, Z2^ao, Z2^bo, Z2^oa,
-% Z2^ob, Z2^aa, Z2^ba, Z2^ab, Z2^bb]: o the multiplier, a the lower and b
-% the upper integral, in x for the first index and in y for the second;
-% tt and nu the integration variables in x and y.
-% Degrees: dx on L2[x], dy on L2[y], d2 on L2[x,y]. The caps of Z2^{ij}
-% have rows [-; x] (i = o) or [-; x; tt; x*tt] (i = a, b) and columns
-% [-, y] (j = o) or [-, y, nu, y*nu] (j = a, b), each entry the cap on the
-% joint degree in its row and column variables.
-dx = {0; [1;1;1]; [1;1;1]};                         % Zx^o: degree in x; Zx^a, Zx^b: caps [x; tt; x*tt]
-dy = {0, [1 1 1], [1 1 1]};                         % the same in y and nu
-d2 = cell(3,3);
-d2{1,1} = [0 0;0 0];                                % Z2^oo
-d2{1,2} = [0 1 1 1;0 1 1 1];                        % Z2^oa
-d2{1,3} = [0 1 1 1;0 1 1 1];                        % Z2^ob
-d2{2,1} = [0 0;1 1;1 1;1 1];                        % Z2^ao
-d2{2,2} = [0 1 1 1;1 2 2 2;1 2 2 2;1 2 2 2];        % Z2^aa
-d2{2,3} = [0 1 1 1;1 2 2 2;1 2 2 2;1 2 2 2];        % Z2^ab
-d2{3,1} = [0 0;1 1;1 1;1 1];                        % Z2^bo
-d2{3,2} = [0 1 1 1;1 2 2 2;1 2 2 2;1 2 2 2];        % Z2^ba
-d2{3,3} = [0 1 1 1;1 2 2 2;1 2 2 2;1 2 2 2];        % Z2^bb
-% Options: exclude (1x16) drops the bases in the order above; sep (6x1)
-% equates the lower- and upper-integral parameters of P: Rxx{2} = Rxx{3}
-% (1), Ryy{2} = Ryy{3} (2), R22{2,1} = R22{3,1} (3), R22{1,2} = R22{1,3}
-% (4), R22{2,j} = R22{3,j} for j = 2,3 (5), R22{i,2} = R22{i,3} for
-% i = 2,3 (6), with R22{i,j} the parameter of Z2^{ij}; psatz 1 weights Q
-% by the domain, 2 by a disk (rejected by POSCOPVAR). Each nonzero entry
-% of LF_use_psatz adds a term of the options LF_opts_psatz{j} and the
-% degrees LF_deg_psatz{j}.
-s2.is2D = 1;
-s2.LF_deg  = struct('dx',{dx},'dy',{dy},'d2',{d2});
-s2.LF_opts = struct('sep',[1;1;1;1;1;1],'exclude',[0 0 1 1 0 1 1 0 1 1 1 1 1 1 1 1],'psatz',0);
-s2.LF_use_psatz  = 0;                               % no added term: the two fields below unread
-s2.LF_opts_psatz = {struct('psatz',1,'sep',s2.LF_opts.sep,'exclude',s2.LF_opts.exclude), ...
-                    struct('psatz',2,'sep',s2.LF_opts.sep,'exclude',s2.LF_opts.exclude)};
-s2.LF_deg_psatz  = {s2.LF_deg, s2.LF_deg};
-% Free operator of the synthesis LPIs: twice the degrees of P, of which only
-% the largest entry is read (EXEC_TOOLS_SOP); Zop_opts is read by no
-% container executive.
-twice = @(c) cellfun(@(d) 2*d, c, 'UniformOutput', false);
-s2.Zop_deg  = struct('dx',{twice(dx)},'dy',{twice(dy)},'d2',{twice(d2)});
-s2.Zop_opts = struct('sep',[0;0;0;0;0],'isscalar',1,'ismultiplier',1);
-% Slack of the 'stock' slack mode (role 'slack'), read only with sop.slack
-% = 'stock'. use_sosineq is read from the base workspace (sosineq_on, else
-% use_sosineq) when it exists there, as in the stock settings files: 1
-% selects the stock sosineq, which the container executives reject, and
-% sets only ineq_opts, which none of them reads. With 0, the value here, the
-% slack has the degrees of P raised by 2 in dx and dy and by 3 in d2, and
-% one term per nonzero entry of eq_use_psatz (none here) with those raised
-% by 1 and by 2.
-s2.use_sosineq = 0;
-if evalin('base','exist(''sosineq_on'',''var'')')
-    s2.use_sosineq = evalin('base','sosineq_on');
-elseif evalin('base','exist(''use_sosineq'',''var'')')
-    s2.use_sosineq = evalin('base','use_sosineq');
-end
-if s2.use_sosineq
-    s2.ineq_opts = struct('psatz',0);
-else
-    up = @(c,k) cellfun(@(d) d+k, c, 'UniformOutput', false);
-    s2.eq_deg  = struct('dx',{up(dx,2)},'dy',{up(dy,2)},'d2',{up(d2,3)});
-    s2.eq_opts = struct('psatz',0,'sep',zeros(1,6),'exclude',zeros(1,16));
-    s2.eq_use_psatz = [0;0];
-    for j = 1:numel(s2.eq_use_psatz)
-        s2.eq_opts_psatz{j} = struct('psatz',s2.eq_use_psatz(j),'sep',zeros(1,6),'exclude',zeros(1,16));
-        s2.eq_deg_psatz{j}  = struct('dx',{up(dx,1)},'dy',{up(dy,1)},'d2',{up(d2,2)});
-    end
-end
-st.settings_2d = s2;
-
-%% 3. Margin, decay rate and solver, the same in every dimension
-% eppos: the margin of P, P >= eppos*I on every space (R^n and each L2), in
-% each LPI that imposes one, stability and well-posedness included; epneg:
-% the decay rate. EXEC_SOP_SETTINGS sets from these the fields each
-% dimension reads (eppos2, settings_2d.eppos and epneg, settings_nd.eppos);
-% such a field, set here, takes precedence. LPISETTINGS_SOP overwrites
-% epneg and simplify with its inputs, and the solver when it is given one.
-st.eppos = 1e-4;    st.epneg = 0;
-st.sos_opts = struct('simplify',0);
-
-%% 4. Options of the container executives: st.sop (EXEC_SOP_SETTINGS)       % MMP, 11/12/2026
-% A vector holds the entries for 1, 2, and 3 or more spatial variables; a
-% scalar serves every dimension. The slack of each negativity constraint
-% -D >= 0 has a weight degree, raised by dw over the rule of GET_LIFT_DEGS,
-% and the degree loop LPI_SOLVE_LOOP_SOP rebuilds the LPI with the weight
-% one higher after UNKNOWN or INFEASIBLE, up to max_raise times.
+% BEGIN MMP, 11/17/2026: body replaced by the tier layout of the settings
+% report 11/16/2026, Sec. 5, values of Sec. 6 (header). Deleted, stamped
+% MMP 11/09/2026, 11/10/2026, 11/12/2026: sections 1 (lpi.pos mult, int,
+% joint, sep; lpi.var), 2 (settings_2d), 3 (eppos, epneg, sos_opts), 4
+% (st.sop with keepdual, witness, N_cheb, nfreq) and 5 (lpi.ineq dD, dw,
+% wmin); the values of 1, 2 and 4 are in the report, Sec. 7.
+% Extreme tier. Entry k (cell) or column k (row): a space or inequality in
+% k variables, the last entry for every higher k.
+% 1. The storage (POSCOPVAR, DEG omitted): lengths of monomial vectors,
+% 0 = absent; d1, d2, d3 of the report, Table of the storage rows.
+st.lpi.pos = struct( ...
+   'len_R',    1, ...                                   % R^q: the identity
+   'len_inc',  {{0,       [0 0],         [0 0 0]}}, ...             % d1
+   'len_com',  {{0,       [0 0],         [0 0 0]}}, ...             % d2
+   'len_sos',  {{[2;0;0], [1 1;0 0;0 0], [1 1 1;0 0 0;0 0 0]}}, ... % d3
+   'patterns', {{{'a'},   {'aa'},        {'aaa'}}}, ...           % Pi
+   'cap',      {{Inf,     [Inf Inf],     [Inf Inf Inf]}}, ...       % c
+   'len_cross', {{1,      1,             1}}, ...        % non-owned, 1: none
+   'terms',    {{'none',  'none',        'none'}}, ...              % F
+   'offsets',  {{[],      [],            []}});                     % o
+% 2. The slack (LPI_INEQ_SOP, GET_LIFT_DEGS); degrees.
+st.lpi.ineq = struct( ...
+   'dD',           1, ...         % lift raise: D = Dmin + dD
+   'dw',           1, ...         % weight raise, calls without dw
+   'wmin',         0, ...         % weight floor, target the storage
+   'wcross',       0, ...         % weight, non-owned dirs; 0: none
+   'psatz',        {{'auto','faces1','auto'}}, ... % F: 2-D faces1
+   'Dmax',         false, ...     % lift at the support ceiling; off        % MMP, 11/18/2026
+   'cap_inc',      [], ...        % triangular cap; 'auto' = Dmax-1; off    % MMP, 11/18/2026
+   'psatz_offset', []);           % o: read with a row of codes only        % MMP, 11/17/2026
+% st.lpi.ineq.psatz = 'auto';  the rule in every dimension                  % MMP, 11/17/2026 (was)
+% 3. The free operator (LPIVAR_CDOPVAR); degrees.
+st.lpi.var = struct('deg', {{[2 2 0], 1, 1}});  % [d1 d2 d3]; caps
+% 4. The executives (EXEC_SOP_SETTINGS).
 st.sop = struct( ...
-    'slack','like', ...             'like': slack sized from P (LPI_INEQ_SOP); 'stock': LPISETTINGS_STOCK_SOP
-    'dw_feas',[0 1 1], ...          weight raise in stability and well-posedness
-    'dw_P',1, ...                   weight raise in coercive gains and norms, and synthesis
-    'dw_Q',1, ...                   weight raise in the Q (non-coercive) forms
-    'max_raise_feas',[1 1 0], ...   raises in stability and well-posedness
-    'max_raise',0, ...              raises in every other LPI
-    'cap_delta',[NaN NaN 0], ...    slack bases bounded per direction by Jmax(T) + cap_delta; NaN: no bound
-    'margin',0, ...                 eps > 0 certifies -D + eps*e_D >= 0 in place of -D >= 0
-    'keepdual',false, ...           assemble the dual kernel of the negativity constraint
-    'witness',false, ...            one variable: gain, decay rate or H2 norm of a Legendre model
-    'N_cheb',24, ...                its Legendre degree (unread: witness false)
-    'nfreq',240);                   % its number of frequencies (unread: witness false)
-% END MMP, 11/09/2026
-
-%% 5. Options of LPI_INEQ_SOP: st.lpi.ineq                                  % MMP, 11/12/2026; MMP, 11/10/2026
-% The certificate of P >= 0 in a hand-written LPI: lift degree Dmin + dD    % MMP, 11/10/2026
-% and weight degree reach + dw over the support of P (GET_LIFT_DEGS). wmin  % MMP, 11/10/2026
-% 0: no floor, the smallest certificates (light and above set w >= 2 when   % MMP, 11/10/2026
-% the support is read from P itself, README).                               % MMP, 11/10/2026
-st.lpi.ineq = struct('dD',1,'dw',1,'wmin',0);                               % MMP, 11/10/2026
+   'slack',          'like', ...      % slack sized from the storage
+   'dw_feas',        [0 1 1], ...     % weight raise: stability, w.-p.
+   'dw_P',           1, ...           % weight raise: gains, synthesis
+   'dw_Q',           1, ...           % weight raise: the Q forms
+   'max_raise_feas', [1 1 0], ...     % raises: stability, w.-p.
+   'max_raise',      0, ...           % raises: every other LPI
+   'cap_delta',      [NaN NaN 0], ... % Jmax(T) + cap_delta; NaN: none
+   'deg_Q',          {{[2 2 0], 1, 1}}, ... % Q, direct stability form      % MMP, 11/18/2026
+   'max_raise_Q',    [1 1 0], ...     % its raises                          % MMP, 11/18/2026
+   'raise_Q',        'slack', ...     % a raise adds: slack weight          % MMP, 11/18/2026
+   'margin',         0);           % eps of -D + eps*e_D >= 0
+% 5. Tolerances and solver.
+st.eppos = 1e-4;                      % P >= eppos*I on every space
+st.epneg = 0;                         % decay rate
+st.sos_opts = struct( ...
+   'simplify', 0, ...                 % 1: simplify the SDP
+   'solver',   '');                   % '': MOSEK if found, else SeDuMi
+% END MMP, 11/17/2026
 end

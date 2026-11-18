@@ -1,0 +1,47 @@
+The settings of the replacement are the row of Section~\ref{sec:settings}, one entry per number of variables of a space, each entry the lengths $d_1$, $d_2$, $d_3$, the pattern set $\Pi$ and, for the slack, the term set $F$ with its offsets $o$; an $\R^q$ space carries one multiplier length. The knobs, as the construction of Sections~\ref{sec:1d}--\ref{sec:nd} defines them:
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item $d_1$, the length of the incomplete moments (block $\bc$, the lower integrals), per direction: the kernel of the certificate has a jump on the diagonal only when $d_1\ge1$.
+\item $d_2$, the length of the complete moments (block $\bb$, the full integrals), per direction.
+\item $d_3$, the multiplier lengths, per block $\ba,\bb,\bc$ and per direction: the degree in $\theta_k$ of the monomials that the Gram of each block carries; in a direction a space does not own, each basis operator carries its own largest multiplier degree (the rule of the reader, Section~\ref{sec:reader-new}).
+\item $\Pi$, the pattern set of a space in two or more variables: \code{uniform} (the pure multiplier and the pure complete moment), \code{separable} ($\{\ba,\bb\}^N$, the mixed operators included) or \code{all} ($\{\ba,\bb,\bc\}^N$).
+\item $c$, the per-direction cap: the kernel monomials of every basis operator satisfy (degree in $\theta_k$) $+$ (degree in $s_k$) $\le c_k$; no total-degree cap and no cap table (Section~\ref{sec:cap}).
+\item For the slack, $F$ and $o$: the term set and its offsets, and the raises $\mathrm{dD}$, $\mathrm{dw}$ of the reader above the support of the target.
+\item For the default stability test, the four caps of the free operator $\mcl Q$ (\code{mult}, \code{int}, \code{out}, \code{in}), which replace the storage row there (Section~\ref{sec:mixed-q}).
+\end{enumerate}
+
+\subsection{The reader as implemented}\label{sec:reader-new}
+
+One routine, \code{pf\_row\_storage} in the record (the proposal's reader of Section~\ref{sec:reader} with two measured rules), turns a row into the arguments of \code{poscopvar}: the basis operators are the patterns of $\Pi$ with codes $\ba\to1$, $\bc\to2$ (lower integral) and $\bb\to3$ (upper integral) in a direction where some space carries $\bc$, else $\bb\to4$ (full integral), by Proposition~\ref{prop:span}; each operator gets \code{mult}$_k=\ell(\alpha_k)-1$ and \code{int}$_k=d_{3,\alpha_k,k}-1$ in its owned directions; in a direction its space does not own it carries its own largest \code{int}; a zero length drops the pattern; the per-direction cap goes to \code{poscopvar\_direct} as the field \code{cap}. Validation: the 1-D entry of the light tier reproduces the stock 1-D storage bit for bit on eight library rows and on the ODE--PDE row S1 (same variables, rows and verdicts); the uniform entries reproduce the N-D default of \code{poscopvar} within the dropped total cap (S3: $318\,361$ against $318\,004$ variables, both certified); the separable entry at $d_2=3$ reproduces the S18 certificate.
+
+\subsection{The storage row of each tier}\label{sec:tiers-values}
+
+\input{settings_report_tiertable.tex}
+
+\subsection{The slack settings of each tier}\label{sec:knobs-slack}
+
+\input{settings_report_knobs.tex}
+
+\subsection{The terms of each tier}\label{sec:tier-terms}
+
+Every tier carries the same term set, and carries it in the slack only; the tiers differ in the degrees of the terms, not in the set. The storage of every tier carries no term ($F=$ \code{none} in every entry of Table~\ref{tab:tiers}), as the present tiers (\code{LF\_use\_psatz} $0$). The slack of every inequality, the two inequalities of the direct default test included, is certified by the reader with the plain term and the weights of the rule \code{'auto'} of \code{get\_lift\_degs}, Table~\ref{tab:tier-terms}; since 11/17/2026 the 2-D entry is \code{'faces1'}, the same faces at offset $1$ whatever the weight degree (Section~\ref{sec:slack-settings}).
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llll}
+\toprule
+variables & weights $g$ of the slack & offset $o_g$ & multiplier lengths \\
+\midrule
+1 & plain; the box product $(s-a)(b-s)$ & $0$; $1$ & $w+1$; $w$ \\
+2 & plain; the four faces $s_k-a_k$, $b_k-s_k$ & $0$; $1$ (\code{'faces1'}) & $w_k+1$; $w_k$ \\
+3 & plain; the six faces & $0$; $1$ if $\min_k w_k\ge2$, else $0$ & $w_k+1$; $w_k+1-o$ \\
+\bottomrule
+\end{tabular}
+\caption{The terms of the slack in every tier (\code{'auto'}; in two variables \code{'faces1'}): the weights, their offsets (the number of degrees by which the multiplier vector of a weighted term is shorter than that of the unweighted term) and the length of the multiplier monomial vector of each term in direction $k$; the moment lengths of every term are $D_k+1$. In one variable the plain term and the box product at offset $1$ are the Markov--Luk\'acs pair.}\label{tab:tier-terms}
+\end{table}
+
+The lengths come from the target. With $D_{\max,k}$, $M_k$ and $J_k$ the degrees of the support of the target in direction $k$ (its lower kernels, its multiplier, its couplings with $\R^q$) and $w_R$ the weight degree of an $\R^q$ space,
+\[
+D_k=D_{\min,k}+\mathrm{dD},\qquad w_k=\max\Bigl\{\Bigl\lceil\tfrac{D_{\max,k}-D_k-1}{2}\Bigr\rceil,\ \Bigl\lceil\tfrac{M_k}{2}\Bigr\rceil,\ J_k-D_k-w_R-1,\ 0\Bigr\}+\mathrm{dw},
+\]
+raised to \code{wmin} when the target is the storage itself. At $w_k=1$ the faces stand at the degree of the plain term and reach total degree $2w+1$, the half step that certifies S18 at half its margin (Section~\ref{sec:t2}); at $w_k\ge2$ they stand one degree below it. The tier enters through $\mathrm{dw}$ (\code{dw\_feas} for stability and well-posedness, \code{dw\_P} for the coercive gains, norms and synthesis, \code{dw\_Q} for the non-coercive forms), through \code{wmin}, and through the raises of Table~\ref{tab:knobs-slack}: in two variables light sizes the stability slack at $w=$ reach $+1$ and the gains at reach $+2$, heavy both at reach $+2$ with one more raise allowed, veryheavy with two more. The box set and the corners enter no tier: on the mixed suite neither certifies a case the faces do not (Table~\ref{tab:t2}), at $1.2\times$ and $1.8\times$ the variables of the scalar-offset faces on S3. The standing of this choice in the theory (Section~\ref{sec:terms}): in one variable the tier carries the product, the degree-exact form of Lemma~\ref{lem:ml}; in $N\ge2$ the faces are complete for scalar polynomials by Putinar and the products of faces by Schm\"udgen, no set is proven complete for the kernels of a PI operator, and the faces are the measured choice. The product sets the theory names, the preordering of the box quadratics, the faces with the face-by-box products across directions, and the full preordering of the faces, are measured on the mixed suite in Section~\ref{sec:t3}, and the alternative to the odd-degree faces, one more weight degree with even-degree weights, in Section~\ref{sec:t4}: on S18 it certifies both margins at $1.9\times$ the variables of the full-length faces at the lower degree, on S17 it certifies less, and in three variables it certifies the heat benchmark at $0.985\kappa^*$ at $5.1\times$ the variables and, on $64$ threads, $24\times$ the time of the faces (Section~\ref{sec:t4}).

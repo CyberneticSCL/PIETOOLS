@@ -1,0 +1,13 @@
+Pinned-P 2-D DD x DD with the lift at Dmin (dD 0), dw 0-2, rungs 0.10 0.50 0.90 0.99 0.999 0.9999; log c1c.log, 11/15/2026
+2 box o1 pd1 dw0 D[1 w[1                       +-----  ndec=6144 m=481        tsmax=   0 
+2 box o1 pd1 dw1 D[1 w[2                       +-----  ndec=39168 m=1105      tsmax=   1 
+2 box o1 pd1 dw2 D[1 w[3                       +-----  ndec=139264 m=1985     tsmax=   6 
+2 faces o1 pd1 dw0 D[1 w[1                     +-----  ndec=8192 m=481        tsmax=   0 
+2 faces o1 pd1 dw1 D[1 w[2                     +-----  ndec=57600 m=1105      tsmax=   1 
+2 faces o1 pd1 dw2 D[1 w[3                     +-----  ndec=212992 m=1985     tsmax=   7 
+2 faces0 o0 pd1 dw0 D[1 w[1                    +-----  ndec=20480 m=729       tsmax=   0 
+2 faces0 o0 pd1 dw1 D[1 w[2                    +-----  ndec=103680 m=1481     tsmax=   2 
+2 faces0 o0 pd1 dw2 D[1 w[3                    +0----  ndec=327680 m=2489     tsmax=  12 
+2 facesS o1 pd0 dw0 D[1 w[1                    ------  ndec=5120 m=481        tsmax=   0 
+2 facesS o1 pd0 dw1 D[1 w[2                    +-----  ndec=37120 m=1105      tsmax=   1 
+2 facesS o1 pd0 dw2 D[1 w[3                    +-----  ndec=148480 m=1985     tsmax=   4 

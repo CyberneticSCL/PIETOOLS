@@ -26,11 +26,15 @@ function s2d = set2d_deg(Dup,dmult)
 %   shed.  See the comment at the assignment.  Invalidates banked 2-D numbers.
 % CC, 09/27/2026: also see set2d_psatz4, which wraps this to add the four
 %   linear face generators; it inherits this eppos.
+% MMP, 11/17/2026: the stock 2-D struct from SETTINGS_2D_STOCK('light'):
+%   the tiers carry no settings_2d since 11/17/2026 (work package 5); the
+%   same values.
 if nargin<2, dmult = []; end
 % The 2-D storage of the container 'light' preset: equal to
 % settings_PIETOOLS_light_2D(), which is leaving the path.
 % s2d = settings_PIETOOLS_light_2D();                                       % CC, 11/08/2026 (was)
-s2d = lpisettings_sop('light');   s2d = s2d.settings_2d;                    % CC, 11/08/2026
+% s2d = lpisettings_sop('light');   s2d = s2d.settings_2d;                  % MMP, 11/17/2026 (was)
+s2d = settings_2d_stock('light');   % no tier field since 11/17/2026        % MMP, 11/17/2026
 if ~isempty(dmult)
     % the (1,1) cell is the multiplier direction in BOTH x and y; raising it is
     % what makes R22{1,1} non-constant

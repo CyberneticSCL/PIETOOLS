@@ -37,6 +37,11 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 % MMP, 11/09/2026: c = 2 in 1-D too, as PIETOOLS_stability_sop poses the
 %   decay term in every dimension since 11/09/2026 (maintainer: the
 %   executives apply eppos and epneg the same way in every dimension).
+% CC, 11/17/2026: the program carries ST (LPIPROGRAM's last input), as in
+%   PIETOOLS_stability_sop since 11/12/2026. Since 11/17/2026 EXEC_TOOLS_SOP
+%   takes the storage from prog.settings.lpi.pos, and a program without
+%   settings gets the light tier's row at every tier (measured: storage
+%   Gram 22 -> 20 on lib-beam-eb at heavy, 11 -> 10 at pielr_settings(3,1)).
 
 % BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026)
 if nargin<3 || isempty(dual), dual = false; end
@@ -56,7 +61,10 @@ if ~isempty(st.sop.eppos_stab),  eppos(:) = st.sop.eppos_stab;  end
 epfac = 2;          % 2 epneg in every dimension, as PIETOOLS_stability_sop % MMP, 11/09/2026
 Tm = PIE.T;     Am = PIE.A;
 % Storage P on the output side of T ('P') or its input side ('Pd'), plus margin
-prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+% prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                   % CC, 11/17/2026 (was)
+% The storage reads prog.settings.lpi.pos (POS_ROW of EXEC_TOOLS_SOP):      % CC, 11/17/2026
+% without ST every tier gets the light row; ST as in the executive          % CC, 11/17/2026
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);                  % CC, 11/17/2026
 if ~dual
     [prog,Pm] = tl.storage(prog,Tm,'out');
     if ~all(eppos==0),  Pm = Pm + tl.eye(1,eppos);  end

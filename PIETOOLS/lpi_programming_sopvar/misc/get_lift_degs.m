@@ -46,6 +46,11 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                          every w_d is at least 2, else at offset 0),
 %                          'none' (code 0), 'product' (codes [0 1], offsets
 %                          [0 1]), 'faces' (codes [0, 3:2nv+2], offsets 0),
+%                          'faces1' (codes [0, 3:2nv+2], offsets [0, 1,     % MMP, 11/17/2026
+%                          ..., 1]: the faces one weight degree below the   % MMP, 11/17/2026
+%                          plain term for every w, the set 'auto' takes     % MMP, 11/17/2026
+%                          when every w_d >= 2; in one variable codes       % MMP, 11/17/2026
+%                          [0 1], offsets [0 1]),                           % MMP, 11/17/2026
 %                          'corners' (the 'auto' terms and every product
 %                          of two faces of different directions, at the
 %                          offset of the faces),
@@ -59,6 +64,22 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                          with a row of codes: rows of per-direction
 %                          factors and their offsets (POSCOPVAR_DIRECT),
 %                          passed on;
+%            wcross        double (default []: w_d): the weight degree of   % MMP, 11/17/2026
+%                          an L2 space in every registry direction it does  % MMP, 11/17/2026
+%                          not own, in place of w_d;                        % MMP, 11/17/2026
+%            dw_space      1 x M double, M the number of spaces of P        % MMP, 11/17/2026
+%                          (default zeros): added to the weight degree of   % MMP, 11/17/2026
+%                          space k in every direction, after the rule and   % MMP, 11/17/2026
+%                          before wcross; an R^q space ignores it;          % MMP, 11/17/2026
+%            Dmax          logical (default false): the lift degree D_d =   % MMP, 11/18/2026
+%                          Dmax_d, the ceiling of Shivakumar (11/17/2026,   % MMP, 11/18/2026
+%                          Thm 1.4: a Gram factor of a purely integral      % MMP, 11/18/2026
+%                          target of degree p exists with input degree      % MMP, 11/18/2026
+%                          <= p), in place of Dmin_d + dD;                  % MMP, 11/18/2026
+%            cap_inc       'auto' or 1 x nv double (default []: none): the  % MMP, 11/18/2026
+%                          cap theta_d + s_d of the lower and upper basis   % MMP, 11/18/2026
+%                          operators (POSCOPVAR_DIRECT cap_inc); 'auto' is  % MMP, 11/18/2026
+%                          Dmax_d - 1, floored at 0 (Lemma 1.2 there);      % MMP, 11/18/2026
 %            like          'cdopvar' or 'copvar' object, or a cell of them,
 %                          with variables among those of P: their pooled
 %                          support is read instead of that of P, and DEG is
@@ -172,6 +193,37 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                the offset of the faces (was: faces and corners at offset
 %                0; on the edge cascade at one slack raise that gave 2.29M
 %                variables against 762k, mixed-domain session's table).
+% MMP, 11/17/2026: opts.wcross, the weight degree of an L2 space in the
+%                registry directions it does not own (absent: w_d, the
+%                rule); opts.dw_space, a raise of w per space, applied
+%                after the rule and before wcross; the named term set
+%                'faces1', the faces one weight degree below the plain term
+%                for every w. MEASURED on the mixed-domain suite
+%                (sopvar/psatz_faces_results/mixed_domain/
+%                perspace_results.md): wcross 0 cut the slack of every
+%                multi-space case by 12-28% with no verdict change, and
+%                dw_space +1 on the 1-D space of S18 with 'faces1'
+%                certified the direct PIE2PDE test at 0.9 of the delay
+%                margin with 93,991 variables, against 440,023 for the
+%                uniform raise dw 1 with the same terms (terms_results.md,
+%                "The cross length": wcross 0 keeps the verdicts of the
+%                rule but S17 at 0.5 with the faces at offset 0, UNKNOWN).
+%                Defaults unchanged.
+% MMP, 11/18/2026: opts.Dmax (logical) sets the lift degree to Dmax_d, the
+%                ceiling of Shivakumar's note of 11/17/2026 (Thm 1.3, 1.4: for
+%                a purely integral self-adjoint target of degree p in each
+%                variable with any Gram factorization, one exists whose
+%                global part has input degree <= p), in place of Dmin_d +
+%                dD, the floor of the lift notes; opts.cap_inc ('auto' =
+%                Dmax_d - 1, or a row) the cap theta_d + s_d on the lower and
+%                upper basis operators (Lemma 1.2 there: the triangular part
+%                has total degree <= p - 1), passed to POSCOPVAR_DIRECT as
+%                the degree field cap_inc. Both off by default: DEG and
+%                TERMS unchanged. The targets of the executives' derivative
+%                conditions are purely integral on L2 (maintainer,
+%                11/18/2026), so the bounds apply to the slacks that set the
+%                cost; measured on the 1-D library rows (cleaning/private/
+%                settings_1116/newton_polytope_guidance.md).
 
 % Options; the defaults of dD, dw and wR
 if nargin<2 || isempty(opts),   opts = struct();    end
@@ -180,6 +232,13 @@ dw = 1;     if isfield(opts,'dw') && ~isempty(opts.dw),     dw = opts.dw;   end
 wR = 0;     if isfield(opts,'wR') && ~isempty(opts.wR),     wR = opts.wR;   end
 % wmin: the least weight degree read from P itself (default 0, none)        % MMP, 11/10/2026
 wmin = 0;   if isfield(opts,'wmin') && ~isempty(opts.wmin), wmin = opts.wmin;   end % MMP, 11/10/2026
+useDmax = false;    capinc = [];    % the ceiling, the triangular cap       % MMP, 11/18/2026
+if isfield(opts,'Dmax') && ~isempty(opts.Dmax)                              % MMP, 11/18/2026
+    useDmax = logical(opts.Dmax);                                           % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
+if isfield(opts,'cap_inc') && ~isempty(opts.cap_inc)                        % MMP, 11/18/2026
+    capinc = opts.cap_inc;                                                  % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 
 % % % Blocks and spaces
 if isa(P,'sdopvar') || isa(P,'sopvar')
@@ -212,6 +271,13 @@ end
 % Registry size, number of spaces, the R^q spaces
 nv = numel(vars);   M = numel(own);
 isR = cellfun(@isempty,own);
+% dw_space: a raise of the weight degree per space (default none), for a    % MMP, 11/17/2026
+% coupled PIE whose gap lies in one space (S18, perspace_results.md)        % MMP, 11/17/2026
+dws = zeros(1,M);                                                           % MMP, 11/17/2026
+if isfield(opts,'dw_space') && ~isempty(opts.dw_space)                      % MMP, 11/17/2026
+    dws = reshape(opts.dw_space,1,[]);                                      % MMP, 11/17/2026
+    if numel(dws)~=M,   error("opts.dw_space needs one entry per space of P (%d).",M);   end % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
 % % % opts.like: the support of another container, laid out over P's spaces
 isRs = isR;
 if isfield(opts,'like') && ~isempty(opts.like)
@@ -302,10 +368,17 @@ end
 
 % % % The rule
 D = Dmin + dD;
+if useDmax,     D = max(Dmax,Dmin);     end     % the ceiling (header)      % MMP, 11/18/2026
 w = max([ceil((Dmax-D-1)/2); ceil(Mdeg/2); J-D-wR-1; zeros(1,nv)],[],1) + dw;
 % Read from P itself, at least wmin: with dw alone a fixed target whose     % MMP, 11/10/2026
 % support needs w = 0 got w = 1 (DEMO3: 1.218/pi; w = 2: 1.00002/pi)        % MMP, 11/10/2026
 if ~(isfield(opts,'like') && ~isempty(opts.like)),  w = max(w,wmin);  end   % MMP, 11/10/2026
+% cap_inc: 'auto' = Dmax_d - 1 (floored at 0), else one cap per direction   % MMP, 11/18/2026
+if ischar(capinc) || isstring(capinc),  capinc = max(Dmax-1,0);    end      % MMP, 11/18/2026
+if ~isempty(capinc)                                                         % MMP, 11/18/2026
+    capinc = reshape(capinc,1,[]);                                          % MMP, 11/18/2026
+    if isscalar(capinc),    capinc = repmat(capinc,1,nv);    end            % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 % Per space: w and the lift D in its own directions, or wR on R^q
 deg = cell(1,M);
 for k = 1:M
@@ -313,7 +386,15 @@ for k = 1:M
         deg{k} = struct('int',wR*ones(1,nv));
     else
         mult = zeros(1,nv);     mult(own{k}) = D(own{k});
-        deg{k} = struct('int',w,'mult',mult);
+%       deg{k} = struct('int',w,'mult',mult);                               % MMP, 11/17/2026 (was)
+        % w plus dw_space(k); then wcross in the directions k does not own, % MMP, 11/17/2026
+        % where the space has no lift: wcross 0 drops those slack monomials % MMP, 11/17/2026
+        wk = w + dws(k);                                                    % MMP, 11/17/2026
+        if isfield(opts,'wcross') && ~isempty(opts.wcross)                  % MMP, 11/17/2026
+            wk(~ismember(1:nv,own{k})) = opts.wcross;                       % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
+        deg{k} = struct('int',wk,'mult',mult);                              % MMP, 11/17/2026
+        if ~isempty(capinc),    deg{k}.cap_inc = capinc;    end             % MMP, 11/18/2026
     end
 end
 
@@ -368,6 +449,9 @@ else
         case 'none',    codes = 0;              offs = 0;
         case 'product', codes = [0 1];          offs = [0 1];
         case 'faces',   codes = [0, 3:2*nv+2];  offs = zeros(1,2*nv+1);
+        case 'faces1'   % the faces one weight degree below the plain term, for every w % MMP, 11/17/2026
+            if nv==1,   codes = [0 1];  offs = [0 1];   % as 'auto', 'product' % MMP, 11/17/2026
+            else,       codes = [0, 3:2*nv+2];  offs = [0, ones(1,2*nv)];   end % MMP, 11/17/2026
         case 'corners'  % the 'auto' terms and every two-direction corner product % MMP, 11/12/2026
 %           codes = [0, 3:2*nv+2];  offs = zeros(1,2*nv+1);                 % MMP, 11/12/2026 (was)
 %           rows = cr;              roffs = zeros(1,size(cr,1));            % MMP, 11/12/2026 (was)
@@ -377,7 +461,8 @@ else
             rows = cr;              roffs = offs(2)*ones(1,size(cr,1));     % MMP, 11/12/2026
         otherwise
 %           error("'psatz' should be 'auto', 'none', 'product', 'faces' or a row of term codes.") % MMP, 11/12/2026 (was)
-            error("'psatz' should be 'auto', 'none', 'product', 'faces', 'corners' or a row of term codes.") % MMP, 11/12/2026
+%           error("'psatz' should be 'auto', 'none', 'product', 'faces', 'corners' or a row of term codes.") % MMP, 11/17/2026 (was)
+            error("'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.") % MMP, 11/17/2026
     end
 end
 % The outputs
@@ -389,6 +474,7 @@ terms = struct('codes',codes,'offsets',offs,'rows',rows,'rows_offsets',roffs); %
 %               'dD',dD,'dw',dw,'nv',nv,'M',M,'vars',{vars},'isR',isR);     % MMP, 11/10/2026 (was)
 info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'Jmax',Jmax,'D',D,'w',w,'wR',wR,...
               'dD',dD,'dw',dw,'wmin',wmin,'nv',nv,'M',M,'vars',{vars},'isR',isR); % MMP, 11/10/2026
+info.Dmax_rule = useDmax;   info.cap_inc = capinc;                          % MMP, 11/18/2026
 
 end
 

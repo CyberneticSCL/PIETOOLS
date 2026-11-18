@@ -1,0 +1,66 @@
+\subsection{Variable coefficients}\label{sec:bl-inhom}
+
+Three 2-D systems on $[0,1]^2$ with homogeneous Dirichlet conditions on all four edges and a constant reaction coefficient $\lambda$ test polynomial coefficients in a single domain:
+\begin{align*}
+\text{A:}\quad & x_t = (1+s_1^2)\,x_{s_1s_1} + (1+s_2)\,x_{s_2s_2} + \lambda x,\\
+\text{B:}\quad & x_t = x_{s_1s_1} + x_{s_2s_2} + (\lambda - 3s_1s_2)\,x,\\
+\text{C:}\quad & x_t = (1+s_1)\,x_{s_1s_1} + x_{s_2s_2} + s_2\,x_{s_1} + \lambda x.
+\end{align*}
+The cascade M couples $x_1(s_1)$ on $[0,1]$ to $x_2(s_1,s_2)$ on $[0,1]^2$ through the edge $s_2=0$:
+\begin{align*}
+& x_{1,t} = (1+s_1)\,x_{1,s_1s_1} + r_1 x_1, \qquad x_{2,t} = x_{2,s_1s_1} + (1+s_2^2)\,x_{2,s_2s_2} + r_2 x_2,\\
+& x_1(0)=x_1(1)=0,\quad x_2(0,s_2)=x_2(1,s_2)=0,\quad x_2(s_1,0)=x_1(s_1),\quad x_2(s_1,1)=0,
+\end{align*}
+with $r_1 = 14.507976\,f$ and $r_2 = 22.205980\,f$ at the fraction $f$. Second-order finite differences with $N$ interior nodes per direction give the thresholds $\lambda^*$: A $26.839174$ ($N=40$) and $26.846533$ ($N=60$); B $20.474475$ and $20.479775$; C $24.242392$ and $24.248789$; the 2-D state of M $22.199946$ and $22.205980$; the 1-D state of M $14.504004$ and $14.507976$. The $N=60$ values are the reference for every reach fraction below. The values rise with $N$, so the reach fractions are upper bounds; a Richardson estimate (inferred, assuming an $O(h^2)$ error) lowers each reach by $0.02$--$0.03\%$. The threshold of the cascade in $f$ is $1$ (inferred from the triangular coupling; not computed). Every run is \code{PIETOOLS\_stability\_sop} in form \code{'P'} at the light tier unless stated; Rlight0 is the stock light lengths with the \code{separable} pattern set in two variables; bisections take $8$ steps on $[0.5,1]$; records in \file{sopvar/psatz_faces_results/mixed_domain/inhom_results.md}.
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llllrrr}
+\toprule
+system & storage & status at $0.9$ & dw & variables at dw $1$ & certified $\lambda$ & reach \\
+\midrule
+A & stock & in & $1$ & $187\,984$ & $26.479491$ & $0.98633$ \\
+A & Rlight0 & in & $1$ & $188\,545$ & $26.479491$ & $0.98633$ \\
+B & stock & in & $1$ & $187\,984$ & $20.439775$ & $0.99805^{\dagger}$ \\
+B & Rlight0 & in & $1$ & $188\,545$ & $20.439775$ & $0.99805^{\dagger}$ \\
+C & stock & in & $1$ & $187\,984$ & $24.201428$ & $0.99805^{\dagger}$ \\
+C & Rlight0 & in & $1$ & $188\,545$ & $24.201428$ & $0.99805^{\dagger}$ \\
+\bottomrule
+\end{tabular}
+\caption{2-D systems at $0.9\lambda^*$ and the bisection reach (certified $\lambda$ over $\lambda^*$ at $N=60$), light tier. At dw $0$ the programs have $103\,744$ (stock) and $104\,305$ (Rlight0) variables. $^{\dagger}$Top of the bisection bracket; the reach of B and C is not resolved above $0.99805$.}\label{tab:bl-inhom-2d}
+\end{table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrrrr}
+\toprule
+storage, tier & status at $f=0.9$ & dw & variables & rows $m$ & time (s) & reach \\
+\midrule
+stock light & U & $1$ & $508\,228$ & $4\,757$ & $42$ & $0.73633$ \\
+Rlight0 light & in & $1$ & $510\,057$ & $5\,208$ & $47$ & $0.97656$ \\
+stock heavy & in & $0$ & $1\,023\,444$ & $6\,190$ & $76$ & not run \\
+\bottomrule
+\end{tabular}
+\caption{Cascade M at $f=0.9$ and the bisection reach in $f$. Stock light certified $f\le0.73633$ (at dw $0$ up to $0.625$, $317\,716$ variables) and returned U at $0.73828$; Rlight0 light certified $f\le0.97656$ (at dw $0$ up to $0.875$, $319\,545$ variables) and returned U at $0.97852$.}\label{tab:bl-inhom-mixed}
+\end{table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrlrrlrr}
+\toprule
+ & & \multicolumn{3}{c}{M, $f=0.9$} & \multicolumn{3}{c}{A, $\lambda=0.9\lambda^*$} \\
+term set & dws & in/out/U & variables & time (s) & in/out/U & variables & time (s) \\
+\midrule
+faces0 & $0$ & in & $685\,770$ & $23$ & in & $518\,500$ & $17$ \\
+facesS & $0$ & in & $192\,730$ & $9$ & in & $145\,828$ & $6$ \\
+box & $0$ & in & $227\,011$ & $10$ & -- & -- & -- \\
+box & $1$ & in & $1\,144\,267$ & $90$ & in & $864\,244$ & $50$ \\
+product2 & $1$ & in & $1\,281\,391$ & $139$ & in & $967\,924$ & $65$ \\
+\bottomrule
+\end{tabular}
+\caption{Direct PIE-to-PDE test (\code{pf\_qdirect\_pie}: $\mcl Q$ caps \code{mult} $1$, \code{int} $[1\ 1]$, \code{out} $1$, \code{in} $1$; \code{eppos} $10^{-4}$, \code{epneg} $0$) at the fraction $0.9$ only. faces0: the four linear face weights with full-length multipliers; facesS: the same with multipliers one degree shorter; box: the per-direction box quadratics; product2: the box quadratics and their product; dws: the extra weight degree; --: not run.}\label{tab:bl-inhom-direct}
+\end{table}
+
+On the library example PDE~7 (Gahlawat 2017) the two storages give identical programs ($568$ variables, $75$ rows, dw $1$) and verdicts at $\lambda=4.0$ and $4.5$. The stock bisection on $[3,4.66]$ certified every point up to $4.653516$ at light and heavy, $0.99861$ of the $4.66$ of the library header and $0.99994$ of the $N=200$ reference $4.653780$; no value above $4.653516$ was tested. On PDE~23 (Shivakumar 2019) at $\lambda=4.6$ the container executive \code{PIETOOLS\_Hinf\_gain\_sop} gives the gain $23.7057$ at light, against $25.249$ in the library header, and $23.7058$ at heavy, against $23.706$; the stock \code{lpiscript} path was not run.
+
+On A, B and C the two storages returned the same verdict and the same dw at all $9$ values of $\lambda$ per system and the same certified $\lambda$, with Rlight0 larger by $561$ variables ($0.3\%$) at dw $1$. On the cascade M the storages differ: at $f=0.9$ stock light returned U after one raise and Rlight0 light certified, and the reach is $0.73633$ for stock light against $0.97656$ for Rlight0 light, at $508\,228$ against $510\,057$ variables. Stock heavy certified $f=0.9$ with $1\,023\,444$ variables, $2.01$ times the Rlight0 light program, in $76$~s. Every non-certified run returned U; none returned infeasible. In the direct test every term set certified M and A at the fraction $0.9$, so these runs do not separate the term sets; relative to facesS at dws $0$ the variable counts are $3.6$ times for faces0, $5.9$ times for box at dws $1$ and $6.6$--$6.7$ times for product2. No bisection of the direct-test term sets and no Rlight0 run at the heavy tier was done.

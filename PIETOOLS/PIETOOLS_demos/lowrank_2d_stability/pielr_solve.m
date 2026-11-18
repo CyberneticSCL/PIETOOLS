@@ -87,6 +87,10 @@ function cert = pielr_solve(PIE,lpi,opts)                                   % CC
 %   file their one caller) inlined (maintainer, 11/09/2026: the one-caller
 %   private files too); the files removed. pielr_pie_dim's last resort, the
 %   class of T, tested the retired opvar2d classes and is dropped.
+% CC, 11/17/2026: the default and named 1-D settings from
+%   LPISETTINGS_STOCK_SOP (the tier plus sop.stock): the builders pose the
+%   stock slack, which reads sop.stock since 11/12/2026, and a bare tier
+%   stopped every 1-D call with "The stock slack reads settings.sop.stock".
 
 if nargin<2 || isempty(lpi), lpi = 'stability'; end
 if nargin<3, opts = struct(); end
@@ -169,10 +173,13 @@ else                                                                        % MM
 end                                                                         % MMP, 11/09/2026
 if isempty(opts.settings)
 %   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings('light'); end % CC, 11/08/2026 (was)
-    if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_sop('light'); end % CC, 11/08/2026
+%   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_sop('light'); end % CC, 11/17/2026 (was); CC, 11/08/2026
+    if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_stock_sop('light'); end % CC, 11/17/2026
 elseif ischar(opts.settings) || isstring(opts.settings)
 %   opts.settings = lpisettings(char(opts.settings));                       % CC, 11/08/2026 (was)
-    opts.settings = lpisettings_sop(char(opts.settings));                   % CC, 11/08/2026
+%   opts.settings = lpisettings_sop(char(opts.settings));                   % CC, 11/17/2026 (was); CC, 11/08/2026
+    % the tier plus sop.stock, which the builders' stock slack reads        % CC, 11/17/2026
+    opts.settings = lpisettings_stock_sop(char(opts.settings));             % CC, 11/17/2026
 end
 
 notes = {};

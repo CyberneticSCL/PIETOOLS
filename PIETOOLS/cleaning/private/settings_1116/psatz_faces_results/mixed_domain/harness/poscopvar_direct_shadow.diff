@@ -1,0 +1,57 @@
+--- /c/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/lpi_programming_sopvar/misc/poscopvar_direct.m	2026-11-12 02:31:15.697453700 -0700
++++ /c/Users/mpeet/AppData/Local/Temp/claude/363c499c6332a503/af90e0a1-bcff-4e8d-9a24-9aa4c52491cc/scratchpad/psatz_faces/shadow/poscopvar_direct.m	2026-11-16 04:26:03.276752700 -0700
+@@ -303,6 +303,12 @@
+     elseif codes(c)>2*nv+2,                 trow(c,codes(c)-2*nv-2) = 3;    % MMP, 11/12/2026
+     end                                                                     % MMP, 11/12/2026
+ end                                                                         % MMP, 11/12/2026
++% SCRATCH MMP, 11/15/2026 (psatz_faces run): options.psatz_rows_perdir,     % MMP, 11/15/2026
++% logical (default false): a row's offset lowers 'int' in the directions   % MMP, 11/15/2026
++% its factors act in only (the per-direction rule of the settings          % MMP, 11/15/2026
++% proposal, Sec. 4.4); false keeps the scalar rule (every direction).       % MMP, 11/15/2026
++perdir = isfield(options,'psatz_rows_perdir') && ~isempty(options.psatz_rows_perdir) ... % MMP, 11/15/2026
++         && logical(options.psatz_rows_perdir);                             % MMP, 11/15/2026
+ if isfield(options,'psatz_rows') && ~isempty(options.psatz_rows)            % MMP, 11/12/2026
+     Rw = double(options.psatz_rows);                                        % MMP, 11/12/2026
+     if size(Rw,2)~=nv || any(~ismember(Rw(:),0:3))                          % MMP, 11/12/2026
+@@ -369,6 +375,9 @@
+         if codes(c)>2*nv+2      % single-direction quadratic: lower 'int' there only
+             offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
+         end
++        if isnan(codes(c)) && perdir    % a factor row, per-direction rule   % MMP, 11/15/2026
++            offv = zeros(1,nv);     offv(trow(c,:)~=0) = offs(c);           % MMP, 11/15/2026
++        end                                                                 % MMP, 11/15/2026
+ %       spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/29/2026 (was)
+ %       spec = reduce_spec(spec,offv,act_of(codes(c),nv),nv);               % MMP, 11/09/2026 (was); MMP, 10/29/2026
+         % act: the directions in which the weight of the term codes(c) has  % MMP, 11/09/2026
+@@ -398,7 +407,30 @@
+         end
+         caps_mult = d.mult(ok);
+         caps_mult(basis_list(b,1+ok)==1) = 0;
+-        E{b} = build_exponent_grid([d.int,caps_mult],d.joint,d.subset);
++%       E{b} = build_exponent_grid([d.int,caps_mult],d.joint,d.subset);     % MMP, 11/16/2026 (was)
++        % Per-direction caps (deg field 'cap', 1 x nv): the kernel monomials % MMP, 11/16/2026
++        % of this basis operator satisfy (theta_k exponent) + (s_k exponent) % MMP, 11/16/2026
++        % <= cap(k) in each owned direction k, theta_k exponent <= cap(k) in % MMP, 11/16/2026
++        % a direction the space does not own, as a subset array over the    % MMP, 11/16/2026
++        % variables [theta_1..theta_nv, s_{ok}] of BUILD_EXPONENT_GRID, for % MMP, 11/16/2026
++        % every space (the 'subset' array stays full-registry only). The    % MMP, 11/16/2026
++        % per-direction knob of the settings proposal (maintainer, 11/16).  % MMP, 11/16/2026
++        sub = d.subset;                                                     % MMP, 11/16/2026
++        if isfield(spec,'cap') && ~isempty(spec.cap)                        % MMP, 11/16/2026
++            capv = reshape(spec.cap,1,[]);                                  % MMP, 11/16/2026
++            if isscalar(capv),  capv = repmat(capv,1,nv);   end             % MMP, 11/16/2026
++            nn = nv + numel(ok);    big = sum(d.int) + sum(caps_mult);      % MMP, 11/16/2026
++            sub = big*ones(1,2^nn);                                         % MMP, 11/16/2026
++            for kk = 1:nv                                                   % MMP, 11/16/2026
++                if ~isfinite(capv(kk)),    continue,   end                  % MMP, 11/16/2026
++                j = find(ok==kk);                                           % MMP, 11/16/2026
++                if isempty(j),  ix = 1 + 2^(kk-1);                          % MMP, 11/16/2026
++                else,           ix = 1 + 2^(kk-1) + 2^(nv+j-1);             % MMP, 11/16/2026
++                end                                                         % MMP, 11/16/2026
++                sub(ix) = min(sub(ix),capv(kk));                            % MMP, 11/16/2026
++            end                                                             % MMP, 11/16/2026
++        end                                                                 % MMP, 11/16/2026
++        E{b} = build_exponent_grid([d.int,caps_mult],d.joint,sub);          % MMP, 11/16/2026
+     end
+ 
+     % The Gram: rows (basis operator outer, matrix row, monomial inner), the

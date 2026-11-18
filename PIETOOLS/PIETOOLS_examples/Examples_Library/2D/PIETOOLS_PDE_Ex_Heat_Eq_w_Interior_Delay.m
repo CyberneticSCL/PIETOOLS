@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)
+function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % MMP, 11/17/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,9 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         (optional) settings structure that certifies the example    % MMP, 11/17/2026
+%               (application-specific settings, settings report             % MMP, 11/17/2026
+%               11/16/2026 Sec. 5.8).                                       % MMP, 11/17/2026
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
 %
@@ -33,7 +36,28 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)
 % %
 % % Parameters tau, c, a0 and a1 can be set.
 % % For c = 1, a0 = 1.9, and a1 = 1, stable for tau<1.0347.
+% %                                                                         % MMP, 11/17/2026
+% % Light tier (lpisettings_sop('light')), tau = 0.9*tau*: no certificate   % MMP, 11/17/2026
+% % in the storage form 'P' (infeasible, 508,228 decision variables after   % MMP, 11/17/2026
+% % one raise) or the direct form 'Q' (UNKNOWN, 227,510; gap_results.md     % MMP, 11/17/2026
+% % G2, perspace_results.md, before the tier change of 11/17/2026).         % MMP, 11/17/2026
+% % Application-specific settings (output st): lpisettings_sop('light')     % MMP, 11/17/2026
+% % with the slack weight of the space of x1 (L2[s1]) raised by one,        % MMP, 11/17/2026
+% % st.lpi.ineq.dw_space = [1 0], for PIETOOLS_stability_sop(PIE,st,'Q').   % MMP, 11/17/2026
+% % Certified through the executive (MOSEK, 11/17/2026): tau = 0.9*tau*,    % MMP, 11/17/2026
+% % 65,731 variables, no raise; default tau = 1 (0.966*tau*), 397,870       % MMP, 11/17/2026
+% % after one raise. Alternative in 'Q': st.lpi.var.deg{2} = 2 (215,188     % MMP, 11/17/2026
+% % at 0.9*tau*, gap study). In 'P': the 2-D storage at the veryheavy       % MMP, 11/17/2026
+% % lengths, st.lpi.pos.len_com{2} = [3 3], st.lpi.pos.len_sos{2} =         % MMP, 11/17/2026
+% % [2 2;3 3;0 0], with st.sop.dw_feas(2) = 0 (953,001 at 0.9*tau*, gap     % MMP, 11/17/2026
+% % study, before the tier change of 11/17/2026).                           % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/17/2026: Second output st, the settings that certify the
+%                   example (maintainer: application-specific settings
+%                   where the tiers do not); the light tier certifies it
+%                   in neither form (header);
+% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)   % MMP, 11/17/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -108,6 +132,13 @@ PDE_t = [diff(x1,'t')==c*diff(x1,s1,2)+a0*x1-a1*subs(x2,s2,tau);
 % PDE_t.BC{4}.term{1}.x = 2;          PDE_t.BC{5}.term{1}.x = 2;
 % PDE_t.BC{4}.term{1}.loc = [a,s2];   PDE_t.BC{5}.term{1}.loc = [b,s2];
 
+
+% Application-specific settings (header): the light tier, the slack         % MMP, 11/17/2026
+% weight of the space of x1 (L2[s1], the first space) raised by one         % MMP, 11/17/2026
+if nargout>1                                                                % MMP, 11/17/2026
+    st = lpisettings_sop('light');                                          % MMP, 11/17/2026
+    st.lpi.ineq.dw_space = [1 0];                                           % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

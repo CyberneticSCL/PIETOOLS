@@ -1,0 +1,61 @@
+\section{The present tiers in the row}\label{sec:tiers}
+
+The tables below were read from the tier files \file{settings_sopvar_*.m} of \file{settings_sopvar/} at commit 8659c287 and from the readers \code{poslpivar\_settings\_sop} (1-D), \code{poslpivar\_settings\_2d\_sop} (2-D) and the local \code{pos\_nd} of \code{exec\_tools\_sop} ($N\ge3$). Every storage has $F=$ \code{none}. In one variable the translation is exact by Proposition~\ref{prop:span}; in two or more, the row is the smallest tensor row that contains the tier basis, and Section~\ref{sec:cannot} gives what it adds.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lrrrrrl}
+\toprule
+tier (1-D, \code{lpi.pos} entry 1) & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $d_{3\bc}$ & from \\
+\midrule
+light, stripped, custom & 2 & 2 & 2 & 2 & 2 & \code{mult} 1, \code{int} 1, \code{joint} 2 (no cap), \code{sep} 0 \\
+heavy & 2 & 2 & 3 & 2 & 2 & \code{mult} 2, \code{int} 1, \code{joint} 2 \\
+veryheavy & 4 & 4 & 4 & 4 & 4 & \code{mult} 3, \code{int} 3, \code{joint} 6 (no cap) \\
+extreme & 0 & 0 & 2 & -- & -- & \code{mult} 1, \code{int} $-1$ (no integral basis) \\
+\bottomrule
+\end{tabular}
+\caption{The 1-D storage of each tier. The slack of every tier is sized from its target with \code{dD} 1, \code{dw} 1 and the term set \code{'auto'}, the box at offset 1.}\label{tab:1d}
+\end{table}
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrll}
+\toprule
+tier (2-D) & space & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $\Pi$ & kept / tensor \\
+\midrule
+light, stripped, custom & $L_2[x]$ & 0 & 2 & 2 & 2 & $\ba$, $\bb$ & $4/4$ \\
+ & $L_2[x,y]$ & $(0,0)$ & $(2,2)$ & $(1,1)$ & $(2,2)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $7/16$ \\
+heavy & $L_2[x]$ & 0 & 2 & 2 & 2 & $\ba$, $\bb$ & $3/4$ ($x\,\theta$ dropped) \\
+ & $L_2[x,y]$ & $(0,0)$ & $(2,2)$ & $(2,2)$ & $(2,2)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $9/16$ \\
+veryheavy & $L_2[x]$ & 3 & 3 & 2 & 3 & $\ba$, $\bb$, $\bc$ & $6/9$ \\
+ & $L_2[x,y]$ & $(0,0)$ & $(3,3)$ & $(2,2)$ & $(3,3)$ & $(\ba,\ba)$, $(\bb,\bb)$ & $26/81$ \\
+extreme & $L_2[x]$ & 0 & 0 & 1 & -- & $\ba$ & $1/1$ \\
+ & $L_2[x,y]$ & $(0,0)$ & $(0,0)$ & $(1,1)$ & -- & $(\ba,\ba)$ & $1/1$ \\
+\bottomrule
+\end{tabular}
+\caption{The 2-D storage (\code{settings\_2d}) of each tier, by the number of variables of the space. The last column is the number of (lift monomial, multiplier monomial) pairs the cap tables keep in the complete-moment block, over the number in the tensor row; $\theta$ is the multiplier variable (\code{tt}, \code{nu} in the tier files). The row for $L_2[x,y]$ omits the mixed patterns $(\ba,\bb)$ and $(\bb,\ba)$, which \code{exclude} drops in every tier. The veryheavy $L_2[x]$ space keeps the lower and upper moments apart (\code{sep} off), with $d_{3\bc}=3$.}\label{tab:2d}
+\end{table}
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lrrrrll}
+\toprule
+tier ($N\ge3$) & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $\Pi$ & kept / tensor, $N=3$ \\
+\midrule
+every tier but stripped & $0$ & $2$ & $1$ & $2$ & $(\ba,\dots,\ba)$, $(\bb,\dots,\bb)$ & $22/64$ \\
+stripped & $0$ & $1$ & $1$ & $1$ & the same & $1/1$ \\
+\bottomrule
+\end{tabular}
+\caption{The storage in three or more variables (\code{lpi.pos} entry 3), per direction, every direction equal. Light, heavy, veryheavy, custom and extreme coincide: entry 3 of \code{mult}, \code{int} and \code{joint} is $0$, $1$, $2$ in each of them; the \code{joint} cap $2$ keeps $22$ of the $64$ pairs in three variables.}\label{tab:nd}
+\end{table}
+
+\paragraph{The 2-D struct of the present tiers.} \code{settings\_2d}, a struct, is the stock 2-D storage construction, read in two variables in place of \code{lpi.pos} and \code{lpi.var}. Its fields are \code{is2D}; for the storage, \code{LF\_deg} (the degrees \code{dx}, \code{dy}, \code{d2} of the $16$ bases), \code{LF\_opts} (\code{sep}, \code{exclude}, \code{psatz}), \code{LF\_use\_psatz}, \code{LF\_opts\_psatz} and \code{LF\_deg\_psatz}; for the free operator, \code{Zop\_deg}, twice the degrees of the storage, of which only the largest entry is read, and \code{Zop\_opts}, read by no container executive; for the \code{'stock'} slack, \code{use\_sosineq} with \code{ineq\_opts}, or \code{eq\_deg}, \code{eq\_opts}, \code{eq\_use\_psatz}, \code{eq\_opts\_psatz} and \code{eq\_deg\_psatz}. The proposed structure has no such field: in two variables the storage is the 2-D entry of the row, and the executives route every dimension through \code{poscopvar} with the row (work package 4, 11/17/2026). A storage the row cannot write (Section~\ref{sec:cannot}) is reached only through the explicit degree argument of \code{poscopvar}, outside the settings. The struct itself is now the explicit object \code{settings\_2d\_stock(level)} of \file{settings_sopvar/}, the former 2-D section of the tier file of each level (identical to it in all $18$ level-and-workspace comparisons, 11/17/2026), read by the lowrank and cuadmm demos (\code{heat2d\_compare}, \code{set2d\_deg}, \code{pielr\_lpi}); the tier files no longer carry it.
+
+\subsection{What the row cannot express}\label{sec:cannot}
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item \textbf{Total-degree caps.} The 2-D cap tables and the $N$-D \code{joint} cap keep a subset of the tensor pairs (the last columns of Tables~\ref{tab:2d} and \ref{tab:nd}): the light stock storage of $L_2[x,y]$ keeps, of the $16$ pairs at lengths $2$, the seven with no monomial mixing the two directions; heavy keeps nine, dropping $x\theta_x$ and $y\theta_y$ instead and keeping the mixed pairs, which is why neither contains the other; the $N$-D cap keeps the pairs of total degree at most $2$ over $2N$ variables. The row has no cap. The measured record on caps: in the 1-D $H_\infty$ gain the stock \code{joint} cap $3$ cost nothing in the $Q$ form and $4\times10^{-3}$ in the coercive form (lift notes, Sec.~7), and in 2-D the uncapped faces at the weight degree cost $10^6$ variables where the capped stock sizing is affordable (lift notes, heat benchmark, 10/08/2026).
+\item \textbf{The 2-D \code{sep} ties.} The stock 2-D storage keeps four basis operators, lower and upper in each direction, and equates the four kernels of the result; the row has one complete-moment basis operator. A Gram on the single operator is a Gram on the four with equal blocks, so the single-basis family is contained in the tied family; the reverse inclusion has not been established.
+\item \textbf{The 1-D spaces of a 2-D PIE.} The 2-D tiers give a 1-D space the complete moment alone ($d_1=0$, Table~\ref{tab:2d}) where the 1-D tiers give it both moments ($d_1=2$, Table~\ref{tab:1d}). The row, indexed by the number of variables of the space, holds one of the two. The routing record of 11/13/2026 measured the 1-D entry on the 1-D spaces of a 2-D PIE: the edge cascades S3 and S8 certified at $0.9\,r^*$ with no raise where the stock block returned UNKNOWN after one.
+\end{enumerate}
+

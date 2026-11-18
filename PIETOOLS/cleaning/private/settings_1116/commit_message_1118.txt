@@ -1,0 +1,28 @@
+Settings tiers on the 11/16 report layout; direct stability form separated
+
+settings_sopvar: the six tiers carry a storage row per dimension (lengths,
+patterns, cap, cross length), lpi.ineq (dD, dw, wmin, wcross, psatz
+{'auto','faces1','auto'}, Dmax, cap_inc), lpi.var.deg and sop (slack,
+dw_feas, dw_P, dw_Q, max_raise_feas, max_raise, cap_delta, margin, and
+deg_Q, max_raise_Q, raise_Q for the direct stability form 'Q');
+settings_2d leaves the tiers for settings_2d_stock(level); light's 1-D
+deg_Q is [4 2 2] (the five DDE thresholds of heavy at light, D92-D98).
+executives_sopvar: the direct form 'Q' (the storage T'Q with Q free at
+deg_Q, two slacks sized from their own support, base raise 0) posed in
+every dimension and separated from the storage form 'P' (its own degrees,
+raise count and raise target); exec_sop_settings validates the new
+fields; exec_tools_sop reads the row in 2-D unless an explicit
+settings_2d is given.
+lpi_programming_sopvar: get_lift_degs gains wcross, dw_space, the term set
+'faces1', the lift ceiling Dmax and the triangular cap cap_inc of
+Shivakumar's bounds (11/17/2026); poscopvar_direct takes cap_inc on the
+lower and upper basis operators; lpi_ineq_sop reads the tier's term set
+and the two new options; poscopvar_lift and posmult_cdopvar back on the
+path.
+Examples: optional second output [PDE, st] with application-specific
+settings; mixed-domain examples 56-72; DEMO12 merged with Declan's
+11/18 version.
+Measured: library pass of 11/17 under all tiers against the 10/28
+reference and a HEAD reference run; low-rank programs bit-identical;
+cuADMM suites consistent (cleaning/private/settings_1116, DECISIONS
+D66-D98; the results tree is removed before release).

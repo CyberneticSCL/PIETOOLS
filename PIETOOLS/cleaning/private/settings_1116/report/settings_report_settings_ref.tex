@@ -1,0 +1,180 @@
+\begingroup\setlength{\emergencystretch}{6em}
+%% Reference of every setting of the container executives, for Section 5
+%% ("The settings"). Sources: settings_sopvar_light.m, lpisettings_sop.m,
+%% exec_sop_settings.m, get_lift_degs.m, lpi_ineq_sop.m, lpivar_cdopvar.m,
+%% poscopvar_direct.m, as of 11/17/2026.
+
+\subsection{Entries on a mixed registry}\label{sec:mixed-settings}
+
+A PIE whose spaces have different numbers of variables, $\R^q\oplus L_2[s_1]\oplus L_2[s_1,s_2]$ say, has one registry, the set of all its spatial variables, of size $N_{\mathrm{reg}}$ (the construction of Section~\ref{sec:mixed-construction}), and every setting indexed by a number of variables is read in one of two ways, which this document keeps apart.
+\begin{itemize}\setlength\itemsep{0pt}
+\item \textbf{Per space: the storage row.} Each space takes the entry of its own number of variables: $\R^q$ the length \code{len\_R}, $L_2[s_1]$ the 1-D entry, $L_2[s_1,s_2]$ the 2-D entry. A basis operator of a space carries the lengths of its entry in the directions the space owns; in a registry direction it does not own it carries monomials in the multiplier variable $\theta_k$ up to its own largest multiplier degree (the rule of the reader, \readerref), so the kernels of the 1-D space depend on $s_2$ as a parameter (the construction of Section~\ref{sec:mixed-construction}), and the per-direction cap of such a direction is taken from the entry of the largest space that owns it. The row field \code{len\_cross} sets this length: $1$ is none, the value of every tier, and absent gives the rule. The row does not say how two spaces couple: the sub-operator of the storage between two spaces is built from the products of their basis operators, as the lift builds it (Section~\ref{sec:tensor}).
+\item \textbf{Per registry: the slack and the terms.} The slack of an inequality is one positive operator on all the spaces of the inequality at once. Its lengths come per registry direction $k$: $D_k$ and $w_k$ of the rule \code{'auto'} are computed from the support of the whole inequality, every sub-operator of every pair of spaces, and are then given to every space in the directions it owns, with the multiplier degree $w_k$ in every registry direction for every space. The term set is that of $N_{\mathrm{reg}}$ variables: the box quadratic when the registry has one variable, so a 0-D/1-D problem gets the Markov--Luk'acs pair, and the $2N_{\mathrm{reg}}$ faces otherwise; each weight multiplies the whole slack, the sub-operators of a 1-D space included, which receive the faces of $s_2$ through their registry multipliers. That this is necessary at the light lengths is \liftref; the alternative, one weight set per sub-operator, is the open item of Section~\ref{sec:open}.
+\item \textbf{Per registry: the executive knobs.} \code{dw\_feas}, \code{dw\_P}, \code{max\_raise\_feas}, \code{max\_raise}, \code{cap\_delta} and \code{wmin} are triples indexed by the number of registry variables of the inequality (\code{numel(P.vars)} in \code{lpi\_ineq\_sop}): a 1-D/2-D PIE uses their 2-D entries throughout, a 0-D/1-D PIE their 1-D entries.
+\item \textbf{Per sub-operator: the free operator.} \code{lpi.var.deg} is read per sub-operator of $\mcl Q$, the left caps from the entry of the output space's number of variables and the right caps from the input space's (Section~\ref{sec:var-settings}).
+\item \textbf{Scalars.} \code{eppos}, \code{epneg} and \code{psatz\_offset} are one value for the whole program; \code{psatz} is one value or a cell with one value per number of registry variables.
+\end{itemize}
+So "the 2-D entry" means two things: the entry a 2-D space takes in the storage row, and the entry a registry of two variables takes in the slack and the executive knobs. A mixed 1-D/2-D problem uses the 1-D and the 2-D storage entries together, and the 2-D entries of everything else.
+
+\subsection{The settings of the slack}\label{sec:slack-settings}
+
+The slack of an inequality (Section~\ref{sec:conv}) is sized by \code{get\_lift\_degs} and declared by \code{poscopvar\_direct} through \code{lpi\_ineq\_sop}. Of the settings structure, \code{lpi\_ineq\_sop} reads the field \code{lpi.ineq} and nothing else, and of that field seven entries: \code{dD}, \code{dw}, \code{wmin}, \code{wcross}, \code{dw\_space}, \code{psatz} and \code{psatz\_offset}. An option given in the call takes precedence over the tier; the tier is \code{prog.settings} when the program has settings, else the light tier. The entries \code{dD}, \code{dw} and \code{wmin} are vectors indexed by the number of registry variables of the inequality, with entries for one, two, and three or more; \code{psatz} is one value for every number or a $1\times3$ cell indexed the same way; \code{psatz\_offset} and \code{wcross} are one value for every number.
+
+\paragraph{Lengths.} Let $D_{\min,k}$ and $D_{\max,k}$ be the largest $\min(i,j)$ and $\max(i,j)$ over the monomials $s_k^i{s'_k}^j$ of the lower kernels of the inequality, $M_k$ the largest multiplier degree, and $J_k$ the largest degree in $s_k$ of a block between an $\R^q$ space and an $L_2$ space (\code{get\_lift\_degs} header). The slack comes out as a row with
+\[
+d_{1,k}=d_{2,k}=D_k+1,\quad D_k=D_{\min,k}+\code{dD},\qquad d_{3,x,k}=w_k+1\ \text{for every block } x,
+\]
+\[
+w_k=\max\Bigl(\Bigl\lceil\tfrac{D_{\max,k}-D_k-1}{2}\Bigr\rceil,\ \Bigl\lceil\tfrac{M_k}{2}\Bigr\rceil,\ J_k-D_k-w_R-1,\ 0\Bigr)+\code{dw},
+\]
+and $w_k$ raised to \code{wmin} when the support is read from the target itself. Its pattern set is every pattern, less the basis operators that \code{lpi\_ineq\_sop} prunes (option \code{prune}, default true: a basis operator stays when its diagonal term reaches a nonzero parameter cell of the target).
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{dD}: the lift raise over the support, added to $D_{\min,k}$. Light: $1$.
+\item \code{dw}: the weight raise over the smallest weight degree that reaches the support. Light: $1$. The executives pass their own \code{dw} per LPI (\code{dw\_feas}, \code{dw\_P}, \code{dw\_Q}, Section~\ref{sec:exec-settings}), so the tier value serves hand-written LPIs.
+\item \code{wmin}: the floor on $w_k$ when the target is the storage itself, that is, without the option \code{like}. Light: $[2\ 2\ 0]$. It is read from the tier only when the call gives no \code{dw}; a call that sets \code{dw} and not \code{wmin} gets no floor.
+\item \code{wR}: the weight degree $w_R$ of an $\R^q$ space, default $0$, the identity basis. It is an option of \code{get\_lift\_degs}, not a tier field; the \code{lpi\_ineq\_sop} log of 11/12/2026 records that no caller sets it.
+\item \code{wcross}: the weight degree an $L_2$ space carries in a registry direction it does not own; $0$ is none, and absent gives the registry weight degree $w_k$ of the rule. Light: $0$, the value of every tier. Implemented in \code{get\_lift\_degs} on 11/17/2026 (work package 6, \file{sopvar/psatz_faces_results/DECISIONS.md}, items D65 and D71); \code{lpi\_ineq\_sop} takes it from the call or from \code{lpi.ineq}. On every multi-space case of the gap study $0$ cut $8$ to $28\%$ of the variables with no verdict lost; on a PIE with one space owning every direction it changes nothing (\gapsref).
+\item \code{dw\_space}: a raise of the weight degree per space, $1\times M$ for the $M$ spaces of the inequality, added to the weight degree of space $m$ in every direction. It is an application-level option, not a tier value: it needs exactly $M$ entries (another length is an error), so \code{lpi\_ineq\_sop} reads it from \code{lpi.ineq} of the settings of an application or from the call. Measured on S18 at $0.9\tau^*$ in the direct form: the 1-D space raised alone, $[1\ 0]$, certifies at $93\,991$ variables with the faces at offset $1$ and at $325\,275$ with the faces at offset $0$; the 2-D space raised alone at $1\,084\,250$ (offset $0$); the uniform raise $\mathrm{dw}=1$ at $440\,023$ (offset $1$) (\file{sopvar/psatz_faces_results/mixed_domain/perspace_results.md}).
+\end{itemize}
+
+\paragraph{Terms.} The option \code{psatz} fixes the term set $F$ through \code{get\_lift\_degs}. An offset lowers the weight degree \code{int} of its term in every direction, floored at $0$, with the lift degree \code{mult} kept; for the box quadratic of one direction it acts in that direction alone (\code{poscopvar\_direct} header). In the lengths of Section~\ref{sec:d4} an offset $o$ gives $d_4=d_3-o$, one number per weight. The values of \code{psatz} are these.
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{'none'}: the plain term alone, $F=$ \code{none}.
+\item \code{'auto'}, the default: the rule stated below.
+\item \code{'product'}: the plain term and the single product of all box quadratics at offset $1$, $F=$ \code{product}. In one variable it coincides with \code{'auto'}.
+\item \code{'faces'}: the plain term and the $2N$ faces, every term at offset $0$, $F=$ \code{faces}.
+\item \code{'faces1'}: the plain term and the $2N$ faces one weight degree below it whatever $w$, codes $[0,\ 3{:}2N+2]$ at offsets $[0\ 1\ \cdots\ 1]$; \code{'auto'} takes this set only when every $w_k\ge2$. In one variable it is the same as \code{'auto'}: codes $[0\ 1]$, offsets $[0\ 1]$ (work package 6).
+\item \code{'corners'}: the faces and the $4\binom N2$ products of two faces of different directions, all at the offset that the rule \code{'auto'} gives the faces, $F=$ \code{corners}. The header calls these the \code{'auto'} terms with the corner products added; in one variable the code returns the two faces, where \code{'auto'} returns the box product.
+\item A double row of term codes: $0$ the plain term, $1$ the product of all box quadratics, $2k+1$ and $2k+2$ the lower and upper face of direction $k$, $2N+2+k$ the box quadratic of direction $k$, one Gram each in the given order. The plain term is present when the row contains $0$. The offsets are \code{psatz\_offset}, one per code or one for all, default $0$; \code{psatz\_offset} is read with a row of codes only, so with a named set it has no effect. The set \code{box} is written this way, as the codes $[0,\ 2N+3{:}3N+2]$.
+\item Explicit weights: \code{psatz\_rows}, an $R\times N$ array, row $r$ the weight $\prod_kf_{k,r_k}$ with $r_k\in\{0,1,2,3\}$ as in Section~\ref{sec:terms}, and \code{psatz\_rows\_offset}, one per row or one for all, default $0$. The rows are added after the terms of the codes and are read only together with a row of codes; with \code{psatz} given and empty the rows stand alone (\code{poscopvar\_direct}). The sets \code{preorder} and \code{full} are written this way today, and \code{box} may be. \code{lpi\_ineq\_sop} takes the rows from the call only, not from \code{lpi.ineq}, so a tier cannot set them today. The per-direction offset option \code{psatz\_rows\_perdir} exists only in the scratch shadow of \code{poscopvar\_direct} (\file{sopvar/psatz_faces_results/DECISIONS.md}, item D6).
+\end{itemize}
+\code{psatz} may also be a per-dimension cell, one of these values per number of registry variables (one, two, three or more), as in every tier: \code{\{'auto','faces1','auto'\}}.
+
+\paragraph{The rule \code{'auto'}, step by step.} \code{'auto'} is itself a setting: a rule with fixed choices, which decides the slack of an inequality in the following order when an executive certifies it. Every step names the setting it reads, or says that the choice is fixed in the code.
+\begin{enumerate}\setlength\itemsep{0pt}
+\item \textbf{The support.} \code{get\_lift\_degs} reads the degrees $D_{\min,k}$, $D_{\max,k}$, $M_k$ and $J_k$ of the inequality in every registry direction $k$ (the paragraph Lengths above). With the option \code{like}, the executives' choice for every slack, the support is that of the operator the slack is compared with, not of the slack itself. Fixed in the code.
+\item \textbf{The lift length.} $D_k=D_{\min,k}+\code{dD}$, so $d_{1,k}=d_{2,k}=D_k+1$ for every space: the setting \code{dD} of \code{lpi.ineq}.
+\item \textbf{The weight degree.} $w_k$ is the smallest degree that reaches the support (the formula above) plus \code{dw}, with $\code{dw}$ taken by the executives from \code{dw\_feas} (stability, well-posedness), \code{dw\_P} (the coercive gains, norms and synthesis) or \code{dw\_Q} (the non-coercive forms) by the number of variables: the settings of \code{st.sop}, Section~\ref{sec:exec-settings}; and, in the directions a space does not own, \code{wcross} in place of $w_k$. The floor \code{wmin} is applied only when no \code{dw} comes with the call, which never happens in the executives, so it serves hand-written LPIs only.
+\item \textbf{The bound on the slack bases.} The executives cap the degree of the slack bases per direction at the largest degree of $\mcl T$ plus \code{cap\_delta} (NaN: no bound): a setting of \code{st.sop}; in three variables the light tier sets it to $0$, which is what keeps the 3-D light programs at their size (Section~\ref{sec:open}).
+\item \textbf{The pattern set.} Every pattern, then pruned to the basis operators whose diagonal term reaches a nonzero parameter cell of the target (option \code{prune} of \code{lpi\_ineq\_sop}, default true). Fixed in the code.
+\item \textbf{The terms.} With one registry variable the plain term and the box quadratic at offset $1$, codes $[0\ 1]$ with offsets $[0\ 1]$, the Markov--Luk'acs pair of Lemma~\ref{lem:ml}(i). With $N_{\mathrm{reg}}\ne1$ registry variables the plain term and the $2N_{\mathrm{reg}}$ faces of the registry, codes $[0,\ 3{:}2N_{\mathrm{reg}}+2]$, at offset $1$ when every $w_k\ge2$ and at offset $0$ otherwise, each weight applied to every sub-operator of every space (Section~\ref{sec:mixed-settings}). The choice of the faces and the switch value $2$ are fixed in the code of \code{get\_lift\_degs}; a tier that wants another term set gives \code{psatz} a row of codes with \code{psatz\_offset}, and, once \code{lpi\_ineq\_sop} reads them from the tier, explicit weights with their offsets.
+\item \textbf{The raise loop.} After UNKNOWN or INFEASIBLE the executive rebuilds the inequality with \code{dw} one higher, at most \code{max\_raise\_feas} or \code{max\_raise} times: settings of \code{st.sop}.
+\item \textbf{The certificate.} A solution counts as certified when the residual test of the executive passes at the tolerance \code{eppos} (Section~\ref{sec:other-settings}).
+\end{enumerate}
+So of what \code{'auto'} decides, the lengths are set by \code{dD}, the weight raise, \code{cap\_delta} and the raises, the tolerance by \code{eppos}, and three choices are fixed in the code: the reach formula of the weight degree, the pruning of the patterns, and the term set with its offset switch. The measured record of the last two is Sections~\ref{sec:program} and \ref{sec:baselines}.
+
+The 2-D tier entry is \code{'faces1'}, chosen because at $w=1$ the rule takes offset $0$, which on every two-variable case measured costs $3.6$ to $4.0$ times the variables of the offset-1 faces at the same degree of the free operator and the same \code{wcross}, and up to $4.7$ times against the offset-1 faces with \code{wcross} $0$, and which with \code{wcross} $0$ loses S17 at $0.5r_2^*$ in the direct form (UNKNOWN after one raise at $676\,410$ variables, certified at $98\,410$ with \code{'faces1'}; \file{sopvar/psatz_faces_results/mixed_domain/gap_results.md}, \file{DECISIONS.md}, item D72); two cases run the other way: S18 at $0.5\tau^*$, certified by offset $0$ at $\mathrm{dw}=0$ ($201\,050$) and by \code{'faces1'} after one raise ($374\,827$); and the two-layer heat TL (library case $64$) at $0.9\lambda^*$, certified in the direct test by offset $0$ ($1\,152\,400$) and UNKNOWN under \code{'faces1'} ($288\,400$), a raise not measured (\gapsref). In three variables offset $0$ is kept: the offset-1 faces fit the 3-D heat at $0.9\kappa^*$ at $658\,536$ variables and are infeasible.
+
+\subsection{The free operator}\label{sec:var-settings}
+
+The field \code{lpi.var.deg} is a $1\times3$ cell of degree specifications of the free operator $\mcl Z$ that \code{lpivar\_cdopvar} declares. Entry $k$ serves a space in $k$ variables, and the last entry serves every higher number; light is \code{\{[2 2 2],1,1\}}. A specification caps the degrees of the kernel of block $(i,j)$, from input space $j$ to output space $i$. With $S_3$ the variables the two spaces share, $S_2$ those of the output space only and $S_1$ those of the input space only, the caps are these:
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{mult}: the degree in $t_k$, $k\in S_3$, in a multiplier direction;
+\item \code{int}, $1\times2$: the degrees in $t_k$ and in $s'_k$, $k\in S_3$, in an integral direction (a scalar for both);
+\item \code{out}: the degree in each variable of $S_2$;
+\item \code{in}: the degree in each variable of $S_1$.
+\end{itemize}
+A specification is a struct with any of these fields, a field not given being $1$. It may also be a scalar $d$, which sets $\code{mult}=\code{out}=\code{in}=d$ and $\code{int}=[d\ d]$, or a row $[d_1\ d_2\ d_3]$, which sets $\code{mult}=\code{out}=\code{in}=d_1$ and $\code{int}=[d_3\ d_2]$. The tier file reads the row in one variable as $d_1$ the degree of the multiplier and of the maps to and from $\R^n$, and $d_3$, $d_2$ the degrees of the integral kernels in $s$ and in the integration variable. An $M\times N$ cell of specifications gives one per block. These are degrees, not lengths.
+
+Without a given specification, \code{lpivar\_cdopvar} reads \code{lpi.var.deg} per block: the left caps \code{mult}, \code{int}(1) and \code{out} at the entry of the dimension of the output space, the right caps \code{int}(2) and \code{in} at that of the input space. The tier file states instead that it reads the entry of its largest space; the two headers disagree. The executives read the entry of the number of variables of the PIE, in two variables \code{lpi.var.deg\{2\}} since 11/17/2026, where they read \code{settings\_2d.Zop\_deg} before (Section~\ref{sec:tiers}). The specification serves the synthesis LPIs and, in this report, the direct form of the default stability test (Section~\ref{sec:mixed-q}).
+
+\subsection{The executive settings}\label{sec:exec-settings}
+
+The field \code{sop} holds the options of the container executives, completed by \code{exec\_sop\_settings}. A triple holds the entries for one, two, and three or more variables, the last serving every higher number; a scalar serves every number.
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{slack}, char. \code{'like'} imposes each negativity constraint $-\mcl D\succeq0$ through \code{lpi\_ineq\_sop}, with a slack sized from the storage of the LPI. \code{'stock'} imposes $\mcl D+\mcl N=0$, with $\mcl N$ declared from the stock degrees of \code{lpisettings\_stock\_sop}. Light: \code{'like'}.
+\item \code{dw\_feas}, scalar or triple: the weight raise of the slack in the stability and well-posedness LPIs, in place of \code{dw\_P} and \code{dw\_Q}. Light: $[0\ 1\ 1]$.
+\item \code{dw\_P}, scalar or triple: the weight raise in the coercive forms, the gains and norms, and synthesis. Light: $[2\ 2\ 1]$.
+\item \code{dw\_Q}, scalar or triple: the weight raise in the $\mcl Q$ (non-coercive) forms. Light: $1$.
+\item \code{max\_raise\_feas}, scalar or triple: how many times the degree loop \code{lpi\_solve\_loop\_sop} rebuilds a stability or well-posedness LPI with the weight one higher, after the solver returns UNKNOWN or INFEASIBLE. Light: $[2\ 1\ 0]$.
+\item \code{max\_raise}, scalar or triple: the same for every other LPI. Light: $[1\ 1\ 0]$.
+\item \code{cap\_delta}, scalar or triple: bounds the lift basis of every slack per direction, $\theta_k+s_k\le J_{\max,k}(\mcl T)+\code{cap\_delta}$, with $J_{\max}$ of \code{get\_lift\_degs} read from the operator $\mcl T$ of the PIE; \code{NaN} is no bound. Light: $[\code{NaN}\ \code{NaN}\ 0]$.
+\item \code{margin}, scalar $\varepsilon\ge0$: certifies $-\mcl D+\varepsilon\,e_{\mcl D}\succeq0$ in place of $-\mcl D\succeq0$, with $e_{\mcl D}=\mcl A^*\mcl A$ and $\mcl A$ the lift of the plain term of the slack. Light: $0$.
+\end{itemize}
+The direct form \code{'Q'} of \code{PIETOOLS\_stability\_sop} (Section~\ref{sec:mixed-q}) reads these knobs differently since 11/17/2026 (\file{DECISIONS.md}, item D68). It sizes both slacks from their own support, without the option \code{like}; it takes the free operator at the entry of \code{lpi.var.deg} for the number of variables of the PIE on every block; and it starts its raise loop at base $0$. \code{dw\_feas}, \code{dw\_P} and \code{dw\_Q} are allowances for slacks sized like the storage. Measured at light (work package 4b, \file{scratchpad/wp4b/WP4B_RESULTS.md}): with the explicit degree and base $0$ the executive reproduces the direct test of the record bit for bit, S3 at $0.9r^*$ certified at $383\,270$ variables and S17 at $0.5r_2^*$ at $435\,350$, no raise; base $1$, with the degree omitted, gave $1\,185\,844$ on S3 and $1\,177\,284$ on S18 at $0.5\tau^*$, and on S17 UNKNOWN at $1\,309\,239$ with the raise refused at $5\,236\,419$ by the size cap of $3$M.
+Today's \code{sop} carries four more fields, \code{keepdual}, \code{witness}, \code{N\_cheb} and \code{nfreq}, which govern what an executive reports (the dual kernel; a Legendre lower bound beside a certified value in one variable) and not the program it builds. They are not settings, and the proposal removes them from the structure: the executives keep them as options of the call, with the present values as the defaults of \code{exec\_sop\_settings}, and the tier files do not mention them.
+
+The \code{lpisettings\_sop} header gives \code{dw\_feas} and \code{cap\_delta} as $1\times3$, where \code{exec\_sop\_settings} admits a scalar as well. \code{exec\_sop\_settings} also documents \code{verbose} and \code{eppos\_stab}, which no tier sets; the tier log of 11/09/2026 records \code{eppos\_stab} as removed.
+
+\subsection{Tolerances and the solver}\label{sec:other-settings}
+
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{eppos}, scalar: the margin of the storage, $\mcl P\succeq\code{eppos}\cdot I$ on every space, in every LPI that imposes one and in every dimension. \code{exec\_sop\_settings} copies it into the per-dimension fields \code{eppos2}, \code{settings\_2d.eppos} and \code{settings\_nd.eppos}; such a field set in the tier takes precedence. Light: $10^{-4}$.
+\item \code{epneg}, scalar: the decay rate, in every dimension. \code{lpisettings\_sop} sets it from its input \code{derivative\_strictness}, default $0$, and \code{exec\_sop\_settings} copies it into \code{settings\_2d.epneg}.
+\item \code{sos\_opts}, struct. Its field \code{simplify}, $0$ or $1$, is set by \code{lpisettings\_sop} from its input \code{simplify}: \code{''} gives $0$, and \code{'psimplify'} gives $1$, which simplifies the SDP before it is solved. Its field \code{solver} is set when \code{lpisettings\_sop} is given one of \code{'mosek'}, \code{'sedumi'}, \code{'sdpt3'}, \code{'sdpnalplus'} or \code{'cuadmm'}. An empty solver becomes MOSEK when \code{mosekopt} is on the path and SeDuMi otherwise (\code{exec\_sop\_settings}). With \code{'cuadmm'} the executives return the status \code{'residual'}, never certified.
+\end{itemize}
+
+\paragraph{Settings the executives do not read, and settings that certify nothing.} Four of the fields above never reach a program the executives build. \code{lpi.ineq.dw} and \code{lpi.ineq.wmin} are read by \code{lpi\_ineq\_sop} only when the call gives no \code{dw}, and every executive gives one; they serve hand-written LPIs. \code{psatz\_offset} is read only with a row of term codes, so with \code{'auto'} it has no effect, and no tier sets it. \code{wR} is an option no caller sets. Two more cannot be tier settings today: \code{psatz\_rows} and \code{psatz\_rows\_offset} are taken from the call only. Two documented options are gone or unset: \code{eppos\_stab}, removed on 11/09/2026 and still in the header of \code{exec\_sop\_settings}, and \code{verbose}, which no tier sets. Everything else is read by the path it belongs to: the storage row by \code{poscopvar}, \code{dD}, \code{psatz} and the executive raise knobs by every slack, \code{cap\_delta} by the slack bases (its 3-D value $0$ is what bounds the 3-D light programs), \code{lpi.var.deg} by the synthesis LPIs and the direct test, \code{eppos} by every certificate, \code{epneg} by the stability LPIs, \code{sos\_opts} by the solver call, and \code{settings\_2d}, now built by \code{settings\_2d\_stock(level)} and carried by no tier, by the stock 2-D path alone.
+
+\subsection{A tier layout}\label{sec:tier-layout}
+
+The light tier, every field, reads
+\begin{small}\begin{verbatim}
+% Light tier. Entry k (cell) or column k (row): a space or inequality in
+% k variables, the last entry for every higher k.
+% 1. The storage: lengths of monomial vectors, 0 = absent.
+st.lpi.pos = struct( ...
+   'len_R',    1, ...                                   % R^q: the identity
+   'len_inc',  {{2,       [0 0],         [0 0 0]}}, ...             % d1
+   'len_com',  {{2,       [2 2],         [2 2 2]}}, ...             % d2
+   'len_sos',  {{[2;2;2], [1 1;2 2;0 0], [1 1 1;2 2 2;0 0 0]}}, ... % d3
+   'patterns', {{'all',   'separable',   'uniform'}}, ...           % Pi
+   'cap',      {{Inf,     [Inf Inf],     [Inf Inf Inf]}}, ...       % c
+   'len_cross', {{1,      1,             1}}, ...        % non-owned, 1: none
+   'terms',    {{'none',  'none',        'none'}}, ...              % F
+   'offsets',  {{[],      [],            []}});                     % o
+% 2. The slack (LPI_INEQ_SOP, GET_LIFT_DEGS); degrees.
+st.lpi.ineq = struct( ...
+   'dD',           1, ...         % lift raise: D = Dmin + dD
+   'dw',           1, ...         % weight raise, calls without dw
+   'wmin',         [2 2 0], ...   % weight floor, target the storage
+   'wcross',       0, ...         % weight, non-owned dirs; 0: none
+   'psatz', ...                   % F per dimension; 2-D: faces at offset 1
+                   {{'auto','faces1','auto'}}, ...
+   'psatz_offset', []);           % o: read with a row of codes only
+% 3. The free operator (LPIVAR_CDOPVAR); degrees.
+st.lpi.var = struct('deg', {{[2 2 2], 1, 1}});  % [d1 d2 d3]; caps 1
+% 4. The executives (EXEC_SOP_SETTINGS).
+st.sop = struct( ...
+   'slack',          'like', ...      % slack sized from the storage
+   'dw_feas',        [0 1 1], ...     % weight raise: stability, w.-p.
+   'dw_P',           [2 2 1], ...     % weight raise: gains, synthesis
+   'dw_Q',           1, ...           % weight raise: the Q forms
+   'max_raise_feas', [2 1 0], ...     % raises: stability, w.-p.
+   'max_raise',      [1 1 0], ...     % raises: every other LPI
+   'cap_delta',      [NaN NaN 0], ... % Jmax(T) + cap_delta; NaN: none
+   'margin',         0);           % eps of -D + eps*e_D >= 0
+% 5. Tolerances and solver.
+st.eppos = 1e-4;                      % P >= eppos*I on every space
+st.epneg = 0;                         % decay rate
+st.sos_opts = struct( ...
+   'simplify', 0, ...                 % 1: simplify the SDP
+   'solver',   '');                   % '': MOSEK if found, else SeDuMi
+\end{verbatim}\end{small}
+A tier file differs from another in these fields and nothing else, and one tier is nested in another when its lengths and caps are entrywise no larger, its pattern set and term set contained, its offsets no smaller, and its raises no fewer.
+
+\subsection{Application-specific settings}\label{sec:app-settings}
+
+An example file starts from a tier and changes fields of the same structure, for example \code{st = lpisettings\_sop('light'); st.lpi.ineq.dw = 1;} or \code{st.lpi.pos.len\_com\{2\} = [3 3];}. An application may instead keep a settings file \code{settings\_sopvar\_<application>.m} that returns the whole structure, as \code{settings\_sopvar\_custom.m} does today.
+
+A tier changes only when the change loses no certificate and no bound on the baselines of Section~\ref{sec:baselines}. A configuration that closes one case goes into the example file of that case.
+
+The mechanism implemented on 11/17/2026: an example file of the library returns, as an optional second output, the settings that certify it, \code{[PDE, st] = PIETOOLS\_PDE\_Ex\_...(GUI, params)}, and its header states the configuration, the certified size and the record. Five examples of \code{examples\_PDE\_library\_PIETOOLS} carry it: $43$, $57$, $58$, $66$ and $72$, Table~\ref{tab:app-settings}. The population case is the age-structured population of the literature set (item~16 of \texttt{COUPLED\_PDE\_CANDIDATES.md}), $p_t=-p_{s_1}+0.1\,p_{s_2s_2}-p$ with the renewal condition $p(0,s_2)=b\int_0^1p\,ds_1$ and $b^*=2.302685$; FO2s and FO2r are the damped wave with an interior delay of Fridman (2009, Ex.~2; item~9) in the transport form and the Riemann form, $\tau^*=2.881401$; records \file{sopvar/psatz_faces_results/mixed_domain/gap_results.md}, \file{perspace_results.md} and \file{litbuild_results.md}.
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{2.5cm}p{5.2cm}p{5.0cm}p{2.2cm}}
+\toprule
+case & what the tiers give & what closes it & size \\
+\midrule
+S18 (case $43$) at $0.9\tau^*$ & storage form: light infeasible after one raise ($508\,228$); the veryheavy 2-D entry at the light slack certifies ($1\,512\,873$, Section~\ref{sec:baselines}); direct form UNKNOWN ($227\,510$, before the tier change of 11/17) & direct form, \code{st.lpi.ineq.dw\_space = [1 0]}; or \code{st.lpi.var.deg\{2\} = 2}; storage form at the veryheavy 2-D lengths with \code{st.sop.dw\_feas(2) = 0} & $65\,731$ ($93\,991$ without \code{wcross} $0$); $215\,188$; $953\,001$ \\
+S17 (case $72$) at $0.9r_2^*$ & storage form: no storage certifies (proven); direct form at the light tier infeasible ($108\,950$) & direct form, \code{st.lpi.var.deg\{2\} = 2} & $267\,968$ \\
+FO2s (case $57$) at $0.95\tau^*$ & storage form infeasible ($691\,888$); direct form at degree $1$ of the free operator UNKNOWN ($299\,120$) or infeasible ($82\,148$, offset-1 faces) & direct form, \code{st.lpi.var.deg\{2\} = 2} & $235\,353$ to $248\,497$ \\
+FO2r (case $58$) at $0.9\tau^*$ & storage form infeasible already at $0.1\tau^*$ ($840\,208$); direct form infeasible at $0.1\tau^*$ ($376\,060$) & direct form, \code{st.lpi.var.deg\{2\} = 2} & $281\,497$ to $302\,957$ \\
+population (case $66$) at $0.9b^*$ & storage form: light infeasible after one raise ($187\,984$), the stock heavy storage certifies ($751\,849$); direct form at the light tier certifies & none in the direct form; storage form at the heavy 2-D lengths with \code{st.sop.dw\_feas(2) = 0} & $56\,548$; $104\,080$ \\
+\bottomrule
+\end{tabular}
+\caption{Cases closed outside the tiers, with the example number in \code{examples\_PDE\_library\_PIETOOLS}. Sizes in decision variables; a range is the closure without and with the offset-1 faces at \code{wcross} $0$. The population row at the heavy lengths is the gap-study configuration (the uniform pattern set); through the executive with \code{lpisettings\_sop('heavy')} and \code{dw\_feas(2)} $0$ the example file records infeasible at $\mathrm{dw}=0$ and certified after one raise at $189\,216$.}\label{tab:app-settings}
+\end{table}
+The gap study behind these rows is \gapsref.
+
+\endgroup

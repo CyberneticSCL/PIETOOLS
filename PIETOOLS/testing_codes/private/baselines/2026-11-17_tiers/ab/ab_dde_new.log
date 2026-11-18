@@ -1,0 +1,139 @@
+@@AB git 33d30877 dirty: M PIETOOLS_demos/DEMO12_Hinf_OFcontrol.m |  M PIETOOLS_demos/DEMO3_poincare_inequality.m |  M PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m |  M PIETOOLS_demos/cuadmm/cuadmm_outdir.m |  M PIETOOLS_demos/cuadmm/cuadmm_settings.m |  M PIETOOLS_demos/cuadmm/heat2d_compare.m |  M PIETOOLS_demos/lowrank_2d_stability/pielr_settings.m |  M PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m |  M PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m |  M PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m |  M PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m |  M PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m |  M PIETOOLS_documentation/for_developers.txt |  M PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m |  M PIETOOLS_examples/examples_PDE_library_PIETOOLS.m |  M executives_sopvar/PIETOOLS_H2_norm_sop.m |  M executives_sopvar/PIETOOLS_Hinf_estimator_sop.m |  M executives_sopvar/PIETOOLS_Hinf_gain_sop.m |  M executives_sopvar/PIETOOLS_stability_sop.m |  M executives_sopvar/utility_functions/exec_sop_settings.m |  M executives_sopvar/utility_functions/exec_tools_sop.m |  M lpi_programming_sopvar/lpi_ineq_sop.m |  M lpi_programming_sopvar/misc/get_lift_degs.m |  M lpi_programming_sopvar/misc/poscopvar_direct.m | R  orphaned_file/private/poscopvar_lift.m -> lpi_programming_sopvar/misc/poscopvar_lift.m | R  orphaned_file/private/posmult_cdopvar.m -> lpi_programming_sopvar/misc/posmult_cdopvar.m |  M lpi_programming_sopvar/poscopvar.m |  M settings_sopvar/README.md |  M settings_sopvar/lpisettings_sop.m |  M settings_sopvar/lpisettings_stock_sop.m |  M settings_sopvar/settings_sopvar_custom.m |  M settings_sopvar/settings_sopvar_extreme.m |  M settings_sopvar/settings_sopvar_heavy.m |  M settings_sopvar/settings_sopvar_light.m |  M settings_sopvar/settings_sopvar_stripped.m |  M settings_sopvar/settings_sopvar_veryheavy.m |  M testing_codes/private/PIETOOLS_demos/cuadmm/BASELINE_REPORT.md |  M testing_codes/private/PIETOOLS_demos/cuadmm/SUITES.md |  M testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab2.m |  M testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m |  M testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/BENCH.md |  M testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench.m |  M testing_codes/private/converters/tests/mixed_domain/MIXED_DOMAIN_REPORT.md |  M testing_codes/private/converters/tests/mixed_domain/mixed_domain_systems.m
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 859 decision variables, 128 rows, build 3.0 s, solve 0.2 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 6.7e-03, eta 4.8e-11, objective NaN, 2087 decision variables, 164 rows, build 0.6 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 5.0e-04, eta 6.0e-12, objective NaN, 3895 decision variables, 200 rows, build 0.5 s, solve 0.1 s
+@@AB V0 light             DDE:DDE05  tau=1.5707   infeasible ndv=3895    m=200    nx=3895    fr=-1.000 pinf=0 dinf=0 numerr=2 5.0s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1258 decision variables, 218 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2690 decision variables, 260 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4702 decision variables, 302 rows, build 0.5 s, solve 0.1 s
+@@AB V0 light             DDE:DDE08  tau=1.3998   infeasible ndv=4702    m=302    nx=4702    fr=-1.000 pinf=1 dinf=0 numerr=0 1.7s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 982 decision variables, 155 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2278 decision variables, 193 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4154 decision variables, 231 rows, build 0.4 s, solve 0.1 s
+@@AB V0 light             DDE:DDE03  tau=1.69101  infeasible ndv=4154    m=231    nx=4154    fr=-1.000 pinf=1 dinf=0 numerr=0 1.3s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3436 decision variables, 500 rows, build 0.6 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.1e+01, eta 5.1e-07, objective NaN, 8348 decision variables, 642 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.6e-04, eta 5.3e-09, objective NaN, 15580 decision variables, 784 rows, build 0.4 s, solve 0.3 s
+@@AB V0 light             DDE:DDE07  tau=1.35191  unknown    ndv=15580   m=784    nx=15580   fr=-0.849 pinf=0 dinf=0 numerr=2 2.0s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 859 decision variables, 128 rows, build 0.4 s, solve 0.0 s
+@@AB V9 no raise          DDE:DDE05  tau=1.5707   infeasible ndv=859     m=128    nx=859     fr=-1.000 pinf=1 dinf=0 numerr=0 0.5s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1258 decision variables, 218 rows, build 0.3 s, solve 0.0 s
+@@AB V9 no raise          DDE:DDE08  tau=1.3998   infeasible ndv=1258    m=218    nx=1258    fr=-1.000 pinf=1 dinf=0 numerr=0 0.3s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 982 decision variables, 155 rows, build 0.2 s, solve 0.0 s
+@@AB V9 no raise          DDE:DDE03  tau=1.69101  infeasible ndv=982     m=155    nx=982     fr=-1.000 pinf=1 dinf=0 numerr=0 0.3s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3436 decision variables, 500 rows, build 0.2 s, solve 0.1 s
+@@AB V9 no raise          DDE:DDE07  tau=1.35191  infeasible ndv=3436    m=500    nx=3436    fr=-1.000 pinf=1 dinf=0 numerr=0 0.4s
+@@AB V4 slack stock       DDE:DDE05  tau=1.5707   ERROR poslpivar_settings_sop:stock: The stock slack reads settings.sop.stock; take the settings from LPISETTINGS_STOCK_SOP.
+@@AB V4 slack stock       DDE:DDE08  tau=1.3998   ERROR poslpivar_settings_sop:stock: The stock slack reads settings.sop.stock; take the settings from LPISETTINGS_STOCK_SOP.
+@@AB V4 slack stock       DDE:DDE03  tau=1.69101  ERROR poslpivar_settings_sop:stock: The stock slack reads settings.sop.stock; take the settings from LPISETTINGS_STOCK_SOP.
+@@AB V4 slack stock       DDE:DDE07  tau=1.35191  ERROR poslpivar_settings_sop:stock: The stock slack reads settings.sop.stock; take the settings from LPISETTINGS_STOCK_SOP.
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 859 decision variables, 128 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 6.7e-03, eta 4.8e-11, objective NaN, 2087 decision variables, 164 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 5.0e-04, eta 6.0e-12, objective NaN, 3895 decision variables, 200 rows, build 0.3 s, solve 0.1 s
+@@AB V7 dw_feas 1         DDE:DDE05  tau=1.5707   infeasible ndv=3895    m=200    nx=3895    fr=-1.000 pinf=0 dinf=0 numerr=2 1.2s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1258 decision variables, 218 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2690 decision variables, 260 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4702 decision variables, 302 rows, build 0.2 s, solve 0.1 s
+@@AB V7 dw_feas 1         DDE:DDE08  tau=1.3998   infeasible ndv=4702    m=302    nx=4702    fr=-1.000 pinf=1 dinf=0 numerr=0 1.0s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 982 decision variables, 155 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2278 decision variables, 193 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4154 decision variables, 231 rows, build 0.3 s, solve 0.1 s
+@@AB V7 dw_feas 1         DDE:DDE03  tau=1.69101  infeasible ndv=4154    m=231    nx=4154    fr=-1.000 pinf=1 dinf=0 numerr=0 1.0s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3436 decision variables, 500 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.1e+01, eta 5.1e-07, objective NaN, 8348 decision variables, 642 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.6e-04, eta 5.3e-09, objective NaN, 15580 decision variables, 784 rows, build 0.3 s, solve 0.3 s
+@@AB V7 dw_feas 1         DDE:DDE07  tau=1.35191  unknown    ndv=15580   m=784    nx=15580   fr=-0.849 pinf=0 dinf=0 numerr=2 1.6s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 943 decision variables, 160 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2275 decision variables, 183 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 4.8e-03, eta 9.6e-11, objective NaN, 4611 decision variables, 227 rows, build 0.3 s, solve 0.1 s
+@@AB V5 dD 2              DDE:DDE05  tau=1.5707   unknown    ndv=4611    m=227    nx=4611    fr= 0.548 pinf=0 dinf=0 numerr=2 1.2s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1354 decision variables, 256 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2878 decision variables, 282 rows, build 0.4 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 5466 decision variables, 332 rows, build 0.3 s, solve 0.1 s
+@@AB V5 dD 2              DDE:DDE08  tau=1.3998   infeasible ndv=5466    m=332    nx=5466    fr=-1.000 pinf=1 dinf=0 numerr=0 1.1s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1070 decision variables, 189 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2466 decision variables, 213 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4886 decision variables, 259 rows, build 0.2 s, solve 0.1 s
+@@AB V5 dD 2              DDE:DDE03  tau=1.69101  infeasible ndv=4886    m=259    nx=4886    fr=-1.000 pinf=1 dinf=0 numerr=0 1.2s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3772 decision variables, 628 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 5.5e-03, eta 2.5e-10, objective NaN, 9100 decision variables, 718 rows, build 0.3 s, solve 0.3 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 6.0e-04, eta 3.5e-09, objective NaN, 18444 decision variables, 892 rows, build 0.4 s, solve 0.7 s
+@@AB V5 dD 2              DDE:DDE07  tau=1.35191  infeasible ndv=18444   m=892    nx=18444   fr=-0.914 pinf=0 dinf=0 numerr=2 2.2s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 859 decision variables, 128 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 6.7e-03, eta 4.8e-11, objective NaN, 2087 decision variables, 164 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 5.0e-04, eta 6.0e-12, objective NaN, 3895 decision variables, 200 rows, build 0.3 s, solve 0.1 s
+@@AB V6 dw 2              DDE:DDE05  tau=1.5707   infeasible ndv=3895    m=200    nx=3895    fr=-1.000 pinf=0 dinf=0 numerr=2 1.1s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1258 decision variables, 218 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2690 decision variables, 260 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4702 decision variables, 302 rows, build 0.3 s, solve 0.1 s
+@@AB V6 dw 2              DDE:DDE08  tau=1.3998   infeasible ndv=4702    m=302    nx=4702    fr=-1.000 pinf=1 dinf=0 numerr=0 0.9s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 982 decision variables, 155 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2278 decision variables, 193 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4154 decision variables, 231 rows, build 0.3 s, solve 0.1 s
+@@AB V6 dw 2              DDE:DDE03  tau=1.69101  infeasible ndv=4154    m=231    nx=4154    fr=-1.000 pinf=1 dinf=0 numerr=0 1.1s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3436 decision variables, 500 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.1e+01, eta 5.1e-07, objective NaN, 8348 decision variables, 642 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.6e-04, eta 5.3e-09, objective NaN, 15580 decision variables, 784 rows, build 0.2 s, solve 0.2 s
+@@AB V6 dw 2              DDE:DDE07  tau=1.35191  unknown    ndv=15580   m=784    nx=15580   fr=-0.849 pinf=0 dinf=0 numerr=2 1.1s
+  [stability_sop Q] dw 0: optimal, residual 1.2e-08, eta 1.6e-10, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+@@AB V8 var.deg heavy     DDE:DDE05  tau=1.5707   certified  ndv=1549    m=147    nx=1549    fr= 0.996 pinf=0 dinf=0 numerr=0 0.4s
+  [stability_sop Q] dw 0: optimal, residual 1.5e-08, eta 1.3e-11, objective NaN, 2068 decision variables, 252 rows, build 0.3 s, solve 0.0 s
+@@AB V8 var.deg heavy     DDE:DDE08  tau=1.3998   certified  ndv=2068    m=252    nx=2068    fr= 0.990 pinf=0 dinf=0 numerr=0 0.4s
+  [stability_sop Q] dw 0: optimal, residual 7.4e-10, eta 3.6e-12, objective NaN, 1712 decision variables, 179 rows, build 0.4 s, solve 0.0 s
+@@AB V8 var.deg heavy     DDE:DDE03  tau=1.69101  certified  ndv=1712    m=179    nx=1712    fr= 0.994 pinf=0 dinf=0 numerr=0 0.4s
+  [stability_sop Q] dw 0: optimal, residual 5.8e-09, eta 1.9e-11, objective NaN, 6196 decision variables, 582 rows, build 0.3 s, solve 0.1 s
+@@AB V8 var.deg heavy     DDE:DDE07  tau=1.35191  certified  ndv=6196    m=582    nx=6196    fr= 0.999 pinf=0 dinf=0 numerr=0 0.4s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 859 decision variables, 128 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 6.7e-03, eta 4.8e-11, objective NaN, 2087 decision variables, 164 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 5.0e-04, eta 6.0e-12, objective NaN, 3895 decision variables, 200 rows, build 0.4 s, solve 0.1 s
+@@AB V1 len_sos [3;2;2]   DDE:DDE05  tau=1.5707   infeasible ndv=3895    m=200    nx=3895    fr=-1.000 pinf=0 dinf=0 numerr=2 1.3s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1258 decision variables, 218 rows, build 0.5 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2690 decision variables, 260 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4702 decision variables, 302 rows, build 0.3 s, solve 0.1 s
+@@AB V1 len_sos [3;2;2]   DDE:DDE08  tau=1.3998   infeasible ndv=4702    m=302    nx=4702    fr=-1.000 pinf=1 dinf=0 numerr=0 1.2s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 982 decision variables, 155 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2278 decision variables, 193 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4154 decision variables, 231 rows, build 0.4 s, solve 0.1 s
+@@AB V1 len_sos [3;2;2]   DDE:DDE03  tau=1.69101  infeasible ndv=4154    m=231    nx=4154    fr=-1.000 pinf=1 dinf=0 numerr=0 1.0s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3436 decision variables, 500 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.1e+01, eta 5.1e-07, objective NaN, 8348 decision variables, 642 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.6e-04, eta 5.3e-09, objective NaN, 15580 decision variables, 784 rows, build 0.3 s, solve 0.3 s
+@@AB V1 len_sos [3;2;2]   DDE:DDE07  tau=1.35191  unknown    ndv=15580   m=784    nx=15580   fr=-0.849 pinf=0 dinf=0 numerr=2 1.4s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 859 decision variables, 128 rows, build 0.3 s, solve 0.0 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 6.7e-03, eta 4.8e-11, objective NaN, 2087 decision variables, 164 rows, build 0.3 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 5.0e-04, eta 6.0e-12, objective NaN, 3895 decision variables, 200 rows, build 0.3 s, solve 0.1 s
+@@AB V1b len_inc/com 3    DDE:DDE05  tau=1.5707   infeasible ndv=3895    m=200    nx=3895    fr=-1.000 pinf=0 dinf=0 numerr=2 1.1s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 1258 decision variables, 218 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2690 decision variables, 260 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4702 decision variables, 302 rows, build 0.3 s, solve 0.0 s
+@@AB V1b len_inc/com 3    DDE:DDE08  tau=1.3998   infeasible ndv=4702    m=302    nx=4702    fr=-1.000 pinf=1 dinf=0 numerr=0 0.9s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 982 decision variables, 155 rows, build 0.2 s, solve 0.0 s
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 2278 decision variables, 193 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4154 decision variables, 231 rows, build 0.3 s, solve 0.1 s
+@@AB V1b len_inc/com 3    DDE:DDE03  tau=1.69101  infeasible ndv=4154    m=231    nx=4154    fr=-1.000 pinf=1 dinf=0 numerr=0 0.9s
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 3436 decision variables, 500 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 1: unknown (divergent), residual 2.1e+01, eta 5.1e-07, objective NaN, 8348 decision variables, 642 rows, build 0.2 s, solve 0.1 s
+  [stability_sop Q] dw 2: unknown (divergent), residual 3.6e-04, eta 5.3e-09, objective NaN, 15580 decision variables, 784 rows, build 0.2 s, solve 0.2 s
+@@AB V1b len_inc/com 3    DDE:DDE07  tau=1.35191  unknown    ndv=15580   m=784    nx=15580   fr=-0.849 pinf=0 dinf=0 numerr=2 1.1s
+@@AB V2 psatz none        DDE:DDE05  tau=1.5707   ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V2 psatz none        DDE:DDE08  tau=1.3998   ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V2 psatz none        DDE:DDE03  tau=1.69101  ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V2 psatz none        DDE:DDE07  tau=1.35191  ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3 psatz faces       DDE:DDE05  tau=1.5707   ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3 psatz faces       DDE:DDE08  tau=1.3998   ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3 psatz faces       DDE:DDE03  tau=1.69101  ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3 psatz faces       DDE:DDE07  tau=1.35191  ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3b psatz product    DDE:DDE05  tau=1.5707   ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3b psatz product    DDE:DDE08  tau=1.3998   ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3b psatz product    DDE:DDE03  tau=1.69101  ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+@@AB V3b psatz product    DDE:DDE07  tau=1.35191  ERROR : 'psatz' should be 'auto', 'none', 'product', 'faces', 'faces1', 'corners' or a row of term codes.
+  [stability_sop Q] dw 0: optimal, residual 1.2e-08, eta 1.6e-10, objective NaN, 1549 decision variables, 147 rows, build 0.3 s, solve 0.0 s
+@@AB V10 heavy tier       DDE:DDE05  tau=1.5707   certified  ndv=1549    m=147    nx=1549    fr= 0.996 pinf=0 dinf=0 numerr=0 0.4s
+  [stability_sop Q] dw 0: optimal, residual 1.5e-08, eta 1.3e-11, objective NaN, 2068 decision variables, 252 rows, build 0.3 s, solve 0.0 s
+@@AB V10 heavy tier       DDE:DDE08  tau=1.3998   certified  ndv=2068    m=252    nx=2068    fr= 0.990 pinf=0 dinf=0 numerr=0 0.4s
+  [stability_sop Q] dw 0: optimal, residual 7.4e-10, eta 3.6e-12, objective NaN, 1712 decision variables, 179 rows, build 0.3 s, solve 0.0 s
+@@AB V10 heavy tier       DDE:DDE03  tau=1.69101  certified  ndv=1712    m=179    nx=1712    fr= 0.994 pinf=0 dinf=0 numerr=0 0.3s
+  [stability_sop Q] dw 0: optimal, residual 5.8e-09, eta 1.9e-11, objective NaN, 6196 decision variables, 582 rows, build 0.2 s, solve 0.1 s
+@@AB V10 heavy tier       DDE:DDE07  tau=1.35191  certified  ndv=6196    m=582    nx=6196    fr= 0.999 pinf=0 dinf=0 numerr=0 0.4s
+@@AB done 17-Nov-2026 22:06:44
+## END rc=0 killed=0 wall=76s

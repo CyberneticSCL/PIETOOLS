@@ -17,8 +17,16 @@ function d = cuadmm_outdir()                                                % CC
 % code under test, point CUADMM_OUT at a fresh folder or delete the tables, or
 % the new run will silently reuse rows measured on the old code.
 %
-% Inputs that belong to the package -- bl_expect.tsv, the banked expectations,
-% and the frozen tables in results/ -- are read from the package, not from here.
+% Inputs that belong to the suite -- bl_expect.tsv, the banked expectations,
+% and the frozen tables in results/ -- are read from the suite folder,
+% testing_codes/private/PIETOOLS_demos/cuadmm, not from here.
+
+% CC, 11/08/2026: help text corrected; the suite (bl_check, bl_expect.tsv,
+%   results/) moved to testing_codes/PIETOOLS_demos/cuadmm (a9e6487c), then
+%   to testing_codes/private/PIETOOLS_demos/cuadmm (5388c808), while this
+%   file stays in PIETOOLS_demos/cuadmm with the solver bridge. Was:
+%   "Inputs that belong to the package -- ... -- are read from the package,
+%   not from here."
 d = getenv('CUADMM_OUT');
 if isempty(d), d = fullfile(tempdir,'cuadmm'); end
 if ~exist(fullfile(d,'baseline','dumps'),'dir'), mkdir(fullfile(d,'baseline','dumps')); end

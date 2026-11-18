@@ -20,6 +20,9 @@ function [sol,M] = bl_b_stab2(frac,setname,exec,pz)
 %   the settings carry eq_opts_psatz: the 2-D settings set use_sosineq = 1 and
 %   no eq_opts_psatz since the master merge of 10/27/2026 (998a68cc), where
 %   the old code stopped on the missing field.
+% CC, 11/17/2026: the tiers carry no settings_2d since 11/17/2026 (MMP,
+%   work package 5), so the guard first tests that the field exists; pz
+%   stays unapplied, and the 2-D term set is lpi.ineq.psatz{2} of the tier.
 clear stateNameGenerator
 pvar s1 s2 t
 x = pde_var(1,[s1;s2],[0,1;0,1]);
@@ -29,7 +32,9 @@ PDE = [diff(x,t,1)==diff(x,s1,2)+diff(x,s2,2)+frac*2*pi^2*x;
 PIE = initialize(convert(PDE));
 st  = bl_settings(setname);
 %if nargin >= 4 && ~isempty(pz)                                             % CC, 11/07/2026 (was)
-if nargin >= 4 && ~isempty(pz) && isfield(st.settings_2d,'eq_opts_psatz')   % CC, 11/07/2026
+%if nargin >= 4 && ~isempty(pz) && isfield(st.settings_2d,'eq_opts_psatz')  % CC, 11/17/2026 (was); CC, 11/07/2026
+if nargin >= 4 && ~isempty(pz) && isfield(st,'settings_2d') && ...
+        isfield(st.settings_2d,'eq_opts_psatz')                             % CC, 11/17/2026
     st.settings_2d.eq_use_psatz = pz(:);
     otmpl = st.settings_2d.eq_opts_psatz{1};
     for j = 1:numel(pz)

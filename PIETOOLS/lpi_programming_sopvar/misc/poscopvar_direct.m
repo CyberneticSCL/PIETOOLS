@@ -54,6 +54,15 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %             variable only); or a 1 x M cell of these, one per space, each
 %             of which may be a cell with one per basis operator of the
 %             space;
+%             a degree 'struct' may also carry cap (1 x nv, Inf = none):    % MMP, 11/17/2026
+%             theta_k+s_k <= cap_k in an owned direction k, theta_k <=      % MMP, 11/17/2026
+%             cap_k otherwise; replaces subset when both are given; a       % MMP, 11/17/2026
+%             Psatz offset lowers int and not cap;                          % MMP, 11/17/2026
+%             and cap_inc (1 x nv, Inf = none): theta_k+s_k <= cap_inc_k    % MMP, 11/18/2026
+%             for the lower and upper basis operators (alpha_k = 2, 3) of   % MMP, 11/18/2026
+%             an owned direction k only, the triangular bound of a Gram     % MMP, 11/18/2026
+%             factor (Shivakumar 11/17/2026, Lemma 1.2: total degree at     % MMP, 11/18/2026
+%             most p-1 for a kernel of degree p); refines a subset array;   % MMP, 11/18/2026
 % - options:  (optional) 'struct' with the optional fields
 %               type          char, 'pos' (any other value is an error);
 %               sep           logical, scalar or 1 x nv: where true, the
@@ -88,6 +97,9 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                             none); psatz given and empty: the rows alone;
 %               psatz_rows_offset  double, as psatz_offset for the rows
 %                             (one per row or one for all, default 0);
+%               psatz_rows_perdir  logical (default false): a factor row    % MMP, 11/17/2026
+%                             lowers 'int' only in the directions of its    % MMP, 11/17/2026
+%                             nonzero factors (default: in every one);      % MMP, 11/17/2026
 %               path          char, 'fast' (default) or 'general': the
 %                             weight moved onto the Gram index as a shift
 %                             when the map of the shifted index set is
@@ -231,6 +243,23 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                95 s, light with the rows at 0.57M, 28 s). Every term is
 %                now a factor row (the codes converted; TERM_WEIGHT by
 %                row); programs with codes alone are unchanged.
+% MMP, 11/17/2026: options.psatz_rows_perdir (default false): a factor row
+%                lowers 'int' only in the directions of its nonzero
+%                factors; the offset rule of the settings proposal, eq. d4.
+%                Help text: the option, under OPTIONS.
+% MMP, 11/17/2026: Degree field 'cap' (1 x nv, Inf = no cap): theta_k+s_k
+%                <= cap_k in an owned direction k, theta_k <= cap_k
+%                otherwise; replaces the total-degree caps of the tiers
+%                (settings report 11/16/2026, Sec. 8.5).
+%                Help text: the field, under DEG.
+% MMP, 11/18/2026: Degree field 'cap_inc' (1 x nv): theta_k+s_k <= cap_inc_k on
+%                the lower and upper basis operators (alpha_k = 2, 3) of an
+%                owned direction only, the triangular bound of Shivakumar's
+%                note of 11/17/2026 (Lemma 1.2: the triangular part of a Gram
+%                factor of a purely integral kernel of degree p has total
+%                degree at most p-1; Thm 1.4 the reduced basis). Set by
+%                GET_LIFT_DEGS cap_inc ('auto' = Dmax-1). cap unchanged; a
+%                spec without cap_inc builds the grid of 11/17/2026.
 
 % The cache of position maps; 'clear' empties it
 persistent CACHE
@@ -303,6 +332,10 @@ for c = 1:nt                                                                % MM
     elseif codes(c)>2*nv+2,                 trow(c,codes(c)-2*nv-2) = 3;    % MMP, 11/12/2026
     end                                                                     % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
+% options.psatz_rows_perdir (logical, default false): a factor row lowers   % MMP, 11/17/2026
+% 'int' only where its factors are nonzero (settings proposal, eq. d4);     % MMP, 11/17/2026
+% false: in every direction                                                 % MMP, 11/17/2026
+perdir = isfield(options,'psatz_rows_perdir') && ~isempty(options.psatz_rows_perdir) && logical(options.psatz_rows_perdir); % MMP, 11/17/2026
 if isfield(options,'psatz_rows') && ~isempty(options.psatz_rows)            % MMP, 11/12/2026
     Rw = double(options.psatz_rows);                                        % MMP, 11/12/2026
     if size(Rw,2)~=nv || any(~ismember(Rw(:),0:3))                          % MMP, 11/12/2026
@@ -369,6 +402,9 @@ for c = 1:nt
         if codes(c)>2*nv+2      % single-direction quadratic: lower 'int' there only
             offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
         end
+        if isnan(codes(c)) && perdir    % a factor row: its directions only % MMP, 11/17/2026
+            offv = zeros(1,nv);     offv(trow(c,:)~=0) = offs(c);           % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
 %       spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/29/2026 (was)
 %       spec = reduce_spec(spec,offv,act_of(codes(c),nv),nv);               % MMP, 11/09/2026 (was); MMP, 10/29/2026
         % act: the directions in which the weight of the term codes(c) has  % MMP, 11/09/2026
@@ -398,7 +434,63 @@ for c = 1:nt
         end
         caps_mult = d.mult(ok);
         caps_mult(basis_list(b,1+ok)==1) = 0;
-        E{b} = build_exponent_grid([d.int,caps_mult],d.joint,d.subset);
+%       E{b} = build_exponent_grid([d.int,caps_mult],d.joint,d.subset);     % MMP, 11/17/2026 (was)
+        % Field 'cap' (settings report 11/16/2026, Sec. 8.5): theta_k+s_k <= % MMP, 11/17/2026
+        % cap(k) in an owned direction k, theta_k <= cap(k) otherwise; a    % MMP, 11/17/2026
+        % subset array over [theta_1..theta_nv, s_ok] (any space; replaces  % MMP, 11/17/2026
+        % d.subset when given); entries big = no cap                        % MMP, 11/17/2026
+%       sub = d.subset;                                                     % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%       if isfield(spec,'cap') && ~isempty(spec.cap)                        % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%           capv = reshape(spec.cap,1,[]);                                  % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%           if isscalar(capv),  capv = repmat(capv,1,nv);   end             % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%           nn = nv + numel(ok);    big = sum(d.int) + sum(caps_mult);      % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%           sub = big*ones(1,2^nn);                                         % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%           for kk = 1:nv                                                   % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%               if ~isfinite(capv(kk)),    continue,   end                  % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%               j = find(ok==kk);                                           % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%               if isempty(j),  ix = 1 + 2^(kk-1);    % theta_k alone       % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%               else,           ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k} % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%               end                                                         % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%               sub(ix) = min(sub(ix),capv(kk));                            % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%           end                                                             % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%       end                                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
+        % BEGIN MMP, 11/18/2026: cap_inc, the triangular cap on the lower   % MMP, 11/18/2026
+        % and upper basis operators (alpha_k = 2, 3) of an owned direction  % MMP, 11/18/2026
+        % (header 11/18/2026); cap as before (replaces a subset array),     % MMP, 11/18/2026
+        % cap_inc refines the subset array in force, or the uncapped grid   % MMP, 11/18/2026
+        sub = d.subset;                                                     % MMP, 11/18/2026
+        havecap = isfield(spec,'cap') && ~isempty(spec.cap);                % MMP, 11/18/2026
+        haveinc = isfield(spec,'cap_inc') && ~isempty(spec.cap_inc);        % MMP, 11/18/2026
+        if havecap || haveinc                                               % MMP, 11/18/2026
+            nn = nv + numel(ok);    big = sum(d.int) + sum(caps_mult);      % MMP, 11/18/2026
+            if havecap || isempty(sub),     sub = big*ones(1,2^nn);     end % MMP, 11/18/2026
+        end                                                                 % MMP, 11/18/2026
+        if havecap                                                          % MMP, 11/18/2026
+            capv = reshape(spec.cap,1,[]);                                  % MMP, 11/18/2026
+            if isscalar(capv),  capv = repmat(capv,1,nv);   end             % MMP, 11/18/2026
+            for kk = 1:nv                                                   % MMP, 11/18/2026
+                if ~isfinite(capv(kk)),    continue,   end                  % MMP, 11/18/2026
+                j = find(ok==kk);                                           % MMP, 11/18/2026
+                if isempty(j),  ix = 1 + 2^(kk-1);    % theta_k alone       % MMP, 11/18/2026
+                else,           ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k}% MMP, 11/18/2026
+                end                                                         % MMP, 11/18/2026
+                sub(ix) = min(sub(ix),capv(kk));                            % MMP, 11/18/2026
+            end                                                             % MMP, 11/18/2026
+        end                                                                 % MMP, 11/18/2026
+        if haveinc                                                          % MMP, 11/18/2026
+            capi = reshape(spec.cap_inc,1,[]);                              % MMP, 11/18/2026
+            if isscalar(capi),  capi = repmat(capi,1,nv);   end             % MMP, 11/18/2026
+            for kk = 1:nv                                                   % MMP, 11/18/2026
+                j = find(ok==kk);       % owned directions only             % MMP, 11/18/2026
+                if ~isfinite(capi(kk)) || isempty(j),    continue,   end    % MMP, 11/18/2026
+                if basis_list(b,1+kk)==2 || basis_list(b,1+kk)==3           % MMP, 11/18/2026
+                    ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k}      % MMP, 11/18/2026
+                    sub(ix) = min(sub(ix),capi(kk));                        % MMP, 11/18/2026
+                end                                                         % MMP, 11/18/2026
+            end                                                             % MMP, 11/18/2026
+        end                                                                 % MMP, 11/18/2026
+        % END MMP, 11/18/2026                                               % MMP, 11/18/2026
+        E{b} = build_exponent_grid([d.int,caps_mult],d.joint,sub);          % MMP, 11/17/2026
     end
 
     % The Gram: rows (basis operator outer, matrix row, monomial inner), the

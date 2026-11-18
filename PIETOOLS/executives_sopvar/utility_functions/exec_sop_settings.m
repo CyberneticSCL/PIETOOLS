@@ -88,6 +88,11 @@ function st = exec_sop_settings(st)
 % options1, options12, override1, ddZ, dd2, dd3, options2, options3,
 % override2, sosineq_on; settings_nd.LF_int, LF_mult, Zop_deg) is an error
 % that names its replacement.
+% A storage row lpi.pos (field len_com; settings report 11/16/2026, Sec.    % MMP, 11/17/2026
+% 5) that also carries mult, int, joint or sep is an error: POSCOPVAR       % MMP, 11/17/2026
+% reads the row alone. The tiers carry neither settings_2d nor the output   % MMP, 11/17/2026
+% options keepdual, witness, N_cheb, nfreq since 11/17/2026: the defaults   % MMP, 11/17/2026
+% above serve, LPISETTINGS_SOP setting the tier values that differ.         % MMP, 11/17/2026
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -153,6 +158,27 @@ function st = exec_sop_settings(st)
 %                a meaning the executives no longer give it; lpi.pos and
 %                lpi.var, which EXEC_TOOLS_SOP and POSLPIVAR_SETTINGS_SOP
 %                read, default to those of 'light'.
+% MMP, 11/17/2026: The tiers take the structure of the settings report
+%                11/16/2026 (work package 5): lpi.pos is a storage row and
+%                settings_2d, sop.keepdual, witness, N_cheb, nfreq are gone
+%                from the tiers. keepdual, witness, N_cheb and nfreq keep
+%                their defaults here (true, true, 24, 240, as the light
+%                tier set them); the eppos and epneg copies into
+%                settings_2d were already guarded by isfield and need no
+%                change. New: a row lpi.pos carrying the stock fields mult,
+%                int, joint or sep is an error, since POSCOPVAR ignores
+%                them (a caller editing lpi.pos.mult of a row, as DEMO12
+%                did, would otherwise get the tier storage silently).
+% MMP, 11/18/2026: Three fields for the direct stability form 'Q' of
+%                PIETOOLS_STABILITY_SOP, so that it and the storage form
+%                'P' take different degrees and ladders (maintainer,
+%                11/18/2026: "make the separation"): deg_Q, the degrees of
+%                Q (a cell per dimension as lpi.var.deg; [] = lpi.var.deg,
+%                which the synthesis LPIs keep), max_raise_Q, its raises
+%                ([] = max_raise_feas), and raise_Q, what a raise adds:
+%                'slack' (the weight of the slacks, as before), 'deg' (the
+%                first entry of deg_Q) or 'both'. The defaults and the
+%                tier values reproduce the programs of 11/17/2026.
 
 % Defaults of the fields of ST.sop
 % d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
@@ -160,9 +186,12 @@ function st = exec_sop_settings(st)
 % d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
 %            'N_cheb',24,'nfreq',240,'keepdual',true,'verbose',true, ...
 %            'dw_feas',[],'max_raise_feas',[],'eppos_stab',[]);             % MMP, 10/29/2026 (was)
+% The third line read before:                                              % MMP, 11/18/2026
+%          'dw_feas',[],'max_raise_feas',[],'eppos_stab',[],'cap_delta',[]); % MMP, 11/18/2026 (was); MMP, 10/29/2026
 d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
            'N_cheb',24,'nfreq',240,'keepdual',true,'verbose',true, ...
-           'dw_feas',[],'max_raise_feas',[],'eppos_stab',[],'cap_delta',[]); % MMP, 10/29/2026
+           'dw_feas',[],'max_raise_feas',[],'eppos_stab',[],'cap_delta',[], ... % MMP, 10/29/2026
+           'deg_Q',[],'max_raise_Q',[],'raise_Q','slack');                   % MMP, 11/18/2026
 % Check ST; set each missing or empty field of ST.sop to its default
 if ~isstruct(st),   error('exec_sop_settings:st','ST should be a settings struct (lpisettings).');   end
 % Stock-format fields of the tiers before 11/12/2026: an error naming the   % MMP, 11/12/2026
@@ -189,6 +218,13 @@ if ~isfield(st,'lpi') || ~all(isfield(st.lpi,{'pos','var'}))                % MM
     if ~isfield(st.lpi,'pos'),      st.lpi.pos = d0.lpi.pos;    end         % MMP, 11/12/2026
     if ~isfield(st.lpi,'var'),      st.lpi.var = d0.lpi.var;    end         % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
+% A storage row (len_com) with stock fields: POSCOPVAR reads the row alone, % MMP, 11/17/2026
+% so mult, int, joint, sep would be ignored without notice                  % MMP, 11/17/2026
+if isfield(st.lpi.pos,'len_com') && any(isfield(st.lpi.pos,{'mult','int','joint','sep'})) % MMP, 11/17/2026
+    error('exec_sop_settings:row',['lpi.pos is a storage row (len_com): its fields ' ...
+          'mult, int, joint, sep are not read; set len_inc, len_com, len_sos and cap ' ...
+          '(settings report 11/16/2026, Sec. 5).'])                         % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
 if ~isfield(st,'sop') || isempty(st.sop),   st.sop = struct();     end
 fn = fieldnames(d);
 for i = 1:numel(fn)
@@ -198,6 +234,11 @@ end
 if ~any(strcmp(st.sop.slack,{'like','stock'}))
     error('exec_sop_settings:slack','sop.slack should be ''like'' or ''stock''.');
 end
+% The raise target of the direct stability form (PIETOOLS_STABILITY_SOP)    % MMP, 11/18/2026
+if ~any(strcmp(st.sop.raise_Q,{'slack','deg','both'}))                      % MMP, 11/18/2026
+    error('exec_sop_settings:raise_Q', ...
+          'sop.raise_Q should be ''slack'', ''deg'' or ''both''.');         % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 % Solver: MOSEK when mosekopt is on the path, else SeDuMi
 if ~isfield(st,'sos_opts') || isempty(st.sos_opts),    st.sos_opts = struct();    end
 if ~isfield(st.sos_opts,'solver') || isempty(st.sos_opts.solver)

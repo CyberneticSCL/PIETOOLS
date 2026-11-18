@@ -49,6 +49,8 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          'auto' in one variable), 'faces' (the plain term
 %                          and the 2nv faces), 'corners' (the faces and every
 %                          product of two faces of different directions),
+%                          'faces1' (the faces one weight degree lower for  % MMP, 11/17/2026
+%                          every w; in one variable as 'product'),          % MMP, 11/17/2026
 %                          or a double row of term
 %                          codes: 0 plain, 1 box product, 2d+1 / 2d+2 lower
 %                          / upper face of direction d, 2nv+2+d box
@@ -56,13 +58,23 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %            psatz_offset  double, with a row of codes: the weight degree
 %                          by which each term is lowered, one per code or
 %                          one for all (default 0);
-%            psatz_rows, psatz_rows_offset
+%            psatz_rows, psatz_rows_offset, psatz_rows_perdir               % MMP, 11/17/2026
 %                          with a row of codes: rows of per-direction
-%                          factors and their offsets (GET_LIFT_DEGS,
-%                          POSCOPVAR_DIRECT);
+%                          factors, their offsets and the per-direction     % MMP, 11/17/2026
+%                          offset flag (GET_LIFT_DEGS, POSCOPVAR_DIRECT);   % MMP, 11/17/2026
 %                          Default for psatz and psatz_offset: the fields
 %                          psatz, psatz_offset of the settings tier
-%                          (st.lpi.ineq) when present, else 'auto';
+%                          (st.lpi.ineq) when present, else 'auto'; for     % MMP, 11/17/2026
+%                          the three row fields, when the call gives no     % MMP, 11/17/2026
+%                          psatz: those of the tier, when present;          % MMP, 11/17/2026
+%                          a tier psatz may be a cell {1-D, 2-D, N-D}, its  % MMP, 11/17/2026
+%                          entry for the number of registry variables of P; % MMP, 11/17/2026
+%            wcross        double, the cross weight degree (GET_LIFT_DEGS); % MMP, 11/17/2026
+%            dw_space      double, the raise of w per space (GET_LIFT_DEGS); % MMP, 11/17/2026
+%                          default for both: those of the tier, if any;     % MMP, 11/17/2026
+%            Dmax, cap_inc the lift ceiling and the triangular cap          % MMP, 11/18/2026
+%                          (GET_LIFT_DEGS, POSCOPVAR_DIRECT); default:      % MMP, 11/18/2026
+%                          those of the tier, if any (false, none);         % MMP, 11/18/2026
 %            like          'cdopvar' or 'copvar' object, or a cell of them,
 %                          with variables among those of P: their pooled
 %                          support is read instead of that of P. Default
@@ -234,6 +246,27 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % MMP, 11/12/2026: The corner rows withdrawn from the 2-D default the same
 %                day (GET_LIFT_DEGS); the term set comes from the tier knob
 %                lpi.ineq.psatz when the tier has one ('corners' adds them).
+% MMP, 11/17/2026: psatz_rows, psatz_rows_offset, psatz_rows_perdir come
+%                from the tier knob lpi.ineq when the call gives no psatz,
+%                so a tier carries the explicit term sets of the settings
+%                report (Sec. 5.2); they were call-only. psatz_rows_perdir
+%                is forwarded to POSCOPVAR_DIRECT, which does not read it.
+% MMP, 11/17/2026: wcross and dw_space (GET_LIFT_DEGS, same date) come from
+%                the tier knob lpi.ineq when the call gives none, whatever
+%                the term set, so settings reach the sizing through the
+%                executives; a tier psatz may be a cell {1-D, 2-D, N-D}, the
+%                entry for the registry size taken as for dD, dw, wmin.
+%                MEASURED (sopvar/psatz_faces_results/mixed_domain/
+%                perspace_results.md): wcross 0 cut the slack of every
+%                multi-space case by 12-28% with no verdict change; with
+%                dw_space +1 on its 1-D space and 'faces1', S18 certified at
+%                0.9 of the delay margin with 93,991 variables against
+%                440,023 for the uniform raise. Help text: 'faces1', the
+%                cell psatz, wcross, dw_space.
+% MMP, 11/18/2026: Dmax and cap_inc of the tier (lpi.ineq) or the call pass to
+%                GET_LIFT_DEGS like wcross and dw_space: the lift degree at
+%                the support ceiling and the triangular cap of Shivakumar's
+%                bounds (11/17/2026). Help text: the two options.
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -278,11 +311,31 @@ else,                       tier = lpisettings_sop().lpi.ineq;  % none      % MM
 end
 % The term set of the tier (lpi.ineq.psatz, psatz_offset), when the tier    % MMP, 11/12/2026
 % has one and the call gives none: 'faces' (the 'auto' terms), 'corners'    % MMP, 11/12/2026
-% (the faces and the corner products), 'none', 'product', or codes          % MMP, 11/12/2026
+% % (the faces and the corner products), 'none', 'product', or codes        % MMP, 11/17/2026 (was)
+% (the faces and the corner products), 'faces1' (the faces one degree       % MMP, 11/17/2026
+% lower), 'none', 'product', or codes; a cell {1-D, 2-D, N-D} of these      % MMP, 11/17/2026
+cps = isfield(opts,'psatz');    % the call gives a term set                 % MMP, 11/17/2026
 if isfield(tier,'psatz') && ~isfield(opts,'psatz'),    opts.psatz = tier.psatz;    end % MMP, 11/12/2026
 if isfield(tier,'psatz_offset') && ~isfield(opts,'psatz_offset')            % MMP, 11/12/2026
     opts.psatz_offset = tier.psatz_offset;                                  % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
+% The factor rows of the tier, only with its term set (no psatz in the      % MMP, 11/17/2026
+% call), so the rows never join a call's codes; a field of the call wins    % MMP, 11/17/2026
+for f = {'psatz_rows','psatz_rows_offset','psatz_rows_perdir'}              % MMP, 11/17/2026
+    if ~cps && isfield(tier,f{1}) && ~isfield(opts,f{1}),  opts.(f{1}) = tier.(f{1});  end % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+% The cross and per-space weight degrees of the tier (GET_LIFT_DEGS) when   % MMP, 11/17/2026
+% the call gives none; not term options, so not gated on the call's psatz   % MMP, 11/17/2026
+%for f = {'wcross','dw_space'}                                               % MMP, 11/18/2026 (was); MMP, 11/17/2026
+% and the lift ceiling and triangular cap (GET_LIFT_DEGS, 11/18/2026)       % MMP, 11/18/2026
+for f = {'wcross','dw_space','Dmax','cap_inc'}                              % MMP, 11/18/2026
+    if isfield(tier,f{1}) && ~isfield(opts,f{1}),  opts.(f{1}) = tier.(f{1});  end % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+% A tier psatz as a cell {1-D, 2-D, N-D}: the entry for the registry size,  % MMP, 11/17/2026
+% as for the tier vectors of dD, dw, wmin below                             % MMP, 11/17/2026
+if ~cps && isfield(opts,'psatz') && iscell(opts.psatz)                      % MMP, 11/17/2026
+    opts.psatz = opts.psatz{min(max(numel(P.vars),1),end)};                 % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
 pick = @(v) v(min(max(numel(P.vars),1),end));
 if ~isfield(opts,'dD') || isempty(opts.dD),     opts.dD = pick(tier.dD);    end
 if ~isfield(opts,'dw') || isempty(opts.dw)
@@ -420,6 +473,8 @@ end
 popts = struct('psatz',terms.codes,'psatz_offset',terms.offsets);
 if ~isempty(terms.rows)     % the factor rows (POSCOPVAR_DIRECT psatz_rows) % MMP, 11/12/2026
     popts.psatz_rows = terms.rows;  popts.psatz_rows_offset = terms.rows_offsets; % MMP, 11/12/2026
+    % the per-direction offset rule of the rows (call or tier)              % MMP, 11/17/2026
+    if isfield(opts,'psatz_rows_perdir'),  popts.psatz_rows_perdir = opts.psatz_rows_perdir;  end % MMP, 11/17/2026
 end                                                                         % MMP, 11/12/2026
 if prune && any(~cellfun(@isempty,include)),   popts.include = include;    end
 % % path and cache, when given                                              % MMP, 11/12/2026 (was)

@@ -102,6 +102,14 @@
 % MMP, 11/08/2026: Run the executive through PIETOOLS_auto_execute_sop: the
 %                   stock PIETOOLS_auto_execute left the path on 11/08/2026
 %                   (cleaning/private), so answering 'y' errored;
+% MMP, 11/17/2026: Add mixed-domain examples, 56-71, in the folder
+%                   Examples_Library/Mixed_Domain_Examples; raise
+%                   n_examples to 71 so that process_inputs accepts them;
+% MMP, 11/17/2026: Add example 72 (S17 of the mixed-domain suite, the
+%                   folder Mixed_Domain_Examples); n_examples 72. Cases
+%                   43, 57, 58, 66 and 72 note that [PDE,st] returns the
+%                   application-specific settings that certify the
+%                   example (file headers), where the tiers do not;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -666,6 +674,7 @@ switch index
 %           x2(t,s1,s2=0)  = x1(t,s1);              |
 %           x2(t,s1=0,s2)  = 0;                     |
 %           x2(t,s1=pi,s2) = 0;                     |
+%   [PDE,st]: st, the application-specific settings that certify it         % MMP, 11/17/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -899,6 +908,259 @@ if BATCH~=0
         BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq(GUI,params);
+%
+%                                                                           % MMP, 11/17/2026 (start)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Mixed-domain examples (Examples_Library/Mixed_Domain_Examples)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% States on different domains (1D, 2D, 3D, edges, delay as transport),
+% coupled in-domain or through boundary conditions. Thresholds marked
+% [derived] are computed from the modes or by finite differences, not
+% read in the cited paper; each file header states the provenance.
+%==========================================================================
+%       Stability analysis
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Delay as transport
+%--------------------------------------------------------------------------
+    case 56
+%   PDE: x_{t} = x_{s1s1} + x_{s2s2} + r*x          | r = 2.9;                  (stable iff tau < 1.034726 for r = 2.9 [derived])
+%                 - x(t-tau);  (s1,s2) in [0,pi]^2  | tau = 0.9*1.034726;           Fridman, 2009 [23] (1D version)
+%   BCs: x = 0 on all edges.                        |
+%   Delay as a 3D transport state:                  |
+%        x1 = x;  x2_{t} = -x2_{s3},  s3 in [0,tau] |
+%        x2(t,s1,s2,s3=0) = x1(t,s1,s2);            |
+%        x1_{t} = ... - x2(t,s1,s2,s3=tau);         |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params);
+%--------------------------------------------------------------------------
+    case 57
+%   PDE: z_{tt} = 0.1*z_{s1s1} - 2*z_{t}            | tau = 0.9*2.881401;       (stable iff tau < 2.881401 [derived])
+%                 - z(t-tau,s1);  s1 in [0,pi]      |                               Fridman, 2009 [23], Ex. 2
+%   BCs: z(t,0) = z(t,pi) = 0;                      |
+%   v = z_{t}; y_{t} = -y_{s2}, s2 in [0,tau],      |
+%        y(t,s1,s2=0) = z(t,s1);                    |
+%   [PDE,st]: st, the application-specific settings that certify it         % MMP, 11/17/2026
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params);
+%--------------------------------------------------------------------------
+    case 58
+%   Example 57 in Riemann form on [0,pi/2]:         | tau = 0.9*2.881401;       (stable iff tau < 2.881401 [derived])
+%   PDE: e_{t} = v_{s1};                            |                               Fridman, 2009 [23], Ex. 2
+%        v_{t} = 0.1*e_{s1} - 2*v                   |
+%                 - int_0^s1 y(t,r,tau) dr;         |
+%        y_{t} = -y_{s2},  s2 in [0,tau];           |
+%   BCs: v(t,0) = 0;  e(t,pi/2) = 0;                |
+%        y(t,s1,s2=0) = e(t,s1);                    |
+%   [PDE,st]: st, the application-specific settings that certify it         % MMP, 11/17/2026
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman(GUI,params);
+%--------------------------------------------------------------------------
+    case 59
+%   PDE: e_{t} = v_{s1};  v_{t} = e_{s1};  s1 in [0,1] | mu = 0.6;  k = 1;      (exponentially stable iff mu > 0.5 for k = 1,
+%        y_{t} = -(1/tau)*y_{s2};          s2 in [0,1] | tau = 2;                   tau = 2 [derived]; mu > 1/2 [abstract])
+%   BCs: v(t,0) = 0;                                |                               Xu, 2006 [21]
+%        e(t,1) = -k*mu*v(t,1) - k*(1-mu)*y(t,1);   |
+%        y(t,0) = v(t,1);                           |
+%   (e = w_{s1}, v = w_{t} of w_{tt} = w_{s1s1})    |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params);
+%--------------------------------------------------------------------------
+    case 60
+%   PDE: u_{t} = u_{s1s1};           s1 in [0,pi]   | mu0 = 1;  mu1 = 0.5;      (spectral abscissa -0.762 for the defaults
+%        y_{t} = -(1/tau)*y_{s2};    s2 in [0,1]    | tau = 1;                      [finite differences])
+%   BCs: u(t,0) = 0;                                |                               Nicaise, 2009 [24]
+%        u_{s1}(t,pi) = -mu0*u(t,pi) - mu1*y(t,1);  |
+%        y(t,0) = u(t,pi);                          |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params);
+%--------------------------------------------------------------------------
+%       Edge and interface couplings
+%--------------------------------------------------------------------------
+    case 61
+%   PDE: u_{t} = u_{s1s1} + u_{s2s2} + lam*u;       | sig = 1;                  (stable iff lam < 0.740174 for sig = 1 [derived])
+%        v_{t} = sig*v_{s1s1} - u_{s2}(t,s1,1)      | lam = 0.9*0.740174;           Goldstein, 2006 [25] (box version)
+%                 + lam*v;   (s1,s2) in [0,1]^2     |
+%   BCs: u_{s1} = v_{s1} = 0 at s1 = 0, 1;          |
+%        u(t,s1,0) = 0;  u(t,s1,1) = v(t,s1);       |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params);
+%--------------------------------------------------------------------------
+    case 62
+%   PDE: r_{t} = Dr*r_{s1s1} + nu*f(t,s1,0) - mu*r; | Dr = 2;  d = 1;           (stable iff lam < 13.9198 [derived, finite
+%        f_{t} = d*(f_{s1s1} + f_{s2s2}) + lam*f;   | mu = 1;  nu = 1;              differences N = 60])
+%   BCs: r = 0 at s1 = 0, 1;                        | lam = 0.9*13.919824;          Berestycki, 2013 [26] (box version)
+%        f = 0 at s1 = 0, 1 and s2 = 1;             |
+%        -d*f_{s2}(t,s1,0) = mu*r - nu*f(t,s1,0);   |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params);
+%--------------------------------------------------------------------------
+    case 63
+%   PDE: x1_{t} = (1+s1)*x1_{s1s1} + r1*x1;         | r1 = 0.9*14.507976;       (block thresholds r1* = 14.5080, r2* = 22.2060
+%        x2_{t} = x2_{s1s1} + (1+s2^2)*x2_{s2s2}    | r2 = 0.9*22.205980;           [finite differences N = 60]; cascade
+%                  + r2*x2;   (s1,s2) in [0,1]^2    |                               stable iff both blocks are [inferred])
+%   BCs: x1 = 0 at s1 = 0, 1;  x2 = 0 at s1 = 0, 1; |
+%        x2(t,s1,0) = x1(t,s1);  x2(t,s1,1) = 0;    |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params);
+%--------------------------------------------------------------------------
+    case 64
+%   PDE: ui_{t} = ki*(ui_{s1s1} + ui_{s2s2})        | k1 = 1;  k2 = 2;  H = 1;  (stable iff lam < 13.6869 [derived, finite
+%                  + lam*ui,  i = 1,2;  [0,1]^2     | lam = 0.9*13.686938;          differences N = 60])
+%   BCs: -k1*u1_{s1}(t,0,s2) = H*(u2-u1)(t,0,s2);   |                               Hickson, 2009 [27] (1D problem)
+%         k2*u2_{s1}(t,0,s2) = H*(u2-u1)(t,0,s2);   |
+%        u1 = u2 = 0 at s1 = 1, s2 = 0, s2 = 1;     |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Two_Layer_Heat_Rectangles(GUI,params);
+%--------------------------------------------------------------------------
+    case 65
+%   PDE: x_{t} = diag(1,d)*(x_{s1s1} + x_{s2s2})    | d = 0.9*4.461640;         (stable iff d < 4.461640 [derived])
+%                 + J*x,  J = [20,-25;30,-30];      | bc = 'N';                     Turing, 1952 [28]
+%   BCs: bc = 'N': x_{s1} = 0 at s1 = 0, 1,         |
+%                  x_{s2} = 0 at s2 = 0, 1;         |
+%        bc = 'D': x = 0 on all edges, J -> 2*J;    |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params);
+%--------------------------------------------------------------------------
+    case 66
+%   PDE: q_{t} = -q_{s1} + d*q_{s2s2} - mu*q;       | d = 0.1;  mu = 1;         (stable iff b < 2.302685 [derived])
+%                             (s1,s2) in [0,1]^2    | b = 0.9*2.302685;             Kang, 2022 [29]
+%   BCs: q(t,0,s2) = b*int_0^1 q(t,s1,s2) ds1;      |
+%        q(t,s1,0) = q(t,s1,1) = 0;                 |
+%   [PDE,st]: st, the application-specific settings that certify it         % MMP, 11/17/2026
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params);
+%--------------------------------------------------------------------------
+    case 67
+%   PDE: e1_{t} = p_{s1};  p_{t} = e1_{s1};         | L = 0.5;                  (exponentially stable for the clamped
+%        e2_{t} = q_{s1};  q_{t} = e2_{s1}-th_{s1}; |                               problem [abstract]; free end here)
+%        th_{t} = th_{s1s1} - q_{s1};  s1 in [0,L]  |                               Marzocchi, 2002 [30]
+%   BCs: e1(t,0) = 0;  q(t,L) = 0;                  |
+%        th(t,0) = th(t,L) = 0;                     |
+%        p(t,L) = q(t,0);  e1(t,L) = e2(t,0);       |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params);
+%--------------------------------------------------------------------------
+    case 68
+%   PDE: e_{t} = v_{s1};  v_{t} = e_{s1};           |                           (not exponentially stable; energy
+%        w_{t} = w_{s1s1};          s1 in [0,1]     |                               o(t^{-4}) [read])
+%   BCs: v(t,1) = 0;  e(t,0) = -w_{s1}(t,0);        |                               Batty, 2016 [31]
+%        w(t,1) = 0;  w(t,0) = v(t,0);              |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params);
+%--------------------------------------------------------------------------
+    case 69
+%   PDE: u_{t} = v;  v_{t} = u_{s1s1} + u_{s2s2};   |                           (not exponentially stable; energy
+%        w_{t} = w_{s1s1} + w_{s2s2};  [0,1]^2      |                               o(t^{-2/3}) [read])
+%   BCs: u = v = w = 0 at s1 = 1, s2 = 0, s2 = 1;   |                               Batty, 2019 [32]
+%        u_{s1}(t,0,s2) = -w_{s1}(t,0,s2);          |
+%        w(t,0,s2) = v(t,0,s2);                     |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params);
+%--------------------------------------------------------------------------
+    case 70
+%   PDE: ph_{t} = ps;  ps_{t} = ph_{s1s1}+ph_{s2s2};|                           (not uniformly stable [abstract])
+%        de_{t} = et;                               |                               Beale, 1976 [33]
+%        et_{t} = -et - de - ps(t,s1,0);            |
+%   BCs: ph = ps = 0 at s1 = 0, 1 and s2 = 1;       |
+%        ph_{s2}(t,s1,0) = -et(t,s1);               |
+%        de = et = 0 at s1 = 0, 1;                  |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params);
+%                                                                           % MMP, 11/17/2026 (start, example 72)
+%--------------------------------------------------------------------------
+    case 72
+%   PDE: x1_{t} = -x1_{s1};             s1 in [0,1] | r2 = 0.9*pi^2;            (stable iff r2 < pi^2 [derived])
+%        x2_{t} = x2_{s2s2} + r2*x2;  [0,1]^2       |                               mixed-domain suite, S17
+%   BCs: x1(t,0) = 0;                               |
+%        x2(t,s1,0) = x1(t,s1);  x2(t,s1,1) = 0;    |
+%   (x2 of order 0 in s1)                           |
+%   [PDE,st]: st, the application-specific settings that certify it
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params);
+%                                                                           % MMP, 11/17/2026 (end, example 72)
+%
+%==========================================================================
+%       Hinf-gain analysis
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Diffusive/Heat Equation Type Systems
+%--------------------------------------------------------------------------
+    case 71
+%   PDE: x_{t} = x_{s1s1} + x_{s2s2} + w(t,s1);     |                           (Exact L2 gain gam = 0.04571818 [derived])
+%   OUT: z(t,s1,s2) = x(t,s1,s2);                   |                               Lidstrom, 2016 [34]
+%   BCs: x = 0 on all edges of [0,1]^2;             |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params);
+%                                                                           % MMP, 11/17/2026 (end)
 %
 
 %==========================================================================
@@ -1318,13 +1580,151 @@ end
 %   year={2018},
 %   organization={IEEE}
 % }
+%                                                                           % MMP, 11/17/2026 (start)
+% % [23] -
+% @article{fridman2009exponential,
+%   title={Exponential stability of linear distributed parameter systems with time-varying delays},
+%   author={Fridman, Emilia and Orlov, Yury},
+%   journal={Automatica},
+%   volume={45},
+%   number={1},
+%   pages={194--201},
+%   year={2009},
+%   doi={10.1016/j.automatica.2008.06.006}
+% }
+%
+% % [24] -
+% @article{nicaise2009stability,
+%   title={Stability of the heat and of the wave equations with boundary time-varying delays},
+%   author={Nicaise, Serge and Valein, Julie and Fridman, Emilia},
+%   journal={Discrete and Continuous Dynamical Systems - Series S},
+%   volume={2},
+%   number={3},
+%   pages={559--581},
+%   year={2009},
+%   doi={10.3934/dcdss.2009.2.559}
+% }
+%
+% % [25] -
+% @article{goldstein2006derivation,
+%   title={Derivation and physical interpretation of general boundary conditions},
+%   author={Goldstein, Gis{\`e}le Ruiz},
+%   journal={Advances in Differential Equations},
+%   volume={11},
+%   number={4},
+%   pages={457--480},
+%   year={2006}
+% }
+%
+% % [26] -
+% @article{berestycki2013influence,
+%   title={The influence of a line with fast diffusion on Fisher-KPP propagation},
+%   author={Berestycki, Henri and Roquejoffre, Jean-Michel and Rossi, Luca},
+%   journal={Journal of Mathematical Biology},
+%   volume={66},
+%   pages={743--766},
+%   year={2013},
+%   note={arXiv:1210.3721}
+% }
+%
+% % [27] -
+% @article{hickson2009critical,
+%   title={Critical times in multilayer diffusion. Part 1: Exact solutions},
+%   author={Hickson, Roslyn I and Barry, Steven I and Mercer, Geoffry N},
+%   journal={International Journal of Heat and Mass Transfer},
+%   volume={52},
+%   pages={5776--5783},
+%   year={2009},
+%   doi={10.1016/j.ijheatmasstransfer.2009.08.013}
+% }
+%
+% % [28] -
+% @article{turing1952chemical,
+%   title={The chemical basis of morphogenesis},
+%   author={Turing, Alan Mathison},
+%   journal={Philosophical Transactions of the Royal Society of London. Series B},
+%   volume={237},
+%   pages={37--72},
+%   year={1952}
+% }
+%
+% % [29] -
+% @article{kang2022effects,
+%   title={Effects of diffusion on the principal eigenvalue for age-structured models with random diffusion},
+%   author={Kang, Hao},
+%   journal={Proceedings of the Royal Society of Edinburgh Section A},
+%   volume={152},
+%   number={1},
+%   pages={258--280},
+%   year={2022},
+%   doi={10.1017/prm.2021.10}
+% }
+%
+% % [30] -
+% @article{marzocchi2002asymptotic,
+%   title={Asymptotic behaviour and exponential stability for a transmission problem in thermoelasticity},
+%   author={Marzocchi, Alfredo and Mu{\~n}oz Rivera, Jaime E and Naso, Maria Grazia},
+%   journal={Mathematical Methods in the Applied Sciences},
+%   volume={25},
+%   number={11},
+%   pages={955--980},
+%   year={2002},
+%   doi={10.1002/mma.323}
+% }
+%
+% % [31] -
+% @article{batty2016optimal,
+%   title={Optimal energy decay in a one-dimensional coupled wave-heat system},
+%   author={Batty, Charles J K and Paunonen, Lassi and Seifert, David},
+%   journal={Journal of Evolution Equations},
+%   volume={16},
+%   pages={649--664},
+%   year={2016},
+%   note={arXiv:1505.04951}
+% }
+%
+% % [32] -
+% @article{batty2019optimal,
+%   title={Optimal energy decay for the wave-heat system on a rectangular domain},
+%   author={Batty, Charles J K and Paunonen, Lassi and Seifert, David},
+%   journal={SIAM Journal on Mathematical Analysis},
+%   volume={51},
+%   number={2},
+%   pages={808--819},
+%   year={2019},
+%   doi={10.1137/18M1195796}
+% }
+%
+% % [33] -
+% @article{beale1976spectral,
+%   title={Spectral properties of an acoustic boundary condition},
+%   author={Beale, J Thomas},
+%   journal={Indiana University Mathematics Journal},
+%   volume={25},
+%   number={9},
+%   pages={895--917},
+%   year={1976}
+% }
+%
+% % [34] -
+% @inproceedings{lidstrom2016hinf,
+%   title={H-infinity optimal control for infinite-dimensional systems with strictly negative generator},
+%   author={Lidstr{\"o}m, Carolina and Rantzer, Anders and Morris, Kirsten},
+%   booktitle={Proceedings of the 55th IEEE Conference on Decision and Control},
+%   pages={5275--5280},
+%   year={2016},
+%   doi={10.1109/CDC.2016.7799077}
+% }
+%                                                                           % MMP, 11/17/2026 (end)
 
 function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
 
-n_examples = 55;
+% n_examples = 55;                                                          % MMP, 11/17/2026 (was)
+% n_examples = 71;                                                          % MMP, 11/17/2026 (was)
+n_examples = 72;                                                            % MMP, 11/17/2026
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function

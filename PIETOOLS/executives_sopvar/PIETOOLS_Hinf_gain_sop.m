@@ -39,11 +39,12 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % - settings: (optional) 'struct' of LPI settings, as returned by
 %             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R;
-%               settings_2d                                 2-D degrees of R;
+%               lpi.pos        the storage row of R, in every dimension     % MMP, 11/17/2026
+%                              (POSCOPVAR); settings_2d (optional, no       % MMP, 11/17/2026
+%                              tier field) the 16-basis 2-D degrees,        % MMP, 11/17/2026
+%                              from SETTINGS_2D_STOCK;                      % MMP, 11/17/2026
 %               eppos     the margin of R in the 'P' forms, in every
 %                         dimension (EXEC_SOP_SETTINGS);
-%               settings_nd    degrees and margin of R in 3 or more
-%                              variables (EXEC_TOOLS_SOP);
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_Q for the
 %                       'Q' forms, dw_P for the 'P' forms, max_raise.
@@ -161,6 +162,12 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %                11/12/2026: "Settings on the program"). Programs unchanged:
 %                every tier sets lpi.ineq.dD = 1, and with dw and like
 %                given wmin does not apply.
+% MMP, 11/17/2026: Help: settings_2d and settings_nd are no tier fields
+%                since work package 5; the storage is the row lpi.pos, and
+%                the stock 2-D struct is SETTINGS_2D_STOCK. Code unchanged.
+%                The lines read before: "settings_2d  2-D degrees of R;
+%                settings_nd  degrees and margin of R in 3 or more
+%                variables (EXEC_TOOLS_SOP);".
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

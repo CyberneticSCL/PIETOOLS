@@ -1,0 +1,98 @@
+\documentclass[12pt]{article}
+
+% Self-contained preamble, as sopvar_settings_proposal.tex (MiKTeX, pdflatex).
+\usepackage[a4paper,margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array,longtable}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Sym}{\mathbb{S}}
+\newcommand{\mcl}[1]{\mathcal{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\bmat}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\path{#1}}
+\newcommand{\ba}{\mathrm{a}}
+\newcommand{\bb}{\mathrm{b}}
+\newcommand{\bc}{\mathrm{c}}
+\setlength{\emergencystretch}{2em}
+\newcommand{\tiersref}{Table~\ref{tab:tiers}}
+\newcommand{\termsref}{Section~\ref{sec:tier-terms}}
+\newcommand{\knobsref}{Table~\ref{tab:knobs-slack}}
+\newcommand{\readerref}{Section~\ref{sec:reader-new}}
+\newcommand{\liftref}{Table~\ref{tab:t1}}
+\newcommand{\blcrossref}{Section~\ref{sec:bl-cross}}
+\newcommand{\gapsref}{Section~\ref{sec:gaps}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Settings for the positive operators of PIETOOLS \\
+\large the construction, its knobs, and the proposed tiers for one, two, three and mixed spatial domains \\
+\normalsize report of the term experiments and the tier measurements of November 16, 2026}
+\author{M.~M.~Peet, with Claude (Anthropic)}
+\date{November 16, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Summary}\label{sec:summary}
+
+This report proposes the replacement of the tier files of \code{settings\_sopvar/} by one storage row per number of variables of a space, the vocabulary of the settings proposal of 11/15/2026 (Sections~\ref{sec:1d}--\ref{sec:settings} restate the construction and its knobs), and fixes the values of every knob of the row and of the slack for the tiers stripped, light, heavy, veryheavy and extreme, in one, two, three and mixed spatial domains (Section~\ref{sec:tiers-new}). The values rest on the measurements of 11/16/2026: three fixed positive operators and the direct PIE-to-PDE test on the mixed-domain suite (Section~\ref{sec:fix}), twelve term sets on five mixed PIEs (Section~\ref{sec:program}), and the candidate rows against the library, the 2-D ladder, the 3-D heat benchmark and the mixed suite through the executives (Section~\ref{sec:baselines}).
+
+Five findings fix the tiers. First, the default stability test is posed without a storage: the free operator $\mcl Q$ with the shape of $\mcl T$, the symmetry as an equality and two reader-sized inequalities certify S3, S17 and S18, where the storage-plus-equality construction of the executives fails S3 in two variables and S17 in every storage (Section~\ref{sec:mixed-q}). Second, the slack carries the term rule \code{'auto'} in every tier and every dimension (the box product in one variable, the $2N$ faces in $N$; Section~\ref{sec:tier-terms}), and the storage carries no term: a weight in every registry direction is necessary on mixed domains, the plain term certifies nothing, and at weight degree $1$ the one set that reaches S18 at half its margin is the faces with full-length multipliers (offset $0$), whose terms have odd total degree, one above the unweighted term (Section~\ref{sec:t2}). Third, the row reproduces the stock 1-D storage bit for bit, and at the stock light lengths in two variables the separable pattern set costs the stock size and certifies the two edge cascades the stock 2-D storage misses; S18 needs the separable set at the stock veryheavy lengths ($d_2=3$), the one storage that certifies it, at $6$--$12\times$ the light size (Section~\ref{sec:bl-mixed}); on PDEs with polynomial coefficients the same holds, no change on single domains and a mixed cascade certified to $0.977$ of its threshold against $0.736$ (Section~\ref{sec:bl-inhom}). Fourth, the total-degree caps are replaced by a per-direction cap, $\deg_{\theta_k}+\deg_{s_k}\le c_k$, a product set that nests across tiers; at the present lengths no entry needs it, and at $c=1$ it returns an all-pattern entry with incomplete moments to the stock size at $6\%$ of the fin2 gap (Section~\ref{sec:cap}). Fifth, the slack and free-operator knobs of the present tiers are kept, the 2-D entry of \code{lpi.var.deg} raised to $2$ in heavy for the direct test (Section~\ref{sec:knobs-slack}).
+
+Three limits are recorded (Section~\ref{sec:open}): the row at the heavy lengths reproduces the size of the stock heavy 2-D storage and not its fin2 gap; the stability executive at light is infeasible on the 3-D heat at $0.9\kappa^*$ under every storage, a question of the 3-D slack settings; and certified gains are not monotone in nested families at the $10^{-4}$ level, so they rank rows only beyond a factor $1.3$. The agenda items of 11/16 are in place: the per-direction cap is implemented in the scratch shadow of \code{poscopvar\_direct} and the reader, the revision of \code{poscopvar} is specified in Section~\ref{sec:open}, and \code{poscopvar\_lift} is back on the path as the analysis form (a working-tree move, uncommitted).
+
+The work of 11/17/2026 (\gapsref) implemented the tiers and closed the measured gaps of two variables by application-specific settings. The six tier files carry the row and the slack settings of Section~\ref{sec:tiers-new}, with \code{wcross} $0$ and, in two variables, the faces at offset $1$ (\code{'faces1'}); through the executives the 1-D rows are unchanged and every 2-D row run certifies, smaller than the stock storage (Section~\ref{sec:knobs-slack}). The direct form of the stability executive with the offset-1 faces is $3$ to $4$ times smaller in two variables than with the faces at offset $0$ (PDE~33 $52\,660$ against $190\,900$; S3 $95\,930$ against $383\,270$). S17, S18, the population model and the two forms of the delayed damped wave are certified at $0.9$ or $0.95$ of their margins by settings their example files return: the free operator at degree $2$, a per-space slack raise, or longer 2-D storage lengths (Table~\ref{tab:app-settings}). Two things stay open (Section~\ref{sec:open}): the two 3-D cases, closed by no configuration under $3$M variables, and S2, S6, S7 and S9, which the storage form certifies and the direct form does not under any candidate setting.
+
+%% CORE: the construction (one variable, conventions, N variables) and the settings row and reader, from sopvar_settings_proposal.tex
+\input{settings_report_core.tex}
+
+\section{The proposed tiers}\label{sec:tiers-new}
+
+\input{settings_report_tiers.tex}
+
+\input{settings_report_core_b.tex}
+
+\section{What the measurements fix}\label{sec:fix}
+
+\input{settings_report_fix.tex}
+
+\input{settings_report_poinc2.tex}
+
+\subsection{The per-direction cap}\label{sec:cap}
+
+\input{settings_report_cap.tex}
+
+\section{The term experiments on the mixed suite}\label{sec:program}
+
+\input{settings_report_terms.tex}
+
+\section{The tiers against the baselines}\label{sec:baselines}
+
+\input{settings_report_baselines.tex}
+
+\section{The gap study of 11/17/2026}\label{sec:gaps}
+
+\input{settings_report_gaps.tex}
+
+\section{Open items}\label{sec:open}
+
+\input{settings_report_open.tex}
+
+\end{document}

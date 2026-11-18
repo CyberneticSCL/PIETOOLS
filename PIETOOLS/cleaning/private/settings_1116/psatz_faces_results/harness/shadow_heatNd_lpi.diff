@@ -1,0 +1,47 @@
+--- /c/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m	2026-11-09 02:14:15.235328700 -0700
++++ /c/Users/mpeet/AppData/Local/Temp/claude/363c499c6332a503/af90e0a1-bcff-4e8d-9a24-9aa4c52491cc/scratchpad/psatz_faces/heat/heatNd_lpi.m	2026-11-15 05:07:16.972956500 -0700
+@@ -188,7 +188,8 @@
+ end
+ df = struct('Pbasis','paper','Pmult',true,'RQ',pr.RQ,'dp',pr.dp,'psatz',pr.psatz, ...
+             'psatzon','RQ','faces',[],'prune',true,'eq15a','split','base',[], ...
+-            'Rdeg',[],'Qdeg',[],'psatz_offset',0);                          % MMP, 10/08/2026
++            'Rdeg',[],'Qdeg',[],'psatz_offset',0, ...                       % MMP, 10/08/2026
++            'psatz_rows',[],'psatz_rows_offset',0,'psatz_rows_perdir',true); % SCRATCH MMP, 11/15/2026
+ fn = fieldnames(df);
+ for i = 1:numel(fn),    if ~isfield(opts,fn{i}),    opts.(fn{i}) = df.(fn{i});  end,    end
+ dp = opts.dp;   if isscalar(dp),    dp = [dp dp];   end
+@@ -257,11 +258,13 @@
+     % Key without r: the base is r-independent (built from A0).
+     base = struct('prog',prog,'X1',X1,'X2',X2,'Q',Q,'P',P,'R',R,'E1',E1,'nP',nP,'t',t, ...
+                   'key',{{N,pie.bc,pie.dom,d,ep,opts.Pbasis,opts.Pmult,opts.RQ,dp,opts.psatz,opts.psatzon,opts.faces,opts.prune,opts.eq15a, ...
+-                          opts.Rdeg,opts.Qdeg,opts.psatz_offset}});         % MMP, 10/08/2026
++                          opts.Rdeg,opts.Qdeg,opts.psatz_offset, ...        % MMP, 10/08/2026
++                          opts.psatz_rows,opts.psatz_rows_offset,opts.psatz_rows_perdir}}); % SCRATCH MMP, 11/15/2026
+ else
+     base = opts.base;   prog = base.prog;   nP = base.nP;   t = base.t;
+     if ~isequal(base.key,{N,pie.bc,pie.dom,d,ep,opts.Pbasis,opts.Pmult,opts.RQ,dp,opts.psatz,opts.psatzon,opts.faces,opts.prune,opts.eq15a, ...
+-                          opts.Rdeg,opts.Qdeg,opts.psatz_offset})           % MMP, 10/08/2026
++                          opts.Rdeg,opts.Qdeg,opts.psatz_offset, ...        % MMP, 10/08/2026
++                          opts.psatz_rows,opts.psatz_rows_offset,opts.psatz_rows_perdir}) % SCRATCH MMP, 11/15/2026
+         error('heatNd_lpi:base','OPTS.base was built for different inputs.')
+     end
+ end
+@@ -351,6 +354,18 @@
+             end
+         end
+         Z = plus_batch(terms{:});                                           % MMP, 10/01/2026
++    case 'rows'     % SCRATCH MMP, 11/15/2026 (psatz_faces run): factor rows
++        % OPTS.psatz_rows (POSCOPVAR_DIRECT), one offset per row
++        % OPTS.psatz_rows_offset, applied per direction when
++        % OPTS.psatz_rows_perdir, through the scratch poscopvar_direct in
++        % one call at DEG (the offsets are applied inside); no rows: the
++        % plain term alone
++        if isempty(opts.psatz_rows),    return,     end
++        pt = po;    pt.psatz = [];  pt.psatz_rows = opts.psatz_rows;
++        pt.psatz_rows_offset = opts.psatz_rows_offset;
++        pt.psatz_rows_perdir = opts.psatz_rows_perdir;
++        [prog,Zg] = poscopvar_direct(prog,1,vars,dom,deg,pt);
++        Z = Z + Zg;
+     case 'tensor'                                                           % MMP, 10/08/2026
+         % Markov-Lukacs tensor set (sopvar_lift_notes Sec. 9): g_i =        % MMP, 10/08/2026
+         % (th_i-a_i)(b_i-th_i) alone in direction i at 'int' lowered by the % MMP, 10/08/2026

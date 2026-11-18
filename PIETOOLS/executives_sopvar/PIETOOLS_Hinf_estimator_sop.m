@@ -32,11 +32,12 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of P;
 %               ddZ     1-D degrees of Z;
-%               settings_2d   2-D degrees of P (LF_deg, ...) and of Z
-%                       (the largest entry of Zop_deg);
-%               eppos, eppos2 (1-D), settings_2d.eppos (2-D)  margins of P;
-%               settings_nd    degrees and margin of P and Z in 3 or more
-%                              variables (EXEC_TOOLS_SOP);
+%               lpi.pos, lpi.var  the storage row of P and the degrees      % MMP, 11/17/2026
+%                       of Z, in every dimension; settings_2d (optional,    % MMP, 11/17/2026
+%                       no tier field) the 16-basis 2-D degrees of P and    % MMP, 11/17/2026
+%                       Z (largest entry of Zop_deg), SETTINGS_2D_STOCK;    % MMP, 11/17/2026
+%               eppos   the margin of P, in every dimension                 % MMP, 11/17/2026
+%                       (EXEC_SOP_SETTINGS);                                % MMP, 11/17/2026
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_P, the
 %                       degree raise of the slack, max_raise, gam_fixed.
@@ -150,6 +151,15 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                11/12/2026: "Settings on the program"). Programs unchanged:
 %                every tier sets lpi.ineq.dD = 1, and with dw and like
 %                given wmin does not apply.
+% MMP, 11/17/2026: Help: settings_2d and settings_nd are no tier fields
+%                since work package 5; the storage is the row lpi.pos, Z
+%                from lpi.var, the stock 2-D struct SETTINGS_2D_STOCK, one
+%                margin eppos. Code unchanged. The lines read before:
+%                "settings_2d  2-D degrees of P (LF_deg, ...) and of Z (the
+%                largest entry of Zop_deg); eppos, eppos2 (1-D),
+%                settings_2d.eppos (2-D)  margins of P; settings_nd
+%                degrees and margin of P and Z in 3 or more variables
+%                (EXEC_TOOLS_SOP);".
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

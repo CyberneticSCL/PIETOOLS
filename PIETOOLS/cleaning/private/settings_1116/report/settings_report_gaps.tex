@@ -1,0 +1,188 @@
+\begingroup\setlength{\emergencystretch}{8em}
+%% The gap study of 11/17/2026. Records: psatz_faces_results/mixed_domain/
+%% GAP_RUN_LOG.md, gap_results.md, perspace_results.md, litbuild_results.md,
+%% phasec_results.md (final, 11:55);
+%% scratchpad wp4b, wp5, wp6, wp7; DECISIONS.md items D66 to D74.
+The gaps are the stable systems that the tiers did not certify on the morning of 11/17/2026. The study ran from 04:35 for twelve hours on an instruction of the maintainer to eliminate them, in both forms: the storage form \code{'P'} of \code{PIETOOLS\_stability\_sop} and the direct form, the free operator $\mcl Q$ of Section~\ref{sec:mixed-q}. Constraints: at most two MATLAB processes, a size cap of $3\,000\,000$ decision variables, a watchdog of $1\,800$~s per script, no repository edit by the agents. Records: \file{sopvar/psatz_faces_results/mixed_domain/GAP_RUN_LOG.md} (the log), \file{gap_results.md} (the knob ladder, Phase A), \file{perspace_results.md} (per-space slack degrees, Phase B), the Phase C record of Section~\ref{sec:gaps-phasec}, and \file{DECISIONS.md}, items D66 to D74. Notation: Q2 is the free operator at degree $2$ in every cap (\code{mult} $2$, \code{int} $[2\ 2]$, \code{out} $2$, \code{in} $2$); faces1 the faces at offset $1$ (the gap record calls it facesS), faces0 at offset $0$; sizes are decision variables; ``in'' is certified, ``out'' infeasible, ``U'' UNKNOWN.
+
+\subsection{The gaps}\label{sec:gaps-table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.5cm}p{2.3cm}p{1.3cm}p{3.1cm}p{3.0cm}p{4.4cm}}
+\toprule
+id & system & point & storage form, 04:30 & direct form, 04:30 & after the study \\
+\midrule
+G1 & S17, transport edge driving a 2-D diffusion & $0.9r_2^*$ & uncertifiable in every storage (proven 11/16) & certified at $0.5r_2^*$ (faces1); U at $0.9r_2^*$ & direct: Q2, faces1, \code{wcross} $0$, $267\,968$; storage: not closed \\
+G2 & S18, interior delay (Fridman--Orlov 2009, Ex.~1) & $0.9\tau^*$ & light, heavy fail; the veryheavy 2-D entry certifies, $1\,512\,873$ & certified with $\mathrm{dw}=1$ and faces1, $440\,023$ & direct: \code{dw\_space} $[1\ 0]$, faces1, $93\,991$; Q2, faces1, \code{wcross} $0$, $215\,188$; storage: veryheavy 2-D lengths, \code{dw\_feas(2)} $0$, $953\,001$ \\
+G3 & age-structured population (item 16) & $0.9b^*$ & light out, $187\,984$; heavy in, $751\,849$ & light in: faces1 $56\,548$, faces0 $210\,340$ & storage: heavy 2-D lengths (uniform), \code{dw\_feas(2)} $0$, $104\,080$ \\
+G4 & damped wave with a delayed displacement (item 9) & FO2r $0.9\tau^*$; FO2s $0.95\tau^*$ & FO2r out already at $0.1\tau^*$; FO2s out at $0.5\tau^*$ & FO2s certified to $0.916\tau^*$ (faces0); FO2r out & direct, Q2: FO2r $281\,497$, FO2s $235\,353$ (no weighted term); storage: FO2r at $0.1\tau^*$ only (heavy lengths, separable, $532\,276$) \\
+G5 & 3-D heat & $0.9\kappa^*$ & light out under every storage & the Cor.~35 bench LPI certifies at $2.71$M; the executive direct form has $4\,069\,288$, above the cap & not closed \\
+G6 & 2-D delayed heat, 3-D registry (item 8) & $0.5\tau^*$ & out, $1\,668\,608$, no raise & faces0 $47\,433\,948$, refused & not closed \\
+\bottomrule
+\end{tabular}
+\caption{The gaps of 11/17/2026 and their state after the study. Item numbers are those of \texttt{COUPLED\_PDE\_CANDIDATES.md}. S3 and S8 are not gaps: the storage row certifies them where the stock storage fails (Section~\ref{sec:baselines}).}\label{tab:gaps}
+\end{table}
+
+Every Q2 closure was run again above the margin, at $1.1$ of $\tau^*$ or $r_2^*$: FO2r, S17 and S18 out, FO2s U. No closure certifies an unstable system (\file{gap_results.md}, Controls).
+
+\subsection{What closed them}\label{sec:gaps-closed}
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item \textbf{The degree of the free operator.} Q2 closed G1, G2, FO2r and FO2s in the direct form at $\mathrm{dw}=0$. At degree $1$ no slack change closed S17, FO2r or FO2s: the uniform raises $\mathrm{dw}=1$ and $2$ returned U or out. On FO2r and FO2s Q2 closes without a weighted term ($281\,497$ and $235\,353$, $7\%$ and $5\%$ below Q2 with faces1 and \code{wcross} $0$, $302\,957$ and $248\,497$); on S17 and S18 the plain term alone at Q2 does not certify. On the 3-D heat the executive direct form with Q2 keeps the slack at its size, grows the equality rows from $25\,741$ to $107\,857$, and is infeasible.
+\item \textbf{The offset-1 faces.} Wherever a smaller term set certified in the direct form it was faces1. At the same degree of the free operator and the same \code{wcross}, faces0, the choice of \code{'auto'} at $w=1$, costs $3.7\times$ on G3 ($210\,340$ against $56\,548$) and $4.0\times$ on G1, G2, FO2r and FO2s at Q2 (S18 $940\,188$ against $235\,488$; S17 $1\,160\,588$ against $290\,588$). Against faces1 with \code{wcross} $0$ the ratios are $4.3$ (G1), $4.4$ (G2), $4.6$ (FO2r) and $4.7$ (FO2s).
+\item \textbf{The heavy lengths in the storage form.} The 2-D storage with the first row of $d_3$ raised from $1$ to $2$ (the heavy lengths, uniform or separable) closed G3 at the light slack ($188\,320$; $104\,080$ with \code{dw\_feas(2)} $0$) and FO2r at $0.1\tau^*$ ($532\,276$ with \code{dw\_feas(2)} $0$). The veryheavy 2-D lengths closed G2 ($953\,001$ with \code{dw\_feas(2)} $0$, against $1\,512\,873$ at the light slack). With the stock or the light 2-D storage no slack change closed a storage-form gap: four term sets, \code{dw\_feas} up to $3$ and \code{wcross} $0$ were infeasible or U on G2 and G3.
+\item \textbf{The per-space raise.} Raising the weight of the 1-D space of S18 alone (\code{dw\_space} $[1\ 0]$) certifies G2 at $93\,991$ variables with faces1, against $440\,023$ for the uniform raise; through the repository files $65\,731$ with \code{wcross} $0$ (work package 6). No per-space raise closed S17, FO2s or a storage-form gap.
+\end{enumerate}
+The cross weight \code{wcross} $0$ lost no certificate in the gap study and cut $8$ to $28\%$ of the variables on every multi-space case (\file{gap_results.md}, \file{perspace_results.md}). In the term experiments of 11/16 it turned one certificate, S17 at $0.5r_2^*$ with faces0, into U (Section~\ref{sec:program}).
+
+\subsection{The hidden choices of \code{'auto'}}\label{sec:gaps-auto}
+
+\begin{itemize}\setlength\itemsep{0pt}
+\item \textbf{The offset switch.} \code{'auto'} takes the faces at offset $0$ when some $w_k<2$ and at offset $1$ otherwise. In two variables at $w=1$ this choice cost $3.6$ to $4.7\times$ the variables wherever offset $1$ certified (Section~\ref{sec:gaps-closed}; PDE~33 $190\,900$ against $52\,660$). Offset $0$ is not dominated: on S18 at $0.5\tau^*$ with $\mathrm{dw}=0$ and the free operator at degree $1$ only faces0 certifies (Table~\ref{tab:t2}); under the implemented tier \code{'faces1'} certifies it after one raise. On TL at $0.9\lambda^*$ offset $0$ certifies and \code{'faces1'} is UNKNOWN (Section~\ref{sec:gaps-phasec}). In three variables offset $1$ is infeasible on the 3-D heat at $658\,536$ variables, so offset $0$ is needed there, as on 11/15. The tiers take offset $1$ in two variables and the rule in one and three (\file{DECISIONS.md}, item D72).
+\item \textbf{The degree of the free operator} is not a choice of \code{'auto'}: it is \code{lpi.var.deg}, read by the direct form at the entry of the number of variables of the PIE. It is the knob that closed four gaps (Section~\ref{sec:gaps-closed}).
+\item \textbf{The per-space degree rule.} Reading the support of the slack per space, in the directions the space owns, returned the registry degrees on every case (S3, S17, S18, the population, FO2s, the 2-D heat). The rule is inert on this suite and was not ported (\file{DECISIONS.md}, item D69).
+\item \textbf{The storage form.} No choice of \code{'auto'} mattered: on G2 and G3 no slack configuration with the stock or light storage certified, up to $1\,723\,689$ variables.
+\end{itemize}
+
+\subsection{The default test: the Phase C sweep}\label{sec:gaps-phasec}
+
+Record: \file{sopvar/psatz_faces_results/mixed_domain/phasec_results.md} (11:55, 11/17/2026). The runs used git-HEAD copies of the tier files from 10:31 on, because the tier files changed during the campaign; PDE~33 under C0 and C1 reproduces the earlier runs exactly.
+
+The sweep runs the direct test, the free operator $\mcl Q$ with the shape of $\mcl T$, $\mcl T^*\mcl Q=\mcl Q^*\mcl T$, $\mcl T^*\mcl Q\succeq10^{-4}\mcl T^*\mcl T$ and $-(\mcl A^*\mcl Q+\mcl Q^*\mcl A)\succeq0$, at $\mathrm{dw}=0$, light tier, MOSEK, under five candidates for its default:
+\begin{itemize}\setlength\itemsep{0pt}
+\item C0: the free operator at degree $1$, terms \code{'auto'} (the default before 11/17);
+\item C1: degree $1$, faces1;
+\item C2: Q2, faces1;
+\item C3: C2 with \code{wcross} $0$;
+\item C4: Q2, terms \code{'auto'}.
+\end{itemize}
+In one variable faces1 is the two faces at offset $1$ and \code{'auto'} the box product at offset $1$. ``in'' is MOSEK optimal with $\eta<10^{-8}$; ``U'' is MOSEK UNKNOWN or optimal above that gate ($\eta$ given); ``cap'' is refused by the size cap. The mixed-suite points are $0.9$ of the margins, S1, S2 and S5 at $a=0.5$. The literature cases, by item of \texttt{COUPLED\_PDE\_CANDIDATES.md}: the population (16) at $0.9b^*$; FO2s (9) at $0.95\tau^*$, FO2r (9) at $0.1\tau^*$; LB, the Laplace--Beltrami edge (12), at $0.9\lambda^*$; RF, the road-field (13), at $0.9\lambda^*$; TL, the two-layer heat on a rectangle pair (5, library case 64), at $0.9\lambda^*$; XYL, the wave with a boundary delay (6), at $\mu=0.6$; NVF, the delayed Robin heat (10), at $\mu_1=0.5$; TE, the thermoelastic transmission (15).
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrlrlrlrlrl}
+\toprule
+case & \multicolumn{2}{c}{C0} & \multicolumn{2}{c}{C1} & \multicolumn{2}{c}{C2} & \multicolumn{2}{c}{C3} & \multicolumn{2}{c}{C4} \\
+\midrule
+PDE 1 & $327$ & in & $412$ & in & $891$ & in & $891$ & in & $746$ & in \\
+PDE 2 & $1\,308$ & out & $1\,648$ & in & $3\,564$ & in & $3\,564$ & in & $2\,984$ & in \\
+PDE 3 & $2\,943$ & U & $3\,708$ & U & $8\,019$ & in & $8\,019$ & in & $6\,714$ & in \\
+PDE 5 & $435$ & out & $520$ & out & $891$ & in & $891$ & in & $746$ & in \\
+PDE 13 & $1\,740$ & in & $2\,080$ & in & $3\,564$ & in & $3\,564$ & in & $2\,984$ & in \\
+PDE 17, 21 & $1\,308$ & in & $1\,648$ & in & $3\,564$ & in & $3\,564$ & in & $2\,984$ & in \\
+\midrule
+PDE 33 & $190\,900$ & in & $52\,660$ & in & $210\,361$ & in & $210\,361$ & in & $840\,121$ & in \\
+\midrule
+S1 & $522$ & in & $635$ & in & $1\,792$ & in & $1\,792$ & in & $1\,403$ & in \\
+S3 & $383\,270$ & in & $95\,930$ & in & $262\,688$ & U, $1.8$e-8 & $241\,236$ & U, $4.3$e-8 & $1\,048\,988$ & in \\
+S4 & $383\,270$ & in & $95\,930$ & in & $262\,688$ & in & $241\,236$ & U, $4.0$e-8 & $1\,048\,988$ & in \\
+S5 & $387\,173$ & in & $97\,505$ & in & $915\,747$ & U, $1.0$e-6 & $807\,251$ & U, $5.2$e-8 & $1\,393\,143$ & in \\
+S8 & $492\,048$ & in & $123\,168$ & in & $320\,833$ & U, $4.4$e-8 & $274\,449$ & in & $1\,281\,073$ & U, $2.7$e-8 \\
+S26 & $300\,395$ & in & $82\,859$ & in & $293\,514$ & in & $249\,298$ & in & $1\,167\,594$ & in \\
+S2 & $443\,213$ & out & $120\,473$ & out & $432\,051$ & out & $399\,315$ & out & $1\,575\,303$ & out \\
+S6 & $534\,300$ & out & $144\,540$ & out & $320\,857$ & out & $274\,473$ & out & $1\,281\,097$ & out \\
+S7 & $810\,044$ & out & $229\,100$ & out & $326\,633$ & out & $279\,977$ & out & $1\,295\,417$ & out \\
+S9 & $443\,213$ & out & $120\,473$ & out & $432\,051$ & out & $399\,315$ & out & $1\,575\,303$ & out \\
+S17 & $435\,350$ & U & $108\,950$ & out & $290\,588$ & in & $267\,968$ & in & $1\,160\,588$ & in \\
+S18 & $227\,510$ & U & $62\,282$ & out & $235\,488$ & in & $215\,188$ & in & $940\,188$ & in \\
+\midrule
+population & $210\,340$ & in & $56\,548$ & in & $210\,361$ & U, $1.4$e-8 & $210\,361$ & U, $1.4$e-8 & $840\,121$ & in \\
+FO2s & $299\,120$ & U & $82\,148$ & out & $293\,997$ & in & $248\,497$ & in & $1\,173\,657$ & in \\
+FO2r & $376\,060$ & out & $102\,928$ & out & $351\,677$ & in & $302\,957$ & in & $1\,404\,377$ & in \\
+LB & $568\,195$ & out & $154\,659$ & out & $837\,986$ & out & $693\,097$ & out & $2\,892\,194$ & out \\
+RF & $383\,270$ & in & $95\,930$ & in & $262\,688$ & U, $1.6$e-7 & $241\,236$ & U, $6.2$e-7 & $1\,048\,988$ & U, $3.1$e-7 \\
+TL & $1\,152\,400$ & in & $288\,400$ & U, $2.2$e-8 & $841\,444$ & U, $2.0$e-7 & $841\,444$ & U, $2.0$e-7 & $3\,360\,484$ & cap \\
+XYL & $36\,966$ & in & $10\,506$ & in & $26\,241$ & in & $10\,581$ & in & $104\,541$ & in \\
+NVF & $18\,588$ & in & $5\,100$ & in & $11\,660$ & in & $4\,700$ & in & $46\,460$ & in \\
+TE & $10\,875$ & in & $13\,000$ & in & $22\,275$ & in & $22\,275$ & in & $18\,650$ & in \\
+\bottomrule
+\end{tabular}
+\caption{The Phase C sweep: decision variables and verdict of the direct test per candidate. 1-D library controls, the 2-D library, the mixed suite and the literature set.}\label{tab:phasec}
+\end{table}
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrp{3.4cm}p{4.0cm}}
+\toprule
+candidate & certified & median size / C0 & largest size / C0 & lost against C0 & gained against C0 \\
+\midrule
+C0 & $17/29$ & $1.00$ & $1.00$ & -- & -- \\
+C1 & $17/29$ & $0.27$ & $1.26$ & TL & PDE 2 \\
+C2 & $18/29$ & $0.98$ & $3.43$ & S3, S5, S8, population, RF, TL & PDE 2, 3, 5, S17, S18, FO2s, FO2r \\
+C3 & $18/29$ & $0.90$ & $3.43$ & S3, S4, S5, population, RF, TL & PDE 2, 3, 5, S17, S18, FO2s, FO2r \\
+C4 & $21/29$ & $2.74$ & $5.09$ & S8, RF, TL (cap) & PDE 2, 3, 5, S17, S18, FO2s, FO2r \\
+\bottomrule
+\end{tabular}
+\caption{Phase C, summary over the $29$ cases of Table~\ref{tab:phasec}. Size ratios are those of the programs built, the one refused by the cap included. Every loss of C1, C2 and C3 is an optimal solution above the gate $\eta<10^{-8}$; C4 loses S8 the same way.}\label{tab:phasec-summ}
+\end{table}
+
+Readings of these rows.
+\begin{itemize}\setlength\itemsep{0pt}
+\item \textbf{C1, the 2-D setting of the implemented light tier}, certifies as many cases as C0 at a median $0.27$ of its size: $0.25$ to $0.28$ on every case except the 1-D library controls, S1 and TE. It loses one case, TL at $0.9\lambda^*$, certified by C0 at $1\,152\,400$ variables and UNKNOWN under C1 at $288\,400$ ($\eta$ $2.2\times10^{-8}$). TL thus joins S18 at $0.5\tau^*$ among the cases that the 2-D tier entry \code{'faces1'} hands to the raise loop. Whether one slack raise with \code{'faces1'} certifies TL was not measured. It gains PDE~2.
+\item \textbf{The literature cases certified by C1}: XYL, NVF, TE and RF, at $0.28$, $0.27$, $1.20$ and $0.25$ of the C0 size. TE is the one literature case where C1 is larger ($13\,000$ against $10\,875$); in one variable C1 is $1.19$ to $1.26$ times C0 on every case.
+\item \textbf{In one variable} degree $1$ of the free operator fails PDE~3 and PDE~5 under C0 and C1, and degree $2$ certifies every control, which is the 1-D tier entry $[2\ 2\ 2]$ of \code{lpi.var.deg}.
+\item \textbf{Q2} closes S17, S18, FO2s and FO2r; with faces1 it lands above the gate on S3, S5, S8, the population, RF and TL.
+\item \textbf{S2, S6, S7, S9 and LB} are infeasible under all five candidates, with $\eta$ between $0.12$ and $0.98$: infeasibility, not the gate.
+\item \textbf{The 3-D heat} at $0.9\kappa^*$ exceeds the cap under every candidate counted: C1 $10\,615\,240$, C2 $53\,052\,461$, C0 $67\,932\,136$ variables (build only). No 3-D verdict was obtained.
+\end{itemize}
+
+\paragraph{S6 and S7.} Five more configurations were run on the two cases: E1, degree $1$, \code{'auto'}, $\mathrm{dw}=1$; E2, degree $1$, the faces at per-direction offset $1$, $\mathrm{dw}=1$; E3, Q2, the same faces, $\mathrm{dw}=1$; E4, E1 with \code{wcross} $0$; E5, Q2, faces0, $\mathrm{dw}=0$ (S6 only). Every one is infeasible or above the cap: S6 E1 $1\,485\,740$, E2 $1\,609\,420$, E4 $1\,189\,804$, E5 $1\,281\,097$ out, E3 $3\,601\,677$ cap; S7 E1 $1\,921\,064$, E2 $2\,382\,760$, E4 $1\,535\,576$ out, E3 $3\,625\,253$ cap. The raises leave $\eta$ between $0.09$ and $0.47$. No direct-form configuration below the cap closed them; the storage form certifies both. The S9 and S2 rows of this addition were not run (watchdog).
+
+\paragraph{Raise ladders.} A ladder tries its rungs in order and stops at the first certificate; the sums run over every rung tried, from the rows of Table~\ref{tab:phasec}.
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrlrr}
+\toprule
+ladder & certified & not certified & variables, sum & time (s), sum \\
+\midrule
+C0 $\to$ C4 & $24/29$ & LB, S2, S6, S7, S9 & $21\,404\,959$ & $1\,836$ \\
+C1 $\to$ C2 & $23/29$ & LB, TL, S2, S6, S7, S9 & $6\,527\,070$ & $870$ \\
+C1 $\to$ C2 $\to$ C0 & $24/29$ & LB, S2, S6, S7, S9 & $10\,478\,435$ & $1\,188$ \\
+C1 $\to$ C3 & $23/29$ & LB, TL, S2, S6, S7, S9 & $6\,086\,529$ & $814$ \\
+C1 $\to$ C3 $\to$ C0 & $24/29$ & LB, S2, S6, S7, S9 & $10\,037\,894$ & $1\,132$ \\
+C0 $\to$ C1 $\to$ C2 & $24/29$ & LB, S2, S6, S7, S9 & $12\,758\,058$ & $1\,001$ \\
+\bottomrule
+\end{tabular}
+\caption{Phase C ladders of the direct test, computed from the sweep, not run as ladders in the executive.}\label{tab:phasec-ladder}
+\end{table}
+
+\paragraph{The recommendation of the record.} Default C1, the 2-D setting the tiers implement: $17$ of $29$ certified, the count of C0, at a median $0.27$ of its variables. First raise: the degree of the free operator (C2 or C3). It closes $6$ of the $7$ cases C1 misses that some candidate certifies (PDE~3, PDE~5, FO2s, FO2r, S17, S18); lowering the offset at degree $1$ (C0) closes only TL among them, and the slack raise at degree $1$ closed nothing on S6 and S7 at $2.2$ to $2.8$ times the C0 size. A second rung, C0, recovers TL: C1 $\to$ C2 $\to$ C0 certifies the $24$ of C0 $\to$ C4 at $10.48$M variables against $21.40$M. Limits stated in the record: Q2 as the first rung loses $5$ to $6$ cases C0 certifies, all at the gate; C2 and C3 are not separated by these data; the direct form alone loses S2, S6, S7, S9 and LB, which a fallback to the storage form keeps. None of this is implemented: the executive raises the slack weight only.
+
+The two forms are complementary on the measured cases, Table~\ref{tab:complement}: the storage form certifies S2, S6, S7, S9 and LB, which the direct form does not under any candidate, and the direct form certifies S17, S18, the population, FO2r and FO2s, which the storage form at light does not. The choice of a combined default test is an open item (Section~\ref{sec:open}).
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{2.6cm}p{5.6cm}p{5.6cm}}
+\toprule
+case & storage form \code{'P'} & direct form \code{'Q'} \\
+\midrule
+S2 ($a=0.5$) & in, $419\,990$ & out under C0--C4 ($120\,473$ to $1\,575\,303$) \\
+S6, $0.9$ of the margin & in, $529\,317$ & out under C0--C4 ($144\,540$ to $1\,281\,097$) \\
+S7, $0.9$ of the margin & in, $533\,289$ & out under C0--C4 ($229\,100$ to $1\,295\,417$) \\
+S9, $0.9$ of the margin & in, $419\,990$ & out under C0--C4 ($120\,473$ to $1\,575\,303$) \\
+LB, $0.9\lambda^*$ & in to $0.998\lambda^*$, $430\,265$ (stock $426\,044$) & out under C0--C4 ($154\,659$ to $2\,892\,194$) \\
+TL, $0.9\lambda^*$ & in after one raise, $754\,180$ (stock $751\,936$) & in under C0, $1\,152\,400$; U under C1--C3 \\
+\midrule
+S3, $0.9r^*$ & in, $84\,205$ & in, $86\,078$ \\
+S8, $0.9r^*$ & in, $244\,521$ & in, $101\,424$ \\
+\midrule
+S17, $0.9r_2^*$ & no storage certifies (proven); stock U, $663\,748$ & in, Q2, $267\,968$; light out, $108\,950$ \\
+S18, $0.9\tau^*$ & light out, $508\,228$; veryheavy 2-D lengths in, $953\,001$ & in, \code{dw\_space} $[1\ 0]$, $65\,731$; Q2 $215\,188$; light out, $62\,282$ \\
+population, $0.9b^*$ & light out, $187\,984$; heavy lengths in, $104\,080$ & in at light, $56\,548$ \\
+FO2r, $0.9\tau^*$ & out already at $0.1\tau^*$, $840\,208$ & in, Q2, $281\,497$ \\
+FO2s, $0.95\tau^*$ & out, $691\,888$ & in, Q2, $235\,353$; light out, $82\,148$ \\
+\bottomrule
+\end{tabular}
+\caption{The two forms on the cases where one of them fails, at the light tier unless stated. Storage form: S2, S6, S7, S9 the light 2-D entry (Rlight0) with the slack of 11/16 (\texttt{baselines\_results.md}, P3 (g)); LB and TL \texttt{litbuild\_results.md}, items 12 and 5 (LB bisected to $0.99805\lambda^*$); S3, S8 the implemented tier (work package 5); the rest \texttt{gap\_results.md}. Direct form: Phase C (Table~\ref{tab:phasec}), work package 5 (S3, S8) and work package 6 (S18, $65\,731$).}\label{tab:complement}
+\end{table}
+
+\subsection{The executive after the day}\label{sec:gaps-exec}
+
+\begin{itemize}\setlength\itemsep{0pt}
+\item \textbf{The direct form.} The \code{'Q'} form of \code{PIETOOLS\_stability\_sop} sizes both slacks from their own support, takes the free operator at \code{lpi.var.deg} of the number of variables of the PIE on every block, and starts its raise loop at base $0$. It reproduces the direct test of the record bit for bit on PDE~33, S3, S8, S17, S18 and S26 (Section~\ref{sec:exec-settings}; \file{DECISIONS.md}, item D68).
+\item \textbf{The slack options.} \code{get\_lift\_degs} implements \code{wcross}, \code{dw\_space} and the named set \code{'faces1'}; \code{lpi\_ineq\_sop} merges \code{wcross} and \code{dw\_space} from \code{lpi.ineq} and accepts \code{psatz} as a per-dimension cell (work package 6, \file{scratchpad/wp6/wp6_verify.log}). Verification through the repository files: the default output is unchanged on S3 and S18; \code{'faces1'} realizes the codes $[0\ 3\ 4\ 5\ 6]$ at offsets $[0\ 1\ 1\ 1\ 1]$ in two variables and $[0\ 1]$ at $[0\ 1]$ in one; a \code{dw\_space} of the wrong length is an error; S18 at $0.9\tau^*$ certifies at $93\,991$ variables and at $65\,731$ with \code{wcross} $0$. The per-space degree rule is not ported.
+\item \textbf{The tiers.} The six tier files carry the row, \code{wcross} $0$ and \code{psatz} \code{\{'auto','faces1','auto'\}} (Section~\ref{sec:knobs-slack}, paragraph Implemented 11/17/2026). \code{settings\_2d} is out of the tiers; the stock 2-D construction is \code{settings\_2d\_stock(level)}, identical to the former tier section in $18$ of $18$ comparisons (work package 7; \file{DECISIONS.md}, item D74).
+\item \textbf{The examples.} Cases $56$ to $72$ of \code{examples\_PDE\_library\_PIETOOLS} hold the mixed-domain and literature systems; five of them return the settings that certify them (Table~\ref{tab:app-settings}).
+\end{itemize}
+\endgroup

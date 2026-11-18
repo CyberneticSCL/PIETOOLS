@@ -243,17 +243,22 @@ predicts.
 
 ## 6. Reproducing this
 
-The harness is in this folder (`PIETOOLS_demos/cuadmm`; see `README.md` for the layout):
+The harness is in this folder (`testing_codes/private/PIETOOLS_demos/cuadmm` since 11/09/2026,
+off the MATLAB path; the quick start in `PIETOOLS_demos/cuadmm/README.md` adds it):
 `bl_cases.m` (registry), `private/bl_b_*.m` (builders), `bl_run.m` (Mosek arm), `bl_scale.m`
-and `bl_big.m` (ladder), `gpu/bl_gpu.sh` (GPU arm), `cuimport.m` and `bl_verify.m`
-(independent verification), `gpu/bl_gpu_post.sh` (limiter column). The tables behind every
-number in this report are in `results/2026-09-24/`, with the raw logs in
+and `bl_big.m` (ladder), `gpu/bl_gpu.sh` (GPU arm), `bl_verify.m` (independent verification),
+`gpu/bl_gpu_post.sh` (limiter column). `cuimport.m`, which `bl_verify.m` calls, stays with the
+solver bridge in `PIETOOLS_demos/cuadmm`, whose `README.md` gives the layout. The tables behind
+every number in this report are in `results/2026-09-24/`, with the raw logs in
 `results/2026-09-24/logs/`. The SDP dumps (~1.9 GB) were not kept; re-running the harness
 regenerates them under `cuadmm_outdir()`.
 
-This report was measured with the harness in a flat scratchpad layout, before it moved here.
-The move rewrote paths only (see `README.md`); it did not change what any case builds or
-solves, and the harness has not been re-run in its new location yet.
+This report was measured with the harness in a flat scratchpad layout, before it moved to
+`PIETOOLS_demos/cuadmm` (09/25/2026), to `testing_codes/PIETOOLS_demos/cuadmm` (11/08/2026) and
+then here (11/09/2026). The first two moves rewrote paths only; after the 11/08 move the 27
+banked cases gave identical residuals. The numbers are stock-path values: the
+container executives (11/07/2026) pose different SDPs, and `bl_expect.tsv` was re-recorded on
+them on 11/08/2026.
 
 `bl_run`, `bl_scale`, `bl_verify` and `gpu/bl_gpu.sh` append one row per case and skip ids
 already recorded, so they resume where they left off. `bl_run` warns when it does this, because

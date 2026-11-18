@@ -1,0 +1,16 @@
+219,221c219,221
+< if nv>=2 && strcmp(form,'Q'),   form = 'P';     end     % no Q forms in N-D % MMP, 10/29/2026
+< if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end                         % MMP, 10/29/2026
+< if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end                         % MMP, 10/29/2026
+---
+> % if nv>=2 && strcmp(form,'Q'),   form = 'P';     end     % no Q forms in N-D % MMP, 10/29/2026 % MMP, 11/16/2026 (was; qform shadow: the Q forms allowed in N-D)
+> % if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end                         % MMP, 10/29/2026 % MMP, 11/16/2026 (was; qform shadow: the Q forms allowed in N-D)
+> % if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end                         % MMP, 10/29/2026 % MMP, 11/16/2026 (was; qform shadow: the Q forms allowed in N-D)
+312c312
+<                 Pm = Pm + eppos(2)*(Tm'*Tm);
+---
+>                 Pm = Pm + eppos(min(2,end))*(Tm'*Tm);
+322c322
+<                 Pm = Pm + eppos(2)*(Tm*Tm');
+---
+>                 Pm = Pm + eppos(min(2,end))*(Tm*Tm');

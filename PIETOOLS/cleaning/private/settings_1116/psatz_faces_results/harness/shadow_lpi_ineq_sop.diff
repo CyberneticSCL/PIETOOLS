@@ -1,0 +1,25 @@
+--- /c/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/lpi_programming_sopvar/lpi_ineq_sop.m	2026-11-12 03:15:40.042645400 -0700
++++ /c/Users/mpeet/AppData/Local/Temp/claude/363c499c6332a503/af90e0a1-bcff-4e8d-9a24-9aa4c52491cc/scratchpad/psatz_faces/shadow/lpi_ineq_sop.m	2026-11-15 05:06:59.495939700 -0700
+@@ -283,6 +283,12 @@
+ if isfield(tier,'psatz_offset') && ~isfield(opts,'psatz_offset')            % MMP, 11/12/2026
+     opts.psatz_offset = tier.psatz_offset;                                  % MMP, 11/12/2026
+ end                                                                         % MMP, 11/12/2026
++% SCRATCH MMP, 11/15/2026 (psatz_faces run): the factor rows of the tier    % MMP, 11/15/2026
++% (lpi.ineq.psatz_rows, psatz_rows_offset, psatz_rows_perdir) when the     % MMP, 11/15/2026
++% call gives none                                                           % MMP, 11/15/2026
++for f = {'psatz_rows','psatz_rows_offset','psatz_rows_perdir'}              % MMP, 11/15/2026
++    if isfield(tier,f{1}) && ~isfield(opts,f{1}),  opts.(f{1}) = tier.(f{1});   end % MMP, 11/15/2026
++end                                                                         % MMP, 11/15/2026
+ pick = @(v) v(min(max(numel(P.vars),1),end));
+ if ~isfield(opts,'dD') || isempty(opts.dD),     opts.dD = pick(tier.dD);    end
+ if ~isfield(opts,'dw') || isempty(opts.dw)
+@@ -421,6 +427,9 @@
+ if ~isempty(terms.rows)     % the factor rows (POSCOPVAR_DIRECT psatz_rows) % MMP, 11/12/2026
+     popts.psatz_rows = terms.rows;  popts.psatz_rows_offset = terms.rows_offsets; % MMP, 11/12/2026
+ end                                                                         % MMP, 11/12/2026
++if isfield(opts,'psatz_rows_perdir') && ~isempty(opts.psatz_rows_perdir)    % MMP, 11/15/2026
++    popts.psatz_rows_perdir = opts.psatz_rows_perdir;   % per-direction row offsets (scratch) % MMP, 11/15/2026
++end                                                                         % MMP, 11/15/2026
+ if prune && any(~cellfun(@isempty,include)),   popts.include = include;    end
+ % % path and cache, when given                                              % MMP, 11/12/2026 (was)
+ % for f = {'path','cache'}                                                  % MMP, 11/12/2026 (was)

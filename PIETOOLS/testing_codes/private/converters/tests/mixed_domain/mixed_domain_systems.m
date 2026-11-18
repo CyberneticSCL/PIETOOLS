@@ -58,6 +58,8 @@ function S = mixed_domain_systems(name,p)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 11/12/2026
+% MMP, 11/13/2026: S18 comment only – 2ccb8943 fixed the sign of library
+%   PDE 43 (D1), so sgn=+1 is the library file before that commit.
 % MMP, 11/14/2026: S10, S11, S13 expect 'constrain a state of lower
 %   dimension', the refusal of the converter since dbf458a2 (Declan), which
 %   no longer names the compatibility conditions; S19 converts since
@@ -313,7 +315,7 @@ switch name
         S.bc  = @(Xp,W) {subs(Xp{1},s1,0), subs(Xp{2},s2,0)-Xp{1}, subs(Xp{2},s2,1)};
     case 'S18_lib43_interior_delay'
         % library PDE 43: heat with an interior delay, the delay as a 2-D
-        % transport state; sgn=+1 is the library file as coded (+a1 term),
+        % transport state; sgn=+1 is the library file before 2ccb8943 (+a1 term),
         % sgn=-1 the system of its header and of the cited reference
         tau = getp(p,'tau',1);  a0 = getp(p,'a0',1.9);  a1 = getp(p,'sgn',1)*getp(p,'a1',1);  c0 = 1;
         a = 0;  b = pi;

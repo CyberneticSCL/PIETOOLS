@@ -1,0 +1,29 @@
+--- /c/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_solve.m	2026-09-27 17:38:51.912292900 -0700
++++ /c/Users/mpeet/AppData/Local/Temp/claude/363c499c6332a503/af90e0a1-bcff-4e8d-9a24-9aa4c52491cc/scratchpad/sol/psatz_faces/heat/heatNd_solve.m	2026-11-15 17:00:21.086650800 -0700
+@@ -71,12 +71,16 @@
+ %   violation (cert_viol; the relative gate of the previous entry was not
+ %   sound), cert_radius reported; a given OPTS.keep now takes precedence
+ %   over a file's reference row set, as the header states.
++% MMP, 11/15/2026 (Sol scratch shadow, psatz_faces C5c): OPTS.echo (default
++%   0) is MOSEK's log level, so a multi-hour solve shows its iterations in
++%   the job log. The solve and the verdict are unchanged.
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ if nargin<2 || isempty(opts),   opts = struct();    end
+ given = opts;                                   % caller's own fields
+ df = struct('btol',1e-6,'psdtol',1e-8,'ctol',1e-8,'route','dump','keepx',false,'param',struct(), ...
+             'tight',false,'keep',[],'rows','');
++df.echo = 0;                                    % MOSEK log level (header)  % MMP, 11/15/2026
+ fn = fieldnames(df);
+ for i = 1:numel(fn),    if ~isfield(opts,fn{i}),    opts.(fn{i}) = df.(fn{i});  end,    end
+ v = struct('st',0,'why','','prosta','','solsta','','rel_b',NaN,'eta',NaN,'psd_min',NaN, ...
+@@ -129,7 +133,8 @@
+     prob = Sedumi2Mosek(D.At(:,opts.keep)',full(D.b(opts.keep)),full(D.c),D.K);
+     v.nrows = numel(opts.keep);
+ end
+-[~,res] = mosekopt('minimize info echo(0)',prob,opts.param);
++% [~,res] = mosekopt('minimize info echo(0)',prob,opts.param);              % MMP, 11/15/2026 (was)
++[~,res] = mosekopt(sprintf('minimize info echo(%d)',opts.echo),prob,opts.param); % MMP, 11/15/2026
+ v.prosta = res.sol.itr.prosta;  v.solsta = res.sol.itr.solsta;
+ v.t_mosek = res.info.MSK_DINF_OPTIMIZER_TIME;   v.iter = res.info.MSK_IINF_INTPNT_ITER;
+ if isfield(res.info,'MSK_IINF_INTPNT_NUM_THREADS'),  v.mosek_threads = res.info.MSK_IINF_INTPNT_NUM_THREADS;  end

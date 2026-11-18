@@ -11,6 +11,9 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %   'P'   P >= eppos I,          T'*P*A + A'*P*T + 2*epneg*T'*P*T <= 0;
 %   'Pd'  P >= eppos I,          T*P*A' + A*P*T' + 2*epneg*T*P*T' <= 0;
 %   'Q'   P >= eppos2*T'*T,  T'*Q = P,   A'*Q + Q'*A + 2*epneg*P <= 0;
+%         (posed directly: T'*Q = Q'*T, P = T'*Q, no storage)               % MMP, 11/18/2026 (was); MMP, 11/17/2026
+%         (posed directly: T'*Q = Q'*T, P = T'*Q the storage, Q at          % MMP, 11/18/2026
+%         settings.sop.deg_Q; 'P' is the case Q = P*T)                      % MMP, 11/18/2026
 %   'Qd'  P >= eppos2*T*T',  T*Q = P,    A*Q + Q'*A' + 2*epneg*P <= 0;
 %   'FP'  P >= 0,                T'*P*A + A'*P*T + 2*epneg*T'*T <= 0;
 %   'FQ'  P >= 0,            T'*Q = P,   A'*Q + Q'*A + 2*epneg*T'*T <= 0;
@@ -20,9 +23,9 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % the decay rate, in every dimension: a solution of 'P' gives
 % ||T x(t)|| <= M exp(-epneg t) ||T x(0)|| for some M > 0. The forms 'FP', 'FQ' test finite
 % energy, int_0^inf ||T x(t)||^2 dt <= C ||T x(0)||^2 for some C > 0, and
-% need epneg > 0. The 'Q' forms exist in 1-D only; for a PIE in two or
-% more variables, 'Q', 'Qd' and 'FQ' are posed as 'P', 'Pd' and 'FP'. While
-% the solver
+% need epneg > 0. 'Q' is posed in every dimension, eppos2 the least L2      % MMP, 11/17/2026
+% margin; 'Qd' and 'FQ' exist in 1-D only, and for a PIE in two or more     % MMP, 11/17/2026
+% variables are posed as 'Pd' and 'FP'. While the solver                    % MMP, 11/17/2026
 % returns UNKNOWN or INFEASIBLE, the program is rebuilt with the degree of
 % the negativity slack raised by one, up to settings.sop.max_raise_feas (its
 % entry for the dimension of the PIE, the last entry for a higher one; or
@@ -44,15 +47,19 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % - settings: (optional) 'struct' of LPI settings, as returned by
 %             lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of P;
-%               settings_2d                                 2-D degrees of P;
-%               settings_nd    degrees and margin of P in 3 or more
-%                              variables (EXEC_TOOLS_SOP);
+%               lpi.pos        the storage row of P, in every dimension     % MMP, 11/17/2026
+%                              (POSCOPVAR); settings_2d (optional, no       % MMP, 11/17/2026
+%                              tier field) the 16-basis 2-D degrees,        % MMP, 11/17/2026
+%                              from SETTINGS_2D_STOCK;                      % MMP, 11/17/2026
 %               eppos   the margin of P on every space, in every dimension
 %                       (EXEC_SOP_SETTINGS);
 %               epneg   the decay rate, >= 0;
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS), among them
 %                       dw_feas, max_raise_feas and eppos_stab.
+%                       For 'Q': deg_Q (degrees of Q; [] = lpi.var.deg),  % MMP, 11/18/2026
+%                       max_raise_Q ([] = max_raise_feas) and raise_Q,     % MMP, 11/18/2026
+%                       'slack', 'deg' or 'both', what a raise adds.       % MMP, 11/18/2026
 %             Default: in 1-D lpisettings_sop('heavy'), in 2-D and higher
 %             lpisettings_sop('light') with sos_opts.simplify 1, each with
 %             the margin of its tier, epneg 0, and epneg 1e-5 for the forms
@@ -174,6 +181,57 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                11/12/2026: "Settings on the program"). Programs unchanged:
 %                every tier sets lpi.ineq.dD = 1, and with dw and like
 %                given wmin does not apply.
+% MMP, 11/17/2026: Form 'Q' in the direct PIE-to-PDE form, in every
+%                dimension (settings revision, work package 4; settings
+%                report 11/16/2026, Sec. 8.3): Q free with the shape of T
+%                (LPIVAR_CDOPVAR at the entry of lpi.var.deg for the number
+%                of variables of the PIE on every block, as the direct test
+%                of the report; with DEG omitted the 1-D blocks of a mixed
+%                PIE take the 1-D entry, and the slack rule carries that
+%                degree into every space), the
+%                symmetry T'*Q = Q'*T as an equality, P = T'*Q >= eppos2*T'*T
+%                and -(A'*Q + Q'*A + 2*epneg*P) >= 0 through LPI_INEQ_SOP,
+%                each slack sized from its own support (no 'like': sized
+%                like P = T'*Q the lift degree misses the support of
+%                A'*Q + Q'*A; S17 at 0.5 r2* UNKNOWN at 1.31M variables
+%                where the own-support slack of the report certifies at
+%                435k) with the dw, margin and cap of the 'P' form; no
+%                storage; the base raise of the direct form is 0 (the
+%                own-sized slack reaches the support; dw_feas, dw_P, dw_Q
+%                are allowances for slacks sized like the storage) and the
+%                raise loop adds. The storage-plus-equality form
+%                (storage P, T'*Q = P, Q degrees from P), kept commented out,
+%                fails S3 in two variables and S17 under every storage; the
+%                direct form certifies S3, S17, S18 (report, Sec. 8.3). In
+%                two or more variables 'Q' is no longer posed as 'P'; eppos2
+%                is the least L2 margin (entry 2 of tl.eppos in 1-D, as
+%                before). Output, witness and dual as in the other forms;
+%                info.storage is the solved T'*Q. 'Qd' and 'FQ' unchanged.
+%                The help lines on the 'Q' form are updated; they read
+%                before: "The 'Q' forms exist in 1-D only; for a PIE in two
+%                or more variables, 'Q', 'Qd' and 'FQ' are posed as 'P',
+%                'Pd' and 'FP'."
+% MMP, 11/17/2026: Help: settings_2d and settings_nd are no tier fields
+%                since work package 5; the storage is the row lpi.pos, and
+%                the stock 2-D struct is SETTINGS_2D_STOCK. Code unchanged.
+%                The lines read before: "settings_2d  2-D degrees of P;
+%                settings_nd  degrees and margin of P in 3 or more
+%                variables (EXEC_TOOLS_SOP);".
+% MMP, 11/18/2026: The direct form 'Q' separated from the storage form 'P'
+%                (maintainer: "make the separation"; "Q is a generalized
+%                storage where P form is a special case when Q=PT"): Q at
+%                settings.sop.deg_Q (a cell per dimension; [] = lpi.var.deg,
+%                which stays the degree of the synthesis free operators),
+%                its raises settings.sop.max_raise_Q ([] = max_raise_feas)
+%                and, per raise, what settings.sop.raise_Q names: the slack
+%                weight ('slack', as before), the first entry of deg_Q
+%                ('deg') or both. The tiers carry the values of 11/17/2026,
+%                so every program of that date is unchanged (ab_sep.m).
+%                Measured reason: at light, Q at [2 2 2] cannot represent
+%                P*T of the light storage (kernel degree 2) and a T of
+%                degree 1, and no slack raise recovers the five DDE
+%                thresholds that [4 2 2] restores (DECISIONS D92, D94).
+%                Help: the 'Q' line no longer says "no storage".
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -216,7 +274,8 @@ end
 % if nv==2 && strcmp(form,'Q'),   form = 'P';     end     % no 2-D Q forms  % MMP, 10/29/2026 (was)
 % if nv==2 && strcmp(form,'Qd'),  form = 'Pd';    end                       % MMP, 10/29/2026 (was)
 % if nv==2 && strcmp(form,'FQ'),  form = 'FP';    end                       % MMP, 10/29/2026 (was)
-if nv>=2 && strcmp(form,'Q'),   form = 'P';     end     % no Q forms in N-D % MMP, 10/29/2026
+% if nv>=2 && strcmp(form,'Q'),   form = 'P';     end   % no Q forms in N-D % MMP, 11/17/2026 (was); MMP, 10/29/2026
+% 'Q' is posed in every dimension (direct form, header 11/17/2026)          % MMP, 11/17/2026
 if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end                         % MMP, 10/29/2026
 if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end                         % MMP, 10/29/2026
 % The constraint K x = 0 on the state, if any (empty for most PIEs)         % MMP, 11/07/2026
@@ -231,12 +290,27 @@ coercive = any(strcmp(form,{'P','Pd','FP'}));   % 'FP' sizes its slack as 'P' % 
 % Degree raise of the slack, margins of P and the decay term
 dwbase = st.sop.dw_Q;   if coercive,    dwbase = st.sop.dw_P;   end
 if ~isempty(st.sop.dw_feas),    dwbase = st.sop.dw_feas(min(nv,end));  end
+% 'Q': the slacks are sized from their own support, which the rule reaches % MMP, 11/17/2026
+% by construction; dw_feas, dw_P and dw_Q are allowances for slacks sized  % MMP, 11/17/2026
+% like the storage, so the base is 0 and the raise loop adds (base 1 in    % MMP, 11/17/2026
+% two variables gave 2-5x the variables: S3 1.19M against 383k, S18 1.18M % MMP, 11/17/2026
+% against 228k, S17 refused at 5.2M against 435k certified)                % MMP, 11/17/2026
+if strcmp(form,'Q'),    dwbase = 0;     end                                 % MMP, 11/17/2026
 eppos = tl.eppos;   epneg = tl.epneg;
 if ~isempty(st.sop.eppos_stab),     eppos(:) = st.sop.eppos_stab;   end
 if ~isempty(st.sop.max_raise_feas)
 %   st.sop.max_raise = st.sop.max_raise_feas;                               % MMP, 10/29/2026 (was)
     st.sop.max_raise = st.sop.max_raise_feas(min(nv,end));  % per dimension % MMP, 10/29/2026
 end
+% The direct form: its own raise count and the degrees of Q (header         % MMP, 11/18/2026
+% 11/18/2026); the storage form keeps max_raise_feas, and lpi.var.deg       % MMP, 11/18/2026
+% stays with the synthesis LPIs                                             % MMP, 11/18/2026
+if strcmp(form,'Q') && ~isempty(st.sop.max_raise_Q)                         % MMP, 11/18/2026
+    st.sop.max_raise = st.sop.max_raise_Q;      % reduced by EXEC_TOOLS_SOP % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
+qdeg = st.sop.deg_Q;    if isempty(qdeg),   qdeg = st.lpi.var.deg;  end     % MMP, 11/18/2026
+if ~iscell(qdeg),   qdeg = {qdeg};  end                                     % MMP, 11/18/2026
+qdeg = qdeg{min(nv,end)};                                                   % MMP, 11/18/2026
 % epfac = 1;  if nv==2,   epfac = 2;  end           % the 2-D LPI carries 2 epneg % MMP, 10/29/2026 (was)
 % epfac = 1;  if nv>=2,   epfac = 2;  end     % 2 epneg, as the 2-D LPI     % MMP, 11/09/2026 (was)
 epfac = 2;          % 2 epneg in every form and dimension: decay rate epneg % MMP, 11/09/2026
@@ -295,6 +369,14 @@ end
 %       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
+        % Raise of this pass: in the direct form what raise_Q names, the    % MMP, 11/18/2026
+        % slack weight ('slack', 'both') and the first entry of deg_Q       % MMP, 11/18/2026
+        % ('deg', 'both'); the other forms raise the slack weight           % MMP, 11/18/2026
+        dws = dw;   dwq = 0;                                                % MMP, 11/18/2026
+        if strcmp(form,'Q')                                                 % MMP, 11/18/2026
+            if strcmp(st.sop.raise_Q,'deg'),    dws = 0;    end             % MMP, 11/18/2026
+            if ~strcmp(st.sop.raise_Q,'slack'), dwq = dw;   end             % MMP, 11/18/2026
+        end                                                                 % MMP, 11/18/2026
         % The positive operator P and the derivative operator Dm of FORM
         switch form
             case 'P'
@@ -308,15 +390,47 @@ end
                 Dm = Tm*Pm*Am' + Am*Pm*Tm';
                 if epneg~=0,    Dm = Dm + epfac*epneg*(Tm*Pm*Tm');  end
             case 'Q'
-                [prog,Pm] = tl.storage(prog,Tm,'in');
-                Pm = Pm + eppos(2)*(Tm'*Tm);
-                % Q free, from the output space of T to its input space
-                [spO,dmO] = copvar_space_list(Tm,'out');    [spI,dmI] = copvar_space_list(Tm,'in');
-                [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
-                prog = lpi_eq_sop(prog,Tm'*Qm - Pm);
-                Dm = Am'*Qm + Qm'*Am;
+                % BEGIN MMP, 11/17/2026: the direct form (header 11/17/2026;
+                % settings report 11/16/2026, Sec. 8.3). Replaced: the      % MMP, 11/17/2026
+                % storage P on the input spaces of T, the equality T'*Q = P % MMP, 11/17/2026
+                % and Q at the degrees of P; it failed S3 in 2-D and S17.   % MMP, 11/17/2026
+%               [prog,Pm] = tl.storage(prog,Tm,'in');                       % MMP, 11/17/2026 (was)
+%               Pm = Pm + eppos(2)*(Tm'*Tm);                                % MMP, 11/17/2026 (was)
+%               % Q free, from the output space of T to its input space     % MMP, 11/17/2026 (was)
+%               [spO,dmO] = copvar_space_list(Tm,'out');    [spI,dmI] = copvar_space_list(Tm,'in'); % MMP, 11/17/2026 (was)
+%               [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm)); % MMP, 11/17/2026 (was)
+%               prog = lpi_eq_sop(prog,Tm'*Qm - Pm);                        % MMP, 11/17/2026 (was)
+%               Dm = Am'*Qm + Qm'*Am;                                       % MMP, 11/17/2026 (was)
 %               if epneg~=0,    Dm = Dm + epneg*Pm;     end                 % MMP, 11/09/2026 (was)
-                if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/09/2026
+%               if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/17/2026 (was); MMP, 11/09/2026
+                % Q free with the shape of T, at the entry of lpi.var.deg  % MMP, 11/17/2026
+                % for the number of variables of the PIE on every block,    % MMP, 11/17/2026
+                % the convention of the direct test of the report (Sec.     % MMP, 11/17/2026
+                % 9.2). DEG omitted gives the 1-D blocks of a mixed PIE the % MMP, 11/17/2026
+                % 1-D entry, which the registry-wide slack rule then carries% MMP, 11/17/2026
+                % into every space: S3 654k variables against 383k, S17     % MMP, 11/17/2026
+                % UNKNOWN at 1.31M against 435k certified                   % MMP, 11/17/2026
+%               [prog,Qm] = lpivar_cdopvar(prog,Tm);                        % MMP, 11/17/2026 (was)
+%               [prog,Qm] = lpivar_cdopvar(prog,Tm,st.lpi.var.deg{min(nv,end)}); % MMP, 11/18/2026 (was); MMP, 11/17/2026
+                q = qdeg;   if isnumeric(q),   q(1) = q(1) + dwq;   end     % MMP, 11/18/2026
+                [prog,Qm] = lpivar_cdopvar(prog,Tm,q);   % deg_Q + ladder   % MMP, 11/18/2026
+                % T'*Q self-adjoint; P its symmetric part, = T'*Q on the    % MMP, 11/17/2026
+                % equality, written symmetric for LPI_INEQ_SOP              % MMP, 11/17/2026
+                prog = lpi_eq_sop(prog,Tm'*Qm - Qm'*Tm);                    % MMP, 11/17/2026
+                Pm = 0.5*(Tm'*Qm + Qm'*Tm);                                 % MMP, 11/17/2026
+                % P >= eppos2*T'*T, eppos2 the least L2 margin (eppos(2)    % MMP, 11/17/2026
+                % in 1-D, as before); slack options as for Dm below         % MMP, 11/17/2026
+%               o = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Pm)); % MMP, 11/17/2026 (was)
+                % No storage: each slack is sized from its own support,     % MMP, 11/17/2026
+                % as the direct test of the report (Sec. 9.2); sized like   % MMP, 11/17/2026
+                % P = T'*Q the lift degree misses the support of A'*Q+Q'*A  % MMP, 11/17/2026
+                % (S17: UNKNOWN at 1.31M variables where 435k certify)      % MMP, 11/17/2026
+%               o = struct('dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Pm)); % MMP, 11/18/2026 (was); MMP, 11/17/2026
+                o = struct('dw',dwbase+dws,'margin',st.sop.margin,'cap',tl.capfor(Pm)); % MMP, 11/18/2026
+                prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/17/2026
+                Dm = Am'*Qm + Qm'*Am;                                       % MMP, 11/17/2026
+                if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/17/2026
+                % END MMP, 11/17/2026
             case 'Qd'
                 [prog,Pm] = tl.storage(prog,Tm,'out');
                 Pm = Pm + eppos(2)*(Tm*Tm');
@@ -357,7 +471,11 @@ end
             li = struct('tag',tag,'degrees',[],'terms',[]);
         else
 %           o = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin);    % MMP, 10/29/2026 (was)
-            o = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm)); % MMP, 10/29/2026
+%           o = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm)); % MMP, 11/18/2026 (was); MMP, 10/29/2026
+            o = struct('like',Pm,'dw',dwbase+dws,'margin',st.sop.margin,'cap',tl.capfor(Dm)); % MMP, 10/29/2026
+            % 'Q': no storage, sized from the support of Dm itself (the    % MMP, 11/17/2026
+            % 'Q' branch above)                                             % MMP, 11/17/2026
+            if strcmp(form,'Q'),    o = rmfield(o,'like');  end             % MMP, 11/17/2026
             [prog,Nm,li] = lpi_ineq_sop(prog,-Dm,o);
         end
         aux = struct('obj',[],'Pm',Pm,'Dm',Dm,'Nm',Nm,'li',li,'form',form);

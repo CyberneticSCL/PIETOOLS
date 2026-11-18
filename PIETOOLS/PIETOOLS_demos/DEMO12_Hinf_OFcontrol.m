@@ -66,6 +66,11 @@
 %                 native settings, lpi.pos (maintainer, 11/12/2026: phase 2
 %                 of the knob reduction): mult 4, int 6, joint 6, the former
 %                 dd1 = {4,[6 6 6],[6 6 6]}, which the settings no longer
+% MMP 11/17/2026: The tiers carry the storage row (settings report
+%                 11/16/2026, Sec. 5, 6), in which mult, int, joint are not
+%                 read (EXEC_SOP_SETTINGS now rejects them): the same
+%                 degrees as row lengths, len_inc = len_com = 7 (int 6),
+%                 len_sos [5;7;7] (mult 4; int 6) and cap 6 (joint 6).
 %                 accept. Same program.
 clear; clc; clear stateNameGenerator
 
@@ -247,8 +252,12 @@ PIEcl = closedLoopPIE(PIE,Kc,'dynamic');
 settings_an = lpisettings_sop('light');                                     % MMP, 11/08/2026
 % settings_an.dd1 = {4,[6 6 6],[6 6 6]};                                    % MMP, 11/12/2026 (was)
 % storage degrees in one variable: multiplier 4; integrals 6, 6 in total    % MMP, 11/12/2026
-settings_an.lpi.pos.mult(1) = 4;    settings_an.lpi.pos.int(1) = 6;         % MMP, 11/12/2026
-settings_an.lpi.pos.joint(1) = 6;                                           % MMP, 11/12/2026
+% settings_an.lpi.pos.mult(1) = 4;    settings_an.lpi.pos.int(1) = 6;       % MMP, 11/17/2026 (was); MMP, 11/12/2026
+% settings_an.lpi.pos.joint(1) = 6;                                         % MMP, 11/17/2026 (was); MMP, 11/12/2026
+% as lengths of the storage row, entry 1 (one variable): d1 = d2 = 7,       % MMP, 11/17/2026
+% d3 = [5;7;7], theta + s <= 6                                              % MMP, 11/17/2026
+settings_an.lpi.pos.len_inc{1} = 7;     settings_an.lpi.pos.len_com{1} = 7; % MMP, 11/17/2026
+settings_an.lpi.pos.len_sos{1} = [5;7;7];   settings_an.lpi.pos.cap{1} = 6; % MMP, 11/17/2026
 settings_an.eppos = 1e-6;   settings_an.eppos2 = 1e-6;
 % settings_an.sop.witness = false;                                          % MMP, 11/05/2026 (was)
 % [~,~,gam_cl] = PIETOOLS_Hinf_gain_sop(PIEcl,settings_an,'Q');             % MMP, 11/05/2026 (was)

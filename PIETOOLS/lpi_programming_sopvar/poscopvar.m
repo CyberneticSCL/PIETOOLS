@@ -49,9 +49,8 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                OPTIONS): the domain of PROG (LPIPROGRAM), by name;
 % - X:           'copvar' or 'cdopvar' object, in place of DIMS, SPACES
 %                and DOM (second form above);
-% - deg:         (optional; omitted or [], the degrees of the program
-%                settings, lpi.pos of LPIPROGRAM, space by space, with the
-%                include and sep they imply, which OPTIONS may then not set)
+% - deg:         (optional; omitted or [], the storage row of the program   % MMP, 11/17/2026
+%                settings: DEG OMITTED below)                               % MMP, 11/17/2026
 %                the degrees of Z^alpha(theta,s): a scalar (int and mult),
 %                or a 'struct' with the optional fields
 %                  int     scalar or 1 x nv, the degree in each theta_d
@@ -83,6 +82,35 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                           of space k: multi-index rows over the
 %                           variables of s^k, a logical mask, or linear
 %                           indices (default all).
+%                                                                           % MMP, 11/17/2026
+% DEG OMITTED (or []): the storage row lpi.pos of the program settings      % MMP, 11/17/2026
+% (LPIPROGRAM; settings report 11/16/2026, Sec. 5.1, 5.6, 6.1) gives DEG    % MMP, 11/17/2026
+% and the include and sep it implies, which OPTIONS may then not set.       % MMP, 11/17/2026
+% Fields other than len_R are 1 x 3 cells, entry e for a space in e         % MMP, 11/17/2026
+% variables, the last entry for every higher e; lengths are lengths of      % MMP, 11/17/2026
+% monomial vectors, 0 = absent (a pattern with a zero length is dropped):   % MMP, 11/17/2026
+%   len_R      scalar, the multiplier length on R^q (default 1: identity);  % MMP, 11/17/2026
+%   len_inc    1 x e, d1: incomplete moments, pattern c (lower integral);   % MMP, 11/17/2026
+%   len_com    1 x e, d2: complete moments, pattern b;                      % MMP, 11/17/2026
+%   len_sos    3 x e, d3: multiplier lengths of the blocks a, b, c;         % MMP, 11/17/2026
+%   patterns   'uniform' (a..a, b..b), 'separable' ({a,b}^e), 'all'         % MMP, 11/17/2026
+%              ({a,b,c}^e), a cellstr of words ('aab'), or rows (1 a,       % MMP, 11/17/2026
+%              2 b, 3 c);                                                   % MMP, 11/17/2026
+%   cap        (optional) 1 x e, Inf = none: theta_k+s_k <= cap_k in an     % MMP, 11/17/2026
+%              owned direction k; in a direction k the space does not       % MMP, 11/17/2026
+%              own, theta_k <= the first cap of the largest owner;          % MMP, 11/17/2026
+%   len_cross  (optional) scalar, the monomial length in a direction the    % MMP, 11/17/2026
+%              space does not own; absent: the largest int of the basis     % MMP, 11/17/2026
+%              operator in its owned directions;                            % MMP, 11/17/2026
+%   terms, offsets  'none', []: the storage carries no term (an error       % MMP, 11/17/2026
+%              otherwise).                                                  % MMP, 11/17/2026
+% Codes: a -> 1; c -> 2; b -> 3 in a direction where some space carries     % MMP, 11/17/2026
+% c, else 4 (sep true there). In an owned direction, mult = 0, d2-1,        % MMP, 11/17/2026
+% d1-1 and int = d3(a,:)-1, d3(b,:)-1, d3(c,:)-1 for a, b, c. Without       % MMP, 11/17/2026
+% len_com the fields mult, int, joint, sep of lpi.pos are read: per         % MMP, 11/17/2026
+% space, entry min(e,3): the multiplier basis of degree mult, integral      % MMP, 11/17/2026
+% bases of degree int and total joint; a direction owned by a space in      % MMP, 11/17/2026
+% two or more variables, or any with sep set, takes the full integral.      % MMP, 11/17/2026
 %
 % OUTPUT
 % - prog:        'struct', the program with Q declared positive
@@ -181,6 +209,17 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  by COPVAR_SPACE_LIST as in the executives (maintainer,
 %                  11/14/2026: the calls in the demos restated what T
 %                  carries and were too complicated).
+% MMP, 11/17/2026: DEG omitted and lpi.pos carrying len_com: the storage
+%                  row of the settings report 11/16/2026 (Sec. 5.1, 5.6,
+%                  6.1), read by the local ROW_STORAGE, ported from the
+%                  validated scratch reader pf_row_storage (same DEG,
+%                  include and sep): patterns, codes, cap, len_cross and
+%                  the int of non-owned directions; a term other than
+%                  'none' is an error. Without len_com the fields mult,
+%                  int, joint, sep of 11/12/2026 are read as before, until
+%                  the tier files switch to the row. Help text: the
+%                  omitted-DEG note under DEG (11/12/2026) replaced by the
+%                  paragraph DEG OMITTED.
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
 % DOM omitted: the 4th input is DEG (a scalar, a 'struct' without field     % MMP, 11/12/2026
@@ -260,6 +299,12 @@ if usedef                                                                   % MM
     if isfield(prog,'settings') && isfield(prog.settings,'lpi') && isfield(prog.settings.lpi,'pos') % MMP, 11/12/2026
         ps = prog.settings.lpi.pos;                                         % MMP, 11/12/2026
     end                                                                     % MMP, 11/12/2026
+    % lpi.pos with len_com: the storage row (header, DEG OMITTED; settings  % MMP, 11/17/2026
+    % report 11/16/2026, Sec. 6.1) by ROW_STORAGE; else the rule above,     % MMP, 11/17/2026
+    % kept until the tier files switch to the row                           % MMP, 11/17/2026
+    if isfield(ps,'len_com')                                                % MMP, 11/17/2026
+        [deg,sepd,incl] = row_storage(ps,meta.space_out);                   % MMP, 11/17/2026
+    else                                                                    % MMP, 11/17/2026
     own = meta.space_out;   nd = sum(own,2);    e = @(x,c) x(min(c,end));   % MMP, 11/12/2026
     sepd = logical(ps.sep(1)) | any(own(nd>=2,:),1);                        % MMP, 11/12/2026
     deg = cell(1,numel(nd));    incl = cell(1,numel(nd));                   % MMP, 11/12/2026
@@ -274,6 +319,7 @@ if usedef                                                                   % MM
         end                                                                 % MMP, 11/12/2026
         if b<0,     deg{k} = deg{k}(1);     incl{k} = incl{k}(1,:);     end % MMP, 11/12/2026
     end                                                                     % MMP, 11/12/2026
+    end                                                                     % MMP, 11/17/2026
     options.sep = sepd;     options.include = incl;                         % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
 % copquadvar's contract for options.psatz is kept: one code, 0, 1 or a face % MMP, 10/17/2026
@@ -299,3 +345,123 @@ if ~isfield(prog,'sop_pos'),    prog.sop_pos = {};  end                     % MM
 prog.sop_pos{end+1} = Pop;                                                  % MMP, 10/21/2026
 
 end
+
+
+function [deg,sepv,incl] = row_storage(row,own)                             % MMP, 11/17/2026
+% [DEG,SEPV,INCL] = ROW_STORAGE(ROW,OWN) the degrees, sep and include rows  % MMP, 11/17/2026
+% of POSCOPVAR_DIRECT for the storage row ROW (header, DEG OMITTED;         % MMP, 11/17/2026
+% settings report 11/16/2026, Sec. 5.1, 6.1) on the spaces of OWN.          % MMP, 11/17/2026
+% INPUT  row:   'struct', lpi.pos with field len_com;                       % MMP, 11/17/2026
+%        own:   M x nv logical, row k the registry variables of space k.    % MMP, 11/17/2026
+% OUTPUT deg:   1 x M cell, per space a cell of one degree struct per basis % MMP, 11/17/2026
+%               operator (int, mult, cap: 1 x nv), or a struct on R^q;      % MMP, 11/17/2026
+%        sepv:  1 x nv logical, true where no owning space carries c;       % MMP, 11/17/2026
+%        incl:  1 x M cell, the multi-index rows of each space.             % MMP, 11/17/2026
+% Ported from the validated scratch reader pf_row_storage (11/16/2026):     % MMP, 11/17/2026
+% the same DEG, INCL and SEPV for the same row. Small arrays only.          % MMP, 11/17/2026
+[M,nv] = size(own);     nd = sum(own,2);                                    % MMP, 11/17/2026
+e_of = @(k) min(max(nd(k),1),3);    % the entry: the last for e > 3         % MMP, 11/17/2026
+if ~isfield(row,'len_R') || isempty(row.len_R),     row.len_R = 1;  end     % MMP, 11/17/2026
+% The storage carries no term (settings report, Sec. 6.4)                   % MMP, 11/17/2026
+if isfield(row,'terms') && ~isempty(row.terms)                              % MMP, 11/17/2026
+    t = row.terms;  if ~iscell(t),  t = {t};    end                         % MMP, 11/17/2026
+    if ~all(cellfun(@(x) isempty(x) || isequal(char(x),'none'),t))          % MMP, 11/17/2026
+        error("The storage carries no term: lpi.pos.terms should be 'none'.") % MMP, 11/17/2026
+    end                                                                     % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+% Pattern rows per space (1 a, 2 b, 3 c); a zero length drops the pattern   % MMP, 11/17/2026
+pats = cell(1,M);                                                           % MMP, 11/17/2026
+for k = 1:M                                                                 % MMP, 11/17/2026
+    if nd(k)==0,    continue;   end                                         % MMP, 11/17/2026
+    e = e_of(k);    n = nd(k);                                              % MMP, 11/17/2026
+    pt = row.patterns{e};                                                   % MMP, 11/17/2026
+    if ischar(pt)                                                           % MMP, 11/17/2026
+        switch pt                                                           % MMP, 11/17/2026
+            case 'uniform',     A = [ones(1,n); 2*ones(1,n)];               % MMP, 11/17/2026
+            case 'separable',   A = multiindex_grid(repmat({[1 2]},1,n));   % MMP, 11/17/2026
+            case 'all',         A = multiindex_grid(repmat({[1 2 3]},1,n)); % MMP, 11/17/2026
+            otherwise,  error("Unknown pattern set '"+pt+"' in lpi.pos.patterns.") % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
+    elseif iscell(pt)   % words over a, b, c                                % MMP, 11/17/2026
+        A = zeros(numel(pt),n);                                             % MMP, 11/17/2026
+        for i = 1:numel(pt),    w = pt{i};    A(i,:) = (w=='b')*1 + (w=='c')*2 + 1;   end % MMP, 11/17/2026
+    else                                                                    % MMP, 11/17/2026
+        A = pt;                                                             % MMP, 11/17/2026
+    end                                                                     % MMP, 11/17/2026
+    d1 = fit_len(row.len_inc{e},n);   d2 = fit_len(row.len_com{e},n);   d3 = row.len_sos{e}; % MMP, 11/17/2026
+    if size(d3,2)~=n,   d3 = repmat(d3(:,1),1,n);    end                    % MMP, 11/17/2026
+    keep = true(size(A,1),1);                                               % MMP, 11/17/2026
+    for i = 1:size(A,1)                                                     % MMP, 11/17/2026
+        for d = 1:n                                                         % MMP, 11/17/2026
+            a = A(i,d);                                                     % MMP, 11/17/2026
+            if (a==2 && d2(d)==0) || (a==3 && d1(d)==0) || d3(a,d)==0,   keep(i) = false;  end % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
+    end                                                                     % MMP, 11/17/2026
+    pats{k} = A(keep,:);                                                    % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+% Separable directions: no owning space carries c there (b -> 4, the full   % MMP, 11/17/2026
+% integral, spans b and c with equal multiplier lengths; Sec. 6.1)          % MMP, 11/17/2026
+sepv = true(1,nv);                                                          % MMP, 11/17/2026
+for k = 1:M                                                                 % MMP, 11/17/2026
+    if nd(k)==0,    continue;   end                                         % MMP, 11/17/2026
+    idx = find(own(k,:));                                                   % MMP, 11/17/2026
+    for d = 1:nd(k)                                                         % MMP, 11/17/2026
+        if any(pats{k}(:,d)==3),    sepv(idx(d)) = false;    end            % MMP, 11/17/2026
+    end                                                                     % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+% The number of variables of the largest space owning each direction        % MMP, 11/17/2026
+big = zeros(1,nv);                                                          % MMP, 11/17/2026
+for d = 1:nv,   o = find(own(:,d));  if ~isempty(o),  big(d) = max(nd(o));  end,  end % MMP, 11/17/2026
+% Degrees and include rows                                                  % MMP, 11/17/2026
+deg = cell(1,M);    incl = cell(1,M);                                       % MMP, 11/17/2026
+for k = 1:M                                                                 % MMP, 11/17/2026
+    if nd(k)==0,    deg{k} = struct('int',row.len_R-1);    continue;   end  % MMP, 11/17/2026
+    e = e_of(k);    n = nd(k);  idx = find(own(k,:));                       % MMP, 11/17/2026
+    d1 = fit_len(row.len_inc{e},n);   d2 = fit_len(row.len_com{e},n);   d3 = row.len_sos{e}; % MMP, 11/17/2026
+    if size(d3,2)~=n,   d3 = repmat(d3(:,1),1,n);    end                    % MMP, 11/17/2026
+    A = pats{k};    rows = zeros(size(A));   dk = cell(1,size(A,1));        % MMP, 11/17/2026
+    for i = 1:size(A,1)                                                     % MMP, 11/17/2026
+        mu = zeros(1,nv);   in = zeros(1,nv);                               % MMP, 11/17/2026
+        for d = 1:n                                                         % MMP, 11/17/2026
+            a = A(i,d);     g = idx(d);                                     % MMP, 11/17/2026
+            switch a    % b: 4 (full) where separable, else 3 (upper)       % MMP, 11/17/2026
+                case 1,     rows(i,d) = 1;                      mu(g) = 0;  % MMP, 11/17/2026
+                case 2,     rows(i,d) = 4 - ~sepv(g);           mu(g) = d2(d)-1; % MMP, 11/17/2026
+                case 3,     rows(i,d) = 2;                      mu(g) = d1(d)-1; % MMP, 11/17/2026
+            end                                                             % MMP, 11/17/2026
+            in(g) = d3(a,d)-1;                                              % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
+        % A direction the space does not own: len_cross - 1 when given,     % MMP, 11/17/2026
+        % else the operator's largest owned int (Sec. 6.1)                  % MMP, 11/17/2026
+        for g = find(~own(k,:))                                             % MMP, 11/17/2026
+            in(g) = max(in(idx));                                           % MMP, 11/17/2026
+            if isfield(row,'len_cross') && ~isempty(row.len_cross) && ~isempty(row.len_cross{e}) % MMP, 11/17/2026
+                in(g) = row.len_cross{e} - 1;                               % MMP, 11/17/2026
+            end                                                             % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
+        dk{i} = struct('int',in,'mult',mu);                                 % MMP, 11/17/2026
+        % Per-direction cap (Sec. 5.6): owned directions from this entry,   % MMP, 11/17/2026
+        % a non-owned one from the entry of its largest owner               % MMP, 11/17/2026
+        if isfield(row,'cap') && ~isempty(row.cap)                          % MMP, 11/17/2026
+            cv = Inf(1,nv);                                                 % MMP, 11/17/2026
+            ce = fit_len(row.cap{e},n);                                     % MMP, 11/17/2026
+            for d = 1:n,    cv(idx(d)) = ce(d);     end                     % MMP, 11/17/2026
+            for g = find(~own(k,:))                                         % MMP, 11/17/2026
+                cb = row.cap{min(big(g),3)};    cv(g) = cb(1);              % MMP, 11/17/2026
+            end                                                             % MMP, 11/17/2026
+            dk{i}.cap = cv;                                                 % MMP, 11/17/2026
+        end                                                                 % MMP, 11/17/2026
+    end                                                                     % MMP, 11/17/2026
+    deg{k} = dk;    incl{k} = rows;                                         % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+
+
+function v = fit_len(v,n)                                                   % MMP, 11/17/2026
+% V = FIT_LEN(V,N) a row of N lengths from a scalar or a row of N           % MMP, 11/17/2026
+v = reshape(v,1,[]);                                                        % MMP, 11/17/2026
+if isscalar(v),     v = repmat(v,1,n);                                      % MMP, 11/17/2026
+elseif numel(v)~=n                                                          % MMP, 11/17/2026
+    error("A length row of lpi.pos has "+numel(v)+" entries for a space in "+n+" variables.") % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026
+end                                                                         % MMP, 11/17/2026

@@ -1,0 +1,37 @@
+Table~\ref{tab:tiers} gives the storage row of each tier, one line per entry; every direction of an entry carries the same lengths, and an $\R^q$ space carries the identity basis (\code{len\_R} $=1$) in every tier. The 1-D entries are the present 1-D storages (Table~\ref{tab:1d}), which the row reproduces bit for bit; the 2-D and 3-D entries are fixed by the baselines of Section~\ref{sec:baselines}. Custom equals light.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrrrrllrr}
+\toprule
+tier & entry & $d_1$ & $d_2$ & $d_{3\ba}$ & $d_{3\bb}$ & $d_{3\bc}$ & $\Pi$ & cap $c$ & cross & Gram rows \\
+\midrule
+stripped & 1-D & 2 & 2 & 2 & 2 & 2 & \code{all} & $\infty$ & 1 & 10 \\
+ & 2-D & 0 & 2 & 1 & 2 & -- & \code{uniform} & $\infty$ & 1 & 17 \\
+ & 3-D & 0 & 1 & 1 & 1 & -- & \code{uniform} & $\infty$ & 1 & 2 \\
+\midrule
+light, custom & 1-D & 2 & 2 & 2 & 2 & 2 & \code{all} & $\infty$ & 1 & 10 \\
+ & 2-D & 0 & 2 & 1 & 2 & -- & \code{separable} & $\infty$ & 1 & 25 \\
+ & 3-D & 0 & 2 & 1 & 2 & -- & \code{uniform} & $\infty$ & 1 & 65 \\
+\midrule
+heavy & 1-D & 2 & 2 & 3 & 2 & 2 & \code{all} & $\infty$ & 1 & 11 \\
+ & 2-D & 0 & 2 & 2 & 2 & -- & \code{separable} & $\infty$ & 1 & 36 \\
+ & 3-D & 0 & 2 & 1 & 2 & -- & \code{uniform} & $\infty$ & 1 & 65 \\
+\midrule
+veryheavy & 1-D & 4 & 4 & 4 & 4 & 4 & \code{all} & $\infty$ & 1 & 36 \\
+ & 2-D & 0 & 3 & 2 & 3 & -- & \code{separable} & $\infty$ & 1 & 121 \\
+ & 3-D & 0 & 2 & 1 & 2 & -- & \code{uniform} & $\infty$ & 1 & 65 \\
+\midrule
+extreme & 1-D & 0 & 0 & 2 & -- & -- & $\ba$ & $\infty$ & 1 & 2 \\
+ & 2-D & 0 & 0 & 1 & -- & -- & $(\ba,\ba)$ & $\infty$ & 1 & 1 \\
+ & 3-D & 0 & 0 & 1 & -- & -- & $(\ba,\ba,\ba)$ & $\infty$ & 1 & 1 \\
+\bottomrule
+\end{tabular}
+\caption{The storage rows of the proposed tiers. Lengths per direction ($0$: the block is absent); $\Pi$ the pattern set; $c$ the per-direction cap of Section~\ref{sec:cap} ($\infty$: none); cross the cross length \code{len\_cross}, the length in a registry direction the space does not own, read on a mixed registry only ($1$: none); the last column the rows of the plain Gram per state component, $\sum_{\alpha\in\Pi}\prod_k\ell_k(\alpha_k)\,d_{3,\alpha_k,k}$ under the cap. The storage carries no term in any tier; the terms of the slack, the same set in every tier, are listed in Section~\ref{sec:tier-terms}.}\label{tab:tiers}
+\end{table}
+
+The lengths of every entry are those of the present tier (Tables~\ref{tab:1d}--\ref{tab:nd}); the row changes three things. The pattern set of a 2-D entry is \code{separable} in light, heavy and veryheavy, where the present stock 2-D storage is \code{uniform}: at the light lengths the separable row costs the stock size on the 2-D library and the 2-D ladder (Table~\ref{tab:bl-lib}; within $0.6\%$ in variables) and certifies the mixed suite where the stock 2-D storage fails S3 and S8 (Table~\ref{tab:bl-mixed}), and at the veryheavy lengths it is the one storage that certifies S18, at both margins (Section~\ref{sec:mixed-patterns}). The total-degree caps are gone: the uncapped row at the light lengths reproduces the stock size in two variables, because the storage Gram is a small part of the SDP once the slack is sized from it, and in three variables adds $0.4\%$ to the variables of the 3-D heat benchmark (Table~\ref{tab:bl-fin2}); the per-direction cap is kept as the knob for the entries that need it, with the measured trade at the light lengths that $c=1$ returns an \code{all} entry with $d_1=1$ to the stock size at $6\%$ of the fin2 gap (Table~\ref{tab:bl-cap}). The cross length is $1$ in every entry, where the present construction carries the rule of the reader ($2$ at the light lengths, $3$ at the veryheavy ones), and on the mixed suite it certifies every row the rule certifies, at $0.2$ to $1\%$ fewer variables (Section~\ref{sec:bl-cross}).
+
+Two rows measured in this report are not tiers but options a caller sets on a row: \code{'all'} with $d_1\ge1$ in two variables (Rlight: the storage that contains the PDE norm, Section~\ref{sec:mixed-d1}; $2\times$ the variables on the mixed gains and $1.8$--$5\times$ on the 2-D library, with the mixed gains tighter by $1.6$--$3\times$, and at $c=1$ the stock size), and the uniform row (Rdef, the present \code{poscopvar} default, within $0.4\%$ of the stock size everywhere and $12\%$ looser on PDE~48). On PDEs with polynomial coefficients the separable row again costs the stock size and changes nothing on single domains, and on the mixed cascade with variable coefficients it reaches $0.977$ of the threshold where the stock light storage reaches $0.736$ (Section~\ref{sec:bl-inhom}). The light 2-D entry was chosen among three stock-sized rows that replicate the library and the mixed suite alike (Table~\ref{tab:bl-light}): the separable row is the one contained in the heavy and veryheavy entries, so the tiers nest; the capped all-pattern row is the option for a caller who needs the incomplete moments in two variables at the light cost.
+
+Three measured limits of the proposal. The heavy 2-D entry reproduces the size of the stock heavy 2-D storage (fin2: $760\,485$ against $759\,358$ variables) and not its fin2 gap ($19$ against $3.7$ in units of $10^{-5}$; the uniform row at the same lengths $15$): the stock cap tables admit a storage the row at these lengths does not express (Section~\ref{sec:cannot}), and no row of this report reaches that gap below the veryheavy lengths ($2.2$ at $12\times$ the size). Gaps on fin2 within a factor $1.3$ are inside the solver's variation: two nested pairs came out inverted (the uniform row $48$ against stock $47$ at light; the separable row $19$ against the uniform $15$ at heavy), so a gap ranks rows only beyond that factor. In three variables the stability executive at light is infeasible on the 3-D heat at $0.9\kappa^*$ under both the stock storage and the row, at $\mathrm{dw}=0$ with no raise allowed and the slack bases bounded by the degree of $\mcl T$ (\code{cap\_delta} $0$): the 3-D entry of the row is fixed by the N-D default it reproduces and by the heat benchmark record (Section~\ref{sec:open}), not by an executive baseline. Without that bound the light slack in three variables has $20.9$M decision variables (seven PSD blocks of $1\,728$ rows, $m=126\,681$) against $908$k with it, so the bound is what makes the 3-D light tier affordable, and the raise it forbids is the open item, not the storage.

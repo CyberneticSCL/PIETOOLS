@@ -1,0 +1,11 @@
+C5c on Sol: the 3-D box set at the next cap (job 1621028, public partition, node sc037, 64 cores, 320 GB, submitted 11/15 17:02, D30)
+Program: heat DD x DN x DN, kappa = 0.985 kappa* = 14.5823, box rows {g1,g2,g3} at per-direction offset 1 on R and Q, RQ 'Tspan' dp = [0 1];
+         m = 77,157, 29,554,587 PSD variables, blocks [288 144 96 96 3888 2448 2040 2040], nnz(At) 185,834,868; build 435 s, conversion 9 s.
+MOSEK 11.0.30, 64 threads, tolerances 1e-10, MSK_DPAR_OPTIMIZER_MAX_TIME 30600 s:
+  Factor setup 757 s; Schur complement nonzeros 2.56e9 (dense, no dense-column detection); 6.22e14 flops per factorization.
+  10 interior-point iterations in 34,286 s (iteration times 1,314 s to 4,853 s, median about 2,700 s); stopped by the time limit inside iteration 11.
+  Last iterate: PFEAS 4.1e-5, DFEAS 8.0e-6, GFEAS 9.1e-8, MU 8.0e-6, DOBJ 9.8e-5 (feasibility program, POBJ 0); problem/solution status UNKNOWN.
+  heatNd_solve: st = 0 (uncertain), rel_b 4.1e-3, PSD rel. min 3.9e-10; no fallback (6 h budget passed).
+Resources: elapsed 9 h 41 min, MaxRSS 162.4 GB (peak RSS 154.3 GiB in MATLAB), CPU 22 d 16 h (544 core-hours, 56 of 64 cores busy on average); about 1,394 CHE of the 1,440 cap.
+Verdict: NOT SETTLED. The box set at the next cap did not solve within 9.5 h of MOSEK time at 64 threads; the iterates were converging (residuals down 5 decades in 10 iterations) and an extrapolation needs about 5 to 8 more iterations (4 to 7 h). The faces at offset 0 certified the same kappa at the bench caps in 759 s on the workstation (2,713,563 variables), so at 0.985 kappa* in 3-D the half step costs at least 45x the faces' time even if the box program is feasible.
+Record: /scratch/mpeet/pietools/psatz_faces/psatz_faces/results/c5c_sol.mat (R.v, the iterate's certification record); log jobs/c5c_box3d_1621028.out (lines 15-85 the MOSEK log).

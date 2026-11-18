@@ -69,10 +69,15 @@ echo on
 % % Declare the BVP
 % %     x_{ss} = v,     x(a) = x(b) = 0
 a = 0;  b = 1;
+%pvar t s s2
+%x = pde_var(s,[a,b],2);     % x in W^2[a,b]
+%BVP = [subs(x,s,a)==0;
+%       subs(x,s,b)==0];
+
 pvar t s
-x = pde_var(s,[a,b],2);     % x in W^2[a,b]
-BVP = [subs(x,s,a)==0;
-       subs(x,s,b)==0];
+ x = pde_var(s,[a,b],2);     % x in W^2[a,b]
+ BVP = [subs(x,s,a)==0;
+        subs(x,s,b)==0];
 
 % % Solve the boundary value problem
 % %     x = Top * v     v in L2[0,1]
@@ -83,6 +88,8 @@ H1op = diff(H2op,s);                % (H1op*x_{ss}) = x_{s}
 
 % =============================================
 % === Declare the LPI
+
+st = settings_sopvar_heavy;
 
 % % Initialize LPI program
 prob = lpiprogram(H2op.vars,H2op.dom);

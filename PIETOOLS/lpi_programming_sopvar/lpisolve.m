@@ -54,6 +54,12 @@ function prog_sol = lpisolve(prog,opts)
 %   structure (maintainer, 11/12/2026: "Settings on the program"). Every
 %   tier sets sos_opts.simplify = 0 and no solver, as SOSSOLVE does without
 %   options, so a call without OPTS solves the same program as before.
+% MMP, 11/18/2026 - An empty sos_opts.solver, which every tier carries since the
+%   layout of 11/17/2026 (section 5: '' for MOSEK if found, else SeDuMi), is
+%   resolved before SOSSOLVE as EXEC_SOP_SETTINGS does; SOSSOLVE refuses ''.
+%   Found by DEMO3 (lpisolve(prob) with the program's tier settings) in the
+%   demo pass before the commit of 11/18/2026. The 11/12 entry above is
+%   stale on this point: the tiers set a solver field, empty.
 
 % % Solve using 'sossolve' with desired settings, if specified.
 % if nargin>=2                                                              % MMP, 11/12/2026 (was)
@@ -71,6 +77,14 @@ if nargin<2 || isempty(opts)                                                % MM
 elseif isfield(opts,'sos_opts')                                             % MMP, 11/12/2026
     opts = opts.sos_opts;                                                   % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026
+% An empty solver ('' in the tiers since 11/17/2026: MOSEK when mosekopt is % MMP, 11/18/2026
+% on the path, else SeDuMi, as EXEC_SOP_SETTINGS resolves it) resolved here % MMP, 11/18/2026
+% too, since SOSSOLVE refuses '' (DEMO3 through lpisolve(prob), 11/18/2026) % MMP, 11/18/2026
+if isstruct(opts) && isfield(opts,'solver') && isempty(opts.solver)         % MMP, 11/18/2026
+    if ~isempty(which('mosekopt')),     opts.solver = 'mosek';              % MMP, 11/18/2026
+    else,                               opts.solver = 'sedumi';             % MMP, 11/18/2026
+    end                                                                     % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 if isempty(opts),   prog_sol = sossolve(prog);                              % MMP, 11/12/2026
 else,               prog_sol = sossolve(prog,opts);                         % MMP, 11/12/2026
 end                                                                         % MMP, 11/12/2026

@@ -41,12 +41,13 @@ offsets). Both enable the rows by `st.lpi.ineq.psatz = 'corners'`.
    state in the BC of a lower-dimensional state, `x1(0) = int int x2`, is
    rejected as a BC that "fixes the variables s1, s2 simultaneously (e.g. at
    a corner or edge)". The PIE exists; no corner is involved.
-3. **Library defect** (D1). `PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m`
-   (library PDE 43) codes `+a1*x(t-tau)`; its header and the library table
-   have `-a1` and cite Caliskan and Ozbay (2009), whose text was not read.
-   As coded, the system is unstable for every tau, so the executives'
-   "infeasible" on it, recorded earlier as conservatism, is the correct
-   verdict.
+3. **Library defect** (D1), fixed in 2ccb8943 on `origin/ndopvar` (Declan
+   Jagt, 11/12/2026 21:20), which codes `-a1`. At 6c6f60dd,
+   `PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m` (library PDE 43) codes
+   `+a1*x(t-tau)`; its header and the library table have `-a1` and cite
+   Caliskan and Ozbay (2009), whose text was not read. As coded there, the
+   system is unstable for every tau, so the executives' "infeasible" on it,
+   recorded earlier as conservatism, is the correct verdict.
 4. **PIESIM fails on two classes of PIE whose conversion is correct.**
    (D3) Any PIE with an auxiliary state (a direction with Neumann or periodic
    conditions at both ends, so PIE.K is nonempty): 4 of 4 crash or return
@@ -58,7 +59,7 @@ offsets). Both enable the rows by `st.lpi.ineq.psatz = 'corners'`.
    On the eight mixed-domain PIEs tested without these two features
    (library 2-D examples 10 and 11, S3, S4, S5, S8, S25 with an input, PDE 43
    with the sign corrected), PIESIM agrees with the references to 1e-8, and
-   to 3.4e-7 on the growing delay mode of PDE 43 as coded.
+   to 3.4e-7 on the growing delay mode of PDE 43 as coded at 6c6f60dd.
 5. **copvar operations: no defect.** Composition, adjoint, sum and the
    Lyapunov term `T'A + A'T` agree with their definitions to 1.4e-14 on 25
    mixed-space PIEs and on C1.
@@ -254,7 +255,7 @@ Stability, light:
 | S8 | 1-D states on two edges | 0.9 r3*: **not certified** (unknown at dw 1, 1.34M dv, 139 s) | not certified |
 | S17 | transport state as edge data | 0.9 r2*: **not certified** (unknown at dw 1, 664k dv, 73 s) | not certified |
 | S18 | PDE 43, sign corrected | 0.9 tau*: **not certified** (infeasible at dw 1, 508k dv, 33 s) | 1.1 tau*: not certified |
-| S18, sign +1 | PDE 43 as coded, tau = 0.5 | – | not certified (infeasible at dw 1) |
+| S18, sign +1 | PDE 43 as coded at 6c6f60dd, tau = 0.5 | – | not certified (infeasible at dw 1) |
 
 The four stable cases left uncertified are the three in which a
 lower-dimensional state is Dirichlet data on an edge of the 2-D state, and
@@ -415,7 +416,7 @@ history only once differentiable).
 | S5 (ODE -> 1-D -> 2-D) | 6.5e-11, 4.6e-10, 2.8e-9 | pass |
 | S8 (two edges) | 6.7e-9, 6.7e-9, 8.3e-9 | pass |
 | S18, sign -1 (stable) | 1.6e-10 | pass |
-| S18, sign +1 (library as coded, growing) | 3.4e-7 | pass |
+| S18, sign +1 (library at 6c6f60dd, growing) | 3.4e-7 | pass |
 | S25: input w(t,s1) = sin(pi s1) sin(2t) on the Wentzell edge, output z | 7.7e-9, 7.7e-9; z 7.7e-9 | pass |
 | Atotal, rightmost Re eig, N = 16: Neumann at s1 = 0, Dirichlet at s1 = 1 (control) | -12.337, exact -12.337 | pass |
 | library ex 8 | NaN in every state | FAIL (D4) |
@@ -438,11 +439,12 @@ exact 9.05) is attributed to the same cause, not rerun at N = 8.
 
 ## Defects and minimal reproductions
 
-Each is reported, not patched: D1 is in an example file, D2 in the
-converter (Declan Jagt), D3 and D4 in PIESIM.
+Each is reported, not patched: D1 is in an example file (fixed since, in
+2ccb8943), D2 in the converter (Declan Jagt), D3 and D4 in PIESIM.
 
-**D1 – library PDE 43 has the wrong sign.**
-`PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m`:
+**D1 – library PDE 43 has the wrong sign (fixed in 2ccb8943).**
+`PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m`
+at 6c6f60dd:
 
     diff(x1,'t')==c*diff(x1,s1,2)+a0*x1+a1*subs(x2,s2,tau)
 
@@ -456,7 +458,8 @@ passes Layer 1 (it is the coded PDE), the executive returns "infeasible" at
 tau = 0.5, and PIESIM matches `dde23` on the growing mode to 3.4e-7. With the minus sign
 the margin is tau* = atan2(sqrt(0.19), 0.9)/sqrt(0.19) = 1.034726, the value
 the library header states. Fix: `-a1*subs(x2,s2,tau)` (or `a1 = -1`); the
-header already states the intended system.
+header already states the intended system. 2ccb8943 (Declan Jagt, 11/12/2026
+21:20, `origin/ndopvar`) makes the first of these changes, on line 66.
 
 **D2 – a higher-dimensional state in a lower-dimensional BC is rejected with
 a corner/edge message.**

@@ -1,0 +1,13 @@
+1-D heat DD half step (kappa* = pi^2, rtol 1e-5) and pinned 2-D DD x DD at w = [1 1] on rungs 0.55 to 0.85; log c2f.log, 11/15/2026
+box       o1    pd1 QD=[2     lo=9.8047900   hi=9.8048653   reach=0.99343  res=1 nsolve=18  t=2     nx=328      m=49    nnz=431
+box0      o0    pd1 QD=[2     lo=9.8611934   hi=9.8613440   reach=0.99915  res=0 nsolve=23  t=1     nx=523      m=71    nnz=797
+faces0    o0    pd1 QD=[2     lo=9.8689500   hi=9.8690253   reach=0.99993  res=1 nsolve=20  t=1     nx=783      m=60    nnz=1069
+box       o1    pd1 QD=[2     lo=9.8695525   hi=9.8696278   reach=0.99999  res=1 nsolve=18  t=1     nx=720      m=63    nnz=939
+2 box o1 pd1 dw0 D[2 w[1                       +++---- ndec=31104 m=1405      tsmax=   2 
+2 box0 o0 pd1 dw0 D[2 w[1                      +++---- ndec=62208 m=2677      tsmax=   5 
+2 product0 o0 pd1 dw0 D[2 w[1                  +++---- ndec=82944 m=2965      tsmax=   6 
+2 faces o1 pd1 dw0 D[2 w[1                     +++---- ndec=41472 m=1405      tsmax=   2 
+2 faces0 o0 pd1 dw0 D[2 w[1                    +++++++ ndec=103680 m=2041     tsmax=   4 
+2 facesS o1 pd0 dw0 D[2 w[1                    ------- ndec=25920 m=1405      tsmax=   3 
+2 corners o1 pd1 dw0 D[2 w[1                   +++---- ndec=46656 m=1405      tsmax=   2 
+2 corners0 o0 pd1 dw0 D[2 w[1                  +++++++ ndec=186624 m=2113     tsmax=   8 
