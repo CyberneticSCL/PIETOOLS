@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)
+function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)               % MMP, 11/18/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         (optional) example-specific settings structure (header)     % MMP, 11/18/2026
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
 %
@@ -28,7 +29,22 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)
 % %             x2(s1=1) = 0;      x2(s2=1) = 0;
 % %
 % % Parameters c1 and c2 can be set.
+% %                                                                         % MMP, 11/18/2026
+% % Example-specific settings (output st), for                              % MMP, 11/18/2026
+% % PIETOOLS_stability_sop(PIE,st,'Q'): lpisettings_sop('light') with Q     % MMP, 11/18/2026
+% % of degree 2 in two variables, st.sop.deg_Q{2} = 2, the plain slack      % MMP, 11/18/2026
+% % term only, st.lpi.ineq.psatz{2} = 'none', and no raise pass in two      % MMP, 11/18/2026
+% % variables, st.sop.max_raise_Q(2) = 0. MOSEK, 11/18/2026, library        % MMP, 11/18/2026
+% % defaults: certified at 595,684 decision variables, 30,999 rows          % MMP, 11/18/2026
+% % (OPT_STATUS 1.27, eta 1.7e-7); the heavy tier certifies at 744,164      % MMP, 11/18/2026
+% % variables, 30,999 rows (OPT_STATUS 0.793); the light tier returns       % MMP, 11/18/2026
+% % UNKNOWN (245,200 variables).                                            % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/18/2026: Second output st, example-specific settings that
+%                   certify the library default, which the light tier
+%                   does not, at fewer decision variables than heavy;
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)                 % MMP, 11/18/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -89,6 +105,15 @@ PDE_t = [diff(x1,'t')==x2;
 % PDE_t.BC{6}.term{1}.x = 2;              PDE_t.BC{8}.term{1}.x = 2;
 % PDE_t.BC{6}.term{1}.loc = [0,s2];       PDE_t.BC{8}.term{1}.loc = [1,s2];
 
+
+% Example-specific settings (header): light, Q of degree 2 in two           % MMP, 11/18/2026
+% variables, the plain slack term only (factor 1), no raise pass            % MMP, 11/18/2026
+if nargout>1                                                                % MMP, 11/18/2026
+    st = lpisettings_sop('light');                                          % MMP, 11/18/2026
+    st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
+    st.lpi.ineq.psatz{2} = 'none';                                          % MMP, 11/18/2026
+    st.sop.max_raise_Q(2) = 0;                                              % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

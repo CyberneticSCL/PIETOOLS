@@ -57,6 +57,15 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridma
 % % light storage.                                                          % MMP, 11/17/2026
 % % Through the executive with this st (MOSEK, 11/17/2026): certified at    % MMP, 11/17/2026
 % % the default 0.9*tau*, 302,957 variables, no raise.                      % MMP, 11/17/2026
+% %                                                                         % MMP, 11/18/2026
+% % Example-specific settings of 11/18/2026 (output st), form 'Q',          % MMP, 11/18/2026
+% % library default tau = 0.9*2.881401: lpisettings_sop('light') with       % MMP, 11/18/2026
+% % the slack lift degree at its minimum, st.lpi.ineq.dD = 0, and Q of      % MMP, 11/18/2026
+% % degree 2 in two variables, st.sop.deg_Q{2} = 2. MOSEK, 11/18/2026:      % MMP, 11/18/2026
+% % certified at 225,705 decision variables, 6,608 rows, no raise           % MMP, 11/18/2026
+% % (OPT_STATUS 1.00, eta 2.4e-11); the 11/17 st (deg 2) and heavy:         % MMP, 11/18/2026
+% % 302,957; light: infeasible (563,813 after one raise); light in form     % MMP, 11/18/2026
+% % 'P': infeasible (638,505).                                              % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
@@ -65,6 +74,9 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridma
 %                   where the tiers do not); the light tier certifies it
 %                   in neither form (header);
 % function [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman(GUI,params) % MMP, 11/17/2026 (was)
+% MMP, 11/18/2026: st: slack lift degree at its minimum and Q of degree
+%                   2 set through deg_Q, which the direct form reads in
+%                   place of lpi.var.deg: 25% fewer variables (header);
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -100,11 +112,15 @@ PDE_t = [diff(e,'t')==diff(v,s1);
          subs(y,s2,0)==e];
 
 
-% Application-specific settings (header): the light tier with Q of the      % MMP, 11/17/2026
-% direct form at degree 2 in two variables; built only when requested       % MMP, 11/17/2026
+% Application-specific settings (header): the light tier with Q of the      % MMP, 11/18/2026 (was); MMP, 11/17/2026
+% direct form at degree 2 in two variables; built only when requested       % MMP, 11/18/2026 (was); MMP, 11/17/2026
+% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
+% minimum (dD = 0), Q of degree 2 in two variables (st.sop.deg_Q)           % MMP, 11/18/2026
 if nargout>1                                                                % MMP, 11/17/2026
     st = lpisettings_sop('light');                                          % MMP, 11/17/2026
-    st.lpi.var.deg{2} = 2;                                                  % MMP, 11/17/2026
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
+    st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
+%    st.lpi.var.deg{2} = 2;                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
 end                                                                         % MMP, 11/17/2026
 
 if GUI~=0

@@ -49,12 +49,25 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 % % Through the executive (MOSEK, 11/17/2026), r2 = 0.9*r2*: this st
 % % certifies at 267,968 variables, no raise; the light tier returns
 % % UNKNOWN after one raise (676,410).
+% %                                                                         % MMP, 11/18/2026
+% % Example-specific settings of 11/18/2026 (output st):                    % MMP, 11/18/2026
+% % lpisettings_sop('light') with the slack lift degree at its minimum,     % MMP, 11/18/2026
+% % st.lpi.ineq.dD = 0, and Q of degree 2 in two variables set through      % MMP, 11/18/2026
+% % st.sop.deg_Q{2} = 2 (since 11/18/2026 the direct form reads deg_Q,      % MMP, 11/18/2026
+% % not lpi.var.deg, so the 11/17 st no longer raised Q). MOSEK,            % MMP, 11/18/2026
+% % 11/18/2026, r2 = 0.9*r2*: OPTIMAL at 241,648 decision variables,        % MMP, 11/18/2026
+% % 6,257 rows, no raise, eta 2.0e-9, OPT_STATUS 0.675 (outside the         % MMP, 11/18/2026
+% % library-harness gate |OPT_STATUS-1| <= 0.3); the 11/17 st (heavy):      % MMP, 11/18/2026
+% % 267,968, OPT_STATUS 1.78. No setting measured passes that gate.         % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding; the system and the measurements of the
 %                   mixed-domain suite (S17), with the settings that
 %                   certify it as the second output (maintainer:
 %                   application-specific settings where the tiers do not);
+% MMP, 11/18/2026: st: Q degree through st.sop.deg_Q (the direct form no
+%                   longer reads lpi.var.deg) and the slack lift degree
+%                   at its minimum, 10% fewer variables (header);
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -87,11 +100,15 @@ PDE_t = [diff(x1,'t')==-diff(x1,s1);
          subs(x2,s2,0)==x1;         subs(x2,s2,1)==0];
 
 
-% Application-specific settings (header): the light tier with Q of the
-% direct form at degree 2 in two variables; built only when requested
+% Application-specific settings (header): the light tier with Q of the      % MMP, 11/18/2026 (was)
+% direct form at degree 2 in two variables; built only when requested       % MMP, 11/18/2026 (was)
+% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
+% minimum (dD = 0), Q of degree 2 in two variables (st.sop.deg_Q)           % MMP, 11/18/2026
 if nargout>1
     st = lpisettings_sop('light');
-    st.lpi.var.deg{2} = 2;
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
+    st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
+%    st.lpi.var.deg{2} = 2;                                                 % MMP, 11/18/2026 (was)
 end
 
 if GUI~=0

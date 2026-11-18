@@ -32,6 +32,11 @@
 %                   executives stop on the copvar PIEs the converters
 %                   return. PIETOOLS_H2_controller, called before, does not
 %                   exist; the H2 control LPI is PIETOOLS_H2_control_sop.
+% MMP, 11/18/2026: The settings st of the library example, when its block
+%                   sets them (examples_DDE_library_PIETOOLS: Examples B,
+%                   p. 192 of [1], A, D, E of [2]), replace the light
+%                   tier; measured in cleaning/private/settings_1116/
+%                   psatz_faces_results/example_settings.
 %
 close all; clear; %path(pathdef); 
 clc;
@@ -227,6 +232,9 @@ settings = lpisettings_sop('light');  % tiers of the container executives   % MM
 settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function 
+% The example settings st, if the library block sets them, replace the      % MMP, 11/18/2026
+% settings above (they start from a tier; the example file names why)       % MMP, 11/18/2026
+if exist('st','var'),   settings = st;  end                                 % MMP, 11/18/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

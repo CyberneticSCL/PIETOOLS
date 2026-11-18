@@ -39,6 +39,16 @@
 %
 % Initial coding MP - 10_01_2020
 % updated to DDE data structure 5_3_2021
+% MMP, 11/18/2026: Example-specific settings st (uncommented with the
+%                   block; PIETOOLS_DDE uses st when set) in Examples B,
+%                   p. 192 of [1], A, D, E of [2]: the degree of Q of the
+%                   direct stability form (sop.deg_Q), and no raise
+%                   passes where raises certified nothing. B reaches the
+%                   documented taumax 1.71785, E tauN 3.9144 (veryheavy
+%                   3.8957 at 1.65 times the variables); the others the
+%                   heavy threshold in 11 SDP solves (heavy: 15-29).
+%                   Measurements: cleaning/private/settings_1116/
+%                   psatz_faces_results/example_settings/EXAMPLE_SETTINGS.md;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,6 +77,9 @@
 % DDE.A0=[0 1;-2 .1];
 % DDE.Ai{1}=[0 0;1 0];
 % DDE.tau(1)=1.5;
+% % st: Q degree [5 2 2] reaches taumax 1.71785; no raise passes            % MMP, 11/18/2026
+% st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;                % MMP, 11/18/2026
+% st.sop.deg_Q{1} = [5 2 2];                                                % MMP, 11/18/2026
 % % %%%% answer - taumin=.100174
 % % %%%% answer - taumax=1.71785
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,6 +90,9 @@
 %    DDE.A0=[-2 0;0 -.9];%
 %    DDE.Ai{1}=[-1 0; -1 -1];%
 %    DDE.tau(1) = 6;
+% % st: Q degree [3 2 2] reaches the heavy threshold; no raise passes       % MMP, 11/18/2026
+% st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;                % MMP, 11/18/2026
+% st.sop.deg_Q{1} = [3 2 2];                                                % MMP, 11/18/2026
 % % %%%% [1] says stable range is tau < 6.17258
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example A from [2]
@@ -87,6 +103,9 @@
 %  DDE.A0=[0];
 %  DDE.Ai{1}=[-1];
 %  DDE.tau(1)=1.56;
+% % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes       % MMP, 11/18/2026
+% st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;                % MMP, 11/18/2026
+% st.sop.deg_Q{1} = [4 2 2];                                                % MMP, 11/18/2026
 % % %%%% answer - taumax=1.5707
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example C from [2] and from [3]
@@ -106,6 +125,9 @@
  %  DDE.Ai{1}=[0 0; -1 0];
  %  DDE.Ai{2}=[0 0;1 0];
  %  DDE.tau(1)=tauN/2;DDE.tau(2)=tauN;
+ % % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes      % MMP, 11/18/2026
+ % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;               % MMP, 11/18/2026
+ % st.sop.deg_Q{1} = [4 2 2];                                               % MMP, 11/18/2026
 % % % %%%% answer - tauNmax=1.3722
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Example E from [2], taken from [9]
@@ -117,6 +139,8 @@
  %  DDE.A0=A-B*K*C;
  %  DDE.Ai{1}=B*K*C;
  %  DDE.tau(1)=1.1;
+ % % st: Q degree [8 6 6] certifies tauN 3.9144 (veryheavy 3.8957)          % MMP, 11/18/2026
+ % st = lpisettings_sop('light');  st.sop.deg_Q{1} = [8 6 6];               % MMP, 11/18/2026
 % % % %%%% answer - tauNmax\in [3.9,3.95] (Note:requires veryheavy settings)
 %
 

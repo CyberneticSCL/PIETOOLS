@@ -110,6 +110,10 @@
 %                   43, 57, 58, 66 and 72 note that [PDE,st] returns the
 %                   application-specific settings that certify the
 %                   example (file headers), where the tiers do not;
+% MMP, 11/18/2026: Cases 33, 35, 37, 38 and 40 note the output st of their
+%                   example files (example-specific settings, measured
+%                   against the tiers in cleaning/private/settings_1116/
+%                   psatz_faces_results/example_settings);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -488,6 +492,7 @@ switch index
     case 33
 %   PDE: x_{t} = c1*x_{s1} + c2*x_{s2}              | c1 = 1; c2 = 1;
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0;                |   ne = 1 (state size)
+%   [PDE,st]: st, example-specific settings (file header)                   % MMP, 11/18/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -514,6 +519,7 @@ switch index
 %                 - b1*x_{(1,0)} - b2*x_{(0,1)}     | b1 = 0.5; b2 = 2;             Holmes, 1994 [14] Eq. (2)
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0,                | ne = 1 (state size)
 %        x(s1=1) = 0,   x(s2=1) = 0;                |
+%   [PDE,st]: st, example-specific settings (file header)                   % MMP, 11/18/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -549,6 +555,7 @@ switch index
 %                  + c1*x_{(2,0)} + c2*x_{(0,2)}    | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0,       x_{s1}(s1=1) = 0,       | ne = 1 (state size)
 %        x(s2=0) = 0,       x_{s2}(s2=1) = 0;       |
+%   [PDE,st]: st, example-specific settings (file header)                   % MMP, 11/18/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -568,6 +575,7 @@ switch index
 %        x1(s1=1) = 0;      x1(s2=1) = 0;           |
 %        x2(s1=0) = 0;      x2(s2=0) = 0;           |
 %        x2(s1=1) = 0;      x2(s2=1) = 0;           |
+%   [PDE,st]: st, example-specific settings (file header)                   % MMP, 11/18/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -598,6 +606,7 @@ switch index
 %   PDE: x2_{t} = c1*x_{(2,0)} + c2*x_{(0,2)}       | K = -2*I;
 %   BCs: x2_{(1,0)}(s1=0) = 0;  x2(s1=1) = 0;       |
 %        x2_{(0,1)}(s2=0) = 0;  x2(s2=1) = 0;       |
+%   [PDE,st]: st, example-specific settings (file header)                   % MMP, 11/18/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;

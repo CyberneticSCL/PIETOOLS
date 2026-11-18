@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params)
+function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params)          % MMP, 11/18/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         (optional) example-specific settings structure (header)     % MMP, 11/18/2026
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
 %
@@ -19,7 +20,21 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params)
 % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
 % %
 % % Parameters c1 and c2 can be set.
+% %                                                                         % MMP, 11/18/2026
+% % Example-specific settings (output st), for                              % MMP, 11/18/2026
+% % PIETOOLS_stability_sop(PIE,st,'Q'): lpisettings_sop('light') with       % MMP, 11/18/2026
+% % the slack lift degree at its minimum, st.lpi.ineq.dD = 0, and Q of      % MMP, 11/18/2026
+% % degree 0 in two variables, st.sop.deg_Q{2} = 0. MOSEK, 11/18/2026,      % MMP, 11/18/2026
+% % library defaults: 409 decision variables, 111 rows, OPT_STATUS          % MMP, 11/18/2026
+% % 0.972, eta 1.7e-9; light tier: 52,660 variables, 2,552 rows             % MMP, 11/18/2026
+% % (OPT_STATUS 0.974, eta 3.7e-10). Verified at the default parameters     % MMP, 11/18/2026
+% % only.                                                                   % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/18/2026: Second output st, example-specific settings that
+%                   certify the library default at fewer decision
+%                   variables than the light tier (header);
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params)            % MMP, 11/18/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -62,6 +77,14 @@ PDE_t = [diff(x,'t')==c1*diff(x,s1)+c2*diff(x,s2);
 % % BC2: 0 = x(0,s2)
 % PDE_t.BC{2}.term{1}.loc = [0,s2];
 
+
+% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
+% minimum (dD = 0), Q of degree 0 in two variables (st.sop.deg_Q)           % MMP, 11/18/2026
+if nargout>1                                                                % MMP, 11/18/2026
+    st = lpisettings_sop('light');                                          % MMP, 11/18/2026
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
+    st.sop.deg_Q{2} = 0;                                                    % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')
