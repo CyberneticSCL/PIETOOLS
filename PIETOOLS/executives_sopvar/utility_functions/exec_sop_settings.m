@@ -167,7 +167,7 @@ function st = exec_sop_settings(st)
 %                settings_2d were already guarded by isfield and need no
 %                change. New: a row lpi.pos carrying the stock fields mult,
 %                int, joint or sep is an error, since POSCOPVAR ignores
-%                them (a caller editing lpi.pos.mult of a row, as DEMO12
+%                them (a caller editing lpi.pos.mult of a row, as DEMO13
 %                did, would otherwise get the tier storage silently).
 % MMP, 11/18/2026: Three fields for the direct stability form 'Q' of
 %                PIETOOLS_STABILITY_SOP, so that it and the storage form

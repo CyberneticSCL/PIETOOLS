@@ -1,6 +1,6 @@
-% DEMO14_trace_inequality_2D.m
+% DEMO15_trace_inequality_2D.m
 %
-% This document extends DEMO13 to a 2D domain: it illustrates how a trace
+% This document extends DEMO14 to a 2D domain: it illustrates how a trace
 % (boundary value) inequality on the unit square can be verified, and its
 % constant found, using PIETOOLS. The trace constant is the smallest value
 % c such that
@@ -25,7 +25,7 @@
 %               x(0,s2) = E1op*xf,   x(1,s2) = E2op*xf,
 %               x(s1,0) = E3op*xf,   x(s1,1) = E4op*xf.
 % Alternatively (option 'inputs' below), the values of x on two edges can be
-% declared as inputs, x(s1,0) = v1(s1), x(0,s2) = v2(s2), as in DEMO13. The
+% declared as inputs, x(s1,0) = v1(s1), x(0,s2) = v2(s2), as in DEMO14. The
 % fundamental state is then [x(0,0); v1_{s1}; v2_{s2}; x_{s1 s2}], and
 %               x = H0op*[w; xf],  with w the inputs.
 % Both options parameterize all of H1 and give the same constant.
@@ -33,14 +33,14 @@
 %   min_{gam}   gam,
 %      s.t.     gam*(H0op'*H0op + H1op'*H1op + H2op'*H2op) - sum_k Ekop'*Ekop ≥ 0.
 %
-% The 1D version of this inequality (DEMO13) has the constant 2.164 on
+% The 1D version of this inequality (DEMO14) has the constant 2.164 on
 % [0,1] for x(0)^2 + x(1)^2. The optimal constant on the unit square is
 % about 4.165 (finite elements). The same construction applies to more
 % variables, at a higher cost: the certificate grows quickly with the
 % number of variables and with the degrees dD, dw.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - DEMO14
+% PIETOOLS - DEMO15
 %
 % Copyright (C)2026  PIETOOLS Team
 %

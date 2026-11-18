@@ -27,7 +27,7 @@
 %    (hinfsyn) for finite-difference discretizations of the PDE.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - DEMO12
+% PIETOOLS - DEMO13
 %
 % Copyright (C)2026  PIETOOLS Team
 %

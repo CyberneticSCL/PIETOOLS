@@ -84,7 +84,7 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 %                   (formerly closedLoopPIE_OF_sop);
 % MMP, 11/08/2026: Moved, code unchanged, from executives/utility_functions
 %                   (retired to cleaning/private on 11/08/2026) to
-%                   executives_sopvar/utility_functions: PIETOOLS_PDE.m, DEMO12
+%                   executives_sopvar/utility_functions: PIETOOLS_PDE.m, DEMO13
 %                   and the manual snippets call it on container PIEs.
 % MMP, 11/09/2026: Dead opvar branches removed (maintainer, 11/09/2026):
 %                   the gain and the dynamic-controller operators are

@@ -162,7 +162,7 @@ from there to this folder the same day.
 | `get_lpivar_degs_sop` | the degrees of the free operator, read off the storage |
 | `trace_rn_sop` | the trace over the R^q blocks, for the H2 executives |
 | `getController_sop`, `getObserver_sop` | the 1-D gains through the container inverse (below) |
-| `closedLoopPIE` | the closed-loop PIE of a PIE and a state-feedback, observer or dynamic output-feedback gain; called by `PIETOOLS_PDE.m`, DEMO12 and the manual snippets (from `executives/utility_functions/`, 11/08/2026) |
+| `closedLoopPIE` | the closed-loop PIE of a PIE and a state-feedback, observer or dynamic output-feedback gain; called by `PIETOOLS_PDE.m`, DEMO13 and the manual snippets (from `executives/utility_functions/`, 11/08/2026) |
 | `pie_disc_sop`, `pie_witness_sop` | the Legendre-Galerkin matrices of a 1-D PIE, and the numerical counterpart of a certificate |
 
 Added for this folder on 10/08/2026 and kept in the library: `lpi_classify_sop`, `lpi_shape_sop`,

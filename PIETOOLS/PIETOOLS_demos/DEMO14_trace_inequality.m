@@ -1,4 +1,4 @@
-% DEMO13_trace_inequality.m
+% DEMO14_trace_inequality.m
 %
 % This document illustrates how a trace (boundary value) inequality can be
 % verified, and its constant found, using PIETOOLS. The trace constant is
@@ -30,7 +30,7 @@
 %
 % The finite-element method gives bound 2.164 for [a, b] = [0, 1]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - DEMO13
+% PIETOOLS - DEMO14
 %
 % Copyright (C)2026  PIETOOLS Team
 %

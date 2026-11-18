@@ -135,7 +135,7 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
 
   The heat rows use the `heatNd` PIE (`testing_codes/private/PIETOOLS_demos/sopvar_demos`). In 1-D, the
   faces at `w = 1` reach only 1.174 on the first heat row, so that class needs the weight, not more terms.
-  DEMO14 sets `dw` 1 itself and reaches the finite-element value 4.165 at `w = 1` (93,845 variables);
+  DEMO15 sets `dw` 1 itself and reaches the finite-element value 4.165 at `w = 1` (93,845 variables);
   with the floor it would have 169,325.
 
   The entry for three or more variables is 0: on the Volterra row in 3-D (ASU Sol, 16 cores, 11/10/2026),
