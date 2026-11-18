@@ -46,6 +46,10 @@
 %   Windows: bl_bisect runs it inside WSL, where EXIST cannot look, so the
 %   cuADMM stage stopped with "cuADMM executable not found" on Windows. Set
 %   CUADMM_EXE there (pick_cuadmm_exe tests its candidates with EXIST).
+% CC, 11/18/2026: EXPORT_CUADMM_PROBLEM takes n again. c6d5beb7 (10/05/2026)
+%   dropped it from the call and the signature but kept it in case_id, so
+%   the cuADMM stage stopped with "Unrecognized function or variable 'n'"
+%   (Sol job 1910821, after the low-rank stage certified).
 %% parameters
 n = 1;                          % Number of coupled heat-equation states.
 lam = 2;                        % Reaction coefficient in x_t = x_s1s1 + x_s2s2 + lam*x.
@@ -261,7 +265,8 @@ else
 end
 %% export_cuadmm_problem
 fprintf('\ncuADMM export and GPU solve for the same assembled LPI...\n');
-out.cuadmm = export_cuadmm_problem(D, shape, lam, nd, dmult, cuadmm_outdir);
+% out.cuadmm = export_cuadmm_problem(D, shape, lam, nd, dmult, cuadmm_outdir); % CC, 11/18/2026 (was)
+out.cuadmm = export_cuadmm_problem(D, shape, n, lam, nd, dmult, cuadmm_outdir); % CC, 11/18/2026
 fprintf('  dump: %s\n', out.cuadmm.dumpfile);
 fprintf('  text problem dir: %s\n', out.cuadmm.problem_dir);
 fprintf('  export time: %.2f s\n', out.cuadmm.t_export);
@@ -351,7 +356,8 @@ end
 end
 
 
-function cu = export_cuadmm_problem(D, shape, lam, nd, dmult, cuadmm_outdir)
+% function cu = export_cuadmm_problem(D, shape, lam, nd, dmult, cuadmm_outdir) % CC, 11/18/2026 (was)
+function cu = export_cuadmm_problem(D, shape, n, lam, nd, dmult, cuadmm_outdir) % CC, 11/18/2026
 if ~exist(cuadmm_outdir, 'dir')
     mkdir(cuadmm_outdir);
 end
