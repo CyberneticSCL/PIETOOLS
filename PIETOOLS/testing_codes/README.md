@@ -206,8 +206,12 @@ Identical on both trees: `test_copquadvar_faces`, `test_heatNd_lpi`, `test_dpvar
 `e2e_stability_1d`, `e2e_hinf_gain_1d` and `heatNd_poincare_validate('I0')` run without error;
 `test_heatNd_pie` stops at the `copvar` field `var1`, as on 11/08; `test_heatNd_poincare` stops at
 "b is not affine in lam (third-point error 6.7e-01)", as it does on exports of 864a00d8 (11/08),
-5388c808, b0e59c37 and 96b0b313, so before these moves (cause not traced). `lb_setup`, run on the
-working tree, reaches `heatNd_path` and stops at `lpisettings`, retired on 11/08/2026.
+5388c808, b0e59c37 and 96b0b313, so before these moves. MMP, 11/19/2026: the cause is e3a1f667
+(11/04/2026), whose equality dedupe kept, of the equations without a decision variable, only the
+one with the largest constant term, so the lam-affine family of `heatNd_poincare` wrote other rows
+at other lam; since 590876d7 (11/14/2026) every such equation is written, and the test passes 44
+of 44 (exports of 8c416566 and 7670fb57 with that change, 11/10 and 11/14/2026). `lb_setup`, run
+on the working tree, reaches `heatNd_path` and stops at `lpisettings`, retired on 11/08/2026.
 
 ## Checked (11/08/2026, on the default path)
 
