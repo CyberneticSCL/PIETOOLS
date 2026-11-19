@@ -1,0 +1,10 @@
+DDE|DDE01|veryheavy
+DDE|DDE02|veryheavy
+DDE|DDE03|veryheavy
+DDE|DDE04|veryheavy
+DDE|DDE05|veryheavy
+DDE|DDE06|veryheavy
+DDE|DDE07|veryheavy
+DDE|DDE08|veryheavy
+NDSDDF|NDS05|veryheavy
+NDSDDF|NDS08|veryheavy

@@ -1,0 +1,2 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,46,light,certified,0.17173673,exact=0.17110,1,24.50,200986,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/P fr=1 pinf=0 dinf=0 numerr=0 iter=20 cpu=16.3s m=3983 nx=200987 exst=optimal eta=3.1e-10 passes=1

@@ -1,0 +1,22 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,20,heavy,certified,0.50066131,0.5011,1,5.27,1596,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.999 pinf=0 dinf=0 numerr=0 iter=49 cpu=0.1s m=141 nx=1597 exst=optimal eta=2e-11 passes=1
+PDE,20/Hinf_gain_dual,heavy,certified,0.50000131,0.5058,1,1.74,1596,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Qd fr=1.01 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.0s m=142 nx=1597 exst=optimal eta=1.5e-10 passes=1
+PDE,21,heavy,certified,0.84187729,0.8419,1,2.23,5965,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=519 nx=5966 exst=optimal eta=4.9e-09 passes=1
+PDE,21/Hinf_gain_dual,heavy,certified,0.84187956,0.8552,1,1.28,5965,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Qd fr=0.965 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=521 nx=5966 exst=optimal eta=4.9e-10 passes=1
+PDE,22,heavy,certified,0.20833385,0.2083,1,1.27,1596,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.979 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=155 nx=1597 exst=optimal eta=7e-09 passes=1
+PDE,23,heavy,certified,23.706118,23.706,1,1.03,1596,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.0s m=176 nx=1597 exst=optimal eta=1.2e-10 passes=1
+PDE,24,heavy,certified,8.2140658,8.2136,1,0.73,1596,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.1s m=160 nx=1597 exst=optimal eta=1.9e-10 passes=1
+PDE,25,heavy,certified,0.81021207,0.8102,1,1.05,5965,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.1s m=584 nx=5966 exst=optimal eta=1.1e-10 passes=1
+PDE,26,heavy,certified,2.1456961,2.1457,1,1.14,13728,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.4s m=1377 nx=13729 exst=optimal eta=3.3e-11 passes=1
+PDE,45,heavy,unknown,50.415781,exact=0.11101,1,389.32,1399419,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=-0.0475 pinf=0 dinf=0 numerr=2 iter=28 cpu=329.7s m=9517 nx=1.39942e+06 exst=unknown eta=7.5e-10 passes=2
+PDE,46,heavy,unknown,8.5071045,exact=0.17110,1,362.91,1399419,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.0804 pinf=0 dinf=0 numerr=2 iter=25 cpu=320.2s m=9550 nx=1.39942e+06 exst=unknown eta=1.9e-09 passes=2
+PDE,47,heavy,unknown,306.34762,exact=0.20668,1,355.34,1399419,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=-0.0112 pinf=0 dinf=0 numerr=2 iter=25 cpu=305.9s m=9485 nx=1.39942e+06 exst=unknown eta=5.8e-10 passes=2
+DDE,DDE09,heavy,certified,25.907748,25.907 (tau=1.5),1,1.21,1738,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=20 cpu=0.0s m=167 nx=1739 exst=optimal eta=6.4e-11 passes=1
+DDE,DDE09/Hinf_gain_dual,heavy,certified,25.907748,25.907 (tau=1.5),1,0.65,1738,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Qd fr=1 pinf=0 dinf=0 numerr=0 iter=20 cpu=0.0s m=164 nx=1739 exst=optimal eta=1e-10 passes=1
+DDE,DDE10,heavy,certified,0.23644326,0.2364,1,1.04,6517,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.968 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=607 nx=6518 exst=optimal eta=2.3e-09 passes=1
+DDE,DDE10/Hinf_gain_dual,heavy,certified,0.2364442,0.2364,1,0.91,6517,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Qd fr=0.998 pinf=0 dinf=0 numerr=0 iter=31 cpu=0.4s m=595 nx=6518 exst=optimal eta=1.6e-09 passes=1
+DDE,DDE11,heavy,certified,2.8758982,2.87,1,1.79,2004,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=205 cpu=1.0s m=206 nx=2005 exst=optimal eta=7.7e-11 passes=1
+DDE,DDE11/Hinf_gain_dual,heavy,unknown,2.8763565,2.87,1,0.85,2004,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Qd fr=0.449 pinf=0 dinf=0 numerr=0 iter=108 cpu=0.4s m=203 nx=2005 exst=optimal eta=2.8e-11 passes=1
+DDE,DDE12,heavy,certified,4.9793907,4.9784,1,0.82,6517,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.999 pinf=0 dinf=0 numerr=0 iter=22 cpu=0.2s m=599 nx=6518 exst=optimal eta=8.1e-10 passes=1
+DDE,DDE12/Hinf_gain_dual,heavy,certified,4.979455,4.9784,1,0.53,6517,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Qd fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.2s m=593 nx=6518 exst=optimal eta=1e-09 passes=1
+PDE,71,heavy,inaccurate,3.1839994,exact gain,1,461.99,1411226,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.964 pinf=0 dinf=0 numerr=2 iter=33 cpu=410.7s m=9853 nx=1.41123e+06 exst=unknown eta=1.5e-08 passes=2

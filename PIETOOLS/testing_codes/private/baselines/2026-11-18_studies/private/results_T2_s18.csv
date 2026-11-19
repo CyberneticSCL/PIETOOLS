@@ -1,0 +1,2 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,43/reach,light,converged,0.97268286,margin 1.034726,12,157.41,196513,sop:PIETOOLS_PIE2PDEstability | bracket [0.517363 1.1382] final [0.972683 0.973289] | steps 0.517363:C(11s) 1.1382:F(11s) 0.827781:C(9s) 0.98299:U(9s) 0.905385:C(10s) 0.944187:C(14s) 0.963589:C(14s) 0.973289:U(14s) 0.968439:C(13s) 0.970864:C(14s) 0.972077:C(14s) 0.972683:C(15s) | last: PIETOOLS_stability_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=10.5s m=6376 nx=196513 exst=optimal eta=4e-10 passes=3

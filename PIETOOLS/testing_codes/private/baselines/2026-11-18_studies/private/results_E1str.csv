@@ -1,0 +1,25 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,61,extreme,error,NaN,default lam = 0.9 lam*,0,89.09,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2430327 m=19151 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,62,extreme,certified,1,,1,6.40,86078,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=3.1s m=4132 nx=86078
+PDE,63,extreme,certified,1,default r1 = 0.9 r1*; r2 = 0.9 r2*,1,10.45,165182,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1.04 pinf=0 dinf=0 numerr=0 iter=17 cpu=7.8s m=4910 nx=165182
+PDE,64,extreme,certified,1,,1,32.29,288400,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=28.9s m=13915 nx=288400
+PDE,65,extreme,error,NaN,default d = 0.9 d*,0,17.37,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2845420 m=67500 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,66,extreme,certified,1,default b = 0.9 b*,1,3.17,56548,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1.01 pinf=0 dinf=0 numerr=0 iter=17 cpu=2.3s m=2775 nx=56548
+PDE,67,extreme,infeasible,0,no threshold,1,12.15,24150,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=-1 pinf=0 dinf=0 numerr=2 iter=21 cpu=1.1s m=2474 nx=24150
+PDE,68,extreme,certified,1,exponentially stable,1,2.89,5886,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=0.855 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=769 nx=5886
+PDE,69,extreme,error,NaN,not exponentially stable,0,238.77,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=4453560 m=60678 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,70,extreme,error,NaN,not uniformly stable,0,58.12,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2014033 m=30624 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,71,extreme,unknown,11322.664,exact gain,1,2.61,13119,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=-0.321 pinf=0 dinf=0 numerr=2 iter=34 cpu=1.0s m=940 nx=13120
+PDE,72,extreme,unknown,0,default r2 = 0.9 r2*,1,34.14,676410,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=0.619 pinf=0 dinf=0 numerr=2 iter=16 cpu=26.1s m=7989 nx=676410
+PDE,61,stripped,error,NaN,default lam = 0.9 lam*,0,85.78,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2430327 m=19151 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,62,stripped,certified,1,,1,6.81,86078,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=2.8s m=4132 nx=86078 exst=optimal eta=7.2e-10 passes=1
+PDE,63,stripped,certified,1,default r1 = 0.9 r1*; r2 = 0.9 r2*,1,11.19,165182,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1.04 pinf=0 dinf=0 numerr=0 iter=17 cpu=8.5s m=4910 nx=165182 exst=optimal eta=7.5e-10 passes=1
+PDE,64,stripped,certified,1,,1,43.83,288400,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=39.9s m=13915 nx=288400 exst=optimal eta=1.7e-08 passes=1
+PDE,65,stripped,error,NaN,default d = 0.9 d*,0,20.62,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2845420 m=67500 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,66,stripped,certified,1,default b = 0.9 b*,1,4.35,56548,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1.01 pinf=0 dinf=0 numerr=0 iter=17 cpu=3.1s m=2775 nx=56548 exst=optimal eta=2.4e-10 passes=1
+PDE,67,stripped,certified,1,no threshold,1,7.71,18650,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=0.995 pinf=0 dinf=0 numerr=0 iter=9 cpu=0.5s m=2909 nx=18650 exst=optimal eta=3.3e-10 passes=1
+PDE,68,stripped,unknown,0,exponentially stable,1,2.26,6714,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=1.45 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=1052 nx=6714 exst=optimal eta=8.1e-09 passes=1
+PDE,69,stripped,error,NaN,not exponentially stable,0,292.10,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=4453560 m=60678 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,70,stripped,error,NaN,not uniformly stable,0,70.54,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2014033 m=30624 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,71,stripped,unknown,1138.1593,exact gain,1,5.86,49575,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.0099 pinf=0 dinf=0 numerr=2 iter=35 cpu=4.2s m=2510 nx=49576 exst=unknown eta=1.3e-08 passes=1
+PDE,72,stripped,unknown,0,default r2 = 0.9 r2*,1,42.74,676410,sop:PIETOOLS_PIE2PDEstability | PIETOOLS_stability_sop/Q fr=0.619 pinf=0 dinf=0 numerr=2 iter=16 cpu=34.3s m=7989 nx=676410 exst=unknown eta=1.5e-08 passes=2

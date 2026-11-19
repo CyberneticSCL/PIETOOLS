@@ -1,0 +1,13 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,53,extreme,error,NaN,,0,65.25,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=4069288 m=41298 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,54,extreme,error,NaN,,0,282.33,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=24921000 m=120749 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,55,extreme,error,NaN,,0,1463.09,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=99684000 m=493339 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,56,extreme,error,NaN,stable for tau<1.0347 (tau*),0,45.07,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2524300 m=51558 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,53,stripped,error,NaN,,0,54.77,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=4069288 m=41298 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,54,stripped,error,NaN,,0,250.55,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=24921000 m=120749 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,55,stripped,error,NaN,,0,1349.80,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=99684000 m=493339 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,56,stripped,error,NaN,stable for tau<1.0347 (tau*),0,63.99,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2524300 m=51558 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,53,light,error,NaN,,0,66.96,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=4069288 m=41298 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,54,light,error,NaN,,0,272.53,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=24921000 m=120749 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,55,light,error,NaN,,0,1306.47,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=99684000 m=493339 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
+PDE,56,light,error,NaN,stable for tau<1.0347 (tau*),0,43.60,NaN,sop:PIETOOLS_PIE2PDEstability | lb:size: LB_SIZE ndv=2524300 m=51558 above the gate (ndv 2e+06; m 45000): not solved @ lpisolve:16
