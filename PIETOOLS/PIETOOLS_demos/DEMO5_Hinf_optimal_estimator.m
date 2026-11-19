@@ -73,6 +73,10 @@
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% MMP, 11/19/2026: POSCOPVAR and LPIVAR_CDOPVAR read the spaces and the
+%   domain off T and C2' (maintainer, 11/19/2026: "Yes, switch DEMO5"), as
+%   in DEMO1 and DEMO6: P acts in T'*P*T, and Z = P*L maps y to the state,
+%   as C2' does. SPACES is no longer needed. Same program.
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -116,10 +120,12 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % MM
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
 popts.sep = 0;                  % set the lower and upper kernels equal
-[prog,P] = poscopvar(prog,1,{{'s'}},[0,1],4,popts);                         % DJ (CC), 10/30/2026
+% [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],4,popts);                       % MMP, 11/19/2026 (was)
+[prog,P] = poscopvar(prog,T,4,popts);   % P on the output spaces of T       % MMP, 11/19/2026
 % Indefinite operator variable Z: \R-->L2
-spaces.out = {'s'};     spaces.in = [];
-[prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,[0,1],4);      % DJ (CC), 10/30/2026
+% spaces.out = {'s'};     spaces.in = [];                                   % MMP, 11/19/2026 (was)
+% [prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,[0,1],4);    % MMP, 11/19/2026 (was)
+[prog,Z] = lpivar_cdopvar(prog,C2',4);  % Z with the spaces of C2'          % MMP, 11/19/2026
 
 % % Set inequality constraints:
 % %   Q <= 0
