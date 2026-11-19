@@ -214,7 +214,9 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                a purely integral self-adjoint target of degree p in each
 %                variable with any Gram factorization, one exists whose
 %                global part has input degree <= p), in place of Dmin_d +
-%                dD, the floor of the lift notes; opts.cap_inc ('auto' =
+%                dD, the floor of the lift notes, with the weight degree of
+%                the base rule kept (the ceiling applied before the rule
+%                lowered w: 24 of 124 rows lost, 03:10); opts.cap_inc ('auto' =
 %                Dmax_d - 1, or a row) the cap theta_d + s_d on the lower and
 %                upper basis operators (Lemma 1.2 there: the triangular part
 %                has total degree <= p - 1), passed to POSCOPVAR_DIRECT as
@@ -368,8 +370,12 @@ end
 
 % % % The rule
 D = Dmin + dD;
-if useDmax,     D = max(Dmax,Dmin);     end     % the ceiling (header)      % MMP, 11/18/2026
+% if useDmax,  D = max(Dmax,Dmin);  end  % the ceiling (header)             % MMP, 11/18/2026 (was)
 w = max([ceil((Dmax-D-1)/2); ceil(Mdeg/2); J-D-wR-1; zeros(1,nv)],[],1) + dw;
+% The ceiling after the weight rule: w from the base lift Dmin + dD, so the % MMP, 11/18/2026
+% family at D = Dmax contains the base family (measured 03:10: the ceiling  % MMP, 11/18/2026
+% before the rule lowered w and lost 24 of 124 rows)                        % MMP, 11/18/2026
+if useDmax,     D = max(Dmax,D);     end                                    % MMP, 11/18/2026
 % Read from P itself, at least wmin: with dw alone a fixed target whose     % MMP, 11/10/2026
 % support needs w = 0 got w = 1 (DEMO3: 1.218/pi; w = 2: 1.00002/pi)        % MMP, 11/10/2026
 if ~(isfield(opts,'like') && ~isempty(opts.like)),  w = max(w,wmin);  end   % MMP, 11/10/2026
