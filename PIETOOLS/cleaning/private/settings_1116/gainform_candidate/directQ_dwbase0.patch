@@ -1,0 +1,94 @@
+diff --git a/PIETOOLS/executives_sopvar/PIETOOLS_Hinf_gain_sop.m b/PIETOOLS/executives_sopvar/PIETOOLS_Hinf_gain_sop.m
+index 2b46e1f4..5e9c6bd3 100644
+--- a/PIETOOLS/executives_sopvar/PIETOOLS_Hinf_gain_sop.m
++++ b/PIETOOLS/executives_sopvar/PIETOOLS_Hinf_gain_sop.m
+@@ -8,8 +8,11 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
+ % by a KYP LPI on 'cdopvar' operators, solved as an SDP that minimizes gam.
+ % FORM selects the LPI; R is a positive operator, Q a free operator:
+ %
+-%   'Q'   R >= 0, T'*Q = R,
+-%         [-gam I, D11', B1'*Q; D11, -gam I, C1; Q'*B1, C1', A'*Q + Q'*A] <= 0;
++%   'Q'   R >= 0, T'*Q = R,                                                 % MMP, 11/18/2026 (was)
++%         [-gam I, D11', B1'*Q; D11, -gam I, C1; Q'*B1, C1', A'*Q + Q'*A] <= 0; % MMP, 11/18/2026 (was)
++%   'Q'   R = (T'*Q + Q'*T)/2 >= 0 with T'*Q = Q'*T, Q free at sop.deg_Q    % MMP, 11/18/2026
++%         (the direct form, as PIETOOLS_STABILITY_SOP since 11/17/2026),    % MMP, 11/18/2026
++%         [-gam I, D11', B1'*Q; D11, -gam I, C1; Q'*B1, C1', A'*Q + Q'*A] <= 0; % MMP, 11/18/2026
+ %   'Qd'  R >= 0, T*Q = R,
+ %         [-gam I, D11, C1*Q; D11', -gam I, B1'; Q'*C1', B1, Q'*A' + A*Q] <= 0;
+ %   'P'   R >= eppos I,
+@@ -168,6 +171,18 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
+ %                The lines read before: "settings_2d  2-D degrees of R;
+ %                settings_nd  degrees and margin of R in 3 or more
+ %                variables (EXEC_TOOLS_SOP);".
++% MMP, 11/18/2026: Form 'Q' posed directly, as the stability executive since
++%                11/17/2026: Q free with the shape of T at sop.deg_Q ([] =
++%                lpi.var.deg), T'*Q = Q'*T, R = (T'*Q + Q'*T)/2 >= 0 by a
++%                slack sized from its own support, the KYP slack likewise,
++%                base raise 0. Replaced (kept as (was)): R from the storage
++%                row, Q at the degrees of R and the equality T'*Q = R, which
++%                leaves no feasible R in a separable 2-D storage: the four
++%                2-D gain rows of the library (PDE 45, 46, 47, 71) were
++%                UNKNOWN (numerr 2) in every tier and on HEAD while the 'P'
++%                form certifies them (Sister session, 11/18/2026,
++%                cleaning/private/settings_1116/studies_1118/G_gainform.md).
++%                'Qd', 'P', 'Pd' unchanged. Help: the 'Q' line.
+ 
+ % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
+ % % % END marker at the foot of the file is new; see the header entries
+@@ -218,6 +233,12 @@ coercive = any(strcmp(form,{'P','Pd'}));
+ 
+ % Degree raise of the slack and the fixed gain, if any
+ dwbase = st.sop.dw_Q;   if coercive,    dwbase = st.sop.dw_P;   end
++% The direct 'Q' form: slacks sized from their own support, base raise 0,   % MMP, 11/18/2026
++% Q at sop.deg_Q ([] = lpi.var.deg), as PIETOOLS_STABILITY_SOP (11/17)      % MMP, 11/18/2026
++if strcmp(form,'Q'),    dwbase = 0;     end                                 % MMP, 11/18/2026
++qdeg = st.sop.deg_Q;    if isempty(qdeg),   qdeg = st.lpi.var.deg;  end     % MMP, 11/18/2026
++if ~iscell(qdeg),   qdeg = {qdeg};  end                                     % MMP, 11/18/2026
++qdeg = qdeg{min(nv,end)};                                                   % MMP, 11/18/2026
+ gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
+ 
+ % The PIE operators as containers, and the identities on w and z
+@@ -312,14 +333,30 @@ end
+             gamv = gfix;
+         end
+         % The positive operator R, with its margin
+-        [prog,Rm] = tl.storage(prog,Tm,'out');
+-        if ~isempty(e) && ~all(e==0),   Rm = Rm + tl.eye(1,e);     end
++%       [prog,Rm] = tl.storage(prog,Tm,'out');                              % MMP, 11/18/2026 (was)
++%       if ~isempty(e) && ~all(e==0),   Rm = Rm + tl.eye(1,e);     end      % MMP, 11/18/2026 (was)
++        if ~strcmp(form,'Q')        % the direct 'Q' form builds R from Q   % MMP, 11/18/2026
++            [prog,Rm] = tl.storage(prog,Tm,'out');                          % MMP, 11/18/2026
++            if ~isempty(e) && ~all(e==0),   Rm = Rm + tl.eye(1,e);     end  % MMP, 11/18/2026
++        end                                                                 % MMP, 11/18/2026
+         % The KYP operator of FORM
+         switch form
+             case 'Q'
+-                [sp,dm] = copvar_space_list(Tm,'out');
+-                [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+-                prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
++%               [sp,dm] = copvar_space_list(Tm,'out');                      % MMP, 11/18/2026 (was)
++%               [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm)); % MMP, 11/18/2026 (was)
++%               prog = lpi_eq_sop(prog,Tm'*Qm-Rm);                          % MMP, 11/18/2026 (was)
++                % BEGIN MMP, 11/18/2026: the direct form (header)           % MMP, 11/18/2026
++                % Replaced: R from the storage row, Q at the degrees of R,  % MMP, 11/18/2026
++                % the equality T'*Q = R: no feasible R in a separable 2-D   % MMP, 11/18/2026
++                % storage (the 2-D gain rows UNKNOWN in every tier; the     % MMP, 11/18/2026
++                % stability form failed S3 the same way, 11/17/2026)        % MMP, 11/18/2026
++                [prog,Qm] = lpivar_cdopvar(prog,Tm,qdeg);   % Q, shape of T % MMP, 11/18/2026
++                prog = lpi_eq_sop(prog,Tm'*Qm - Qm'*Tm);   % self-adjoint   % MMP, 11/18/2026
++                Rm = 0.5*(Tm'*Qm + Qm'*Tm);         % the storage T'*Q      % MMP, 11/18/2026
++                oR = struct('dw',dwbase+dw,'margin',st.sop.margin, ...
++                            'cap',tl.capfor(Rm));                           % MMP, 11/18/2026
++                prog = lpi_ineq_sop(prog,Rm,oR);     % R >= 0, own support  % MMP, 11/18/2026
++                % END MMP, 11/18/2026                                       % MMP, 11/18/2026
+                 % The state block, with K'*Z + Z'*K if K is given           % MMP, 11/07/2026
+                 X33 = Am'*Qm + Qm'*Am;                                      % MMP, 11/07/2026
+                 if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end  % MMP, 11/07/2026
+@@ -367,6 +404,7 @@ end
+         else
+ %           o = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin);    % MMP, 10/29/2026 (was)
+             o = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Km)); % MMP, 10/29/2026
++            if strcmp(form,'Q'),    o = rmfield(o,'like');  end             % MMP, 11/18/2026
+             [prog,Nm,li] = lpi_ineq_sop(prog,-Km,o);
+         end
+         obj = gamv;     if ~isempty(gfix),   obj = [];  end

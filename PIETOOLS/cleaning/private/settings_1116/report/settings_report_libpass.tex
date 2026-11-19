@@ -1,0 +1,80 @@
+This section records the library pass under the six tiers (11/17--11/18/2026) and the revisions it led to: the separation of the direct stability form from the storage form, the degrees of $\mcl Q$ in one variable at light, two slack knobs from the Newton polytope bounds, settings in the example files, and the two programs of three variables run on Sol. Every number is from \file{sopvar/psatz_faces_results/DECISIONS.md} (items D84--D110) and the records it cites.
+
+\subsection{The pass}\label{sec:libpass-pass}
+
+The harness of 10/28/2026 ran every row of the library catalog, $162$ rows (PDE $92$, DDE $42$, NDSDDF $28$; the 3-D cases $53$--$55$ and the mixed-domain cases $56$--$72$ added on 11/17/2026), through the container executive and form that \code{PIETOOLS\_auto\_execute\_sop} uses for the library executive, with \code{lpisettings\_sop(tier,0,'','mosek')} (D84; \file{testing_codes/private/baselines/2026-11-17_tiers}). A size gate refused any program above $2\times10^6$ decision variables or $45\,000$ equality rows and recorded its size. Custom equalled light when the pass started and was not run. Table~\ref{tab:libpass} gives the outcome against the 10/28 reference, which ran the tiers before the revision on the tree of 10/28.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+tier & rows & same & differ & new & certified & infeasible & unknown & error & skipped & seconds \\
+\midrule
+extreme & 158 & 0 & 0 & 158 & 42 & 41 & 44 & 8 & 0 & 3\,466 \\
+stripped & 146 & 6 & 132 & 8 & 109 & 5 & 24 & 4 & 0 & 3\,700 \\
+light & 156 & 6 & 132 & 18 & 118 & 5 & 21 & 8 & 0 & 2\,919 \\
+heavy & 154 & 11 & 127 & 16 & 128 & 4 & 11 & 5 & 2 & 3\,068 \\
+veryheavy & 141 & 17 & 121 & 3 & 114 & 4 & 7 & 5 & 7 & 15\,922 \\
+\bottomrule
+\end{tabular}
+\caption{The library pass of 11/17--11/18/2026 against the 10/28 reference (\texttt{final\_summary\_1118.md}). Same, differ: rows with an equal or a different result; new: rows without a reference line. Verdicts by the harness gate of Section~\ref{sec:libpass-gates}. Extreme has no 10/28 reference. Not run on 11/17: veryheavy PDE $56$--$72$, the last $12$ rows of stripped, and the rerun of PDE $53$--$56$ (D104); run on 11/18/2026 except heavy on PDE $53$--$56$ (Table~\ref{tab:st-pass}).}\label{tab:libpass}
+\end{table}
+
+Most differences have two known sources: the equality-row fix of 11/10/2026, which lowers $m$ by $1$ to $3\%$ on nearly every 1-D row at equal variables and verdict, and the direct form \code{'Q'} of the stability rows (D89). A run of the same harness on HEAD $33$d$30877$ (D91) separates the tree from the tiers. The commits between 10/28 and HEAD change no DDE or NDSDDF value except DDE01 at heavy. The working tree leaves heavy unchanged and lowers five light DDE thresholds (Section~\ref{sec:libpass-q1}). It certifies rows HEAD does not certify: PDE $40$ and $43$ at light and heavy, PDE $10$ at light, and PDE $13.2$, $31$, $38$ and $48$ at heavy. It uses $3.6\times$ fewer variables on PDE $33$, $34$, $35$ and $37$ at heavy, and loses PDE $39$ at light (Section~\ref{sec:libpass-gates}). The light direct form exceeds the size gate on four mixed-domain cases (PDE $61$, $65$, $69$, $70$: $2.0$ to $4.5$M variables) and on the 2-D PDDE $H_2$ norm (PDE $50$: $5\,896\,165$ variables, $m=56\,623$).
+
+\subsection{The direct form and the degrees of $\mcl Q$ in one variable}\label{sec:libpass-q1}
+
+The light losses in one variable come from the free operator $\mcl Q$ of the direct form, not from the storage, the slack or the term set (D92). At the four delays HEAD certifies, the working tree refuses under every slack raise and certifies all four with $\mcl Q$ at the heavy degrees $[4\ 2\ 2]$, without a raise. HEAD sized $\mcl Q$ from the degrees of the storage and certified after its slack raises at $883$ to $1\,852$ variables. The raise loop of the executive raises only the slack weight, which the own-support rule of the direct form already saturates, so no raise reaches the degree of $\mcl Q$.
+
+On 11/18/2026 the direct form received its own knobs (D95): \code{sop.deg\_Q}, the degrees of $\mcl Q$ per number of variables (empty: \code{lpi.var.deg}); \code{sop.max\_raise\_Q}, its raises (empty: \code{max\_raise\_feas}); and \code{sop.raise\_Q}, what a raise adds (\code{'slack'}, the weight, as before; \code{'deg'}, the first entry of \code{deg\_Q}; \code{'both'}). \code{lpi.var.deg} keeps the free operators of synthesis. With \code{deg\_Q} empty the light programs of the pass reproduce (DDE05 $3\,895$ and DDE08 $4\,702$ variables, infeasible; PDE $1$ and $33$ unchanged). Light then took \code{deg\_Q\{1\}} $=[4\ 2\ 2]$; stripped and custom keep $[2\ 2\ 2]$ (D96, D109). Table~\ref{tab:libpass-dde} gives the five thresholds.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
+\toprule
+row & 10/28 and HEAD, light & pass, light ($[2\,2\,2]$) & light, $[4\,2\,2]$ & documented \\
+\midrule
+DDE03 & 1.7145 & 1.6709 & 1.7162 & 1.71785 \\
+DDE04 & 6.1666 & 6.0580 & 6.1666 & 6.17258 \\
+DDE05 & 1.5707 & 1.5661 & 1.5707 & 1.5707 \\
+DDE07 & 1.3714 & 1.3479 & 1.3722 & 1.3722 \\
+DDE08 & 1.4185 & 1.3436 & 1.4223 & $[3.9,\ 3.95]$ \\
+\bottomrule
+\end{tabular}
+\caption{Certified delay thresholds of the harness bisection (relative tolerance $10^{-3}$) at light: the 10/28 reference, equal to HEAD on these rows (D91); the pass with $\mcl Q$ at $[2\ 2\ 2]$ (D89); light with \code{deg\_Q\{1\}} $=[4\ 2\ 2]$ (\texttt{results\_ddeQ4.csv}, D98); the documented value. The documented DDE08 value needs the veryheavy degrees (Section~\ref{sec:libpass-examples}).}\label{tab:libpass-dde}
+\end{table}
+
+Against HEAD at light, every bisection value under $[4\ 2\ 2]$ is equal or higher, except NDS05 ($-0.08\%$) and NDS08 ($-0.1\%$). The remaining differences are gate flips on identical programs (DDE12, the DDE26 pair, DDF03, the dual of NDS09, DDE19). The last programs reach $24\,784$ variables (NDS08), against $13\,744$ on HEAD. In the direct form of a 1-D PIE the degree of $\mcl Q$ is the only tier knob that acts: light with $[4\ 2\ 2]$ equals heavy on all ten 1-D bisection rows in value and size (D94).
+
+\subsection{The two gates}\label{sec:libpass-gates}
+
+Two tests decide whether a solve certifies. The harness gate, the criterion of the stock 2-D executives, requires the interior-point optimality measure of MOSEK within $0.3$ of $1$ and no infeasibility or numerical flag; \code{sossolve} stores that measure, \code{MSK\_DINF\_INTPNT\_OPT\_STATUS}, as \code{feasratio}. The executive gate (\code{lpi\_classify\_sop}) certifies when MOSEK raises no infeasibility flag and at most a warning on the solution status (\code{numerr} $1$, status \code{'inaccurate'}), and reports the row-normwise backward error $\eta$ of the equality system beside it. Over the pass, $13$ light, $3$ heavy and $1$ veryheavy rows of the working tree are optimal by the executive and refused by the harness, against $8$ light and $8$ heavy on HEAD; the reverse never occurs (D93). PDE $39$ at light (2-D Navier--Stokes) is one such row: $648\,900$ variables, $m=30\,721$, MOSEK OPTIMAL with $\eta=2.4\times10^{-9}$ and optimality measure $7.14$, where HEAD certifies its storage-form program ($933\,696$ variables) with measure $1.00$. The term set is not the cause (\code{'auto'}: $2.59$M variables, measure $4.94$), and \code{deg\_Q\{2\}} $=2$ gives $3.74$M variables and $m=83\,708$. PDE $36$ and $38$ at light split the same way. From 11/18/2026 the comparisons of the tier studies count a change of verdict only when both gates agree, and list the rows on which they disagree with both values.
+
+\subsection{Settings in the example files}\label{sec:libpass-examples}
+
+Fourteen example files set an \code{st} on top of light that passes both gates at fewer variables than the best tier at the library default parameters (D99; \file{example_settings/EXAMPLE_SETTINGS.md}; committed in eec4f07d, D108). In two variables, \code{dD} $0$ with \code{deg\_Q\{2\}} $0$ certifies PDE $33$, $35$ and $40$ at $409$, $8\,009$ and $8\,518$ variables, against $52\,660$, $72\,100$ and $73\,463$ at light; PDE $37$ needs \code{deg\_Q\{2\}} $=[1\ 0\ 0]$ ($16\,656$); PDE $43$ ($196\,513$), $58$ ($225\,705$) and $72$ need \code{deg\_Q\{2\}} $=2$, where the tier fails or is larger. In one variable, \code{deg\_Q\{1\}} $=[5\ 2\ 2]$ certifies the documented DDE03 threshold $1.71785$ at $3\,337$ variables, and $[8\ 6\ 6]$ certifies DDE08 at $3.9144$ with $30\,356$ variables, against $3.8957$ with $50\,214$ at veryheavy. At \code{deg\_Q\{1\}} $\ge[3\ 2\ 2]$ no raise turned a failed bisection step into a certificate (92 failed steps), so the delay blocks set \code{max\_raise\_Q(1)} $0$; the maintainer ruled this an example-specific choice, not a tier change (D109).
+
+The storage form \code{'P'} at light reaches the best form-\code{'Q'} thresholds of the delay rows with $1.4$ to $4.6\times$ fewer variables, and the documented $1.71785$ on DDE03 (D99). In two variables the direct form wins: light \code{'P'} is infeasible on PDE $43$, $57$ and $58$. The two forms prove different notions of stability, a property of the PDE and not a choice of computation, so the settings carry no form field (D100). The example file names the form its executive uses, and \code{'P'} is used wherever it certifies, being the stronger notion. The mechanism, approved on 11/18/2026, is a variable \code{stability\_form} that a library block sets and \code{PIETOOLS\_auto\_execute\_sop} reads, with the forms of the auto-executor when absent (Section~\ref{sec:open}).
+
+\subsection{Two knobs from the Newton polytope bounds}\label{sec:libpass-knobs}
+
+Two bounds of the Newton polytope note (Shivakumar, 11/17/2026) are implemented as slack knobs and are off in every tier (D98, D102, D106; \file{slack_knobs_1d_light_1118.md}). \code{lpi.ineq.cap\_inc} \code{'auto'} caps the lower and upper basis operators of the slack at $D_{\max}-1$, the triangular cap. \code{lpi.ineq.Dmax} sets the lift at the support ceiling $D_{\max}$, after the weight rule. Measured on the $124$ one-variable rows at light:
+\begin{itemize}\setlength\itemsep{0pt}
+\item the triangular cap cuts the variables from $1\,462\,393$ to $1\,112\,965$ ($-24\%$; PDE $1$ $1\,396\to488$, DDF01 $5\,584\to1\,952$, DDE17 $132\,300\to65\,900$) and the time from $654$ to $459$~s; by the harness gate $5$ rows come out better and $8$ worse (the dual of DDE01 certified $\to$ infeasible; DDE13, DDE18, the dual of PDE $21$, PDE $30$, $31$, $51$, $52$ certified $\to$ unknown or inaccurate), and it moves bisection thresholds by $-0.19\%$ (DDE02) to $+0.59\%$ (DDE01);
+\item the lift ceiling, with the weight held at the value of the base rule, costs $3\,275\,073$ variables ($2.24\times$) and $922$~s; it tightens gains by at most $0.1\%$ (DDE11 $2.8773\to2.8753$) and raises thresholds (DDE01 $2.0181\to2.0241$, NDS08 $0.027389\to0.027442$), gains $6$ certificates and loses $5$ to UNKNOWN on the larger programs (DDE13, DDE26, PDE $30$, $52$, $68$).
+\end{itemize}
+The base is light on the $124$ rows on the same tree (\file{results_L1ctl.csv}, D127). The first comparison (D102) took the 1-D PDE rows of light from the pass of 11/17, built before \code{deg\_Q\{1\}} $=[4\ 2\ 2]$, and reported $-17\%$ and $2.42\times$.
+
+Neither knob keeps every certificate of light, so neither enters a tier; \code{cap\_inc} is a candidate for the settings of single examples, on rows outside its $8$ losses. On $64$ rows it keeps the verdict and the value to $10^{-4}$ at fewer variables (\file{studies_1118/B5_capinc_per_example.md}), and on twelve of them it halves the program or better: DDE05, DDE06, DDE08, DDE17, NDS07, NDS09, DDF01, PDE~$1$, $9$, $13$, $17$ and $68$.
+
+\subsection{Three variables on Sol}\label{sec:libpass-sol}
+
+The 3-D heat of the C-series at $0.9\kappa^*$ ($\mathrm{DD}\times\mathrm{DN}\times\mathrm{DN}$, $\kappa^*=1.5\pi^2$; gap G5) is certified by the direct form at light on Sol (job 1846967, D78): $4\,069\,288$ decision variables, $m=41\,164$, optimal with no raise, $1\,426$~s of MOSEK on $64$ threads, $39.7$~GB peak. The open item of G5 was the workstation cap of $3$M variables, not the construction.
+
+The 2-D delayed heat with its 3-D delay state at $0.5\tau^*$ (D2, library case $56$; gap G6) stays open. Under the light 3-D slack cap (\code{cap\_delta(3)} $0$; $475\,404$ variables, $m=33\,025$) the direct form certifies only at no delay: a bisection in $\tau$ leaves the bracket $[0,\ 0.0078]\tau^*$ (D82). With the per-space raise \code{dw\_space} $[1\ 0]$ it is infeasible with a certificate ($1\,415\,292$ variables, $m=42\,222$, $498$~s, $30.7$~GiB; job 1858048, D83). Without the cap it has $6\,813\,852$ variables and $m=163\,847$; Sol job 1851724 ran out of memory at its $200$~GB request (D80).
+
+The memory of these solves is set by $m$, not by the conversion to MOSEK (D90). MOSEK forms a dense Schur complement: on a program with $m=6\,162$ its log gives $m(m+1)/2$ nonzeros before the factorization. The solved jobs give $23$ to $25$ bytes per $m^2$: $21.9$~GiB at $m=33\,025$ and $39.7$~GiB at $m=41\,164$. At $m=163\,847$ that is about $570$ to $620$~GiB. The SeDuMi-to-MOSEK conversion peaks at $82$ bytes per entry of \code{bara}, at most $3.6$~GB on the uncapped D2 program. The cap-1 rung ($2\,721\,692$ variables, $m=82\,551$) needs about $170$~GB and, scaled from job 1706087, $7$ to $8$~h on $64$ cores, about $900$ to $1\,000$ CHE; it waits for the decision of the maintainer.
+
+\subsection{DEMO12}\label{sec:libpass-demo12}
+
+DEMO12 (the synthesis LPI of Dan Braghini, inlined) runs end to end on the tier layout after two fixes in its inline format (D105): \code{sop.max\_raise} and \code{sop.dw\_Q} reduced to the dimension of the PIE before its raise loop, and $\mcl R$, $\mcl V$ built by \code{poscopvar} with the storage row in place of \code{poslpivar\_settings\_sop}. Synthesis certifies $\gamma=5.6252653$ at $\mathrm{dw}=0$. The closed-loop analysis in \code{'Q'} is optimal at $5.6236756$ ($\eta=1.5\times10^{-5}$), but the numerical witness reports a gain of $5.6486$ at $\omega=7.8\times10^5$, above both certified bounds, so the guard of the demo prints that no bound is certified. The witness point is reported to its author (\file{DEMO12_report_1118.md}).

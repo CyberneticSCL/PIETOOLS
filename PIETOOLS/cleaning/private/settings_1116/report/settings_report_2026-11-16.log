@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.11.14)  17 NOV 2026 11:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.11.14)  18 NOV 2026 17:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -564,8 +564,8 @@ t/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc}{C:/Users/mpeet/Ap
 pData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}{C:/Users/mpeet/Ap
 pData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/Users/mpeet/AppDat
 a/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}]
-(settings_report_core.tex [2{C:/Users/mpeet/AppData/Local/Programs/MiKTeX/fonts
-/enc/dvips/lm/lm-mathex.enc}]
+(settings_report_core.tex [2] [3{C:/Users/mpeet/AppData/Local/Programs/MiKTeX/f
+onts/enc/dvips/lm/lm-mathex.enc}]
 Underfull \hbox (badness 1616) in paragraph at lines 49--50
 []$\OT1/lmr/m/n/12 2 [] \OT1/lmr/bx/n/12 u\OT1/lmr/m/n/12 (\OML/lmm/m/it/12 s\O
 T1/lmr/m/n/12 )[]\OML/lmm/m/it/12 S[]\OT1/lmr/m/n/12 (\OML/lmm/m/it/12 s\OT1/lm
@@ -577,14 +577,18 @@ OT1/lmr/bx/n/12 u\OT1/lmr/m/n/12 (\OML/lmm/m/it/12 t\OT1/lmr/m/n/12 ) \OML/lmm/
 m/it/12 dt ds$ \T1/lmr/m/n/12 over the square; the
  []
 
-[3] [4]
+[4]
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <10> on input line 103.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <7> on input line 103.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <5> on input line 103.
- [5]
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[5] [6]
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <17.28> on input line 143.
 
@@ -596,151 +600,137 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 143.
 
-[6] [7] [8] [9] [10] (settings_report_settings_ref.tex
+[7] [8] [9] [10] [11] (settings_report_settings_ref.tex
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
 1.
 
 (C:\Users\mpeet\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-) [11{C:/Users/mpeet/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.en
+) [12{C:/Users/mpeet/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.en
 c}]
-[12] [13]
-Underfull \hbox (badness 1953) in paragraph at lines 49--50
+[13]
+Underfull \hbox (badness 1953) in paragraph at lines 51--52
 \T1/lmtt/m/n/12 psatz_rows_perdir \T1/lmr/m/n/12 ex-ists only in the scratch sh
 adow of \T1/lmtt/m/n/12 poscopvar_direct
  []
 
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 53.
 [14]
-Underfull \hbox (badness 6961) in paragraph at lines 83--84
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <12> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 55.
+ [15]
+Underfull \hbox (badness 6961) in paragraph at lines 85--86
 \T1/lmr/m/n/12 The field \T1/lmtt/m/n/12 sop \T1/lmr/m/n/12 holds the op-tions 
 of the con-tainer ex-ec-u-tives, com-pleted by
  []
 
-[15]
-Underfull \hbox (badness 1270) in paragraph at lines 85--86
+[16]
+Underfull \hbox (badness 1270) in paragraph at lines 87--88
 []\T1/lmtt/m/n/12 slack\T1/lmr/m/n/12 , char. \T1/lmtt/m/n/12 'like' \T1/lmr/m/
 n/12 im-poses each neg-a-tiv-ity con-straint $\OMS/lmsy/m/n/12 ^^@D ^^W \OT1/lm
 r/m/n/12 0$ \T1/lmr/m/n/12 through
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 89--90
+Underfull \hbox (badness 10000) in paragraph at lines 91--92
 []\T1/lmtt/m/n/12 max_raise_feas\T1/lmr/m/n/12 , scalar or triple: how many tim
 es the de-gree loop
  []
 
 
-Underfull \hbox (badness 6859) in paragraph at lines 89--90
+Underfull \hbox (badness 6859) in paragraph at lines 91--92
 \T1/lmtt/m/n/12 lpi_solve_loop_sop \T1/lmr/m/n/12 re-builds a sta-bil-ity or we
 ll-posedness LPI with the
  []
 
 
-Underfull \hbox (badness 1838) in paragraph at lines 97--98
+Underfull \hbox (badness 1838) in paragraph at lines 102--103
 []\T1/lmr/m/n/12 The \T1/lmtt/m/n/12 lpisettings_sop \T1/lmr/m/n/12 header give
 s \T1/lmtt/m/n/12 dw_feas \T1/lmr/m/n/12 and \T1/lmtt/m/n/12 cap_delta \T1/lmr/
 m/n/12 as $\OT1/lmr/m/n/12 1 \OMS/lmsy/m/n/12 ^^B \OT1/lmr/m/n/12 3$\T1/lmr/m/n
 /12 , where
  []
 
-[16] [17]
-Underfull \hbox (badness 2020) in paragraph at lines 169--169
+[17] [18]
+Underfull \hbox (badness 2020) in paragraph at lines 179--179
 []|\T1/lmr/m/n/8 S18 (case $\OT1/lmr/m/n/8 43$\T1/lmr/m/n/8 ) at
  []
 
 
-Underfull \hbox (badness 2529) in paragraph at lines 169--169
+Underfull \hbox (badness 2529) in paragraph at lines 179--179
 \T1/lmr/m/n/8 ($\OT1/lmr/m/n/8 227 510$\T1/lmr/m/n/8 , be-fore the tier change 
 of
  []
 
 
-Underfull \hbox (badness 3815) in paragraph at lines 169--169
+Underfull \hbox (badness 3815) in paragraph at lines 179--179
 []|\T1/lmr/m/n/8 direct form, \T1/lmtt/m/n/8 st.lpi.ineq.dw_space
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 169--170
+Underfull \hbox (badness 10000) in paragraph at lines 179--180
 []|$\OT1/lmr/m/n/8 65 731$ \T1/lmr/m/n/8 ($\OT1/lmr/m/n/8 93 991$
  []
 
 
-Underfull \hbox (badness 5696) in paragraph at lines 169--170
+Underfull \hbox (badness 5696) in paragraph at lines 179--180
 \T1/lmr/m/n/8 with-out \T1/lmtt/m/n/8 wcross
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 169--170
+Underfull \hbox (badness 10000) in paragraph at lines 179--180
 \OT1/lmr/m/n/8 0$\T1/lmr/m/n/8 ); $\OT1/lmr/m/n/8 215 188$\T1/lmr/m/n/8 ;
  []
 
 
-Underfull \hbox (badness 2020) in paragraph at lines 170--170
+Underfull \hbox (badness 2020) in paragraph at lines 180--180
 []|\T1/lmr/m/n/8 S17 (case $\OT1/lmr/m/n/8 72$\T1/lmr/m/n/8 ) at
  []
 
 
-Underfull \hbox (badness 4779) in paragraph at lines 170--170
+Underfull \hbox (badness 4779) in paragraph at lines 180--180
 []|\T1/lmr/m/n/8 storage form: no stor-age cer-ti-fies
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 171--172
+Underfull \hbox (badness 10000) in paragraph at lines 181--182
 []|$\OT1/lmr/m/n/8 235 353$ \T1/lmr/m/n/8 to
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 172--173
+Underfull \hbox (badness 10000) in paragraph at lines 182--183
 []|$\OT1/lmr/m/n/8 281 497$ \T1/lmr/m/n/8 to
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 173--173
+Underfull \hbox (badness 10000) in paragraph at lines 183--183
 []|\T1/lmr/m/n/8 population (case
  []
 
 
-Underfull \hbox (badness 3058) in paragraph at lines 173--173
+Underfull \hbox (badness 3058) in paragraph at lines 183--183
 []|\T1/lmr/m/n/8 none in the di-rect form; stor-age
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 176--176
+Underfull \hbox (badness 10000) in paragraph at lines 186--186
 []\T1/lmr/m/n/12 Table 3: []Cases closed out-side the tiers, with the ex-am-ple
  num-ber in
  []
 
 
-Underfull \hbox (badness 2495) in paragraph at lines 162--179
+Underfull \hbox (badness 2495) in paragraph at lines 172--189
 []\T1/lmr/m/n/12 The mech-a-nism im-ple-mented on 11/17/2026: an ex-am-ple file
  of the li-brary
  []
 
 
-Underfull \hbox (badness 1688) in paragraph at lines 162--179
+Underfull \hbox (badness 1688) in paragraph at lines 172--189
 \T1/lmr/m/n/12 re-turns, as an op-tional sec-ond out-put, the set-tings that ce
 r-tify it, \T1/lmtt/m/n/12 [PDE, st] =
  []
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) [18]) (settings_report_tiers.tex [19] (settings_report_tiertable.tex
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[20]) [21] (settings_report_knobs.tex) [22]) [23] (settings_report_core_b.tex
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[24]) (settings_report_fix.tex [25] [26] [27]) (settings_report_poinc2.tex)
-(settings_report_cap.tex) (settings_report_terms.tex [28]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[29] [30] (settings_report_t4.tex)) (settings_report_baselines.tex [31]
+[19]) [20]) (settings_report_tiers.tex (settings_report_tiertable.tex [21]
+[22]) (settings_report_knobs.tex
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -750,10 +740,20 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[32]
+[23]) [24]) [25] (settings_report_core_b.tex [26]) (settings_report_fix.tex
+[27]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+[28]) (settings_report_poinc2.tex
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+) (settings_report_cap.tex [29]) (settings_report_terms.tex [30]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[31] (settings_report_t4.tex [32])) (settings_report_baselines.tex
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -761,21 +761,24 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
 [34]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[35] (settings_report_inhom.tex
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[35] [36] [37] (settings_report_inhom.tex
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[36])) (settings_report_gaps.tex
+[38])) (settings_report_gaps.tex
 Underfull \hbox (badness 10000) in paragraph at lines 16--16
 []|\T1/lmr/m/n/8 S17, trans-port
  []
@@ -910,10 +913,7 @@ Underfull \hbox (badness 1939) in paragraph at lines 21--21
 []|\T1/lmr/m/n/8 faces0 $\OT1/lmr/m/n/8 47 433 948$\T1/lmr/m/n/8 , re-
  []
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[37] [38]
+[39] [40]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <14.4> not available
 (Font)              Font shape `T1/lmtt/b/n' tried instead on input line 39.
 
@@ -922,7 +922,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 50--51
 d _ domain / phasec _ results . md$ \T1/lmr/m/n/12 (11:55,
  []
 
-[39]
+[41]
 Underfull \hbox (badness 1142) in paragraph at lines 112--112
 []|\T1/lmr/m/n/8 S3, S5, S8, pop-u-la-tion,
  []
@@ -932,15 +932,12 @@ Underfull \hbox (badness 1142) in paragraph at lines 113--113
 []|\T1/lmr/m/n/8 S3, S4, S5, pop-u-la-tion,
  []
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[40] [41]
+[42] [43]
 Underfull \hbox (badness 1596) in paragraph at lines 170--170
 []|\T1/lmr/m/n/8 no stor-age cer-ti-fies (proven); stock U,
  []
 
-[42]
+
 Underfull \hbox (badness 5519) in paragraph at lines 185--186
 []\T1/lmr/bx/n/12 The tiers. \T1/lmr/m/n/12 The six tier files carry the row, \
 T1/lmtt/m/n/12 wcross $\OT1/lmr/m/n/12 0$ \T1/lmr/m/n/12 and \T1/lmtt/m/n/12 ps
@@ -960,7 +957,48 @@ Underfull \hbox (badness 1360) in paragraph at lines 185--186
 8$
  []
 
-) (settings_report_open.tex
+)
+Underfull \hbox (badness 1147) in paragraph at lines 98--98
+[]\T1/lmr/bx/n/17.28 The li-brary pass and the re-vi-sions of 11/17--
+ []
+
+(settings_report_libpass.tex [44]
+Underfull \hbox (badness 4416) in paragraph at lines 20--20
+[]\T1/lmr/m/n/12 Table 37: []The li-brary pass of 11/17--11/18/2026 against the
+ 10/28 ref-er-ence
+ []
+
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <14.4> on input line 25.
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 25.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 25.
+
+[45] [46] [47]) (settings_report_studies.tex [48]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[49] [50]
+Underfull \hbox (badness 5203) in paragraph at lines 78--79
+\T1/lmr/m/n/12 All 21 $\OML/lmm/m/it/12 H[]$ \T1/lmr/m/n/12 gain rows of the ca
+t-a-log were run at light in both forms of
+ []
+
+
+Underfull \hbox (badness 2735) in paragraph at lines 78--79
+\T1/lmtt/m/n/12 PIETOOLS_Hinf_gain_sop \T1/lmr/m/n/12 (D112, D118). The stor-ag
+e form \T1/lmtt/m/n/12 'P' \T1/lmr/m/n/12 cer-ti-fies 21 of
+ []
+
+[51]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+) [52] (settings_report_open.tex
 Underfull \hbox (badness 1286) in paragraph at lines 3--4
 \T1/lmr/m/n/12 live in scratch shad-ows ($\T1/lmtt/m/n/12 sopvar / psatz _ face
 s _ results / mixed _ domain / harness$\T1/lmr/m/n/12 :
@@ -986,7 +1024,7 @@ mtt/m/n/12 sep \T1/lmr/m/n/12 and \T1/lmtt/m/n/12 settings_2d\T1/lmr/m/n/12 , w
 hose stock con-struc-tion sur-vives as
  []
 
-[43]
+[53] [54]
 Underfull \hbox (badness 1448) in paragraph at lines 11--12
 []\T1/lmr/bx/n/12 The help of the ex-ec-u-tives. \T1/lmr/m/n/12 Nine ex-ec-u-ti
 ves (\T1/lmtt/m/n/12 PIETOOLS_stability_sop\T1/lmr/m/n/12 ,
@@ -1005,23 +1043,23 @@ Underfull \hbox (badness 10000) in paragraph at lines 11--12
 _sop\T1/lmr/m/n/12 , \T1/lmtt/m/n/12 _H2_control_sop\T1/lmr/m/n/12 ,
  []
 
-[44]) [45] (settings_report_2026-11-16.aux)
+[55] [56]) [57] (settings_report_2026-11-16.aux)
  ***********
 LaTeX2e <2026-11-01>
 L3 programming layer <2026-09-09>
  ***********
 Package rerunfilecheck Info: File `settings_report_2026-11-16.out' has not chan
 ged.
-(rerunfilecheck)             Checksum: 1C1A9E10BBD3A361D90D848C2A680ADB;10277.
+(rerunfilecheck)             Checksum: BA5839B702D970A3CF1701788AB564BC;14005.
  ) 
 Here is how much of TeX's memory you used:
- 12192 strings out of 467310
- 191210 string characters out of 5402813
- 668261 words of memory out of 5000000
- 41169 multiletter control sequences out of 15000+600000
- 718322 words of font info for 105 fonts, out of 8000000 for 9000
+ 12295 strings out of 467310
+ 193620 string characters out of 5402813
+ 675978 words of memory out of 5000000
+ 41223 multiletter control sequences out of 15000+600000
+ 725285 words of font info for 111 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 74i,12n,79p,2534b,793s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 74i,12n,79p,3045b,793s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/mpeet/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
 b><C:/Users/mpeet/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pf
 b><C:/Users/mpeet/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pf
@@ -1045,9 +1083,9 @@ t/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/mpee
 t/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt12.pfb><C:/Users/mpee
 t/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt8.pfb><C:/Users/mpeet
 /AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on settings_report_2026-11-16.pdf (45 pages, 766362 bytes).
+Output written on settings_report_2026-11-16.pdf (57 pages, 837108 bytes).
 PDF statistics:
- 1004 PDF objects out of 1200 (max. 8388607)
- 222 named destinations out of 1000 (max. 500000)
- 457 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1200 PDF objects out of 1200 (max. 8388607)
+ 265 named destinations out of 1000 (max. 500000)
+ 593 words of extra memory for PDF output out of 10000 (max. 10000000)
 

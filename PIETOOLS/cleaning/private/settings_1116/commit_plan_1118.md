@@ -3,7 +3,7 @@
 ## Basic verification before the commit
 1. ab_sep.m (01:33): the six tiers parse and validate; the 11/17 programs reproduce with the
    fallback; PDE 1 and PDE 33 light unchanged; the new knobs act. PASSED.
-2. verify_demos.m (queued 01:50): the tiers load; DEMO3, DEMO7, DEMO12 (Declan's 11/18 version)
+2. verify_demos.m (queued 01:50): the tiers load; DEMO3, DEMO7, DEMO12 (Dan Braghini's 11/18 version)
    run end to end; the stability and H-infinity gain executives on PDE 1 and PDE 20 at light and
    heavy. PENDING.
 3. Library pass: light and heavy complete and compared three ways (D91-D94); veryheavy to PDE 55;
@@ -18,7 +18,7 @@
   PIETOOLS_Hinf_gain_sop.m, utility_functions/exec_sop_settings.m, exec_tools_sop.m.
 - lpi_programming_sopvar/: lpi_ineq_sop.m, poscopvar.m, misc/get_lift_degs.m, misc/poscopvar_direct.m,
   misc/poscopvar_lift.m and misc/posmult_cdopvar.m (renames already staged from orphaned_file/).
-- PIETOOLS_demos/: DEMO3, DEMO5, DEMO12 (merged with Declan's version); cuadmm/ and
+- PIETOOLS_demos/: DEMO3, DEMO5, DEMO12 (merged with Dan Braghini's version); cuadmm/ and
   lowrank_2d_stability/ (the peer sessions' integration of the new settings, 9 files).
 - PIETOOLS_examples/: examples_PDE_library_PIETOOLS.m (the [PDE, st] output, cases 53-72), the 2-D
   interior-delay example, Examples_Library/Mixed_Domain_Examples/ (new; the example-settings agent
@@ -56,3 +56,14 @@
     reference and a HEAD reference run (cleaning/private/settings_1116,
     DECISIONS D84-D97); low-rank programs bit-identical; cuADMM suites
     consistent.
+
+## Demo pass, 02:26-02:40 (verify_demos.sh: each demo its own MATLAB process)
+- Tiers: all six load and validate (light deg_Q [4 2 2]).
+- DEMO7 ok (35 s). DEMO3 failed at lpisolve(prob): sossolve refuses the empty solver field of
+  the 11/17 tier layout -> lpisolve resolves '' like exec_sop_settings (staged); rerun pending.
+- DEMO12 (Dan Braghini's 11/18 version): "for dw = 0:settings.sop.max_raise" with the per-dimension
+  vector max_raise [1 1 0] -> "Colon operands must be real scalars" (his inlined loop; the
+  executives reduce the vector in exec_tools_sop). Reported in the run log, not patched; the
+  same on origin dd465ee5; the merged file is committed as is.
+- The executive check of the first pass called the interactive examples library (not batch
+  safe); rerun through the harness (ab_exec.m: PDE 1, 20, 20 dual, 33 at light and heavy).

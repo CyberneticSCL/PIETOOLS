@@ -17,8 +17,9 @@ lpi_programming_sopvar: get_lift_degs gains wcross, dw_space, the term set
 'faces1', the lift ceiling Dmax and the triangular cap cap_inc of
 Shivakumar's bounds (11/17/2026); poscopvar_direct takes cap_inc on the
 lower and upper basis operators; lpi_ineq_sop reads the tier's term set
-and the two new options; poscopvar_lift and posmult_cdopvar back on the
-path.
+and the two new options; lpisolve resolves the tiers' empty solver field
+as exec_sop_settings does (DEMO3 through lpisolve(prob) failed on it);
+poscopvar_lift and posmult_cdopvar back on the path.
 Examples: optional second output [PDE, st] with application-specific
 settings; mixed-domain examples 56-72; DEMO12 merged with Declan's
 11/18 version.

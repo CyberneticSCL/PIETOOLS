@@ -1,0 +1,131 @@
+The maintainer approved the plan of the studies on 11/18/2026 (\file{PLAN_1118_studies.md}) together with five rules:
+\begin{itemize}\setlength\itemsep{0pt}
+\item candidate tiers run through a settings hook in a copy of the 11/17 harness (\file{testing_codes/private/baselines/2026-11-18_studies});
+\item a change of verdict counts only where both gates of Section~\ref{sec:libpass-gates} agree, and the rows on which they disagree are listed apart;
+\item an example names its stability form through a variable (D-a);
+\item no per-dimension lift raise without data on the tightness of the bounds;
+\item an autonomous run of ten hours.
+\end{itemize}
+Every candidate below has a control on the same tree: light on the 124 one-variable rows and on the 30 two-variable rows of the catalog. Both controls reproduce the rows of the pass of 11/17 bit for bit. The run log is \file{cleaning/private/settings_1116/studies_1118/STUDIES_LOG.md}; the records are items D111--D126 of \file{DECISIONS.md}.
+
+\subsection{Degrees in one variable}\label{sec:st-1d}
+
+\paragraph{The lift raise.} With $\mathrm{dD}=0$ on the 124 one-variable rows, light builds programs with $0.71$ times the variables and runs in $0.81$ times the time. Both gates refuse six of its certificates: the dual of PDE~7 turns infeasible, PDE~29, 31, 51 and 52 return unknown with bounds between $4\,012$ and $13\,014$, and PDE~30 turns inaccurate. Two gains loosen, DDE13 by $6.0\%$ and DDE18 by $9.9\%$ (D113). The lift raise therefore stays at $1$.
+
+\paragraph{The degree of $\mcl Q$ at heavy.} Heavy and light build identical one-variable programs since light moved to \code{deg\_Q\{1\}} $=[4\ 2\ 2]$ (D94, D96). Table~\ref{tab:st-heavy} gives two heavier entries for heavy. Both keep every certificate by both gates and certify larger parameter ranges. The entry $[6\ 2\ 2]$ raises the DDE08 threshold from $1.42229$ to $3.179895$, against a documented range of $3.9$ to $3.95$ (D114).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+heavy \code{deg\_Q\{1\}} & DDE01 & DDE03 & DDE08 & NDS05 & NDS08 & variables, time \\
+\midrule
+$[4\,2\,2]$ (the tier) & 2.0181 & 1.7162 & 1.42229 & 1.5785 & 0.027389 & $1.00\times$, $1.00\times$ \\
+$[5\,2\,2]$ & 2.0360 & 1.71785 & 1.42229 & 1.5798 & 0.027523 & $1.36\times$, $1.43\times$ \\
+$[6\,2\,2]$ & 2.0320 & 1.71785 & 3.179895 & 1.5798 & 0.027523 & $1.50\times$, $1.49\times$ \\
+\bottomrule
+\end{tabular}
+\caption{Bisection thresholds at heavy on the five one-variable rows that change, and the summed variables and time over the 124 one-variable rows relative to the tier. No certificate changes by both gates. DDE03 reaches its documented value $1.71785$ at both heavier entries.}\label{tab:st-heavy}
+\end{table}
+
+\paragraph{The degree of $\mcl Q$ at veryheavy.} On the ten bisection rows, veryheavy with \code{deg\_Q\{1\}} $=[8\ 6\ 6]$ keeps every threshold of veryheavy and raises two (D129):
+\begin{itemize}\setlength\itemsep{0pt}
+\item DDE01 from $2.0380$ to $2.04$, at $3.0$ times the variables;
+\item DDE08 from $3.8957$ to $3.9144$, inside the documented range, at $0.46$ times the variables.
+\end{itemize}
+The analytic margin of DDE01 is $\tau^*=(\pi-\arcsin 0.28)/1.4=2.04128$, the crossing of the factor $\lambda^2-0.2\lambda+1-e^{-\lambda\tau}$ of its characteristic function. At $\tau=2.04$ the rightmost root of that factor has real part $-5.1\times10^{-4}$, so the certificate is sound. Over the ten rows the entry costs $1.21$ times the variables of veryheavy. Heavy at $[6\ 2\ 2]$ reaches the veryheavy thresholds on eight of the ten rows at $0.15$ times the variables of veryheavy; it falls short on DDE01 ($2.0320$) and DDE08 ($3.1799$). The other one-variable rows were not run at $[8\ 6\ 6]$.
+
+\subsection{Degrees in two variables and the tightness of the bounds}\label{sec:st-2d}
+
+The example settings of D99 showed that a smaller lift ($\mathrm{dD}=0$) or a smaller $\mcl Q$ ($\code{deg\_Q\{2\}}=0$) certifies the library examples at their default parameters at a fraction of the variables. Those single solves do not say how tight the bounds remain. Each candidate was therefore bisected toward the known stability margin of seven library cases. The bracket was $[0.5,\ 1.1]$ times the margin, the tolerance $10^{-3}$ of the margin, and the harness gate decided each step. Table~\ref{tab:st-tight} gives the certified fraction of the margin.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+case (parameter, margin) & light & $\mathrm{dD}=0$ & $\mathrm{dD}=0$, $\mcl Q$ from $0$ & $\mcl Q$ from $0$ (T3) \\
+\midrule
+KISS, PDE~34 ($\lambda<2\pi^2$) & 0.9998 & 0.9951 & 0.9998 & 0.9998 \\
+parabolic, PDE~37 ($a<\pi^2/2$) & 0.9998 & 0.9998 & 0.9998 & 0.9998 \\
+age structure, PDE~66 ($b<2.302685$) & 0.9881 & 0.9869 & 0.9951 & 0.9951 \\
+S18, PDE~43 ($\tau<1.034726$) & 0.9893 & $<0.5$ & 0.9400 & 0.9916 \\
+S17, PDE~72 ($r_2<\pi^2$) & 0.678 & $<0.5$ & $<0.5$ & 0.727 \\
+FO2s, PDE~57 ($\tau<2.881401$) & 0.742 & 0.887 & (1.0004) & 0.742 \\
+two-layer heat, PDE~64 ($\lambda<13.686938$) & 0.9869 & 0.9992 & 0.8557 & 0.9869 \\
+\bottomrule
+\end{tabular}
+\caption{Certified fraction of the stability margin on seven two-variable library cases, by candidate. ``$\mcl Q$ from $0$'' sets \code{deg\_Q\{2\}} $=0$ with \code{raise\_Q} \code{'deg'} and \code{max\_raise\_Q(2)} $=2$, so $\mcl Q$ is raised to degree $1$ and then $2$ after a failed pass; T3 keeps $\mathrm{dD}=1$. The value in parentheses passed both gates at a $\tau$ $0.04\%$ above the margin (Section~\ref{sec:st-sound}). Values are read to $10^{-2}$ near a margin.}\label{tab:st-tight}
+\end{table}
+
+The lift raise $\mathrm{dD}=0$ certifies less than half the margins of S18 and S17, against $0.989$ and $0.678$ for light, and more of the margins of FO2s ($0.887$ against $0.742$) and of the two-layer heat ($0.9992$ against $0.9869$). A lift raise of $0$ in two variables therefore gains reach on two of the seven cases and loses it on two. The setting T3 certifies at least the fraction of light on every case: $0.727$ against $0.678$ on S17, and within $10^{-2}$ of light on the other six, the resolution at which this report reads reaches (Section~\ref{sec:st-sound}). At the certified reach it uses $0.40$ times (KISS) to $2.72$ times (S17) the variables of light, and its bisections take $0.56$ to $2.4$ times as long; on the two-layer heat the degree raises at failing steps certify nothing more. On the 29 two-variable library rows at their default parameters, T3 gains PDE~58 and PDE~61 by both gates and loses none, at $0.94$ times the summed variables. The setting $\mathrm{dD}=0$ loses S18 there as well (D126). T3, the light two-variable entry of the direct form with \code{deg\_Q\{2\}} $=0$, \code{raise\_Q} \code{'deg'} and two raises, is the candidate for the maintainer; no tier file has changed.
+
+The plan called for one run of the winner at heavy, whose two-variable $\mcl Q$ has degree $2$ (D133). On the 29 two-variable rows, T3 at heavy changes no verdict by both gates and uses $0.81$ times the variables. PDE~70 now fits the size gate and is infeasible, as documented. One row moves the wrong way. PDE~38, certified by both gates at heavy with $\mcl Q$ at degree $2$, becomes a gate split under T3: the degree raise stops at the first pass that the executive accepts on the solver flags, here at degree $1$ with optimality measure $-0.121$. A degree ladder therefore inherits the acceptance rule of the executive (Section~\ref{sec:st-sound}). At light, PDE~38 is a gate split in both arms, so the light proposal is unaffected.
+
+\subsection{The stability form of the delay examples}\label{sec:st-form}
+
+On the 66 DDE and NDSDDF rows, light in the storage form \code{'P'} (\code{'Pd'} for the duals) keeps every certificate of the direct form \code{'Q'} by both gates. It raises four delay thresholds, DDE03 to its documented $1.71785$, and uses $0.57$ times the variables and $0.43$ times the time. On DDE03, 04, 05 and 07 it reaches the thresholds of the committed settings of the examples in \code{'Q'} with $1.4$ to $4.6$ times fewer variables. On DDE08 (Example E) the \code{'Q'} settings certify $3.9144$ against $1.42229$ for \code{'P'} (D115). At heavy the same holds (D130): \code{'P'} keeps every verdict of heavy \code{'Q'} by both gates, certifies the dual of NDS09, a gate split under \code{'Q'}, and raises five thresholds, DDE08 to $3.5472$, at $0.81$ times the variables; it lowers DDE02 by one bisection step ($-0.094\%$). Light \code{'P'} reaches $2.04$ on DDE01, $0.99937$ of its analytic margin (Section~\ref{sec:st-1d}), with $4\,428$ variables, against $283\,844$ for veryheavy \code{'Q'} at $[8\ 6\ 6]$. The form is therefore named per example:
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{PIETOOLS\_DDE.m} and \code{PIETOOLS\_DDF.m} set \code{stability\_form = 'P'} in their settings section and pass it to \code{PIETOOLS\_stability\_sop}, appending \code{'d'} for the dual;
+\item the Example E block of \code{examples\_DDE\_library\_PIETOOLS.m} sets \code{'Q'};
+\item \code{PIETOOLS\_auto\_execute\_sop} reads the variable and defaults to \code{'Q'}, so its default path is unchanged.
+\end{itemize}
+Copies of \code{PIETOOLS\_DDE.m} with Examples B and E uncommented run \code{'P'}/\code{'Pd'} and \code{'Q'}/\code{'Qd'} as intended; all four solves are optimal (D117). The plan assumed that the delay entry scripts run the auto-executor. They call the executives themselves, so the variable is read in the two entry scripts as well. The four edited files are committed as 65066c22 (11/18/2026).
+
+The PDE rows do not follow the delay rows (D131). On the 39 one-variable PDE stability rows, light \code{'P'} loses four certificates of \code{'Q'} by both gates: PDE~10, PDE~13.2 and its dual, and the dual of PDE~7. It also lowers the PDE~12 threshold by $13.1\%$ (from at least $37.5$ to $32.58$) and PDE~5 and 6 by one bisection step. On the other 32 rows it keeps the verdict, mostly at $0.12$ to $0.21$ times the variables. Heavy \code{'P'} loses the same four certificates and changes no threshold, at $0.56$ times the variables of heavy \code{'Q'} (D135). The PDE entry scripts therefore keep \code{'Q'}, and a library block may name \code{'P'} where it keeps the verdict. At heavy, \code{'P'} on PDE~41 is accepted by the executive on its flags with $\eta=2.7\times10^{-3}$ and refused by the harness, a further case of the acceptance rule of Section~\ref{sec:st-sound}. On the two-variable stability rows, light \code{'P'} gains PDE~61 and loses S18, FO2s and the age-structured model by both gates (19 rows run; D136). These are the cases in which the gap study of 11/17 found the direct form certifying and the storage form failing (\gapsref), so the two-variable library keeps \code{'Q'} as well.
+
+\subsection{The two forms of the gain executive}\label{sec:st-gain}
+
+All 21 $H_\infty$ gain rows of the catalog were run at light in both forms of \code{PIETOOLS\_Hinf\_gain\_sop} (D112, D118). The storage form \code{'P'} certifies 21 of them by both gates; the form \code{'Q'}, which the auto-executor passes, certifies 14:
+\begin{itemize}\setlength\itemsep{0pt}
+\item \code{'P'} certifies the 2-D gains PDE~45, 46 and 47 at $0.111982$, $0.171737$ and $0.208535$, against exact values of $0.11101$, $0.17110$ and $0.20668$, and the Lidstr\"om gain PDE~71 at $0.045944081$; \code{'Q'} returns unknown on all four, with MOSEK numerical problems;
+\item on every row that both forms certify, \code{'P'} gives an equal or tighter bound, except PDE~24 ($+0.01\%$), and reaches $0.50000019$ on PDE~20, whose exact gain is $0.5$;
+\item it uses $0.59$ times the variables.
+\end{itemize}
+At heavy the comparison holds (D132). \code{'P'} certifies all 21 rows and \code{'Q'} 16. Heavy \code{'P'} reaches the 2-D gains $0.11102274$, $0.17110568$ and $0.20669904$, within $1.2\times10^{-4}$ of the exact values, at $799\,170$ variables; heavy \code{'Q'} returns the bounds $50.4$, $8.51$ and $306$ (unknown) at $1\,399\,419$. On every row that heavy \code{'Q'} certifies, light \code{'P'} is within $1.5\times10^{-4}$ of its bound or below it, at $0.15$ times the variables.
+The Fable session traced the failure of \code{'Q'} to its construction, the storage-plus-equality form that the stability executive abandoned on 11/17. A direct-form candidate, uncommitted and documented in \file{gainform_directQ_1118.md}, certifies 19 of the 21 rows; at the base raise $1$ it reaches the exact 2-D gains at $538\,621$ variables (D121, D122, D124). Two decisions remain for the maintainer: which form replaces \code{'Q'}, and whether the auto-executor passes \code{'P'} for gains.
+
+\subsection{D2 and the slack in three variables}\label{sec:st-d2}
+
+D2 is the 2-D delayed heat equation with its 3-D delay state, at $0.5\tau^*$. The lift raise and the degree of $\mcl Q$ in three variables set its size (D116): with $\mathrm{dD}=0$ and \code{deg\_Q\{3\}} $=0$ the program has $83\,574$ variables and $m=8\,733$, against $2\,721\,692$ and $m=82\,551$ at cap $1$. Every program the workstation can solve is infeasible:
+\begin{itemize}\setlength\itemsep{0pt}
+\item cap $0$, with and without the per-space raise (D82, D83);
+\item cap $1$ through cap $1$ with the triangular cap (D119): $1\,394\,588$ variables, $m=63\,066$, $1\,711$~s of MOSEK, $38$~GB, infeasible with a certificate; by Lemma~1.2 of the Newton polytope note it carries the certificates of the cap-1 program;
+\item the six rungs with $\mathrm{dD}=0$ or \code{deg\_Q\{3\}} $=0$;
+\item the storage form at light, uncapped with the triangular cap (D120).
+\end{itemize}
+The decisive program is the uncapped one: the direct form with the triangular cap has $2\,134\,428$ variables and $m=90\,777$, and it exceeded $57$~GB during the setup of MOSEK on the workstation (D116). Scaled from the cap-1 run, it needs about $80$~GB and $1.5$~h, so it is a Sol job of about 100 to 200 CHE, held for the maintainer.
+
+\subsection{The extreme tier}\label{sec:st-extreme}
+
+On the 124 one-variable rows the present extreme tier certifies 28. Two candidates were run:
+\begin{itemize}\setlength\itemsep{0pt}
+\item extreme with the one-variable entries of stripped (storage row, $\mcl Q$ and free operator at $[2\ 2\ 2]$) certifies 100, at $0.60$ times the variables of light;
+\item the same with $\mathrm{dD}=0$ certifies 95 at $0.47$ times the variables of light; light certifies 105.
+\end{itemize}
+Neither candidate loses a certificate of the present extreme. Against light the first loses four certificates and the five delay thresholds stripped loses, and the second loses nine (Section~\ref{sec:st-1d}). On the 30 two-variable rows the first candidate equals the present extreme, which reproduces its rows of 11/17, in every verdict by both gates (14 certified). Only the primal and dual H2 rows of PDE~50 change, from $149\,735$ to $305\,711$ variables, unknown in both (D134). The second candidate was not run on the two-variable rows.
+
+\subsection{Gaps of the library pass}\label{sec:st-gaps}
+
+Stripped on PDE~61--72 matches light: it certifies 62, 63, 64, 66 and 67. The size gate refuses 61, 65, 69 and 70; 68 is a gate split; 71 and 72 return unknown. Light on the three-variable rows 53--56 is refused by the size gate on every row: $4.07$M variables for the 3-D heat that Sol certified (D78), $24.9$M, $99.7$M (whose build alone takes $1\,306$~s) and $2.52$M. Heavy on those rows is larger and was not run (D117).
+
+Veryheavy on PDE~56--72 certifies eight rows, 57--60, 62 and 66--68, each of which heavy certifies as well; it certifies no row that heavy does not. The time projection of the harness skips 61, 63, 64 and 71 (projected $1\,268$ to $2\,990$~s per solve), and the size gate refuses 56 ($32.9$M variables), 65, 69 ($m=72\,333$) and 70. S17 (PDE~72) is a gate split at veryheavy as at light: optimality measure $1.78$, executive optimal. With these rows the pass is complete except heavy on PDE~53--56 (Table~\ref{tab:st-pass}).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrrr}
+\toprule
+tier & rows & certified & infeasible & unknown & error & skipped & seconds \\
+\midrule
+extreme & 158 & 42 & 41 & 44 & 8 & 0 & 3\,466 \\
+stripped & 158 & 114 & 5 & 27 & 8 & 0 & 4\,294 \\
+light & 158 & 118 & 5 & 21 & 10 & 0 & 4\,276 \\
+heavy & 154 & 128 & 4 & 11 & 5 & 2 & 3\,068 \\
+veryheavy & 158 & 122 & 4 & 8 & 9 & 11 & 16\,915 \\
+\bottomrule
+\end{tabular}
+\caption{The pass of Table~\ref{tab:libpass} with the gap rows of 11/18/2026 (\texttt{results\_all\_1118b.csv} of the study harness). Certified counts the certified and the converged rows, unknown the unknown and the inaccurate ones; the four bisection rows that fail at an end of their bracket are in no column. Every error is a refusal of the size gate, except veryheavy on PDE~55, out of memory. Heavy lacks PDE~53--56.}\label{tab:st-pass}
+\end{table}
+
+\subsection{Soundness near a margin}\label{sec:st-sound}
+
+On FO2s the direct form with $\mathrm{dD}=0$ and $\mcl Q$ raised to degree $2$ passes both gates at $\tau=2.88253$. The exact margin is $\tau^*=2.8814005$, from the first mode $\lambda^2+2\lambda+0.1+e^{-\lambda\tau}=0$, and the rightmost eigenvalue at the certified $\tau$ has real part $+6.8\times10^{-5}$ (D123, D125). Its optimality measure ($0.867$) and relative residual ($8.6\times10^{-4}$) lie within the ranges of the four stable certified steps of the bisection ($0.810$ to $1.109$; $5.4$ to $9.5\times10^{-4}$), and its $\eta$ ($1.5\times10^{-8}$) exceeds their largest ($1.0\times10^{-8}$) by a factor $1.5$, against a gate of $10^{-7}$. One step further, at the growth rate $1.7\times10^{-4}$, the executive flag certifies and only the harness gate refuses (optimality measure $0.480$). The Fable session reproduced the case (\file{fo2s_margin_certificate_1118.md}): MOSEK solves this family only to a relative primal violation of $10^{-6}$ to $4\times10^{-6}$, and with $\varepsilon_{\mathrm{neg}}=0$ such a violation admits growth rates of order $10^{-4}$; the strict near-optimality rule of MOSEK returns unknown at every step, the stable ones included. Reaches on such families are therefore reliable to about $10^{-3}$ of the margin at best, and this report reads them to $10^{-2}$. The same reproduction found that \code{sossolve} classifies an ILL\_POSED exit of MOSEK as optimal, so the executive certifies with $\mcl P=0$. The harness gate refuses such a solve through its optimality measure of $-1$; the executive flag does not. No row of the studies carries such a certificate. A defect report for the author of the classification is in the note; nothing is patched.

@@ -382,3 +382,144 @@ form, the stronger one, is to be used whenever it certifies. For the 1-D delay r
 here, where light in form 'P' reaches the thresholds at 1.4-4.6x fewer variables than any form-'Q'
 setting, the example files should therefore name the 'P' form as their executive option rather
 than carry a form-'Q' st; the 2-D blocks keep form 'Q' where 'P' does not certify (43, 57, 58).
+
+## 11. Remaining cases (second pass, 11/18 after commit eec4f07d)
+
+One solve per (case, setting), library defaults, size gate 2e6 variables / m 45,000. The form is not a
+settings knob: each row names the form of the executive call ('Q' the direct form, 'P' the storage form).
+No witness gain exists for these 2-D PIEs (`info.gain_lb` is filled in 1-D only), so the H-infinity rows give
+gam, OPT_STATUS and eta against the documented exact gain.
+
+### 11.1 H-infinity gain, PDE 45, 46, 47 (exact 0.11101, 0.17110, 0.20668)
+
+| PDE | form, setting | harness (fr) | executive (eta) | gam | variables | m | passes |
+|---|---|---|---|---|---|---|---|
+| 45 | Q, light | U (0.141, numerr 2) | unknown (6.5e-8) | 4375.57 | 351,307 | 5,027 | 2 |
+| | Q, dD0 | U (-0.261, numerr 2) | unknown (7.7e-11) | 8422.42 | 92,587 | 2,376 | 2 |
+| | Q, cap_inc 'auto' | F (-1) | infeasible (presolve) | – | 2,539 | 872 built, not solved | 2 |
+| | **P, light** | C (0.996) | optimal (2.1e-9) | **0.111982** (+0.88%) | 200,986 | 3,981 | 1 |
+| 46 | Q, light | U (-0.308, numerr 2) | unknown (7.4e-8) | 812.636 | 351,307 | 5,045 | 2 |
+| | Q, dD0 | U (0.009, numerr 2) | unknown (2.6e-10) | 672.561 | 92,587 | 2,394 | 2 |
+| | Q, cap_inc 'auto' | F (-1) | infeasible (presolve) | – | 2,539 | 872 built, not solved | 2 |
+| | **P, light** | C (1.00) | optimal (3.1e-10) | **0.171737** (+0.37%) | 200,986 | 3,983 | 1 |
+| 47 | Q, light | U (-0.268, numerr 2) | unknown (1.0e-8) | 10931.5 | 351,307 | 5,010 | 2 |
+| | Q, dD0 | U (-0.319, numerr 2) | unknown (3.1e-12) | 90621.3 | 92,587 | 2,359 | 2 |
+| | Q, cap_inc 'auto' | F (-1) | infeasible (presolve) | – | 2,539 | 872 built, not solved | 2 |
+| | **P, light** | C (0.891) | optimal (1.5e-9) | **0.208535** (+0.90%) | 200,986 | 3,977 | 1 |
+
+The light tier certifies all three in form 'P', within 0.37-0.90% of the exact gain, at 200,986 variables;
+form 'Q' returns MOSEK UNKNOWN with numerr 2 at every setting tried, and its gam (672 to 90,621) carries no
+information. With cap_inc 'auto' the slack Gram blocks shrink to [17 10 10 10 10] and the program is
+infeasible before the solve (SOSTOOLS reports a primal-infeasible program; MOSEK is not called; 872 rows built on PDE 45). The library runs these with `Hinf_gain = 1`,
+which `PIETOOLS_auto_execute_sop` maps to form 'Q'; no st selects 'P', so none is set.
+
+### 11.2 H-infinity estimator, PDE 48 (no documented value; heavy 0.0039726 certified, results_A.csv)
+
+| setting | harness (fr) | executive (eta) | gam | variables | m | passes |
+|---|---|---|---|---|---|---|
+| light | U (0.498) | optimal (3.4e-10) | 0.00686704 | 195,866 | 3,152 | 1 |
+| light, lpi.var.deg{2} 2 | U (0.51) | optimal (7.3e-11) | 0.00613236 | 195,952 | 3,226 | 1 |
+| light, dD0 | U (-0.516, numerr 2) | unknown (2.1e-7) | 1974.08 | 155,882 | 2,286 | 2 |
+| light, lpi.var.deg{2} 2, dD0 | U (-0.133, numerr 2) | unknown (6.0e-8) | 2293.21 | 155,968 | 2,506 | 2 |
+| heavy (results_A.csv) | C (0.999) | – | 0.0039726 | 768,159 | 5,493 | |
+
+### 11.3 PDE 61 (Laplace-Beltrami edge; light refused at 2,430,327 variables)
+
+| form, setting | harness (fr) | executive (eta) | variables | m | passes |
+|---|---|---|---|---|---|
+| **Q, dD0** | C (0.996) | optimal (6.5e-10) | **197,415** | 6,969 | 1 |
+| Q, dD0, deg_Q{2} 2 | C (1.01) | optimal (6.1e-9) | 1,154,909 | 17,165 | 1 |
+| **P, light** | C (0.857) | optimal (7.3e-10) | 323,647 | 6,146 | 1 |
+| Q, heavy (results_A.csv) | C (1.02) | – | 841,042 | 19,855 | |
+
+### 11.4 PDE 36 (2-D telegraph; light 'Q' UNKNOWN at 1,775,200 after one raise, OPT_STATUS 4.05)
+
+| form, setting | harness (fr) | executive (eta) | variables | m | passes |
+|---|---|---|---|---|---|
+| Q, dD0, raise 0 | U (0.375) | optimal (1.8e-8) | 52,880 | 5,643 | 1 |
+| Q, dD0, deg_Q{2} 0, raise 0 | F (-1) | infeasible | 28,516 | 3,203 | 1 |
+| Q, dD0, deg_Q{2} [1 0 0], raise 0 | F (-1) | infeasible | 52,544 | 4,287 | 1 |
+| Q, dD0, deg_Q{2} 2, raise 0 | U (2.81) | optimal (9.4e-7) | 1,776,564 | 29,895 | 1 |
+| P, light | F (-1) | infeasible | 754,180 | 12,115 | 2 |
+
+### 11.5 PDE 50 (H2 norm, form 'o'; light refused at 5,896,165; documented 0.8502 with custom settings)
+
+| setting | harness (fr) | executive (eta) | gam | variables | m | passes |
+|---|---|---|---|---|---|---|
+| light, dD0 | I (0.749, numerr 2) | unknown (1.1e-7) | 14.937 | 1,585,445 | 35,884 | 2 |
+| light, dD0, cap_inc 'auto' | I (0.804, numerr 2) | unknown (1.5e-5) | 64.1341 | 242,485 | 25,368 | 2 |
+
+Form 'P' below light (PDE 45-47):
+
+| PDE | form, setting | harness (fr) | executive (eta) | gam | variables | m | passes |
+|---|---|---|---|---|---|---|---|
+| 45 | P, dD0 | C (0.799) | optimal (1.1e-8) | 1.80055 (16.2 x exact) | 43,386 | 1,670 | 1 |
+| | P, psatz{2} 'none' | U (0.671, numerr 2) | unknown (4.0e-10) | 5.27708 | 352,275 | 7,025 | 2 |
+| | P, stripped | U (0.078, numerr 2) | unknown (1.4e-8) | 59.5175 | 28,267 | 1,800 | 1 |
+| 46 | P, dD0 | F (-1, numerr 2) | unknown | 6.9e7 | 170,019 | 2,979 | 2 |
+| | P, psatz{2} 'none' | U (0.622, numerr 2) | unknown (4.2e-10) | 59.8004 | 352,275 | 7,027 | 2 |
+| | P, stripped | F (-1.01, numerr 2) | unknown | 7.7e9 | 28,267 | 1,804 | 1 |
+| 47 | P, dD0 | U (0.31) | optimal (1.6e-9) | 0.211065 (+2.1%) | 43,386 | 1,652 | 1 |
+| | P, psatz{2} 'none' | C (1.00) | optimal (9.6e-9) | 0.208547 (+0.90%) | 352,275 | 7,021 | 2 |
+| | P, stripped | U (0.236, numerr 2) | unknown (6.7e-9) | 3.02483 | 28,267 | 1,795 | 1 |
+
+Nothing below light in form 'P' gives a usable gain on all three: P with dD0 is certified on 45 at a bound 16.2
+times the exact gain and fails on 46. Form 'P' at light (200,986 variables) is the cheapest setting measured
+that certifies all three within 1% of the exact gain.
+
+### 11.6 PDE 69, 70 (documented not exponentially / not uniformly stable; light refused at 4,453,560 / 2,014,033)
+
+| PDE | form, setting | harness (fr) | executive (eta) | variables | m | passes |
+|---|---|---|---|---|---|---|
+| 69 | Q, dD0, deg_Q{2} 0 | F (-1) | infeasible | 426,641 | 15,848 | 2 |
+| 70 | Q, dD0, deg_Q{2} 0 | F (-1) | infeasible | 221,648 | 8,543 | 2 |
+
+Both under the gate, both infeasible, as the documented instability requires; no certificate is expected,
+so no st. Form 'P' not run on these.
+
+### 11.7 PDE 65 (2-D linear Turing pair, d = 0.9 d*; light refused at 2,845,420 / m 67,500)
+
+Q, dD0: 1,585,644 variables, m 43,764 (under the gate); MOSEK took about 110 s per interior-point iteration and
+the 20-minute session watchdog stopped it at iteration 5. Not certified within the time limit.
+
+PDE 48, heavy-based variants (04:20-04:33):
+
+| setting | harness (fr) | executive (eta) | gam | variables | m | passes |
+|---|---|---|---|---|---|---|
+| heavy | C (0.999) | optimal (9.0e-11) | 0.00397265 | 768,159 | 5,493 | 1 |
+| heavy, dD0 | U (-0.166, numerr 2) | unknown (1.5e-9) | 934.704 | 435,039 | 3,803 | 2 |
+| heavy, psatz{2} 'none' | I (0.814, numerr 2) | unknown (5.4e-10) | 0.00985648 | 818,639 | 8,257 | 2 |
+
+PDE 48: the heavy tier is the cheapest setting measured that certifies; no example-specific st beats it.
+
+Additional rows (04:35-04:50):
+
+| PDE | form, setting | harness (fr) | executive (eta) | gam | variables | m | passes |
+|---|---|---|---|---|---|---|---|
+| 61 | P, light, dD0 | F (-1) | infeasible (2.0e-2) | – | 295,135 | 5,958 | 2 |
+| 65 | Q, dD0, deg_Q{2} 0 | F (-1) | infeasible (6.0e-2) | – | 412,248 | 17,741 | 2 |
+| 50 | o, light, dD0, psatz{2} 'none' | U (-0.148, numerr 2) | unknown (1.8e-6) | 122.896 | 786,597 | 35,884 | 2 |
+| 65 | P, light, dD0 | F (first pass) | infeasible (eta 6.8e-4) | – | 447,572 | 23,657 | 1 of 2; the raise pass was stopped by the 20-minute watchdog (build 321 s, solve 271 s per pass) |
+| 36 | Q, dD0, deg_Q{2} [2 1 1], raise 0 | U (2.39) | optimal (2.9e-8) | – | 52,964 | 5,679 | 1 |
+| 36 | Q, dD0, psatz{2} 'auto', raise 0 | U (1.65, numerr 2) | unknown (7.2e-8) | – | 210,320 | 7,707 | 1 |
+| 36 | Q, dD0, raise 1 | U (0.375) | optimal (1.8e-8) | – | 52,880 | 5,643 | 1 (status 'optimal' stops the ladder) |
+
+PDE 36: no setting passes the harness gate. The smallest program the executive calls 'optimal' is Q with dD0
+(52,880 variables, OPT_STATUS 0.375, eta 1.8e-8), 34 times fewer variables than light (1,775,200, OPT_STATUS
+4.05); light in form 'P' is infeasible. Not set in the example (no certificate under both gates).
+
+### 11.8 Summary of the second pass
+
+| case | what certifies (both gates) and at what cost | st set |
+|---|---|---|
+| 36 | nothing; executive-only 'optimal' at 52,880 (Q, dD0) | no |
+| 45, 46, 47 | form 'P' at light, 200,986 variables, gam within 0.37-0.90% of exact; form 'Q' nothing | no (form not a knob) |
+| 48 | heavy tier, 768,159, gam 0.00397265; nothing cheaper | no (tier) |
+| 50 | nothing; smallest program 242,485 (dD0, cap_inc 'auto'), MOSEK numerr 2 | no |
+| 61 | Q: light + dD0, 197,415 (OPT_STATUS 0.996); P: light, 323,647 (0.857) | yes, for 'Q' (PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge.m) |
+| 65 | nothing within 20 minutes; Q dD0 1,585,644 / m 43,764 fits the gate but runs over 10 min per solve; smaller programs infeasible | no |
+| 69, 70 | infeasible, as documented (not stable); smallest 426,641 and 221,648 | no |
+
+cap_inc 'auto' (triangular cap): made the H-infinity 'Q' program infeasible before the solve on 45-47 and cut PDE
+50 from 1,585,445 to 242,485 variables without a certificate; it certified nothing in this pass. Dmax not tried.
+| 61 | verified via the example file: Q, light + dD0 | C (0.996) | optimal (6.5e-10) | – | 197,415 | 6,969 | 1 |

@@ -75,3 +75,16 @@ the multiplier caveat above concerns the storage P and the R^q couplings only. C
 measure first, on the 1-D stability rows: the negativity slack at lift degree D = Dmax (no D
 ladder) and the incomplete block capped at lift + weight <= Dmax - 1; then the same for the
 positivity slack of the direct form.
+
+## Measured (11/18 03:10-03:50, 124 1-D rows at light; slack_knobs_1d_light_1118.md)
+- Triangular cap (cap_inc 'auto' = Dmax - 1 on the lower and upper basis operators): variables
+  -17% (1,340,899 -> 1,112,965; PDE 33 52,660 -> 35,396), time -18%; 6 rows gain a certificate,
+  8 lose one (DDE01 dual, DDE13, DDE18, PDE 21 dual, 30, 31, 51, 52), thresholds move both ways
+  within 0.3%. Not verdict-neutral under the harness gate.
+- Lift ceiling (D = Dmax with the weight of the base rule): variables 2.42x, time 1.64x; gains
+  tighter by up to 0.1%, thresholds higher, 6 better / 4 worse (numerical 'unknown' on the
+  larger programs). The containment statement holds up to numerics; the price is not worth the
+  gain as a tier default. (Applied before the weight rule it lowers w and loses 24 rows: the
+  first run, slack_knobs_1d_light_1118_v1_ceiling_before_rule.md.)
+- Both: 1.19x variables, 8 worse.
+Decision: both knobs remain off in every tier (D106); the cap is a per-example candidate.

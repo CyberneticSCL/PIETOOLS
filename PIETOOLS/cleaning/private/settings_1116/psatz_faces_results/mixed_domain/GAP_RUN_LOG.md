@@ -440,3 +440,70 @@ and g6_d2q_1846993.out ('@@ H3Q', '@@ D2Q' lines, '## ... DONE'); results in gap
   ab_slack check (the four reference rows under light as is and the three variants), then
   Dmax, capinc, both on DDE, NDSDDF and the 1-D PDE rows (logs scratchpad
   libpass/logs/ab_slack_<job>.log).
+- 02:33 (11/18) Demo pass before the commit (verify_demos.sh, each demo its own MATLAB process):
+  tiers ok; DEMO7 ok (35 s); DEMO3 FAILS at lpisolve(prob): sossolve refuses the empty solver
+  '' every tier carries since the 11/17 layout (resolved by exec_sop_settings for the
+  executives only) -> lpisolve now resolves '' as exec_sop_settings does (MMP, 11/18/2026);
+  DEMO12 (Dan Braghini's 11/18 version, merged at 02:10) FAILS at its line 138, "for dw =
+  0:settings.sop.max_raise": the tier's max_raise is a per-dimension vector ([1 1 0] since
+  10/29/2026; the executives reduce it in exec_tools_sop), his inlined loop treats it as a
+  scalar. Dan Braghini's code: reported, not patched (the same on origin dd465ee5; the author is Dan Braghini, DB, not Declan). The executive
+  check of the pass used the interactive examples library (not batch-safe) and is rerun
+  through the harness (ab_exec.m).
+- 02:45 (11/18) Example-settings agent finished (D99): 14 st blocks, large savings at the library
+  default parameters (PDE 33 at 409 variables against 52,660), DDE08 at 3.9144; in 1-D the
+  form 'P' at light beats every form-'Q' setting by 1.4-4.6x in variables, in 2-D 'Q' wins.
+  Correction: deg T reads 0 on the DDE rows (agent's routine), so the containment rule does
+  not explain the light DDE loss; the minimal Q degrees measured ([3 2 2] to [5 2 2]) stand
+  as facts without that explanation.
+- 02:55 (11/18) Maintainer on a form field in the settings: no; the forms prove different forms
+  of stability (PDE-level), the example file specifies the executive option, and the 'P' form
+  is used whenever it certifies, being the stronger form (D100). The proposal note is amended.
+- 03:00 (11/18) Maintainer: the auto-executor is NOT changed to pose 'P' first, and the 1-D rows are
+  not rerun ("actually, lets not do that"); the open item of D100 is closed without action.
+  Nothing was edited for it.
+- 03:12 (11/18) COMMIT bb367fe1 (D101) after the demo pass: tiers ok, DEMO3 ok after the
+  lpisolve fix, DEMO7 ok, executives on PDE 1/20/33 at light and heavy reproduce the pass;
+  DEMO12 fails in Dan Braghini's loop (reported). Left for the later commit: the agent's 14 st blocks
+  and its note, the 'P' executive option in the 1-D delay examples (D100), the live part-B
+  results, the proposal note, these records.
+- 03:10 ab_slack results (D102): the triangular cap -17% variables on the 1-D rows at light
+  with 6 better / 8 worse rows; the Dmax variant as implemented lowers w (invalid), redone
+  with w held.
+- 03:20 (11/18) PUSHED on the maintainer's word ("push"): origin/ndopvar dd465ee5 -> bb367fe1
+  (fast-forward). Later commit still pending: the agent's st blocks and note, the 'P' executive
+  option in the 1-D delay examples, the corrected lift-ceiling results, part B's final
+  results, the proposal note, these records.
+- 03:25 (11/18) Attribution corrected: the DEMO12 rewrite (78ab4501, dd465ee5, markers "DB
+  11/17/2026") is Dan Braghini's, not Declan's; the records above are amended (the pushed
+  commit message bb367fe1 says "Declan's 11/18 version" and cannot be changed). Report for
+  Dan: cleaning/private/settings_1116/DEMO12_report_1118.md.
+- 03:35 (11/18) DEMO12 fixed on the maintainer's word, inline format kept: max_raise and dw_Q
+  reduced to PIE.dim before Dan Braghini's raise loop (the executives' reduction of
+  EXEC_TOOLS_SOP); the loop, its exit test and the slack options read the scalars. Full run
+  (synthesis + PIESIM) in progress in a held slot (scratchpad verify/demo12.log).
+- 03:30 (11/18) Part B ended (D104): extreme 158 rows, stripped 146 of 158 (watchdog at 7,200 s);
+  the whole pass is in results_all_1118.csv (harness folder) with the light DDE/NDSDDF rows at
+  deg_Q [4 2 2]; final_summary_1118.md the per-tier summary against 10/28. Gaps: veryheavy
+  56-72, stripped's last 12 rows, cases 53-56 at light and heavy (all postponed).
+- 03:40 (11/18) DEMO12, second defect: its R and V came from POSLPIVAR_SETTINGS_SOP (stock
+  fields mult/int/joint), which the tiers no longer carry; replaced by POSCOPVAR with DEG
+  omitted (the executives' POS_ROW). Rerun in progress.
+- 03:42 (11/18) Callers of POSLPIVAR_SETTINGS_SOP left: in the toolbox only EXEC_TOOLS_SOP (the
+  no-row fallback); in testing_codes/private the tests e2e_hinf_gain_1d, test_dpvar_hinf_chain_sop,
+  test_getsol_sop, test_translators_sop and cx_PIE2PDEstability call it with whatever settings
+  they build and fail with the tiers unless they pass stock-format fields (not run; off the path).
+- 03:45 (11/18) DEMO12 runs (D105): synthesis 5.6253 certified at dw 0; analysis 5.6237 optimal
+  with the witness at 5.6486 (omega 7.8e5) above both bounds, so the guard prints no bound;
+  PIESIM completes. Two fixes, inline format kept; uncommitted.
+- 03:50 (11/18) Corrected ceiling measured (D106): 2.42x variables for bounds within 0.1%, 6 better /
+  4 worse by numerics; the cap -17% with 6 / 8; both 1.19x with 8 worse. Tiers keep both off.
+  All background runs of the night are complete; the agent is done.
+- 03:55 (11/18) DEMO12 fix committed (03a8a261) and pushed (D107).
+- 04:00 (11/18) Example settings committed (eec4f07d) and pushed (D108).
+- 04:05 (11/18) Maintainer: "Have your subagent complete its study": the example-settings agent
+  resumed on top of eec4f07d for PDE 36, 45-48 and the size-gated 50, 61, 65, 69, 70 (both
+  slots free; the form reported, not set; Dmax/cap_inc per example only; about 2 h).
+- 04:20 (11/18) Studies handed to the Sister session (D110, HANDOFF_1118.md): A D2 and the 3-D
+  cap, B tier degrees, C extreme, D the 'P' option mechanism, E the pass gaps, F the report pdf;
+  its first deliverable is a plan. The Fable session keeps the running Opus agent and relays.

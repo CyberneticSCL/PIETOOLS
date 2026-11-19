@@ -1,0 +1,30 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In d2_size3 (line 18)
+In run (line 112)] 
+@@ D2SIZE start 2026-11-18 07:12:41
+@@ D2SIZE pie built 3 s: dim 3
+ - lpi_ineq_sop: 3885408 decision variables in the certificate (Gram blocks [1872 252 252 252 252 252 252], sized from opts.like); 3893508 in the program.
+@@ LB_SIZE ndv=3893508 m=95216 ineq=0
+@@ D2SIZE cd=NaN ndv=3893508 m=95216 ineq=0 t=32
+ - lpi_ineq_sop: 1008 decision variables in the certificate (Gram blocks [12 12 12 12 12 12 12], sized from opts.like); 9108 in the program.
+@@ LB_SIZE ndv=9108 m=12826 ineq=0
+@@ D2SIZE cd=NaN ndv=9108 m=12826 ineq=0 t=9
+ - lpi_ineq_sop: 226216800 decision variables in the certificate (Gram blocks [10944 4212 4212 4212 4212 4212 4212], sized from opts.like); 226227001 in the program.
+## END rc=127 killed=1 wall=1208s
