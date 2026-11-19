@@ -1,5 +1,11 @@
 # Coupled PDEs on mixed spatial domains: stress test of PIETOOLS
 
+**Update 11/19/2026.** D2 is fixed in dbf458a2 (Declan Jagt, 11/13/2026): S19
+converts and passes Layers 1 and 2, and S10, S11, S13i and S14 are refused
+with new messages (Layer 1). On 8e863ecb, `{'convert','ops','exact'}` gives
+74 checks: 68 pass, 6 rejected, 0 FAIL, 133 s. The rest of the report is the
+run of record at 6c6f60dd.
+
 11/12/2026. Systems whose states live on spaces of different dimension –
 R, L2[s1], L2[s2], L2[s1,s2] and L2[s1,s2,s3] – tested in four layers: the
 parser and converter, the `copvar` operations on the resulting PIE operators,
@@ -37,9 +43,10 @@ offsets). Both enable the rows by `st.lpi.ineq.psatz = 'corners'`.
    domains, reversed variable order, and library PDEs 42 and 43. Six
    ill-posed systems are rejected with messages that name the cause,
    including a corner condition on a derivative and an edge clash in 3-D.
-2. **Converter limitation, misleading message** (D2). A higher-dimensional
-   state in the BC of a lower-dimensional state, `x1(0) = int int x2`, is
-   rejected as a BC that "fixes the variables s1, s2 simultaneously (e.g. at
+2. **Converter limitation, misleading message** (D2), fixed in dbf458a2
+   (Declan Jagt, 11/13/2026): S19 converts since. At 6c6f60dd a
+   higher-dimensional state in the BC of a lower-dimensional state,
+   `x1(0) = int int x2`, is rejected as a BC that "fixes the variables s1, s2 simultaneously (e.g. at
    a corner or edge)". The PIE exists; no corner is involved.
 3. **Library defect** (D1), fixed in 2ccb8943 on `origin/ndopvar` (Declan
    Jagt, 11/12/2026 21:20), which codes `-a1`. At 6c6f60dd,
@@ -138,7 +145,7 @@ parameter named; the executives run at 0.9 and 1.1 times it.
 | S16 | L2[s1] x L2[s1] x L2[s1,s2] | L2[s1,s2] input; scalar output and L2[s1] trace output | semantics |
 | S17 | L2[s1] x L2[s1,s2] | transport edge state into a state of order 0 in s1 | margin r2* = pi^2 |
 | S18 | L2[s1] x L2[s1,s2] | library PDE 43, delay as a 2-D transport state, both signs | tau* = 1.034726 (sign -1); unstable for every tau (sign +1) |
-| S19 | L2[s1] x L2[s1,s2] | higher-dimensional state in a 1-D BC | PIE exists; converter rejects |
+| S19 | L2[s1] x L2[s1,s2] | higher-dimensional state in a 1-D BC | PIE exists; rejected at 6c6f60dd (D2), converts since dbf458a2 |
 | S20 | L2[s1] x L2[s1,s2] | S4 with the 2-D state declared on [s2;s1] | semantics |
 | S21 | L2[s1] x L2[s1,s2] | S4 on [-1,2] x [0.5,3], edge coefficient (2+s1) | semantics |
 | S22 | L2^2[s1] x L2[s1,s2] | vector edge state, matrix coupling | semantics |
@@ -182,7 +189,15 @@ systems marked "must be rejected" are rejected; the messages:
 | S27 | "The order of the derivative of x_1 is higher than that to which the state is differentiable." (`convert_PDE_factor:269`) |
 
 S11 shows that the compatibility check covers derivative conditions, not only
-values. S19 is the one valid system rejected (D2).
+values. At 6c6f60dd, S19 is the one valid system rejected (D2).
+
+Since dbf458a2 (run on 8e863ecb, 11/19/2026), S19 passes, largest error
+3.7e-15 (D^{diff} T xf). S10, S11 and S13i are refused with "Boundary
+conditions that constrain a state of lower dimension (e.g. at a corner) are
+not supported." (`eliminate_BVP_sources:223`), S14 with "Boundary conditions
+of a state on several variables with both a state of lower dimension and an
+input are not supported." (`convert_PIETOOLS_BVP:280`); the S27 message is
+unchanged and raised at `convert_PDE_term:217`.
 
 ## Layer 2 – copvar operations
 
@@ -440,7 +455,8 @@ exact 9.05) is attributed to the same cause, not rerun at N = 8.
 ## Defects and minimal reproductions
 
 Each is reported, not patched: D1 is in an example file (fixed since, in
-2ccb8943), D2 in the converter (Declan Jagt), D3 and D4 in PIESIM.
+2ccb8943), D2 in the converter (Declan Jagt; fixed since, in dbf458a2), D3
+and D4 in PIESIM.
 
 **D1 – library PDE 43 has the wrong sign (fixed in 2ccb8943).**
 `PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay.m`
@@ -462,7 +478,7 @@ header already states the intended system. 2ccb8943 (Declan Jagt, 11/12/2026
 21:20, `origin/ndopvar`) makes the first of these changes, on line 66.
 
 **D2 – a higher-dimensional state in a lower-dimensional BC is rejected with
-a corner/edge message.**
+a corner/edge message (fixed in dbf458a2).**
 
     pvar s1 s2 t
     x1 = pde_var(1,s1,[0,1]);  x2 = pde_var(1,[s1;s2],[0,1;0,1]);
@@ -480,7 +496,9 @@ x1 through its BCs, so x1 = T11 x1f + (1-s1) int int T22 x2f. Proposed fix:
 lift such terms as sources, the converse of `lift_BVP_sources` – solve the
 BVP of x1 with the term as an input, then compose with the T-map of x2 – when
 the BCs of the higher-dimensional state do not involve the lower one; at
-least, name the higher-dimensional term in the error.
+least, name the higher-dimensional term in the error. dbf458a2 (Declan
+Jagt, 11/13/2026 18:51) converts the reproduction; on 8e863ecb
+(11/19/2026) S19 passes Layer 1 at 3.7e-15 and Layer 2 at 2.8e-16.
 
 **D3 – PIESIM fails on PIEs with auxiliary states.** The converter turns a
 direction with conditions at both ends that leave the state rank deficient
@@ -562,7 +580,8 @@ control. Related, measured once, 1-D: `x_t = x_ss`, `int x ds = 0`,
     R = test_mixed_domain_pde('all');          % 55 min at 6c6f60dd
 
 Statuses: `pass`; `rejected` (an ill-posed system rejected, as required);
-`KNOWN` (S19, the limitation D2); `FAIL`. At 6c6f60dd the run of record of
+`KNOWN` (a recorded limitation: S19, D2, until dbf458a2; none since
+7670fb57); `FAIL`. At 6c6f60dd the run of record of
 'all' gave 125 checks: 97 pass, 6 rejected, 1 KNOWN, 21 FAIL. The 21 FAIL
 lines are D3 and D4 in 'piesim' (9 lines) and, in 'exec', the 4 stable cases
 left uncertified, the 4 gains in form 'Q' and the 4 H2 norms (12 lines).
@@ -575,7 +594,8 @@ The control C1 adds 8 checks (convert, ops, 2 exact, 4 exec), run with
 102 pass, 6 rejected, 1 KNOWN, 24 FAIL (the run of record plus these 8;
 'all' was not rerun as one call). The final files, run with
 `{'convert','ops','exact'}` on the export: 73 checks, 66 pass, 6 rejected,
-1 KNOWN, 0 FAIL, 141 s.
+1 KNOWN, 0 FAIL, 141 s. On 8e863ecb (11/19/2026): 74 checks, 68 pass,
+6 rejected, 0 KNOWN, 0 FAIL, 133 s.
 
 ## Records
 
