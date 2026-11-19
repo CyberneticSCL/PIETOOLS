@@ -9,8 +9,10 @@
 %             PDE or PDE_GUI ('pde_struct', converted by
 %             convert_PIETOOLS_PDE); if none exists the GUI opens;
 % - flags:    each a double, 1 to run:
-%               stability       PIETOOLS_stability_sop, form 'Q';
-%               stability_dual  PIETOOLS_stability_sop, form 'Qd';
+%               stability       PIETOOLS_stability_sop, form 'Q', or the
+%                               form stability_form;
+%               stability_dual  PIETOOLS_stability_sop, form 'Qd', or the
+%                               form stability_form followed by 'd';
 %               Hinf_gain       PIETOOLS_Hinf_gain_sop, form 'Q';
 %               Hinf_gain_dual  PIETOOLS_Hinf_gain_sop, form 'Qd';
 %               Hinf_estimator, Hinf_control, H2_estimator, H2_control,
@@ -21,6 +23,9 @@
 % - settings: (optional) 'struct' of LPI settings (lpisettings_sop); if
 %             absent, the script asks for a tier of lpisettings_sop ('light'
 %             when the answer is empty or unknown).
+% - stability_form: (optional) char, the form of the stability test that
+%             an example names, 'P' (storage) or 'Q' (direct); absent or
+%             empty, 'Q'.
 %
 % OUTPUT (variables in the base workspace), per executive run:
 %   stability:       prog_stability, P_stability, info_stability;
@@ -82,6 +87,11 @@
 %                offered, 'extreme' included, is a tier there.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help and a body
 %                note name lpisettings_sop; code unchanged.
+% MMP, 11/18/2026: The stability form from the workspace variable
+%                stability_form, 'Q' when absent (maintainer, D100 and the
+%                approval of 11/18: the example names the form, the forms
+%                proving different notions of stability); the dual form
+%                appends 'd'. Default path unchanged.
 
 % The PIE: from the workspace, the GUI, or a PDE
 if ~exist('PIE','var')
@@ -164,15 +174,21 @@ if ~exist('settings','var')
     settings = lpisettings_sop(sttngs);                                     % MMP, 11/08/2026
 end
 
+% The form of the stability test: the one the example names, else 'Q'       % MMP, 11/18/2026
+sform = 'Q';                                                                % MMP, 11/18/2026
+if exist('stability_form','var') && ~isempty(stability_form),  sform = stability_form;  end % MMP, 11/18/2026
+
 % Run each executive, assigning its outputs in the base workspace
 for j=1:length(exec)
 if strcmpi(exec{j},'PIE2PDEstability')
     outval = '[prog_stability, P_stability, info_stability]';
-    infun = 'PIETOOLS_stability_sop(PIE,settings,''Q'')';
+%   infun = 'PIETOOLS_stability_sop(PIE,settings,''Q'')';                   % MMP, 11/18/2026 (was)
+    infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,''')'];         % MMP, 11/18/2026
     msg_out = '';
 elseif strcmpi(exec{j},'PIE2PDEstability_dual')
     outval = '[prog_stability_d, P_stability_d, info_stability_d]';
-    infun = 'PIETOOLS_stability_sop(PIE,settings,''Qd'')';
+%   infun = 'PIETOOLS_stability_sop(PIE,settings,''Qd'')';                  % MMP, 11/18/2026 (was)
+    infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,'d'')'];        % MMP, 11/18/2026
     msg_out = '';
 elseif strcmp(exec{j},'Hinf_gain')
     outval = '[prog_Hinf_gain, P_Hinf_gain, Hinf_gain, info_Hinf_gain]';

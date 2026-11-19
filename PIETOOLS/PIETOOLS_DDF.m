@@ -39,6 +39,14 @@
 %                   11/12/2026: phase 2 of the knob reduction); the former
 %                   options1.sep and options12.sep are no longer accepted
 %                   (options12 was unread: override1 = 1 in every tier).
+% MMP, 11/18/2026: The example names the form of its stability test
+%                   (maintainer, D100): stability_form = 'P' here, 'Pd' for
+%                   the dual; a library block may set 'Q'. On the 25
+%                   NDSDDF library rows at light, 'P' keeps every
+%                   certificate of 'Q' and raises the thresholds of NDS05
+%                   and NDS08 (+0.08%, +0.49%). Measured in
+%                   cleaning/private/settings_1116/studies_1118
+%                   (D1_formP.md; DECISIONS.md D115).
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -48,6 +56,7 @@ clc;
 stability=0; stability_dual=0; 
 Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
 Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
+stability_form='P';     % storage form; a library block may set 'Q'         % MMP, 11/18/2026
 DDE2DDF=0;      DDF_min=1;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -269,11 +278,13 @@ end
 % PIETOOLS_stability_dual, called before, do not exist.                     % MMP, 11/04/2026
 if stability==1
 %   [prog, P] = PIETOOLS_stability(PIE,settings);                           % MMP, 11/04/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/04/2026
+%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/18/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % MMP, 11/18/2026
 end
 if stability_dual==1
 %   [prog, P] = PIETOOLS_stability_dual(PIE,settings);                      % MMP, 11/04/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/04/2026
+%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/18/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % MMP, 11/18/2026
 end
 if Hinf_gain==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/04/2026 (was)

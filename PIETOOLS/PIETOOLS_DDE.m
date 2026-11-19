@@ -37,12 +37,24 @@
 %                   p. 192 of [1], A, D, E of [2]), replace the light
 %                   tier; measured in cleaning/private/settings_1116/
 %                   psatz_faces_results/example_settings.
+% MMP, 11/18/2026: The example names the form of its stability test
+%                   (maintainer, D100: the forms prove different notions of
+%                   stability; 'P', the stronger, wherever it certifies):
+%                   stability_form = 'P' here, 'Pd' for the dual; a library
+%                   block may set 'Q'. On the 66 DDE and NDSDDF library rows
+%                   at light, 'P' keeps every certificate of 'Q' and raises
+%                   four delay thresholds (DDE03 to the documented 1.71785)
+%                   at 0.57 times the variables; Example E of [2] sets 'Q',
+%                   whose st certifies tauN 3.9144 ('P' at light: 1.42229).
+%                   Measured in cleaning/private/settings_1116/studies_1118
+%                   (D1_formP.md; DECISIONS.md D115).
 %
 close all; clear; %path(pathdef); 
 clc;
 stability=0; stability_dual=0; 
 Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
 Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
+stability_form='P';     % storage form; a library block may set 'Q'         % MMP, 11/18/2026
 
 % DDE_minimal_rep=0;                                                        % MMP, 11/04/2026 (was)
 DDE_minimal_rep=1;                                                          % MMP, 11/04/2026
@@ -263,11 +275,13 @@ end
 % before, does not exist.                                                   % MMP, 11/04/2026
 if stability==1
 %   [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                    % MMP, 11/04/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/04/2026
+%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/18/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % MMP, 11/18/2026
 end
 if stability_dual==1
 %   [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);               % MMP, 11/04/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/04/2026
+%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/18/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % MMP, 11/18/2026
 end
 if Hinf_gain==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/04/2026 (was)

@@ -49,6 +49,15 @@
 %                   heavy threshold in 11 SDP solves (heavy: 15-29).
 %                   Measurements: cleaning/private/settings_1116/
 %                   psatz_faces_results/example_settings/EXAMPLE_SETTINGS.md;
+% MMP, 11/18/2026: PIETOOLS_DDE names the storage form 'P' for the
+%                   stability tests (stability_form; D100): at light it
+%                   reaches the thresholds of the st blocks of Examples B,
+%                   p. 192, A and D at 1.4-4.6 times fewer variables, so
+%                   their st (degrees of Q) acts only when a user sets
+%                   stability_form = 'Q'. Example E sets 'Q': its st
+%                   certifies tauN 3.9144 there, 'P' at light 1.42229.
+%                   Measurements: cleaning/private/settings_1116/
+%                   studies_1118 (D1_formP.md; DECISIONS.md D115).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,6 +150,7 @@
  %  DDE.tau(1)=1.1;
  % % st: Q degree [8 6 6] certifies tauN 3.9144 (veryheavy 3.8957)          % MMP, 11/18/2026
  % st = lpisettings_sop('light');  st.sop.deg_Q{1} = [8 6 6];               % MMP, 11/18/2026
+ % stability_form='Q';     % the st acts in 'Q'; 'P' at light: 1.42229      % MMP, 11/18/2026
 % % % %%%% answer - tauNmax\in [3.9,3.95] (Note:requires veryheavy settings)
 %
 
