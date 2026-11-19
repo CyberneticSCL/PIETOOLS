@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params)
+function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params) % MMP, 11/18/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         (optional) example-specific settings structure (header)     % MMP, 11/18/2026
 %
 % %---------------------------------------------------------------------% %
 % % 2D heat equation with a dynamic boundary condition of reactive-
@@ -42,11 +43,25 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params)
 % %     (lam = 0.738728), the top of the bracket.
 % %   - lam = 1.02*lam*, 1.1*lam*: UNKNOWN (stock light, after one raise).
 % %                                                                         % MMP, 11/17/2026
-% % No second output st: the light tier certifies this example              % MMP, 11/17/2026
+% % No second output st: the light tier certifies this example        % MMP, 11/18/2026 (was); MMP, 11/17/2026
 % % (record above). Its storage is the proposed light row since             % MMP, 11/17/2026
 % % 11/17/2026; its slack of 11/17/2026 (wcross 0, 2-D faces at offset      % MMP, 11/17/2026
 % % 1) was not rerun.                                                       % MMP, 11/17/2026
+% %                                                                         % MMP, 11/18/2026
+% % Example-specific settings of 11/18/2026 (output st; the paragraph       % MMP, 11/18/2026
+% % above holds for the form 'P' only), for the direct form 'Q' that        % MMP, 11/18/2026
+% % the library runs: lpisettings_sop('light') with the slack lift          % MMP, 11/18/2026
+% % degree at its minimum, st.lpi.ineq.dD = 0. MOSEK, 11/18/2026, lam =     % MMP, 11/18/2026
+% % 0.9*lam*: certified in 'Q' at 197,415 decision variables, 6,969         % MMP, 11/18/2026
+% % rows, no raise (OPT_STATUS 0.996, eta 6.5e-10); light in 'Q' is         % MMP, 11/18/2026
+% % refused by the size gate of the library pass (2,430,327 variables);     % MMP, 11/18/2026
+% % light in 'P' certifies at 323,647 (OPT_STATUS 0.857); dD = 0 in 'P'     % MMP, 11/18/2026
+% % is infeasible (295,135).                                                % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/18/2026: Second output st for the direct form 'Q': light with
+%                   the slack lift degree at its minimum (header);
+% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params) % MMP, 11/18/2026 (was)
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier certifies the example, so
@@ -83,6 +98,13 @@ PDE_t = [diff(v,'t')==sig*diff(v,s1,2)-subs(diff(u,s2),s2,1)+lam*v;
          subs(diff(u,s1),s1,0)==0;  subs(diff(u,s1),s1,1)==0;
          subs(u,s2,0)==0;           subs(u,s2,1)==v];
 
+
+% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
+% minimum (dD = 0), for the form 'Q'                                        % MMP, 11/18/2026
+if nargout>1                                                                % MMP, 11/18/2026
+    st = lpisettings_sop('light');                                          % MMP, 11/18/2026
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
+end                                                                         % MMP, 11/18/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

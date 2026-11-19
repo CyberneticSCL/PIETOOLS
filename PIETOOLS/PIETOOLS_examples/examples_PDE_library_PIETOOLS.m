@@ -114,6 +114,7 @@
 %                   example files (example-specific settings, measured
 %                   against the tiers in cleaning/private/settings_1116/
 %                   psatz_faces_results/example_settings);
+% MMP, 11/18/2026: Case 61 notes the output st of its example file;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1012,6 +1013,7 @@ if BATCH~=0
 %                 + lam*v;   (s1,s2) in [0,1]^2     |
 %   BCs: u_{s1} = v_{s1} = 0 at s1 = 0, 1;          |
 %        u(t,s1,0) = 0;  u(t,s1,1) = v(t,s1);       |
+%   [PDE,st]: st, example-specific settings for the form Q (file header)    % MMP, 11/18/2026
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
