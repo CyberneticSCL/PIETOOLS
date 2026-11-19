@@ -1,0 +1,75 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+## ST_RUN E2l start 18-Nov-2026 06:08:46: light, PDE:53 PDE:54 PDE:55 PDE:56
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In lb_run (line 82)
+In st_run (line 115)] 
+
+##### PDE:53  [light]  18-Nov-2026 06:08:48
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 907200 decision variables in the certificate (Gram blocks [360 360 360 360 360 360 360], sized from the operator); 908200 in the program.
+ - lpi_ineq_sop: 3161088 decision variables in the certificate (Gram blocks [672 672 672 672 672 672 672], sized from the operator); 4069288 in the program.
+##### PDE:53  [light]  error  result NaN  (67.0 s)
+
+##### PDE:54  [light]  18-Nov-2026 06:09:55
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 7000000 decision variables in the certificate (Gram blocks [1000 1000 1000 1000 1000 1000 1000], sized from the operator); 7001000 in the program.
+ - lpi_ineq_sop: 17920000 decision variables in the certificate (Gram blocks [1600 1600 1600 1600 1600 1600 1600], sized from the operator); 24921000 in the program.
+##### PDE:54  [light]  error  result NaN  (272.5 s)
+
+##### PDE:55  [light]  18-Nov-2026 06:14:28
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 28000000 decision variables in the certificate (Gram blocks [2000 2000 2000 2000 2000 2000 2000], sized from the operator); 28004000 in the program.
+ - lpi_ineq_sop: 71680000 decision variables in the certificate (Gram blocks [3200 3200 3200 3200 3200 3200 3200], sized from the operator); 99684000 in the program.
+##### PDE:55  [light]  error  result NaN  (1306.5 s)
+
+##### PDE:56  [light]  18-Nov-2026 06:36:15
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)    <--          (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)x(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 828352 decision variables in the certificate (Gram blocks [344 344 344 344 344 344 344], sized from the operator); 829852 in the program.
+ - lpi_ineq_sop: 1694448 decision variables in the certificate (Gram blocks [492 492 492 492 492 492 492], sized from the operator); 2524300 in the program.
+##### PDE:56  [light]  error  result NaN  (43.6 s)
+## ST_RUN E2l DONE 18-Nov-2026 06:36:58

@@ -1,0 +1,122 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In st_d2solve (line 21)
+In st_run (line 51)] 
+@@ A3 start 18-Nov-2026 06:38:52: cap_delta(3) 0, cap_inc [], tau = 0.5 tau*
+@@ A3 lpisolve C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\lpi_programming_sopvar\lpisolve.m
+@@ A3 pie 4 s, dim 3
+ - lpi_ineq_sop: 47232 decision variables in the certificate (Gram blocks [192 48 48 48 48 24 24], sized from the operator); 48732 in the program.
+ - lpi_ineq_sop: 106272 decision variables in the certificate (Gram blocks [288 72 72 72 72 36 36], sized from the operator); 155004 in the program.
+Size: 155004   23286
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (53) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (74) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #2 (nearly) zero elements are specified in sparse col '' (197) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #2 (nearly) zero elements are specified in sparse col '' (242) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (406) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (407) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (448) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (449) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #3 (nearly) zero elements are specified in sparse col '' (557) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #6 (nearly) zero elements are specified in sparse col '' (560) of matrix 'A'.
+Warning number 710 is disabled.
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 23286           
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 1500            
+  Matrix variables       : 14 (scalarized: 77292)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 212
+Eliminator terminated.
+Eliminator started.
+Freed constraints in eliminator : 16
+Eliminator terminated.
+Eliminator - tries                  : 2                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.05            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 2442              dual deps.             : 0               
+Presolve terminated. Time: 0.07    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 11910           
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 482               conic                  : 482             
+Optimizer  - Semi-definite variables: 14                scalarized             : 77292           
+Factor     - setup time             : 3.57            
+Factor     - dense det. time        : 1.00              GP order time          : 0.12            
+Factor     - nonzeros before factor : 3.21e+07          after factor           : 3.42e+07        
+Factor     - dense dim.             : 3                 flops                  : 1.44e+11        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   3.0e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  3.82  
+1   7.9e-01  2.6e-01  1.5e-01  8.55e-01   0.000000000e+00   4.558516952e-02   2.6e-01  5.19  
+2   1.5e-01  4.8e-02  1.7e-02  6.84e-01   0.000000000e+00   5.248321356e-02   4.8e-02  6.20  
+3   2.4e-02  8.0e-03  2.4e-03  3.69e-01   0.000000000e+00   6.600299447e-02   8.0e-03  7.17  
+4   7.1e-03  2.3e-03  1.1e-03  -3.28e-01  0.000000000e+00   2.050335690e-01   2.3e-03  8.05  
+5   8.7e-04  2.8e-04  7.8e-04  -8.67e-01  0.000000000e+00   7.544724479e+00   2.8e-04  8.97  
+6   1.0e-04  3.4e-05  1.6e-04  -1.20e+00  0.000000000e+00   2.084141939e+01   3.4e-05  9.95  
+7   1.1e-06  3.5e-07  1.7e-05  -1.03e+00  0.000000000e+00   2.381266548e+03   3.5e-07  11.49 
+8   1.4e-10  1.6e-11  9.3e-08  -1.00e+00  0.000000000e+00   3.462556720e+07   2.4e-11  13.33 
+9   4.9e-12  8.5e-14  9.2e-09  -1.00e+00  0.000000000e+00   7.093747822e+18   1.2e-22  15.34 
+Optimizer terminated. Time: 17.93   
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_INFEASIBLE
+  Solution status : PRIMAL_INFEASIBLE_CER
+  Dual.    obj: 2.7606031213e-02    nrm: 4e+03    Viol.  con: 0e+00    var: 9e-14    barvar: 9e-14  
+Optimizer summary
+  Optimizer                 -                        time: 17.93   
+    Interior-point          - iterations : 10        time: 17.93   
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1
+ 
+       cpusec: 17.9264
+         iter: 10
+    feasratio: -1.0000
+         dinf: 0
+         pinf: 1
+       numerr: 0
+       relres: 1.0000
+          eta: 1.0291
+
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 155004 decision variables, 23286 rows, build 4.8 s, solve 18.3 s
+  [stability_sop Q] infeasible: certificate at epneg 0: 0; numerical spectrum max Re NaN
+@@ A3 result: status infeasible, certified 0, eta 1.03, optimality measure -1, ndv 155004, m 23286, executive 23 s, total 27 s

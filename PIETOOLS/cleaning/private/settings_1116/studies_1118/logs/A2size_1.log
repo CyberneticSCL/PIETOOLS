@@ -1,0 +1,71 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In st_d2size (line 17)
+In st_run (line 28)] 
+@@ A2 start 18-Nov-2026 06:25:11
+@@ A2 pie 4 s, dim 3
+ - lpi_ineq_sop: 155808 decision variables in the certificate (Gram blocks [344 84 84 84 84 68 68], sized from the operator); 157308 in the program.
+ - lpi_ineq_sop: 318096 decision variables in the certificate (Gram blocks [492 120 120 120 120 96 96], sized from the operator); 475404 in the program.
+@@ LB_SIZE ndv=475404 m=33025 ineq=0
+@@ A2 cd=0 capinc=[] dD=1 degQ3=1 psatz3=faces1: ndv=475404 m=33025 ineq=0, MOSEK at 23-25 B/m^2 25-27 GB (8 s)
+ - lpi_ineq_sop: 657248 decision variables in the certificate (Gram blocks [720 180 180 180 180 68 68], sized from the operator); 658748 in the program.
+ - lpi_ineq_sop: 2062944 decision variables in the certificate (Gram blocks [1344 228 228 228 228 156 156], sized from the operator); 2721692 in the program.
+@@ LB_SIZE ndv=2721692 m=82551 ineq=0
+@@ A2 cd=1 capinc=[] dD=1 degQ3=1 psatz3=faces1: ndv=2721692 m=82551 ineq=0, MOSEK at 23-25 B/m^2 157-170 GB (21 s)
+ - lpi_ineq_sop: 657248 decision variables in the certificate (Gram blocks [720 180 180 180 180 68 68], sized from the operator); 658748 in the program.
+ - lpi_ineq_sop: 735840 decision variables in the certificate (Gram blocks [768 156 156 156 156 156 156], sized from the operator); 1394588 in the program.
+@@ LB_SIZE ndv=1394588 m=63066 ineq=0
+@@ A2 cd=1 capinc='auto' dD=1 degQ3=1 psatz3=faces1: ndv=1394588 m=63066 ineq=0, MOSEK at 23-25 B/m^2 91-99 GB (8 s)
+ - lpi_ineq_sop: 230912 decision variables in the certificate (Gram blocks [448 80 80 80 80 48 48], sized from the operator); 232412 in the program.
+ - lpi_ineq_sop: 423296 decision variables in the certificate (Gram blocks [608 104 104 104 104 72 72], sized from the operator); 655708 in the program.
+@@ LB_SIZE ndv=655708 m=35881 ineq=0
+@@ A2 cd=1 capinc=[] dD=0 degQ3=1 psatz3=faces1: ndv=655708 m=35881 ineq=0, MOSEK at 23-25 B/m^2 30-32 GB (8 s)
+ - lpi_ineq_sop: 657248 decision variables in the certificate (Gram blocks [720 180 180 180 180 68 68], sized from the operator); 657302 in the program.
+ - lpi_ineq_sop: 107280 decision variables in the certificate (Gram blocks [228 96 96 96 96 96 96], sized from the operator); 764582 in the program.
+@@ LB_SIZE ndv=764582 m=42665 ineq=0
+@@ A2 cd=1 capinc=[] dD=1 degQ3=0 psatz3=faces1: ndv=764582 m=42665 ineq=0, MOSEK at 23-25 B/m^2 42-46 GB (5 s)
+ - lpi_ineq_sop: 47232 decision variables in the certificate (Gram blocks [192 48 48 48 48 24 24], sized from the operator); 47286 in the program.
+ - lpi_ineq_sop: 36288 decision variables in the certificate (Gram blocks [144 72 72 36 36 36 36], sized from the operator); 83574 in the program.
+@@ LB_SIZE ndv=83574 m=8733 ineq=0
+@@ A2 cd=1 capinc=[] dD=0 degQ3=0 psatz3=faces1: ndv=83574 m=8733 ineq=0, MOSEK at 23-25 B/m^2 2-2 GB (3 s)
+ - lpi_ineq_sop: 230912 decision variables in the certificate (Gram blocks [448 80 80 80 80 48 48], sized from the operator); 232412 in the program.
+ - lpi_ineq_sop: 155008 decision variables in the certificate (Gram blocks [352 72 72 72 72 72 72], sized from the operator); 387420 in the program.
+@@ LB_SIZE ndv=387420 m=29348 ineq=0
+@@ A2 cd=1 capinc='auto' dD=0 degQ3=1 psatz3=faces1: ndv=387420 m=29348 ineq=0, MOSEK at 23-25 B/m^2 20-22 GB (4 s)
+ - lpi_ineq_sop: 47232 decision variables in the certificate (Gram blocks [192 48 48 48 48 24 24], sized from the operator); 47286 in the program.
+ - lpi_ineq_sop: 36288 decision variables in the certificate (Gram blocks [144 72 72 36 36 36 36], sized from the operator); 83574 in the program.
+@@ LB_SIZE ndv=83574 m=8733 ineq=0
+@@ A2 cd=1 capinc='auto' dD=0 degQ3=0 psatz3=faces1: ndv=83574 m=8733 ineq=0, MOSEK at 23-25 B/m^2 2-2 GB (2 s)
+ - lpi_ineq_sop: 47232 decision variables in the certificate (Gram blocks [192 48 48 48 48 24 24], sized from the operator); 47286 in the program.
+ - lpi_ineq_sop: 36288 decision variables in the certificate (Gram blocks [144 72 72 36 36 36 36], sized from the operator); 83574 in the program.
+@@ LB_SIZE ndv=83574 m=8733 ineq=0
+@@ A2 cd=2 capinc=[] dD=0 degQ3=0 psatz3=faces1: ndv=83574 m=8733 ineq=0, MOSEK at 23-25 B/m^2 2-2 GB (2 s)
+ - lpi_ineq_sop: 50688 decision variables in the certificate (Gram blocks [192 48 48 48 48 48 48], sized from the operator); 50742 in the program.
+ - lpi_ineq_sop: 51840 decision variables in the certificate (Gram blocks [144 72 72 72 72 72 72], sized from the operator); 102582 in the program.
+@@ LB_SIZE ndv=102582 m=10569 ineq=0
+@@ A2 cd=NaN capinc='auto' dD=0 degQ3=0 psatz3=faces1: ndv=102582 m=10569 ineq=0, MOSEK at 23-25 B/m^2 3-3 GB (1 s)
+ - lpi_ineq_sop: 47232 decision variables in the certificate (Gram blocks [192 48 48 48 48 24 24], sized from the operator); 48732 in the program.
+ - lpi_ineq_sop: 106272 decision variables in the certificate (Gram blocks [288 72 72 72 72 36 36], sized from the operator); 155004 in the program.
+@@ LB_SIZE ndv=155004 m=23286 ineq=0
+@@ A2 cd=0 capinc=[] dD=0 degQ3=1 psatz3=faces1: ndv=155004 m=23286 ineq=0, MOSEK at 23-25 B/m^2 12-14 GB (2 s)
+ - lpi_ineq_sop: 3628800 decision variables in the certificate (Gram blocks [720 720 720 720 720 720 720], sized from the operator); 3630300 in the program.
+ - lpi_ineq_sop: 12644352 decision variables in the certificate (Gram blocks [1344 1344 1344 1344 1344 1344 1344], sized from the operator); 16274652 in the program.
+@@ LB_SIZE ndv=16274652 m=144751 ineq=0
+@@ A2 cd=1 capinc=[] dD=1 degQ3=1 psatz3=auto: ndv=16274652 m=144751 ineq=0, MOSEK at 23-25 B/m^2 482-524 GB (118 s)
+@@ A2 end 18-Nov-2026 06:28:15, 185 s

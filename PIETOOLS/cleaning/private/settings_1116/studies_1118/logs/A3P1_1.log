@@ -1,0 +1,107 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In st_d2solve (line 22)
+In st_run (line 55)] 
+@@ A3 start 18-Nov-2026 07:36:12: cap_delta(3) NaN, cap_inc 'auto', tau = 0.5 tau*
+@@ A3 lpisolve C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\lpi_programming_sopvar\lpisolve.m
+@@ A3 pie 4 s, dim 3
+ - lpi_ineq_sop: 1008 decision variables in the certificate (Gram blocks [12 12 12 12 12 12 12], sized from opts.like); 9108 in the program.
+Size: 9108  12826
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 12826           
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 0               
+  Matrix variables       : 8 (scalarized: 4641)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 1554            
+Optimizer  - Cones                  : 0               
+Optimizer  - Scalar variables       : 0                 conic                  : 0               
+Optimizer  - Semi-definite variables: 8                 scalarized             : 4641            
+Factor     - setup time             : 0.04            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 7.21e+05          after factor           : 7.21e+05        
+Factor     - dense dim.             : 0                 flops                  : 1.54e+09        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   7.8e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.07  
+1   9.8e-01  1.3e-01  1.6e-01  2.19e-01   0.000000000e+00   1.203012586e+00   1.3e-01  0.29  
+2   8.9e-02  1.1e-02  9.7e-02  -8.81e-01  0.000000000e+00   7.212894005e+01   1.1e-02  0.41  
+3   1.5e-02  1.9e-03  6.7e-02  -1.41e+00  0.000000000e+00   1.296090552e+03   1.9e-03  0.53  
+4   1.8e-03  2.3e-04  2.8e-02  -1.43e+00  0.000000000e+00   1.419238150e+04   2.3e-04  0.66  
+5   2.5e-04  3.2e-05  7.1e-03  -1.34e+00  0.000000000e+00   5.069704109e+04   3.2e-05  0.79  
+6   3.4e-05  4.3e-06  1.3e-02  -1.04e+00  0.000000000e+00   8.840380271e+06   4.3e-06  0.92  
+7   8.9e-08  1.1e-08  1.7e-04  -1.09e+00  0.000000000e+00   2.154911560e+08   1.1e-08  1.06  
+8   8.0e-12  1.3e-12  1.5e-08  -1.00e+00  0.000000000e+00   1.624071757e+00   1.0e-12  1.18  
+Optimizer terminated. Time: 1.18    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_INFEASIBLE
+  Solution status : PRIMAL_INFEASIBLE_CER
+  Dual.    obj: 1.6240717571e+00    nrm: 8e+01    Viol.  con: 0e+00    barvar: 1e-12  
+Optimizer summary
+  Optimizer                 -                        time: 1.18    
+    Interior-point          - iterations : 8         time: 1.18    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1
+ 
+       cpusec: 1.1838
+         iter: 8
+    feasratio: -1.0001
+         dinf: 0
+         pinf: 1
+       numerr: 0
+       relres: 1.0000
+          eta: 1.0000
+
+  [stability_sop P] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 9108 decision variables, 12826 rows, build 14.0 s, solve 1.7 s
+  [stability_sop P] infeasible: certificate at epneg 0: 0; numerical spectrum max Re NaN
+@@ A3 form P
+@@ A3 result: status infeasible, certified 0, eta 1, optimality measure -1, ndv 9108, m 12826, executive 16 s, total 20 s
