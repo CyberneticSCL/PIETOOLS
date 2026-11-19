@@ -1,0 +1,6 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,31,veryheavy,certified,0.00021688438,light=2.7407e-04,1,6.20,30683,sop:PIETOOLS_Hinf_control | PIETOOLS_Hinf_control_sop fr=0.734 pinf=0 dinf=0 numerr=0 iter=25 cpu=0.9s m=662 nx=30684 exst=optimal eta=5.8e-11 passes=1
+PDE,32,veryheavy,certified,0.51759587,heavy=0.5971,1,4.46,31537,sop:PIETOOLS_Hinf_control | PIETOOLS_Hinf_control_sop fr=1 pinf=0 dinf=0 numerr=0 iter=29 cpu=1.0s m=685 nx=31538 exst=optimal eta=1e-10 passes=1
+PDE,49/H2_norm_dual,veryheavy,certified,0.10157588,0.1016,1,1.38,11847,sop:PIETOOLS_H2_norm_c | PIETOOLS_H2_norm_sop/c fr=0.959 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=579 nx=11849 exst=optimal eta=4.9e-07 passes=1
+DDE,DDE13,veryheavy,certified,1.3411163,1.339 (tau=2),1,2.41,32143,sop:PIETOOLS_Hinf_control | PIETOOLS_Hinf_control_sop fr=1 pinf=0 dinf=0 numerr=0 iter=29 cpu=1.0s m=691 nx=32144 exst=optimal eta=1.9e-11 passes=1
+DDE,DDE18,veryheavy,certified,0.33479387,0.4092 (n=3),1,3.54,78328,sop:PIETOOLS_Hinf_control | PIETOOLS_Hinf_control_sop fr=0.998 pinf=0 dinf=0 numerr=0 iter=22 cpu=2.6s m=1909 nx=78329 exst=optimal eta=5.7e-12 passes=1

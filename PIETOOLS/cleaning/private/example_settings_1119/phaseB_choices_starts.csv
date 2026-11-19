@@ -1,0 +1,138 @@
+key,kind,form,tier,mods,best
+DDE:DDE01,bisect,P,stripped,"st.lpi.ineq.dD = 0",2.04
+DDE:DDE01/stability_dual,stab,Pd,stripped,"",
+DDE:DDE02,bisect,P,stripped,"st.lpi.ineq.dD = 0",2.0839844
+DDE:DDE02/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+DDE:DDE03,bisect,P,stripped,"st.lpi.ineq.dD = 0",1.71785
+DDE:DDE03/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+DDE:DDE04,bisect,P,stripped,"st.lpi.ineq.dD = 0",6.1665521
+DDE:DDE04/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+DDE:DDE05,bisect,P,stripped,"st.lpi.ineq.dD = 0",1.5707
+DDE:DDE05/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+DDE:DDE06,bisect,P,stripped,"st.lpi.ineq.dD = 0",3
+DDE:DDE06/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+DDE:DDE07,bisect,P,stripped,"",1.3721821
+DDE:DDE07/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+DDE:DDE08,bisect,P,veryheavy,"",3.9369019
+DDE:DDE08/stability_dual,stab,Pd,light,"st.lpi.ineq.dD = 0",
+DDE:DDE09,value,P,stripped,"st.lpi.ineq.dD = 0",25.907746
+DDE:DDE09/Hinf_gain_dual,value,Pd,light,"st.lpi.ineq.dD = 0",25.907747
+DDE:DDE10,value,P,stripped,"st.lpi.ineq.dD = 0",0.23644297
+DDE:DDE10/Hinf_gain_dual,value,Pd,stripped,"st.lpi.ineq.dD = 0",0.23644327
+DDE:DDE11,value,P,stripped,"st.lpi.ineq.dD = 0",2.8666078
+DDE:DDE11/Hinf_gain_dual,value,Pd,stripped,"",2.8666078
+DDE:DDE12,value,P,stripped,"st.lpi.ineq.dD = 0",4.9784478
+DDE:DDE12/Hinf_gain_dual,value,Pd,stripped,"st.lpi.ineq.dD = 0",4.9784483
+DDE:DDE13,value,,veryheavy,"",1.3411163
+DDE:DDE14,value,,stripped,"st.lpi.ineq.dD = 0",0.39528477
+DDE:DDE15,value,,stripped,"st.lpi.ineq.dD = 0",0.61043352
+DDE:DDE16,value,,stripped,"st.lpi.ineq.dD = 0",0.96293693
+DDE:DDE17,bisect,P,stripped,"st.lpi.ineq.dD = 0",0.14833984
+DDE:DDE17/Hinf_control,value,,stripped,"st.lpi.ineq.dD = 0",9.3513437
+DDE:DDE18,value,,veryheavy,"",0.33479387
+DDE:DDE20,value,,stripped,"st.lpi.ineq.dD = 0",0.23570226
+DDE:DDE21,value,,stripped,"st.lpi.ineq.dD = 0",2.3270003
+DDE:DDE22,value,,stripped,"st.lpi.ineq.dD = 0",1.3500949
+DDE:DDE23,value,,stripped,"st.lpi.ineq.dD = 0",1.8080604
+DDE:DDE24,value,,stripped,"st.lpi.ineq.dD = 0",1.0439637
+DDE:DDE25,value,o,stripped,"",3.6723753
+DDE:DDE25/H2_norm_dual,value,c,stripped,"st.lpi.ineq.dD = 0",3.6723796
+DDE:DDE26,value,o,stripped,"st.lpi.ineq.dD = 0",3.8299402
+DDE:DDE26/H2_norm_dual,value,c,stripped,"st.lpi.ineq.dD = 0",3.8299603
+NDSDDF:DDF01,stab,P,light,"st.lpi.ineq.dD = 0",
+NDSDDF:DDF01/stability_dual,stab,Qd,extreme,"",
+NDSDDF:NDS01,bisect,P,stripped,"st.lpi.ineq.dD = 0",2.2233267
+NDSDDF:NDS01/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS02,stab,P,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS02/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS03,stab,P,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS03/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS04,bisect,P,stripped,"st.lpi.ineq.dD = 0",0.69
+NDSDDF:NDS04/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS05,bisect,P,stripped,"st.lpi.ineq.dD = 0",1.5797836
+NDSDDF:NDS05/stability_dual,stab,Pd,light,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS07,bisect,P,stripped,"st.lpi.ineq.dD = 0",0.44453613
+NDSDDF:NDS07/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS08,bisect,P,stripped,"st.lpi.ineq.dD = 0",0.027523096
+NDSDDF:NDS08/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS09,bisect,P,stripped,"st.lpi.ineq.dD = 0",0.5994668
+NDSDDF:NDS09/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS10,stab,P,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS10/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS11,stab,P,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS11/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+NDSDDF:NDS12,bisect,P,stripped,"st.lpi.ineq.dD = 0",0.44436562
+NDSDDF:NDS12/stability_dual,stab,Pd,light,"st.lpi.ineq.dD = 0",
+PDE:1,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:1/stability_dual,stab,Qd,extreme,"",
+PDE:2,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:2.2,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:2.3,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:2.4,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:3,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:4,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:4.2,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:4.3,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:4.4,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:5,bisect,P,stripped,"",9.8696044
+PDE:6,bisect,P,light,"st.lpi.ineq.dD = 0",2.4674011
+PDE:6/stability_dual,stab,Qd,stripped,"st.lpi.ineq.dD = 0",
+PDE:7,bisect,P,light,"st.lpi.ineq.dD = 0",4.6508984
+PDE:7/stability_dual,stab,Qd,light,"",
+PDE:9,bisect,P,stripped,"st.lpi.ineq.dD = 0",-0.00024414062
+PDE:9/stability_dual,stab,Pd,light,"st.lpi.ineq.dD = 0",
+PDE:10,stab,Q,stripped,"st.lpi.ineq.dD = 0",
+PDE:11,bisect,P,stripped,"",2.9296875
+PDE:11/stability_dual,stab,Qd,stripped,"",
+PDE:12,bisect,P,stripped,"st.lpi.ineq.dD = 0",37.5
+PDE:13,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:13.2,stab,Q,stripped,"st.lpi.ineq.dD = 0",
+PDE:13.2/stability_dual,stab,Qd,stripped,"",
+PDE:13/stability_dual,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+PDE:14,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:17,stab,P,light,"st.lpi.ineq.dD = 0",
+PDE:18,stab,Pd,stripped,"st.lpi.ineq.dD = 0",
+PDE:19,stab,P,light,"st.lpi.ineq.dD = 0",
+PDE:20,value,P,stripped,"",0.5000001
+PDE:20/Hinf_gain_dual,value,Pd,stripped,"st.lpi.ineq.dD = 0",0.50000016
+PDE:21,value,P,stripped,"st.lpi.ineq.dD = 0",0.84187717
+PDE:21/Hinf_gain_dual,value,Pd,stripped,"st.lpi.ineq.dD = 0",0.84187724
+PDE:22,value,P,stripped,"st.lpi.ineq.dD = 0",0.20833335
+PDE:23,value,P,stripped,"",23.705234
+PDE:24,value,Q,light,"st.lpi.ineq.dD = 0",8.2134293
+PDE:25,value,Q,stripped,"st.lpi.ineq.dD = 0",0.8102117
+PDE:26,value,Q,stripped,"st.lpi.ineq.dD = 0",2.1456799
+PDE:27,value,,extreme,"",1.000016
+PDE:28,value,,light,"st.lpi.ineq.dD = 0",1.0000321
+PDE:29,value,,stripped,"",1.000004
+PDE:30,value,,light,"",0.6499404
+PDE:31,value,,veryheavy,"",0.00021688438
+PDE:32,value,,veryheavy,"",0.51759587
+PDE:33,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",
+PDE:34,stab,Q,stripped,"",
+PDE:35,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",
+PDE:37,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 0 0]",
+PDE:38,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:40,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",
+PDE:42,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:43,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2",
+PDE:45,value,P,heavy,"",0.11102274
+PDE:46,value,P,heavy,"",0.17110568
+PDE:47,value,P,heavy,"",0.20669904
+PDE:48,value,,heavy,"",0.0039726464
+PDE:49,value,o,stripped,"",0.10157583
+PDE:49/H2_norm_dual,value,c,veryheavy,"",0.10157588
+PDE:51,value,,heavy,"st.sop.deg_Q{1} = [6 2 2]",1.2683019
+PDE:52,value,,heavy,"st.sop.deg_Q{1} = [6 2 2]",1.0899562
+PDE:57,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]",
+PDE:58,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2",
+PDE:59,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.sop.raise_Q = 'deg'; st.sop.max_raise_Q(2) = 2",
+PDE:60,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:61,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:62,stab,P,light,"",
+PDE:63,stab,Q,light,"",
+PDE:64,stab,Q,extreme,"",
+PDE:66,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:67,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:68,stab,P,stripped,"st.lpi.ineq.dD = 0",
+PDE:71,value,P,light,"",0.045943467

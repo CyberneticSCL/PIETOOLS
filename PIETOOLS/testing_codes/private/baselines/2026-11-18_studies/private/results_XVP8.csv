@@ -1,0 +1,2 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+DDE,DDE08,veryheavy,converged,3.9369019,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),12,10.45,6452,sop:PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [3.9369 3.94065] | steps 1.1:C(2s) 4.9375:F(2s) 3.01875:C(0s) 3.97812:F(1s) 3.49844:C(0s) 3.73828:C(0s) 3.8582:C(0s) 3.91816:C(0s) 3.94814:F(1s) 3.93315:C(0s) 3.94065:F(1s) 3.9369:C(0s) | last: PIETOOLS_stability_sop/P fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=174 nx=6452 exst=optimal eta=3.6e-14 passes=1

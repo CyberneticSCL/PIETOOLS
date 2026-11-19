@@ -24,6 +24,19 @@ function st_run(tag)
 %     'M1L', 'M2L'        light, after the fast-forward to origin 7764389f
 %               (copvar size, 7d0acf2c): the 1-D rows (control L1ctl) and the
 %               two-variable rows of B1c0 under 40 s (control B1c0)
+%     Phase B of the per-example settings (maintainer 11/19: "all examples
+%     should have optimized settings files"; cleaning/private/
+%     example_settings_1119/PHASE_A.md), MMP, 11/19/2026:
+%     'XSP', 'XSPd0', 'XLPd0', 'XSQ', 'XSQd0'  1-D rows at stripped (S) or
+%               light (L), with dD 0 ('d0'), in form 'P' (stability and gain
+%               executives mapped 'Q'->'P', 'Qd'->'Pd') or as is ('Q')
+%     'X2SP', 'X2SPd0', 'X2LPd0', 'X2SQ', 'X2SQd0'  the same on the
+%               two-variable rows with a Phase A choice ('P': those light 'P'
+%               certifies; 'X2SQ': those without a stripped run on this tree)
+%     'X2HPd0'  PDE 45-47 (H-infinity gains), heavy, dD 0, form 'P'
+%     'XVP8'    DDE08 at veryheavy in form 'P' (light, heavy 'P' fall short)
+%     'XVH'     veryheavy on this tree: Phase A rows measured on the 11/17
+%               tree only (DDE13, DDE18, PDE 31, 32, 49/H2_norm_dual)
 %
 % NOTES
 %   - Size gate 2e6 variables, m 45,000 (gate/lpisolve.m); rows started
@@ -160,6 +173,54 @@ switch tag
     case 'E1str',   ids = arrayfun(@(k) sprintf('PDE:%d',k),61:72,'UniformOutput',false);  tiers = {'stripped'};
     case 'E2l',     ids = arrayfun(@(k) sprintf('PDE:%d',k),53:56,'UniformOutput',false);  tiers = {'light'};
     case 'E2h',     ids = arrayfun(@(k) sprintf('PDE:%d',k),53:56,'UniformOutput',false);  tiers = {'heavy'};
+    % BEGIN MMP, 11/19/2026: Phase B of the per-example settings (header)
+    case {'XSP','XSPd0','XLPd0','XSQ','XSQd0', 'X2SP','X2SPd0','X2LPd0','X2SQ','X2SQd0'}
+        if tag(2)=='2'      % two-variable rows with a Phase A choice
+            if contains(tag,'P')    % rows that light 'P' certifies
+                ids = {'PDE:33','PDE:34','PDE:35','PDE:37','PDE:42','PDE:59','PDE:60','PDE:61', ...
+                       'PDE:62','PDE:63','PDE:64','PDE:67','PDE:68','PDE:71'};
+            elseif strcmp(tag,'X2SQ')   % no stripped run on this tree (E1str has 61-72)
+                ids = {'PDE:33','PDE:34','PDE:35','PDE:37','PDE:38','PDE:40','PDE:42','PDE:43', ...
+                       'PDE:57','PDE:58','PDE:59','PDE:60'};
+            else
+                ids = {'PDE:33','PDE:34','PDE:35','PDE:37','PDE:38','PDE:40','PDE:42','PDE:43', ...
+                       'PDE:57','PDE:58','PDE:59','PDE:60','PDE:61','PDE:62','PDE:63','PDE:64', ...
+                       'PDE:66','PDE:67','PDE:68','PDE:71'};
+            end
+        else
+            ids = lib1;  opts.tiers2d = {};      % the 1-D rows
+        end
+        tiers = {'stripped'};  if contains(tag,'LP'),  tiers = {'light'};  end
+        if endsWith(tag,'d0'),  setappdata(0,'LB_ST_HOOK',@hook_dD0);  end
+        if contains(tag,'P')
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
+                'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+        end
+    case 'X2HPd0'       % H-infinity gains 45-47: light 'P' 0.4-0.9% above exact, heavy 'P' exact
+        ids = {'PDE:45','PDE:46','PDE:47'};  tiers = {'heavy'};
+        setappdata(0,'LB_ST_HOOK',@hook_dD0);
+        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain_sop'));
+    case 'XVP8'         % DDE08: 'P' reaches 3.5471558 at heavy, 'Q' [8 6 6] 3.9144165
+        ids = {'DDE:DDE08'};  tiers = {'veryheavy'};  opts.tiers2d = {};
+        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd'));
+    case 'XVH'          % Phase A choices measured on the 11/17 tree only
+        ids = {'DDE:DDE13','DDE:DDE18','PDE:31','PDE:32','PDE:49/H2_norm_dual'};
+        tiers = {'veryheavy'};  opts.tiers2d = {};
+    case {'EXT','EXS1','EXS2'}  % the knob search of each row (ex_search): a test on
+                                % four rows; the 1-D rows; the 2-D rows
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB_choices_starts.csv');
+        S = load(fullfile(here,'catalog.mat'));
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        dims = arrayfun(@(k) S.C(find(strcmp({S.C.key},T.key{k}),1)).dim, 1:height(T));
+        switch tag
+            case 'EXT',   keys = {'PDE:1','DDE:DDE03','DDE:DDE10','PDE:33'};
+            case 'EXS1',  keys = T.key(dims==1)';
+            case 'EXS2',  keys = T.key(dims==2)';
+        end
+        ex_search(sf,tag,struct('keys',{keys}));
+        return
+    % END MMP, 11/19/2026
     otherwise
         % B1 tightness: 'T<k>_<system>', k = 0 light, 1 dD 0, 2 dD 0 and
         % deg_Q{2} 0 raised by degree (2 raises), 3 deg_Q{2} 0 raised by

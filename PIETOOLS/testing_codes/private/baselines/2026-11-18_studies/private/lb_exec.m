@@ -54,10 +54,13 @@ if startsWith(exec,'sop:')
     % LB_FORM_MAP: struct mapping a form to another, e.g.
     % struct('Q','P','Qd','Pd'); stability rows only, or the executive in
     % the field 'only' (e.g. 'PIETOOLS_Hinf_gain_sop').
+    % 'only' may be a cellstr: one map for several executives (Phase B of   % MMP, 11/19/2026
+    % the per-example settings, cleaning/private/example_settings_1119)     % MMP, 11/19/2026
     if isappdata(0,'LB_FORM_MAP') && ~isempty(args)
         fm = getappdata(0,'LB_FORM_MAP');
         tgt = 'PIETOOLS_stability_sop';   if isfield(fm,'only'),  tgt = fm.only;  end
-        if strcmp(fn,tgt) && isfield(fm,args{1}),  args = {fm.(args{1})};  end
+%       if strcmp(fn,tgt) && isfield(fm,args{1}),  args = {fm.(args{1})};  end  % MMP, 11/19/2026 (was)
+        if any(strcmp(fn,tgt)) && isfield(fm,args{1}),  args = {fm.(args{1})};  end  % MMP, 11/19/2026
     end
     r.called = strjoin([{fn},args],'/');
     % Every output, so the executive verdict (info.status, eta of the last
