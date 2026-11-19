@@ -1,0 +1,22 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,20,light,unknown,0.53800611,,1,2.28,1585,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.52 pinf=0 dinf=0 numerr=0 m=138
+PDE,20/Hinf_gain_dual,light,unknown,0.50000222,,1,0.75,929,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Q fr=0.657 pinf=0 dinf=0 numerr=0 m=125
+PDE,21,light,certified,0.84200387,,1,1.08,5953,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=543
+PDE,21/Hinf_gain_dual,light,certified,0.84188347,,1,0.57,3409,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Q fr=0.796 pinf=0 dinf=0 numerr=0 m=457
+PDE,22,light,certified,0.20833338,,1,0.83,1585,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1.03 pinf=0 dinf=0 numerr=0 m=142
+PDE,23,light,certified,23.705799,,1,0.70,3997,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=182
+PDE,24,light,certified,8.2141221,,1,0.30,1585,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=143
+PDE,25,light,certified,0.81021217,,1,0.62,5953,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=524
+PDE,26,light,certified,2.1456966,,1,1.37,22857,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=1370
+PDE,45,light,certified,0.11320384,,1,9.71,74830,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=3749
+PDE,46,light,certified,0.1983716,,1,7.32,74830,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.99 pinf=0 dinf=0 numerr=0 m=3757
+PDE,47,light,certified,0.20671187,,1,8.59,74830,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=3741
+DDE,DDE09,light,certified,25.93329,,1,0.92,1746,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=169
+DDE,DDE09/Hinf_gain_dual,light,certified,25.909445,,1,0.33,1040,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=144
+DDE,DDE10,light,certified,0.23644302,,1,1.12,6581,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1 pinf=0 dinf=0 numerr=0 m=622
+DDE,DDE10/Hinf_gain_dual,light,certified,0.23645056,,1,0.73,3837,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Q fr=1.06 pinf=0 dinf=0 numerr=0 m=523
+DDE,DDE11,light,certified,2.8667247,,1,0.64,2025,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=1.02 pinf=0 dinf=0 numerr=0 m=216
+DDE,DDE11/Hinf_gain_dual,light,certified,2.8779832,,1,0.46,1246,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Q fr=0.998 pinf=0 dinf=0 numerr=0 m=179
+DDE,DDE12,light,certified,4.9792396,,1,0.78,6581,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.996 pinf=0 dinf=0 numerr=0 m=622
+DDE,DDE12/Hinf_gain_dual,light,certified,4.9801891,,1,0.58,3837,sop:PIETOOLS_Hinf_gain_dual | PIETOOLS_Hinf_gain_sop/Q fr=0.974 pinf=0 dinf=0 numerr=0 m=519
+PDE,71,light,certified,0.050699177,,1,8.21,75225,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/Q fr=0.888 pinf=0 dinf=0 numerr=0 m=3837

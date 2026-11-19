@@ -1,0 +1,11 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,57,light,optimal,2.878,margin 2.881401,1,24.87,240830,PIETOOLS_PIE2PDEstability | tau 2.878 default fr=0.918 eta=1e-08 relres=0.00037 numerr=0 pinf=0 m=7821 max|P|=0.164 max|D|=0.0535 max|D+N|=9.5e-08 rel_P=5.81e-07 rel_D=1.78e-06
+PDE,57,light,unknown,2.878,margin 2.881401,1,26.35,240830,PIETOOLS_PIE2PDEstability | tau 2.878 strict fr=0.918 eta=1e-08 relres=0.00037 numerr=2 pinf=0 m=7821
+PDE,57,light,optimal,2.8814,margin 2.881401,1,24.00,240830,PIETOOLS_PIE2PDEstability | tau 2.8814 default fr=0.629 eta=1.6e-08 relres=0.0004 numerr=0 pinf=0 m=7821 max|P|=0.0729 max|D|=0.07 max|D+N|=1.57e-07 rel_P=2.15e-06 rel_D=2.24e-06
+PDE,57,light,unknown,2.8814,margin 2.881401,1,25.36,240830,PIETOOLS_PIE2PDEstability | tau 2.8814 strict fr=0.629 eta=1.6e-08 relres=0.0004 numerr=2 pinf=0 m=7821
+PDE,57,light,optimal,2.882526,margin 2.881401,1,23.95,240830,PIETOOLS_PIE2PDEstability | tau 2.882526 default fr=0.552 eta=1.7e-08 relres=0.00048 numerr=0 pinf=0 m=7821 max|P|=0.0685 max|D|=0.0732 max|D+N|=1.67e-07 rel_P=2.44e-06 rel_D=2.28e-06
+PDE,57,light,unknown,2.882526,margin 2.881401,1,25.65,240830,PIETOOLS_PIE2PDEstability | tau 2.882526 strict fr=0.552 eta=1.7e-08 relres=0.00048 numerr=2 pinf=0 m=7821
+PDE,57,light,optimal,2.8842,margin 2.881401,1,32.01,240830,PIETOOLS_PIE2PDEstability | tau 2.8842 default fr=-1 eta=1 relres=1 numerr=0 pinf=0 m=7821 max|P|=1.37e-12 max|D|=2.75e-12 max|D+N|=3.95e-13 rel_P=2.88e-01 rel_D=1.43e-01
+PDE,57,light,unknown,2.8842,margin 2.881401,1,33.74,240830,PIETOOLS_PIE2PDEstability | tau 2.8842 strict fr=-1 eta=0.0009 relres=1.9e+02 numerr=2 pinf=0 m=7821
+PDE,57,light,unknown,2.8859,margin 2.881401,1,31.84,240830,PIETOOLS_PIE2PDEstability | tau 2.8859 default fr=-1 eta=0.009 relres=1.1e+06 numerr=2 pinf=0 m=7821
+PDE,57,light,unknown,2.8859,margin 2.881401,1,32.35,240830,PIETOOLS_PIE2PDEstability | tau 2.8859 strict fr=-1 eta=0.009 relres=1.1e+06 numerr=2 pinf=0 m=7821

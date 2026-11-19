@@ -1,0 +1,16 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,20,light,unknown,0.53800611,,1,3.46,1585,sop:PIETOOLS_Hinf_gain | gainq_direct [4 2 2] fr=0.52 numerr=0 m=138
+PDE,20,light,unknown,0.53800511,,1,1.13,2631,sop:PIETOOLS_Hinf_gain | gainq_direct [6 2 2] fr=0.359 numerr=0 m=159
+PDE,20,light,unknown,0.53800459,,1,0.84,4513,sop:PIETOOLS_Hinf_gain | gainq_direct [8 2 2] fr=0.478 numerr=0 m=197
+PDE,20,light,certified,0.50000012,,1,0.46,6525,sop:PIETOOLS_Hinf_gain | gainq_direct [4 4 4] fr=1.03 numerr=0 m=288
+PDE,20,light,certified,0.50000012,,1,0.63,6527,sop:PIETOOLS_Hinf_gain | gainq_direct [6 4 4] fr=1.03 numerr=0 m=288
+PDE,20,light,certified,0.5,,1,0.65,24891,sop:PIETOOLS_Hinf_gain | gainq_direct [6 6 6] fr=0.995 numerr=0 m=530
+PDE,20,light,certified,0.5,,1,0.45,24893,sop:PIETOOLS_Hinf_gain | gainq_direct [8 6 6] fr=0.995 numerr=0 m=530
+PDE,20,light,unknown,0.53800611,,1,2.38,1585,sop:PIETOOLS_Hinf_gain | gainq_full [4 2 2] fr=0.52 numerr=0 m=138
+PDE,20,light,unknown,0.53800511,,1,0.95,2631,sop:PIETOOLS_Hinf_gain | gainq_full [6 2 2] fr=0.359 numerr=0 m=159
+PDE,20,light,unknown,0.53800459,,1,0.85,4513,sop:PIETOOLS_Hinf_gain | gainq_full [8 2 2] fr=0.478 numerr=0 m=197
+PDE,20,light,certified,0.50000012,,1,0.39,6525,sop:PIETOOLS_Hinf_gain | gainq_full [4 4 4] fr=1.03 numerr=0 m=288
+PDE,20,light,certified,0.50000012,,1,0.59,6527,sop:PIETOOLS_Hinf_gain | gainq_full [6 4 4] fr=1.03 numerr=0 m=288
+PDE,20,light,certified,0.5,,1,0.65,24891,sop:PIETOOLS_Hinf_gain | gainq_full [6 6 6] fr=0.995 numerr=0 m=530
+PDE,20,light,certified,0.5,,1,0.56,24893,sop:PIETOOLS_Hinf_gain | gainq_full [8 6 6] fr=0.995 numerr=0 m=530
+PDE,20,light,certified,0.50081458,,1,2.52,929,sop:PIETOOLS_Hinf_gain | former Q (committed) fr=0.98 numerr=0 m=124
