@@ -3,8 +3,8 @@ function out = int(objC, var, lim)
 % State-class method that integrates a vector of states, x, in variable
 % 'var' by 'lim' limit
 % Input: 
-% obj - state class object, x 
-% var - pvar w.r.t. which differentiation is done
+% objC - state class object, x
+% var - pvar w.r.t. which integration is done
 % lim - a 1x2 pvar object (or double object) 
 % Output:
 % out - state class object, \int_{lim{1}}^{lim{2}} x d(var)
@@ -33,6 +33,12 @@ function out = int(objC, var, lim)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Check the limits: at least one at the boundary of the domain, the
+% other a pvar variable
 dom = objC.dom;
 
 if any(isequal(lim,var))
@@ -48,6 +54,7 @@ if poly2double(lim(1))&&(double(lim(1))~=dom(1))
     error("Lower limit of integration can only be a pvar variable or "+num2str(dom(1)));
 end
 % <<<<<<< Updated upstream
+% Outputs and time derivatives cannot be integrated
 isdot_C = isdot(objC); isout_C=isout(objC); 
 % for i=1:length(objA)
 %     isdot_C = [isdot_C; objC(i).diff_order(1)*ones(subsref(objC(i),s),1)];
@@ -68,6 +75,10 @@ end
 
 
 
+% Integrate each state: a state independent of var is multiplied by
+% int_{lim(1)}^{lim(2)} 1 d(var); otherwise an 'opvar' T on dom with
+% R2 = I (lower limit var, upper limit dom(2)) and/or R1 = I (lower limit
+% dom(1), upper limit var) acts on it
 out = [];
 for i=1:length(objC)
 idx = find(isequal(objC(i).var,var));

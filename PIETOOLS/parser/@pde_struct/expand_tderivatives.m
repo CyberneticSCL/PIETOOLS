@@ -63,6 +63,7 @@ function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
 % DJ, 01/05/2025: Account for field "ID" in object specifications.
 % DJ, 06/13/2025: Update to impose BCs on newly introduced state variables;
 % DJ, 10/28/2026: Skip states with tdiff=nan (no equation);
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Check the inputs, and initialize.
 if nargin==1

@@ -31,6 +31,11 @@ function logval = isdot(objA)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 08/04/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Time-derivative flag of each state, repeated over its vector length
 s.type = '.'; s.subs = 'veclength';
 logval = []; 
 for i=1:length(objA)

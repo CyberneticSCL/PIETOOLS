@@ -45,6 +45,8 @@ function PDE_out = diff(PDE_in,vars,dval)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/09/2025: Add support for temporal differentiation of vectors of
 %                   state variables;
@@ -52,6 +54,7 @@ function PDE_out = diff(PDE_in,vars,dval)
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
 %                   polydiff (one caller) inlined into the coefficient
 %                   derivative loop;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Process the inputs
 
@@ -437,6 +440,15 @@ function dval_obj = compute_d_obj(vars_obj,vars,dval)
 % Compute the order of the derivatives to be taken of variables "vars_obj",
 % given the desired order of the derivatives "dval" of the variables
 % "vars".
+%
+% INPUT
+% - vars_obj:   m x 1 'polynomial', the variables of a state;
+% - vars:       n x 1 'polynomial', the variables of differentiation;
+% - dval:       n x 1 'double', the order of the derivative in each of vars;
+%
+% OUTPUT
+% - dval_obj:   1 x m 'double', the order of the derivative in each of
+%               vars_obj (0 for a variable not in vars).
 
 dval_obj = zeros(1,size(vars_obj,1));
 for jj=1:size(vars_obj,1)
@@ -458,6 +470,15 @@ end
 function newvars = addvars(oldvars,C)
 % Add variables that appear in polynomial object C to the list of variables
 % oldvars.
+%
+% INPUT
+% - oldvars:    n x 1 (or n x 2, first column used) 'polynomial', the
+%               variables;
+% - C:          'polynomial' or 'double', a coefficient;
+%
+% OUTPUT
+% - newvars:    'polynomial' column, the variables of oldvars followed by
+%               those of C not among them.
 
 if isdouble(C)
     % C introduces no new variables.

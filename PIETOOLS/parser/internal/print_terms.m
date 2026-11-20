@@ -21,10 +21,6 @@ function print_terms(lhs,terms,signs,width_max)
 % aligned under the equality sign. A margin of one character is left, which
 % is not used by the command window. Without terms, the right-hand side is
 % 0.
-%
-% NOTES
-% - The terms are used by the 'display' methods of the classes of
-%   operators, which construct them with their 'get_display' methods.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - print_terms
@@ -50,15 +46,16 @@ function print_terms(lhs,terms,signs,width_max)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Exclude all combining marks from the width of the left-hand
-%                   side, instead of only the circumflex;
 
 % Default settings
 width_default = 100;    % maximal width of a line, if the width of the command window
                         % cannot be determined
 width_min = 40;         % minimal width of a line
 
+% Defaults of the optional inputs; sign of term j at the indentation of
+% the equality sign on a new line
 if nargin<3 || isempty(signs)
     signs = ones(1,numel(terms));
 end
@@ -76,6 +73,8 @@ if isempty(terms)
     fprintf('  %s 0\n',lhs);
     return
 end
+% Append each term to the current line, or print the line and start a new
+% one when the term does not fit
 line_str = ['  ',lhs,' ',repmat('- ',1,signs(1)<0),terms{1}];
 for j=2:numel(terms)
     term_sign = sign_chars(1+(signs(j)<0));

@@ -5,12 +5,52 @@
 % The script also installs latest stable version of SeDuMi overriding
 % previous installations.
 % Updated - 12/15/2022
+%
+% INPUT
+% - none; the script asks whether to overwrite an existing PIETOOLS folder
+%   (y/n) and, for a fresh install, for the installation folder (dialog;
+%   default: the current folder).
+%
+% OUTPUT
+% - none; PIETOOLS (master branch on GitHub) is downloaded next to the
+%   existing installation or into the chosen folder, the Toolbox Manager
+%   (tbxmanager, in PIETOOLS/tbxmanager unless already installed) and
+%   SeDuMi are installed, the line "tbxmanager restorepath" is added to
+%   startup.m, and the path with PIETOOLS is saved for future sessions.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 12/15/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the command window and print the title.
 clc;
 disp('----------------------------------------------');
 disp('Update PIETOOLS to latest version on GitHub.');
 disp('----------------------------------------------');
 
+% Starting folder, restored at the end.
 current_dir = pwd;
 
 % % % Install latest version of PIETOOLS (with SOSTOOLS included)
@@ -114,7 +154,7 @@ toolbox_path = [pwd,filesep,'PIETOOLS'];
 cd(toolbox_path)
 
   
-% % % Install latest version of SOSTOOLS
+% % % Install the Toolbox Manager (tbxmanager), which installs SeDuMi
 
 % Check if tbxmanager is already installed
 if ~exist('tbxmanager')

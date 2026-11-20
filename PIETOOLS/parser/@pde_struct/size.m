@@ -80,8 +80,11 @@ function [n_eqs,n_terms] = size(PDE,objs,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
 % DJ, 10/28/2026: Return 0 terms for object types without equations;.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Process the inputs
 % % Check that the PDE is properly specified

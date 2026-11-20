@@ -45,8 +45,8 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 %   x_pde=X_pde*(T*x+Tw*w+Tu*u) to hold: x_pde=sum_i X_old(:,i)*(T_old*x)_i,
 %   with (T_old*x)_i the new row of T*x+Tw*w+Tu*u if p_i=1, and
 %   sum_c T_old(i,c)*x_{c,0} otherwise.
-% - The new components are named x<k>_pie for their index k (zero-padded as
-%   in `initialize`), which does not show what they derive from: see
+% - The new components are named x<k>_pie for their index k (zero-padded),
+%   which does not show what they derive from: see
 %   tdiff_tab, pde2pie.x.idx and pde2pie.x.tdiff. If the names would not be
 %   unique and sorted (e.g. x10_pie < x2_pie), all components are renamed
 %   x01_pie, ..., with a warning.
@@ -82,7 +82,9 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ (CC), 11/09/2026, based on the pie_struct version;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
+% Initial coding DJ (CC), 11/09/2026
 
 % % % Check the inputs
 if nargin<2
@@ -92,17 +94,20 @@ elseif nargin==2
 elseif nargin>3
     error("Too many input arguments.")
 end
+% The PIE, initialized
 if ~isa(PIE,'npie_struct')
     error("The PIE must be specified as an 'npie_struct' object.")
 end
 if ~PIE.is_initialized
     PIE = initialize(PIE);
 end
+% One positive integer order per state component
 nb = numel(PIE.space.x.dims);
 tdiff_list = tdiff_list(:);
 if numel(tdiff_list)~=nb || any(tdiff_list<1) || any(tdiff_list~=round(tdiff_list))
     error("The orders of the temporal derivatives should be specified as an array of positive integers, one for each state component.")
 end
+% All orders 1: the PIE is returned unchanged
 if all(tdiff_list==1)
     tdiff_tab = [(1:nb)',zeros(nb,1)];
     if ~suppress_summary
@@ -128,6 +133,8 @@ dep_sort = space.x.depmat(:,vidx);
 identity_op = @(j) tensopvar(mat2sopvar(eye(space.x.dims(j)),...
             struct('in',{vsort(dep_sort(j,:))},'out',{vsort(dep_sort(j,:))}),...
             struct('in',dom_sort(dep_sort(j,:),:),'out',dom_sort(dep_sort(j,:),:))));
+% The equations of order > 1; boundary inputs in them and inputs in the
+% constraint are not supported
 is_exp = tdiff_list>1;
 T_nz = nz_blocks(PIE.T);
 Tin_nz = [nz_blocks(PIE.Tw),nz_blocks(PIE.Tu)];
@@ -137,6 +144,7 @@ end
 if any(any([nz_blocks(PIE.Kw),nz_blocks(PIE.Ku)]))
     error("expand_tderivatives:constraintInputs","Expansion of higher-order temporal derivatives is not supported for constraints involving inputs.")
 end
+% The map pde2pie.x.C must be block diagonal
 Cmap = PIE.pde2pie.x.C;
 if size(Cmap.ops,1)==nb
     C_nz = nz_blocks(Cmap);
@@ -167,9 +175,9 @@ ix = @(c,l) c.*(l==0) + (dstart(c)+l).*(l>0);
 host = ix((1:nb)',L);
 tdiff_tab = [parent_idx,tdiff_ord];
 % Names of the new components: those of the old components for x_pie_{c,0},
-% and the default names assigned by initialize for the added components.
-% The names must be unique and sorted in the order of the components, see
-% initialize: if not (e.g. if the added names have more digits than the old
+% and the default names x<k>_pie for the added components.
+% The names must be unique and sorted in the order of the components: if
+% not (e.g. if the added names have more digits than the old
 % ones), all components are renamed with the default names
 names_old = space.x.varname;
 names_new = [names_old; arrayfun(@(k) ['x',num2str(k,['%0',num2str(numel(num2str(nnew))),'d']),'_pie'],(nb+1:nnew)','UniformOutput',false)];
@@ -193,6 +201,7 @@ for i=1:nb
     for c=find(T_nz(i,:))
         ops{host(i),ix(c,tdiff_i)} = T_old{i,c};
     end
+    % The identity on x_pie_{i,l} in its own row, l < L(i)
     for l=0:L(i)-1
         ops{ix(i,l),ix(i,l)} = identity_op(i);
     end
@@ -238,6 +247,7 @@ for fname = {'f','gz','gy'}
         Z_new = [Z_new; sparse(1:numel(ch),1,ix(parent_idx(ch),tdiff_ord(ch)+1),numel(ch),size(Z_new,2))];
         Cn = tensopmat(ops);
     end
+    % The polynomial in the new state components and their spaces
     Pol.C = Cn;
     Pol.Z = Z_new;
     Pol.varname = names_new;
@@ -254,6 +264,7 @@ end
 K = PIE.K;
 nK = size(K.ops,1);
 if nK>0
+    % The number of derivatives of each constraint, equal on its components
     K_nz = nz_blocks(K);
     L_con = zeros(nK,1);
     for r=1:nK
@@ -269,6 +280,7 @@ if nK>0
     % The constraints (row of K, order of the derivative), by order
     K_rows = [repelem((1:nK)',L_con+1,1),cell2mat(arrayfun(@(l) (0:l)',L_con,'UniformOutput',false))];
     K_rows = sortrows(K_rows,[2,1]);
+    % The blocks of each constraint of order l act on x_pie_{c,l}
     Kn = zero_op(K,K_rows(:,1),parent_idx);
     ops = Kn.ops;
     for q=1:size(K_rows,1)
@@ -293,9 +305,11 @@ for fname = {'idx','diff','loc','delay'}
         pde2pie_s.x.(fname{1}) = pde2pie_s.x.(fname{1})(parent_idx,:);
     end
 end
+% The order of the temporal derivative, raised by that of the new component
 if size(pde2pie_s.x.tdiff,1)==nb
     pde2pie_s.x.tdiff = pde2pie_s.x.tdiff(parent_idx) + tdiff_ord;
 end
+% The diagonal blocks of pde2pie.x.C: those of the parent
 if size(Cmap.ops,1)==nb
     Cn = zero_op(Cmap,parent_idx,parent_idx);
     ops = Cn.ops;
@@ -314,12 +328,15 @@ if size(X_old.ops,2)==nb
     nX = size(X_old.ops,1);
     X_nz = nz_blocks(X_old);
     X_acc = cell(nX,nnew);
+    % Column i of X_old: on x_pie_{c,0} composed with T_old(i,c) for an
+    % equation of order > 1, else on the row host(i) of the new T
     for i=1:nb
         if is_exp(i)
             cols = find(T_nz(i,:));       targets = cols;     ops_T = T_old(i,cols);
         else
             targets = host(i);              ops_T = {[]};
         end
+        % Add the products to the blocks of the targets
         for k=find(X_nz(:,i))'
             for m=1:numel(targets)
                 P = X_old.ops{k,i};
@@ -346,6 +363,7 @@ if size(X_old.ops,2)==nb
     Xn.chkval = true;
     pie2pde_s.x = Xn;
 end
+% Store the new spaces and maps, and initialize the PIE
 PIE.space = space;
 PIE.pde2pie = pde2pie_s;
 PIE.pie2pde = pie2pde_s;
@@ -392,7 +410,7 @@ function print_tdiff_expansion_summary(PIE,tdiff_tab)
 % original PIE specified by the user in the call to "expand_tderivatives".
 %
 % INPUTS:
-% - PIE:    A "pie_struct" class object defining a PIE.
+% - PIE:    An "npie_struct" class object defining a PIE.
 % - tdiff_tab:  nx_new x 2 array of integers, indicating for each of the
 %               j=1:nx_new state components what component i in the
 %               original PIE it corresponds to, and what order temporal

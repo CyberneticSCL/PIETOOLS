@@ -30,6 +30,12 @@ function sumTerms = minus(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Both states, of equal length, with no outputs or time derivatives
+% combined
 if ~isa(objA,'state')||~isa(objB,'state')
     error('Only state type objects can be added together');
 end
@@ -51,6 +57,7 @@ end
 
 % objC = state2terms(objC);
 
+% Terms object with multiplier R0 = A{1}-A{2} on the unique states
 opvar T; 
 T.R.R0 = permMatsA-permMatsB;
 

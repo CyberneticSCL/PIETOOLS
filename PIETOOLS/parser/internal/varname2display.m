@@ -1,9 +1,7 @@
 function [str,lo,hi] = varname2display(name,copy)
 % [STR,LO,HI] = VARNAME2DISPLAY(NAME,COPY) returns the name NAME of a
-% variable as it is displayed for objects of the operator classes (e.g.
-% 'sopvar', 'intop', 'tensopvar', 'polyopvar') and for PIEs, and the forms
-% of this name used as the limit of an integral, so that the display of
-% names follows from this one function.
+% variable as it is displayed for operators and PIEs, and the forms
+% of this name used as the limit of an integral.
 %
 % INPUTS
 % - name:   char, the name of a spatial variable, a state variable, a dummy
@@ -88,13 +86,11 @@ function [str,lo,hi] = varname2display(name,copy)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Add dummy variables and numbers, and the forms for the
-%                   limits of an integral;
-% DJ, 11/06/2026: Add the setting 'use_unicode': avoid unicode characters
-%                   when set to false (default);
 
 plain_txt = ~use_unicode();           % avoid characters that many fonts miss
+% Subscript and superscript digits
 sub_dig = char(8320 + (0:9));
 sup_dig = char([8304,185,178,179,8308:8313]);
 sbs = @(n) sub_dig(n-'0'+1);
@@ -140,6 +136,7 @@ else
         end
     end
 end
+% Subscript of the number of the copy
 cp = '';
 if nargin>=2 && ~isempty(copy)
     cp = sbs(sprintf('%d',copy));

@@ -12,6 +12,40 @@ close all; clc; clear; clear stateNameGenerator
 % This program determines stability, hinf-norm and designs hinf-optimal
 % observer of a linear coupled ODE-PDE which is defined in the format given below.
 %
+% INPUT
+% - none; Step 1 takes the PDE from the example library (example 17), the
+%   GUI, or the manual declaration, whichever is uncommented.
+%
+% OUTPUT
+% - none; the workspace receives the PDE, its PIE, the LPI settings, the
+%   outputs of the executive uncommented in Step 3 (none by default; with
+%   PIE_CL, the closed-loop PIE, for a controller or estimator), and the
+%   PIESIM solution of Step 4.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding PIETOOLS Team (PIETOOLS 2021b; in the repository since 12/31/2021)
 % MMP, 11/04/2026: Step 4 sizes the initial conditions from PIE.space.x,
 %                   the size and spatial dependence of each PIE state
 %                   component. It read the sizes of PIE.T.P and R.R0 (1-D),
@@ -37,25 +71,26 @@ close all; clc; clear; clear stateNameGenerator
 %                   declared after one of another kind received the entry
 %                   of that kind; PIESIM 2-D library examples 19 and 20
 %                   stopped.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 1: Declare a PDE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % --- GUI option (See User Manual, Section 12) ---
+% % --- GUI option ---
 % PIETOOLS_PDE_GUI
 %%
-% % --- Example Library Option (See User Manual, Section 14) ---
-% The example library contains 52 examples of 1D and 2D ODE-PDE systems,
+% % --- Example Library Option ---
+% The example library contains 72 examples of ODE-PDE systems,
 % each with an associated default executive to run. Call the library with
-% an index 1 through 52 as argument to extract that example, and run the
+% an index 1 through 72 as argument to extract that example, and run the
 % associated executive, if desired.
 PDE = examples_PDE_library_PIETOOLS(17);
 
 %% --- Manual Declaration Option --- 
-% % To use this example, comment line 28, and
-% % uncomment line 65
+% % To use this example, comment out the library call above, and
+% % uncomment the lines below
 % pvar s t
 % x = pde_var(s,[0,1]);  
 % u = pde_var('control');
@@ -133,8 +168,9 @@ end
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Step 4: Simulation (See User Manual, Chapter 6 or PIESIM/solver_PIESIM.m for more examples)
+%% Step 4: Simulation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Final time, time step, and plotting by PIESIM
 opts.tf=10;
 opts.dt = 0.05;
 opts.plot='yes';
@@ -191,15 +227,19 @@ end
 % conditions and non-zero boundary inputs (uinput), via
 % solution = PIESIM(PDE, opts),
 % solution = PIESIM(PDE, uinput), or
-% solution = PIESIM(PDE, opts, uinput), please consult the user's manual
+% solution = PIESIM(PDE, opts, uinput).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 4b: Plotting solution
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plot the distributed states against t and s when PIESIM did not plot them
 if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
+    % Time grid
     t = solution.timedep.dtime;
     X = repmat(grid(:,1),1,length(t));
     n1=0;
+    % Distributed states: in 1-D primary{2}; in 2-D the states in s1, then
+    % the states in (s1,s2) at the middle grid point in s2
     if PIE.dim ~=2
     pde_sol = solution.timedep.primary{2};
     else
@@ -217,6 +257,7 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
         end
         end
     end
+    % One surface plot over (t,s) per state component
     t = repmat(t,size(pde_sol,1),1);
     figure;
     for i=1:size(pde_sol,2)

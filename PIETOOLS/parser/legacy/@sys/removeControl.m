@@ -32,6 +32,11 @@ function obj = removeControl(obj,input)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/30/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Controlled-input flag 0 for the states of 'input'
 loc = ismember(obj.states.statename,input.statename);
 obj.ControlledInputs(find(loc))= 0;
 fprintf('%d inputs were designated as disturbance inputs\n', length(input));

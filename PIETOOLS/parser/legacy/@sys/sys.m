@@ -33,6 +33,9 @@ classdef (InferiorClasses={?state}) sys
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
     properties
         equation {validateEquation(equation)} = [];
@@ -47,6 +50,16 @@ classdef (InferiorClasses={?state}) sys
     end
     methods
         function obj = sys(type)
+            % OBJ = SYS(TYPE) constructs a 'sys' object without equations,
+            % with empty 'pde_struct' parameters and no controlled inputs
+            % or observed outputs.
+            %
+            % INPUT
+            % - type:   (optional) char, 'pde' (default), 'dde', 'ddf' or
+            %           'pie';
+            %
+            % OUTPUT
+            % - obj:    'sys' object.
             if nargin==0
                 type = 'pde';
             end
@@ -57,9 +70,15 @@ classdef (InferiorClasses={?state}) sys
             obj.type = type;
             fprintf('Initialized sys() object of type "%s"\n',obj.type);
         end
+        % PROP = GET.STATES(OBJ) returns the 'state' objects in the
+        % equations of the 'sys' object OBJ, each state once ([] without
+        % equations).
         function prop = get.states(obj)
             prop = getStatesFromEquations(obj);
         end
+        % PROP = GET.PARAMS(OBJ) returns the parameters ('pde_struct' or
+        % 'pie_struct') of OBJ, parsed from the equations while
+        % OBJ.params has no domain.
         function prop = get.params(obj)
             if isempty(obj.params.dom)
                 obj = getParams(obj);
@@ -68,12 +87,19 @@ classdef (InferiorClasses={?state}) sys
                 prop = obj.params;
             end
         end
+        % OBJ = SET.PARAMS(OBJ,PARAMS) and OBJ = SET.DOM(OBJ,DOM) store the
+        % parameters ('pde_struct' or 'pie_struct') and the domain
+        % ('double' 1x2) in the 'sys' object OBJ.
         function obj = set.params(obj,params)
             obj.params = params;
         end
         function obj = set.dom(obj,dom)
             obj.dom = dom;
         end
+        % OUT = GET.OBSERVEDOUTPUTS(OBJ) and OUT = GET.CONTROLLEDINPUTS(OBJ)
+        % return the flags (1 observed or controlled, 0 not) of the states
+        % of the 'sys' object OBJ, zeros when none are set; the set methods
+        % store the flags OO, CI ('double' column, one entry per state).
         function out = get.ObservedOutputs(obj)
             if isempty(obj.ObservedOutputs)
                 statelist = getStatesFromEquations(obj);
@@ -89,6 +115,7 @@ classdef (InferiorClasses={?state}) sys
         function obj = set.ObservedOutputs(obj,OO)
             obj.ObservedOutputs = OO;
         end
+        % The flags of the controlled inputs, likewise
         function out = get.ControlledInputs(obj)
             if isempty(obj.ControlledInputs)
                 statelist = getStatesFromEquations(obj);
@@ -105,6 +132,7 @@ classdef (InferiorClasses={?state}) sys
             obj.ControlledInputs = CI;
         end
         
+        % The signatures of the methods defined in their own files
         prop = getStatesFromEquations(obj);
         obj = addequation(obj,eqn);
         obj = getParams(obj);    
@@ -118,6 +146,14 @@ classdef (InferiorClasses={?state}) sys
     end
 end
 function validateEquation(prop)
+% VALIDATEEQUATION(PROP) throws an error unless PROP, the value assigned
+% to the property equation, is empty or a 'terms' object.
+%
+% INPUT
+% - prop:   value of the property equation;
+%
+% OUTPUT
+% - none.
 % if ~iscell(prop)
 %     error('Equations must be stored in cell column array');
 % end

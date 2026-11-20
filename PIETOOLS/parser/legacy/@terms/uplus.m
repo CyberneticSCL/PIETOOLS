@@ -1,5 +1,9 @@
 function out = uplus(objA)
-% Unitary plus operation 
+% Unitary plus operation
+% Input:
+% objA - terms class object
+% Output:
+% out - the same terms class object
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -25,6 +29,9 @@ function out = uplus(objA)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 out = objA;
 end

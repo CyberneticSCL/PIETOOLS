@@ -70,14 +70,15 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %
 % NOTES
 % - The operators are 'copvar' objects, the type of the operators of a
-% 'pie_struct' (e.g. as returned by 'convert'). If instead at least one is
+% 'pie_struct'. If instead at least one is
 % an 'opvar' or 'opvar2d' object, and none is a 'copvar', the PIE is
-% constructed by 'piess_opvar'. Otherwise, 'opvar' and 'opvar2d' objects
-% are converted to 'copvar' objects by INITIALIZE.
+% constructed from these operators as they are. Otherwise, 'opvar' and
+% 'opvar2d' objects are converted to 'copvar' objects when the PIE is
+% initialized.
 % - Matrices are interpreted as constant multipliers between the spaces of
 % the 'copvar' operators acting on the same components, or between R^n if
-% there are none. Top and Aop must be specified, unless the operators are
-% handled by 'piess_opvar', which sets any unspecified operator to 0.
+% there are none. Top and Aop must be specified, unless no operator is a
+% 'copvar' object; then any unspecified operator is set to 0.
 % - Only linear PIEs, of type 'pie_struct', are supported.
 % - Passing a single argument "PIE = piess(Top)", the input Top will be
 % interpreted as operator Dzwop from disturbance to regulated output, and a
@@ -111,12 +112,15 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 12/20/2024: Initial coding;
 % DJ, 12/30/2024: Suppress feedthrough warning if Dop is empty;
 % DJ, 10/29/2026: Update to new pie_struct structure;
 % DJ (CC), 10/30/2026: Build the PIE from 'copvar' operators, the type of
 %                   the operators of a pie_struct. The construction from
 %                   'opvar' and 'opvar2d' operators moved to piess_opvar;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % Process the inputs
@@ -357,6 +361,7 @@ for k = reshape(find(is_mat),1,[])
     Pops{k} = mat2copvar_sop(Mat,dims,spaces,meta);
 end
 
+% The PIE of the operators, initialized
 PIE = pie_struct();
 for k = 1:numel(Pops)
     PIE.(fnames{k}) = Pops{k};

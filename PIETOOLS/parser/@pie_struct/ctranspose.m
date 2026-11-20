@@ -40,9 +40,12 @@ function out_pie = ctranspose(in_pie)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding SS  - 9_7_2023
 % DJ, 10/29/2026: Update to new pie_struct structure (copvar operators, and
 %                   no dual for PIEs with an algebraic constraint);
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % The operators are copvar objects, so the PIE must be initialized, and the

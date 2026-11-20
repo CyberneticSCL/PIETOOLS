@@ -30,6 +30,11 @@ function out = getStatesFromEquations(obj)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Collect the states of each equation, each state name once
 equations = obj.equation;
 eqnNum = length(equations);
 if eqnNum==0
@@ -43,6 +48,14 @@ end
 end
 end
 function out = combine_statename(varargin)
+% OUT = COMBINE_STATENAME(VARARGIN) appends to the states VARARGIN{1}
+% each state of VARARGIN{2:end} whose name (statename) is not yet in them.
+%
+% INPUT
+% - varargin:   'state' objects (vectors), the first possibly empty;
+%
+% OUTPUT
+% - out:        column of 'state' objects with distinct names.
 out = varargin{1};
 for i=2:nargin
     tmp = varargin{i};

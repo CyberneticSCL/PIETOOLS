@@ -32,6 +32,11 @@ function intTerms = int(objA, var, lim)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Limits: at least one at the boundary 0 or 1, the other a pvar variable
 if any(isequal(lim,var))
     error('Limits of integration and integration variable are the same. Change the variable naming');
 end
@@ -45,6 +50,7 @@ if poly2double(lim(1))&&(double(lim(1))~=0)
     error('Lower limit of integration can only be a "pvar" variable or 0');
 end
 
+% Only multiplier terms can be integrated
 try
     intterms = double(objA.operator.R.R2)|double(objA.operator.R.R1); %R1 and R2 must be zero
     if any(intterms(:))
@@ -54,7 +60,8 @@ catch
     error('Double integrals are currently not supported')
 end
 
-% isdot_A = []; isout_A=[]; 
+% isdot_A = []; isout_A=[];
+% No outputs or time derivatives
 tempstatevec = objA.statevec;
 isdot_A = isdot(tempstatevec); isout_A=isout(tempstatevec); 
 % for i=1:length(tempstatevec)
@@ -66,6 +73,8 @@ if any((isdot_A|isout_A))
 end
 
 
+% Integral operator in the dummy variable var: R2 = R0 for the upper
+% limit 1, R1 = R0 for the lower limit 0
 opvar T; T.var2 = var;
 if poly2double(lim(2))
 T.R.R2 = objA.operator.R.R0;

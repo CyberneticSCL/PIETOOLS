@@ -39,8 +39,10 @@ function C = pie_space_canon(depmat,dims)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/29/2026: Initial coding;
 
+% Drop the spaces without components
 dims = dims(:);
 nvars = size(depmat,2);
 keep = dims>0;
@@ -53,6 +55,7 @@ elseif nvars==0
     C = sum(dims);
     return
 end
+% Total number of components for each distinct row of depmat
 [depmat_uni,~,idx] = unique(depmat,'rows');
 C = [depmat_uni,accumarray(idx,dims)];
 

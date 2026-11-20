@@ -32,7 +32,9 @@ function sumTerms = plus(objA,objB)
 % authorship, and a brief description of modifications
 % SS, 2022: Initial coding;
 % DJ, 12/07/2024: Replace dummy variable theta with s_dum;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% States become terms, of equal length
 if isa(objA,'state')
     objA = state2terms(objA);
 elseif ~isa(objA,'terms')
@@ -48,10 +50,12 @@ if length(objA)~=length(objB)
     error('Terms of unequal length cannot be added');
 end
 
+% Operator [A, B] on the stacked state vectors
 objA.operator.var2 = pvar('s_dum'); objB.operator.var2 = pvar('s_dum');     % DJ, 12/07/2024
 tempoperator = [objA.operator objB.operator];
 tempstatevec = vertcat(objA.statevec, objB.statevec);
 
+% No row may combine two or more time derivatives or outputs
 isdot_A = isdot(tempstatevec); isout_A=isout(tempstatevec); 
 isdot_A=isdot_A'; isout_A=isout_A';
 

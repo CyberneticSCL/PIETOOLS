@@ -42,8 +42,10 @@ function Pop = pie_rename_dummy(Pop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/29/2026: Initial coding;
 
+% New dummy variables: the names of the spatial variables with '_dum'
 old_vars = Pop.var2;
 new_vars = polynomial(strcat(reshape(Pop.var1.varname,[],1),'_dum'));
 if all(all(isequal(old_vars,new_vars)))
@@ -78,6 +80,16 @@ function val = rename_in(val,old_vars,new_vars)
 % VAL = RENAME_IN(VAL,OLD_VARS,NEW_VARS) substitutes the variables OLD_VARS
 % by NEW_VARS in the polynomial VAL, or in each of the elements of a cell
 % or struct VAL.
+%
+% INPUT
+% - val:        'polynomial', 'dpvar', 'double', or cell or struct of
+%               these;
+% - old_vars:   'polynomial' column of variables to replace;
+% - new_vars:   'polynomial' column of the same size, the new variables;
+%
+% OUTPUT
+% - val:        the input with the variables replaced (a 'double' is
+%               returned unchanged).
 if iscell(val)
     for ii=1:numel(val)
         val{ii} = rename_in(val{ii},old_vars,new_vars);

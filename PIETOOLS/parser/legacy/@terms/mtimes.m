@@ -31,6 +31,12 @@ function prodTerms = mtimes(K,objA)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% K is no terms object; objA has no outputs or time derivatives, and a
+% length matching the columns of K
 if isa(K,'terms')
     error('Left multiplication by state/terms object is not supported');
 end
@@ -52,6 +58,7 @@ if numel(K)~=1 && size(K,2)~=length(objA)
     error('Dimensions of multiplier and terms object do not match. Cannot be multiplied');
 end
 
+% Operator R0 = K (K*I for a scalar K) composed with the operator of objA
 opvar T; 
 if numel(K)==1
     T.R.R0 = K*eye(length(objA));

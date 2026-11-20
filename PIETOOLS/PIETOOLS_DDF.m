@@ -8,23 +8,69 @@
 %
 % USER INPUT: The first set of commands inputs a DDF using the format definition in the header.
 % This user input can be replaced with a call to the library file
-% examples_DDF_library_PIETOOLS which are all in the correct format. At the
+% examples_NDSDDF_library_PIETOOLS which are all in the correct format. At the
 % moment, however, the list of examples in this file is relatively sparse.
-% For most people, you should use PIETOOLS_DDE.
+% A neutral delay system (NDS, format at the end of this file) is
+% converted to a DDF, and a DDE is converted when DDE2DDF = 1.
 %
 %
 %  LPI SOLVER SETTINGS: The first set of commands in the header specify default settings for the
-%  Matlab environment and the LPI solver. This includes a call to one of 5
-%  settings scripts, and a declaration for how strictly the Lyapunov
+%  Matlab environment and the LPI solver. This includes the settings of a
+%  tier, lpisettings_sop('light'), replaced by the settings st of the
+%  library example when it sets them, and a declaration for how strictly the Lyapunov
 %  inequalities are enforced. If you are not solving an LPI, you may ignore
 %  all of these commands.
 %
-% The third set of commands converts the DDE to a PIE either directly or by
-% converting of a minimal Delay-Differential Equation and hence to a PIE.
+% The third set of commands converts the DDF to a PIE, through its minimal
+% DDF representation when DDF_min = 1 (the default); a DDE (DDE2DDF = 1) is
+% converted directly (DDF_min = 0) or through its minimal DDF
+% representation (DDF_min = 1).
 %
-% The fourth and final set of commands uses a script which sets up and solves an LPI as
-% determined by the LPI settings and 
+% The fourth and final set of commands runs the executives that the flags
+% select (stability, stability_dual, Hinf_gain, Hinf_gain_dual,
+% Hinf_control, Hinf_estimator), each of which sets up and solves an LPI as
+% determined by the LPI settings and, for stability and the H-infinity
+% gain, by the forms stability_form and Hinf_gain_form.
 %
+% INPUT
+% - none; the system (structure DDF, NDS, or DDE with DDE2DDF = 1, in the
+%   formats below), the flags of the problems to solve and, for some
+%   examples, the LPI settings st and the forms stability_form and
+%   Hinf_gain_form come from the library call, or from declarations in its
+%   place.
+%
+% OUTPUT
+% - none; the workspace receives the system, the PIE, the LPI settings, and
+%   the outputs of the executives run (prog, P and, per problem, gamma, K,
+%   L, Z).
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_DDF
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding PIETOOLS Team (PIETOOLS 2021b; in the repository since 12/31/2021)
 % MMP, 11/04/2026: Solve the LPIs with the container executives
 %                   (PIETOOLS_*_sop) and lpisettings_sop: the stock
 %                   executives stop on the copvar PIE convert_PIETOOLS_DDF
@@ -63,6 +109,7 @@
 %                   for any settings; PIETOOLS_DDE.m sets none. The entry
 %                   of 11/12/2026 (sep = 1) holds for a stock-format lpi.pos
 %                   only.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -151,8 +198,6 @@ DDE2DDF=0;      DDF_min=1;
 % Hinf_control=1
 % Hinf_estimator=1
 %
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 
 
@@ -160,7 +205,7 @@ DDE2DDF=0;      DDF_min=1;
 % Library Call
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % To test PIETOOLS on one of the standard example problems, consult the
-% library file examples_DDF_library_PIETOOLS.m and uncomment the example
+% library file examples_NDSDDF_library_PIETOOLS.m and uncomment the example
 % you wish to test. Otherwise, comment the following line and enter your
 % own DDF.
 
@@ -182,8 +227,8 @@ examples_NDSDDF_library_PIETOOLS
 % reduce computational complexity. 
 % NOTE 2: As an alternative, we have a optimized DDE to DDF converter which
 % identifies any special structure in the DDE and exploits this to find the
-% minimum dimension DDF representation. In fact, the default in the DDE
-% executable is to identify this structure and convert to a DDF and from
+% minimum dimension DDF representation. In fact, the default (DDF_min = 1)
+% is to identify this structure and convert to a DDF and from
 % there to a PIE. If you have specified a DDE and wish to exploit this
 % structure, use the following option.
 
@@ -210,20 +255,20 @@ examples_NDSDDF_library_PIETOOLS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Computational Complexity Toggles
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Uncomment your desired settings script:
+% Choose the tier of lpisettings_sop below:
 %
-% settings_PIETOOLS_veryheavy is for difficult problems which require complex
+% 'veryheavy' is for difficult problems which require complex
 % Lyapunov/storage functions.
 %
-% settings_PIETOOLS_heavy is reliable/accurate and should work for almost 
+% 'heavy' is reliable/accurate and should work for almost
 % all problems - at some cost of computational complexity
 %
-% settings_PIETOOLS_light works well for most problems, but but may
+% 'light' works well for most problems, but but may
 % sacrifice accuracy in the second decimal point
 %
-% settings_PIETOOLS_stripped sacrifices accuracy
+% 'stripped' sacrifices accuracy
 %
-% settings_PIETOOLS_extreme is often infeasible
+% 'extreme' is often infeasible
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
 % settings = lpisettings('light');                                          % MMP, 11/04/2026 (was)
 settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/04/2026

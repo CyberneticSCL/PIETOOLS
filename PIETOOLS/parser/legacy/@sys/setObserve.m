@@ -32,6 +32,11 @@ function obj = setObserve(obj,output)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/30/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Observed-output flag 1 for the states of 'output'
 loc = ismember(obj.states.statename,output.statename);
 obj.ObservedOutputs(find(loc))= 1;
 fprintf('%d outputs were designated as observed outputs\n', length(output));

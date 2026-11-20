@@ -31,7 +31,12 @@ function prodTerms = mtimes(K,objA)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% K must not be a state; objA must have no outputs or time derivatives,
+% and a length matching the columns of K
 if isa(objA,'state')&&isa(K,'state')
     error('Two state type objects cannot be multiplied');
 end
@@ -55,6 +60,7 @@ if numel(K)~=1 && (size(K,2)~=sum(subsref(objA,s)))&& (sum(subsref(objA,s))~=1)
     error('Dimensions of multiplier and state vector do not match. Cannot be multiplied');
 end
 
+% Terms object with multiplier R0 = K (K*I for a scalar K) on objA
 opvar T;
 if numel(K)==1
     s.type = '.'; s.subs = 'veclength';

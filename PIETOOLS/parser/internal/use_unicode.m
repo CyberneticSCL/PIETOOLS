@@ -1,7 +1,7 @@
 function out = use_unicode(val)
 % OUT = USE_UNICODE(VAL) sets, or returns, the setting that determines
 % whether the displays of operators and PIEs use special symbols that are
-% missing from many fonts, see 'varname2display'.
+% missing from many fonts.
 %
 % INPUTS
 % - val:    (optional) logical, true to use the special symbols: subscript
@@ -48,11 +48,13 @@ function out = use_unicode(val)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
 
 % Default setting
 default_unicode = false;      % display with plain characters
 
+% Setting of this session: the stored preference, read once
 persistent is_unicode
 if isempty(is_unicode)
     is_unicode = default_unicode;
@@ -61,6 +63,7 @@ if isempty(is_unicode)
     catch
     end
 end
+% Set a new value, and store it as a preference
 if nargin>=1
     if ischar(val) && strcmp(val,'true')        % allow "use_unicode true"
         val = true;
@@ -77,6 +80,7 @@ if nargin>=1
         warning('The setting could not be stored, and only holds for this session.')
     end
 end
+% Return the setting
 if nargout>0 || nargin==0
     out = is_unicode;
 end

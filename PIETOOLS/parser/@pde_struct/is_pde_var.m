@@ -33,10 +33,13 @@ function [logval,obj] = is_pde_var(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 06/23/2024: Initial coding;
 % DJ, 06/23/2025: Update to assume variable is specified as single term,
 %                   see also update to "pde_var";
 % DJ, 02/17/2026: Update in case of nonlinear terms;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Check that the input is indeed a 'pde_struct' object;
 if ~isa(PDE,'pde_struct')

@@ -11,18 +11,64 @@
 % This user input can be replaced with a call to the library file
 % examples_DDE_library_PIETOOLS which are all in the correct format.
 %
+% With simulate = 'on', the DDE is then simulated by PIESIM.
+%
 %  LPI SOLVER SETTINGS: The first set of commands in the header specify default settings for the
-%  Matlab environment and the LPI solver. This includes a call to one of 5
-%  settings scripts, and a declaration for how strictly the Lyapunov
+%  Matlab environment and the LPI solver. This includes the settings of a
+%  tier, lpisettings_sop('light'), replaced by the settings st of the
+%  library example when it sets them, and a declaration for how strictly the Lyapunov
 %  inequalities are enforced. If you are not solving an LPI, you may ignore
 %  all of these commands.
 %
-% The third set of commands converts the DDE to a PIE either directly or by
-% converting of a minimal Delay-Differential Equation and hence to a PIE.
+% The third set of commands converts the DDE to a PIE either directly or
+% through its minimal Differential-Difference Equation (DDF) representation
+% (DDE_minimal_rep = 1, the default).
 %
-% The fourth and final set of commands uses a script which sets up and solves an LPI as
-% determined by the LPI settings and 
+% The fourth and final set of commands runs the executives that the flags
+% select (stability, stability_dual, Hinf_gain, Hinf_gain_dual,
+% Hinf_control, Hinf_estimator, H2_norm, H2_norm_dual, H2_control,
+% H2_estimator), each of which sets up and solves an LPI as determined by
+% the LPI settings and, for stability and the H-infinity gain, by the forms
+% stability_form and Hinf_gain_form.
 %
+% INPUT
+% - none; the DDE (structure DDE, in the format below), the flags of the
+%   problems to solve and, for some examples, the LPI settings st and the
+%   forms stability_form and Hinf_gain_form come from the library call, or
+%   from declarations in its place.
+%
+% OUTPUT
+% - none; the workspace receives the DDE, the simulation output solution,
+%   the PIE, the LPI settings, and the outputs of the executives run (prog,
+%   P and, per problem, gamma, K, L, Z, W, R, Q).
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_DDE
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding PIETOOLS Team (PIETOOLS 2021b; in the repository since 12/31/2021)
 % MMP, 11/04/2026: DDE_minimal_rep = 1, the minimal DDF representation
 %                   (convert_PIETOOLS_DDF) that the NOTE below states is
 %                   the default; it was 0, the representation of
@@ -57,6 +103,7 @@
 %                   where it is cheaper at the same accuracy (maintainer,
 %                   11/19/2026; DECISIONS.md D141); the default 'P' of that
 %                   entry stands, the cheaper form on the delay rows measured.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %
 close all; clear; %path(pathdef); 
 clc;
@@ -143,15 +190,13 @@ DDE_minimal_rep=1;                                                          % MM
 % Hinf_estimator=1
 %
 %
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Library Call
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % To test PIETOOLS on one of the standard example problems, consult the
-% library file examples_dde_library_PIETOOLS.m and uncomment the example
+% library file examples_DDE_library_PIETOOLS.m and uncomment the example
 % you wish to test. Otherwise, comment the following line and enter your
 % own DDE.
 
@@ -179,7 +224,9 @@ if strcmp(simulate,'on')
  end
  
 %------------------------------------------------
-% Description of solution field - see the header of PIESIM/PIESIM_routines/PIESIM.m or PIETOOLS User's manual
+% solution: 'struct' with fields tf (the final time), final (the states,
+% observed and regulated outputs at tf) and timedep (their values at the
+% time steps dtime)
 %------------------------------------------------
 
     
@@ -216,20 +263,20 @@ if strcmp(simulate,'on')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Computational Complexity Toggles
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Uncomment your desired settings script:
+% Choose the tier of lpisettings_sop below:
 %
-% settings_PIETOOLS_veryheavy is for difficult problems which require complex
+% 'veryheavy' is for difficult problems which require complex
 % Lyapunov/storage functions.
 %
-% settings_PIETOOLS_heavy is reliable/accurate and should work for almost 
+% 'heavy' is reliable/accurate and should work for almost
 % all problems - at some cost of computational complexity
 %
-% settings_PIETOOLS_light works well for most problems, but but may
+% 'light' works well for most problems, but but may
 % sacrifice accuracy in the second decimal point
 %
-% settings_PIETOOLS_stripped sacrifices accuracy
+% 'stripped' sacrifices accuracy
 %
-% settings_PIETOOLS_extreme is often infeasible
+% 'extreme' is often infeasible
 
 
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
@@ -272,7 +319,7 @@ if DDE_minimal_rep==1
     DDF = minimize_PIETOOLS_DDE2DDF(DDE);
     PIE = convert_PIETOOLS_DDF(DDF,'pie');  
 else
-   % % Conversion from DDE to DDF using the formulation in our Automatica Paper.
+   % % Conversion from DDE directly to PIE (every state and input delayed) using the formulation in our Automatica Paper.
     PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE);
 end
 

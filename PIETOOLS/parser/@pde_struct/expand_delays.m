@@ -87,6 +87,7 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % DJ, 11/09/2026: Support delayed factors in nonlinear terms;
 % DJ (CC), 11/13/2026: Replace a term of a single factor as a whole,
 %                   fixing delayed inputs;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 if nargin==1
     suppress_summary = false;
@@ -477,6 +478,22 @@ end
 function PDE = add_delay_state(PDE,Robj,Rindx,tau_var_idx,loc_Robj,diff_Robj)
 % % % This subroutine adds a state x(t,s,r2) to the PDE to represent a
 % % % delayed object, x(t,s,r2) = d/dr^{diff} Robj(t+s,r1=a,r2)
+%
+% INPUT
+% - PDE:            'pde_struct' object being expanded;
+% - Robj:           char, 'x', 'w' or 'u', the type of the delayed object;
+% - Rindx:          integer, its row in PDE.([Robj,'_tab']);
+% - tau_var_idx:    integer, the index in PDE.vars of the delay variable s;
+% - loc_Robj:       1 x nvars 'double', for each variable 0 if Robj is not
+%                   evaluated at a boundary, 1 at the lower, 2 at the
+%                   upper boundary;
+% - diff_Robj:      1 x nvars 'double', the derivative orders of Robj;
+%
+% OUTPUT
+% - PDE:            the input PDE with the new state xnew, its transport
+%                   equation d/dt xnew(t,s) = d/ds xnew(t,s), and the
+%                   boundary condition d/dr^{diff} Robj(t,r1=a,r2) =
+%                   xnew(t,s=0,r2) appended.
 
 % % % Extract the variables, domain, and info on the object Robj.
 full_vars = PDE.vars;

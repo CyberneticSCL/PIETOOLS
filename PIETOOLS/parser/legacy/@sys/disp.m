@@ -30,6 +30,11 @@ function disp(obj)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 11/22/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Display of the PDE or PIE parameters
 if strcmp(obj.type,'pde')
     display_PDE(obj.params);
 elseif strcmp(obj.type,'pie')

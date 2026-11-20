@@ -4,7 +4,7 @@ function obj = eq(objA,objB)
 % Input: 
 % objA, objB - terms class objects
 % Output:
-% terms_obj - terms class object objA-objB
+% obj - terms class object objA-objB
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -30,6 +30,11 @@ function obj = eq(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 10/30/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% States become terms; expr==0 gives expr, two terms give objA-objB
 if isa(objA,'state')
     objA = state2terms(objA);
 end

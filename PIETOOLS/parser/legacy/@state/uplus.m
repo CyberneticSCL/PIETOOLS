@@ -4,7 +4,7 @@ function sumTerms = uplus(objA)
 % Input: 
 % objA - state class objects
 % Output:
-% out - A*[objA], where A is an identity PI operator
+% sumTerms - A*[objA], where A is an identity PI operator
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -30,6 +30,11 @@ function sumTerms = uplus(objA)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% No outputs or time derivatives; terms object with multiplier R0 = I
 isdot_A = isdot(objA); isout_A=isout(objA); 
 if any((isdot_A|isout_A))
     error("Unitary plus involving vectors with outputs or time-derivative of state is not allowed");

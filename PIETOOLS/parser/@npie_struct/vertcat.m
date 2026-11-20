@@ -48,8 +48,8 @@ function PIE_cat = vertcat(varargin)
 % of the two PIEs must match. A PIE without algebraic constraint has
 % operators K, Kw, and Ku without any rows, so that PIEs with and without
 % constraint can be concatenated. The names of the state components are
-% kept if they are unique and sorted for the concatenated state (see
-% `initialize`). Otherwise, they are replaced by the default names, and the
+% kept if they are unique and sorted for the concatenated state.
+% Otherwise, they are replaced by the default names, and the
 % state variables of the polynomials f, gz, and gy are renamed accordingly.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,8 +76,9 @@ function PIE_cat = vertcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 10/29/2026: Initial coding, based on the vertcat function of
-%                   pie_struct;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
+% DJ, 10/29/2026: Initial coding;
 
 % Extract the inputs
 if nargin==1
@@ -120,7 +121,8 @@ end
 PIE_cat = npie_struct();
 
 % Keep the names of the state components if they are unique and sorted, as
-% required by `initialize`. Otherwise, use the default names of `initialize`.
+% the PIE requires. Otherwise, use the default names x1_pie, x2_pie, ...
+% (zero-padded).
 n1 = numel(PIE1.space.x.dims);      n2 = numel(PIE2.space.x.dims);
 names_x = [PIE1.space.x.varname; PIE2.space.x.varname];
 if numel(unique(names_x))<n1+n2 || ~issorted(names_x)
@@ -134,10 +136,11 @@ for name = {'f','gz','gy'}
     poly2 = subs(PIE2.(name{1}),PIE2.space.x.varname,names_x(n1+1:end));
     poly.(name{1}) = [poly1;poly2];
     if size(poly.(name{1}),1)==0
-        poly.(name{1}) = [];            % no outputs, initialize adds zero polynomial
+        poly.(name{1}) = [];            % no outputs: a zero polynomial on initialization
     end
 end
 
+% Stack the dynamics and the outputs
 PIE_cat.T = blkdiag(PIE1.T,PIE2.T);
 PIE_cat.Tw = [PIE1.Tw;PIE2.Tw];
 PIE_cat.Tu = [PIE1.Tu;PIE2.Tu];
@@ -156,7 +159,7 @@ PIE_cat.Kw = [PIE1.Kw;PIE2.Kw];
 PIE_cat.Ku = [PIE1.Ku;PIE2.Ku];
 
 % Concatenate the components of the state and outputs, the inputs remain
-% the same. The names of the outputs are assigned by initialize.
+% the same. The outputs get default names on initialization.
 for type = {'x','z','y'}
     PIE_cat.space.(type{1}) = struct(...
         'dims',[PIE1.space.(type{1}).dims; PIE2.space.(type{1}).dims],...

@@ -31,6 +31,11 @@ function out = subsref(obj,s)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 07/15/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% obj.(property), or the equations (rows) s(1).subs{1} on the same states
 switch s(1).type
     case '.'
         out = builtin('subsref',obj,s);

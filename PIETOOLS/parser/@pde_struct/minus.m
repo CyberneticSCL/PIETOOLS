@@ -38,7 +38,10 @@ function PDE_out = minus(PDE_1,PDE_2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % Check that the first input is of suitable type.
 if isa(PDE_1,'state')

@@ -32,13 +32,15 @@ function obj = vertcat(varargin)
 % authorship, and a brief description of modifications
 % SS, 2022: Initial coding;
 % DJ, 12/07/2024: Replace dummy variable theta with s_dum;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 if nargin==1
     obj = varargin{1};
 else
     objA = varargin{1};
     objB = varargin{2};
-    
+
+    % States become terms; an empty argument returns the other
     if isa(objA,'state')
         objA = state2terms(objA);
     end
@@ -54,6 +56,8 @@ else
         return
     end
     
+    % Operator [A, 0; 0, B] on the stacked state vectors; further
+    % arguments are appended recursively
     opvar zeroAB zeroBA;
     zeroAB.dim = [0 0; objA.operator.dim(2,1) objB.operator.dim(2,2)]; 
     zeroBA.dim = [0 0; objB.operator.dim(2,1) objA.operator.dim(2,2)];

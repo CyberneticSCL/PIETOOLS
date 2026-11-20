@@ -46,11 +46,14 @@ function [PDE_1_out,PDE_2_out,new_obnums_1,new_obnums_2] = pde_common_basis(PDE_
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
 % DJ, 02/15/2026: Reorder state, input, and output variables based on the
 %                   value of their IDs, i.e. in the order in which they are
 %                   generated;
 % DJ, 02/17/2026: Allow for nonlinear terms
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % Since state variables and inputs may appear both in PDE_1 and PDE_2, we
 % % will have to be careful to combine them in the structure.

@@ -36,8 +36,8 @@ function PDE_out = times_pdes(PDE1,PDE2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 02/13/2026: Initial coding;
-% DJ, 11/09/2026: Support terms with delay;
 
 % Make sure the inputs are 'pde_struct' objects
 if ~isa(PDE1,'pde_struct') || ~isa(PDE2,'pde_struct')
@@ -187,8 +187,7 @@ if ~strcmp(obj1,obj2)
     term2.(obj1) = [];
 end
 
-% Keep the delays of the factors, with zero delay if not specified: delayed
-% factors are replaced by states in expand_delays, as for linear terms
+% Keep the delays of the factors, with zero delay if not specified
 if ~isfield(term1,'delay')
     [term1.delay] = deal(0);
 end

@@ -31,6 +31,11 @@ function [locA, idx] = ismember(objA, objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 07/01/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% First match in objB of each component of objA (idx 0 if none)
 locA = zeros(length(objA),1); idx = locA;
 for i=1:length(objA)
     for j=1:length(objB)

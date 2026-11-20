@@ -50,12 +50,15 @@ function [term_str,term_sign,use_Cij] = display_term(PDE,PDE_term,C_idcs,use_ID)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
 % DJ, 02/17/2026: Updates for nonlinear case
 % DJ, 11/06/2026: Get the names, subscripts and limits of integrals from
 %                   'varname2display', display the time derivative as d_t
 %                   unless 'use_unicode', and use plain parentheses in
 %                   indices;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Set up the symbols to display the term. The names, subscripts and
 % % % superscripts are given by 'varname2display'.
@@ -135,6 +138,7 @@ if isfield(PDE_term,'x') && ~isempty(PDE_term.x)
         Rstate_trm = Robj;
     end
 else
+    % No state: an output or input, or the first and only state component
     if isfield(PDE_term,'y') && ~isempty(PDE_term.y)
         Robj = 'y';
         tab_row = PDE_term.(Robj);

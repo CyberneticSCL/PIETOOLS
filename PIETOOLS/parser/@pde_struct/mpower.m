@@ -1,5 +1,5 @@
 function PDE_out = mpower(PDE_in,deg)
-% PDE_OUT = POWER(PDE_IN,DEG) computes the power of a variable or term in 
+% PDE_OUT = MPOWER(PDE_IN,DEG) computes the power of a variable or term in
 % a PDE.
 %
 % INPUTS
@@ -34,6 +34,8 @@ function PDE_out = mpower(PDE_in,deg)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % DJ, 02/18/2026: Initial coding;
 

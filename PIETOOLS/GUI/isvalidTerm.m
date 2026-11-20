@@ -11,6 +11,20 @@ function logval = isvalidTerm(coeff,termtype,eqntype,stateTerm,...
 % and integration variable
 % logval is 4, exp has s or theta when not allowed being added to finite
 % dim equations
+%
+% INPUT
+% coeff:      char, the coefficient of the term
+% termtype:   char, 'Multiplier' or 'Integral' (any other type is invalid
+%             in a finite dim equation, logval 2)
+% eqntype:    char, 'infinite' (PDE) or 'finite' equation
+% stateTerm:  char, the name of the state
+% stateArg:   char, the argument of the state: 's', 'theta', '0' or '1'
+% derOrder, highestDer: not used
+% intvar:     char, the integration variable, 'ds' or 'd\theta'
+% a, b:       not used
+%
+% OUTPUT
+% logval:     'double', 0, 2, 3 or 4 as above
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -33,6 +47,10 @@ function logval = isvalidTerm(coeff,termtype,eqntype,stateTerm,...
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP, SS, DJ (PIETOOLS 2021b; in the repository since 12/31/2021)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 

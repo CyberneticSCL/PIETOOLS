@@ -31,6 +31,10 @@ function out = identifyEqnType(equation)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 07/18/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 statevec = equation.statevec;
 classifiedeqns = zeros(length(equation),1);
 for i=1:length(statevec)
@@ -40,6 +44,8 @@ for i=1:length(statevec)
     end
 end
 
+% Output equation, ODE or PDE by the type of the state differentiated in
+% time, else boundary condition
 if any(strcmp(statevec.state.type,'out')) %if equation has output
     out = 'out';
 elseif any(cellfun(@(x) x(1)~=0, statevec.diff,'un',1))%if term has derivative of time

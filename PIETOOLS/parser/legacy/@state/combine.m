@@ -32,8 +32,14 @@ function [out, varargout] = combine(varargin)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
 %                  findPermutation (one caller) inlined into the output loop.
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Unique states: the states of varargin{1}, then each state of the other
+% inputs not yet in out
 out = varargin{1};
 for i=2:nargin
     tmp = varargin{i};
@@ -46,6 +52,7 @@ for i=2:nargin
     end
 end
 
+% Matrix A{i} of each input, with varargin{i} = A{i}*out
 varargout = cell(1,nargin);
 
 for i=1:nargin

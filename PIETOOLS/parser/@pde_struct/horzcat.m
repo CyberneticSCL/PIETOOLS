@@ -38,8 +38,11 @@ function [PDE_out] = horzcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
 % DJ, 01/05/2025: Perform multiple concatenations using for loop.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % Process the inputs

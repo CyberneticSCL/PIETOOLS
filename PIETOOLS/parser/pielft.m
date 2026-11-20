@@ -57,7 +57,7 @@ function PIE_lft = pielft(PIE1,PIE2)
 % - The operators of PIE_LFT are 'copvar' objects, with one space for each
 %   of the spaces of PIE1, followed by those of PIE2, so that the state is
 %   v = [v1;v2], and the components of PIE_LFT.space are one for each of
-%   these spaces (see also 'initialize');
+%   these spaces;
 % - Currently, all controlled inputs and observed outputs are treated as
 %   interconnection signals, and thus the dimensions of the controlled
 %   inputs of PIE1 must match those of the observed outputs of PIE2, and
@@ -96,12 +96,15 @@ function PIE_lft = pielft(PIE1,PIE2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 12/22/2024: Initial coding;
 % DJ, 12/30/2024: Add support for nonzero feedthrough;
 % DJ, 10/29/2026: Update to new pie_struct structure, throw an error for
 %                   PIEs with an algebraic constraint, and correct the
 %                   operators of PIE2 that are swapped if the regulated
 %                   output of PIE2 is the interconnection signal;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % Right now, support only exactly two arguments.
 if nargin~=2
@@ -247,6 +250,14 @@ function logval = same_space(sp1,sp2)
 % sense that for each combination of spatial variables, the total number
 % of components depending on exactly these variables is the same.
 %
+% INPUT
+% - sp1, sp2:   'struct' with fields dims (number of rows of each
+%               component) and depmat (logical, the variables each
+%               component depends on, one column per variable);
+%
+% OUTPUT
+% - logval:     logical, true if the spaces are the same.
+%
 % DJ, 10/29/2026: Initial coding;
 nvars = size(sp1.depmat,2);
 logval = true;
@@ -266,6 +277,13 @@ end
 function [Top,Twop,Tuop,Aop,Bwop,Buop,...
             Czop,Dzwop,Dzuop,Cyop,Dywop,Dyuop] = extract_ops(PIE)
 % Extracts the PI operators from a 'pie_struct' object.
+%
+% INPUT
+% - PIE:    'pie_struct' object;
+%
+% OUTPUT
+% - Top, ..., Dyuop:    its operators T, Tw, Tu, A, Bw, Bu, Cz, Dzw, Dzu,
+%                       Cy, Dyw, Dyu, in this order.
 
 Top = PIE.T;      Twop = PIE.Tw;      Tuop = PIE.Tu;
 Aop = PIE.A;      Bwop = PIE.Bw;      Buop = PIE.Bu;

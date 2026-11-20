@@ -48,12 +48,15 @@ function val = subsref(PDE,prop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/29/2022: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % DJ, 01/04/2025: Allow order of differentiability of state to be extracted;
 % DJ, 10/28/2026: Do not copy tdiff=nan (state without equation) to the
 %                   extracted term;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % If the object is a single PDE variable, we have a separate case for
@@ -227,6 +230,7 @@ elseif strcmp(prop(1).type,'.')
         elseif isscalar(prop)
             error('To extract the coefficients C_{ij} appearing in term j of equation i, call "PDE.C{i,j}".')
         end
+        % The equation, term and (optional) factor numbers i, j, k
         if ~strcmp(prop(2).type,'{}')
             error('To extract the coefficients C_{ij} appearing in term j of equation i, call "PDE.C{i,j}".')
         elseif numel(prop(2).subs)<2

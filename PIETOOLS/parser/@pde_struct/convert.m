@@ -4,16 +4,14 @@ function PIE = convert(PDE,out_type)
 % PIE.
 %
 % INPUT:
-% - PDE:        A pde_struct object defining a PDE in the terms format
-%               (see also "@pde_struct/initialize").
+% - PDE:        A pde_struct object defining a PDE in the terms format.
 % - out_type:   char object specifying to what type of system the PDE is to
 %               be converted. Only out_type='pie' is supported, as we only
-%               convert PDEs to PIEs. This second argument is only included
-%               to match "convert" function for 'sys' type objects.
+%               convert PDEs to PIEs.
 %               Alternatively, 'char' or cell of 'char' objects with the
 %               flags 'silent' (suppress the display), 'nonlinear' (return
-%               an 'npie_struct' also for a linear PDE) and/or 'Top' of
-%               "convert_PIETOOLS_PDE", which are passed on to it;
+%               an 'npie_struct' also for a linear PDE) and/or 'Top'
+%               (return only the operators T, Tw, Tu, K and the spaces);
 %
 % OUTPUT:
 % - PIE:        A pie_struct object (or an npie_struct object, if the PDE
@@ -23,8 +21,8 @@ function PIE = convert(PDE,out_type)
 %
 % NOTES:
 % - If no dynamics are specified for any of the states of the (linear) PDE,
-%   it defines a boundary value problem (BVP), which is solved by
-%   "convert_PIETOOLS_BVP". PIE is then a pie_struct object with only the
+%   it defines a boundary value problem (BVP), which is solved for the PDE
+%   state. PIE is then a pie_struct object with only the
 %   operators T, Tw, Tu and K, Kw, Ku specified, for which
 %       x_pde = T*xf + Tw*wf + Tu*uf,       K*xf + Kw*wf + Ku*uf = 0,
 %   for the fundamental state xf and inputs wf, uf. A PDE without dynamics
@@ -55,6 +53,8 @@ function PIE = convert(PDE,out_type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 10/11/2022
 % Call combines 1D-2D converter, DJ - 10/17/2024
 % Display successful connversion message DB -12/22/24
@@ -68,9 +68,10 @@ function PIE = convert(PDE,out_type)
 % DJ (CC), 11/13/2026: Error for states sharing a moment, as in
 %                   convert_PIETOOLS_PDE, and for delays in a PDE without
 %                   dynamics; shorter error messages;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % We support only PDE to PIE conversion. The second argument is 'pie', or
-% flags of convert_PIETOOLS_PDE, with the 'pie' left out.
+% flags of the converter, with the 'pie' left out.
 if nargin<2
     out_type = {};
 end
@@ -112,8 +113,7 @@ end
 function PIE = BVP2pie_struct(PDE)
 % PIE = BVP2PIE_STRUCT(PDE) converts a PDE without dynamics, i.e. a
 % boundary value problem, to a 'pie_struct' object with only the operators
-% T, Tw, Tu and K, Kw, Ku specified, solving the BVP by
-% "convert_PIETOOLS_BVP".
+% T, Tw, Tu and K, Kw, Ku specified, solving the BVP for the PDE state.
 %
 % INPUT
 % - PDE:    initialized, linear 'pde_struct' object with nx states, with no
@@ -124,7 +124,7 @@ function PIE = BVP2pie_struct(PDE)
 % - PIE:    initialized 'pie_struct' object, with T, Tw, Tu the nx x ncomp
 %           block operators mapping the fundamental state xf (with ncomp
 %           components) and inputs wf, uf to the PDE state, and K, Kw, Ku 
-%           the constraint on them, see "convert_PIETOOLS_BVP". Each 
+%           the constraint on them. Each
 %           component of xf is derived from a single PDE state by 
 %           PIE.pde2pie.x, and each component of wf and uf from a
 %           PDE input by PIE.pde2pie.w and PIE.pde2pie.u;
@@ -171,15 +171,15 @@ end
 PIE.space_pde = space_pde;
 
 % Spaces (structs with fields vars, dom, dim) of the PDE states, and the
-% identity operators on them, as in convert_PIETOOLS_PDE.
+% identity operators on them.
 get_space = @(dims,dep,i) struct('vars',{space_pie.vars(dep(i,:))},'dom',space_pie.dom(dep(i,:),:),'dim',dims(i));
 identity_op = @(s) mat2sopvar(eye(s.dim),struct('in',{s.vars},'out',{s.vars}),struct('in',s.dom,'out',s.dom));
 x_sp = arrayfun(@(k) get_space(PDE.x_tab(:,2),logical(PDE.x_tab(:,3:2+N)),k),1:nx);
 
 % % % Maps from the PDE to the PIE: component c of xf is C_c applied to
 % % % the derivative D^{diff(c,:)} of the PDE state idx(c), and wf, uf
-% % % consist of derivatives of the PDE inputs, as Dmap of
-% % % "convert_PIETOOLS_BVP". The operator C of pde2pie is block diagonal,
+% % % consist of derivatives of the PDE inputs, as given by Dmap. The
+% % % operator C of pde2pie is block diagonal,
 % % % with the operators C_c, and the other blocks [] (zero, their spaces
 % % % following from the diagonal, so that no ncomp^2 zero operators are
 % % % constructed)
@@ -192,11 +192,13 @@ for c=1:ncomp
 end
 pde2pie.x.tdiff = zeros(ncomp,1);       pde2pie.x.loc = zeros(ncomp,N);
 pde2pie.x.delay = zeros(ncomp,1);
+% The block-diagonal operator C, block c the C_c of the PDE state idx(c)
 C_blocks = cell(ncomp);
 for c=1:ncomp
     C_blocks{c,c} = Dmap.x.C.C{c,idx_x(c)};
 end
 pde2pie.x.C = copvar(C_blocks);
+% The inputs: the PDE inputs, their derivatives, positions and operators
 for ty = {'w','u'}
     ninp = numel(Dmap.(ty{1}).idx);
     pde2pie.(ty{1}).idx = Dmap.(ty{1}).idx(:);

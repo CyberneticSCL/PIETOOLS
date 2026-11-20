@@ -32,6 +32,10 @@ function obj = removeequation(obj,eqnNumber)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 obj.equation(eqnNumber) = [];
 fprintf('%d equations were removed from the system\n', length(eqnNumber));
 end

@@ -41,14 +41,19 @@ function logval = eq(objA, objB)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 10/29/2026: Initial coding;
 
+% The operators and polynomials compared, by field name
 PI_list = {'T','Tw','Tu',...
            'f','Bw','Bu',...
            'gz','Dzw','Dzu',...
            'gy','Dyw','Dyu',...
            'K','Kw','Ku'};
 
+% Objects other than 'npie_struct' are not equal; then the variables and
+% domain, and each operator in turn
 if ~isa(objA,'npie_struct') || ~isa(objB,'npie_struct')
     logval = false;
     return
@@ -79,8 +84,10 @@ for name = PI_list
         end
         logval = logval && is_zero;
     else
+        % Other classes: equal only if identical
         logval = logval && isequal(opA,opB);
     end
+    % Stop at the first operator that differs
     if ~logval
         return
     end

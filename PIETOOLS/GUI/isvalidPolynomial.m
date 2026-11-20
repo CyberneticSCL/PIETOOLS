@@ -9,6 +9,13 @@ function logval = isvalidPolynomial(exp)
 % logval is 3, exp has polynomial variable with non-integer power
 % logval is 4, exp has other error such as mismatched brackets, incorrect
 % operands etc.
+%
+% INPUT
+% exp: char or string, the expression, in the polynomial variables s and
+%      theta
+%
+% OUTPUT
+% logval: 'double', 0, 2, 3 or 4 as above
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -31,12 +38,19 @@ function logval = isvalidPolynomial(exp)
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP, SS, DJ (PIETOOLS 2021b; in the repository since 12/31/2021)
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Polynomial variables the expression may contain
 pvar s theta;
 
 exp = convertCharsToStrings(exp); % convert to string
 
 logval=0;
 
+% Evaluate the expression; classify the error message, if any
 try
     tmp=eval(exp);
 catch err

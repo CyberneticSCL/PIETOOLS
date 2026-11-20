@@ -35,6 +35,8 @@ function PDE_out = eq(LHS,RHS)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
 % DJ, 12/28/2024: Add support for concatenating single vector LHS with
 %                 RHS consisting of multiple scalar-valued equations; 
@@ -45,6 +47,7 @@ function PDE_out = eq(LHS,RHS)
 % DJ, 08/22/2025: Allow equations x==0 or 0==x to be set, adjusting size of
 %                   0 to match that of x;
 % DJ, 02/17/2026: Add support for nonlinear terms;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Process the inputs
 

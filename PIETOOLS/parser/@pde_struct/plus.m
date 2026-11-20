@@ -37,11 +37,14 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 06/23/2024: Initial coding
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var".
 %                   Also account for added "is_zero" field;
 % DJ, 01/04/2025: Bugfix for empty terms;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % Process the inputs

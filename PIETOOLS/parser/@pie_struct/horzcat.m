@@ -70,10 +70,13 @@ function PIE_cat = horzcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 12/21/2024: Initial coding;
 % DJ, 10/29/2026: Update to new pie_struct structure (copvar operators,
 %                   function spaces, and algebraic constraints K, Kw, and
 %                   Ku);
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Extract the inputs
 if nargin==1

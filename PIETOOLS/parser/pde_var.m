@@ -17,6 +17,9 @@ function out_var = pde_var(varargin)
 % OPTION 2
 % Use the "standard" input format
 %   out_var = pde_var(type,'sz',vars,dom);
+% or with D_order as fifth argument; type and sz may be omitted, as in
+%   pde_var(sz,vars,dom,D_order), pde_var(vars,dom,D_order),
+%   pde_var(type,vars,dom,D_order).
 %
 % INPUT
 % - type:   Object of type 'char', specifying what type of PDE variable is
@@ -65,11 +68,14 @@ function out_var = pde_var(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024
 % DJ, 12/06/2024: Set default values in case of insufficient arguments;
 % DJ, 12/28/2024: Allow length to be omitted as input;
 % DJ, 01/03/2025: Declare a "free" term representing the output variable;
 % DJ, 01/04/2025: Allow order of differentiability to be set for states;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Deal with the case the function is used as e.g.
 % % %   pde_var x1 x2 x3 input w1 w2
@@ -142,6 +148,7 @@ elseif nargin>=2 && nargin<=4 && ischar(varargin{1}) && isa(varargin{2},'polynom
         D_order = varargin{4};
     end
 else
+    % Type, size, variables, domain and derivative orders, in this order
     if nargin>=1
         type = varargin{1};
     end
@@ -157,6 +164,7 @@ else
     if nargin>=5
         D_order = varargin{5};
     end
+    % More than five inputs: an error
     if nargin>=6
         error('Too many input arguments.')
     end
@@ -301,6 +309,7 @@ function ID = getPDEvarID(obj)
 
 persistent idx_x idx_u idx_w idx_y idx_z
 
+    % Raise the counter of the type of OBJ (0 when unset) and return it
     if strcmp(obj,'x')
         if isempty(idx_x)
             idx_x = 0;
@@ -308,6 +317,7 @@ persistent idx_x idx_u idx_w idx_y idx_z
         idx_x = idx_x+1;
         ID = idx_x;
     elseif strcmp(obj,'u')
+        % The inputs u and w
         if isempty(idx_u)
             idx_u = 0;
         end
@@ -320,6 +330,7 @@ persistent idx_x idx_u idx_w idx_y idx_z
         idx_w = idx_w+1;
         ID = idx_w;
     elseif strcmp(obj,'y')
+        % The outputs y and z
         if isempty(idx_y)
             idx_y = 0;
         end

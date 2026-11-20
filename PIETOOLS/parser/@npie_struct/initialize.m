@@ -42,7 +42,7 @@ function PIE = initialize(PIE)
 %   in which case the specified components are kept, with zero operators.
 % - The components in PIE.space and PIE.space_pde that have not been named
 %   (varname empty) are assigned default names. The names must be unique,
-%   and sorted for the state in PIE.space (see 'npie_struct').
+%   and sorted for the state in PIE.space.
 % - The operators K, Kw, and Ku defining the algebraic constraint must all
 %   map to the same space. If none of them has been specified, they are
 %   initialized as operators without any rows (no output space), from the
@@ -78,10 +78,9 @@ function PIE = initialize(PIE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 10/29/2026: Initial coding, based on the initialize function of
-%                   pie_struct;
-% DJ, 11/08/2026: Keep a specified PIE.space for a component (output) that
-%                   is just zero;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
+% DJ, 10/29/2026: Initial coding;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -280,6 +279,8 @@ for sp_name = {'space','space_pde'}
                     names{ii} = [obj,num2str(ii)];
                 end
             end
+        % Specified names: one per component, unique, and sorted for the
+        % PIE state
         elseif ~iscellstr(names) || numel(names)~=n
             error(['PIE.',sp_name{1},'.',obj,'.varname should be a cellstr with a name for each of the components.'])
         elseif numel(unique(names))~=n
@@ -316,6 +317,8 @@ for k=1:numel(poly_names)
         PIE.(fname) = Pop;
         continue
     end
+    % A specified polynomial, initialized; its state variables must be
+    % components of PIE.space.x, with their sizes and spatial variables
     if ~Pop.chkval
         Pop = initialize(Pop);
         PIE.(fname) = Pop;
@@ -327,6 +330,7 @@ for k=1:numel(poly_names)
     elseif ~all(is_var)
         error(['The spatial variables of PIE.',fname,' do not match those of the PIE.'])
     end
+    % Sizes and dependence on the spatial variables, in the order of the PIE
     depmat_in = false(numel(loc),nvars);
     depmat_in(:,vloc) = logical(Pop.depmat.in);
     if ~isequal(Pop.dims.in(:),xsp.dims(loc)) || ~isequal(depmat_in,xsp.depmat(loc,:))
@@ -367,6 +371,7 @@ for obj_type = {'x','w','u','z','y'}
         ref_types = {'x','w','u'};
     end
     for jj=1:numel(ref_types)
+        % A row per PDE component, and idx within the PDE components
         sp_pde = PIE.space_pde.(ref_types{jj});
         if size(sp_pde.depmat,1)~=numel(sp_pde.dims) || (~isempty(sp_pde.ID) && numel(sp_pde.ID)~=numel(sp_pde.dims))
             error(['The fields of PIE.space_pde.',ref_types{jj},' should have a row for each PDE component.'])

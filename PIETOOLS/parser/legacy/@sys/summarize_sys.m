@@ -2,8 +2,12 @@ function summarize_sys(obj,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sys-class method that displays a summary of sys object explains number of
 % states and equations
-% Input: 
+% Input:
 % obj - sys class object
+% varargin - eqnType, cell array, the type of each equation: 'ode', 'pde',
+%            'out' or 'bc'
+% Output:
+% command line summary (pde type only)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -29,7 +33,12 @@ function summarize_sys(obj,varargin)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 07/18/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 if strcmp(obj.type,'pde')
+    % Number of states of each type
     statelist = obj.states;
     ode_list = statelist(find(strcmp(statelist.type,'ode')));
     n_ode = sum(ode_list.veclength);
@@ -48,6 +57,7 @@ if strcmp(obj.type,'pde')
     fprintf('Number of Disturbance inputs: %d\n',n_in-sum(obj.ControlledInputs));
     fprintf('Number of Control inputs: %d\n',sum(obj.ControlledInputs));
     
+    % Number of equations of each type
     eqnType = varargin{1};
     
     disp('----- Summary of identified equations -----');

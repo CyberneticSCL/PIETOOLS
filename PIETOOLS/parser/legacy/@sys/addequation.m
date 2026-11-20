@@ -31,6 +31,12 @@ function obj = addequation(obj,eqn)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Append a terms equation; a state input is converted to terms, and not
+% appended
 if isa(eqn,'state')
     eqn = state2terms(eqn);
 elseif isa(eqn,'terms')

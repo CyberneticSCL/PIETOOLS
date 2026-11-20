@@ -40,7 +40,10 @@ function PDE_out = state2pde_struct(state_in,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/30/2024
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % Process the inputs
@@ -58,6 +61,7 @@ else
     end
 end
 
+% Empty PDE structure
 PDE_out = pde_struct();
 
 

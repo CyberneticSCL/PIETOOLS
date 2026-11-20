@@ -5,7 +5,7 @@ function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 %
 % INPUTS:
 % - PDE:    A struct or pde_struct type object, defining a PDE in the terms
-%           format (see also the "@pde_struct/initialize" function).
+%           format.
 % - obj:    'x', 'y', 'z', 'u', 'w', or 'BC', indicating for what object to
 %           reorder the components. Defaults to 'all', in which case all
 %           components of all objects are reordered.
@@ -62,8 +62,11 @@ function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 08/09/2022
 % DJ, 02/21/2026: Allow for nonlinear terms, also reordering the factors
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %
 
 % % % Check the input arguments

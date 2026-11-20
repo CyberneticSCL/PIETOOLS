@@ -77,12 +77,15 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ, 06/18/2025;
 % DJ, 10/29/2026: Update to new pie_struct structure (expansion of copvar
 %                   operators, extension of the maps between PDE and PIE,
 %                   and no support for PIEs with an algebraic constraint);
-% DJ, 11/02/2026: Major overhaul to support ND PIEs and algebraic 
+% DJ, 11/02/2026: Major overhaul to support ND PIEs and algebraic
 %                   constraints;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Check the inputs
 if nargin<2
@@ -92,17 +95,20 @@ elseif nargin==2
 elseif nargin>3
     error("Too many input arguments.")
 end
+% The PIE, initialized
 if ~isa(PIE,'pie_struct')
     error("The PIE must be specified as a 'pie_struct' object.")
 end
 if ~PIE.is_initialized
     PIE = initialize(PIE);
 end
+% One positive integer order per state component
 nb = numel(PIE.space.x.dims);
 tdiff_list = tdiff_list(:);
 if numel(tdiff_list)~=nb || any(tdiff_list<1) || any(tdiff_list~=round(tdiff_list))
     error("The orders of the temporal derivatives should be specified as an array of positive integers, one for each state component.")
 end
+% All orders 1: the PIE is returned unchanged
 if all(tdiff_list==1)
     tdiff_tab = [(1:nb)',zeros(nb,1)];
     if ~suppress_summary
@@ -250,12 +256,15 @@ X_old = pie2pde_s.x;
 if isa(X_old,'copvar') && size(X_old.C,2)==nb
     X_nz = nz_blocks(X_old);
     X_new = cell(size(X_old.C,1),nnew);
+    % Column i of X_old: on the components first(c) composed with
+    % T_old(i,c) for an equation of order > 1, else on the row host(i)
     for i=1:nb
         if is_exp(i)
             cols = find(T_nz(i,:));       targets = first(cols)';     ops = T_old(i,cols);
         else
             targets = host(i);              ops = {[]};
         end
+        % Add the products to the blocks of the targets
         for k=find(X_nz(:,i))'
             for m=1:numel(targets)
                 P = X_old.C{k,i};
@@ -272,6 +281,7 @@ if isa(X_old,'copvar') && size(X_old.C,2)==nb
     end
     pie2pde_s.x = copvar(X_new,meta_subset(X_old,1:size(X_old.C,1),parent_idx));
 end
+% Store the new spaces and maps, and initialize the PIE
 PIE.space = space;
 PIE.pde2pie = pde2pie_s;
 PIE.pie2pde = pie2pde_s;

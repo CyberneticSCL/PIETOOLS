@@ -41,9 +41,6 @@ classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pd
 % - PDE.BC:     A cell with each element i defining a boundary
 %               condition 0 = ... of the system.
 %
-% For more information on how each of these objects is defined, see the
-% "initialize_PIETOOLS_PDE" function.
-%
 % In addition, a pde_struct object also has hidden fields x_tab, y_tab,
 % z_tab, u_tab, w_tab, and BC_tab. These are tables of which each row
 % corresponds to a particular component specified in the PDE (e.g.
@@ -79,9 +76,12 @@ classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pd
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 07/08/2022
 % DJ, 02/17/2026: Add "is_nonlinear" field;
 % DJ (CC), 11/13/2026: Copy the field tau of a struct to tau (was dom);
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
     
 properties
@@ -104,8 +104,8 @@ properties
 end
 properties (Hidden)
     % The tables with standardized information on each of the components
-    % should not be specified by the user, but should be added to the
-    % structure in "initialize_PIETOOLS_PDE".
+    % should not be specified by the user, but are added to the
+    % structure by the initialization.
     x_tab = zeros(0,2); % [state_num, state_size, isvar1, isvar2, vardiff1, vardiff2]
     u_tab = zeros(0,2);
     w_tab = zeros(0,2);
@@ -117,7 +117,7 @@ properties (Hidden)
     has_delay = false;      % Does the system involve any delayed states/inputs?
     has_hotd = false;       % Does the system involve any higher-order temporal derivatives?
     is_nonlinear = false;   % Is the PDE nonlinear?
-    constraint_ID = [];     % IDs of the outputs z that are static constraints 0=E(s), see initialize (DB 11/07/2026)
+    constraint_ID = [];     % IDs of the outputs z that are static constraints 0=E(s) (DB 11/07/2026)
 end
 properties (Dependent)
     % Dimension of the system
@@ -133,7 +133,16 @@ methods
         % Calling "PDE1=pde_struct(PDE1)" converts a 'struct' object to
         % a 'pde_struct' object, given that the input 'struct' has the
         % necessary fields.
-        
+        %
+        % INPUT
+        % - varargin:   none; or names (char) of variables to assign an
+        %               empty pde_struct to in the caller workspace; or one
+        %               'pde_struct' or 'struct' object (fields vars, dom,
+        %               tau, x, u, w, y, z, BC and the tables *_tab copied);
+        %
+        % OUTPUT
+        % - obj:        'pde_struct' object.
+
         if nargin==1
             if ischar(varargin{1})
                 if nargout==0
@@ -156,6 +165,7 @@ methods
                     obj.tau = varargin{1}.tau;
                 end
                 
+                % The states, inputs, outputs and boundary conditions
                 if isfield(varargin{1},'x')
                     obj.x = varargin{1}.x(:);
                 end
@@ -175,6 +185,7 @@ methods
                     obj.BC = varargin{1}.BC(:);
                 end
                 
+                % Their tables
                 if isfield(varargin{1},'x_tab')
                     obj.x_tab = varargin{1}.x_tab;
                 end
@@ -194,6 +205,7 @@ methods
                     obj.BC_tab = varargin{1}.BC_tab;
                 end
             else
+                % Any other single input is an error
                 error("Input must be strings");
             end
         else
@@ -213,6 +225,9 @@ methods
 
     function dim_val = get.dim(obj)
         % Get spatial dimension of PDE.
+        % INPUT: obj, 'pde_struct' object. OUTPUT: dim_val, the number of
+        % spatial variables, NaN if vars and dom differ in their numbers
+        % of rows.
         if size(obj.vars,1)==size(obj.dom,1)
             % Each variable should be assigned a domain.
             dim_val = size(obj.vars,1);

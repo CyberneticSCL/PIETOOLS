@@ -30,6 +30,9 @@ classdef (InferiorClasses={?state})terms
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/10/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 properties (SetAccess=protected)
     operator opvar;
@@ -37,6 +40,15 @@ properties (SetAccess=protected)
 end
 methods
     function obj = terms(varargin)
+        % OBJ = TERMS(OPERATOR,STATEVEC) constructs the equations
+        % OPERATOR*STATEVEC = 0.
+        %
+        % INPUT
+        % - operator:   (optional) 'opvar' object P;
+        % - statevec:   (optional) column of 'state' objects x;
+        %
+        % OUTPUT
+        % - obj:        'terms' object.
         if nargin>2
             error('Terms object constructor takes only two inputs');
         end

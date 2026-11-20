@@ -1,8 +1,8 @@
 function out = state2terms(obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % State-class method that converts objA to terms format
-% Input: 
-% objA - state class objects
+% Input:
+% obj - state class objects
 % Output:
 % out - A*[objA], where A is an identity PI operator
 %
@@ -30,6 +30,11 @@ function out = state2terms(obj)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Terms object with multiplier R0 = I on obj
 s.type = '.'; s.subs = 'veclength';
 opvar T; T.R.R0 = eye(sum(subsref(obj,s)));
 termsOut = obj;

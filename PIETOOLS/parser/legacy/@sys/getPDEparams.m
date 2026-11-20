@@ -2,10 +2,10 @@ function out = getPDEparams(pdeObj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sys-class method that parses PDE equations into standard parametric form for
 % PDE
-% Input: 
-% obj - sys class object
+% Input:
+% pdeObj - sys class object
 % Output:
-% out - sys class object with PDE parameters initialized
+% out - 'pde_struct' object, the PDE parameters in terms format
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -33,6 +33,7 @@ function out = getPDEparams(pdeObj)
 % authorship, and a brief description of modifications
 % SS, 2022: Initial coding;
 % DJ, 12/07/2024: Replace dummy variable theta with s_dum;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 equations = pdeObj.equation;
 statelist = pdeObj.states;
@@ -55,6 +56,8 @@ if ~isempty(tmp)
     pdeNames = tmp.statename;
 end
 xNames = [odeNames; pdeNames];
+% Outputs: regulated (z) and observed (y); inputs: disturbances (w) and
+% controls (u)
 tmp = statelist(find((~pdeObj.ObservedOutputs).*strcmp(statelist.type,'out')));
 if ~isempty(tmp) 
    zNames = tmp.statename;

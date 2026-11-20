@@ -37,8 +37,11 @@ function [PDE_out] = setControl(PDE_in,control_IDs)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/30/2024
 % DJ, 12/28/2024: Allow input to be declared as 'pde_var' object.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % Check that the input indices are properly specified.
 if isa(control_IDs,'pde_struct')

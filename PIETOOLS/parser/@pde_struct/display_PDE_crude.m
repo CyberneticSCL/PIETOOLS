@@ -2,12 +2,14 @@ function [] = display_PDE_crude(PDE)
 % DISPLAY_PDE_CRUDE(PDE) displays the input PDE in the Command Window,
 % giving a symbolic overview of the specified equations/terms using
 % UNICODE. This function is intended to display "unfinished"
-% (un-initialized) pde_struct objects, as the standard "display_PDE"
-% function may display initialized structures more cleanly.
+% (un-initialized) pde_struct objects.
 %
 % INPUT
 % - PDE:    'pde_struct' object, representing a PDE to be displayed.
 %           Equations will be printed in the Command Window.
+%
+% OUTPUT
+% - none; the equations (or free terms) are printed, one per line.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2026  PIETOOLS Team
@@ -31,12 +33,15 @@ function [] = display_PDE_crude(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Display zero equation for x, y, or z as well, but only if
 %                   explicitly declared using 'is_zero' field;
 % DJ, 11/06/2026: Get the subscripts and variable names from
 %                   'varname2display', display the time derivative as d_t
 %                   unless 'use_unicode', and call coefficients C_ij;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Declare some UNICODE char symbols to display temporal derivatives of
 % % % state components for the left-hand side of the equation. The names,
@@ -161,11 +166,14 @@ for kk=1:numel(eq_types)
         else
             C_idx = [ii+n_eqs_tot,1,1];
         end
+        % The product sign: '*' for a scalar equation, '.*' otherwise
         if isfield(eq_struct,'size') && eq_struct.size==1
             prod_str = '*';
         else
             prod_str = '.*';
         end
+        % The factors of the first term joined by the product sign, and the
+        % sign of the term
         [term_str,term_sign] = display_term(PDE,eq_struct.term{1}(1),C_idx,use_ID);
         for k=2:numel(eq_struct.term{1})
             [term_str_k,term_sign_k] = display_term(PDE,eq_struct.term{1}(k),[ii+n_eqs_tot,1,k],use_ID);
@@ -185,6 +193,7 @@ for kk=1:numel(eq_types)
             else
                 C_idx = [ii+n_eqs_tot,jj,1];
             end
+            % The factors of term jj, its sign, and whether it uses C_ij
             [term_str,term_sign,use_Cjj] = display_term(PDE,eq_struct.term{jj}(1),C_idx,use_ID);
             for k=2:numel(eq_struct.term{jj})
                 [term_str_k,term_sign_k] = display_term(PDE,eq_struct.term{jj}(k),[ii+n_eqs_tot,jj,k],use_ID);

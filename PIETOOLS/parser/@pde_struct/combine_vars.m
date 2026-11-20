@@ -4,8 +4,7 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 % on the same domain dom.
 %
 % INPUTS:
-% PDE:  A pde_struct class object, defining a PDE in a manner as
-%       outlined in "initialize_PIETOOLS_PDE".
+% PDE:  A pde_struct class object, defining a PDE.
 % dom:  (optional) A 1x2 array speicfying the new interval on which all
 %       spatial variables must exist. Defaults to [-1,1];
 % silent_merge: logical value indicating whether to suppress the summary of
@@ -55,6 +54,7 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 % DJ, 10/11/2022: Initialize
 % DJ, 01/07/2025: Set new default dummy variable name si_dum;
 % DJ, 02/21/2026: Update to allow for nonlinear terms;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % Check the inputs
@@ -197,6 +197,7 @@ if ~silent_merge
         new_vars_merge = old_vars(var_indcs_new(ismerge),1);
         old_var_names = old_vars_merge(1).varname{1};
         new_var_names = new_vars_merge(1).varname{1};
+        % One merged variable, or the lists of the merged variables
         if sum(ismerge)==1
             fprintf(['\n','Variable ',old_var_names,' has been merged with variable ',new_var_names,'.\n'])  
         else
@@ -207,6 +208,7 @@ if ~silent_merge
             fprintf(['\n','Variables (',old_var_names,') have been merged with variables (',new_var_names,') respectively.\n'])  
         end
     end
+    % The common domain of the rescaled variables
     fprintf(['\n','All spatial variables have been rescaled to exist on the interval [',num2str(dom(1)),',',num2str(dom(2)),'].\n'])
 end
 
@@ -229,6 +231,23 @@ end
 function PDE_new = replace_vars_terms(PDE,PDE_new,Lobj,old_vars,new_vars,old_dom,new_dom,new2old,fctr_new2old)
 % Loop over all components of the object Lobj, replacing the old variables
 % in their PDEs with the new variables.
+%
+% INPUT
+% - PDE:            initialized 'pde_struct' object, in the old variables;
+% - PDE_new:        'pde_struct' object being built in the new variables;
+% - Lobj:           char, the object to update: 'x', 'y', 'z', 'BC', 'w'
+%                   or 'u' (for 'w' and 'u' only the variables and domain);
+% - old_vars, new_vars:   nvars x 2 'polynomial', the primary and dummy
+%                   variables [s, s_dum] and [t, nu];
+% - old_dom, new_dom:     nvars x 2 'double', their domains;
+% - new2old:        nvars x 2 'polynomial', the old variables in terms of
+%                   the new ones, s = var_fctr*t + b;
+% - fctr_new2old:   nvars x 1 'double', the factors var_fctr = ds/dt;
+%
+% OUTPUT
+% - PDE_new:        the input PDE_new, with the components of Lobj, and
+%                   the positions, derivatives, integrals and coefficients
+%                   of their terms, in the new variables.
 nvars = size(old_vars,1);
 ncomps = numel(PDE.(Lobj));
 for ii=1:ncomps    
@@ -292,6 +311,7 @@ for ii=1:ncomps
                 locval = factor_ll.loc;
                 for kk=1:nvars_Rcomp
                     if isa(locval(kk),'double') || isdouble(locval(kk))
+                        % A boundary: the matching end of the new domain
                         locval_kk = double(locval(kk));
                         if locval_kk == old_dom_Rcomp(kk,1)
                             locval(kk) = new_dom_Rcomp(kk,1);
@@ -301,6 +321,7 @@ for ii=1:ncomps
                             error(['The position "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}(',num2str(ll),').loc" is not properly specified...']);
                         end
                     elseif strcmp(locval(kk).varname{1},old_vars_Rcomp(kk,1).varname{1})
+                        % A variable: the corresponding new variable
                         locval(kk) = new_vars_Rcomp(kk,1);
                     elseif strcmp(locval(kk).varname{1},old_vars_Rcomp(kk,2).varname{1})
                         locval(kk) = new_vars_Rcomp(kk,2);
@@ -333,6 +354,7 @@ for ii=1:ncomps
                         else
                             error(['The integral "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}(',num2str(ll),').I" is not properly specified...']);
                         end
+                        % The upper limit likewise
                         if isdouble(Idom_kk(2))
                             Idom_kk(2) = new_dom_Rcomp(kk,2);
                         elseif strcmp(Idom_kk(2).varname{1},old_vars_Rcomp(kk,1).varname{1})

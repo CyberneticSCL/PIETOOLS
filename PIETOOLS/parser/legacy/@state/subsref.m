@@ -32,6 +32,10 @@ function out = subsref(obj,s)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/30/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 switch s(1).type
     case '.'
         if length(s) == 1
@@ -45,6 +49,7 @@ switch s(1).type
                     out{i,1} = obj(i).var;
                 end
             elseif strcmp(s(1).subs,'veclength')
+                % Numeric properties as arrays, the others as cells
                 for i=1:length(obj)
                     out(i,1) = obj(i).veclength;
                 end
@@ -110,6 +115,7 @@ switch s(1).type
     otherwise
         error('Invalid indexing operation on state objec');
 end
+% An empty result is returned as 0
 if isempty(out)
     out = 0;
 end

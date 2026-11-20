@@ -3,8 +3,8 @@ function [] = display_PDE(PDE,name)
 % pde_struct object "PDE", with name "name".
 %
 % INPUTS:
-% PDE:  A struct or pde_struct class object, defining a PDE in a manner as
-%       outlined in "initialize_PIETOOLS_PDE".
+% PDE:  A struct or pde_struct class object, defining a PDE, or a 'sys'
+%       object holding one.
 % name: str, specifying the name of the PDE. (not currently used...)
 % 
 % OUTPUTS:
@@ -19,7 +19,7 @@ function [] = display_PDE(PDE,name)
 %   will be used to denote the factor, to avoid the expression from getting
 %   too messy.
 % - Display is only possible for initialized PDEs, as the fields x_tab
-%   through BC_tab constructed in "initialize_PIETOOLS_PDE" are used to
+%   through BC_tab constructed in the initialization are used to
 %   establish variable dependence of the different states, inputs, and
 %   outputs. An unfinished PDE will likely produce issues in the
 %   initialization function, so only complete systems can be displayed.
@@ -56,6 +56,7 @@ function [] = display_PDE(PDE,name)
 %                   'varname2display' (the dummy variable is gamma instead
 %                   of phi), display the time derivative as d_t unless
 %                   'use_unicode', and call coefficients C_ij, C_ijk;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Initialize the system
 if isa(PDE,'sys')
@@ -316,6 +317,27 @@ end
 function [term_str,use_Cij] = construct_term(PDE,eq,eq_num,eq_info,term_num,fctr_num,var_list,tau_list)
 % Build a str to represent term number "trm" in the equation "eq" of the
 % PDE structure "PDE".
+%
+% INPUT
+% - PDE:        initialized 'pde_struct' object;
+% - eq:         'struct', the equation, with field term;
+% - eq_num:     integer, the number of the equation among all displayed
+%               equations, the index i of the coefficient C_ij;
+% - eq_info:    'double' row of the table (x_tab, y_tab, z_tab or BC_tab)
+%               of the equation;
+% - term_num:   integer, the term of eq.term to display;
+% - fctr_num:   integer, the factor of that term (more than one for a
+%               nonlinear term);
+% - var_list:   nvars x 6 cell of char: the primary and dummy variables,
+%               their subscripts for derivatives, and the primary variables
+%               as upper and lower limit of an integral;
+% - tau_list:   cell of char, the names of the delay variables;
+%
+% OUTPUT
+% - term_str:   char, the term with its sign (' = ', ' + ', ' - '), or
+%               the factor after '*';
+% - use_Cij:    logical, true if the coefficient is displayed as C_ij
+%               (matrix-valued or polynomial).
 
 nfctrs = numel(eq.term{term_num});
 PDE_term = eq.term{term_num}(fctr_num);

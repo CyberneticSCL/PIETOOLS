@@ -73,6 +73,8 @@ function PIE = initialize(PIE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding SS - 08/01/2022
 % Adjust and add as class file function, DJ - 11/01/2022
 % DJ, 12/07/2024: Use new default vars (s1,s2) and (s1_dum,s2_dum);
@@ -83,6 +85,7 @@ function PIE = initialize(PIE)
 % DJ, 11/11/2026: Support a PIE without dynamics (only T and K operators
 %                   specified), as converted from a BVP;
 % DJ, 11/18/2026: Account for updated `size` function.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.

@@ -6,7 +6,8 @@ function [params,out] = convert(obj,convertTo)
 % obj - sys class object
 % convertTo - string, 'pie' or 'ddf'
 % Output:
-% obj - sys class object with pie or ddf parameters
+% params - the converted parameters ('pie_struct' or DDF 'struct')
+% out - sys class object with pie or ddf parameters
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -32,11 +33,17 @@ function [params,out] = convert(obj,convertTo)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 arguments
     obj;
     convertTo {mustBeMember(convertTo,{'pie','ddf'})} = 'pie';
 end
 
+% PIE of a pde, dde, nds or ddf system (a pie system is returned as is);
+% DDF of an nds or dde system
 if strcmp(convertTo, 'pie')
     if strcmp(obj.type,'pde')
         tmp = convert_PIETOOLS_PDE(obj.params);
@@ -50,11 +57,13 @@ if strcmp(convertTo, 'pie')
         out = obj;
         return;
     end
+    % A 'pie' system holding the PIE
     out = sys();
     out.type = 'pie';
     out.params = tmp;
     params = tmp;
 elseif strcmp(convertTo,'ddf') && (strcmp(obj.type,'nds')||strcmp(obj.type,'dde'))
+    % The DDF of an nds system, the minimal DDF of a dde system
     out = obj;
     if strcmp(obj.type,'nds')
         tmp = convert_PIETOOLS_NDS2DDF(obj.params);

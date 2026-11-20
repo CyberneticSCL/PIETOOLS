@@ -30,6 +30,12 @@ function logval = isequal(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Equal: both 'state' objects of the same size, with the same names,
+% derivative orders and variables, component by component
 logval = 1;
 if ~isa(objA,'state')||~isa(objB,'state')
     logval = 0;
@@ -41,6 +47,7 @@ if any(size(objA)~=size(objB))
     return
 end
 
+% Component by component: name, derivative orders, variables
 for i=1:size(objA,1)
 if (objA(i).statename~=objB(i).statename)
     logval=0;

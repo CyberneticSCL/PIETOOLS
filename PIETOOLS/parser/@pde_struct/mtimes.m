@@ -37,11 +37,14 @@ function PDE_out = mtimes(C,PDE_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % DJ, 02/17/2025: Add support for multiplication of PDE terms;
 % DJ, 02/18/2026: Prohibit matrix-multiplication with nonlinear terms;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % Process the inputs
 
@@ -458,6 +461,15 @@ end
 
 function P_cell = mat2cell_poly(P,nr_list,nc_list)
 % Function mat2cell for 'polynomial' classs objects.
+%
+% INPUT
+% - P:          'polynomial' matrix;
+% - nr_list:    (optional) numbers of rows of the blocks (default all 1);
+% - nc_list:    (optional) numbers of columns of the blocks (default
+%               all 1);
+%
+% OUTPUT
+% - P_cell:     numel(nr_list) x numel(nc_list) cell of the blocks of P.
 
 % If no numbers of rows and columns in each cell element are specified,
 % assume each element contains a scalar element of the polynomial.

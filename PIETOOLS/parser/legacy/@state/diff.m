@@ -33,6 +33,11 @@ function obj = diff(obj,var,order)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/10/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Defaults: the first variable of the state, order 1
 if nargin==1
     var = obj.var(1);
     order = 1;
@@ -42,6 +47,8 @@ elseif nargin>3
     error('Differentiation takes at most 3 inputs');
 end
 
+% Raise the derivative order in var of each state, up to its maxdiff;
+% inputs and outputs cannot be differentiated
 for i=1:length(obj)
 %     if isequal(var,obj(i).var(1))&&((order>1)||(any(obj(i).diff_order>0)))
 %         error('Higher order derivatives of time and temporal-spatial mixed derivatives are currently not supported')

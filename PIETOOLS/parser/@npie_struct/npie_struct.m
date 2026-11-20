@@ -9,9 +9,9 @@ classdef npie_struct
 %
 % for distributed polynomials f, gz, and gy in the fundamental state x,
 % where w is the exogenous input, u the actuator input, z the regulated
-% output, and y the observed output. For linear PIEs, see `pie_struct`. A
-% linear PIE PIE_lin can be converted to a nonlinear PIE by calling
-% `npie_struct(PIE_lin)`, see `pie2npie_struct`.
+% output, and y the observed output. Linear PIEs are 'pie_struct' objects.
+% A linear PIE PIE_lin can be converted to a nonlinear PIE by calling
+% `npie_struct(PIE_lin)`.
 %
 %
 % === The Equations ===
@@ -72,7 +72,7 @@ classdef npie_struct
 %
 % === The PIE to PDE Bijection ===
 %
-% A PIE constructed from a PDE (see `convert_PIETOOLS_PDE`) keeps
+% A PIE constructed from a PDE keeps
 % track of the equivalence between the PDE state space and the PIE state
 % space,
 %
@@ -148,6 +148,9 @@ classdef npie_struct
 % - PIE.x_pde:  (dependent) 'polyopvar' representing x_pde = X_pde*T*x,
 %               computed as PIE.pie2pde.x*PIE.T*PIE.x. Assumes that Tw and
 %               Tu are empty, so that x_pde does not depend on w and u;
+% - PIE.f_pde:  (dependent) 'polyopvar' representing f_pde = X_pde*f(x),
+%               the dynamics d/dt x_pde = f_pde(x) of the PDE state in
+%               terms of the PIE state, under the same assumption;
 %
 % The relation is a bijection only between admissible trajectories: x_pde
 % must satisfy the BCs, i.e. be of the form X_pde*(T*x+Tw*w+Tu*u), and, if
@@ -196,10 +199,8 @@ classdef npie_struct
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/29/2026: Initial coding;
-% DJ, 11/03/2026: Convert a pie_struct object, using pie2npie_struct;
-% DJ, 11/09/2026: Add dependent property x_pde, the PDE state in terms
-%                   of the PIE state, pie2pde.x*T*x;
 
 properties
     % The dynamics
@@ -256,6 +257,16 @@ function obj = npie_struct(varargin)
     %   convert a struct with fields named as the properties (including the
     %   hidden fields used in earlier versions) to an npie_struct, or
     %   npie_struct(PIE) to convert a linear PIE of type pie_struct.
+    %
+    % INPUT
+    % - varargin:   none; or names (char) of variables to assign an empty
+    %               npie_struct to in the caller workspace; or one
+    %               'npie_struct', 'pie_struct' or 'struct' object;
+    %
+    % OUTPUT
+    % - obj:        'npie_struct' object, not initialized for a 'struct'
+    %               input.
+
     % Declare the fields of the function spaces and the maps between the
     % PIE and PDE, without any components.
     obj.space = empty_space(false);
@@ -271,7 +282,7 @@ function obj = npie_struct(varargin)
             end
         elseif isa(varargin{1},'npie_struct')
             obj = varargin{1};
-        elseif isa(varargin{1},'pie_struct')                                % DJ, 11/03/2026
+        elseif isa(varargin{1},'pie_struct')
             % Convert a linear PIE to a nonlinear PIE.
             obj = pie2npie_struct(varargin{1});
         elseif isa(varargin{1},'struct')
@@ -310,6 +321,11 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % Operators named as in earlier versions
+% VAL = GET.<ALIAS>(OBJ) and OBJ = SET.<ALIAS>(OBJ,VAL) read and write the
+% operator or polynomial that the alias names: B1 = Bw, B2 = Bu, g1 = gz,
+% g2 = gy, and, below, D11 = Dzw, D12 = Dzu, D21 = Dyw, D22 = Dyu.
+% INPUT: obj, 'npie_struct' object; val, the operator or polynomial.
+% OUTPUT: val, the field (get); obj, the PIE with the field set (set).
 function val = get.B1(obj),         val = obj.Bw;           end
 function obj = set.B1(obj,val),     obj.Bw = val;           end
 function val = get.B2(obj),         val = obj.Bu;           end
@@ -322,6 +338,8 @@ function obj = set.g2(obj,val),     obj.gy = val;           end
 function val = get.x(obj)
     % Construct the PIE state from the function space of the PIE. If the
     % components are not yet named, they are assigned default names.
+    % INPUT: obj, 'npie_struct' object. OUTPUT: val, 'polyopvar' with the
+    % state variables PIE.space.x.varname (empty without state).
     sp = obj.space.x;
     if isempty(sp.dims)
         val = polyopvar();
@@ -335,7 +353,7 @@ function val = get.x(obj)
 end
 
 % The PDE state in terms of the PIE state (polyopvar)
-function val = get.x_pde(obj)                                               % DJ, 11/09/2026
+function val = get.x_pde(obj)
     % VAL = GET.X_PDE(OBJ) returns the PDE state x_pde = X_pde*T*x as a
     % polyopvar in the PIE state, with X_pde = pie2pde.x, see the header.
     % Tw and Tu are ignored (assumed empty), as 
@@ -360,7 +378,7 @@ function val = get.x_pde(obj)                                               % DJ
 end
 
 % The dynamics for just the PDE state (polyopvar)
-function val = get.f_pde(obj)                                               % DJ, 11/09/2026
+function val = get.f_pde(obj)
     % VAL = GET.F_PDE(OBJ) returns the polynomial f_pde = X_pde*f(x) as a
     % polyopvar in the PIE state, with X_pde = pie2pde.x, see the header.
     % Tw and Tu are ignored (assumed empty), as 
@@ -395,6 +413,14 @@ function obj = set.D22(obj,val),    obj.Dyu = val;          end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % Spatial variables, domain, and dimension
+% VAL = GET.VARS(OBJ) returns the N x 2 'polynomial' [s, s_dum] of the
+% spatial variables in PIE.space.vars and their dummy variables;
+% SET.VARS(OBJ,VAL) stores the names of the variables in VAL ('polynomial'
+% or cellstr). GET.DOM and SET.DOM read and write the N x 2 domain
+% PIE.space.dom ([] stored as zeros(0,2)). GET.DIM returns N, NaN if the
+% numbers of variables and intervals differ.
+% INPUT: obj, 'npie_struct' object; val, the variables or the domain.
+% OUTPUT: val or dim_val (get); obj, the PIE with the field set (set).
 function val = get.vars(obj),       val = pie_compat_vars(obj);         end
 function obj = set.vars(obj,val),   obj = pie_compat_vars(obj,val);     end
 function val = get.dom(obj),        val = obj.space.dom;                end
@@ -416,6 +442,13 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % Tables with information on the components
+% VAL = GET.<C>_TAB(OBJ) and OBJ = SET.<C>_TAB(OBJ,VAL), for C = x, u, w,
+% y, z, read and write the table with one row per component: index of the
+% PDE component, size, dependence on each spatial variable and, for x, u
+% and w, the derivative taken of the PDE component in each variable, from
+% and to PIE.space and PIE.pde2pie.
+% INPUT: obj, 'npie_struct' object; val, 'double' table.
+% OUTPUT: val, the table (get); obj, the PIE with the fields set (set).
 function val = get.x_tab(obj),      val = pie_compat_tab(obj,'x');      end
 function obj = set.x_tab(obj,val),  obj = pie_compat_tab(obj,'x',val);  end
 function val = get.u_tab(obj),      val = pie_compat_tab(obj,'u');      end
@@ -467,6 +500,7 @@ function m = empty_pie2pde()
 % states, inputs and outputs, without any components, with an empty
 % tensopmat object for each of the fields x, y, z, u, w (see the header of
 % npie_struct).                                                           
+% INPUT: none. OUTPUT: m, 'struct' with an empty 'tensopmat' per field.
 m = struct('x',tensopmat(),'y',tensopmat(),'z',tensopmat(),...
            'u',tensopmat(),'w',tensopmat());
 end
@@ -481,6 +515,7 @@ function m = empty_pde2pie()
 % u, w, y, z is a struct with the fields specified in the header of
 % npie_struct: idx for all components, diff, tdiff, loc and C for x, u and
 % w, and delay for x only.                                                 
+% INPUT: none. OUTPUT: m, 'struct' with these fields, without rows.
 full_map = struct('idx',zeros(0,1),'diff',zeros(0,0),'tdiff',zeros(0,1),...
                   'loc',zeros(0,0),'C',tensopmat());
 m = struct();

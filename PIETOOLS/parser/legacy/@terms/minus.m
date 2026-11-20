@@ -30,6 +30,11 @@ function sumTerms = minus(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 06/28/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% States become terms, of equal length; objA + (-objB)
 if isa(objA,'state')
     objA = state2terms(objA);
 elseif ~isa(objA,'terms')

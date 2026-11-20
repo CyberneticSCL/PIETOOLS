@@ -30,5 +30,9 @@ function logval = ne(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/14/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 logval = ~(isequal(objA,objB));
 end

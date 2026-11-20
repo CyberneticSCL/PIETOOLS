@@ -4,7 +4,7 @@ function PDE_out = power(PDE_in,deg)
 %
 % INPUTS
 % - PDE_in: 'pde_struct' object representing a single term or set of m rows
-%           of terms in a PDE;
+%           of terms in a PDE; terms may carry a delay;
 % - deg:    m x 1 or scalar array specifying to which power to raise the
 %           terms in each of the rows of the PDE;
 %
@@ -35,8 +35,9 @@ function PDE_out = power(PDE_in,deg)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 02/18/2026: Initial coding;
-% DJ, 11/09/2026: Support terms with delay;
 
 
 % Make sure the inputs are of appropriate type
@@ -177,8 +178,8 @@ obj_num = term_in.(obj);
 obj_size = PDE.(obj){obj_num}.size;
 obj_vars = PDE.(obj){obj_num}.vars;
 
-% Keep the delay of the term, with zero delay if not specified (replaced by
-% a state in expand_delays, as for linear terms)
+% Keep the delay of the term, with zero delay if not specified (a nonzero
+% delay is later replaced by a state, as for linear terms)
 term_out = term_in;
 if ~isfield(term_out,'delay')
     term_out.delay = 0;

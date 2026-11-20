@@ -30,6 +30,12 @@ function logval = isequal(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 10/30/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Equal: both terms objects of equal length, with equal operators and
+% state vectors
 logval = 1;
 if ~isa(objA,'terms')||~isa(objB,'terms')
     logval = 0;

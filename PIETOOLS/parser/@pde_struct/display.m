@@ -4,8 +4,7 @@ function display(PDE,name)
 % pde_struct object "PDE", with name "name".
 %
 % INPUTS:
-% PDE:  A pde_struct class object, defining a PDE in a manner as
-%       outlined in "initialize_PIETOOLS_PDE".
+% PDE:  A pde_struct class object, defining a PDE.
 % name: str, specifying the name of the PDE. (not currently used...)
 % 
 % OUTPUTS:
@@ -14,16 +13,17 @@ function display(PDE,name)
 % NOTES:
 % - Although spatial variable names may be specified in the PDE structure,
 %   these will not be used in the display. Instead, s_i will be used to
-%   denote primary variables, and phi_i to denote dummy variables.
+%   denote primary variables, and gamma_i to denote dummy variables.
 % - Coefficient matrices term{j}.C will not be shown, unless they are a
 %   constant scalar value. If they are matrix-valued and/or polynomial, "C"
 %   will be used to denote the factor, to avoid the expression from getting
 %   too messy.
 % - Display is only possible for initialized PDEs, as the fields x_tab
-%   through BC_tab constructed in "initialize_PIETOOLS_PDE" are used to
+%   through BC_tab constructed in the initialization are used to
 %   establish variable dependence of the different states, inputs, and
 %   outputs. An unfinished PDE will likely produce issues in the
 %   initialization function, so only complete systems can be displayed.
+%   A PDE that is not initialized gets a crude display, term by term.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
@@ -54,11 +54,14 @@ function display(PDE,name)
 % DJ, 06/10/2024:  Allow crude display of non-initialized PDE structures;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Name of the PDE (not printed)
 if nargin<2
     name = '';
 end
 
+% Full display of an initialized PDE, crude display otherwise
 if PDE.is_initialized
     display_PDE(PDE,name);
 else

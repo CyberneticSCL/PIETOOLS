@@ -30,8 +30,8 @@ function display(PIE,name,width_max,expand)
 %   the observed output y are only displayed if the PIE has any, and the
 %   algebraic constraint only if it is nontrivial.
 % - If the PIE has no dynamics or outputs, i.e. if A, Bw, Bu, Cz, Dzw, Dzu,
-%   Cy, Dyw, Dyu are all zero, as for a PIE defining a boundary value problem
-%   (see "pde_struct/convert"), the first equation is displayed as
+%   Cy, Dyw, Dyu are all zero, as for a PIE defining a boundary value
+%   problem, the first equation is displayed as
 %       x = T x^ + Tw w^ + Tu u^,
 %   with x the state of the PDE.
 % - Below the equations, after 'where' and indented, the operators are
@@ -39,13 +39,12 @@ function display(PIE,name,width_max,expand)
 %   after an empty line, the space of each nonempty state, input and output
 %   is stated, e.g. x^(t) in L_2^3[[0,1]x[-1,1]].
 % - The operators are named as the fields of PIE, and defined as the actual
-%   operators acting on the state and inputs, using 'get_display' of the
-%   classes of the operators, if they are scalar-valued and small enough.
+%   operators acting on the state and inputs, if they are scalar-valued
+%   and small enough.
 %   The other operators can be extracted by calling PIE.T, PIE.Bw, etc., as
 %   indicated below the equations. The terms are placed on the same line,
 %   unless the line would have more characters than fit in the command
-%   window, in which case the whole next term is moved to the next line,
-%   see 'print_terms'.
+%   window, in which case the whole next term is moved to the next line.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display
 %
@@ -70,6 +69,8 @@ function display(PIE,name,width_max,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 08/30/2022
 % DJ, 06/25/2025: Add display of 'misc' field;
 % DB, 10/27/2026: Display optional PI operators F/K in case the null
@@ -83,6 +84,7 @@ function display(PIE,name,width_max,expand)
 % DJ, 11/06/2026: Display the time derivative as d_t, unless 'use_unicode';
 % DJ, 11/12/2026: Display only T and K operators in case of no dynamics
 %                   (converted BVP);
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -170,6 +172,7 @@ for r=1:5
         end
     end
 end
+% No operator in the left-hand side: dt(0)
 if isempty(eq_terms{1})
     eq_terms{1} = {'0'};
 end
@@ -272,12 +275,15 @@ for q=1:numel(used_r)
             end
         elseif expand && isa(pie_op,'copvar') && isequal(size(pie_op.C),[1,1]) && ...
                 isequal(pie_op.dim_in,1) && isequal(pie_op.dim_out,1) && isa(pie_op.C{1,1},'sopvar')
+            % A scalar 'copvar' with one 'sopvar' block, in its output
+            % variables
             blk_disp = get_display(pie_op.C{1,1},x_name);
             is_defined = blk_disp.ok;
             out_args = cellfun(@varname2display,reshape(pie_op.C{1,1}.vars.out,1,[]),'UniformOutput',false);
         elseif expand && isa(pie_op,'tensopmat') && isequal(size(pie_op.ops),[1,1]) && ...
                 isequal(pie_op.dims.in,1) && isequal(pie_op.dims.out,1) && ...
                 isa(pie_op.ops{1,1},'tensopvar') && size(pie_op.ops{1,1}.ops,2)==1
+            % A scalar 'tensopmat' with one 'tensopvar' block of one factor
             blk_disp = get_display(pie_op.ops{1,1},{x_name});
             is_defined = blk_disp.expanded;
             out_args = blk_disp.out_args;
@@ -338,6 +344,7 @@ for q=1:numel(poly_names)
     fprintf('  Call "%s.%s.C{1,%s}" to extract operator %s acting on monomial %s of %s.\n', ...
         call_name,poly_names{q},jname,op_name,jname,poly_names{q});
 end
+% The operators not defined: the first three calls if there are more
 if ~isempty(hidden)
     calls = strcat('"',call_name,'.',hidden,'"');
     if numel(hidden)>3

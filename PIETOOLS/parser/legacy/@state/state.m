@@ -35,6 +35,9 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 02/10/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
     properties
         type {mustBeMember(type,{'ode','pde','in','out'})} = 'ode';
@@ -56,6 +59,26 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
     
     methods
         function obj = state(varargin) %constructor
+            % OBJ = STATE(TYPE,VECLENGTH,VAR) constructs a 'state' object;
+            % without an output argument, STATE('x','y',...) assigns a new
+            % 'ode' state of length 1 to each named variable in the caller
+            % workspace.
+            %
+            % INPUT
+            % - type:       (optional) char, 'ode' (default), 'pde', 'in'
+            %               or 'out';
+            % - veclength:  (optional) positive integer, the length
+            %               (default 1);
+            % - var:        (optional) row vector of 'polynomial'
+            %               variables of the state (default t; t and s for
+            %               'pde');
+            % - statename:  (optional, internal) the ID of the state
+            %               (default: a new ID).
+            %
+            % OUTPUT
+            % - obj:        'state' object, all derivative orders 0.
+
+            % Command syntax: one new state per named variable
             if nargout==0
                 for i=1:nargin
                     obj = state();
@@ -63,6 +86,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
                     assignin('caller', varargin{i}, obj);
                 end
             else
+                % Type, length, variables and ID from the inputs
                 if nargin==1
                     obj.type = varargin{1};
                     if strcmp(varargin{1},'pde')
@@ -71,6 +95,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==2
+                    % Type and length; a 'pde' state in t and s
                     obj.type = varargin{1};
                     obj.veclength = varargin{2};
                     if strcmp(obj.type,'pde')
@@ -79,6 +104,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==3
+                    % Type, length and a row of variables
                     if size(varargin{3},1)~=1
                         error('var must be a row vector');
                     end
@@ -98,7 +124,10 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
                 end
             end
         end
-        
+
+        % OBJ = SET.DOM(OBJ,DOM) and OBJ = SET.MAXDIFF(OBJ,MAXDIFF) store
+        % the domain ('double' 1x2) and the maximal derivative orders of
+        % the 'state' object OBJ, and return the object.
         function obj = set.dom(obj,dom)
             obj.dom = dom;
         end

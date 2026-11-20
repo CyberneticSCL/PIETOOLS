@@ -44,11 +44,14 @@ function PDE_out = subs(PDE_in,vars,locs)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding DJ - 06/23/2024;
 % DJ, 12/16/2024: Add support for temporal delay;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % DJ, 02/18/2026: Add support for substitution of nonlinear terms;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % Process the inputs

@@ -31,6 +31,12 @@ function obj = subs(obj,old,new)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding SS - 07/01/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% new is a pvar or the boundary 0 or 1; in time, only a delay t-tau with
+% tau >= 0
 if nargin~=3
     error('Substitution requires 3 inputs: state object, variable to be substituted, value to be substituted.');
 end
@@ -49,6 +55,7 @@ for i=1:length(obj)
 %     if ismember(obj(i).type,{'ode','in','out'})
 %         error('Subs operation on ODE states, inputs, and outputs is not supported')
 %     end
+    % Replace old by new in the variables of the state
     idx = find(isequal(obj(i).var,old));
     obj(i).var(idx) = new;
 end

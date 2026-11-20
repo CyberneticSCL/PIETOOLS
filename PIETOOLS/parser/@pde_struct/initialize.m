@@ -230,6 +230,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 %                   can be represented;
 % DJ, 11/08/2026: Bugfix in case a state depends on all spatial variables
 %                   but lists them in incorrect order;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % % % --------------------------------------------------------------- % % %
@@ -350,7 +351,7 @@ PDE.vars = global_vars;
 
 % DB 11/07/2026: equations 0=E(s) that hold on the whole domain are static
 % constraints, not boundary conditions: they are stored as outputs z flagged
-% in PDE.constraint_ID, see extract_static_constraints. This is done after
+% in PDE.constraint_ID. This is done after
 % the variables of the states have been set, since the states may be declared
 % without them.
 n_z = numel(PDE.z);
@@ -1050,7 +1051,7 @@ for ii=1:numel(PDE.(obj))
     % % Next, loop over the terms in the PDE, and check the order of the
     % % derivative of the state component considered in each term.
     if ~isfield(PDE.(obj){ii},'term')
-        % A state without equation is allowed (BVP, see check_terms);
+        % A state without equation is allowed (BVP);
         % outputs and BCs without terms still warrant a warning.
         if ~strcmp(obj,'x')                                                 % DJ, 10/28/2026
             warning(['No equation has been specified for ',obj,'{',num2str(ii),'};',...
@@ -1090,6 +1091,7 @@ for ii=1:numel(PDE.(obj))
                 error(['Term ',term_name,' appears to involve both a state component and an input;',...
                         ' please specify at most one of the fields "term{',num2str(jj),'}.x", "term{',num2str(jj),'}.w", or "term{',num2str(jj),'}.u".'])
             end
+            % The object of the factor: a state component, or an input w, u
             if isfield(term_ll,'x') && ~isempty(term_ll.x)
                 Robj = 'x';
                 is_x_Rcomp = true;
@@ -2624,8 +2626,14 @@ function PDE = extract_static_constraints(PDE)
 % position, no integral), such as the continuity condition
 % 0 = d/ds1 v2 + d/ds2 v3. These are not boundary conditions: each is
 % removed from PDE.BC, and stored as an output z with the same terms, whose
-% ID is listed in PDE.constraint_ID. The converter uses the operator of
-% this output as additional rows of K in K*xf=0.
+% ID is listed in PDE.constraint_ID.
+%
+% INPUT
+% - PDE:    'pde_struct' object with the variables of the states set;
+%
+% OUTPUT
+% - PDE:    the same PDE, with the static constraints moved from PDE.BC to
+%           PDE.z (BC_tab, z_tab and constraint_ID updated).
 %
 % DB 11/07/2026: Initial coding;
 % DB 11/08/2026: Called after the variables of the states are set; skip
@@ -2647,6 +2655,7 @@ for ii=1:numel(PDE.BC)
             if ~isscalar(trm(kk).x) || ~isfield(PDE.x{trm(kk).x},'vars') || isempty(PDE.x{trm(kk).x}.vars)
                 ok = false;     break
             end
+            % Evaluated at its own variables (loc equal to them), no integral
             xv = PDE.x{trm(kk).x}.vars;     xv = xv(:,1);
             loc = trm(kk).loc;
             if numel(loc)~=numel(xv) || (isfield(trm,'I') && ~isempty(trm(kk).I) && any(~cellfun(@isempty,trm(kk).I)))
@@ -2665,6 +2674,7 @@ for ii=1:numel(PDE.BC)
     end
     is_int(ii) = ok && has_var;
 end
+% No static constraint: the PDE unchanged
 if ~any(is_int)
     return
 end
@@ -2683,12 +2693,14 @@ for ii=find(is_int)'
             end
         end
     end
+    % The constraint as a regulated output z, on the variables of its states
     sz_c = size(PDE.BC{ii}.term{1}(1).C,1);
     zi = struct('size',sz_c,'vars',vars_c,'dom',dom_c,'ID',stateNameGenerator,'term',{PDE.BC{ii}.term});
     zc = PDE.z;     zc{end+1,1} = zi;       PDE.z = zc;
     PDE.z_tab(end+1,:) = [size(PDE.z_tab,1)+1,sz_c,zeros(1,size(PDE.z_tab,2)-2)];
     PDE.constraint_ID = [PDE.constraint_ID, zi.ID];
 end
+% Remove them from PDE.BC and BC_tab
 bc = PDE.BC;    bc(is_int) = [];    PDE.BC = bc;
 if size(PDE.BC_tab,1)==numel(is_int)
     PDE.BC_tab(is_int,:) = [];

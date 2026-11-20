@@ -2,14 +2,23 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % parsePDEParams.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This function is exclusively used by the PDE_GUI to convert textual PDE
+% This function converts the textual PDE of the PDE GUI
 % to a matlab PDE object in terms format.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following inputs must be defined passed:
 %
-%  varlist - variables table in the PDE gui
-% PDE_text - PDE text to be parsed from the GUI
-% metadata - row numbers metadata from PDE gui
+%  varlist - variables table in the PDE gui: cell array, one row per
+%            variable, its name (x, X, w, u, z or y and a number) in
+%            column 1 and, for an X state, its order of differentiability
+%            in column 2
+% PDE_text - PDE text to be parsed from the GUI: cell array of char, one
+%            equation per entry
+% metadata - row numbers metadata from PDE gui: 'double' 1x5, the entries
+%            of PDE_text that head the PDE, ODE, regulated output, observed
+%            output and boundary condition equations
+%
+% OUTPUT
+% PDE_struct - initialized 'pde_struct' object of the PDE (terms format)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -32,6 +41,9 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP, SS, DJ (PIETOOLS 2021b; in the repository since 12/31/2021)
 % MMP, 11/05/2026: The loop over differentiability orders runs to the
 %   largest order, max(Xvals(:,1)), instead of max(Xvals): Xvals has two
 %   columns, so with two or more PDE states max(Xvals) is a row and R2025b
@@ -43,6 +55,8 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 %   state without them. Since c47e093a (11/07/2026) initialize reads the
 %   vars of the states in boundary terms before assigning these defaults,
 %   so without them 46 of the 47 GUI files of the example library failed.
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 % remove whitespaces
 % PDE_Text = regexprep(PDE_Text,'\s+','');
 PDE_text = erase(PDE_Text,'$'); % remove $
@@ -63,6 +77,8 @@ if ~isempty(keys)
 else
     PDE.varidx = [];
 end
+% For each X state: its order of differentiability, and its index among
+% the X states of that order
 Xvals = cell2mat(varlist(contains(varlist(:,1),'X'),2));
 Xvals = [Xvals zeros(size(Xvals))];
 % for i=0:max(Xvals)                                                        % MMP, 11/05/2026 (was)
@@ -76,10 +92,14 @@ else
     PDE.Xvaridx = [];
 end
 
+% Index of each variable among the variables of its kind, the x and X
+% states numbered together (x first)
 keys = [xlist;Xlist;wlist;ulist;zlist;ylist];
 vals = [1:length(xlist) length(xlist)+1:length(xlist)+length(Xlist) 1:length(wlist) 1:length(ulist) 1:length(zlist) 1:length(ylist)]; 
 statenameMap = containers.Map(keys,vals);
 
+% Number of variables of each kind; n_pde(i+1) is the number of X states
+% differentiable i times
 pvar s theta;
 PDE.vars = [s;theta];
 PDE.n.nx = sum(contains(varlist(:,1),'x'));
@@ -157,6 +177,7 @@ for i=metadata(1)+1:metadata(2)-1
         PDE_struct.x{iLoc}.term{k} = tmp;
         clear tmp;
     end
+    % Disturbance terms w<i>: coefficient and input index
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
@@ -167,6 +188,7 @@ for i=metadata(1)+1:metadata(2)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Control-input terms u<i>: coefficient and input index
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
@@ -177,10 +199,12 @@ for i=metadata(1)+1:metadata(2)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % PDE-state terms X<i>(s): coefficient, state index, derivative order D
     for k=1:length(pde_coeffs)
         term =pde_coeffs{k};
         Rstate = regexp(term,'X[0-9]+\(s\)','match');
         coeff = regexprep(term,'X[0-9]+\(s\)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -197,10 +221,12 @@ for i=metadata(1)+1:metadata(2)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Boundary values X<i>(0), X<i>(1): coefficient, location loc, order D
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
         Rstate = regexp(term,'X[0-9]+\(.\)','match');
         coeff = regexprep(term,'X[0-9]+\(.\)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -218,6 +244,7 @@ for i=metadata(1)+1:metadata(2)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Integral terms of X<i>: coefficient, limits I{1}, derivative order D
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
@@ -225,6 +252,7 @@ for i=metadata(1)+1:metadata(2)-1
         b = regexp(intlimits{1},'\^.','match');
         a = regexp(intlimits{1},'_.\^','match');
         coeff = regexprep(term,'(\\int_.\^.)+|(*X[0-9]+(\(theta\)dtheta)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -273,6 +301,7 @@ for i=metadata(2)+1:metadata(3)-1
         PDE_struct.x{iLoc}.term{k} = tmp;
         clear tmp;
     end
+    % Disturbance terms w<i>: coefficient and input index
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
@@ -283,6 +312,7 @@ for i=metadata(2)+1:metadata(3)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Control-input terms u<i>: coefficient and input index
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
@@ -293,10 +323,12 @@ for i=metadata(2)+1:metadata(3)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Boundary values X<i>(0), X<i>(1): coefficient, location loc, order D
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
         Rstate = regexp(term,'X[0-9]+\(.\)','match');
         coeff = regexprep(term,'X[0-9]+\(.\)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -314,10 +346,12 @@ for i=metadata(2)+1:metadata(3)-1
         PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Integral terms of X<i>: coefficient, limits I{1}, derivative order D
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
         coeff = regexprep(term,'(\\int_.\^.)+|(*X[0-9]+(\(s\)ds)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -366,6 +400,7 @@ for i=metadata(3)+1:metadata(4)-1
         PDE_struct.z{iLoc}.term{k} = tmp;
         clear tmp;
     end
+    % Disturbance terms w<i>: coefficient and input index
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
@@ -376,6 +411,7 @@ for i=metadata(3)+1:metadata(4)-1
         PDE_struct.z{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Control-input terms u<i>: coefficient and input index
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
@@ -386,10 +422,12 @@ for i=metadata(3)+1:metadata(4)-1
         PDE_struct.z{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Boundary values X<i>(0), X<i>(1): coefficient, location loc, order D
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
         Rstate = regexp(term,'X[0-9]+\(.\)','match');
         coeff = regexprep(term,'X[0-9]+\(.\)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -407,10 +445,12 @@ for i=metadata(3)+1:metadata(4)-1
         PDE_struct.z{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Integral terms of X<i>: coefficient, limits I{1}, derivative order D
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
         coeff = regexprep(term,'(\\int_.\^.)+|(*X[0-9]+(\(s\)ds)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -459,6 +499,7 @@ for i=metadata(4)+1:metadata(5)-1
         PDE_struct.y{iLoc}.term{k} = tmp;
         clear tmp;
     end
+    % Disturbance terms w<i>: coefficient and input index
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
@@ -469,6 +510,7 @@ for i=metadata(4)+1:metadata(5)-1
         PDE_struct.y{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Control-input terms u<i>: coefficient and input index
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
@@ -479,10 +521,12 @@ for i=metadata(4)+1:metadata(5)-1
         PDE_struct.y{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Boundary values X<i>(0), X<i>(1): coefficient, location loc, order D
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
         Rstate = regexp(term,'X[0-9]+\(.\)','match');
         coeff = regexprep(term,'X[0-9]+\(.\)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -501,10 +545,12 @@ for i=metadata(4)+1:metadata(5)-1
         clear tmp;
     end
     clear tmp;
+    % Integral terms of X<i>: coefficient, limits I{1}, derivative order D
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
         coeff = regexprep(term,'(\\int_.\^.)+|(*X[0-9]+(\(s\)ds)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -553,6 +599,7 @@ for i=metadata(5)+1:length(PDE_Text)
         PDE_struct.BC{iLoc}.term{k} = tmp;
         clear tmp;
     end
+    % Disturbance terms w<i>: coefficient and input index
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
@@ -563,6 +610,7 @@ for i=metadata(5)+1:length(PDE_Text)
         PDE_struct.BC{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Control-input terms u<i>: coefficient and input index
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
@@ -573,10 +621,12 @@ for i=metadata(5)+1:length(PDE_Text)
         PDE_struct.BC{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Boundary values X<i>(0), X<i>(1): coefficient, location loc, order D
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
         Rstate = regexp(term,'X[0-9]+\(.\)','match');
         coeff = regexprep(term,'X[0-9]+\(.\)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -594,10 +644,12 @@ for i=metadata(5)+1:length(PDE_Text)
         PDE_struct.BC{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    % Integral terms of X<i>: coefficient, limits I{1}, derivative order D
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
         coeff = regexprep(term,'(\\int_.\^.)+|(*X[0-9]+(\(s\)ds)','');
+        % Order of the s-derivative: 0, 1, or k for \partial_s^k
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
             der_order = 0;
@@ -619,10 +671,24 @@ for i=metadata(5)+1:length(PDE_Text)
 end
 
 
+% Initialize and check the PDE
 PDE_struct = initialize_PIETOOLS_PDE(PDE_struct);
 end
 
 function val = eval_b(exp)
+% VAL = EVAL_B(EXP) evaluates the coefficient text EXP of a term in the
+% polynomial variables s and theta. A trailing '*' is dropped; an empty
+% text, '+' or '*' gives 1; a text that fails with the error for
+% mismatched delimiters is evaluated with a leading '('; any other failure
+% gives 0.
+%
+% INPUT
+% - exp:    char, the coefficient text;
+%
+% OUTPUT
+% - val:    'double' or 'polynomial', the coefficient.
+
+% Variables the text may contain
 pvar s theta;
 if strcmp(exp(end),'*')
     exp = exp(1:end-1);
