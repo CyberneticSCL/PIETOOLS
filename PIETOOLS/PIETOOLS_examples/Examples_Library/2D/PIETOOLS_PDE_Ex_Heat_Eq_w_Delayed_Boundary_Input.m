@@ -1,6 +1,14 @@
 function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_HEAT_EQ_W_DELAYED_BOUNDARY_INPUT(GUI,PARAMS)
+% returns the reaction-diffusion equation below with a delayed control
+% input u(t-tau) at s1 = 1, as a 'pde_struct' object (the delay kept as a
+% delay; the transport form below is the alternative branch of the code),
+% and the recommended settings ST of its stability test. It sets
+% stability = 1 and stability_form = 'Q' (generalized storage T'Q) in the
+% base workspace; a nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -12,11 +20,9 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,param
 %               format.
 % - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
 %               for the tests this file names                               % MMP, 11/19/2026
-% - PDE_b:      PDE structure defining the example system in the batch
-%               format.
 %
 % %---------------------------------------------------------------------% %
-% % Diffusive Equation with Delayed Boundary Input (Kristic 2009):
+% % Diffusive Equation with Delayed Boundary Input (Krstic 2009):
 % % PDE         x_{t}     = x_{s1s1} + lam * x;     s1 in [0,1]
 % % With BCs    x(t,s1=0) = 0;   
 % %             x(t,s1=1) = u(t-tau);
@@ -32,13 +38,41 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,param
 % %         x2(t,s2=1+tau) = u(t);
 % %
 % % Parameters tau and lam can be set.
+% % With u = 0 the system is exponentially stable for lam < pi^2.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: Output st, the recommended settings of the example, and
 %                   the form of its stability test ('Q');
 %                   no measured setting certifies it;
 %                   (maintainer: every example names its settings);
 % function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params) % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -52,6 +86,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 ne = 1; tau = 1;  lam = 1;
 npars = length(params);
 if npars~=0
@@ -63,6 +98,8 @@ end
 
 
 % % % Construct the PDE.
+% false: keep the delayed input u(t-tau); true: write the delay as the
+% transport state x2
 expand_delays = false;
 if ~expand_delays
     %%% pde_var input format with delay
@@ -130,9 +167,10 @@ else
     % PDE_t.BC{3}.term{1}.loc = 1+tau;      PDE_t.BC{3}.term{2}.C = -1;
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings: the light tier                                 % MMP, 11/19/2026
 st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

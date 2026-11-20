@@ -1,6 +1,13 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params) % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_3D_ADVECTION_DIFFUSION_EQ(GUI,PARAMS)
+% returns the 3-D advection-diffusion-reaction equation below, with
+% Dirichlet BCs, as a 'pde_struct' object, and the recommended settings ST
+% of its stability test. It sets stability = 1 and stability_form = 'P'
+% (storage <T x, P T x>, P >= eppos I) in the base workspace; a nonzero
+% GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +17,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params) % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               stability test of this example.
 %
 % %---------------------------------------------------------------------% %
 % % 3D advection-diffusion-reaction equation (3D version of the equation of
@@ -32,13 +39,33 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params) % MM
 % % i.e. lam < 30.4838 for the default C = 1, b = (0.5, 1, 1.5). The
 % % advection stabilizes the system: without it, lam < 3*pi^2 = 29.6088.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq
 %
-% DJ, 11/02/2026: Initial coding;
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params)  % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 11/02/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -49,9 +76,10 @@ pvar s1 s2 s3
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test
 %evalin('base','stability_dual = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 C = 1;  b1 = 0.5;  b2 = 1;  b3 = 1.5;  lam = 1;
 npars = length(params);
 if npars~=0
@@ -73,9 +101,10 @@ PDE_t = [diff(x,'t')==C*(diff(x,s1,2)+diff(x,s2,2)+diff(x,s3,2)) ...
          subs(x,s3,0)==0;   subs(x,s3,1)==0];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+% Example-specific settings: the stripped tier
+st = lpisettings_sop('stripped');
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

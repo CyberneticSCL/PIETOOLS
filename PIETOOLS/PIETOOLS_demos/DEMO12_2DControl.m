@@ -1,3 +1,5 @@
+% DEMO12_2DControl.m
+%
 % This document illustrates how PIETOOLS can be used for state-feedback
 % stabilization of an unstable 2D reaction-diffusion PDE, using 'copvar'
 % and 'sopvar' operators.
@@ -21,13 +23,16 @@
 % `lpivar_cdopvar`. A feedback law K is then reconstructed from Z = K*P
 % using `getController_sop`.
 %
-% NOTE: the PIE is converted to a 'pie_struct' whose operators are 'copvar'
-% objects, see `pie2copvar`. The LPI program is declared on PIE.vars and
+% The PIE is converted by `pie2copvar` to a 'pie_struct' whose operators
+% are 'copvar' objects. The LPI program is declared on PIE.vars and
 % PIE.dom; P takes its spaces and domain from T', on which it acts in
 % T*P*T', and Z those of B', since Z = K*P maps the state to the input.
 %
-% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
-%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% The script solves the LPI for alpha = 0.1 with P >= 1e-4*I, stops with
+% an error if the solver reports infeasibility, a numerical error or a
+% feasibility ratio more than 0.1 from 1, reconstructs K by quadratic
+% programming, and prints a residual of Z = K*P. Workspace: PIE, PIEc, the
+% solved program prog, Psol, Zsol, and the controller Ksop, Kop.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO12
@@ -54,24 +59,11 @@
 % authorship, and a brief description of modifications
 %
 
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DB 10/27/2026 Initial coding 
-% AT 10/28/2026 controller reconstruction 
-% DB 10/30/2026: Update to the new 'pie_struct' structure: use PIE.space.vars,
-%             PIE.space.dom, and PIE.Bu, instead of the hidden fields
-%             PIE.dom and PIE.B2, and correct the description above;
-% MMP, 11/12/2026: POSCOPVAR and LPIVAR_CDOPVAR take the domain from the
-%             program, and LPI_INEQ_SOP infers 'like' = P from the operator
-%             POSCOPVAR declared (maintainer, 11/12/2026: "Update demos
-%             first"). Same program.
-% MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
-%             domain off T' (the input spaces of T) and P (maintainer,
-%             11/14/2026: "switch DEMO11 to the operator form too"). DOM
-%             and I are no longer needed; the NOTE above says where P and Z
-%             take their spaces. Same program.
-% MMP, 11/14/2026: LPIVAR_CDOPVAR reads the spaces and the domain of Z off
-%             B' (maintainer, 11/14/2026: the same form for "the lpivar
-%             indefinite operator structure"); VARS and SPACES are no
-%             longer needed. Same program.
+
+% Clear the workspace; declare the variables, the coefficients, the
+% number of state components ne and the decay rate alpha
 clear; clc; clear stateNameGenerator
 pvar s1 s2
 c1 = 1; c2 = 1; lam = 2*pi^2+1; ne = 1;
@@ -84,30 +76,22 @@ b = s1*(1-s1)*s2*(1-s2);
 PDE_t = [diff(x,'t')==lam*x+c1*diff(x,s1,2)+c2*diff(x,s2,2)+b*u;
          subs(x,s1,0)==0; subs(x,s1,1)==0;
          subs(x,s2,0)==0; subs(x,s2,1)==0];
+% Convert to a PIE with 'copvar' operators; extract T, A and Bu
 PIE = convert(PDE_t,'pie');
 PIEc = pie2copvar(PIE);
 T = PIEc.T; A = PIEc.A; B = PIEc.Bu;
-% vars = PIE.space.vars;      dom = PIE.space.dom;                          % MMP, 11/14/2026 (was)
-% I = eye_copvar_sop(ne,vars,dom);                                          % MMP, 11/14/2026 (was)
 
 %% Positive PI Lyapunov variable and free auxiliary feedback variable.
-% prog = lpiprogram_sop(T);                                                 % DB, 11/04/2026 (retired)
-prog = lpiprogram(PIE.vars,PIE.dom);                                               % DB, 11/04/2026
-% [prog,P] = poscopvar(prog,ne,vars,dom,0);                                 % MMP, 11/12/2026 (was)
-% [prog,P] = poscopvar(prog,ne,vars,0);       % domain: that of prog        % MMP, 11/14/2026 (was)
-[prog,P] = poscopvar(prog,T',0);        % P on the input spaces of T        % MMP, 11/14/2026
-% P = P + 1e-4*I;                                                           % MMP, 11/14/2026 (was)
-P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4                   % MMP, 11/14/2026
-% spaces.out = []; spaces.in = vars;                                        % MMP, 11/14/2026 (was)
-% [prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,dom,2);    % MMP, 11/12/2026 (was)
-% [prog,Z] = lpivar_cdopvar(prog,struct('out',ne,'in',ne),spaces,2);        % MMP, 11/14/2026 (was)
-[prog,Z] = lpivar_cdopvar(prog,B',2);   % Z with the spaces of B'           % MMP, 11/14/2026
+prog = lpiprogram(PIE.vars,PIE.dom);
+[prog,P] = poscopvar(prog,T',0);        % P on the input spaces of T
+P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4
+[prog,Z] = lpivar_cdopvar(prog,B',2);   % Z with the spaces of B'
 
 %% Dual LPI: (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0.
 APBZ = A*P+B*Z;
 Q = APBZ*T'+T*APBZ'+2*alpha*T*P*T';
-% prog = lpi_ineq_sop(prog,-Q,struct('like',P,'dD',2,'dw',2));              % MMP, 11/12/2026 (was)
-prog = lpi_ineq_sop(prog,-Q,struct('dD',2,'dw',2));  % like: P, inferred    % MMP, 11/12/2026
+prog = lpi_ineq_sop(prog,-Q,struct('dD',2,'dw',2));  % like: P, inferred
+% Solve; stop if the solver reports infeasibility or a numerical error
 prog = lpisolve(prog);
 info = prog.solinfo.info;
 assert(~info.pinf && ~info.dinf && info.numerr==0 && abs(info.feasratio-1)<0.1, ...
@@ -121,6 +105,8 @@ fprintf('\nState-feedback LPI feasible for alpha = %.3f; Psol and Zsol extracted
 
 %% Controller reconstruction using quadratic programming
 [Ksop,Kop,info] = getController_sop(Psol,Zsol, struct('method', 'qp'));
+% Residual err = Z - K*P; the printed value is the first parameter of the
+% first block of err*err'
 err = Zsol - Ksop*Psol; norm_err = err*err';
 
 fprintf('\nThe controller is reconstructed. ||Z - KP|| = %.3e\n', full(norm_err.C{1}.params{1}))

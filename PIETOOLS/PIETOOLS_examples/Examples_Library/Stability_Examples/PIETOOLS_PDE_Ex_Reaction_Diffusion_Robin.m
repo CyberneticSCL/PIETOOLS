@@ -1,6 +1,15 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_REACTION_DIFFUSION_ROBIN(GUI,PARAMS)
+% returns the reaction-diffusion equation below with Robin BCs, in the
+% pde_var (term-based) and in the batch format, and the recommended
+% settings ST of its stability tests. It sets stability = 1,
+% stability_dual = 1 and stability_form = 'P' (storage <T x, P T x>,
+% P >= eppos I; dual form 'Pd') in the base workspace; a nonzero GUI
+% prints that no GUI representation exists. The comment after the
+% function derives the stability threshold.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -25,12 +34,39 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)
 % % When c1=c2=1, unstable for lam > 1.7071.
 % % Default parameters lam=1.705, c1=c2=1, ne=1.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 01/13/2025
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -97,11 +133,14 @@ PDE_t = [diff(x,'t')==lam*x+diff(x,s,2);
 %                                     PDE_t.BC{2}.term{2}.C = c2*eye(ne);
 
 
+% No GUI representation of this system
 if GUI
     disp('No GUI representation available for this system.')
 end
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (stripped tier; 1-D storage with upper-integral s-length 1 and
+% theta-lengths 0 (multiplier: absent), 1 (upper), 1 (lower integral))
 st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
 st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
 st.lpi.pos.len_sos{1} = [0;1;1];                                            % MMP, 11/19/2026

@@ -1,6 +1,14 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_REACTION_DIFFUSION_EQ_WITH_DISTURBANCE(
+% GUI,PARAMS) returns the reaction-diffusion PDE below, with disturbance w
+% and integral output z, in the term-based and in the batch format, and
+% the recommended settings ST of its H-infinity gain test. It sets
+% Hinf_gain = 1 and Hinf_gain_form = 'Q' (generalized storage T'Q) in the
+% base workspace. With GUI = 1 it also loads the associated GUI save file
+% into a new PIETOOLS_PDE_GUI window.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -22,15 +30,43 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturban
 % %             x(s=1) = 0
 % % And Output  z(t) = int(x(t,s),s,0,1)
 % %
-% % Parameter lam can be set.
-% % gamma = 8.1069 for lam = (1-1e-2)*pi^2.
+% % Parameter lam and the state size ne can be set.
+% % gamma = 8.2141 for lam = (1-1e-2)*pi^2 and ne = 1, attained at
+% % frequency 0: gamma = (2*tan(sqrt(lam)/2)/sqrt(lam) - 1)/lam.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -44,6 +80,7 @@ evalin('base','Hinf_gain = 1;')
 evalin('base','Hinf_gain_form = ''Q'';');  % form of the gain test          % MMP, 11/19/2026
 %%% evalin('base','Hinf_gain_dual = 1;')
 
+% Default parameters, overridden by the assignment strings in params
 lam = (1-1e-2)*pi^2;    ne = 1;
 npars = length(params);
 if npars~=0
@@ -111,6 +148,8 @@ if GUI
 end
 disp('Warning: With sedumi solver, this example requires at least settings veryheavy.')
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (light tier; slack lift degree at its minimum Dmin; slack integral bases
+% capped at total degree theta+s <= Dmax-1)
 st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026

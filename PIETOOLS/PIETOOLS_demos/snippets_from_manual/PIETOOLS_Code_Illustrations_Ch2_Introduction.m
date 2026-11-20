@@ -1,7 +1,6 @@
 % This document illustrates how PIETOOLS can be used to simulate system
 % dynamics, analyse stability and design optimal controllers.
-% We refer to Chapter 2 of the manual for more context on the codes.
-%  
+%
 % For this example, we consider the damped wave equation with dynamic 
 % boundary input,
 %                xi_{tt}=c xi_{ss}-b xi_{t}+sw(t),
@@ -11,13 +10,21 @@
 % this wave equation can be expressed as an ODE-PDE system
 %  ODE                 x_{t} = -x + u(t) 
 %  PDEs:            phi1_{t} = phi2_{s}
-%                   phi2_{t} = c phi1_{s} - b phi2_{t}+sw(t)
-%  With BCs        phi1(s=0) = 0
-%                  phi2(s=1) = x = exp(-t)x(t=0)+ int_{0}^{t} exp(-t+tau) u(tau) d tau
+%                   phi2_{t} = c phi1_{s} - b phi2+sw(t)
+%  With BCs        phi2(s=0) = 0
+%                  phi1(s=1) = x = exp(-t)x(t=0)+ int_{0}^{t} exp(-t+tau) u(tau) d tau
 %  and outputs         z1(t) = int_{0}^{1} phi1(t,s) ds
 %                      z2(t) = u(t)
 % where now we add an output z2(t)=u(t) so that, in constructing an optimal
 % control, we also minimize the control effort.
+%
+% The script simulates the open loop with PIESIM from zero initial state
+% with u = 0 and w(t) = sin(5t)exp(-t) and plots phi2 and r; converts the
+% system to a PIE and runs the stability, L2-gain and H-infinity
+% state-feedback executives (lpiscript_sop); then simulates the closed
+% loop with the computed gain K and plots it against the open loop.
+% Workspace: odepde, PIE, the bounds gam (open loop) and gam_CL (closed
+% loop), Kval, PIE_CL, and the open- and closed-loop solutions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
@@ -44,6 +51,7 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/28/2024: Initial coding;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
@@ -52,6 +60,9 @@
 %                   executives do not support the new pie_struct;
 % MMP, 11/08/2026: Settings lpisettings_sop('heavy') (was the stock
 %                   lpisettings('heavy'), whose folder leaves the path);
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clear
 
 
@@ -70,8 +81,8 @@ z = pde_var('out',2);
 c=1;    b=.01;
 % Declare ODE-PDE equations
 %   d/dt      x(t) = -x(t) + u(t);
-%   d/dt phi1(t,s) = phi2_{ss}(t,s);
-%   d/dt phi2(t,s) = c*phi1_{ss}(t,s) + s*w(t) -b*phi2(t,s);
+%   d/dt phi1(t,s) = phi2_{s}(t,s);
+%   d/dt phi2(t,s) = c*phi1_{s}(t,s) + s*w(t) -b*phi2(t,s);
 eq_dyn = [diff(x,t,1)==-x+u
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 % Declare output equations
@@ -92,7 +103,7 @@ odepde = initialize(odepde);
 % Declare simulation settings.
 opts.plot = 'no';   % don't plot final solution
 opts.N = 8;         % expand solution using 8 Chebyshev polynomials
-opts.tf = 12;       % simulate up to t = 15
+opts.tf = 12;       % simulate up to t = 12
 opts.dt = 3*1e-2;   % use time step of 3*10^-2
 opts.intScheme = 1; % use backward differentiation formula for time integration
 
@@ -116,6 +127,7 @@ fig1 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
 sgtitle('Open-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
 
+% Left panel: surface of the second PDE state (x_t) over (t,s)
 ax1 = subplot(1,2,1);
 box on
 surf(tval,grids,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
@@ -130,6 +142,7 @@ ax1.TickLabelInterpreter = 'latex';
 h.Label.String = '';        h.TickLabelInterpreter = 'latex';
 ax1.ZLim = [-0.21,0.21];
 
+% Right panel: disturbance w(t) and regulated output r(t)
 ax2 = subplot(1,2,2);
 plot(tval,wval,'k',tval,zval(1,:),'r','LineWidth',2)
 grid on
@@ -199,6 +212,7 @@ fig2 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
 sgtitle('Closed-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
 
+% Left panel: surface of the closed-loop second PDE state (x_t)
 ax1 = subplot(1,2,1);
 box on
 surf(tval,grids,phi2_cl,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
@@ -213,6 +227,7 @@ ax1.TickLabelInterpreter = 'latex';
 h.Label.String = '';    h.TickLabelInterpreter = 'latex';
 ax1.ZLim = [-0.21,0.21];
 
+% Right panel: disturbance w(t), regulated output r(t) and control u(t)
 ax2 = subplot(1,2,2);
 plot(tval,wval,'k',tval,zval_cl(1,:),'r',tval,zval_cl(2,:),'b','LineWidth',2)
 grid on

@@ -1,6 +1,13 @@
 function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_TRANSPORT_EDGE_DIFFUSION(GUI,PARAMS) returns
+% the transport equation on an edge driving a diffusion in the normal
+% direction below, as a 'pde_struct' object, and (second output) the
+% recommended settings ST of its stability test. It sets stability = 1 and
+% stability_form = 'Q' (generalized storage T'Q) in the base workspace; a
+% nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,13 +17,11 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) settings structure that certifies the example
-%               (application-specific settings, settings report
-%               11/16/2026 Sec. 5.8).
+% - st:         (optional) recommended settings (lpisettings_sop
+%               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
-% % Transport on an edge driving a diffusion in the normal direction
-% % (mixed-domain test suite, system S17_transport_edge_diffusion):
+% % Transport on an edge driving a diffusion in the normal direction:
 % % PDE         x1_{t}(t,s1)    = -x1_{s1};               s1 in [0,1]
 % %             x2_{t}(t,s1,s2) = x2_{s2s2} + r2*x2;      (s1,s2) in [0,1]^2
 % % With BCs    x1(t,s1=0) = 0;
@@ -30,28 +35,34 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 % % equation on [0,1] with reaction r2, with eigenvalues r2 - k^2*pi^2,
 % % k >= 1:
 % %   exponentially stable iff r2 < r2* = pi^2.
-% %
-% % Storage form 'P' (P >= eppos*I): no coercive PI operator P certifies    % MMP, 11/19/2026
-% % this system, for any r2 [argued, not checked by a second reader].       % MMP, 11/19/2026
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Transport_Edge_Diffusion
 %
-% MMP, 11/17/2026: Initial coding; the system and the measurements of the
-%                   mixed-domain suite (S17), with the settings that
-%                   certify it as the second output (maintainer:
-%                   application-specific settings where the tiers do not);
-% MMP, 11/18/2026: st: Q degree through st.sop.deg_Q (the direct form no
-%                   longer reads lpi.var.deg) and the slack lift degree
-%                   at its minimum, 10% fewer variables (header);
-% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
-%                   (maintainer: no default settings): st.lpi.ineq.wcross = 1;
-%                   the form of its tests named in the workspace.
-% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
-%                   recorded tests and files the user does not have, not the problem;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem; the 'P' obstruction kept, reworded;
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -62,8 +73,9 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
+% Default parameter (0.9*r2*), overridden by the assignment strings in params
 r2 = 0.9*pi^2;
 npars = length(params);
 if npars~=0
@@ -85,17 +97,15 @@ PDE_t = [diff(x1,'t')==-diff(x1,s1);
          subs(x2,s2,0)==x1;         subs(x2,s2,1)==0];
 
 
-% Application-specific settings (header): the light tier with Q of the      % MMP, 11/18/2026 (was)
-% direct form at degree 2 in two variables; built only when requested       % MMP, 11/18/2026 (was)
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings (second output only): the light tier, with
 if nargout>1
     st = lpisettings_sop('light');
-    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-    st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
-%    st.lpi.var.deg{2} = 2;                                                 % MMP, 11/18/2026 (was)
-    st.lpi.ineq.wcross = 1;                                                 % MMP, 11/19/2026
+    st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
+    st.sop.deg_Q{2} = 2;            % Q of degree 2
+    st.lpi.ineq.wcross = 1;         % slack weight 1 in non-owned directions
 end
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

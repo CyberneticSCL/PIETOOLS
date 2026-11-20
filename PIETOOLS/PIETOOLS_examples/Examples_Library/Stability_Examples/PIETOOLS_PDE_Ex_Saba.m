@@ -1,7 +1,17 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)          % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_SABA(INDEX,GUI,PARAMS) returns the
+% 2-state linear hyperbolic system below with the parameters selected by
+% INDEX, in the term-based and in the batch format, and the recommended
+% settings ST of its stability test. It sets stability = 1 and
+% stability_form = 'P' (storage <T x, P T x>, P >= eppos I) in the base
+% workspace. With GUI = 1 it also loads the associated GUI save file into
+% a new PIETOOLS_PDE_GUI window.
+%
 % INPUT
+% - index:      4 or 4.1, 4.2, 4.3, 4.4, 4.5: the parameter sets of the
+%               body; any other value raises an error.
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
 % - params:     Optional parameters for the example, that should be
@@ -22,7 +32,33 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)          % MM
 % % with BCs   x1(s=0) = qb*x2(s=0)
 % %            x2(s=1) = pb*x1(s=1)
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Saba
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/18/2022
 % MMP, 11/19/2026: Output st, the example-specific settings of each case,
 %                   and the form of its test named in the workspace
 %                   (stability_form), from the per-example search of
@@ -32,6 +68,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)          % MM
 %                   1.048 at pb = -0.4); 2.048, a typo, was unstable (real
 %                   eigenvalue 1.682); maintainer: "Apply all four";
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)           % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -49,11 +86,11 @@ evalin('base','stability_form = ''P'';');  % form of the stability test     % MM
 %%%% There are several examples included here. Add a decimal to
 %%%% your example input to specify a particular set of parameters.
 if index==4 || index==4.1
- r1=.8;   r2=1.1;   sig1=2.3;   sig2=-3.5;    qb=-.7;   pb=.5;  % Stable with stripped settings
+ r1=.8;   r2=1.1;   sig1=2.3;   sig2=-3.5;    qb=-.7;   pb=.5;
  dir = fullfile(root,'PIETOOLS_PDE_Ex_Saba_1_GUI.mat');
  
 elseif index==4.2
- r1=.5;   r2=1.1;   sig1=1;     sig2=-.1;     qb=1.2;   pb=0;   % Stable with stripped settings
+ r1=.5;   r2=1.1;   sig1=1;     sig2=-.1;     qb=1.2;   pb=0;
  dir = fullfile(root,'PIETOOLS_PDE_Ex_Saba_2_GUI.mat');
  
 elseif index==4.3
@@ -111,6 +148,10 @@ end
  PDE_t.BC{1}.term{2}.C = [0 0; -pb 1];
 
 % Example-specific settings, by case                                        % MMP, 11/19/2026
+% (stripped tier; 4.1: 1-D storage s-lengths 1 (lower and upper integral);
+% 4.2: multiplier only, theta-length 1, slack lift degree at its minimum
+% Dmin; 4.3, 4.5: slack lift degree Dmin; 4.4: upper-integral s-length 1,
+% theta-lengths 2, 1, 1 (multiplier, upper, lower integral), Dmin)
 st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
 if index==4 || index==4.1                                                   % MMP, 11/19/2026
     st.lpi.pos.len_inc{1} = 1;                                              % MMP, 11/19/2026

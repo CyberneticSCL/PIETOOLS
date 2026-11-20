@@ -1,6 +1,12 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)               % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_PLATE_EQ(GUI,PARAMS) returns the clamped
+% Kirchhoff plate with structural damping below, in the state
+% u = [w; w_t], as a 'pde_struct' object, and recommended settings ST (the
+% light tier). It sets no executive flag; a nonzero GUI prints that no GUI
+% representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +16,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)               % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               (this file flags no test)                                   % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure); the file
+%               sets no executive flag.
 %
 % %---------------------------------------------------------------------% %
 % % % Clamped Kirchhoff plate with structural damping (Jagt & Peet, 2025,
@@ -30,25 +36,41 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)               % MM
 % % %             of the paper (so w_t is clamped too).
 % %
 % % Parameter alp0 (> 0) can be set. The paper certifies an exponential
-% % PIE-to-PDE decay rate of at least 3.6328 at alp0 = 0.2 (Cor. 35, d = 0,
-% % eps = 0.1, MOSEK); the paper gives no analytic rate. As for the damped wave, the
-% % stock PIETOOLS_stability_2D test is not the right one; the paper's LPI is
-% % run by PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m.
+% % PIE-to-PDE decay rate of at least 3.6328 at alp0 = 0.2 with the LPI of
+% % its Cor. 35; it gives no analytic rate.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_Plate_Eq
 %
-% CC, 09/28/2026: new example, recreating the clamped damped plate of
-% MMP, 11/19/2026: Output st, the recommended settings of the example: the
-%                   default tier, as the file flags no test (maintainer: every
-%                   example names its settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)                % MMP, 11/19/2026 (was)
-% D. S. Jagt and M. M. Peet, "A State-Space Representation of Coupled Linear
-% Multivariate PDEs and Stability Analysis using SDP", arXiv:2508.14840 (v4).
-% It is the first 2D fourth-order PDE in the example library. No executive
-% flag is set (see the damped wave example for why).
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 09/28/2026
 
 % Initialize variables
 pvar s1 s2
 
+% Default parameter, overridden by the assignment strings in params
 alp0 = 0.2;
 npars = length(params);
 if npars~=0
@@ -68,9 +90,10 @@ PDE_t = [diff(u,'t')==[0,1;0,0]*u - [0,0;1,0]*(diff(u,s1,4)+2*diff(u,[s1;s2],[2;
          subs(u,s2,0)==0;     subs(diff(u,s2),s2,0)==0;
          subs(u,s2,1)==0;     subs(diff(u,s2),s2,1)==0];
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+% Example-specific settings: the light tier
+st = lpisettings_sop('light');
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

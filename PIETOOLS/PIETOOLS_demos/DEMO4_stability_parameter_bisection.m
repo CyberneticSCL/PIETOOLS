@@ -1,5 +1,4 @@
 % DEMO4_stability_parameter_bisection.m
-% See Chapter 11.4 of the manual for a description.
 %
 % This document illustrates how PIETOOLS can be used to find the maximal
 % value of a parameter for which a PDE is stable, using bisection.
@@ -7,6 +6,14 @@
 %   x_{t}(t,s) = lam*x(t,s) + x_{ss}(t,s);
 %       x(t,0) = x(t,1) = 0;
 % The PDE is stable when lam <= pi^2 = 9.8696 (Ahmadi 2015).
+%
+% Each of the 8 bisection steps on lam in [0,20] converts the PDE to a PIE
+% with operators T, A and solves the stability LPI
+%   P >= 1e-4*I,    A'*P*T + T'*P*A <= 0;
+% lam is raised when the solver reports no infeasibility and a feasibility
+% ratio within 0.1 of 1, and lowered otherwise. The script prints lam_min,
+% the largest lam for which the LPI was solved, next to pi^2. ECHO ON
+% prints each line as it runs.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO4
@@ -32,6 +39,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, use 
@@ -50,7 +58,9 @@
 % MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
 %   domain off T and P (maintainer, 11/14/2026: the calls were "too
 %   complicated"). Same programs.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
 echo on
 
@@ -103,7 +113,7 @@ for iter = 1:n_iters
     % % Solve and retrieve the solution
     % solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver     % DJ, 05/18/2025
     % solve_opts.params.fid = 0;      % suppress SeDuMi output in command window
-    solve_opts.simplify = false;
+    solve_opts.simplify = false;    % solve the SDP as assembled
     prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive

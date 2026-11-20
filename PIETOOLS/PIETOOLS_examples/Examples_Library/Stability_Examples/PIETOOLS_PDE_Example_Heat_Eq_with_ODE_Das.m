@@ -1,6 +1,13 @@
 function [PDE_t,PDE_b] = PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b] = PIETOOLS_PDE_EXAMPLE_HEAT_EQ_WITH_ODE_DAS(GUI,PARAMS)
+% returns the heat equation coupled with a 4-state ODE of Das et al.
+% (Example 2), in the term-based and in the batch format, and sets the
+% variables stability = 1 and stability_dual = 1 in the base workspace.
+% With GUI = 1 it also loads the associated GUI save file into a new
+% PIETOOLS_PDE_GUI window.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -25,6 +32,34 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das(GUI,params)
 % % Stable for lam<pi^2
 % %---------------------------------------------------------------------% %
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
 root = fileparts(loc);
@@ -36,6 +71,7 @@ pvar s
 evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 
+% Default parameters, overridden by the assignment strings in params
 lam = pi^2-1;  a = 0;  b = 1;
 npars = length(params);
 if npars~=0

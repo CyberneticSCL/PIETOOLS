@@ -10,7 +10,9 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %
 % Inputs:
 %     [C,info] = examples_FI_library_PIETOOLS(example,option1,option2,...)
-%       - example - integer (1-17) corresponding to the selected inequality
+%       - example - integer (1-17) corresponding to the selected inequality;
+%                   with no input, the function prompts for the index and
+%                   the options (separated by spaces or commas)
 %       - option# - character array 'name=value' that overrides a default
 %                   parameter. Allowed names:
 %                     b    - length of the interval [0,b] (default 1),
@@ -50,8 +52,7 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %                   17 Clamped beam eigenfunctions (precomputed eigenvalues)
 %
 %   The Heisenberg-type and Ehrling (Landau-Kolmogorov) inequalities, which
-%   come from products of norms, are in functional_inequalities/
-%   heisenberg_ehrling_sop.m.
+%   come from products of norms, are not in this library.
 %
 % Outputs:
 %       - C    - double; the upper bound on the constant that the LPI returns,
@@ -75,18 +76,41 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 % and we will include it in the next release. Please also include the
 % citation information, if available.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - examples_FI_library_PIETOOLS
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% AT, 11/16/2026: Initial coding based on the scripts in DEMO3, DEMO13;
+% AT, 11/16/2026: Initial coding;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Process the user inputs
 [index,opts] = process_inputs(varargin,nargin);
 
+% Print the index; spatial variable s1 and dummy s1_dum on [0,b]; outputs
+% default to NaN (sharp, paper) and an empty struct (extra)
 fprintf([' --- Extracting functional inequality ', num2str(index),' ---\n']);
 pvar s1 s1_dum
 b = opts.b;
@@ -554,15 +578,14 @@ switch index
 %==========================================================================
     case 11
 %   min C
-%   s.t. int_0^b (Tx)^2 <= C int_0^b x^2,                | b = 1        Volterra operator norm (DEMO2)
+%   s.t. int_0^b (Tx)^2 <= C int_0^b x^2,                | b = 1        Volterra operator norm
 %        (Tx)(s) = int_0^s x(r) dr, x in L2[0,b]           |                Sharp ||T|| = 2*b/pi, so C = (2*b/pi)^2
 %   Free variable x in L_2[0, b]
 %   T x = int_0^s x(theta) dtheta, where
 %   (Tx)(s) = int_0^s x(theta) dtheta -- Volterra-type operator
 %   LPI:  min C  s.t.  C*I - T'*T >= 0   (the norm is sqrt(C))
-%   This is the LPI of DEMO2_volterra_operator_norm. It is the same operator
-%   inequality as example 4 (Poincare with x(0) = 0, x = T*x_s), read as a
-%   bound on the norm of T.
+%   It is the same operator inequality as example 4 (Poincare with
+%   x(0) = 0, x = T*x_s), read as a bound on the norm of T.
         name = 'Volterra operator norm: ||T x||^2 <= C ||x||^2, (T x)(s) = int_0^s x';
         dg = degrees(opts,[],[]);
 
@@ -928,7 +951,7 @@ switch index
             bcs(k,:) = [double(subs(dupoly,s1,0)) double(subs(dupoly,s1,b))];
         end
 
-        % Normalize u to ||u||_{L2} = 1 and fix the signs as in the reference figure
+        % Normalize u to ||u||_{L2} = 1 and flip the signs of modes 1, 3, 4, 5
         nrm = sqrt(trapz(sg,Uvals.^2));
         Uvals = Uvals./nrm;   bcs = bcs./nrm(:);              % ||u||_{L2} = 1
         Uvals = Uvals.*sgn;   Vvals = Vvals.*sgn;
@@ -1011,9 +1034,19 @@ end
 % }
 
 function Csol = solve_min(dom,ineq,dg)
-% Solve  min C  s.t.  ineq(C) >= 0  on the domain dom, with certificate
-% degrees dg (empty: default degrees), and return the optimal C.
+% CSOL = SOLVE_MIN(DOM,INEQ,DG) solves  min C  s.t.  ineq(C) >= 0  on the
+% domain dom, with certificate degrees dg, and returns the optimal C.
+% INPUT
+% - dom:  1 x 2 'double', the interval of the variable s1;
+% - ineq: function handle, C -> the operator ineq(C), affine in the
+%         scalar decision variable C;
+% - dg:   'struct' with fields dD, dw (the degrees passed to
+%         lpi_ineq_sop), or [] for the default degrees.
+% OUTPUT
+% - Csol: 'double', the solved value of C.
 pvar s1 s1_dum
+% Program in s1 (dummy s1_dum) with the decision variable C; minimize C
+% subject to ineq(C) >= 0, solve and extract C
 prog = lpiprogram([s1,s1_dum],dom);
 [prog,C] = lpidecvar(prog,'C');
 if isempty(dg)
@@ -1027,8 +1060,14 @@ Csol = double(lpigetsol_sop(prog,C));
 end
 
 function dg = degrees(opts,dD,dw)
-% Certificate degrees: the user's values if specified, else the defaults
-% dD, dw of the example (empty: the default degrees of lpi_ineq_sop).
+% DG = DEGREES(OPTS,DD,DW) returns the certificate degrees: the user's
+% values if specified, else the defaults dD, dw of the example (empty: the
+% default degrees of lpi_ineq_sop).
+% INPUT
+% - opts: 'struct' of options, fields dD and dw ([] if not specified);
+% - dD, dw: 'double' scalars or [], the defaults of the example.
+% OUTPUT
+% - dg:   'struct' with fields dD, dw, or [] if either degree is empty.
 if ~isempty(opts.dD),   dD = opts.dD;   end
 if ~isempty(opts.dw),   dw = opts.dw;   end
 if isempty(dD) || isempty(dw)
@@ -1039,9 +1078,18 @@ end
 end
 
 function [index,opts] = process_inputs(varargin0,nargin1)
-% Subroutine to process the user inputs for the
-% examples_FI_library_PIETOOLS function.
+% [INDEX,OPTS] = PROCESS_INPUTS(VARARGIN0,NARGIN1) reads the example index
+% and the 'name=value' options; with no input, it prompts for them.
+% INPUT
+% - varargin0: 'cell', the inputs of the library function;
+% - nargin1:   'double', their number.
+% OUTPUT
+% - index: 'double', the example index, 1 to 17;
+% - opts:  'struct' with fields b, dD, dw, eps, t, tmin, modes, plot: the
+%          defaults, overridden by the recognized options; an option that
+%          is not understood is ignored with a warning.
 
+% Number of examples and default options
 n_examples = 17;
 opts = struct('b',1,'dD',[],'dw',[],'eps',1e-2,'t',[], ...
               'tmin',0.05,'modes',6,'plot',1);
@@ -1056,6 +1104,7 @@ if ~isnumeric(varargin0{1}) || ~isscalar(varargin0{1}) || ~any(varargin0{1}==1:n
     error('First argument must be an integer between 1 and %d, corresponding to an example listed in this file',n_examples)
 end
 index = varargin0{1};
+% Parse each 'name=value' option with a numeric value and a known name
 for j=2:numel(varargin0)
     tok = regexp(strtrim(varargin0{j}),'^(\w+)\s*=\s*(.+?);?$','tokens','once');
     if ischar(varargin0{j}) && ~isempty(tok) && isfield(opts,tok{1}) && ~isnan(str2double(tok{2}))

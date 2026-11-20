@@ -2,7 +2,12 @@
 % ODE-PDE and DDE systems to PIEs using the function "convert", as well as
 % how to construct PIE systems and take interconnection using "piess" and
 % "pielft".
-% We refer to Chapter 5 of the manual for more context on the codes.
+% The blocks convert a heat equation with integral BCs and a wave equation
+% with the same BCs, a DDE with two distributed delays, and a heat
+% equation with boundary control and outputs to PIEs; declare PIEs from
+% 'copvar' operators (piess); and impose a state feedback, a Luenberger
+% estimator and estimator-based feedback (closedLoopPIE, pielft). Lines
+% without a semicolon print the PIE structures and their fields.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
@@ -29,9 +34,13 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/30/2024: Initial coding;
 % DJ, 01/07/2025: Add some commenting;
 % DJ, 12/11/2025: Add wave equation;
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clear
 
 %% 5.2 Converting a PDE to a PIE
@@ -46,6 +55,7 @@ PDE_dyn = diff(x,t) == diff(x,s,2);
 PDE_BCs = [subs(x,s,0) + int(x,s,[0,1]) == 0;
            subs(x,s,1) + int(x,s,[0,1]) == 0];
 PDE = [PDE_dyn; PDE_BCs];
+% Convert to a PIE; print it, its spatial variables and its domain
 PIE = convert(PDE,'pie')
 PIE.vars
 PIE.dom
@@ -98,6 +108,7 @@ pvar s s_dum;       dom = [0,1];                                            % DB
 T = pi4_copvar_sop([],[],[],{[],1,[]},[0 0;1 1],s,s_dum,dom);               % DB, 11/06/2026
 A = pi4_copvar_sop([],[],[],{2,10,[]},[0 0;1 1],s,s_dum,dom);               % DB, 11/06/2026
 
+% PIE T*v_t = A*v
 PIE1 = piess(T,A)
 
 %% 5.5.2 Declaring a PIE with disturbances and outputs
@@ -109,6 +120,7 @@ PIE1 = piess(T,A)
 C = pi4_copvar_sop([],1-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);             % DB, 11/06/2026
 B1 = pi4_copvar_sop([],[],5*s,{[],[],[]},[0 1;1 0],s,s_dum,dom);            % DB, 11/06/2026
 
+% PIE T*v_t = A*v + B1*w,  z = C*v + 0*w; print it and its field B1
 PIE2 = piess(T,A,B1,C,0)                                                    % DB, 11/06/2026
 PIE2.B1
 
@@ -131,6 +143,7 @@ B1 = pi4_copvar_sop([],[],s*(2-s),{[],[],[]},[0 1;1 0],s,s_dum,dom);        % DB
 D12 = pi4_copvar_sop(1,[],[],{[],[],[]},[1 1;0 0],s,s_dum,dom);             % DB, 11/06/2026
 D22 = D12;                                                                  % DB, 11/06/2026
 
+% PIE d/dt (T*v + Tu*u) = A*v + 0*w + B1*u,  z = C1*v + D12*u,  y = C2*v + D22*u
 PIE3 = piess({T,0,Tu},A,{0,B1},{C1;C2},{0,D12;0,D22});
 
 %% 5.5.4 Taking Interconnections of PIEs

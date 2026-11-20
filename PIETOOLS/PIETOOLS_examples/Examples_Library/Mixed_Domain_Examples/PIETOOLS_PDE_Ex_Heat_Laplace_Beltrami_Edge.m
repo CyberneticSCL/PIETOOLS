@@ -1,6 +1,14 @@
-function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params) % MMP, 11/18/2026
+function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_HEAT_LAPLACE_BELTRAMI_EDGE(GUI,PARAMS)
+% returns the 2-D heat equation with a dynamic (Laplace-Beltrami) boundary
+% condition on the edge s2 = 1 below, the edge state v in s1, as a
+% 'pde_struct' object, and (second output) the recommended settings ST of
+% its stability test. It sets stability = 1 and stability_form = 'Q'
+% (generalized storage T'Q) in the base workspace; a nonzero GUI prints
+% that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,7 +18,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params) % 
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) example-specific settings structure              % MMP, 11/19/2026
+% - st:         (optional) recommended settings (lpisettings_sop
+%               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
 % % 2D heat equation with a dynamic boundary condition of reactive-
@@ -31,28 +40,35 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params) % 
 % % mode n = 0 gives u = sin(k*s2), v = sin(k), with k*tan(k) = 1; modes
 % % n >= 1 subtract (n*pi)^2 from every eigenvalue (sig = 1). Hence
 % %   stable iff lam < lam* = k0^2 = 0.740174,   k0 = 0.860334.
-% % Finite differences of the modes n = 0..3: 0.740247 (N = 40),
-% % 0.740207 (N = 60). No threshold is published for a box.
+% % No threshold is published for a box.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge
 %
-% MMP, 11/18/2026: Second output st for the direct form 'Q': light with
-%                   the slack lift degree at its minimum (header);
-% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params) % MMP, 11/18/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Header: the light tier certifies the example, so
-%                   no second output st (application-specific settings);
-% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
-%                   (maintainer: no default settings): st.lpi.ineq.cap_inc = 'auto';
-%                   the form of its tests named in the workspace.
-% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
-%                   recorded tests and files the user does not have, not the problem;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-%                   the help line of st no longer points at the header;
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -63,8 +79,9 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
+% Default parameters (lam = 0.9*lam*), overridden by the strings in params
 sig = 1;    lam = 0.9*0.740174;
 npars = length(params);
 if npars~=0
@@ -87,13 +104,14 @@ PDE_t = [diff(v,'t')==sig*diff(v,s1,2)-subs(diff(u,s2),s2,1)+lam*v;
          subs(u,s2,0)==0;           subs(u,s2,1)==v];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-if nargout>1                                                                % MMP, 11/18/2026
-    st = lpisettings_sop('light');                                          % MMP, 11/18/2026
-    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-    st.lpi.ineq.cap_inc = 'auto';                                           % MMP, 11/19/2026
-end                                                                         % MMP, 11/18/2026
+% Example-specific settings (second output only): the light tier, with
+if nargout>1
+    st = lpisettings_sop('light');
+    st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
+    st.lpi.ineq.cap_inc = 'auto';   % slack integral bases: theta+s <= Dmax-1
+end
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

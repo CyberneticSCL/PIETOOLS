@@ -1,5 +1,4 @@
 % DEMO9_L2_gain_analysis.m
-% See Chapter 11.9 of the manual for a description.
 %
 % This document illustrates how an upper bound on the L2-gain of a 2D PDE 
 % with inputs and outputs can be computed using PIETOOLS
@@ -17,9 +16,16 @@
 % by solving the LPI
 %   min_{gam,P} gam
 %   s.t.          P>=0,
-%       [-gam*I,   -D',     -P*B'*T          ] <=0
-%       [-D,       -gam*I,  C                ]
-%       [-T'*P*B,  C',      (P*A)'*T+T'*(P*A)]
+%       [-gam*I,   D',      (P*B)'*T         ] <=0
+%       [D,        -gam*I,  C                ]
+%       [T'*(P*B), C',      (P*A)'*T+T'*(P*A)]
+%
+% The script displays the PDE (lam = 5), simulates it with PIESIM from
+% x(0) = 0 with w(t) = 20*sin(pi*t)*exp(-t/2) (8x8 Chebyshev polynomials,
+% t in [0,10]) and plots the solution, then solves the LPI and prints the
+% bound gam next to the known L2-gain of the system. Workspace: PIE,
+% solution, the sampled x, z, w, the solved program prog_sol, gam_val.
+% ECHO ON prints each line as it runs.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,6 +52,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/22/2024: Initial coding;
 % DJ, 12/16/2024: Simplify demo;
 % DJ, 12/26/2024: Add simulation;
@@ -65,7 +72,9 @@
 % MMP, 11/14/2026: POSCOPVAR reads the spaces and the domain off T
 %   (maintainer, 11/14/2026: the calls were "too complicated"). Same
 %   program.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace and figures; print each line as it runs
 clc; clear; close all; clear stateNameGenerator
 echo on
 
@@ -89,6 +98,7 @@ PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + lam*x + w;
        subs(x,s1,b)==0;
        subs(x,s2,c)==0;
        subs(diff(x,s2),s2,d)==0];
+% Initialize and display the PDE
 PDE = initialize(PDE);
 display_PDE(PDE);
 
@@ -159,5 +169,6 @@ gam_val = double(lpigetsol_sop(prog_sol,gam));                              % DJ
 
 echo off
 
+% Print the bound on the L2-gain and the reference value
 fprintf(['\n If successful, ',num2str(gam_val,7),' is an upper bound on the L2-gain from disturbance to output for the 2D reaction-diffusion equation.\n'])
 fprintf([' The true value of the L2-gain for this system with lam=5 and on [0,1]^2 is known to be roughly 0.09397.\n']);

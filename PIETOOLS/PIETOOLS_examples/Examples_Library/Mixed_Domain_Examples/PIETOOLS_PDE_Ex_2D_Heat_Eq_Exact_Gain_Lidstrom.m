@@ -1,6 +1,14 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_HEAT_EQ_EXACT_GAIN_LIDSTROM(GUI,PARAMS)
+% returns the 2-D heat equation below, with a disturbance w(t,s1) on one
+% variable and the full-state output z = x, as a 'pde_struct' object, and
+% the recommended settings ST of its H-infinity gain test. It sets
+% Hinf_gain = 1 and Hinf_gain_form = 'P' (storage <T x, R T x>,
+% R >= eppos I) in the base workspace; a nonzero GUI prints that no GUI
+% representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +18,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               test this file names.
 %
 % %---------------------------------------------------------------------% %
 % % 2D heat equation with a 1D distributed disturbance and a 2D output,
@@ -29,25 +37,34 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
 % % psi_n(0) = psi_n(1) = 0, attained at n = 1 with
 % % psi_1(s) = -(1/pi^2)*(1 - cosh(pi*(s-1/2))/cosh(pi/2)) [derived]:
 % %   gamma* = 0.04571818.
-% % Finite differences (5-point Laplacian, N interior nodes per direction):
-% % 0.04571809 (N = 40), 0.04571814 (N = 60).
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Header: the light tier bounds the gain within 0.5 %,
-%                   so no second output st (application-specific settings);
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-%                   the entry of 11/17/2026 (no second output st) no longer
-%                   holds;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)  % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -58,7 +75,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;');
-evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/19/2026
+evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test
 
 npars = length(params);
 if npars~=0
@@ -81,13 +98,17 @@ PDE_t = [diff(x,'t')==diff(x,s1,2)+diff(x,s2,2)+w;
          subs(x,s2,0)==0;           subs(x,s2,1)==0];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
-st.lpi.pos.len_com{2} = [2 1];                                              % MMP, 11/19/2026
-st.lpi.pos.len_sos{2} = [1 1;1 1;0 0];                                      % MMP, 11/19/2026
-st.lpi.pos.patterns{2} = 'uniform';                                         % MMP, 11/19/2026
-st.lpi.ineq.wcross = 1;                                                     % MMP, 11/19/2026
+% Example-specific settings: the light tier, with the storage on the 2-D
+% space from the basis operators aa and bb only ('uniform'), s-lengths
+% [2 1] of the integral b and theta-lengths [1 1] of a and b; slack weight
+% degree 1 in the directions a space does not own (wcross)
+st = lpisettings_sop('light');
+st.lpi.pos.len_com{2} = [2 1];
+st.lpi.pos.len_sos{2} = [1 1;1 1;0 0];
+st.lpi.pos.patterns{2} = 'uniform';
+st.lpi.ineq.wcross = 1;
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

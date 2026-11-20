@@ -1,7 +1,21 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_EULER_BERNOULLI_BEAM_EQ(INDEX,GUI,
+% PARAMS) returns the cantilevered Euler-Bernoulli beam below, in the
+% state-space form INDEX selects, and the recommended settings ST of its
+% stability tests. It sets stability = 1 and stability_dual = 1 in the
+% base workspace, and stability_form = 'P' (storage <T x, P T x>,
+% P >= eppos I) for INDEX 13, 13.1 or 'Q' (generalized storage T'Q) for
+% INDEX 13.2; the dual tests take the forms 'Pd', 'Qd'. With GUI = 1
+% (INDEX 13, 13.1) it also loads the associated GUI save file into a new
+% PIETOOLS_PDE_GUI window.
+%
 % INPUT
+% - index:      13 or 13.1: states x1 = u_{t}, x2 = u_{ss}, in the batch
+%               and in the term-based format; 13.2: the state u, 4th
+%               order in s, declared with pde_var (PDE_b then equals
+%               PDE_t); any other value raises an error.
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
 % - params:     Optional parameters for the example, that should be
@@ -24,13 +38,41 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,pa
 % %            u_{sss}(s=1) = 0 
 % % 
 % % Parameter c can be set.
+% % For c > 0 the energy is conserved: stable, not exponentially stable.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: Output st, the example-specific settings of each case,
 %                   and the form of its tests named in the workspace
 %                   (stability_form), from the per-example search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -44,6 +86,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 
 % Specify the parameters
+% Default parameter, overridden by the assignment strings in params
 c = 0.1;
 npars = length(params);
 if npars~=0
@@ -150,6 +193,9 @@ elseif index==13.2
 
 % Example-specific settings and the form of the stability tests,            % MMP, 11/19/2026
 % by case                                                                   % MMP, 11/19/2026
+% (stripped tier with the slack lift degree at its minimum Dmin; for 13.2
+% Q of degree 0 and the form 'Q'; otherwise the 1-D storage from the
+% multiplier only, theta-length 1 (both integral s-lengths 0), and 'P')
 st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 if index==13.2                                                              % MMP, 11/19/2026

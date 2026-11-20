@@ -1,12 +1,20 @@
-% DEMO8_H2Norm.m
-% See the manual for full description.
+% DEMO8_H2norm.m
 %
 % This document illustrates, with a simple example, how PIETOOLS can be used to
-% analyse and design optimal controllers and observers based on the H2 norm
+% compute an upper bound on the H2 norm of a PDE.
 %  The example is a pure convection equation in 1D: 
 %  PDE :        x_{t} = x_{s} + (s-s^2)w(t)
 %  With BC     x(s=1) = 0
 %  And output  z(t) = int(x(t,s),s,0,1)
+%
+% The script converts the PDE to a PIE with operators T, A, B1, C1 and
+% solves the LPI
+%   min gam   s.t.   W >= 0,   A*W*T' + T*W*A' + B1*B1' <= 0,
+%                    gam >= trace(C1*W*C1'),
+% so that sqrt(gam) bounds the H2 norm from w to z. It displays the PDE and
+% prints the bound gamd = sqrt(gam). Workspace: the solved program
+% prog_sol, gamd and the solved operator Wc. ECHO ON prints each line as it
+% runs.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO8
@@ -32,6 +40,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DB, 08/16/2024: Initial coding;
 % DJ, 12/26/2024: Update to use new LPI programming functions;
 % DJ, 12/15/2024: Match structure to that of other demos;
@@ -46,8 +55,10 @@
 % MMP, 11/14/2026: POSCOPVAR reads the spaces and the domain off T' (the
 %   input spaces of T; maintainer, 11/14/2026: the calls were "too
 %   complicated"). Same program.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
+% Clear the workspace and figures; print each line as it runs
 clc; clear; close all; clear stateNameGenerator;
 echo on
 
@@ -65,6 +76,7 @@ z = pde_var('output',1);
 pde = [diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;    % dynamics
                  z==int(x,s,[0,1]);           % output equation
                 subs(x,s,1)==0];              % boundary condition
+% Initialize and display the PDE
 pde=initialize(pde);
 display_PDE(pde);
 % % Convert PDE to PIE
@@ -113,4 +125,5 @@ Wc = lpigetsol_sop(prog_sol,W);                                             % DJ
 
 echo off
 
+% Print the bound on the H2 norm
 fprintf([' If succesful, ',num2str(gamd),' is an upper bound on the H2 norm of the specified system.\n']);

@@ -1,5 +1,4 @@
 % DEMO3_poincare_inequality.m
-% See Chapter 11.3 of the manual for a description.
 %
 % This document illustrates how the Poincare constant can be found
 % using PIETOOLS.
@@ -23,6 +22,11 @@
 %   min_{gam}   gam,
 %      s.t.     H2op'*H2op -gam*H1op'*H1op ≤ 0,
 % where now c = sqrt(gam).
+%
+% The script converts the BVP to obtain H2op (BVP_sol.T), solves the LPI,
+% and prints the bound sqrt(gam) next to the exact value 1/pi. Workspace:
+% H2op, H1op, the solved program prob, poincare_constant. ECHO ON prints
+% each line as it runs.
 %
 % This example is also included in the paper (page 6, Demonstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
@@ -51,6 +55,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 12/23/2024: Simplify demo (remove lines of code where possible);
@@ -59,7 +64,9 @@
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 % DJ, 11/06/2026: Use BVP instead of PDE
 % DJ, 11/11/2026: Use `convert` to solve the BVP;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
 echo on
 
@@ -89,6 +96,7 @@ H1op = diff(H2op,s);                % (H1op*x_{ss}) = x_{s}
 % =============================================
 % === Declare the LPI
 
+% Settings structure of the heavy tier, stored in st
 st = settings_sopvar_heavy;
 
 % % Initialize LPI program

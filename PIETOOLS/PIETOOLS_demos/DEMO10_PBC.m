@@ -21,6 +21,12 @@
 %       At'*P*Tt + Tt'*P*At + 2*alpha*Tt'*P*Tt + X*K + K'*X' <= 0
 % where X is a slack variable enforcing the constraint K*xf=0.
 %
+% The script displays the PDE, solves the LPI for alpha = 0.99 with
+% P >= 1e-4*I, stops with an error if the solver reports infeasibility,
+% a numerical error or a feasibility ratio more than 0.1 from 1, and prints
+% the certified decay rate. Workspace: PDE, PIE, the solved program prog,
+% and the solved operators Psol and Xsol.
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO10
@@ -46,20 +52,11 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DB, 10/29/2026: Initial coding;
-% DJ, 10/30/2026: Update to use "int2copvar" to compute mean;
-% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
-%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
-% MMP, 11/12/2026: POSCOPVAR and LPIVAR_CDOPVAR take the domain from the
-%   program (maintainer, 11/12/2026: "Update demos first"); the arguments
-%   repeated the domain given to LPIPROGRAM. Same program.
-% MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
-%   domain off T (maintainer, 11/14/2026: the calls were "too
-%   complicated"). Same program.
-% MMP, 11/14/2026: LPIVAR_CDOPVAR reads the spaces and the domain of X off
-%   K' (maintainer, 11/14/2026: the same form for "the lpivar indefinite
-%   operator structure"); SPACES is no longer needed. Same program.
 
+% Clear the workspace; declare the variables, the state x on [-1,1], the
+% reaction coefficient lam and the decay rate alpha to certify
 clc; clear; clear stateNameGenerator
 pvar s t;
 x = pde_var(s,[-1,1]);
@@ -80,37 +77,28 @@ T = PIE.pie2pde.x*PIE.T;    A = PIE.pie2pde.x*PIE.A;
 K = PIE.K;
 %% Take the deviation of the PDE state from the mean
 S = (1/2)*int2copvar(eye(1),T.vars,T.dom);  % S*x = 0.5*int_{-1}^{1} x(s) ds
-% I = eye_copvar_sop(1,T.vars,T.dom);        % I*x = x;                     % MMP, 11/14/2026 (was)
-I = eye_copvar_sop(T);                  % I*x = x;                          % MMP, 11/14/2026
+I = eye_copvar_sop(T);                  % I*x = x;
 T = (I-S)*T;            A = (I-S)*A;
-% %% S*x is the spatial mean; test decay of (I-S)*x.
-% S = copvar(PIE.T.C(2,1))*F;
-% I = eye_copvar_sop(1,{'s'},PIE.dom);
-% T = (I-S)*T; A = (I-S)*A;
 %% The slack X enforces dissipation subject to linear PI constraint
 % Initialize lpiprogram
-% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
-prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
-% Lyapunov decision PI variable (coercive)
-% [prog,P] = poscopvar(prog,1,{'s'},PIE.dom,struct('int',3,'mult',3,'joint',3)); % MMP, 11/12/2026 (was)
-% [prog,P] = poscopvar(prog,1,{'s'},struct('int',3,'mult',3,'joint',3));    % MMP, 11/14/2026 (was)
-[prog,P] = poscopvar(prog,T,struct('int',3,'mult',3,'joint',3));            % MMP, 11/14/2026
+prog = lpiprogram(PIE.vars,PIE.dom);
+% Lyapunov decision PI variable (coercive), on the output spaces of T
+[prog,P] = poscopvar(prog,T,struct('int',3,'mult',3,'joint',3));
 P = P + 1e-4*I;
 % Lagrange decision PI variable (indefinite)
-% spaces.out = {[], {'s'}};  % R and L2[s]                                  % MMP, 11/14/2026 (was)
-% spaces.in  = [];         % R                                              % MMP, 11/14/2026 (was)
-% [prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,PIE.dom,6); % MMP, 11/12/2026 (was)
-% [prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,6);      % MMP, 11/14/2026 (was)
-[prog,X] = lpivar_cdopvar(prog,K',6);   % X with the spaces of K'           % MMP, 11/14/2026
+[prog,X] = lpivar_cdopvar(prog,K',6);   % X with the spaces of K'
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
 % all x(s,t) : Kx(s,t)=0, a <= s <= b
 Q = A'*P*T + T'*P*A + 2*alpha*T'*P*T + X*K + K'*X';
 prog = lpi_ineq_sop(prog,-Q);
+% Solve the LPI
 prog = lpisolve(prog);
 
+% Stop if the solver reports infeasibility or a numerical error
 info = prog.solinfo.info;
 assert(~info.pinf && ~info.dinf && info.numerr==0 && abs(info.feasratio-1)<0.1, ...
     'No stability certificate; inspect prog.solinfo.info.');
+% Extract the solved operators and print the certified decay rate
 Psol = getsol_lpivar_sop(prog,P);
 Xsol = getsol_lpivar_sop(prog,X);
 fprintf('\nCertified mean-free decay rate alpha = %.4f (analytical limit %.4f).\n', ...

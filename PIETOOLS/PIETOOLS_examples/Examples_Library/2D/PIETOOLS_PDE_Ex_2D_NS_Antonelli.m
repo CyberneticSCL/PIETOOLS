@@ -1,6 +1,13 @@
 function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)           % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_NS_ANTONELLI(GUI,PARAMS) returns the
+% linearized 2-D isentropic compressible Navier-Stokes equations below
+% (states x1 = v1, x2 = v2, x3 = p) as a 'pde_struct' object, and the
+% recommended settings ST of its stability test. It sets stability = 1 and
+% stability_form = 'Q' (generalized storage T'Q) in the base workspace; a
+% nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -12,8 +19,6 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)           % MM
 %               format.
 % - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
 %               for the tests this file names                               % MMP, 11/19/2026
-% - PDE_b:      PDE structure defining the example system in the batch
-%               format.
 %
 % %---------------------------------------------------------------------% %
 % % Isentropic compressible Navier-Stokes, linearized around pE=1, and
@@ -25,14 +30,41 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)           % MM
 % %             v(s1=0) = 0;          v(s2=0) = 0;
 % %             v(s1=1) = 0;          v(s2=1) = 0;
 % %
-% % Parameters M and lam can be set.
+% % Parameters M, lam and nu can be set.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_NS_Antonelli
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: Output st, the recommended settings of the example, and
 %                   the form of its stability test ('Q');
 %                   no measured setting certifies it;
 %                   (maintainer: every example names its settings);
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)            % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -46,6 +78,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 M = 0.1;  lam = 1;  nu = 1;
 npars = length(params);
 if npars~=0
@@ -146,9 +179,10 @@ PDE_t = [diff(x1,'t')==-s2*diff(x1,s1)-x2-(1/M^2)*diff(x3,s1)+nu*(diff(x1,s1,2)+
 % PDE_t.BC{9}.term{1}.loc = [0,s2];      PDE_t.BC{10}.term{1}.loc = [s1,0];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings: the light tier                                 % MMP, 11/19/2026
 st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

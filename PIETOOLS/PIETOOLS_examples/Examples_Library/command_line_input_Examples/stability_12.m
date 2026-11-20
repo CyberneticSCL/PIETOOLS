@@ -1,9 +1,47 @@
+% STABILITY_12 declares the 3-component reaction-diffusion PDE
+%   x_t = Cm(s)*x + (1/R)*x_ss on [0,1],   x(0) = 0,   x_s(1) = 0,
+% with Cm = [0 0 0; s 0 0; s -s^2 0] and R = 30; displays it, converts it
+% to a PIE and displays the PIE. Workspace: PDE ('pde_struct') and PIE
+% ('pie_struct'). If a cell array params of assignment strings (e.g.
+% {'R=21;'}) exists in the workspace, its entries are evaluated after the
+% default parameters.
+%
 %   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 30            (stable for R<21 (not tight))
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [0 0 0;                  Ahmadi 2015 [5] Adapted Example B
 %                                                   |       s 0 0;
 %                                                   |       -s^2 0 0]
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable ) 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - stability_12
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 11/17/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 % Define dependent variables and system variable

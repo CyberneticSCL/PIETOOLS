@@ -1,6 +1,14 @@
 function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_REACTIONDIFFUSION_DNDN_EDGEOBSERVE(GUI,
+% PARAMS) returns the 2-D reaction-diffusion equation below, with
+% disturbance w1, sensed outputs y1, y2 with noise w2, w3, and integral
+% output z, as a 'pde_struct' object, and the recommended settings ST of
+% its H-infinity optimal estimator synthesis. It sets Hinf_estimator = 1
+% in the base workspace; a nonzero GUI prints that no GUI representation
+% exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -17,25 +25,54 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,
 % % Reaction-diffusion input-output-PDE with 
 % %     Dirichlet-Neumann Dirichlet-Neumann BCs
 % % PDE         x_{t}   = r*x + nu*x_{s1s1} + nu*x_{s2s2} + Cw*w1;
-% % OUT         y1      = x(s2=d) + w2;
-% %             y2      = x(s1=b) + w3;
+% % OUT         y1(s1)  = int_{c}^{d} x(t,s1,s2) ds2 + w2;
+% %             y2(s2)  = int_{a}^{b} x(t,s1,s2) ds1 + w3;
 % %             z       = int_{a}^{b} int_{c}^{d} x(t,s1,s2) ds2 ds1
 % % With BCs    x(s1=a) = 0;        x(s2=c) = 0;
 % %             x_{s1}(s1=b) = 0;   x_{s2}(s2=d) = 0;
+% % (The commented term-based block below senses the edges instead:
+% %  y1 = x(s2=d) + w2, y2 = x(s1=b) + w3.)
 % %
-% % Parameters nu and r, and limits a, b, c, d can be set.
+% % Parameters nu and r, the state size ne, and limits a, b, c, d can be set.
 % % Function Cw can also be set, defaults to
 % %     Cw(s1,s2) = (s1^2-b)*(s2^2-d);
 % % Stable for r <= mu, where
 % %     mu = nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)
 % %
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/02/2024
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -48,6 +85,7 @@ pvar s1 s2
 %%% Executive Function:
 evalin('base','Hinf_estimator = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 nu = 1;     r = 8;   ne = 1;
 a = 0;  b=1;        c = 0;       d = 1;
 Cw = (s1^2-b)*(s2^2-d);
@@ -117,9 +155,10 @@ PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+Cw*w1;
 %                                        PDE_t.BC{4}.term{1}.D = [1,0];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings: the heavy tier                                 % MMP, 11/19/2026
 st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

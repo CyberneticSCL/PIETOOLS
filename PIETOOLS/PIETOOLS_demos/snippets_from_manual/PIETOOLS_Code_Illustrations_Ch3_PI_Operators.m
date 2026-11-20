@@ -1,7 +1,10 @@
 % This document illustrates how PIETOOLS can be used to declare PI
 % operators in 1D and 2D, acting on coupled finite- and
 % infinite-dimensional vectors.
-% We refer to Chapter 3 of the manual for more context on the codes.
+% The script declares, as 'copvar' objects, the 3-PI operators A and B and
+% the 4-PI operator C on intervals (pi4_copvar_sop), the 9-PI operators D
+% and E on rectangles (int2copvar), and the 2D PI operator F, whose blocks
+% map between R, L2[x] and L2[x,y] (int2sopvar). It prints nothing.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
@@ -28,14 +31,18 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/30/2024: Initial coding;
 % DJ, 11/08/2026: Declare the 2D operators D, E and F (3.2.1, 3.2.2) as
 %                   copvar objects, with int2copvar and int2sopvar;
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clear
 
 %% 3.1.1 Declaring 3-PI Operators
 
-% Declare an opvar object representing the 3-PI operator
+% Declare a copvar object representing the 3-PI operator
 % A: L2^2[-1,1] --> L2^2[-1,1] defined by
 %   (A*v)(s) = [int_{-1}^{s} v1(th) + 2*v2(th) dth]
 %              [int_{-1}^{s} 3*v1(th) + 4*v2(th) dth]
@@ -49,7 +56,7 @@ clear
 pvar s s_dum                                                                % DB, 11/06/2026
 A = pi4_copvar_sop([],[],[],{[],[1,2; 3,4],[]},[0 0; 2 2],s,s_dum,[-1,1]);  % DB, 11/06/2026
 
-% Declare an opvar object representing the 3-PI operator
+% Declare a copvar object representing the 3-PI operator
 % B: L2[0,1] --> L2^2[0,1] defined by
 %   (B*v)(s) = [v(s)    ] + int_{0}^{s} [2s v(th)    ] dth
 %              [s^2 v(s)]               [s(s-th)v(th)]
@@ -69,12 +76,12 @@ B = pi4_copvar_sop([],[],[],{R0,R1,R2},[0 0; 2 1],s,s_dum,[0,1]);           % DB
 
 %% 3.1.4 Declaring 4-PI Operators
 
-% Declare an opvar object representing the 4-PI operator
+% Declare a copvar object representing the 4-PI operator
 % C: R^2 x L2[0,3] --> R x L2^2[0,3], defined by
 %   (C*q)(s) = [-x1 +2*x2 +int_{0}^{3}(3-s^2)*v(s)ds                              ]
 %              [-s*x2 +v(s) +int_{0}^{s}(s-th)*v(th)dth +int_{s}^{3}s*v(th)dth    ]
 %              [s*x1 +s^3*v(s) +int_{0}^{s}th*v(th)dth +int_{s}^{3}(th-s)*v(th)dth]
-% for q=(x,v1,v2) in R x L2^2[0,3].
+% for q=(x1,x2,v) in R^2 x L2[0,3].
 % pvar s tt                                                                 % DB, 11/06/2026 (was)
 % P = [-1,2];                                                               % DB, 11/06/2026 (was)
 % Q1 = (3-s^2);                                                             % DB, 11/06/2026 (was)

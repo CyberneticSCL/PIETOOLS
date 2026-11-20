@@ -1,5 +1,4 @@
 % DEMO5_Hinf_optimal_estimator.m
-% See Chapter 11.5 of the manual for a description.
 %
 % This document illustrates how an Hinfty optimal estimator can be designed
 % for a PIE, and how the estimated state can be simulated.
@@ -30,9 +29,18 @@
 %
 % Then, using L = P^{-1}*Z, the L2 gain satisfies 
 %   ||ztilde||_{L2}/||w||_{L2} <= gam
-% We manually declare this LPI here, but it can also be solved using the
-% "PIETOOLS_Hinf_estimator" executive file.
+% We manually declare this LPI here; the commented call to lpiscript_sop
+% after the closed-loop construction solves it with the predefined
+% 'hinf-observer' executive instead.
 % We simulate the PDE state x and estimated state xhat using PIESIM.
+%
+% The script displays the PDE, solves the LPI, computes L from the solved
+% P and Z by quadratic programming (getObserver_sop), takes the LFT of the
+% PIE with the estimator (PIE_CL), simulates it from v(0,s) = -10*s,
+% vhat(0,s) = 0 with w(t) = 2*sin(pi*t), and plots the true and estimated
+% state and output. Workspace: gam_val, Pval, Zval, Lval, PIE_CL,
+% solution, and the sampled x_act, x_est, z_act, z_est. ECHO ON prints
+% each line as it runs.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,6 +67,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
@@ -77,7 +86,9 @@
 %   domain off T and C2' (maintainer, 11/19/2026: "Yes, switch DEMO5"), as
 %   in DEMO1 and DEMO6: P acts in T'*P*T, and Z = P*L maps y to the state,
 %   as C2' does. SPACES is no longer needed. Same program.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
 echo on
 
@@ -98,6 +109,7 @@ PDE = [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE
        subs(x,s,0) == 0;                        % first boundary condition
        subs(diff(x,s),s,1) == 0];               % second boundary condition
 
+% Display the PDE
 display_PDE(PDE);
 
 % % Convert PDE to PIE

@@ -1,6 +1,13 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params)     % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_ROAD_FIELD_BERESTYCKI(GUI,PARAMS) returns the
+% linearized road-field model below, a road state r(s1) on the edge s2 = 0
+% of a field state f(s1,s2), as a 'pde_struct' object, and the recommended
+% settings ST of its stability test. It sets stability = 1 and
+% stability_form = 'P' (storage <T x, P T x>, P >= eppos I) in the base
+% workspace; a nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +17,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params)     % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               test this file names.
 %
 % %---------------------------------------------------------------------% %
 % % Road-field model (Berestycki, Roquejoffre, Rossi 2013, eq. (1.1),
@@ -32,24 +39,35 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params)     % MM
 % % stability threshold. Threshold [derived, finite differences]: sine
 % % modes in s1, finite differences in s2 with a ghost node for the Robin
 % % condition, modes n = 1..3, default Dr, d, mu, nu:
-% %   lam* = 13.919655 (N = 40), 13.919824 (N = 60); critical mode n = 1.
+% %   lam* = 13.919824 (60 nodes in s2); critical mode n = 1.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Road_Field_Berestycki
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Header: the light tier certifies the example, so
-%                   no second output st (application-specific settings);
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-%                   the entry of 11/17/2026 (no second output st) no longer
-%                   holds;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% function [PDE_t] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params)      % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -60,8 +78,9 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test
 
+% Default parameters (lam = 0.9*lam*), overridden by the strings in params
 Dr = 2;     d = 1;      mu = 1;     nu = 1;
 lam = 0.9*13.919824;
 npars = length(params);
@@ -86,12 +105,15 @@ PDE_t = [diff(r,'t')==Dr*diff(r,s1,2)+nu*subs(f,s2,0)-mu*r;
          subs(f,s2,1)==0];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
-st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{2} = [1 1;1 2;0 0];                                      % MMP, 11/19/2026
+% Example-specific settings: the light tier, with the 1-D storage from the
+% multiplier only (s-lengths 0 of both integrals) and the 2-D storage with
+% theta-lengths [1 1] (multiplier) and [1 2] (integral)
+st = lpisettings_sop('light');
+st.lpi.pos.len_inc{1} = 0;
+st.lpi.pos.len_com{1} = 0;
+st.lpi.pos.len_sos{2} = [1 1;1 2;0 0];
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

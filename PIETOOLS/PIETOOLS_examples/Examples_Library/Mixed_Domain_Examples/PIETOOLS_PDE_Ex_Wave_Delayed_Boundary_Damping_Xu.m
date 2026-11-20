@@ -1,6 +1,14 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_WAVE_DELAYED_BOUNDARY_DAMPING_XU(GUI,PARAMS)
+% returns the wave equation with partially delayed boundary damping below,
+% in Riemann form with the delayed boundary velocity as a transport state
+% y(s2), as a 'pde_struct' object, and the recommended settings ST of its
+% stability test. It sets stability = 1 and stability_form = 'Q'
+% (generalized storage T'Q) in the base workspace; a nonzero GUI prints
+% that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +18,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,param
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               test this file names.
 %
 % %---------------------------------------------------------------------% %
 % % Wave equation with partially delayed boundary damping (Xu, Yung, Li
@@ -37,25 +45,34 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,param
 % % X = exp(2*lam) solves a quadratic. For k = 1, tau = 2 the spectral
 % % abscissa is 0.0957 (mu = 0.4), 0 (mu = 0.5), -0.105968 (mu = 0.6),
 % % -0.301728 (mu = 0.75): exponentially stable iff mu > mu* = 1/2.
-% %
-% % Library example 44 treats the same paper in second-order form.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Header: the light tier certifies the example, so
-%                   no second output st (application-specific settings);
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-%                   the entry of 11/17/2026 (no second output st) no longer
-%                   holds;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)  % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -66,8 +83,9 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
+% Default parameters, overridden by the assignment strings in params
 mu = 0.6;   k = 1;  tau = 2;
 npars = length(params);
 if npars~=0
@@ -92,14 +110,18 @@ PDE_t = [diff(e,'t')==diff(v,s1);
          subs(y,s2,0)==subs(v,s1,1)];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
-st.lpi.ineq.psatz{2} = 'none';                                              % MMP, 11/19/2026
-st.sop.deg_Q{2} = 0;                                                        % MMP, 11/19/2026
-st.sop.max_raise_Q = [2 2 0];                                               % MMP, 11/19/2026
-st.sop.raise_Q = 'deg';                                                     % MMP, 11/19/2026
+% Example-specific settings: the light tier, with the slack lift degree at
+% its minimum Dmin, the 2-D slack with the plain term only (psatz 'none'),
+% Q of degree 0, and up to 2 raises in one or two variables, each raising
+% the degree of Q (raise_Q 'deg')
+st = lpisettings_sop('light');
+st.lpi.ineq.dD = 0;
+st.lpi.ineq.psatz{2} = 'none';
+st.sop.deg_Q{2} = 0;
+st.sop.max_raise_Q = [2 2 0];
+st.sop.raise_Q = 'deg';
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

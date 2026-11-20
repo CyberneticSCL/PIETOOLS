@@ -1,6 +1,13 @@
 function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params)             % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_KISS_MODEL(GUI,PARAMS) returns the 2-D
+% KISS model below, a reaction-diffusion equation with Dirichlet BCs, as a
+% 'pde_struct' object, and the recommended settings ST of its stability
+% test. It sets stability = 1 and stability_form = 'Q' (generalized
+% storage T'Q) in the base workspace; a nonzero GUI prints that no GUI
+% representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -9,8 +16,6 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params)             % MM
 %
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
-%               format.
-% - PDE_b:      PDE structure defining the example system in the batch
 %               format.
 % - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
 %               for the tests this file names                               % MMP, 11/19/2026
@@ -21,15 +26,42 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params)             % MM
 % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
 % %             x(s1=1) = 0;   x(s2=1) = 0;
 % %
-% % Parameters c1, c2 and lam can be set.
+% % Parameters c1, c2, lam and the state size ne can be set.
 % % Stable for lam <= 2*pi^2 when c1=c2=1.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_KISS_Model
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params)              % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -43,6 +75,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 c1 = 1; c2 = 1; lam = 19;   ne = 1;
 npars = length(params);
 if npars~=0
@@ -76,9 +109,11 @@ PDE_t = [diff(x,'t')==lam*x+c1*diff(x,s1,2)+c2*diff(x,s2,2);
 
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (stripped tier; Q of degree 0 in the multiplier, 1 in the integrals)
 st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
 st.sop.deg_Q{2} = [0 1 1];                                                  % MMP, 11/19/2026
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

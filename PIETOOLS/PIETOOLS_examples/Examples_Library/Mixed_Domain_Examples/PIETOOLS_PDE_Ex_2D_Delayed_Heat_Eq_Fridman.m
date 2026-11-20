@@ -1,6 +1,13 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params) % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_DELAYED_HEAT_EQ_FRIDMAN(GUI,PARAMS)
+% returns the 2-D heat equation with an interior delay below, the delay
+% written as a transport state x2(s1,s2,s3), as a 'pde_struct' object, and
+% the recommended settings ST of its stability test. It sets stability = 1
+% and stability_form = 'Q' (generalized storage T'Q) in the base
+% workspace; a nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +17,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params) % M
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               test this file names.
 %
 % %---------------------------------------------------------------------% %
 % % 2D heat equation with an interior delay (2D extension of Fridman,
@@ -34,23 +41,36 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params) % M
 % % arccos(a)/sqrt(1-a^2) for a in (-1,1), and stable for every delay for
 % % a <= -1. For r = 2.9 the minimum is attained at (m,n) = (1,1), a = 0.9:
 % %   stable iff tau < tau* = 1.034726,
-% % the threshold of the 1D version (r = 1.9, library example 43), which
+% % the threshold of the 1D version with r = 1.9, which
 % % Fridman, Orlov 2009, Remark 4, show to be tight [read].
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Header: no settings measured certify the example, so
-%                   no second output st (application-specific settings);
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: Output st, the recommended settings of the example, and
-%                   the form of its stability test ('Q');
-%                   no measured setting certifies it;
-%                   (maintainer: every example names its settings);
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params) % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -61,8 +81,9 @@ pvar s1 s2 s3
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
+% Default parameters (tau = 0.9*tau*), overridden by the strings in params
 r = 2.9;    tau = 0.9*1.034726;
 npars = length(params);
 if npars~=0
@@ -85,9 +106,10 @@ PDE_t = [diff(x1,'t')==diff(x1,s1,2)+diff(x1,s2,2)+r*x1-subs(x2,s3,tau);
          subs(x2,s3,0)==x1];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+% Example-specific settings: the light tier
+st = lpisettings_sop('light');
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

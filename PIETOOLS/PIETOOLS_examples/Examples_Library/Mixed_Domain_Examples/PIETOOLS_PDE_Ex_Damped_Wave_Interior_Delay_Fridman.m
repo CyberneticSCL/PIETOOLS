@@ -1,6 +1,14 @@
-function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params) % MMP, 11/17/2026
+function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_DAMPED_WAVE_INTERIOR_DELAY_FRIDMAN(GUI,
+% PARAMS) returns the damped wave equation with an interior delay below,
+% the delay written as a transport state y(s1,s2), as a 'pde_struct'
+% object, and (second output) the recommended settings ST of its
+% stability test. It sets stability = 1 and stability_form = 'Q'
+% (generalized storage T'Q) in the base workspace; a nonzero GUI prints
+% that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,9 +18,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,pa
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) settings structure that certifies the example    % MMP, 11/17/2026
-%               (application-specific settings, settings report             % MMP, 11/17/2026
-%               11/16/2026 Sec. 5.8).                                       % MMP, 11/17/2026
+% - st:         (optional) recommended settings (lpisettings_sop
+%               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
 % % Damped wave equation with an interior delay (Fridman, Orlov 2009,
@@ -39,31 +46,34 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,pa
 % % Rightmost root of mode 1: -0.1949 at 0.5*tau*, -0.0200 at 0.9*tau*,
 % % +0.0155 at 1.1*tau*. The paper reports stability with decay rate 0.8
 % % for tau <= 0.31 [read], a different question.
-% %
-% % PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman gives the
-% % first-order (Riemann) form of the same system.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Second output st, the settings that certify the
-%                   example (maintainer: application-specific settings
-%                   where the tiers do not); the light tier certifies it
-%                   in neither form (header);
-% function [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params) % MMP, 11/17/2026 (was)
-% MMP, 11/18/2026: st: slack lift degree at its minimum and Q of degree
-%                   [2 1 1] (deg_Q) in place of lpi.var.deg{2} = 2, which
-%                   the direct form no longer reads: 10.7 times fewer
-%                   variables (header);
-% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
-%                   (maintainer: no default settings): settings unchanged;
-%                   the form of its tests named in the workspace.
-% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
-%                   recorded tests and files the user does not have, not the problem;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -74,8 +84,9 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
+% Default delay (0.9*tau*), overridden by the assignment strings in params
 tau = 0.9*2.881401;
 npars = length(params);
 if npars~=0
@@ -99,16 +110,14 @@ PDE_t = [diff(z,'t')==v;
          subs(y,s2,0)==z];
 
 
-% Application-specific settings (header): the light tier with Q of the      % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% direct form at degree 2 in two variables; built only when requested       % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% Example-specific settings                                                 % MMP, 11/19/2026
-if nargout>1                                                                % MMP, 11/17/2026
-    st = lpisettings_sop('light');                                          % MMP, 11/17/2026
-    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-    st.sop.deg_Q{2} = [2 1 1];                                              % MMP, 11/18/2026
-%    st.lpi.var.deg{2} = 2;                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
-end                                                                         % MMP, 11/17/2026
+% Example-specific settings (second output only): the light tier, with
+if nargout>1
+    st = lpisettings_sop('light');
+    st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
+    st.sop.deg_Q{2} = [2 1 1];      % Q of degree 2 (multiplier), 1 (integrals)
+end
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

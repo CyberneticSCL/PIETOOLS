@@ -1,6 +1,13 @@
 function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)               % MMP, 11/18/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_WAVE_EQ(GUI,PARAMS) returns the 2-D wave
+% equation below, in the states x1 = x, x2 = x_t, with Dirichlet BCs, as a
+% 'pde_struct' object, and (second output) the recommended settings ST of
+% its stability test. It sets stability = 1 and stability_form = 'Q'
+% (generalized storage T'Q) in the base workspace; a nonzero GUI prints
+% that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,9 +17,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)               % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         (optional) example-specific settings structure (header)     % MMP, 11/18/2026
-% - PDE_b:      PDE structure defining the example system in the batch
-%               format.
+% - st:         (optional) recommended settings for the stability test      % MMP, 11/18/2026
 %
 % %---------------------------------------------------------------------% %
 % % 2D wave equation
@@ -28,9 +33,37 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)               % MM
 % %             x2(s1=0) = 0;      x2(s2=0) = 0;
 % %             x2(s1=1) = 0;      x2(s2=1) = 0;
 % %
-% % Parameters c1 and c2 can be set.
+% % Parameters c1, c2 and the state size ne can be set.
+% % For c1, c2 > 0 the energy is conserved: the system is stable, not
+% % exponentially stable.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_Wave_Eq
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/18/2022
 % MMP, 11/18/2026: Second output st, example-specific settings that
 %                   certify the library default, which the light tier
 %                   does not, at fewer decision variables than heavy;
@@ -42,6 +75,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)               % MM
 % MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
 %                   not the problem;
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params)                 % MMP, 11/18/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -55,6 +89,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 c1 = 1;  c2 = 1;    ne = 1;
 npars = length(params);
 if npars~=0
@@ -105,6 +140,8 @@ PDE_t = [diff(x1,'t')==x2;
 
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (second output only; light tier; Q of degree 0 in the multiplier, 1 in
+% the integrals; slack lift degree at its minimum Dmin)
 if nargout>1                                                                % MMP, 11/18/2026
     st = lpisettings_sop('light');                                          % MMP, 11/18/2026
 %   st.sop.deg_Q{2} = 2;                                                    % MMP, 11/19/2026 (was); MMP, 11/18/2026
@@ -114,6 +151,7 @@ if nargout>1                                                                % MM
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/19/2026
 end                                                                         % MMP, 11/18/2026
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

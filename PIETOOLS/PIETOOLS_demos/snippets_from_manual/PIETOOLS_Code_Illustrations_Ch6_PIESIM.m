@@ -1,6 +1,16 @@
 % This document illustrates how PIESIM can be used to simulate solutions
-% to 1D PDEs, 2D PDEs, DDEs and PIEs.
-% We refer to Chapter 6 of the manual for more context on the codes.
+% to 1D PDEs, 2D PDEs, DDEs and PIEs. The blocks simulate:
+%  6.4.1  x_t = s*x_ss on [0,2] with boundary inputs x(0) = 0,
+%         x(2) = -4t-4, exact solution -2st-s^2;
+%  6.4.2  the radial heat equation s*x_t = 4*(x_s + s*x_ss) on [1e-4,1],
+%         x_s(1e-4) = 0, x(1) = 0, exact solution J0(j01*s)*exp(-4*j01^2*t);
+%  6.4.3  a coupled ODE - 1D PDE - 2D PDE system on [0,1]x[0,5], exact
+%         solution 10*cos(pi*s1)*cos(pi*s2)*exp(-t);
+%  6.4.4  a DDE with delays 1 and 2, without control;
+%  6.4.5  the PIE of that DDE in closed loop with an H-infinity optimal
+%         state feedback (lpiscript_sop, light settings).
+% Each block plots the numerical solution, next to the exact solution
+% where one is known; the commented saveas lines export the figures.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
@@ -27,6 +37,7 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 01/01/2025: Initial coding;
 % VJ, 02/14/2026: Added Section 6.4.2 (1D Cylindrical PDE example);
 % updated section numbering accordingly;
@@ -35,6 +46,9 @@
 % solution.timedep.primary{1,2,3,4}
 % DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
 %                   executives do not support the new pie_struct;
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator
 
 %% 6.4.1: 1D PDE Example
@@ -53,6 +67,7 @@ opts.N = 8;
 opts.tf = 1;
 opts.Norder = 2;
 opts.dt = 1e-3;
+% Simulate; sample the PDE state and the exact solution at 100 times
 [solution,grid] = PIESIM(PDE,opts,uinput);
 tval = solution.timedep.dtime;
 xval = reshape(solution.timedep.primary{2}(:,1,:),opts.N+1,[]);
@@ -88,6 +103,7 @@ ylabel('$t$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
 ax2 = subplot(1,2,2);       ax2.TickLabelInterpreter = 'latex';
 ax2.Position = [0.6,0.15,0.33,0.65];
+% Right panel: legend and labels
 lgd = legend('Location','northeast','Interpreter','latex','FontSize',15);
 box on
 title('Final PDE state $\mathbf{x}(t=1,s)$','Interpreter','latex','FontSize',15);
@@ -102,6 +118,7 @@ clear PDE uinput
 % Declare the PDE to simulate
 [PDE,uinput] = examples_pde_library_PIESIM_1D(39);
 
+% Diffusivity alpha and the first zero j01 of the Bessel function J0
 syms sx st;
 alpha = 4;
 j01 = 2.4048;
@@ -119,6 +136,7 @@ opts.N = 16;
 opts.tf = 0.1;
 opts.Norder = 2;
 opts.dt = 1e-3;
+% Simulate
 [solution,grid] = PIESIM(PDE,opts,uinput);
 tval = solution.timedep.dtime;
 xval = reshape(solution.timedep.primary{2}(:,1,:),opts.N+1,[]);
@@ -132,6 +150,7 @@ x_true = double(subs(subs(uinput.exact(1),st,tplot),sx,grid(:)));
 % Plot the evolution and final state
 fig1 = figure('Position',[200 50 900 350]); 
 set(gcf,'Color','w');
+% Left panel: surface of the simulated state x(t,s)
 subplot(1,2,1);
 box on
 surf(grid,tplot,x_sim',...
@@ -142,6 +161,7 @@ surf(grid,tplot,x_sim',...
 colormap jet;
 colorbar;
 
+% Right panel: numerical and analytic state at the final time
 subplot(1,2,2);
 box on
 plot(grid(:),x_sim(:,end),'rd',...
@@ -155,6 +175,7 @@ hold off
 sgtitle('Simulated PDE State Evolution',...
     'Interpreter','latex','FontSize',17)
 
+% Labels, positions and titles of the left panel
 ax1 = subplot(1,2,1);
 ax1.TickLabelInterpreter = 'latex';
 ax1.Position = [0.08,0.12,0.33,0.68];
@@ -165,6 +186,7 @@ xlabel('$s$','FontSize',15,'Interpreter','latex');
 ylabel('$t$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
 
+% Labels, positions and titles of the right panel
 ax2 = subplot(1,2,2);
 ax2.TickLabelInterpreter = 'latex';
 ax2.Position = [0.6,0.15,0.33,0.65];
@@ -223,6 +245,7 @@ x4fin_true = double(subs(subs(subs(uinput.exact(4),st,opts.tf),sy,s2_grid_exact)
 fig1 = figure('Position',[200 50 900 350]); 
 sgtitle('1D PDE States at Final Time','FontSize',15,'Interpreter','latex');
 set(gcf, 'Color', 'w');
+% Left panel: numerical and analytic x2 at the final time
 ax1 = subplot(1,2,1);
 box on
 plot(s1_grid,x2fin,'rd','LineWidth',4,'DisplayName','Numerical solution');
@@ -236,6 +259,7 @@ title(['$\mathbf{x}_{2}(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'Fo
 set(gca,'XLim',[min(s1_grid),max(s1_grid)]);
 set(gca,'TickLabelInterpreter','latex');
 ax1.Position = [0.07,0.15,0.4,0.72];
+% Right panel: numerical and analytic x3 at the final time
 ax2 = subplot(1,2,2);
 box on
 plot(s2_grid,x3fin,'d','LineWidth',4,'DisplayName','Numerical solution');

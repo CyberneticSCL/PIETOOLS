@@ -1,6 +1,15 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params) % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_WAVE_ACOUSTIC_BOUNDARY_BEALE(GUI,PARAMS)
+% returns the 2-D wave equation with an acoustic boundary condition on the
+% edge s2 = 0 below, the edge displacement del and velocity eta as states
+% in s1, as a 'pde_struct' object, and the recommended settings ST of its
+% stability test. It sets stability = 1 and stability_form = 'Q'
+% (generalized storage T'Q) in the base workspace; PARAMS sets nothing
+% (no parameter), and a nonzero GUI prints that no GUI representation
+% exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +19,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               test this file names.
 %
 % %---------------------------------------------------------------------% %
 % % 2D wave equation with an acoustic boundary condition on the edge
@@ -39,16 +48,33 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params
 % % energy decays polynomially on smooth domains (Munoz Rivera, Qin
 % % 2003). No parameter threshold.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/19/2026: Output st, the recommended settings of the example, and
-%                   the form of its stability test ('Q');
-%                   no measured setting certifies it;
-%                   (maintainer: every example names its settings);
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params) % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -59,7 +85,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
 npars = length(params);
 if npars~=0
@@ -87,9 +113,10 @@ PDE_t = [diff(ph,'t')==ps;
          subs([de;et],s1,0)==0;     subs([de;et],s1,1)==0];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+% Example-specific settings: the light tier
+st = lpisettings_sop('light');
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

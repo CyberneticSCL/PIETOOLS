@@ -1,18 +1,26 @@
-% DEMO1_Simple_Stability_Simulation_and_Control.m
-% See Chapter 11.1 of the manual for a description.
+% DEMO1_stability_and_simulation.m
 %
 % This document illustrates, with a simple example, how PIETOOLS can be 
-% used to simulate system dynamics, analyse stability and design optimal 
-% controllers for the system.
+% used to simulate system dynamics and analyse stability of the system.
 %  The example is the damped wave equation with dynamic boundary input:
 %                xi_{tt} = c*xi_{ss} - b*xi_{t} + s*w(t)
 %  using the state phi=(X1,X2) such that X1=xi_{s} and X2=xi_{t}:
-%  ODE:     x_{t}  = -x + u(t) 
+%  ODE:     x_{t}  = -x
 %  PDEs:    X1_{t} =  X2_{s}
-%           X2_{t} = cX1_{s}-bX2_{t}+sw(t)
-%  BCs:    X1(s=0) = 0
-%          X2(s=1) = x = exp(-t)x(t=0)+ int_0^t exp(-t+tau) u(tau) d tau
-%  Output:       z = int_0^1 xi_{s} ds = xi(s=1)-xi(s=0). 
+%           X2_{t} = cX1_{s}-bX2+sw(t)
+%  BCs:    X2(s=0) = 0
+%          X1(s=1) = x = exp(-t)x(t=0)
+%  Output:       r = int_0^1 xi_{s} ds = xi(s=1)-xi(s=0),
+%  with c = 1, b = 0.01.
+%
+% The script declares the system with pde_var and converts it to a PIE
+% with operators T, A; simulates it with PIESIM from x(0) = 0.5,
+% phi(0,s) = (0.5-s, sin(pi*s)) with w(t) = sin(5t)exp(-t), and plots the
+% solution; then solves the stability LPI
+%   P >= 1e-4*I,    A'*P*T + T'*P*A <= 0.
+% Workspace: odepde, pie, solution, grids, the sampled states and output
+% (tval, xval, phi1, phi2, zval, wval), and the solved program prog.
+% ECHO ON prints each line as it runs.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,6 +47,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
@@ -61,7 +70,9 @@
 % MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
 %   domain off T and P (maintainer, 11/14/2026: the calls were "too
 %   complicated"). Same program.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
 echo on
 

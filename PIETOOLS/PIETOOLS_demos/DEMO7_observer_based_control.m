@@ -1,13 +1,13 @@
 % DEMO7_observer_based_control.m
-% See Chapter 11.7 of the manual for a description.
 %
 % This document illustrates construction of an observer-based state feedback 
 % controller. We construct the observer and controller separately
 % and couple them to find a closed loop system which is then simulated for 
 % different IC and disturbances.
 % Specifically, we consider the following system:
-% PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + lam x(t,s) + w(t) + u(t),   s in [0,1];
+% PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + lam x(t,s) + s*w(t) + s*u(t),   s in [0,1];
 % Outputs:       z(t)    = [int_{0}^{1} x(t,s) ds; u(t)];
+%                y(t)    = x(t,1);
 % BCs:                0  = x(t,0) = d/ds x(t,1);
 % (unstable for lam > pi^2/4)
 % First we convert the above PDE to a PIE of the form:
@@ -30,12 +30,21 @@
 % where K = Z*P^{-1}. Then, constructing an estimator with gain L, and
 % using feedback control u = K*hat{v}, the closed-loop PIE takes the form
 %   [T, 0] [\dot{v}(t)   ] = [A,     B2*K  ] [v(t)   ] + [B1   ] w(t)
-%   [0, T] [\dot{vhat}(t)]   [-L*C2, A+L*C2] [vhat(t)] + [L*D21]
+%   [0, T] [\dot{vhat}(t)]   [-L*C2, A+L*C2] [vhat(t)] + [-L*D21]
 %
 %                [z(t)   ] = [C1, D12*K ] [v   ] + [D11] w(t)
 %                [zhat(t)]   [0,  C1    ] [vhat]   [0  ]
 % We simulate the open- and closed-loop system response for various
 % initial conditions using PIESIM.
+%
+% The script displays the PDE (lam = 5), computes K and L with the
+% predefined 'hinf-controller' and 'hinf-observer' executives
+% (lpiscript_sop, heavy settings), takes the LFT of the PIE with the
+% estimator (PIE_CL; zhat is the first output of C1), simulates the open
+% and closed loop from v(0,s) = -10*s, vhat(0,s) = 0 with w(t) = 10*exp(-t),
+% and plots the states, outputs and control effort. Workspace: Kval, Lval,
+% gam_co_val, gam_ob_val, PIE_CL, solution_OL, solution_CL and the sampled
+% states and outputs. ECHO ON prints each line as it runs.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,6 +71,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, get 
@@ -74,7 +84,9 @@
 % DJ (CC), 10/30/2026: Declare the estimator with copvar operators;
 % MMP, 11/08/2026: Settings lpisettings_sop('heavy') (was the stock
 %                   lpisettings('heavy'), whose folder leaves the path);
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
 echo on
 
@@ -97,6 +109,7 @@ PDE = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
        subs(x,s,0)==0;
        subs(diff(x,s),s,1)==0];
 
+% Display the PDE
 display_PDE(PDE);
 
 % % Convert PDE to PIE
@@ -140,7 +153,7 @@ uinput.ic = [-10*sx; 0];
 uinput.w = 10*exp(-st);
 
 % % Set options for discretization and simulation
-opts.plot = 'yes';   % don't plot the final solution
+opts.plot = 'yes';   % plot the solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 2;        % Simulate up to t = 2
 opts.dt = 1e-2;     % Use time step of 10^-2

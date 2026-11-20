@@ -1,6 +1,14 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_REACTION_DIFFUSION_AHMADI_2(GUI,
+% PARAMS) returns the 3-state reaction-diffusion equation below with an
+% s-dependent coupling Cm, in the term-based and in the batch format, and
+% the recommended settings ST of its stability test. It sets stability =
+% 1, stability_dual = 0 and stability_form = 'P' (storage <T x, P T x>,
+% P >= eppos I) in the base workspace. With GUI = 1 it also loads the
+% associated GUI save file into a new PIETOOLS_PDE_GUI window.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -24,12 +32,39 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,para
 % % Parameters Cm and R can be set.
 % % Stable for R<21.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -99,6 +134,7 @@ if GUI
 end
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (light tier; slack lift degree at its minimum Dmin)
 st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 

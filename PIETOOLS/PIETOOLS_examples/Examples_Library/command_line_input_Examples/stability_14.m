@@ -1,3 +1,14 @@
+% STABILITY_14 declares the Timoshenko beam in the hyperbolic states
+% x1, ..., x4 on [0,1]:
+%   x1_t = (1/aa)*x2_s,   x2_t = k*aa*g*(x1_s - x3),
+%   x3_t = (1/II)*(x2 + x4_s) - c*x3,   x4_t = II*x3_s,
+%   x1(0) = x3(0) = 0,   x2(1) = x4(1) = 0,
+% with k = aa = II = g = 1 and damping c = 0; displays it, converts it to
+% a PIE and displays the PIE. Workspace: PDE ('pde_struct') and PIE
+% ('pie_struct'). If a cell array params of assignment strings (e.g.
+% {'c=0.1;'}) exists in the workspace, its entries are evaluated after the
+% default parameters.
+%
 % Timoshenko Beam
 %   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
 %        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi)-c
@@ -16,6 +27,36 @@
 %   BCs: x1(0) = 0,         x2(1) = 0               |
 %        x3(0) = 0,         x4(1) = 0               |
 %                                                   |
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - stability_14
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 11/17/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Specify the parameters 

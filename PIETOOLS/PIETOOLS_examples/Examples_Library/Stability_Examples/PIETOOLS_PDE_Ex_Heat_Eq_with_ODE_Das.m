@@ -1,6 +1,14 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_HEAT_EQ_WITH_ODE_DAS(GUI,PARAMS)
+% returns the heat equation coupled with a 4-state ODE below (Das et al.,
+% Example 2), in the term-based and in the batch format, and the
+% recommended settings ST of its stability tests. It sets stability = 1,
+% stability_dual = 1 and stability_form = 'Q' (generalized storage T'Q;
+% dual form 'Qd') in the base workspace. With GUI = 1 it also loads the
+% associated GUI save file into a new PIETOOLS_PDE_GUI window.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -26,11 +34,37 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 % %
 % % Parameters lam, a and b (domain) can be set.
 % % Stable for lam<pi^2                                                     % MMP, 11/19/2026 (was)
-% % Stable for lam < 9.7946; with +Bxr, the sign of the paper (Das et       % MMP, 11/19/2026
-% % al. 2018, arXiv 1812.07186, Sec. 6.2), only for lam < -5.7799 against   % MMP, 11/19/2026
-% % its claim lam < pi^2: the sign is taken as a typo (11/19/2026).         % MMP, 11/19/2026
+% % Stable for lam < 9.7946. The paper (Das et al. 2018, arXiv 1812.07186,  % MMP, 11/19/2026
+% % Sec. 6.2) has +Bxr, which is stable only for lam < -5.7799 against its  % MMP, 11/19/2026
+% % claim lam < pi^2; the sign of Bxr is taken as a typo.                   % MMP, 11/19/2026
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: the flux input of the ODE takes the sign -Bxr, in both
 %                   formats (maintainer: "probably a typo in the paper. so
 %                   reverse the sign"). With +Bxr the system is stable only
@@ -40,6 +74,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 %                   stability tests, and their form ('Q'), from the search
 %                   of 11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -53,6 +88,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 evalin('base','stability_form = ''Q'';');  % form of the stability tests    % MMP, 11/19/2026
 
+% Default parameters, overridden by the assignment strings in params
 lam = pi^2-1;  a = 0;  b = 1;
 npars = length(params);
 if npars~=0
@@ -140,6 +176,8 @@ PDE_t.BC{2}.term{1}.C = eye(2);
 % eq_BCs=[subs(x,s,a)==0;subs(x,s,b)==0];
 % PDE_c=addequation(PDE_c,[eq_ODEPDE;eq_BCs]);
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (stripped tier; Q of degree 2 in the multiplier and 1 in the integral
+% kernels)
 st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
 st.sop.deg_Q{1} = [2 1 1];                                                  % MMP, 11/19/2026
 

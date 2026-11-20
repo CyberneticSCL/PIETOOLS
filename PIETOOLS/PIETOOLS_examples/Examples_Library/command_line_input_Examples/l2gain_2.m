@@ -1,3 +1,37 @@
+% L2GAIN_2 declares a second-order PDE on [0,1] with distributed
+% disturbance s*w(t), BCs x(0) = 0, x_s(1) = 0, and output
+% z(t) = int_0^1 x(t,s) ds; displays it, converts it to a PIE and displays
+% the PIE. Workspace: pde ('pde_struct') and pie ('pie_struct').
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - l2gain_2
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 11/17/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Define dependent variables and system variable

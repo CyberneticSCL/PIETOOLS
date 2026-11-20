@@ -1,6 +1,13 @@
 % This document illustrates how PDEs can be declared as 'pde_struct' 
 % objects in PIETOOLS using the Command Line Input (pde_var) format.
-% We refer to Section 8.2 of the manual for more context on the codes.
+% The blocks declare state, input and output variables on [0,3]x[-1,1];
+% build terms by multiplication, differentiation, substitution,
+% integration, delay, addition and concatenation; set state and output
+% equations and boundary conditions; and post-process the PDE (controlled
+% inputs and observed outputs, initialization, reordering, combining
+% spatial variables, expanding delays and higher-order time derivatives).
+% Lines without a semicolon print the objects and the fields that store
+% each term.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
@@ -27,8 +34,11 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 01/10/2024: Initial coding;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace
 clear;  clc;    clear stateNameGenerator
 
 %% %% 8.2.1 Representing State, Input, and Output Variables
@@ -60,6 +70,7 @@ y1 = pde_var('sense',s1,[0,3]);
 y2 = pde_var('sense',s2,[-1,1]);
 z = pde_var('out',2);
 
+% Display the observed output y1
 y1
 
 
@@ -67,6 +78,7 @@ y1
 %% %% 8.2.2 Declaring Terms
 
 %% 8.2.2a Multiplication
+% Terms 5*x1 and (3-s1)*s2*u1; display them and their coefficient fields
 trm1 = 5*x1
 trm1.free{1}.term{1}.C
 
@@ -74,12 +86,14 @@ trm2 = (3-s1)*s2*u1
 trm2.C{1,1}
 
 %% 8.2.2b Differentiation
+% Terms 5*x1_{s1s1} and x2_{s1s2}; display them and the term structure
 trm3 = diff(trm1,s1,2)
 trm3.free{1}.term{1}
 
 trm4 = diff(x2,[s1;s2])
 
 %% 8.2.2c Substitution
+% Terms x2_{s1s2}(3,-1) and x2(s1,-1); display them and the location fields
 trm5 = subs(trm4,[s1;s2],[3;-1])
 trm5.free{1}.term{1}.loc
 
@@ -87,6 +101,8 @@ trm6 = subs(x2,s2,-1)
 trm6.free{1}.term{1}.loc
 
 %% 8.2.2d Integration
+% Term 10*int_0^3 int_{-1}^1 x1 ds2 ds1 and its integration fields; term
+% int_0^s1 (s1-s1_dum)*x2(s1_dum,s2) ds1_dum with the dummy variable s1_dum
 trm7 = 10*int(x1,[s2;s1],[-1,1;0,3])
 trm7.free{1}.term{1}.I{1}
 trm7.free{1}.term{1}.I{2}
@@ -95,10 +111,12 @@ pvar s1_dum
 trm_alt = int((s1-s1_dum)*subs(x2,s1,s1_dum),s1_dum,[0,s1])
 
 %% 8.2.2e Delay
+% Term u2(t-0.5,s2)
 pvar t
 trm8 = subs(u2,t,t-0.5)
 
 %% 8.2.2f Addition
+% Sums of terms; display them and their coefficient fields
 trms9 = trm2+trm3
 trms9.C{1,1}
 trms9.C{1,2}
@@ -106,6 +124,7 @@ trms9.C{1,2}
 trms10 = 5*diff(x1,s2,2) + trms9
 
 %% 8.2.2 gConcatenation
+% Vertical concatenation of terms into right-hand sides
 RHS_x = [x1;trms10]
 RHS_y = [x1+s1*w1; x2+w2]
 RHS_z = [10*int(x1,[s1;s2],[0,3;-1,1]); subs(diff(x2,[s1;s2]),[s1;s2],[3;1])]
@@ -115,6 +134,8 @@ RHS_z = [10*int(x1,[s1;s2],[0,3;-1,1]); subs(diff(x2,[s1;s2]),[s1;s2],[3;1])]
 %% %% 8.2.3 Declaring Equations
 
 %% 8.2.3a Setting state equations
+% Time derivatives (t as a pvar or as 't'), their tdiff field, and the
+% state equations x1_t = x2, x2_t = trms10
 pvar t
 LHS1 = diff(x1,t)
 LHS2 = diff(x2,'t')
@@ -126,6 +147,7 @@ x_eq2 = diff(x2,'t')==trms10
 x_eqs = [x_eq1; x_eq2]
 
 %% 8.2.3b Setting output equations
+% Observed and regulated output equations, and the fields storing them
 y_eqs = [y1==subs(x1,s2,1)+s1*w1;
          y2==subs(x2,s1,3)+w2]
 y_eqs.y{1}.term{2}
@@ -135,6 +157,7 @@ z_eqs.C{3,1}
 z_eqs.C{3,2}
 
 %% 8.2.3c Setting boundary conditions
+% x2(s1,-1) = 0 and x1(0,s2) = u2(t-0.5,s2)
 BC1 = subs(x2,s2,-1)==0
 BC2 = subs(x1,s1,0)==subs(u2,t,t-0.5)
 
@@ -158,6 +181,7 @@ PDE = [diff(x1,t)==x2;
 %% %% 8.2.4 Post-Processing of PDE Structures
 
 %% 8.2.4a Declaring controlled inputs and observed outputs
+% w1 as a controlled input, z as an observed output
 y_eqs_u = setControl(y_eqs,w1)
 z_eqs_y = setObserve(z_eqs,z)
 
@@ -165,12 +189,15 @@ z_eqs_y = setObserve(z_eqs,z)
 PDE_i = initialize(PDE);
 
 %% 8.2.4c Reordering components
+% Reorder the components of the PDE, also after adding an ODE state x3
 PDE_r = reorder_comps(PDE_i);
 x3 = pde_var();
 PDE_2 = initialize([PDE;diff(x3,'t')==-x3]);
 PDE_r2 = reorder_comps(PDE_2);
 
 %% 8.2.4d Combining spatial variables
+% Three transport equations on [0,1], [0,2], [0,3], combined to one
+% spatial variable on [0,1]
 pvar s1 s2 s3
 phi1 = pde_var(s1,[0,1]);  phi2 = pde_var(s2,[0,2]);  phi3 = pde_var(s3,[0,3]);
 PDE_alt = [diff(phi1,'t')==diff(phi1,s1);
@@ -181,9 +208,11 @@ PDE_alt = initialize(PDE_alt)
 PDE_alt = combine_vars(PDE_alt,[0,1])
 
 %% 8.2.4e Expanding delays
+% Replace the delay by a transport equation in an added state
 PDE_d = expand_delays(PDE_i)
 
 %% 8.2.4f Expanding higher-order temporal derivatives
+% 2D wave equation, rewritten as a system first order in time
 PDE_w = [diff(x1,'t',2)==5*(diff(x1,s1,2)+diff(x1,s2,2));
          subs(x1,s1,0)==0;  subs(diff(x1,s1),s1,3)==0;
          subs(x1,s2,-1)==0; subs(diff(x1,s2),s2,1)==0];

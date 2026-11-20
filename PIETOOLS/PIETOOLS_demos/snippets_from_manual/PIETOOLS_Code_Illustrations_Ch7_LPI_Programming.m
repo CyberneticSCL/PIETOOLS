@@ -2,7 +2,12 @@
 % and solved with PIETOOLS. Specifically, we show how an H_infty optimal
 % estimator LPI can be solved for a reaction-diffusion equation with
 % boundary observations.
-% We refer to Chapter 7 of the manual for more context on the codes.
+% The script declares the PDE, converts it to a PIE, declares the LPI
+% program, the decision variables gam, P and Z, the negativity constraint
+% Q <= 0 (and, in the program prog_alt, the same constraint as an
+% equality with positive slacks), solves the program with SeDuMi, and
+% builds the observer gain L and the closed-loop PIE PIE_CL. Lines without
+% a semicolon print prog.vartable, PIE.vars and gam_val.
 %
 % For the example, we consider the following unstable reaction-diffusion
 % equation
@@ -60,10 +65,13 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/28/2024: Initial coding;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 01/05/2025: Use 2D example;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator;
 %% Declare the system of interest
 % Declare the system as a PDE.
@@ -123,11 +131,10 @@ PIE.vars
 % Alternatively, we can also construct an observer for given gam
 %gam = 2;
 
-% % 7.2.2 poslpivar
-% "poslpivar(prog,Pdim,Pdeg,opts)" generates a positive semidefintie PI
-% operator decision variable of dimension Pdim x Pdim, using monomials of
-% degrees specified by Pdeg, and using additional options opts. Only the
-% field "Pdim" is mandatory.
+% % 7.2.2 poscopvar
+% "poscopvar" generates a positive semidefinite PI operator decision
+% variable, using monomials of degrees specified by Pdeg, and using
+% additional options opts.
 % Pdim = T.dim(:,1);                                                        % DB, 11/06/2026 (was)
 % Pdeg = 0;                                                                 % DB, 11/06/2026 (was)
 % P_opts.exclude = [1;                                                      % DB, 11/06/2026 (was)
@@ -135,7 +142,7 @@ PIE.vars
 %                   1;1;1;                                                  % DB, 11/06/2026 (was)
 %                   0;1;1;1;1;1;1;1;1];                                     % DB, 11/06/2026 (was)
 % [prog,P] = poslpivar(prog,Pdim,Pdeg,P_opts);                              % DB, 11/06/2026 (was)
-% NOTE: "poslpivar" only generates positive semidefinite operators. To
+% NOTE: "poscopvar" only generates positive semidefinite operators. To
 % ensure strict positivity, add a positive operator eppos*I:
 % eppos = 1e-4;                                                             % DB, 11/06/2026 (was)
 % P = P +eppos*eye(size(P));                                                % DB, 11/06/2026 (was)
@@ -149,11 +156,9 @@ P_opts.include = {[1 1]};                                                   % DB
 eppos = 1e-4;                                                               % DB, 11/06/2026
 P = P + eppos*eye_copvar_sop(Pdims,Pspaces,dom);                            % DB, 11/06/2026
 
-% % 7.2.3 lpivar
-% "lpivar(prog,Zdim,Zdeg)" generates a PI operator decision variable 
-% of dimension Zdim, using monomials of
-% degrees specified by Pdeg, and using additional options opts. Only the
-% field "Pdim" is mandatory.
+% % 7.2.3 lpivar_cdopvar
+% "lpivar_cdopvar" generates an indefinite PI operator decision variable,
+% using monomials of degrees specified by Zdeg.
 % Zdim = C2.dim(:,[2,1]);                                                   % DB, 11/06/2026 (was)
 % Zdeg = 2;                                                                 % DB, 11/06/2026 (was)
 % [prog,Z] = lpivar(prog,Zdim,Zdeg);                                        % DB, 11/06/2026 (was)
@@ -167,8 +172,8 @@ Zdeg = 2;                                                                   % DB
 
 
 %% 7.3 Imposing Constraints
-% % lpi_ineq
-% We impose negativity Q<=0 using lpi_ineq:
+% % lpi_ineq_sop
+% We impose negativity Q<=0 using lpi_ineq_sop:
 % Iw = eye(size(B1,2));       Iz = eye(size(C1,1));                         % DB, 11/06/2026 (was)
 % Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21)'*T;                       % DB, 11/06/2026 (was)
 %      -D11,              -gam*Iz,  C1;                                     % DB, 11/06/2026 (was)
@@ -190,8 +195,9 @@ clear Q_opts                                                                % DB
 Q_opts.like = P;    Q_opts.dD = 2;                                          % DB, 11/06/2026
 prog = lpi_ineq_sop(prog,-Q,Q_opts);                                        % DB, 11/06/2026
 
-% % lpi_eq
-% Alternatively, we could impose negativity Q<=0 manually using lpi_eq:
+% % lpi_eq_sop
+% Alternatively, we could impose negativity Q<=0 manually using lpi_eq_sop,
+% with positive slacks R1 (degree Rdeg) and R2 (degree Rdeg-1, psatz 1):
 % Rdeg = 3;                                                                 % DB, 11/06/2026 (was)
 % [prog_alt,R1] = poslpivar(prog,Q.dim(:,1),Rdeg);                          % DB, 11/06/2026 (was)
 % R_opts.psatz = 1;                                                         % DB, 11/06/2026 (was)
@@ -229,16 +235,16 @@ gam_val = double(lpigetsol_sop(prog_sol,gam))                               % DB
 Pval = getsol_lpivar_sop(prog_sol,P);                                       % DB, 11/06/2026
 Zval = getsol_lpivar_sop(prog_sol,Z);                                       % DB, 11/06/2026
 
-% % 7.6.1 getObserver
+% % 7.6.1 getObserver_sop
 % Compute the (optimal) observer gain operator L=P^{-1}*Z
 % Lval = getObserver(Pval,Zval);                                            % DB, 11/06/2026 (was)
 % P is separable (a multiplier plus eppos*I), so P^{-1}*Z is computed exactly % DB, 11/06/2026
 Lval = getObserver_sop(Pval,Zval);                                          % DB, 11/06/2026
 
-% % 7.6.2 getController
+% % 7.6.2 getController_sop
 % Compute the (optimal) controller gain operator K=Z*P^{-1} 
 % (not relevant here)
-%Kval = getController(Pval,Zval);
+%Kval = getController_sop(Pval,Zval);
 
 % % 7.6.3
 % Construct the closed-loop PIE representation of the system using the

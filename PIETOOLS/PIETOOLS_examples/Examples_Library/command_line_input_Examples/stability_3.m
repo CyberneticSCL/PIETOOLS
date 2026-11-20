@@ -6,6 +6,45 @@
 %   parameters  k1 = -.5;       k2 = -4.5;                                      
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable )
+%
+% The script declares the 3x3 hyperbolic system x_t = Mm*x - Lm*x_s on
+% [0,1] with the boundary feedback [x1(1); x2(0); x3(0)] =
+% K*[x1(0); x2(1); x3(1)], K = [K00, K01; K10, K11], where Lm, Mm and K are
+% computed from the parameters Hs, Vs, Bs, g, Cf and the gains k1, k2;
+% displays it, converts it to a PIE and displays the PIE. Workspace: PDE
+% ('pde_struct') and PIE ('pie_struct'). If a cell array params of
+% assignment strings (e.g. {'Vs=2;'}) exists in the workspace, its entries
+% are evaluated after the default parameters Hs, Vs, Bs, g, Cf.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - stability_3
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 11/16/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 % Define dependent variables and system variable
@@ -20,18 +59,22 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
         eval(params{j});
     end
  end
+ % Characteristic speeds Lm (sorted), source matrix Mm, and the boundary
+ % feedback K of the gains k1, k2
  Lm = diag(sort(eig([Vs,Hs,0;10,Vs,10;0,1*Vs^2,0])));
  lm1 = Lm(1,1);    lm2 = Lm(2,2);      lm3 = Lm(3,3);
  al1 = Cf*(3*Vs - 2*lm1) * Vs/Hs * lm1/((lm1-lm2)*(lm1-lm3));
  al2 = Cf*(3*Vs - 2*lm2) * Vs/Hs * lm2/((lm2-lm3)*(lm2-lm1));
  al3 = Cf*(3*Vs - 2*lm3) * Vs/Hs * lm3/((lm3-lm1)*(lm3-lm2));
  Mm = [al1*ones(3,1) , al2*ones(3,1) , al3*ones(3,1)];
+ % Coefficients of the boundary feedback law
  a21 = (lm1 - lm2) * (1+ ((lm1-Vs) * (lm2-Vs))/(g*Hs));
  a32 = (lm2 - lm3) * (1+ ((lm2-Vs) * (lm3-Vs))/(g*Hs));
  a13 = (lm3 - lm1) * (1+ ((lm3-Vs) * (lm1-Vs))/(g*Hs));
  c21 = (lm3/g) * (lm1 - lm2);
  c32 = (lm1/g) * (lm2 - lm3);
  c13 = (lm2/g) * (lm3 - lm1);
+ % Gains k1, k2, the boundary matrix K and its blocks
  k1 = -.5;       k2 = -4.5;
  pi2 = (a21 - c21*k1)/(a32 - c32*k1);
  pi3 = (a13 - c13*k1)/(a32 - c32*k1);

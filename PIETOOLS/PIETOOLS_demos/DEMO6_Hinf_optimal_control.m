@@ -1,10 +1,9 @@
 % DEMO6_Hinf_optimal_control.m
-% See Chapter 11.6 of the manual for a description.
 %
 % This document illustrates how an Hinfty optimal controller can be designed
 % for a PDE using the PIE/LPI framework.
 % Specifically, we consider the following system:
-% PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + lam x(t,s) + w(t) + u(t),   s in [0,1];
+% PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + lam x(t,s) + s*w(t) + s*u(t),   s in [0,1];
 % Outputs:       z(t)    = [int_{0}^{1} x(t,s) ds + w(t); u(t)];
 % BCs:                0  = x(t,0) = d/ds x(t,1);
 % (unstable for lam > pi^2/4)
@@ -20,14 +19,23 @@
 %   s.t.            P>=0,
 %       [ -gam*I            D11      (C1*P+D12*Z)*T'            ]
 %       [  D11'            -gam*I    B1'                        ] <= 0
-%       [  T*(C1*P+D12*Z)   B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
+%       [  T*(C1*P+D12*Z)'  B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
 %
 % Then, using K = Z*P^{-1}, the closed-loop system with u = K*v satisfies
 %   ||z||_{L2}/||w||_{L2} <= gam
-% We manually declare this LPI here, but it can also be solved using the
-% "PIETOOLS_Hinf_control" executive file.
+% We manually declare this LPI here; the commented call to lpiscript_sop
+% after the closed-loop construction solves it with the predefined
+% 'hinf-controller' executive instead.
 % We simulate the open loop and closed loop response of the PDE for various
 % initial conditions using PIESIM.
+%
+% The script displays the PDE (lam = 5), solves the LPI with P >= 1e-3*I,
+% computes K from the solved P and Z (getController_sop), builds the
+% closed-loop PIE PIE_CL, simulates the open and closed loop from
+% x(0,s) = sin(pi*s/2) with w(t) = sin(pi*t)/t, and plots the state,
+% output and control effort. Workspace: gam_val, Pval, Zval, Kval,
+% PIE_CL, solution_OL, solution_CL and the sampled x_OL, z_OL, x_CL,
+% z_CL, u_CL. ECHO ON prints each line as it runs.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,6 +62,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, get 
@@ -78,7 +87,9 @@
 % MMP, 11/14/2026: LPIVAR_CDOPVAR reads the spaces and the domain of Z off
 %   B2' (maintainer, 11/14/2026: the same form for "the lpivar indefinite
 %   operator structure"); SPACES is no longer needed. Same program.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
 echo on
 
@@ -99,6 +110,7 @@ PDE = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
        subs(x,s,0)==0;
        subs(diff(x,s),s,1)==0];
 
+% Display the PDE
 display_PDE(PDE);
 
 % % Convert PDE to PIE
@@ -174,7 +186,7 @@ uinput.ic = sin(sx*pi/2);
 uinput.w = sin(pi*st)./(st+eps); 
 
 % % Set options for discretization and simulation
-opts.plot = 'yes';   % don't plot final solution
+opts.plot = 'yes';   % plot the solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-2;     % use time step of 10^-2

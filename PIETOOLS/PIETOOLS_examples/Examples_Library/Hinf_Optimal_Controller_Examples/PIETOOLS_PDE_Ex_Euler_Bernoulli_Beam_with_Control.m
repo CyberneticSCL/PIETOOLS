@@ -1,6 +1,13 @@
 function [PDE_t,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_EULER_BERNOULLI_BEAM_WITH_CONTROL(GUI,PARAMS)
+% returns the Euler-Bernoulli beam below, with distributed control u,
+% disturbance w and regulated output z, as a 'pde_struct' object, and the
+% recommended settings ST of its H-infinity optimal controller synthesis.
+% It sets Hinf_control = 1 in the base workspace; a nonzero GUI prints
+% that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -19,16 +26,43 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,para
 % %            v2_{t}(t,s) = v1_{ss}(t,s)
 % % With BCs     v1(t,s=0) = v1_{s}(t,s=0) = 0;
 % %              v2(t,s=1) = v2_{s}(t,s=1) = 0;
-% % Output            z(t) = [u(t); int_{0}^{1}0.5*(1-s)^2*v2(t,s)ds];
+% % Output            z(t) = int_{0}^{1} (1-s)*v2(t,s) ds;
 % % Parameter c can be set, defaults to 0.1;
 % % Adapted from Example 21 from Shivakumar, 2022 (see bottom of file).
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 01/13/2025
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -40,6 +74,7 @@ pvar s
 %%% Executive Function:
 evalin('base','Hinf_control = 1;')
 
+% Default parameter, overridden by the assignment strings in params
 c = 0.1;
 npars = length(params);
 if npars~=0
@@ -63,11 +98,17 @@ PDE_t = [diff(v1,'t')==-c*diff(v2,s,2)+u+s^2*w;
          subs(v2,s,1)==0;   subs(diff(v2,s),s,1)==0];
 
 
+% No GUI representation of this system
 if GUI
     disp('No GUI representation available for this system.')
 end
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (veryheavy tier; 1-D storage with s-lengths 2 (lower integral), 3 (upper
+% integral) and theta-lengths 4, 4, 3 (multiplier, upper, lower integral);
+% slack lift degree at its minimum Dmin; free operators of degree 1 in the
+% multiplier and 6, 2 in the integral kernels (output, integration
+% variable); no slack weight raise of the synthesis LPI)
 st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
 st.lpi.pos.len_inc{1} = 2;                                                  % MMP, 11/19/2026
 st.lpi.pos.len_com{1} = 3;                                                  % MMP, 11/19/2026

@@ -1,6 +1,13 @@
-function [PDE_t, st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params) % MMP, 11/17/2026
+function [PDE_t, st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_AGE_STRUCTURED_DIFFUSION_KANG(GUI,PARAMS)
+% returns the age-structured diffusion equation below, with a renewal
+% (nonlocal) BC in age, as a 'pde_struct' object, and the recommended
+% settings ST of its stability test. It sets stability = 1 and
+% stability_form = 'Q' (generalized storage T'Q) in the base workspace; a
+% nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,9 +17,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) settings structure that certifies the example    % MMP, 11/17/2026
-%               (application-specific settings, settings report             % MMP, 11/17/2026
-%               11/16/2026 Sec. 5.8).                                       % MMP, 11/17/2026
+% - st:         (optional) recommended settings (lpisettings_sop
+%               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
 % % Age-structured population with spatial diffusion (linear McKendrick
@@ -31,26 +37,33 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params)
 % % first mode decays iff R_eff = b*(1-exp(-c))/c < 1, c = mu + d*pi^2:
 % %   stable iff b < b* = c/(1-exp(-c)) = 2.302685   (c = 1.986960).
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Second output st, the settings that certify the
-%                   example in the storage form 'P', which the light
-%                   tier does not (maintainer: application-specific
-%                   settings where the tiers do not); header;
-% function [PDE_t] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params) % MMP, 11/17/2026 (was)
-% MMP, 11/18/2026: st for the form 'Q' of the library: light with the
-%                   slack lift degree at its minimum, 12.6 times fewer
-%                   variables than the 11/17 st in 'Q' (header);
-% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
-%                   (maintainer: no default settings): st.sop.deg_Q{2} = [0 1 1];
-%                   the form of its tests named in the workspace.
-% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
-%                   recorded tests and files the user does not have, not the problem;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -61,8 +74,9 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test
 
+% Default parameters (b = 0.9*b*), overridden by the strings in params
 d = 0.1;    mu = 1;     b = 0.9*2.302685;
 npars = length(params);
 if npars~=0
@@ -82,17 +96,14 @@ PDE_t = [diff(q,'t')==-diff(q,s1)+d*diff(q,s2,2)-mu*q;
          subs(q,s2,0)==0;           subs(q,s2,1)==0];
 
 
-% Application-specific settings (header): the heavy tier, for the           % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% storage form 'P', without the slack weight raise in two variables         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% Example-specific settings                                                 % MMP, 11/19/2026
-if nargout>1                                                                % MMP, 11/17/2026
-%    st = lpisettings_sop('heavy');                                         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-    st = lpisettings_sop('light');                                          % MMP, 11/18/2026
-    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-%    st.sop.dw_feas(2) = 0;                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
-    st.sop.deg_Q{2} = [0 1 1];                                              % MMP, 11/19/2026
-end                                                                         % MMP, 11/17/2026
+% Example-specific settings (second output only): the light tier, with
+if nargout>1
+    st = lpisettings_sop('light');
+    st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
+    st.sop.deg_Q{2} = [0 1 1];      % Q of degree 0 (multiplier), 1 (integrals)
+end
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

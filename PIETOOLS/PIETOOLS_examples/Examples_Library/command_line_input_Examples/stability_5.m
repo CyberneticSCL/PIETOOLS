@@ -1,8 +1,45 @@
+% STABILITY_5 declares the reaction-diffusion equation
+%   x_t = lam*x + x_ss on [0,1],   x(0) = x(1) = 0,
+% with lam = 9.86; displays it, converts it to a PIE and displays the PIE.
+% Workspace: PDE ('pde_struct') and PIE ('pie_struct'). If a cell array
+% params of assignment strings (e.g. {'lam=9;'}) exists in the workspace,
+% its entries are evaluated after the default parameters.
+%
 %   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86   (unstable for lam > pi^2/4,
 %                                                                                          exponentially stable and FE PDE stable for lam < pi^2 = 9.8696)  
 %   BCs: x(s=0) = 0,      x(s=1) = 0                |                               Ahmadi 2015 [5] 
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy FEPIE2PDE stable ) 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - stability_5
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 11/16/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 % Define dependent variables and system variable

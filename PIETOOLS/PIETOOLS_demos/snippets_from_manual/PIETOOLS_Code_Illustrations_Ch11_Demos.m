@@ -1,6 +1,15 @@
-% This document provides the codes used to plot the simulation results from
-% the various demos, as they appear in Chapter 11 the manual. We refer to 
-% the demo codes and Chapter 11 of the manual for more information.
+% This document runs DEMO1, DEMO5, DEMO6, DEMO7 and DEMO9 and plots their
+% simulation results:
+%  - DEMO1: surface plots of the PDE states phi1 = xi_s and phi2 = xi_t,
+%    and the ODE state x(t), regulated output r(t) and disturbance w(t);
+%  - DEMO5: the true and estimated PDE state at the first, fifth and
+%    seventh grid points, and the estimation error, against log time;
+%  - DEMO6: the open- and closed-loop PDE state at several times, the
+%    regulated output with the disturbance, and the control effort;
+%  - DEMO7: surface plots of the open- and closed-loop PDE state, the
+%    regulated output with the disturbance, and the control effort;
+%  - DEMO9: the disturbance w(t) and the regulated output z(t).
+% The commented saveas lines export the figures as EPS files.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
@@ -27,7 +36,11 @@
 % well, and vice versa. Document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/30/2024: Initial coding;
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
+% Clear the workspace
 clear
 
 %% 11.1 DEMO 1: Stability and Simulation

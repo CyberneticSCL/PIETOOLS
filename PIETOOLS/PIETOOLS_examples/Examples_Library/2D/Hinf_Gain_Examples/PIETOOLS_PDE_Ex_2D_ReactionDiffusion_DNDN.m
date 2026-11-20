@@ -1,6 +1,14 @@
 function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_2D_REACTIONDIFFUSION_DNDN(GUI,PARAMS)
+% returns the 2-D reaction-diffusion equation below, with disturbance w,
+% integral output z, Dirichlet BCs at s1 = a, s2 = c and Neumann BCs at
+% s1 = b, s2 = d, as a 'pde_struct' object, and the recommended settings
+% ST of its H-infinity gain test. It sets Hinf_gain = 1 and Hinf_gain_form
+% = 'P' (storage <T x, R T x>, R >= eppos I) in the base workspace; a
+% nonzero GUI prints that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -21,22 +29,49 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params) % MM
 % % With BCs    x(s1=a) = 0;        x(s2=c) = 0;
 % %             x_{s1}(s1=b) = 0;   x_{s2}(s2=d) = 0;
 % %
-% % Parameters nu and r, and limits a, b, c, d can be set.
+% % Parameters nu and r, the state size ne, and limits a, b, c, d can be set.
 % % Stable for r <= mu_{1,1}, where
 % %     mu_{m,n} = nu*pi^2*((m-1/2)^2/(b-a)^2 +(n-1/2)^2/(d-c)^2)
 % % Then, the L2-gain given by
-% % gam = 8*sqrt((b-a)*(d-c))/pi^2 
-% %             *sqrt(sum_{m=1}^{infty}sum_{n=1}^{infty} 1/((mu_{2m-1,2n-1}-r)*(2m-1)*(2n-1))^2
+% % gam = 8*sqrt((b-a)*(d-c))/pi^2
+% %             *sqrt(sum_{m=1}^{infty}sum_{n=1}^{infty} 1/((mu_{m,n}-r)*(2m-1)*(2n-1))^2
 % %
 % % For nu = 1, r = 1, [a,b]=[c,d]=[0,1], we have gam = 0.20668;
 % %
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/02/2024
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params)  % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -51,6 +86,7 @@ evalin('base','Hinf_gain = 1;');
 evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/19/2026
 %evalin('base','Hinf_gain_dual = 1;');
 
+% Default parameters, overridden by the assignment strings in params
 nu = 1;     r = 1;   ne = 1;
 a = 0;  b = 1;       c = 0;  d = 1;
 npars = length(params);
@@ -100,11 +136,15 @@ PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+w;
 
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (heavy tier; storage on the 2-D space from the basis operators aa and bb
+% only, a the multiplier, b the integral, with theta-lengths [2 2] and
+% [1 1] of their monomial vectors; slack lift degree at its minimum Dmin)
 st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
 st.lpi.pos.len_sos{2} = [2 2;1 1;0 0];                                      % MMP, 11/19/2026
 st.lpi.pos.patterns{2} = 'uniform';                                         % MMP, 11/19/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

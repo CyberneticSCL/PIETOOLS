@@ -1,6 +1,14 @@
 function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_TIMOSHENKO_BEAM_2(GUI,PARAMS) returns
+% the Timoshenko beam below in hyperbolic/diffusive form, all coefficients
+% 1, in the term-based and in the batch format, and the recommended
+% settings ST of its dual stability test. It sets stability_dual = 1 and
+% stability_form = 'Q' (the dual form 'Qd') in the base workspace. With
+% GUI = 1 it also loads the associated GUI save file into a new
+% PIETOOLS_PDE_GUI window.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -38,7 +46,33 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % MM
 % % exponentially stable (Peet, Automatica 2021, Sec. 11.1); stable         % MMP, 11/19/2026
 % % for c > 0 (Peet et al. 2019, Sec. 8.1).                                 % MMP, 11/19/2026
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Timoshenko_Beam_2
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/20/2022
 % MMP, 11/19/2026: the bending term x4_{ss} (E*II*phi_{ss} above) restored
 %                   in x3_t, in both formats: the term-based format never
 %                   had it and 72de7c6b (12/07/2022) set the batch A2 to
@@ -49,6 +83,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % MM
 %                   stability test, and its form ('Q'), from the search of
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)    % MMP, 11/19/2026 (was)
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -196,6 +231,7 @@ PDE_t.BC{5}.term{1}.C = [1,-1];
 
 
 % Example-specific settings                                                 % MMP, 11/19/2026
+% (veryheavy tier; slack lift degree at its minimum Dmin)
 st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 

@@ -1,6 +1,14 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
+% [PDE_t,ST] = PIETOOLS_PDE_EX_WAVE_HEAT_TRANSMISSION_1D_BATTY(GUI,PARAMS)
+% returns the 1-D wave-heat transmission problem below, the wave
+% reflected onto [0,1] in Riemann form, as a 'pde_struct' object, and the
+% recommended settings ST of its stability test. It sets stability = 1 and
+% stability_form = 'P' (storage <T x, P T x>, P >= eppos I) in the base
+% workspace; PARAMS sets nothing (no parameter), and a nonzero GUI prints
+% that no GUI representation exists.
+%
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
 %               implementation of the example should be produced.
@@ -10,8 +18,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         recommended settings (lpisettings_sop structure) for the
+%               test this file names.
 %
 % %---------------------------------------------------------------------% %
 % % Wave-heat transmission in 1D (Batty, Paunonen, Seifert 2016, Dirichlet
@@ -31,22 +39,33 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params
 % % exponentially stable (spectrum in the open left half-plane,
 % % approaching the imaginary axis). No parameter threshold.
 % %---------------------------------------------------------------------% %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty
 %
-% MMP, 11/17/2026: Initial coding;
-% MMP, 11/17/2026: Header: the light tier certifies the example, so
-%                   no second output st (application-specific settings);
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-%                   the entry of 11/17/2026 (no second output st) no longer
-%                   holds;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params)  % MMP, 11/19/2026 (was)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP - 11/17/2026
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -57,7 +76,7 @@ pvar s1
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test
 
 npars = length(params);
 if npars~=0
@@ -81,12 +100,16 @@ PDE_t = [diff(e,'t')==diff(v,s1);
          subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0)];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+% Example-specific settings: the stripped tier, with the 1-D storage from
+% the lower-integral basis operator only (multiplier theta-length 0,
+% upper-integral s-length 0), theta-length 1; slack lift degree at its
+% minimum Dmin
+st = lpisettings_sop('stripped');
+st.lpi.pos.len_com{1} = 0;
+st.lpi.pos.len_sos{1} = [0;2;1];
+st.lpi.ineq.dD = 0;
 
+% No GUI representation of this system
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

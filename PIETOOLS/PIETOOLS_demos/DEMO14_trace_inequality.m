@@ -15,7 +15,7 @@
 % is solved by the free state xf = x_s in L2[0,1] and the free scalar w:
 %               x(s) = xa + int_0^s x_f(theta) d theta.
 % We find the operators such that
-%               x(s) = H1op*[xa; xf] = xa + int_a^s x_s(theta) d theta ,
+%               x(s) = H0op*[xa; xf] = xa + int_a^s x_s(theta) d theta ,
 % and the operators that evaluate x at the boundary,
 %               x(0) = E0op*[xa; xf] = xa,      
 %               x(1) = E1op*[xa; xf] = xa + int_0^1 x_f(theta) d theta.
@@ -29,6 +29,12 @@
 % inequality for one-dimensional Sobolev spaces", arXiv:2108.13926 (2.5).
 %
 % The finite-element method gives bound 2.164 for [a, b] = [0, 1]
+%
+% The script solves the LPI on [0,1] and prints the bound gam next to the
+% finite-element value and the bound of Barraza Martinez et al. Workspace:
+% H0op, H1op, E0op, E1op, the solved program prob, trace_constant. ECHO ON
+% prints each line as it runs.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO14
 %
@@ -53,9 +59,10 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, AT, 11/10/2026: modeled on DEMO3_poincare_inequality.
-% DJ, 11/11/2026: Call `convert` to solve BVP;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding, AT, 11/10/2026
 
+% Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
 echo on
 
@@ -71,7 +78,7 @@ xa = pde_var('in',1);        % xa
 BVP = subs(x,s,a)==xa;
 
 % % Parameterize all x in H1:  x = Top*[w; xf],  xf = x_s
-BVP_sol = convert(BVP);                                                         % DJ (CC), 11/11/2026
+BVP_sol = convert(BVP);
 H0op = [BVP_sol.Tw, BVP_sol.T];     % (H0op*[w;xf]) = x
 H1op = diff(H0op,s);                % (H1op*[w;xf]) = x_{s}
 E0op = subs(H0op,s,a);              % (E0op*[w;xf]) = x(a)
@@ -103,5 +110,6 @@ trace_constant = double(lpigetsol_sop(prob,gam));
 
 echo off
 
+% Print the bound and the reference values
 fprintf(['\n If successful, ',num2str(trace_constant,4),' is an upper bound on c in x(0)^2+x(1)^2 <= c(||x||^2+||x_s||^2) for x in H1[0,1].\n'])
 fprintf([' The optimal value is 2.164 (finite elements); the bound of Barraza Martinez et al. is 4.\n']);
