@@ -9,6 +9,11 @@ function print_convert_summary(PIE,obj,aux_idcs,F_aux)
 % - aux_idcs, F_aux:  (optional) the components of the PIE state that are
 %           auxiliary states xf=F*x, displayed as F*x, and their F;
 %
+% OUTPUT
+% None; prints one line per component, its name in the PIE and the PDE
+% component (derivative, delay or boundary value) it represents. Nothing
+% is printed if the components are those of the PDE in the same order.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - print_convert_summary
 %
@@ -33,8 +38,8 @@ function print_convert_summary(PIE,obj,aux_idcs,F_aux)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DB, 11/18/2026: Move from local function of convert_PIETOOLS_PDE to its own
-%                   file, to also display the conversion of a BVP;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DB - 11/18/2026
 
 names = struct('x','fundamental state component','y','observed output','z','regulated output',...
                'u','actuator input','w','exogenous input');
@@ -82,7 +87,7 @@ thin_space = char(8201);
 partial = '\x2202';
 sup_num = {'\x2070';'\xB9';'\xB2';'\xB3';'\x2074';'\x2075';'\x2076';'\x2077';'\x2078';'\x2079'};
 % The PIE state and inputs are indicated as such in their names (a hat),
-% unlike those of the PDE; the names are given by 'varname2display'
+% unlike those of the PDE
 pie_tag = '';
 if any(strcmp(obj,{'x','u','w'}))
     pie_tag = '_pie';
@@ -167,6 +172,7 @@ for ii=1:ncomps
     else
         diff_str = '';
     end
+    % Spatial derivative (d/ds_j)^k of the PDE component, per variable
     if has_sdiff
         for jj=1:nvars
             sdiff = maps.diff(ii,jj);
@@ -180,12 +186,13 @@ for ii=1:ncomps
             end
         end
     end
+    % Derivatives before the name of the PDE component
     if has_diffs
         RHS_name = [diff_str,RHS_name];
     end
     if nargin>=3 && ismember(ii,aux_idcs)
-        % DB 11/07/2026: auxiliary state xf=F*x, displayed as the integral
-        % form of F*x (not as a boundary value of x)
+        % Auxiliary state xf=F*x, displayed as the integral form of F*x
+        % (not as a boundary value of x)
         F_str = 'F*x';
         try
             F_blk = F_aux{aux_idcs==ii};

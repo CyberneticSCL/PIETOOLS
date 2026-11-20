@@ -19,14 +19,10 @@ function PIE_out = pie2npie_struct(PIE_in)
 %               'polyopvar' objects, and the operators T, ..., Ku as
 %               'tensopmat' objects. The components of the state x, the
 %               inputs, and the outputs are those of PIE_in.space, with the
-%               state components named 'x1_pie', ..., as returned by
-%               `convert_PIETOOLS_PDE`, needed for e.g. `piesos_LF`. The
+%               state components named 'x1_pie', ... (numbers zero-padded
+%               to a common width). The
 %               function spaces and maps between the PDE and the PIE
 %               (space_pde, pie2pde, pde2pie) and PIE_in.misc are copied;
-%
-% NOTES
-% - The result is the same PIE as returned by `convert_PIETOOLS_PDE` with
-%   the flag 'nonlinear', for the same PDE.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,15 +49,11 @@ function PIE_out = pie2npie_struct(PIE_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/29/2026: Update to new PIE structures: accept a PIE with operators
-%                   in 'copvar' format (converting using `pie2opvar`), and
-%                   return an 'npie_struct' object, instead of a struct;
-% DJ, 10/30/2026: Convert all operators, the polynomials gz, gy, and
-%                   the spaces and maps between the PDE and the PIE. Rename
-%                   from PIE2polyPIE;
 
 
+% Initialize the PIE if needed
 if ~PIE_in.is_initialized
     PIE_in = initialize(PIE_in);
 end

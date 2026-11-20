@@ -9,15 +9,26 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % operator
 % It then transforms Chebysehv coefficients of the primary states to the
 % physical solution of the preimary states
-
+%   coefficients of the primary states: Tmap*a + Twmap*w_c*w(t) +
+%   Tumap*u_c*u(t); z = C1*a + D11*w_c*w(t) + D12*u_c*u(t); y = C2*a +
+%   D21*w_c*w(t) + D22*u_c*u(t), with a the coefficients of the fundamental
+%   states and w_c, u_c the spatial coefficients of the inputs.
+%
 % Inputs: 
-% 1) psize - size of the PIE problem: nw, nu, nf, n0 
-% 2) PIE structure - needed for reconstruction of non-zero boundary terms,
-%  observed and regulated outputs
+% 1) psize - size of the PIE problem: N, n0, n, nw, nu, nr0, nrx, no0, nox
+% 2) PIE structure - not used
 % 3) Dop- discretized PIE operators
+%    ('struct' with fields Tcheb_2PDEstate, Tucheb_2PDEstate,
+%    Twcheb_2PDEstate, optionally Tchebmap_2PDEstate, Tuchebmap_2PDEstate,
+%    Twchebmap_2PDEstate (used instead when present), C1cheb, C2cheb,
+%    D11cheb, D12cheb, D21cheb, D22cheb)
 % 4) uinput -  user-defined boundary inputs, forcing functions and initial conditions
+%    ('struct' with fields w, u, cells of function handles of t)
 % 6) solcoeff - Chebyshev coefficients of the time-dependent PDE solution
+%    ('struct' with fields final, tf, w, u and, for BDF, timedep.dtime,
+%    timedep.coeff)
 % 7) opts - options for simulation parameters
+%    ('struct' with fields tf, intScheme)
 % 
 % Outputs: 
 % 1) solution 
@@ -37,7 +48,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 %     final value of finite-dimensional regulated outputs
 % --- solution.final.regulated{2} - array of size (N+1) x nrx 
 %      containing final value of infinite-dimensional regulated ooutputs
-
+%
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2} - cell array containing final value of
@@ -57,12 +68,31 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % containing infinite-dimensional regulated ooutputs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_transform_to_solution
 %
-% Requires: ifcht (inverse Chebyshev transform)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 9_19_2021
 % YP, 6/16/2022 - Added reconstruction of observed and regulated outputs.
 % Added a support of case when LHS PDE operator is n0t the same as the
@@ -73,6 +103,8 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde into
 % solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
 % solution.timedep.primary{1,2}
+% MMP, 11/19/2026: Release comment pass (comment-only).
+
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
 % integration schemes
@@ -93,6 +125,8 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
        psize.nox=0;
     end
 
+     % Maps to the primary-state coefficients; Tmap, Tumap, Twmap replace
+     % T, Tu, Tw when present
      Tcheb_2PDEstate=Dop.Tcheb_2PDEstate; 
      Tucheb_2PDEstate=Dop.Tucheb_2PDEstate;
      Twcheb_2PDEstate=Dop.Twcheb_2PDEstate;
@@ -107,6 +141,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
           Twcheb_2PDEstate=Dop.Twchebmap_2PDEstate;
       end
 
+     % Output operators
      C1op=Dop.C1cheb;
      C2op=Dop.C2cheb;
      D11op=Dop.D11cheb;
@@ -114,6 +149,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      D21op=Dop.D21cheb;
      D22op=Dop.D22cheb;
 
+     % Final time of the computed solution
      if (solcoeff.tf~=opts.tf) 
      disp('Warning: solution final time does n0t match user input final time');
      disp('Defaulting to solution final time');

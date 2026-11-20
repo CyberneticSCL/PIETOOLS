@@ -1,7 +1,7 @@
 function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_summary)
 % Compute opvar2d objects Top, Twop, Tuop defining the map from the
 % fundamental state to the PDE state
-%   v = Top*vf + Twop*wf + Twop*uf
+%   v = Top*vf + Twop*wf + Tuop*uf
 % where v is the PDE state, vf the fundamental state, wf the fundamental
 % exogenous input, and uf the fundamental actuator input. The fundamental
 % state will be given by the highest-order mixed spatial derivative of the
@@ -10,9 +10,9 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 % 
 % INPUTS:
 % - PDE:        A struct or pde_struct object defining a PDE in the terms
-%               format (see also "@pde_struct/initialize").
+%               format; initialized here if it is not.
 % - comp_order: Optional input specifying the adjusted order of components
-%               after running "reorder_comps" for the PDE. Since opvar2d
+%               after reordering the components of the PDE. Since opvar2d
 %               objects map RxL2[x]xL2[y]xL2[x,y], and cannot map e.g.
 %               RxL2[y]xL2[x,y]xL2[x], the components of the PDE must be
 %               reordered to ensure the opvar2d object can act on them. If
@@ -75,7 +75,7 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 %
 % - The routine DOES NOT warn for potential conflicts in the  boundary
 %   conditions. The produced relation 
-%       v = Top*vf + Twop*wf + Twop*uf
+%       v = Top*vf + Twop*wf + Tuop*uf
 %   holds only if the boundary conditions do not conflict. For example,
 %   if we enforce
 %       v(a,y)=0,   v(x,c)=w1(x),
@@ -145,6 +145,7 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 04/15/2024
 % DJ, 12/16/2024: Fix call to 2D converter;
 % DJ, 02/15/2026: Take derivative of all boundary inputs, introducing
@@ -153,6 +154,7 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 %                   the PIE; check PIE_1D.misc.periodic for periodic BCs;
 % DJ (CC), 11/02/2026: Call convert_PIETOOLS_PDE_2D (the old converter,
 %   now in converters/legacy) for the 1D sub-PDEs;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %
 
 % % % Extract the inputs
@@ -380,6 +382,15 @@ end
 function [Top,Twop,Tuop] = construct_1D_Tops(PDE,var_idx)
 % % Build a 1D PDE along just the spatial direction specified by var_idx
 % % satisfying the same BCs as specified in the PDE
+% INPUT
+% - PDE:        initialized 'pde_struct' with 2 spatial variables, its
+%               components reordered;
+% - var_idx:    1 or 2, the spatial direction of the expansion;
+% OUTPUT
+% - Top, Twop, Tuop:    'opvar2d' objects such that
+%                       v = Top*D*v + Twop*w + Tuop*u,
+%               D the derivative along var_idx of the order of each state
+%               component, from the BCs along var_idx only.
 alt_idx = setdiff([1,2],var_idx);
 
 
@@ -514,7 +525,7 @@ catch
 end
 
 % Generalized periodic BCs introduce additional moment states, which are not
-% supported by this approach.                                               % Claude, 10/28/2026
+% supported by this approach.                                               % DB, 10/29/2026
 %   if ~isempty(PIE_1D.F)                                                   % DJ (CC), 10/29/2026 (was)
 % F is no longer a field of the PIE, see PIE.misc.periodic.F.              % DJ (CC), 10/29/2026
 if isfield(PIE_1D.misc,'periodic')                                      % DJ (CC), 10/29/2026
@@ -727,6 +738,17 @@ function [Tnop_x,Tnop_y,use_Dx,use_Dy] = check_state_diffs(PDE,Top_x,Top_y,Dvals
 % Since e.g. Top_x acts only along the x-direction, we may assume that
 % Dop_y*Top_x = 0. However, to be sure, this function checks if this is 
 % indeed the case.
+%
+% INPUT
+% - PDE:            'pde_struct' with 2 spatial variables;
+% - Top_x, Top_y:   'opvar2d' objects, the expansions along x and along y;
+% - Dvals_xy:       nv x 2 'double', the orders of the derivatives in x
+%                   (column 1) and y (column 2) of each state component;
+% OUTPUT
+% - Tnop_x, Tnop_y: 'opvar2d' objects, the rows of Top_x differentiated in
+%                   y (of Top_y in x) to the order of each state, restricted
+%                   to the columns of the highest-order derivatives;
+% - use_Dx, use_Dy: 'logical', true if the Dx (Dy) option is required.
 
 % We assume for now neither option is strictly necessary
 use_Dx = false;   use_Dy = false;
@@ -814,14 +836,16 @@ function [Dvals_w,use_Dx,use_Dy] = compute_input_diffs(Twop_x,Twop_y,Dvals_v,siz
 %                       v = Top_x*Dop_x*v +Twop_x*w +gx
 %                       v = Top_y*Dop_y*v +Twop_y*w +gy
 %                   where Dop_x and Dop_y are diagonal differential
-%                   operators such that Dop_x(k,k)=(d/dx)^Dvals_vy(k,1) and
+%                   operators such that Dop_x(k,k)=(d/dx)^Dvals_v(k,1) and
 %                   Dop_y(k,k) =(d/dy)^Dvals_v(k,2), and where gx and gy
 %                   are potential additional forcings;
-% - Dvals_xy:       nv x 2 array of type 'double' providing the order of
+% - Dvals_v:        nv x 2 array of type 'double' providing the order of
 %                   the derivatives of the PDE state as used in the PIE
 %                   representation, so that v_PIE = Dop_xy*v_PDE, where
 %                   Dop_xy(k,k)=(d/dx)^Dvals_v(k,1)*(d/dy)^Dvals_v(k,2);
-% - size_w:         nw x 1 array specifying for each (vector-valued) input 
+% - size_x:         nv x 1 array specifying for each (vector-valued) state
+%                   component of how many elements it consists;
+% - size_w:        nw x 1 array specifying for each (vector-valued) input 
 %                   component of how many elements it consists; 
 % 
 % OUTPUTS
@@ -883,12 +907,15 @@ for k=1:ncomps
     % % option
     % Check to which states the input w(k) maps through Qop_y
     c_idcs = c_idcs(end) +(1:size_w(k));
+    % tmp_log: whether the columns of w(k) in Twop_y are nonzero in each row
+    % block (R^n0, L2[x], L2[y], L2[x,y]); w(k) in R^n0: R00, Rx0, Ry0, R20
     if c_idcs(end)<=nw_op_y(1)
         idcs = c_idcs;
         tmp_log = [~isequal(polynomial(Twop_y.R00(:,idcs)),0); 
                    ~isequal(polynomial(Twop_y.Rx0(:,idcs)),0);
                    ~isequal(polynomial(Twop_y.Ry0(:,idcs)),0);
                    ~isequal(polynomial(Twop_y.R20(:,idcs)),0)];
+    % w(k) in L2[x]: R0x, Rxx, Ryx, R2x
     elseif c_idcs(end)<=sum(nw_op_y(1:2))
         idcs = c_idcs - nw_op_y(1);
         tmp_log1 = ~isequal(polynomial(Twop_y.R0x(:,idcs)),0);
@@ -900,6 +927,7 @@ for k=1:ncomps
                     ~isequal(polynomial(Twop_y.R2x{2}(:,idcs)),0) | ...
                      ~isequal(polynomial(Twop_y.R2x{3}(:,idcs)),0);
         tmp_log = [tmp_log1; tmp_log2; tmp_log3; tmp_log4];
+    % w(k) in L2[y]: R0y, Rxy, Ryy, R2y
     elseif c_idcs(end)<=sum(nw_op_y(1:3))
         idcs = c_idcs - sum(nw_op_y(1:2));
         tmp_log1 = ~isequal(polynomial(Twop_y.R0y(:,idcs)),0);
@@ -911,6 +939,7 @@ for k=1:ncomps
                     ~isequal(polynomial(Twop_y.R2y{2}(:,idcs)),0) | ...
                      ~isequal(polynomial(Twop_y.R2y{3}(:,idcs)),0);
         tmp_log = [tmp_log1; tmp_log2; tmp_log3; tmp_log4];
+    % w(k) in L2[x,y]: R02, Rx2, Ry2, R22
     else
         idcs = c_idcs - sum(nw_op_y(1:3));
         tmp_log1 = ~isequal(polynomial(Twop_y.R02(:,idcs)),0);
@@ -934,12 +963,14 @@ for k=1:ncomps
     % % Check what derivative of w(k) would need to be taken if we use Dy
     % % option
     % Check to which states the input w(k) maps through Qop_x
+    % tmp_log for Twop_x; w(k) in R^n0: R00, Rx0, Ry0, R20
     if c_idcs(end)<=nw_op_x(1)
         idcs = c_idcs;
         tmp_log = [~isequal(polynomial(Twop_x.R00(:,idcs)),0); 
                    ~isequal(polynomial(Twop_x.Rx0(:,idcs)),0);
                    ~isequal(polynomial(Twop_x.Ry0(:,idcs)),0);
                    ~isequal(polynomial(Twop_x.R20(:,idcs)),0)];
+    % w(k) in L2[x]: R0x, Rxx, Ryx, R2x
     elseif c_idcs(end)<=sum(nw_op_x(1:2))
         idcs = c_idcs - nw_op_x(1);
         tmp_log1 = ~isequal(polynomial(Twop_x.R0x(:,idcs)),0);
@@ -951,6 +982,7 @@ for k=1:ncomps
                     ~isequal(polynomial(Twop_x.R2x{2}(:,idcs)),0) | ...
                      ~isequal(polynomial(Twop_x.R2x{3}(:,idcs)),0);
         tmp_log = [tmp_log1; tmp_log2; tmp_log3; tmp_log4];
+    % w(k) in L2[y]: R0y, Rxy, Ryy, R2y
     elseif c_idcs(end)<=sum(nw_op_x(1:3))
         idcs = c_idcs - sum(nw_op_x(1:2));
         tmp_log1 = ~isequal(polynomial(Twop_x.R0y(:,idcs)),0);
@@ -962,6 +994,7 @@ for k=1:ncomps
                     ~isequal(polynomial(Twop_x.R2y{2}(:,idcs)),0) | ...
                      ~isequal(polynomial(Twop_x.R2y{3}(:,idcs)),0);
         tmp_log = [tmp_log1; tmp_log2; tmp_log3; tmp_log4];
+    % w(k) in L2[x,y]: R02, Rx2, Ry2, R22
     else
         idcs = c_idcs - sum(nw_op_x(1:3));
         tmp_log1 = ~isequal(polynomial(Twop_x.R02(:,idcs)),0);
@@ -1055,7 +1088,7 @@ function np_op = get_opdim(obj_tab)
 %               (j,3:2+nvars) should be binary indices, indicating for each
 %               of the nvars variables whether the component j depends on
 %               this variable.
-%               NOTE: nvars should be 1 or 2
+%               NOTE: nvars = 2 (set below)
 %
 % OUTPUTS:
 % - np_op:      A 4x1 array, indicating the total number of state, input,
@@ -1244,7 +1277,7 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 function print_reorder_diff_summary(PDE,obj,comp_order,Dvals,obj_idcs)
-% print_reorder_summary(PDE,obj,ncomps_x)
+% print_reorder_diff_summary(PDE,obj,comp_order,Dvals,obj_idcs)
 % prints in the command window some information concerning the new order of
 % the components "obj" from the PDE structure as they will appear in the
 % PIE structure.

@@ -1,17 +1,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_DDE2PIE.m     PIETOOLS 2022
+% convert_PIETOOLS_DDE2PIE_legacy.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 % NAIVE Conversion of the DDE formulation to PIE formulation
 % This script uses an inefficient method of constructing a PIE
-% representation of a DDE as defined in solver_PIETOOLS_DDE and
-% error-checked in initialize_PIETOOLS_DDE.
-% 
+% representation of a DDE; the DDE is first completed and checked
+% (undefined terms set to zero).
+%
 % A Partial Integral Equation is defined by 12 PI operators as
 %
-% TB1op \dot{w}(t)+TB2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op u(t)+ B2op w(t)
-%                                             z(t)= C1op x(t) + D11op u(t)+ D12op w(t)
-%                                             y(t)= C2op x(t) + D21op u(t)+ D22op w(t)
+% TB1op \dot{w}(t)+TB2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op w(t)+ B2op u(t)
+%                                             z(t)= C1op x(t) + D11op w(t)+ D12op u(t)
+%                                             y(t)= C2op x(t) + D21op w(t)+ D22op u(t)
 %
 % The formulae were defined in (12) and (15)-(16) in the paper
 % ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs''
@@ -33,9 +33,24 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 %        w(t);
 %        u(t)];
 % The outputs of these channels are then picked up by
-% Ai, Adi, C1i, C1di, C2i, C2di      for x(t) 
+% Ai, Adi, C1i, C1di, C2i, C2di      for x(t)
 % B1i, B1di D11i, D11di, D21i, D21di for w(t)
 % B2i, B2di D12i, D12di, D22i, D22di for u(t)
+%
+% INPUT
+%   DDE:  'struct', the DDE with K = numel(DDE.tau) delays
+%     \dot x(t) = A0 x(t) + sum_i Ai{i} x(t-tau(i)) + sum_i int_{-tau(i)}^0 Adi{i}(s) x(t+s) ds
+%               + B1 w(t) + (B1i, B1di likewise) + B2 u(t) + (B2i, B2di likewise)
+%          z(t) = C1 x(t) + D11 w(t) + D12 u(t) + (C1i, C1di, D11i, D11di, D12i, D12di likewise)
+%          y(t) = C2 x(t) + D21 w(t) + D22 u(t) + (C2i, C2di, D21i, D21di, D22i, D22di likewise)
+%         with 1 x K cells of 'double' matrices (Ai, ...) and of 'double'
+%         or 'polynomial' kernels in s1 (Adi, ...); undefined fields are
+%         zero.
+%
+% OUTPUT
+%   PIE:  'pie_struct', initialized: the twelve 'copvar' operators T, Tw,
+%         Tu, A, B1, B2, C1, D11, D12, C2, D21, D22 on R^nx x
+%         L2^((nx+nw+nu)*K)[-1,0], spatial variable s1 (dummy s1_dum).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -59,6 +74,7 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 7_01_2020
 %  MP - 6_1_2021:  made a function. Changed name. Added warning
 %  SS - 9/28: added correction to fix 0x0 empty matrices by replacing with empty matrices of correct size 
@@ -73,12 +89,13 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 %                   rejected the PIE (12 of the 26 library DDEs). The PIE
 %                   is now initialized here, as by convert_PIETOOLS_DDF, and
 %                   its variables are set in PIE.space (DJ, 10/29/2026).
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 disp('WARNING: convert_PIETOOLS_DDE2PIE is no longer supported! Direct conversion of DDE to PIE is NOT recommended and may result in very large computation times!!! Please use minimize_PIETOOLS_DDE2PIE instead!')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The following dimensions should have been defined in the
-% initialize_PIETOOLS_DDE script
+% Complete and check the DDE (undefined terms zero), then read off the
+% dimensions
 DDE=initialize_PIETOOLS_DDE(DDE);
 nx=size(DDE.A0,1);   % number of states
 nw=size(DDE.B1,2);   % number of disturbances
@@ -104,8 +121,9 @@ end
 Tba=zeros((nw+nu+nx)*nK);
 Tbb=-eye((nw+nu+nx)*nK);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% We now define the matrices in Eqns 15-16 in ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs'' 
+%%% We now define the matrices in Eqns 15-16 in ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs''
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Terms at time t: the coefficients A0, B1, B2, C1, C2, D11, ..., D22
 Ab0=DDE.A0;
 Ab=[];
 Bb1=DDE.B1;
@@ -118,6 +136,11 @@ Db11=DDE.D11;
 Db12=DDE.D12;
 Db21=DDE.D21;
 Db22=DDE.D22;
+% Delay i, channel phi_i(t,s) = r_i(t+tau(i)*s), r_i = [x; w; u]:
+% r_i(t-tau(i)) = r_i(t) - int_{-1}^0 phi_s,i, so the delayed terms add
+% Ai{i} + tau(i)*int_{-1}^0 Adi{i}(tau(i)*s) ds (and likewise) to the
+% coefficients at time t, and -XAi(s) (-XC1i, -XC2i) to the kernels of
+% phi_s, XAi(s) = [Ai B1i B2i] + tau(i)*int_{-1}^s [Adi B1di B2di](tau(i)*eta) d eta
 for i = 1:nK
   XAi=[DDE.Ai{i} DDE.B1i{i} DDE.B2i{i}]+DDE.tau(i)*int(subs([DDE.Adi{i} DDE.B1di{i} DDE.B2di{i}],s1,DDE.tau(i)*s1),s1,-1,s1);
   XC1i=[DDE.C1i{i} DDE.D11i{i} DDE.D12i{i}]+DDE.tau(i)*int(subs([DDE.C1di{i} DDE.D11di{i} DDE.D12di{i}],s1,DDE.tau(i)*s1),s1,-1,s1);
@@ -309,7 +332,7 @@ PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
 PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-% Check the spaces of the operators, as convert_PIETOOLS_DDF does           % MMP, 11/04/2026
+% Check the spaces of the operators                                         % MMP, 11/04/2026
 PIE = initialize(PIE);                                                      % MMP, 11/04/2026
 
 end

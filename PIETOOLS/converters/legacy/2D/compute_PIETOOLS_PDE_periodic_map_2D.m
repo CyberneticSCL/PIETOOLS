@@ -1,4 +1,5 @@
 function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
+% [TOP_X,FOP,KOP,INFO] = COMPUTE_PIETOOLS_PDE_PERIODIC_MAP_2D(PDE)
 % Reconstruct a 2D PDE that has generalized periodic BCs along one of its
 % two spatial directions, and regular (invertible) BCs along the other.
 % We call p the periodic direction and q the other direction. Along p, the
@@ -11,8 +12,7 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 % INPUTS:
 % - PDE:    Initialized 'pde_struct' with two spatial variables, in which
 %           all state components depend on both variables, and with BCs
-%           not yet expanded (see "expand_PIETOOLS_PDE_BCs"), none of which
-%           involves an input.
+%           not yet expanded, none of which involves an input.
 %
 % OUTPUTS:
 % - Top_x:  'opvar2d' mapping [Dq*v0; xf] to the PDE state x;
@@ -20,10 +20,12 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 %           are integrals of x along p;
 % - Kop:    'opvar2d' defining the constraint Kop*[Dq*v0; xf]=0, which takes
 %           values in L2[q];
-% - info:   Struct with fields reconstruction (the operator Top_x), n_aux,
-%           boundary_rank, jordan_transform, free_boundary_columns,
-%           source_components, as in "compute_PIETOOLS_PDE_periodic_map",
-%           and additionally
+% - info:   Struct with fields reconstruction (the operator Top_x), n_aux
+%           (the number of moment states), boundary_rank,
+%           jordan_transform, free_boundary_columns, source_components
+%           (the rank of the BC matrix along p, the row operations
+%           reducing it, its nonpivot columns, and the state component of
+%           each of these), and additionally
 %               direction:      index (1 or 2) of the periodic variable;
 %               selector:       'opvar2d' mapping [Dq*v0; xf] to v0 (or, if
 %                               periodic in both directions, mapping the
@@ -74,12 +76,8 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding: Claude 10/28/2026
-% Claude, 10/29/2026: Add generalized PBCs along both spatial directions
-% DJ (CC), 10/29/2026: The operator F of the 1D PIEs is read from
-%                   PIE.misc.periodic.F, as F is no longer a field of the PIE;
-% DJ (CC), 11/02/2026: Call convert_PIETOOLS_PDE_2D (the old converter,
-%   now in converters/legacy) for the 1D sub-PDEs;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DB - 10/29/2026
 
 id_unsup = 'PIETOOLS:convert:Periodic2D';
 dom = PDE.dom;      vars = PDE.vars;
@@ -103,11 +101,9 @@ end
 PIE_dir = cell(1,2);    is_per = false(1,2);
 for dd=1:2
     PDE_1D = build_1D_PDE(PDE,dd,id_unsup);
-%    PIE_dir{dd} = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});        % DJ (CC), 11/02/2026 (was)
-    PIE_dir{dd} = convert_PIETOOLS_PDE_2D(PDE_1D,[],{'silent','Top'});      % DJ (CC), 11/02/2026
-%   is_per(dd) = ~isempty(PIE_dir{dd}.F);                                   % DJ (CC), 10/29/2026 (was)
-    % F is no longer a field of the PIE, but kept in PIE.misc.periodic.F.      % DJ (CC), 10/29/2026
-    is_per(dd) = isfield(PIE_dir{dd}.misc,'periodic');                      % DJ (CC), 10/29/2026
+    PIE_dir{dd} = convert_PIETOOLS_PDE_2D(PDE_1D,[],{'silent','Top'});
+    % F is no longer a field of the PIE, but kept in PIE.misc.periodic.F.
+    is_per(dd) = isfield(PIE_dir{dd}.misc,'periodic');
 end
 if ~any(is_per)
     error('PIETOOLS:convert:NotPeriodic2D','The boundary conditions are not periodic along either spatial direction.')
@@ -118,8 +114,7 @@ elseif all(is_per)
 end
 p = find(is_per);       q = 3-p;
 PIEp = PIE_dir{p};      PIEq = PIE_dir{q};
-%Tp1 = PIEp.T;           Fp1 = PIEp.F;           Kp1 = PIEp.K;            % DJ (CC), 10/29/2026 (was)
-Tp1 = PIEp.T;           Fp1 = PIEp.misc.periodic.F;     Kp1 = PIEp.K;       % DJ (CC), 10/29/2026
+Tp1 = PIEp.T;           Fp1 = PIEp.misc.periodic.F;     Kp1 = PIEp.K;
 info1 = PIEp.misc.periodic;
 m = info1.n_aux;
 vars_old_p = Tp1.var1;
@@ -195,10 +190,12 @@ for jj=1:m
             end
         end
         for ii=1:3
+            % Moment jj takes the BC coefficient of component kk
             M_cell{ii}(jj,jk) = Rq_cell{ii}(sigma(jj),kk);
         end
     end
 end
+% Tq: the expansion along q of [v0; Dp*x]; Sel: its rows for v0
 Tq = opvar2d([],[dimTop,dimTop],dom,vars);
 Sel = opvar2d([],[dimMom,dimTop],dom,vars);
 for ii=1:3
@@ -237,9 +234,12 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function PDE_1D = build_1D_PDE(PDE,var_idx,id_unsup)
 % Build a 1D PDE along just the spatial direction var_idx, satisfying the
-% same BCs along this direction as the 2D PDE, as in the construction of
-% the 1D maps in "Compute_Tmap_PDE_2D_Separable". All components must
+% same BCs along this direction as the 2D PDE. All components must
 % depend on both variables, and no inputs are included.
+% INPUT:  PDE - initialized 2D 'pde_struct'; var_idx - 1 or 2, the
+%         direction; id_unsup - char, the identifier of the error thrown
+%         for a BC with a derivative in the other direction
+% OUTPUT: PDE_1D - initialized 1D 'pde_struct', components reordered
 alt_idx = 3-var_idx;
 pde_struct PDE_1D;
 PDE_1D.x = PDE.x;
@@ -277,6 +277,9 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function tf = is_zero_poly(P)
 % Check whether a 'polynomial' is (numerically) zero.
+% INPUT:  P - 'double' or 'polynomial'
+% OUTPUT: tf - true if every coefficient is below 1e-12 in absolute value
+%         (exactly zero for a 'double')
 if isa(P,'double')
     tf = all(P(:)==0);
     return
@@ -287,6 +290,10 @@ end
 
 function val = lift(P,vars_old,vars_new)
 % Express a 1D polynomial kernel in terms of the variables of the 2D PDE.
+% INPUT:  P - 'double' or 'polynomial' kernel; vars_old, vars_new -
+%         'polynomial' arrays of the same size, the variables to replace
+%         and their replacements
+% OUTPUT: val - 'polynomial', P with vars_old substituted by vars_new
 val = subs(polynomial(P),vars_old,vars_new);
 end
 
@@ -295,6 +302,10 @@ function P = set_param(P,rb,cb,ii,val)
 % Set the parameter of the 'opvar2d' P mapping block cb to block rb, with
 % index ii along the shared variable, to the value val. Here, blocks 1 to 4
 % correspond to the spaces R, L2[s1], L2[s2], L2[s1,s2].
+% INPUT:  P - 'opvar2d' object; rb, cb - integers 1 to 4, the output and
+%         input blocks; ii - index into a cell parameter (unused for a
+%         non-cell parameter); val - the new value
+% OUTPUT: P - the 'opvar2d' object with the parameter set
 names = {'0','x','y','2'};
 fname = ['R',names{rb},names{cb}];
 if iscell(P.(fname))
@@ -322,6 +333,11 @@ function [Top_x,Fop,Kop,info] = periodic_map_both_2D(PDE,PIE_dir,id_unsup)
 % where K1_f and K2_f are the constraints from the 1D expansions.
 % The expansion of a and b is only valid if the BCs do not couple the
 % different state components, which we check.
+% INPUT:  PDE - initialized 2D 'pde_struct'; PIE_dir - 1 x 2 cell, the
+%         PIEs of the 1D expansions along s1 and s2; id_unsup - char, the
+%         identifier of the errors thrown for unsupported BCs
+% OUTPUT: Top_x, Fop, Kop, info - as for the main function, for the PIE
+%         state [z; u; y; xf]
 dom = PDE.dom;      vars = PDE.vars;
 x_tab = PDE.x_tab;
 ncomps = size(x_tab,1);     n = sum(x_tab(:,2));
@@ -334,8 +350,7 @@ for dd=1:2
     PIEd = PIE_dir{dd};
     vars_old = PIEd.vars(1,:)';     vars_new = vars(dd,:)';
     Td = PIEd.T;
-%   L.F = lift(PIEd.F.Q1,vars_old,vars_new);                                % DJ (CC), 10/29/2026 (was)
-    L.F = lift(PIEd.misc.periodic.F.Q1,vars_old,vars_new);                  % DJ (CC), 10/29/2026
+    L.F = lift(PIEd.misc.periodic.F.Q1,vars_old,vars_new);
     L.T0 = lift(Td.Q2,vars_old,vars_new);
     L.K = lift(PIEd.K.Q1,vars_old,vars_new);
     L.R = cell(1,3);
@@ -362,6 +377,7 @@ for dd=1:2
                         ' if the boundary conditions are not coupled between the state components.'])
             end
         end
+        % No coefficient of R couples two different scalar states
         for ss2=1:n
             if ss2~=ss
                 for ii=1:3
@@ -373,6 +389,7 @@ for dd=1:2
             end
         end
     end
+    % Each row of K involves one scalar state
     for rr=1:L.k
         if nnz(~arrayfun(@(c) is_zero_poly(L.K(rr,c)),1:n))~=1
             error(id_unsup,['Periodic boundary conditions along both spatial directions are only supported',...
@@ -381,6 +398,8 @@ for dd=1:2
     end
     D{dd} = L;
 end
+% Orders of differentiability along s1, s2 of each scalar state; numbers
+% and source states of the moments along s1 and s2
 d_ord = zeros(n,2);
 for dd=1:2,     d_ord(:,dd) = x_tab(comp_of,4+dd);  end
 m1 = D{1}.m;    m2 = D{2}.m;
@@ -504,6 +523,8 @@ end
 Kop = [K3; Kc2; Kc1];
 
 %% Collect the information
+% x_tab rows of the moment states: the pairs z, the moments along s2
+% (functions of s1), the moments along s1 (functions of s2)
 x_tab_rows = zeros(npr+m2+m1,6);
 for pp=1:npr
     x_tab_rows(pp,:) = [comp_of(sig1(pairs(pp,1))),1,0,0,0,0];
@@ -514,6 +535,8 @@ end
 for jj=1:m1
     x_tab_rows(npr+m2+jj,:) = [comp_of(sig1(jj)),1,0,1,0,d_ord(sig1(jj),2)];
 end
+% info: reconstruction, number of moment states, BC data along both
+% directions, selector of the moment states
 info = struct();
 info.reconstruction = Top_x;
 info.n_aux = npr+m2+m1;

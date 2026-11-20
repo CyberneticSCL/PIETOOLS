@@ -75,16 +75,41 @@ function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % ~ NOTE: The workspace is cleaned at the end of the file, but feel free to
 % exclude variables from this cleaning process if they are needed for
 % anything.
+%
+% OUTPUT
+% PDE_out - the same PDE 'struct', with every dimension and term defined
+%           (zero-valued, of appropriate dimension, where not specified)
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - initialize_PIETOOLS_PDE_terms_legacy
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP  - 5_29_2021
 % SS - 6/1/2021; modified initA, initCrp etc to allow for repeated terms
 % DJ - 12/29/2021: Added option to suppress (less important) warnings
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Suppress warnings if desired
 suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));
@@ -127,6 +152,9 @@ list = [fieldnames(PDE.n); fieldnames(PDE.ODE); fieldnames(PDE.PDE); fieldnames(
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% nx: if any of nx, Bxu, Bxw, Bxr, Cy, Cz, Cv is defined, the rows of
+% ODE.A if defined, else the field nx, else the rows of the first defined
+% of Bxu, Bxw, Bxr or the columns of Cy, Cz, Cv
 logVal = isdefined(list,{'nx';'Bxu';'Bxw';'Bxr';'Cy';'Cz';'Cv'});
 
 if ~isempty(logVal)
@@ -145,6 +173,7 @@ if ~isempty(logVal)
     elseif logVal==7
         PDE.n.nx = size(PDE.ODE.Cv,2);
     end
+% None defined: nx = 0
 else
     if ~suppress
     disp('Warning: Number of ODE state variables is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -152,6 +181,8 @@ else
     PDE.n.nx=0;
 end
 
+% nu: the field nu, else the columns of the first defined of Bxu, Dzu,
+% Dyu, Dvu
 logVal = isdefined(list,{'nu';'Bxu';'Dzu';'Dyu';'Dvu'});
 if ~isempty(logVal)
     if logVal==2
@@ -163,6 +194,7 @@ if ~isempty(logVal)
     elseif logVal==5
         PDE.n.nu = size(PDE.ODE.Dvu,2);
     end
+% None defined: nu = 0
 else
     if ~suppress
     disp('Warning: Number of inputs is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -170,6 +202,8 @@ else
     PDE.n.nu=0;
 end
 
+% nw: the field nw, else the columns of the first defined of Bxw, Dzw,
+% Dyw, Dvw
 logVal = isdefined(list,{'nw';'Bxw';'Dzw';'Dyw';'Dvw'});
 if ~isempty(logVal)
     if logVal==2
@@ -181,6 +215,7 @@ if ~isempty(logVal)
     elseif logVal==5
         PDE.n.nw = size(PDE.ODE.Dvw,2);
     end
+% None defined: nw = 0
 else
     if ~suppress
     disp('Warning: Number of disturbances is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -188,6 +223,8 @@ else
     PDE.n.nw=0;
 end
 
+% nz: the field nz, else the rows of the first defined of Cz, Dzw, Dzu,
+% Dzr
 logVal = isdefined(list,{'nz';'Cz';'Dzw';'Dzu';'Dzr'});
 if ~isempty(logVal)
     if logVal==2        
@@ -199,6 +236,7 @@ if ~isempty(logVal)
     elseif logVal==5
         PDE.n.nz = size(PDE.ODE.Dzr,1);
     end
+% None defined: nz = 0
 else
     if ~suppress
     disp('Warning: Number of regulated outputs is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -206,6 +244,8 @@ else
     PDE.n.nz=0;
 end
 
+% ny: the field ny, else the rows of the first defined of Cy, Dyw, Dyu,
+% Dyr
 logVal = isdefined(list,{'ny';'Cy';'Dyw';'Dyu';'Dyr'});
 if ~isempty(logVal)
     if logVal==2
@@ -217,6 +257,7 @@ if ~isempty(logVal)
     elseif logVal==5
         PDE.n.ny = size(PDE.ODE.Dyr,1);
     end
+% None defined: ny = 0
 else
     if ~suppress
     disp('Warning: Number of observed outputs is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -224,6 +265,7 @@ else
     PDE.n.ny=0;
 end
 
+% nv: the field nv, else the rows of the first defined of Cv, Dvw, Dvu
 logVal = isdefined(list,{'nv';'Cv';'Dvw';'Dvu'});
 if ~isempty(logVal)
     if logVal==2        
@@ -233,6 +275,7 @@ if ~isempty(logVal)
     elseif logVal==4
         PDE.n.nv = size(PDE.ODE.Dvu,1);
     end
+% None defined: nv = 0
 else
     if ~suppress
     disp('Warning: Number of ODE 2 PDE interconnection signals is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -241,6 +284,8 @@ else
 end
 
 
+% nr: the field nr, else the columns of Bxr, Dzr, Dyr or the rows of Crp,
+% Drb, Drv, the first defined
 logVal = isdefined(list,{'nr';'Bxr';'Dzr';'Dyr';'Crp';'Drb';'Drv'});
 if ~isempty(logVal)
     if logVal==2   
@@ -256,6 +301,7 @@ if ~isempty(logVal)
     elseif logVal==7   
         PDE.n.nr = size(PDE.PDE.Drv,1);
     end
+% None defined: nr = 0
 else
     if ~suppress
     disp('Warning: Number of PDE 2 ODE interconnection signals is neither defined explicitly nor through parameters. Defaulting to zero');
@@ -263,6 +309,8 @@ else
     PDE.n.nr=0;
 end
 
+% n_pde (required): N, np, the numbers of derivative terms and of
+% boundary values
 if ~isfield(PDE.n,'n_pde')
     disp('Warning: Number of PDE states n_pde is not defined. Defaulting to zero');
     PDE.n.n_pde=[];
@@ -311,6 +359,7 @@ nz = PDE.n.nz;  ny = PDE.n.ny;  nv = PDE.n.nv;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initialize ODE dynamics related parameters
+% A: zero if undefined or not no x no
 if ~isfield(PDE.ODE,'A')
     if ~suppress
     disp('A is undefined. Defaulting to zero');
@@ -320,6 +369,7 @@ elseif any(size(PDE.ODE.A)~=[no,no])
     disp('A has incorrect dimension. Defaulting to zero');
     PDE.ODE.A = zeros(no);
 end
+% Bxw: zero if undefined or not no x nw
 if ~isfield(PDE.ODE,'Bxw')
     if ~suppress
     disp('Bxw is undefined. Defaulting to zero');
@@ -329,6 +379,7 @@ elseif any(size(PDE.ODE.Bxw)~=[no,nw])
     disp('Bxw has incorrect dimension. Defaulting to zero');
     PDE.ODE.Bxw = zeros(no,nw);
 end
+% Bxu: zero if undefined or not no x nu
 if ~isfield(PDE.ODE,'Bxu')
     if ~suppress
     disp('Bxu is undefined. Defaulting to zero');
@@ -338,6 +389,7 @@ elseif any(size(PDE.ODE.Bxu)~=[no,nu])
     disp('Bxu has incorrect dimension. Defaulting to zero');
     PDE.ODE.Bxu = zeros(no,nu);
 end
+% Bxr: zero if undefined or not no x nr
 if ~isfield(PDE.ODE,'Bxr')
     if ~suppress
     disp('Bxr is undefined. Defaulting to zero');
@@ -350,6 +402,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initialize ODE 2 PDE interconnection related parameters
+% Cv: zero if undefined or not nv x no
 if ~isfield(PDE.ODE,'Cv')
     if ~suppress
     disp('Cv is undefined. Defaulting to zero');
@@ -359,6 +412,7 @@ elseif any(size(PDE.ODE.Cv)~=[nv,no])
     disp('Cv has incorrect dimension. Defaulting to zero');
     PDE.ODE.Cv = zeros(nv,no);
 end
+% Dvw: zero if undefined or not nv x nw
 if ~isfield(PDE.ODE,'Dvw')
     if ~suppress
     disp('Dvw is undefined. Defaulting to zero');
@@ -368,6 +422,7 @@ elseif any(size(PDE.ODE.Dvw)~=[nv,nw])
     disp('Dvw has incorrect dimension. Defaulting to zero');
     PDE.ODE.Dvw = zeros(nv,nw);
 end
+% Dvu: zero if undefined or not nv x nu
 if ~isfield(PDE.ODE,'Dvu')
     if ~suppress
     disp('Dvu is undefined. Defaulting to zero');
@@ -381,6 +436,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initialize Regulated output related parameters
 
+% Cz: zero if undefined or not nz x no
 if ~isfield(PDE.ODE,'Cz')
     if ~suppress
     disp('Cz is undefined. Defaulting to zero');
@@ -390,6 +446,7 @@ elseif any(size(PDE.ODE.Cz)~=[nz,no])
     disp('Cz has incorrect dimension. Defaulting to zero');
     PDE.ODE.Cz = zeros(nz,no);
 end
+% Dzw: zero if undefined or not nz x nw
 if ~isfield(PDE.ODE,'Dzw')
     if ~suppress
     disp('Dzw is undefined. Defaulting to zero');
@@ -399,6 +456,7 @@ elseif any(size(PDE.ODE.Dzw)~=[nz,nw])
     disp('Dzw has incorrect dimension. Defaulting to zero');
     PDE.ODE.Dzw = zeros(nz,nw);
 end
+% Dzu: zero if undefined or not nz x nu
 if ~isfield(PDE.ODE,'Dzu')
     if ~suppress
     disp('Dzu is undefined. Defaulting to zero');
@@ -408,6 +466,7 @@ elseif any(size(PDE.ODE.Dzu)~=[nz,nu])
     disp('Dzu has incorrect dimension. Defaulting to zero');
     PDE.ODE.Dzu = zeros(nz,nu);
 end
+% Dzr: zero if undefined or not nz x nr
 if ~isfield(PDE.ODE,'Dzr')
     if ~suppress
     disp('Dzr is undefined. Defaulting to zero');
@@ -421,6 +480,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initialize Observed output related parameters
 
+% Cy: zero if undefined or not ny x no
 if ~isfield(PDE.ODE,'Cy')
     if ~suppress
     disp('Cy is undefined. Defaulting to zero');
@@ -430,6 +490,7 @@ elseif any(size(PDE.ODE.Cy)~=[ny,no])
     disp('Cy has incorrect dimension. Defaulting to zero');
     PDE.ODE.Cy = zeros(ny,no);
 end
+% Dyw: zero if undefined or not ny x nw
 if ~isfield(PDE.ODE,'Dyw')
     if ~suppress
     disp('Dyw is undefined. Defaulting to zero');
@@ -439,6 +500,7 @@ elseif any(size(PDE.ODE.Dyw)~=[ny,nw])
     disp('Dyw has incorrect dimension. Defaulting to zero');
     PDE.ODE.Dyw = zeros(ny,nw);
 end
+% Dyu: zero if undefined or not ny x nu
 if ~isfield(PDE.ODE,'Dyu')
     if ~suppress
     disp('Dyu is undefined. Defaulting to zero');
@@ -448,6 +510,7 @@ elseif any(size(PDE.ODE.Dyu)~=[ny,nu])
     disp('Dyu has incorrect dimension. Defaulting to zero');
     PDE.ODE.Dyu = zeros(ny,nu);
 end
+% Dyr: zero if undefined or not ny x nr
 if ~isfield(PDE.ODE,'Dyr')
     if ~suppress
     disp('Dyr is undefined. Defaulting to zero');
@@ -475,6 +538,8 @@ end
 % initBpb = repmat({struct('coeff',{},'Lstate',{},'Rstate',{},'D',{},'delta',{})}, 1,(N+1)*(2*np_all_derivatives-2*(N+1)))
 initBpb = cell(1,(N+1)*(2*np_all_derivatives-2*(N+1)));
 m=1;
+% One zero term per left state i, boundary j (0: a, 1: b), derivative k
+% and right state l > k
 for i=0:N
     for j=0:1
         for k=0:N-1   
@@ -490,6 +555,8 @@ for i=0:N
         end
     end
 end
+% Bpb: the user terms of the right size added into initBpb; the others
+% zero
 if ~isfield(PDE.PDE,'Bpb')
     if ~suppress
     disp('Bpb is undefined. Defaulting to zero');
@@ -588,6 +655,7 @@ end
 
 % initialize a temporary Drb regardless of user input
 clear tmp
+% One zero term per boundary j (0: a, 1: b), derivative k and state l > k
 initDrb = cell(1,2*np_all_derivatives - 2*(N+1));
 m=1;
 for j=0:1
@@ -603,6 +671,8 @@ for j=0:1
     end
 end
 
+% Drb: the user terms of the right size added into initDrb; the others
+% zero
 if ~isfield(PDE.PDE,'Drb')
     if ~suppress
     disp('Drb is undefined. Defaulting to zero');
@@ -738,6 +808,7 @@ end
 
 % initialize a temporary Ebb regardless of user input
 clear tmp
+% One zero term per boundary j (0: a, 1: b), derivative k and state l > k
 initEbb = cell(1,2*np_all_derivatives - 2*(N+1));
 m=1;
 
@@ -754,6 +825,8 @@ for j=0:1
     end
 end
 
+% Ebb: the user terms of the right size added into initEbb; the others
+% zero
 if ~isfield(PDE.BC,'Ebb')
     if ~suppress
     disp('Ebb is undefined. Defaulting to zero');
@@ -795,6 +868,9 @@ end
 function logicalVal = isdefined(defined_list, test_list)
 %this function tests if the terms in test_list are present in the
 %defined_list and returns the first match location
+% INPUT   defined_list, test_list: cellstr
+% OUTPUT  logicalVal: index in test_list of its first element in
+%         defined_list; [] if none
 logicalVal = find(ismember(test_list, defined_list));
 if ~isempty(logicalVal)
     logicalVal = logicalVal(1);

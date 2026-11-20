@@ -2,10 +2,22 @@
 % PIESIM_fullPI2Mat_cheb_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs a discrete version of the full 2D PI operator  
+% R maps R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y] to the same kind of
+% space; A is the block matrix
+%   [R00 R0x R0y R02; Rx0 Rxx Rxy Rx2; Ry0 Ryx Ryy Ry2; R20 R2x R2y R22]
+% of the discretized blocks, acting on Chebyshev coefficients. Rows of
+% states (flag >= 2) and columns of states (flag odd) keep the
+% coefficients resolved for the degree of smoothness of the state.
 %
 % Inputs:
 % Rop - 2D PI operator 
+%    ('struct' with the kernel fields R00, R0x, R0y, R02, Rx0, Rxx, Rxy,
+%    Rx2, Ry0, Ryx, Ryy, Ry2, R20, R2x, R2y, R22 – cells, along each
+%    variable on which both spaces depend, of the multiplier and the
+%    integrals from the lower bound and to the upper bound – and var1,
+%    var2, the 2x1 variables and dummy variables)
 % psize - size of the PIE problem: all variables defining the size of the PIE problem
+%    ('struct' with fields N = [N_x, N_y], nx, ny, n)
 % flag = 0 if a structure maps disturbances or control inputs to regulated or observed outputs (for D11, D12,
 % D21, D22 operators)
 % flag = 1 if a structure maps solution states (ODE+PDE) to regulated or observed outputs (for C1, C2 operators)
@@ -17,24 +29,49 @@
 % A - discretization matrix of the time-dependent PIE propagator
 % A_2PDEstate -discretization matrix for transform between
 % fundamental and primary solution
+%    (as A, with all coefficients in the rows of states; returned only
+%    if requested)
 %
 % NOTE: this routine also uses 1D discretization routines 
 % (for operators that involve 0D-1D, 1D-0D maps or 1D-1D maps involving a single
 % direction)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_fullPI2Mat_cheb_2D
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  -  4/16/2024
 % DJ, 12/16/2024: Explicitly pass the variables Rop.var1 and Rop.var2 on
 %                   which Rop is defined to the discretization subroutines,
 %                   in case these variables are not equal to (s1,s2) and
 %                   (s1_dum,s2_dum);
 % YP, 1/27/2026: Added suport for infinite-dimensional outputs
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function [A, A_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(Rop, psize, flag)
 
+% Chebyshev orders [N_x, N_y]
 N=psize.N;
 
 % Define degree of smoothness p of 2D-1var states
@@ -66,6 +103,9 @@ p = [repelem(cols(:), psize.n(:))'; repelem(rows(:), psize.n(:))'];
  R22block{2}=[];
 
 % Discretize the first column
+% In each block, prow (pcol) is the degree of smoothness of the row
+% (column) states, zero for output rows, flag <= 1 (input columns, flag
+% even)
 
 if size(Rop.R00,2)>0
 

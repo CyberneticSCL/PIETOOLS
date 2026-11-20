@@ -18,12 +18,37 @@ function [Zth,H] = poly_decomp_1D_econ(Q)
 %   Zth - a pvar object of dimension q times m which is a matrix of vector-valued monomial bases
 %   H   - a non-sparse matrix of dimension n times q
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - poly_decomp_1D_econ
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 % NOTES:
 % Distributed with DelayTOOLS
 % Compatable with MULTIPOLY and SOSTOOLS as of June 2013
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial Coding:
 % 6/26/20 - MMP  -  titled poly_decomp_1D_econ
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 if ~isa(Q,'polynomial')
     [nd md]=size(Q);

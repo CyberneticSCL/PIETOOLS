@@ -3,21 +3,40 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE=convert_PIETOOLS_DDF(DDF,out_type)
 % This a setup routine for converting DDFs into PIEs
-% Input argument "type" is optional, and should always be set to ''pie''.
+% Input argument "out_type" is optional, and should always be set to ''pie''.
 % Converts the DDF formulation to PIE formulation
-% This script uses a method of constructing a PIE
-% representation of a DDF as defined in solver_PIETOOLS_DDF and
-% error-checked in initialize_PIETOOLS_DDF.
-% 
+% The DDF is first completed and checked (undefined terms set to zero).
+% With phi_i(t,s) = r_i(t+tau(i)*s), s in [-1,0], the PIE state is
+% [x; phi_s], phi_s = d/ds phi, since phi_i(t,s) = r_i(t) - int_s^0
+% phi_s(t,eta) d eta and d/dt phi_i = (1/tau(i)) d/ds phi_i.
+%
 % A Partial Integral Equation is defined by 12 PI operators as
 %
-% TB1op \dot{w}(t)+TB2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op u(t)+ + B2op w(t)
-%                                             z(t)= C1op x(t) + D11op u(t)+ + D12op w(t)
-%                                             y(t)= C2op x(t) + D21op u(t)+ + D22op w(t)
+% TB1op \dot{w}(t)+TB2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op w(t) + B2op u(t)
+%                                             z(t)= C1op x(t) + D11op w(t) + D12op u(t)
+%                                             y(t)= C2op x(t) + D21op w(t) + D22op u(t)
 %
 % The formulae were defined in (12) and (15)-(16) in the paper
 % ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs''
 % reference: https://arxiv.org/abs/1910.03881
+%
+% INPUT
+%   DDF:      'struct', the DDF with K = numel(DDF.tau) delays
+%     \dot x(t) = A0 x(t) + B1 w(t) + B2 u(t) + Bv v(t)
+%          z(t) = C1 x(t) + D11 w(t) + D12 u(t) + D1v v(t)
+%          y(t) = C2 x(t) + D21 w(t) + D22 u(t) + D2v v(t)
+%        r_i(t) = Cr{i} x(t) + Br1{i} w(t) + Br2{i} u(t) + Drv{i} v(t)
+%          v(t) = sum_i Cv{i} r_i(t-tau(i)) + sum_i int_{-tau(i)}^0 Cvd{i}(s) r_i(t+s) ds
+%             fields tau (1 x K 'double', delays > 0), the 'double'
+%             matrices A0, ..., D2v, and 1 x K cells Cr, Br1, Br2, Drv, Cv
+%             of 'double' matrices and Cvd of 'double' or 'polynomial'
+%             kernels in s1; undefined fields are zero.
+%   out_type: (optional) 'char', 'pie'.
+%
+% OUTPUT
+%   PIE:  'pie_struct', initialized: the twelve 'copvar' operators T, Tw,
+%         Tu, A, B1, B2, C1, D11, D12, C2, D21, D22 on R^nx x L2^nr[-1,0],
+%         nr = sum_i nr{i}, spatial variable s1 (dummy s1_dum).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -41,6 +60,7 @@ function PIE=convert_PIETOOLS_DDF(DDF,out_type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 %  MP - 5_30_2021; converted script to function format
 % SS - 9/28, added a dimension correction step to replace 0x0 empty
@@ -57,20 +77,21 @@ function PIE=convert_PIETOOLS_DDF(DDF,out_type)
 %                   NDS and DDF conversion no longer constructs an 'opvar',
 %                   which is being removed from PIETOOLS. PIE.space.vars
 %                   from s1, as T no longer has the field var1.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDF to 4-PI representation
 if nargin==2 && ~strcmpi(out_type,'pie')
     error('Second argument must be ''pie'', or must be omitted. Only conversion from DDF to PIE is supported.')
 end
-% The following dimensions assume the DDE has been initialized, so lets
+% The following dimensions assume the DDF has been initialized, so lets
 % make sure.
 DDF=initialize_PIETOOLS_DDF(DDF);
- nK=length(DDF.tau);   % number of states
+ nK=length(DDF.tau);   % number of delays
  nx=size(DDF.A0,1);   % number of states
  nw=size(DDF.B1,2);   % number of disturbances
  nu=size(DDF.B2,2);   % number of inputs
- nv=size(DDF.Cv{1},1);   % number of inputs
+ nv=size(DDF.Cv{1},1);   % dimension of v
  for i=1:nK
     nr{i}=size(DDF.Cr{i},1);   % dimension of the original delayed channel, i
  end
@@ -83,6 +104,11 @@ DDF=initialize_PIETOOLS_DDF(DDF);
 
 %Chv{1}=Cv{1}+double(tau(1)*int(subs(Cvd{1},s,tau(1)*s),s,-1,0));
 
+% v in terms of x, w, u and phi_s: with Chv{i} = Cv{i} + tau(i)*
+% int_{-1}^0 Cvd{i}(tau(i)*s) ds and DI = (I - sum_i Chv{i}*Drv{i})^-1,
+%   v = Cvx x + Dvw w + Dvu u + sum_i int_{-1}^0 CI{i}(s) phi_s,i(s) ds,
+%   Cvx = DI*sum_i Chv{i}*Cr{i} (Dvw: Br1{i}, Dvu: Br2{i}),
+%   CI{i}(s) = -DI*(Cv{i} + tau(i)*int_{-1}^s Cvd{i}(tau(i)*eta) d eta)
 sumCvx=zeros(nv,nx);
 sumDI=zeros(nv,nv);
 sumDvw=zeros(nv,nw);
@@ -96,6 +122,7 @@ for i = 1:nK
     sumDvw=sumDvw+Chv{i}*DDF.Br1{i};
     sumDvu=sumDvu+Chv{i}*DDF.Br2{i};
 end
+% DI, the coefficients Cvx, Dvw, Dvu of v, and the kernels CI{i}
 DI=inv(eye(nv)-sumDI);
 Cvx=DI*sumCvx;
 Dvw=DI*sumDvw;
@@ -106,6 +133,8 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%
 
+% Stacked channels r = [r_1; ...; r_K] = Tb0 x + Tb1 w + Tb2 u + (the
+% phi_s terms of Drv{i}*v): Tb0 rows Cr{i} + Drv{i}*Cvx, and likewise
 Tb0=[];
 Tb1=[];
 Tb2=[];
@@ -117,6 +146,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% d/dt phi = Itau*phi_s, Itau = blkdiag(I/tau(i))
 Itau=[];
 for i=1:nK
     Itau=blkdiag(Itau,eye(nr{i})/DDF.tau(i));
@@ -125,6 +155,9 @@ nxb=size(Itau,2); % number of infinite-dimensional states
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
+% Kernels of phi = T*[x; phi_s] + Tw*w + Tu*u: Tbai = [CI{1} ... CI{K}],
+% Tba the rows Drv{i}*Tbai in s1_dum (on [-1,s1]), Tbb = Tba - I (on
+% [s1,0])
 Tbai=[];
 for i = 1:nK
     Tbai=[Tbai CI{i}];
@@ -138,6 +171,8 @@ Tbb=-eye(nxb)+Tba;
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 
+% Equations of x, z, y with v substituted: the multipliers (A0 + Bv*Cvx,
+% ...) and the integral kernels Bv*Tbai, D1v*Tbai, D2v*Tbai of phi_s
 Ab0=DDF.A0+DDF.Bv*Cvx;
 Bb1=DDF.B1+DDF.Bv*Dvw;
 Bb2=DDF.B2+DDF.Bv*Dvu;
@@ -330,6 +365,7 @@ D22op = pi4_copvar_sop(Db22,[],[],{[],[],[]},[ny nu; 0 0],s1,s1_dum,I1);    % MM
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The PIE: spatial variable s1 on [-1,0] and the twelve operators
 nx1=nx;nx2=nxb;
 a=-1;b=0;
 X = [a b];

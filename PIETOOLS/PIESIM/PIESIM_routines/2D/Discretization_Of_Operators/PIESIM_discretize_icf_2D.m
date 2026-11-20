@@ -2,25 +2,58 @@
 % PIESIM_discretize_icf_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of initial conditions and forcing functions in 2D
+% The initial condition of a state differentiable p_x (p_y) times in x (y),
+% sampled on its Chebyshev-Gauss-Lobatto grid, gives its N_x-p_x+1
+% (N_y-p_y+1) Chebyshev coefficients per direction; the spatial part of an
+% input gives N_x+1, N_y+1 or prod(N+1) coefficients.
 %
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
+%    ('struct' with fields dom, ic (ODE states first, constants; then the
+%    states of x, of y, of (x,y)), w, wspace, wsep, uspace)
 % 2) psize - size of the PIE problem: all variables defining the size of the PIE problem
+%    ('struct' with fields N = [N_x, N_y], n0, nx, ny, n, nw, nw0, nwx,
+%    nwy, nw2, nu0, nux, nuy, nu2)
 % 3) gridall - fields containing the following sub-fields:
 %  gridall.x - cell array containing gridalls in x direction of different degrees of differentiability
 %  gridall.y - cell array containing gridalls in y direction of different degrees of differentiability
 %
 % Output:
 % coeff - Chebyshev coefficients for initial conditions and forcing functions
+%    ('struct': acheb_f0, column, the ODE initial values, then the
+%    coefficients of the states of x, of y, of (x,y); w, u, one column
+%    per input; w = 1 (u = 1) without uinput.wspace (uinput.uspace))
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_discretize_icf_2D
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  04_16_2024
 % YP, 1/7/2026: Changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
 
@@ -104,16 +137,21 @@ coeff.acheb_f0=acheb_f0;
 coeff.u=1;
 coeff.w=1;
 
+ % Column k of coeff.w: 1 for a finite-dimensional disturbance, else the
+ % Chebyshev coefficients of its spatial part (of w at t=0 if w does not
+ % separate), stacked as x, y and 2D disturbances
  if isfield(uinput,'wspace')
      Nforce=psize.nw0+(N+1)*[psize.nwx;psize.nwy]+prod(N+1)*psize.nw2;
      coeff.w=zeros(Nforce,nw);
          k=0;
          index=1;
+         % Finite-dimensional disturbances
          for kk=1:psize.nw0
          k=k+1;
              coeff.w(index,k)=1;
              index=index+1;
          end
+         % Disturbances of x only: N_x+1 coefficients
          for kk=1:psize.nwx
              k=k+1;
              if (~uinput.wsep{k})
@@ -122,6 +160,7 @@ coeff.w=1;
              coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, gridall.x);
              index=index+N(1)+1;
          end 
+         % Disturbances of y only: N_y+1 coefficients
          for kk=1:psize.nwy
              k=k+1;
               if (~uinput.wsep{k})
@@ -130,6 +169,7 @@ coeff.w=1;
              coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, gridall.y);
              index=index+N(2)+1;
          end
+         % Disturbances of (x,y): prod(N+1) coefficients
          for kk=1:psize.nw2
              k=k+1;
               if (~uinput.wsep{k})
@@ -140,6 +180,7 @@ coeff.w=1;
          end
  end
 
+ % Column k of coeff.u: the same for the control inputs
  if isfield(uinput,'uspace')
      Nforce=psize.nu0+(N+1)*[psize.nux;psize.nuy]+prod(N+1)*psize.nu2;
      coeff.u=zeros(Nforce,nu);
@@ -150,6 +191,7 @@ coeff.w=1;
              coeff.u(index,k)=1;
              index=index+1;
          end
+         % Control inputs of x only, of y only, of (x,y)
          for kk=1:psize.nux
              k=k+1;
              coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace(k), 0, gridall.x);

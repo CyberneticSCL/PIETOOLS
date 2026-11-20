@@ -9,17 +9,18 @@
 
 function R = transl_1D(R,a,b,c,d,var1,var2,dir,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% R = transl_1D(R,a,b,c,d,dir,flag) takes in a PI operator R that acts on
+% R = transl_1D(R,a,b,c,d,var1,var2,dir,flag) takes in a PI operator R that acts on
 % functions on the interval [a,b] and changes it to a PI operator that
 % acts on functions on the inteval [c,d].
 %
 % INPUT:
 %
 % R: a 3-PI operator
+%    (one kernel, 'polynomial' or 'double')
 % [a,b]: original interal
-% [c,d]: new interval, default [-1,1]
+% [c,d]: new interval
 % var1: 2x1 pvar array specifying the primary spatial variables (x,y)
 % var2: 2x1 pvar array specifying the dummy variables for integration
 %           (theta,nu)
@@ -28,6 +29,12 @@ function R = transl_1D(R,a,b,c,d,var1,var2,dir,flag)
 % flag = 1 - multiplicative operator in one variable R(s)
 % flag = 2 - integrative operator in one variable R(s)
 % flag = 3 - integrative operator in two variables R(s, theta)
+%
+% OUTPUT:
+%
+% R: the operator acting on functions on [c,d], from the substitution
+% s -> a + (b-a)(s-c)/(d-c) (and likewise theta), scaled by the Jacobian
+% (b-a)/(d-c) for the integrative operators
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -59,12 +66,15 @@ function R = transl_1D(R,a,b,c,d,var1,var2,dir,flag)
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove dependence on hardcoded variables; now pass
 %                   variables defining Rop as additional inputs.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Extract primary and dummy variables defining Rop.                         % DJ, 12/16/2024
 s1 = var1(1);   s1_dum = var2(1);
 s2 = var1(2);   s2_dum = var2(2);
+% Placeholder variables of the substitution
 pvar sbar thetabar
 
+% Variable and dummy variable of direction dir
 if strcmp(dir,'x')
     s=s1;
     theta=s1_dum;
@@ -73,6 +83,8 @@ else
     theta=s2_dum;
 end
 
+% Substitute s (and theta) -> a + (b-a)(.-c)/(d-c); Jacobian (b-a)/(d-c)
+% for an integral kernel
 if (flag==1)
 R = subs(R, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));
 R = subs(R, sbar, s);

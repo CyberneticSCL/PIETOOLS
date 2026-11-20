@@ -16,7 +16,15 @@ function T = transl_2D(T,I)
 % INPUT:
 %
 % T: a 2D PI operator
+%    ('struct' of the kernels R00, R0x, ..., R22, with fields I (2x2, the
+%    original domain), var1, var2)
 % I: new domain
+%    (2x2 [cx dx; cy dy])
+%
+% OUTPUT:
+%
+% T: the operator on the domain I, each component translated by the 1D
+% change of variables in x and in y
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -49,7 +57,9 @@ function T = transl_2D(T,I)
 % DJ, 12/16/2024: Remove dependence on hardcoded variables in call to
 %                   "transl_1D" and "transl_3PI".
 % YP, 4/7/2026 - redefined rescaled operator domain
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Original domain [ax,bx]x[ay,by], new domain [cx,dx]x[cy,dy]
 I_init = T.I;
 ax = I_init(1,1);
 bx = I_init(1,2);
@@ -91,6 +101,7 @@ end
 
 T.Rxx=transl_3PI(T.Rxx,ax,bx,cx,dx,var1,var2,'x');
 
+% Ryx: multiplier in y, integral in x
 if ~isempty(T.Ryx.varname)
 T.Ryx=transl_1D(T.Ryx,ay,by,cy,dy,var1,var2,'y',1);
 T.Ryx=transl_1D(T.Ryx,ax,bx,cx,dx,var1,var2,'x',2);
@@ -115,6 +126,7 @@ else
 T.R0y=((by-ay)/(dy-cy))*T.R0y; 
 end
 
+% Rxy: multiplier in x, integral in y
 if ~isempty(T.Rxy.varname)
 T.Rxy=transl_1D(T.Rxy,ax,bx,cx,dx,var1,var2,'x',1);
 T.Rxy=transl_1D(T.Rxy,ay,by,cy,dy,var1,var2,'y',2);
@@ -134,6 +146,7 @@ end
 
 % Fourth column operators
 
+% R02: integral in x and in y; a constant kernel takes both Jacobians
 if~isempty(T.R02.varname)
 T.R02=transl_1D(T.R02,ay,by,cy,dy,var1,var2,'y',2);
 T.R02=transl_1D(T.R02,ax,bx,cx,dx,var1,var2,'x',2);
@@ -141,6 +154,7 @@ else
 T.R02=((bx-ax)/(dx-cx))*((by-ay)/(dy-cy))*T.R02; 
 end
 
+% Rx2: 3PI in x, integral in y
 T.Rx2=transl_3PI(T.Rx2,ax,bx,cx,dx,var1,var2,'x');
 for k=1:3
 if ~isempty(T.Rx2{k}.varname)
@@ -150,6 +164,7 @@ T.Rx2{k}=((by-ay)/(dy-cy))*T.Rx2{k};
 end
 end
 
+% Ry2: 3PI in y, integral in x
 T.Ry2=transl_3PI(T.Ry2,ay,by,cy,dy,var1,var2,'y');
 for k=1:3
 if ~isempty(T.Ry2{k}.varname)
@@ -159,11 +174,14 @@ T.Ry2{k}=((bx-ax)/(dx-cx))*T.Ry2{k};
 end
 end
 
+% R22{i,j}, first index along x, second along y (1 multiplier, 2-3
+% integral): R22{1,1} multiplier in x and in y
 if ~isempty(T.R22{1,1}.varname)
 T.R22{1,1}=transl_1D(T.R22{1,1},ay,by,cy,dy,var1,var2,'y',1);
 T.R22{1,1}=transl_1D(T.R22{1,1},ax,bx,cx,dx,var1,var2,'x',1);
 end
 
+% R22{1,k} (R22{k,1}): integral in y (x), multiplier in x (y)
 for k=2:3
 if ~isempty(T.R22{1,k}.varname)
 T.R22{1,k}=transl_1D(T.R22{1,k},ay,by,cy,dy,var1,var2,'y',3);
@@ -181,6 +199,7 @@ end
 
 end
 
+% R22{k,n}, k,n >= 2: integral in x and in y
 for n=2:3
     for k=2:3
     if ~isempty(T.R22{k,n}.varname)

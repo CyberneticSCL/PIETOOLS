@@ -5,7 +5,12 @@
 % 1D integration (over [-1 sx], [sx 1], [-1 sy] or [sy 1]) of a polynomial operator already discretized in a
 % Chebyshev space
 %
-% Called by 'PIESIM_9PI2Mat_cheb_opint_discretize_area.m' and 'PIESIM_9PI2Mat_cheb_opint_discretize_line.m'  
+%   lim(1) = -1:  (R v)(s) = int_{-1}^{s} R(s,theta) v(theta) dtheta,
+%   otherwise:    (R v)(s) = int_{s}^{1} R(s,theta) v(theta) dtheta,
+%
+% with R(s,theta) = sum_{j,m} Rcheb(j+1,m+1) T_j(s) T_m(theta), T_k the
+% Chebyshev polynomials. Column k+1 of A holds the Chebyshev coefficients
+% of R T_k, up to degree N, from T_m T_k = (T_{k+m} + T_{|k-m|})/2.
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
@@ -17,23 +22,47 @@
 % discretizaiton of the integration of the operator representated by Rcheb over lim
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_integral_projection1D
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg.
 %                 Remove redundant variables;
 % YP 1/31/2026: Made if for square operators, truncation is done on assembled operators
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function A=PIESIM_integral_projection1D(N, Rcheb, lim)
 
+% Lower limit -1: integral over [-1,s] (sign -1); else over [s,1] (sign 1)
 if(lim(1)==-1)
     sign=-1;
 else
     sign=1;
 end
 
+% Numbers of coefficients of R in s and in theta
 A(1:N+1,1:N+1)=0;
 deg=size(Rcheb);
 

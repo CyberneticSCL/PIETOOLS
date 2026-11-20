@@ -1,4 +1,4 @@
-function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)                % DJ (CC), 11/02/2026
+function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)
 % PIE = PIE_PDE_MAPS_2D(PIE,PDE0,DEL_TAB,WOP,UOP,FOP) declares the function
 % spaces of a PDE, and the maps between this PDE and the PIE constructed
 % from it, in the fields PIE.space_pde, PIE.pie2pde and PIE.pde2pie.
@@ -13,7 +13,7 @@ function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)                % DJ
 %           if the PIE involves higher-order temporal derivatives;
 % - PDE0:   Initialized 'pde_struct' object, the PDE to which the PIE is
 %           related, before expanding any delays;
-% - del_tab:    (optional) table returned by `expand_delays`, relating the
+% - del_tab:    (optional) table relating the
 %           components of the PDE added to represent delays to the
 %           components of PDE0. Empty if there are no delays;
 % - Wop, Uop:   (optional) operators mapping the PIE inputs w and u to the
@@ -28,16 +28,16 @@ function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)                % DJ
 % - PIE:    The same PIE, with the fields
 %       space_pde:  function spaces of the PDE0, with the components of
 %                   each of x, w, u, y, and z identified by
-%                   PDE0.(.){i}.ID (and, for an 'npie_struct', unnamed:
-%                   the names are assigned by initialize);
+%                   PDE0.(.){i}.ID (and, for an 'npie_struct', unnamed);
 %       pie2pde:    operators X_pde, W_pde, U_pde, Y_pde, and Z_pde,
 %                   'copvar' objects for a 'pie_struct', and 'tensopmat'
 %                   objects for an 'npie_struct';
 %       pde2pie:    for each of the fields x, w, u, y, and z, the PDE
 %                   components idx corresponding to each of the PIE
-%                   components, and for x, w, and u also the fields diff,
-%                   tdiff, loc, and C, and for x the field delay, as
-%                   described in `pie_struct`;
+%                   components, and for x, w, and u also the fields diff
+%                   (spatial derivative orders), tdiff (temporal derivative
+%                   order), loc (-1 for a lower boundary value), and C (the
+%                   operator applied), and for x the field delay;
 %
 % NOTES
 % - The component i of the PDE state is represented in the PIE by the
@@ -77,9 +77,8 @@ function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)                % DJ
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ (CC), 10/29/2026: Initial coding;
-% DJ (CC), 11/02/2026: Renamed from pie_pde_maps and moved to
-%   converters/legacy, with the old converters that call it;
 
 if nargin<3,    del_tab = [];   end
 if nargin<4,    Wop = 1;        end
@@ -231,6 +230,8 @@ for t = types
             JJ{jj} = off_in(cols(jj)) + (1:m)';
         end
         Mat = sparse(cell2mat(II),cell2mat(JJ),1,off_out(end),off_in(end));
+        % Operator with matrix Mat: 'copvar' (linear PDE) or 'tensopmat'
+        % (nonlinear PDE), variables sorted by name
         [vs,perm] = sort(vnames);
         dims = struct('out',dims_out(:),'in',dims_in(:));
         if is_lin
@@ -243,6 +244,7 @@ for t = types
                 struct('in',dom(perm,:),'out',dom(perm,:)),...
                 struct('in',double(dep_in(:,perm)),'out',double(dep_out(:,perm))));
         end
+        % Store as the map from PIE to PDE (k = 1) or from PDE to PIE (k = 2)
         if k==1
             PIE.pie2pde.(t{1}) = Pop;
         else

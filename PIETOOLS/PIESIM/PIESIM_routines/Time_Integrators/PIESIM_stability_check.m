@@ -3,30 +3,64 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs check of a numerical stability of time integration and
 % outputs suggestions if unstable
+% BDF of order k = opts.Norder: the boundary locus
+% z(t) = sum_{j=0}^{k} alpha_j*exp(-i*j*t), t in [0,2*pi], encloses the
+% bounded region where the scheme is unstable. An eigenvalue lambda of
+% Atotal with lambda*dt inside it, |lambda*dt| < |z| on the ray of
+% angle(lambda*dt), gives the amplification max |z|/|lambda*dt| > 1
+% (unstable; borderline within 0.05 of 1). Symbolic integration: reports
+% whether some eigenvalue has a positive real part.
 %
 % Inputs:
 % opts - options for temporal scheme parameters
+%    ('struct' with fields intScheme, Norder, dt, ploteig; ploteig = 'yes'
+%    plots the eigenvalues times dt)
 % Atotal - matrix operator for the discrete linear system x_t=A_total x
 % (achieved upon spatial discretization)
 %
 % Output:
 % none
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_stability_check
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 6_16_2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function PIESIM_stability_check(opts, Atotal);
          
  %   Neigs = size(Atotal,1);
  %   lam = eigs(Atotal, Neigs);
 
+       % Tolerances: borderline band of the amplification, real-part sign
+       % test, angle window (rad)
        tol=0.05;
        tol_real=1e-5;
        tol_angle=0.1;
 
+        % Eigenvalues of Atotal
         lam=eig(Atotal);
         Neig=length(lam);
         lamR = real(lam);
@@ -52,6 +86,7 @@ function PIESIM_stability_check(opts, Atotal);
         case 1
     % BDF scheme
 
+    % Boundary locus z(t) of the BDF scheme of order opts.Norder
     t=linspace(0,2*pi);
     switch(opts.Norder)
 
@@ -76,6 +111,10 @@ function PIESIM_stability_check(opts, Atotal);
     z=(bdf4(1)*exp(4.*i.*t)+bdf4(2)*exp(3.*i.*t)+bdf4(3)*exp(2.*i.*t)+bdf4(4)*exp(i.*t)+bdf4(5))./exp(4.*i.*t); 
     end
 
+    % Per eigenvalue: the locus point of maximal modulus among those within
+    % tol_angle of the closest angle to lambda*dt; am(k) = |z|/|lambda*dt|
+    % if z and lambda*dt have real parts of one sign (product > tol_real)
+    % and imaginary parts of one sign, else 0
     an=angle(z);
 
     for k=1:Neig
@@ -100,6 +139,7 @@ function PIESIM_stability_check(opts, Atotal);
 
     end
 
+    % Unstable if ampl > 1; borderline if |ampl-1| < tol
     ampl=max(am);
     closeflag=0;
 
@@ -115,6 +155,8 @@ function PIESIM_stability_check(opts, Atotal);
         end
     end
 
+    % Report; the time step dt*(ampl+tol) moves lambda*dt out of the
+    % unstable region
     if (Stable) 
         if (closeflag)
         disp('Time integration scheme is on the borderline of stability.');
@@ -126,6 +168,8 @@ function PIESIM_stability_check(opts, Atotal);
         disp('Any observed instabilities must be physical.');
         end
    else
+        % Unstable: a time step dt*(ampl+tol) below 1 is suggested, else the
+        % instability is attributed to the problem
         if (closeflag)
         disp('Time integration scheme is on the border of instability.');
         disp('Numerical simulations may be unstable.');

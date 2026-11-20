@@ -4,19 +4,34 @@
 % Performs time-advancement of a discretized PIE with implicit
 % backward-difference formula (BDF) - unconditionally stable for diffusive
 % problems, occasionally n0t stable for hyperbolic problems
+% The discretized PIE a_t = Atotal*a + f(t), Atotal = inv(T)*A,
+% f = inv(T)*(B1*w - Tw*w_t + B2*u - Tu*u_t), advances by
+%   (alpha_0*I - dt*Atotal)*a^n = -sum_{j=1}^{k} alpha_j*a^{n-j} + dt*f(t_n),
+% t_n = n*dt, with the BDFk coefficients alpha of order
+% k = min(n, opts.Norder), k <= 4.
 %
 % Inputs:
 % psize - size of the PIE problem: nw, nu, n0 
+%    ('struct'; also dim and, in 2D, nw0, nwx, nwy, nw2, nu0, nux, nuy,
+%    nu2, the numbers of inputs per kind of space)
 % opts - options for temporal scheme parameters
+%    ('struct' with fields dt, Nsteps, Norder, N)
 % uinput   - user-defined boundary inputs
+%    ('struct' with cell fields w, wdot, u, udot (function handles of t
+%    for a separable input, sym in st, sx, sy otherwise) and wsep, usep
+%    (true if separable))
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
+%    ('struct' with fields acheb_f0; w, u, the spatial coefficients of
+%    the inputs, one column per input)
 % gridall - physical grids for solution states of different degree of
 % differentiability
 % Dop - discretized PIE operators
+%    ('struct' with fields Atotal, Tcheb_inv, B1cheb, B2cheb, Twcheb,
+%    Tucheb, Acheb)
 %
 % % Output:
 % solcoeff - contains:
-% 1) solcoeff.acheb_f - Chebyshev coefficients of the final
+% 1) solcoeff.final - Chebyshev coefficients of the final
 % solution, ODE+PDE states
 % 2) solcoeff.w and solcoeff.u - Chebyshev coefficients of a spatial
 % component of forcing functions introduced through uinput.w and uinput.u
@@ -31,11 +46,34 @@
 % (for PDE states, an inverse Fourier transform needs to be performed to recover physical solution from its )
 % Chebyshev coefficients) 
 % 6)solcoeff.timedep.dtime - temporal stamps (discrete time values) of the time-dependent solution
+% 7) solcoeff.timedep.coeff - coefficients of all states, one column per
+% time step
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_int_bdf
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 5_26_2021
 
 % YP 8_18_2024 - added support for spatially-variant multiple disturbances
@@ -44,10 +82,14 @@
 % YP 12/31/2025 - modified the treatment of disturbances and control inputs via functon
 % handles
 % YP 2/12/2026 - added handling of Non-separable disturbances
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop)
+% Time variable of the non-separable inputs
 syms st;
 nw=psize.nw;
+% 2D: offsets in coeff.w, coeff.u; inputs ordered by kind of space
+% (R, L2[x], L2[y], L2[x,y]), Np(g) coefficients per input of kind g
 if (psize.dim==2)
 N=opts.N;
 Np=[1, N(1)+1, N(2)+1, prod(N+1)];
@@ -63,12 +105,14 @@ cum_nug = cumsum(nu_groups);
 cum_nup = cumsum(nu_points);
 end
 
+% Sizes, time step, number of steps, BDF order
 nu=psize.nu;
 n0=psize.n0;
 dt=opts.dt;
 Nsteps=opts.Nsteps;
 Norder=opts.Norder;
 
+% Discretized operators and initial coefficients
 Twcheb=Dop.Twcheb;
 Tucheb=Dop.Tucheb;
 B1cheb=Dop.B1cheb;
@@ -84,6 +128,8 @@ acheb_f0=coeff.acheb_f0;
 % Define BDF coefficients and matrices
 %
 
+% BDFk, k <= Norder: bdfk = [alpha_0,...,alpha_k] and
+% inv(alpha_0*I - dt*Atotal)
 if (Norder>=1) 
 bdf1=[1 -1];
 A_impl_1=eye(Nsize)*bdf1(1)-dt*Atotal;
@@ -94,6 +140,7 @@ bdf2=[3/2 -2 1/2];
 A_impl_2=eye(Nsize)*bdf2(1)-dt*Atotal;
 A_inv_impl_2=inv(A_impl_2); 
 end
+% BDF3, BDF4
 if (Norder>=3)
 bdf3=[11/6 -3 3/2 -1/3];
 A_impl_3=eye(Nsize)*bdf3(1)-dt*Atotal;
@@ -119,6 +166,9 @@ achebi_pppp=acheb_f0;
 t=0;
 
 
+   % Step n: inhom = f(t_n), t_n = n*dt; a separable input enters as its
+   % value at t_n times its fixed spatial coefficients, a non-separable
+   % one through the coefficients of its spatial profile at t_n
    for n=1:Nsteps
      t=(n)*dt;
      inhom=0;
@@ -226,12 +276,14 @@ t=0;
     % available
     
     
+      % Shift the history a^{n-1},...,a^{n-4}
       achebi_pppp=achebi_ppp;
       achebi_ppp=achebi_pp;
       achebi_pp=achebi_p;
       achebi_p=achebi;
       
     
+    % Steps 1-3: order min(n, Norder)
     switch n
         case 1 
         achebi =  A_inv_impl_1*(-bdf1(2)*achebi_p+inhom*dt);
@@ -245,6 +297,7 @@ t=0;
         end
         
         case 3
+        % Order min(3, Norder): a^{n-1}, a^{n-2}, a^{n-3} available
         if (Norder==1) 
         achebi =  A_inv_impl_1*(-bdf1(2)*achebi_p+inhom*dt);
         elseif (Norder==2) 
@@ -257,6 +310,7 @@ t=0;
         
         otherwise
             
+        % Steps n >= 4: order Norder
         switch Norder
         case 1    
         achebi =  A_inv_impl_1*(-bdf1(2)*achebi_p+inhom*dt);

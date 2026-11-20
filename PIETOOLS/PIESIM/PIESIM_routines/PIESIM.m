@@ -2,17 +2,17 @@
 % PIESIM.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Please, contact Y. Peet at ypeet@asu.edu for support
-
+%
 % This function is PIESIM main driver
-
+%
 % This matlab function performs the following operations:
 % 1) Checks if all inputs are defined and (if not) setting up default
 % options
 % 2) If the input structure is PDE or DDE: converts it to PIE problem
 % 3) Discretizes the PIE operators with Chebyshev polynomials
 % 4) Temporally integrates the corresponding spatially-discretized
-%    equations (3 temporal schemes are possible: BDF, Gauss integration, 
-%    and analytical integraiton - see options in solver_PIESIM.m)
+%    equations (2 temporal schemes are possible: BDF
+%    and analytical integraiton, selected by opts.intScheme)
 % 5) If opts.plot='yes', outputs and plots the PDE/DDE and ODE solutions at a final time and
 %    (if opts.intScheme=1) - plots the ODE solutions versus time
 %
@@ -25,14 +25,13 @@
 % ----- PIE structure of the problem specifies PI operators, 
 %       {T,Tu,Tw, A, Bi, Ci, Dij} as fields
 % ----- For any input structure, opts and uinput are
-%       optional fields (defalut values will be used if not provided,
-%       consult the manual)
-
+%       optional fields (defalut values will be used if not provided)
+%
 % Optional:
 % --- varargin(2): opts - options for simulation parameters. 
 %     If not provided, will be set to default values
 % ------ opts is a structure with fields: 
-%        {'N','tf','intScheme','Norder','dt','plot','ploteig'}
+%        {'N','tf','intScheme','Norder','dt','plot','ploteig','ifexact'}
 % ------ N: order of polynomials used in spectral decomposition 
 % ------ tf: final time of simulation
 % ------ intScheme: time integration scheme (backward difference scheme if 
@@ -43,21 +42,21 @@
 % ------ plot: - option for plotting solution - returns solution plots if 'yes', no plots if 'no'
 % ------ ploteig: option for plotting discrete eigenvalues of a discretized temporal propagator - returns eigenvalue plot if 'yes', no plot if 'no'
 % ------ ifexact:  indicates whether a comparison of numerical solution with exact solution will be performed (if true) or not (if false). 
-%        If uinput.ifexact=true and opts.plot=`yes', the exact solution will be plotted against numerical solution 
+%        If opts.ifexact=true and opts.plot=`yes', the exact solution will be plotted against numerical solution
 %------ dist: an optional flag that can take a value of `constant', `sin', or `sinc' - specifies a form of disturbance signal if disturbance is not defined by user. 
 %------ control: an optional flag that can take a value of `constant', `sin', or `sinc' - specifies a form of control input signal if control input is not defined by user. 
-
+%
 % --- varargin(3): uinput - user-defined boundary inputs, forcing and 
 %     initial conditions. If not provided, will be set to default values
-% ------ uinput is a structure with fields: {'ic','w','ifexact','exact'}
+% ------ uinput is a structure with fields: {'ic','w','exact'}
 % ------ ic: initial conditions defined as a MATLAB symbolic object. ic consists of the following sub-fields:
 %        ic.pde - initial conditions for the PDE states defined as symbolic functions of 'sx' (1D), or 'sx', 'sy' (2D) 
 %        ic.pie - initial conditions for the PIE states defined as symbolic functions of 'sx' (1D), or 'sx', 'sy' (2D) 
 %        ic.ode - initial conditions for the ODE states defined as scalars
 % ------ w: external disturbances defined as a MATLAB symbolic object in 'st','sx' (1D), or 'st','sx','sy' (2D)
-% ------ exact: only if uinput.ifexact=true, then define exact solution as a 
+% ------ exact: only if opts.ifexact=true, then define exact solution as a
 %        MATLAB symbolic object in 'st','sx' (1D), or 'st','sx','sy' (2D)
-
+%
 % Outputs: 
 % 1) solution
 % solution is a structure with the following fields
@@ -91,7 +90,7 @@
 %      array of size (N(2)+1) x nry, nry - number of outputs depending only on s2 
 % --- solution.final.regulated{4} - array containing final value of regulated outputs that are the functions of two variables - 
 % It is array of size (N(1)+1) x (N(2)+1) x nr2, nr2 - number of outputs depending on both s1 and s2
-
+%
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2,3,4} - cell array containing all
@@ -119,18 +118,37 @@
 %     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s1 - 
 %     array of size (N(1)+1) x nrx x Nsteps, nrx - number of regulated outputs depending only on s1
-% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s2 - 
+% --- solution.timedep.regulated{3} - array containing regulated outputs that are only the functions of s2 -
 %     array of size (N(2)+1) x nry x Nsteps, nry - number of regulated outputs depending only on s2
-% --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
+% --- solution.timedep.regulated{4} - array containing regulated outputs that are the functions of two variables -
 %     array of size (N(1)+1) x (N(2)+1) x nr2 x Nsteps, nr2 - number of outptus depending on both s1 and s2
-
+%
 %  2) grid - physical grid of a primary state for plotting and post-processing
 %      a) In 1D - grid is an array of size (N+1) x 1 containing spatial coordinates of the physical grid for
 %  the primary solution
- %     b) In 2D - grid is a cell array of size, with the grid{1} containing spatial coordinates of the physical grid for
+ %     b) In 2D - grid is a cell array of size 2x1, with the grid{1} containing spatial coordinates of the physical grid for
 %  the primary solution along x direction (size N(1)+1), and grid{2} containing spatial coordinates of the physical grid for
 %  the primary solution along y direction (size N(2)+1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -154,6 +172,7 @@
 % kernels that the discretization reads, instead of opvar/opvar2d objects
 % (pie2opvar): PIESIM needs no operator class. Replaces the conversion of
 % DJ, 10/29/2026;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function [solution, grid]=PIESIM(varargin)
 

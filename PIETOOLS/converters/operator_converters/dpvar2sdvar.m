@@ -1,12 +1,12 @@
 function [P,ZL,ZR] = dpvar2sdvar(D,vars)
-% [P,ZL,ZR] = DPVAR2SDOPVAR(D,VARS) takes a dpvar object D, and returns a
+% [P,ZL,ZR] = DPVAR2SDVAR(D,VARS) takes a dpvar object D, and returns a
 % struct P with fields A, B, representing the same decision
 % variable matrix as
 %   D = (Im o ZL{1}(s1) o ... o ZL{M}(sM))^T unvec(P.A + P.B'*d)
 %           (In o ZR{1}(t1) o ... o ZR{N}(tN))
 % where d is the vector of decision variables (D.dvarname) and where
 %   {s1,...,sM} = vars.out;     {t1,...,tN} = vars.in;
-% P also has fields P.m = m*nZL1*...*nZLM and P.n = n*nZLN*...*nZLN;
+% P also has fields P.m = m*nZL1*...*nZLM and P.n = n*nZR1*...*nZRN;
 %
 % INPUTS
 % - D:      'dpvar' object representing an m x n decision variable matrix;
@@ -21,24 +21,42 @@ function [P,ZL,ZR] = dpvar2sdvar(D,vars)
 %       coefficients defining the decision variable matrix in the 'sdopvar'
 %       form above; m, n are the row/column dimensions P.m = m*nZL,
 %       P.n = n*nZR of that (vec'd) kernel; dvarname is a column cellstr
-%       naming the decision variables, 'd', matching the column convention
-%       of 'sdopvar.Zd' and 'sdvar2dpvar's 'Zd' input;
+%       naming the decision variables, 'd';
 % - ZL: 1 x M cell (for M output variables), specifying the degrees of the
 %       monomials actually encountered in D, in each output variable;
 % - ZR: 1 x N cell (for N input variables), specifying the degrees of the
 %       monomials actually encountered in D, in each input variable.
 %
-% MMP, 09/29/2026: Moved from sopvar/Testfolder/converters to sopvar/misc,
-%                  name and code unchanged. The dpvar operator branches of
-%                  the four classes (dpvar_op_copvar, mat2copvar_grid) call
-%                  it, as copquadvar and sopquadvar already did, and library
-%                  code should not depend on a test folder.
-% DJ, 10/05/2026:  Make sure P.dvarname is always a column;
-% MMP, 10/16/2026: moved from sopvar/Testfolder/converters (where the file
-%                  was again, despite the 09/29 entry) to converters/
-%                  operator_converters/, with the other operator converters.
-%                  Code unchanged.
+% A variable of D in neither vars.out nor vars.in throws an error.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - dpvar2sdvar
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding DJ - 08/17/2026
+
+% Check the inputs; default: every variable of D an output variable
 if ~isa(D,'dpvar')
     error("Input object must be of type 'dpvar'.")
 end
@@ -71,20 +89,20 @@ degmat_full(:,idcs1_new) = degmat(:,idcs1_old);
 degmat_full(:,M+idcs2_new) = degmat(:,idcs2_old);
 
 % Variables of D in neither vars.out nor vars.in would be dropped silently.
-vars_unused = setdiff(D.varname',[varnames1(:)',varnames2(:)']);            % MMP, 08/23/2026
-if ~isempty(vars_unused)                                                    % MMP, 08/23/2026
+vars_unused = setdiff(D.varname',[varnames1(:)',varnames2(:)']);
+if ~isempty(vars_unused)
     error("Variable '"+string(vars_unused{1})+"' appears in the input object "...
           +"but in neither 'vars.in' nor 'vars.out'.")
-end                                                                         % MMP, 08/23/2026
+end
 
 % Extract monomial degrees in common variables
 % degmat_full is indexed by vars.out/vars.in position, not D.varname.
 for i=1:numel(idcs1_new)
-    degs_i = unique(degmat_full(:,idcs1_new(i)));                           % MMP, 08/23/2026
+    degs_i = unique(degmat_full(:,idcs1_new(i)));
     ZL{idcs1_new(i)} = unique([ZL{idcs1_new(i)}; degs_i]);
 end
 for i=1:numel(idcs2_new)
-    degs_i = unique(degmat_full(:,M+idcs2_new(i)));                         % MMP, 08/23/2026
+    degs_i = unique(degmat_full(:,M+idcs2_new(i)));
     ZR{idcs2_new(i)} = unique([ZR{idcs2_new(i)}; degs_i]);
 end
    
@@ -142,7 +160,7 @@ ccidcsA = (cidcs(isA)-1)*nnZR_arr(1) + ZRidcs(isA);
 lidcsA = (ccidcsA-1)*nnZL_arr(1)*m + rridcsA;
 valsA = vals(isA);
 A = sparse(lidcsA,1,valsA,m*nnZL_arr(1)*n*nnZR_arr(1),1);
-% We store A as m*n row vector
+% We store A as m*n column vector
 
 % Declare a coefficient matrix acting on the decision variable terms
 rridcsB = (ridcs(isB)-1)*nnZL_arr(1) + ZLidcs(isB);
@@ -158,6 +176,6 @@ P.A = A;
 P.B = B;
 P.m = m*nnZL_arr(1);
 P.n = n*nnZR_arr(1);
-P.dvarname = dvars(:);                                                      % DJ, 10/05/2026
+P.dvarname = dvars(:);
 
 end

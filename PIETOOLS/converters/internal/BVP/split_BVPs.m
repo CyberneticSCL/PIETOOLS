@@ -1,8 +1,8 @@
 function dirs = split_BVPs(PDE)
 % DIRS = SPLIT_BVPS(PDE) splits the boundary conditions (BCs) of a PDE
 % into 1D problems, one along each spatial direction s_i, written as
-%   E*[D_{j}u_{j}(a); D_{j}u_{j}(b)]_{j} + int_{a}^{b} F(s)*u(s) ds = g
-% for compute_Tmap_1D. E.g. the BCs u(0,y)=u(1,y)=0, u(x,0)=u_{y}(x,1)=0
+%   E*[D_{j}u_{j}(a); D_{j}u_{j}(b)]_{j} + int_{a}^{b} F(s)*u(s) ds = g.
+% E.g. the BCs u(0,y)=u(1,y)=0, u(x,0)=u_{y}(x,1)=0
 % of u(x,y) give u(0)=u(1)=0 along x, and u(0)=u_{y}(1)=0 along y. The
 % dynamics are ignored.
 %
@@ -33,15 +33,14 @@ function dirs = split_BVPs(PDE)
 %   variables of its states, e.g.
 %       x(a,y)=0,       x_{x}(b,y)+int_{c}^{d} x(b,z)dz = w(y).
 %   Not supported (error): BCs that fix several variables (corners or
-%   edges; convert_PIETOOLS_BVP imposes these separately if each term of
-%   a state does so) or that also vary in s_i, derivatives along the
+%   edges) or that also vary in s_i, derivatives along the
 %   boundary, coefficients of the states varying along the boundary,
 %   states depending on s_i on different variables, and delays of
 %   states. There should be at least as many conditions along s_i as the
 %   total order of the states in s_i. Integrals of derivatives along s_i
 %   are integrated by parts.
-% - Whether the 1D problems combine to an admissible problem is checked
-%   in compose_Tmaps.
+% - Whether the 1D problems combine to an admissible problem is not
+%   checked here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - split_BVPs
@@ -67,10 +66,8 @@ function dirs = split_BVPs(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ (CC), 11/02/2026: Initial coding;
-% DJ (CC), 11/13/2026: Return E, F of the 1D problems (no 1D 'pde_struct');
-%                   integrate integrals of derivatives by parts; shorter
-%                   error message;
 
 N = size(PDE.vars,1);
 if N==0
@@ -122,6 +119,7 @@ for ii=1:nBC
             end
         end
     end
+    % Exactly one fixed variable s_i, in which no term varies
     if ~any(fixed)
         error('split_BVPs:noBoundary',['The condition ',BC_name,' does not evaluate any state at a boundary, and is not supported as a boundary condition along any spatial direction.'])
     elseif nnz(fixed)>1
@@ -135,6 +133,8 @@ for ii=1:nBC
     % % Check the terms
     % Determine which variables the states that depend on s_i vary in
     vary_vars = [];
+    % Every state term that depends on s_i varies in the same variables; no
+    % delays
     for jj=1:numel(BC.term)
         term = BC.term{jj};
         obj_type = types{find(isfield(term,types),1)};
@@ -150,6 +150,7 @@ for ii=1:nBC
             end
         end
     end
+    % The BC involves a state in s_i, and varies only in its variables
     if isempty(vary_vars)
         error('split_BVPs:noState',['The condition ',BC_name,' does not involve any state that depends on ',var_names{i,1},', and cannot be a condition along this direction.'])
     end
@@ -267,7 +268,7 @@ for i=1:N
                 %   int C*D^{r}x = sum_{m<r} (-1)^m [C^{(m)}*D^{r-1-m}x]_a^b
                 %                  + (-1)^r int C^{(r)}*x
                 r = term.D(ki);
-                for m=0:r-1                                                 % DJ (CC), 11/13/2026
+                for m=0:r-1
                     c = idx_E0(j) + (r-1-m)*n(j+1) + cols;      % D^{r-1-m}x(a)
                     E(rws,c) = E(rws,c) - (-1)^m*double(subs(C,PDE.vars(i,1),PDE.dom(i,1)));
                     E(rws,c+j*n(j+1)) = E(rws,c+j*n(j+1)) + (-1)^m*double(subs(C,PDE.vars(i,1),PDE.dom(i,2)));

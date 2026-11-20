@@ -25,20 +25,35 @@ function D = sdvar2dpvar(P,dims,vars,ZL,ZR,Zd)
 % - D:  m x n 'dpvar' object representing the decision variable matrix
 %       defined by coefficients P.A and P.B.
 %
-% DJ, 09/15/2026: Initial coding
-% MMP, 09/26/2026: Row index of the constant term of matrix row r is now
-%                  (r-1)*(nZd+1)+1, was (r-1)*nZd+1. A dpvar holds nZd+1
-%                  rows per matrix row, constant first (dpvar layout,
-%                  CLAUDE.md S5), so for m >= 2 the rows of different
-%                  matrix rows overlapped and D was a different matrix.
-%                  Also didcsB(:): for one decision variable B is a row,
-%                  'find' then returns rows, and the sum with the column
-%                  ridcs(ridcsB) expanded to a matrix and crashed 'sparse'.
-%                  Test: sopvar/Testfolder/sdopvar/claude_tests/
-%                  test_sdvar2dpvar.m.
-% DJ, 10/05/2026: Fix ZR count check (throw explicit error for incorrect
-%                   number of right-monomials);
+% Numbers of left and right monomial bases other than numel(vars.out) and
+% numel(vars.in) throw an error.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - sdvar2dpvar
 %
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% DJ, 09/15/2026: Initial coding
 
 
 % Check that the 'sdvar' object is properly specified
@@ -113,15 +128,13 @@ Zidcs = (repmat(ZLidcs,n*nZR,1)-1)*nZR + repelem(ZRidcs,m*nZL,1);
 [didcsB,ridcsB,valsB] = find(B);        % note that we store B, not B^T
 % Determine row and column numbers of coefficients associated with constant
 % term
-% Row stride nZd+1: each matrix row owns nZd+1 rows of C, constant first.   % MMP, 09/26/2026
-%ridcsC1 = (ridcs(ridcsA)-1)*nZd + 1;    % add 1 for constant term          % MMP, 09/26/2026 (was)
-ridcsC1 = (ridcs(ridcsA)-1)*(nZd+1) + 1;    % add 1 for constant term       % MMP, 09/26/2026
+% Row stride nZd+1: each matrix row owns nZd+1 rows of C, constant first.
+ridcsC1 = (ridcs(ridcsA)-1)*(nZd+1) + 1;    % add 1 for constant term
 cidcsC1 = (cidcs(ridcsA)-1)*nZL*nZR + Zidcs(ridcsA);
 % Determine row and column numbers of coefficients associated with decision
 % variables
-% Same stride; didcsB(:) as 'find' returns rows when B is a row (nZd=1).    % MMP, 09/26/2026
-%ridcsC2 = (ridcs(ridcsB)-1)*nZd + 1 + didcsB;    % add 1 for constant term % MMP, 09/26/2026 (was)
-ridcsC2 = (ridcs(ridcsB)-1)*(nZd+1) + 1 + didcsB(:);                        % MMP, 09/26/2026
+% Same stride; didcsB(:) as 'find' returns rows when B is a row (nZd=1).
+ridcsC2 = (ridcs(ridcsB)-1)*(nZd+1) + 1 + didcsB(:);
 cidcsC2 = (cidcs(ridcsB)-1)*nZL*nZR + Zidcs(ridcsB);
 % Declare the sparse coefficient matrix defining the dpvar object
 ridcsC = [ridcsC1(:);ridcsC2(:)];

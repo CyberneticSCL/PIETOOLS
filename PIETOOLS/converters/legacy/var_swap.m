@@ -1,5 +1,5 @@
 function b = var_swap(a,old,new)
-% function B = subs(A,Old,New);
+% function B = var_swap(A,Old,New);
 %
 % DESCRIPTION 
 %  Swap two symbolic variables in polynomial expression.
@@ -30,8 +30,10 @@ function b = var_swap(a,old,new)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % 6/23/2013: MMP Coding.
 % 09/26/2021: Added call to dpvar version
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
   if isempty(a)
       b=a;

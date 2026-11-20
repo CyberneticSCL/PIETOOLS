@@ -5,7 +5,9 @@ function Psop = opvar2d2sopvar(Pop)
 % INPUTS
 % - Pop:    'opvar2d' object representing a single block of a 2D-PI
 %           operator. That is, only one of Pop.R00, Pop.R0x, ..., Pop.R22
-%           may be nonempty.
+%           may be nonempty. In a direction on both sides, the dummy
+%           variable must be named <var1>_dum, else an error is thrown. An
+%           'opvar' object is converted as a 1D operator;
 %
 % OUTPUTS
 % - Psop:   'sopvar' object representing the same operator as Pop;
@@ -35,13 +37,8 @@ function Psop = opvar2d2sopvar(Pop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 05/27/2026: Initial coding
-% MMP, 09/26/2026: R22 with var1 not in sorted name order (e.g. the x
-%                  direction named 's2') came out with its two alpha axes
-%                  swapped: its 3x3 cell is in var1 order, an sopvar's is
-%                  over sorted S3. Measured kernel error 0.83 against the
-%                  definition read by name; 0 for sorted names, which are
-%                  unaffected. The cell is now transposed in that case.
 
 % Check that the input is of appropraite class
 if isa(Pop,'opvar')
@@ -101,33 +98,31 @@ vars.out = var1([maps2x;maps2y])';
 dom.in = Pdom([mapsx;mapsy],:);
 dom.out = Pdom([maps2x;maps2y],:);
 
-% A direction appearing on both sides carries a dummy, and an 'sopvar'       % MMP, 08/30/2026
-% records one name per direction, so a dummy that is not <primary>_dum       % MMP, 08/30/2026
-% cannot be recovered and 'sopvar2opvar2d' would hand it back renamed.       % MMP, 08/30/2026
-% Refuse rather than let a verification test compare relabelled operators.   % MMP, 08/30/2026
-for k = find([mapsx&&maps2x, mapsy&&maps2y])                                 % MMP, 08/30/2026
-    if ~strcmp(var2{k},[var1{k},'_dum'])                                     % MMP, 08/30/2026
-        error("opvar2d2sopvar: dummy variable '"+var2{k}+"' does not follow "...% MMP, 08/30/2026
-              +"the '"+var1{k}+"_dum' convention. An 'sopvar' does not record "...% MMP, 08/30/2026
-              +"the dummy name, so it would be silently renamed on conversion "...% MMP, 08/30/2026
-              +"back.")                                                      % MMP, 08/30/2026
-    end                                                                      % MMP, 08/30/2026
-end                                                                          % MMP, 08/30/2026
+% A direction appearing on both sides carries a dummy, and an 'sopvar'
+% records one name per direction, so a dummy that is not <primary>_dum
+% cannot be recovered: throw an error.
+for k = find([mapsx&&maps2x, mapsy&&maps2y])
+    if ~strcmp(var2{k},[var1{k},'_dum'])
+        error("opvar2d2sopvar: dummy variable '"+var2{k}+"' does not follow "...
+              +"the '"+var1{k}+"_dum' convention. An 'sopvar' does not record "...
+              +"the dummy name, so it would be silently renamed on conversion "...
+              +"back.")
+    end
+end
 
 % Decompose parameters into coefficient matrices and monomials
 [params,ZL,ZR] = get_params(R,var1([maps2x;maps2y]),var2([mapsx;mapsy]));
 if all(size(params)==[1,3])
     params = params';
 end
-% The parameter cell is indexed over the shared directions in SORTED order  % MMP, 09/26/2026
-% (class convention; see canonical_var_order), but R22's alpha cell is in   % MMP, 09/26/2026
-% var1 order, so swap its two axes when var1 is not sorted. Only R22 has    % MMP, 09/26/2026
-% two shared directions.                                                    % MMP, 09/26/2026
-S3v = var1([mapsx&&maps2x; mapsy&&maps2y]);                                 % MMP, 09/26/2026
-if numel(S3v)==2 && ~issorted(S3v),     params = params.';      end         % MMP, 09/26/2026
+% The parameter cell is indexed over the shared directions in SORTED order
+% (class convention), but the alpha cell of R22 is in var1 order, so swap
+% its two axes when var1 is not sorted. Only R22 has two shared directions.
+S3v = var1([mapsx&&maps2x; mapsy&&maps2y]);
+if numel(S3v)==2 && ~issorted(S3v),     params = params.';      end
 
 % Declare the operator
-Psop = sopvar(params,vars,ZL,ZR,dom,dims);                                  % MMP, 08/29/2026
+Psop = sopvar(params,vars,ZL,ZR,dom,dims);
 
 end
 
@@ -211,8 +206,11 @@ end
 % parameters
 nnZs = [zeros(1,nvar1);cumsum(nZs,1)];
 nnZt = [zeros(1,nvar2);cumsum(nZt,1)];
+% Strides of the Kronecker row index of Ps (Pt) along each variable
 stride1 = [cumprod(nnZs(end,:),2,'reverse'),1];
 stride2 = [cumprod(nnZt(end,:),2,'reverse'),1];
+% idcs1{i}: rows of Ps of polynomial i, the tensor product of its
+% monomial ranges along each variable
 idcs1 = num2cell(ones(size(nZs,1),1));
 for i=1:numel(idcs1)
     for j=1:nvar1
@@ -221,6 +219,7 @@ for i=1:numel(idcs1)
     end
     idcs1{i} = idcs1{i}(:)';
 end
+% idcs2{i}: the rows of Pt of polynomial i, likewise
 idcs2 = num2cell(ones(size(nZt,1),1));
 for i=1:numel(idcs2)
     for j=1:nvar2

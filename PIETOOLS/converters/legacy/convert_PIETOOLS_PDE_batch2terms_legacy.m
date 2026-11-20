@@ -1,10 +1,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PDE_batch2terms.m     PIETOOLS 2022
+% convert_PIETOOLS_PDE_batch2terms_legacy.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE_terms=convert_PIETOOLS_PDE_batch2terms(PDE_batch)
-% converts the PDE object format from batch to terms. Refer to files
-% initialize_PIETOOLS_PDE_batch and initialize_PIETOOLS_PDE_terms for more
-% information on those input formats.
+% converts the PDE object format from batch to terms. The batch
+% coefficients, rewritten in the variables s1, s1_dum, become the ODE, BC
+% and PDE terms; the ODE-PDE interconnection signals are v = [x; w; u]
+% and r = [boundary values; the integral terms of the x, z, y equations].
+% Boundary values in the batch order [x1(a) x1(b) x2(a) x2(b) x2s(a)
+% x2s(b)] are reordered to [x1(a) x2(a) x2s(a) x1(b) x2(b) x2s(b)].
+%
+% INPUT
+%   PDE_batch:  'struct', a PDE in the batch format (fields listed below;
+%               undefined coefficients zero, domain [0,1] if none given).
+%
+% OUTPUT
+%   PDE_terms:  'struct', the PDE in the terms format: n (nx, n_pde =
+%               [n0 n1 n2], nz, ny, nw, nu, nv, nr), dom, vars, and the
+%               ODE, BC and PDE terms, zero where no batch field sets them.
 PDE=initialize_PIETOOLS_PDE_batch(PDE_batch);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % User-Defined Inputs for specifying the dynamics:
@@ -60,10 +72,30 @@ PDE=initialize_PIETOOLS_PDE_batch(PDE_batch);
 % PDE.D21 - ny x nw matrix
 % PDE.D22 - ny x nu matrix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - convert_PIETOOLS_PDE_batch2terms_legacy
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS  - 5_30_2021
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 % MMP, 11/05/2026: Two corrections; the terms PIE of a batch PDE now equals
@@ -77,6 +109,7 @@ PDE=initialize_PIETOOLS_PDE_batch(PDE_batch);
 %   in r (Drb) are [x1(a) x2(a) x2s(a) x1(b) x2(b) x2s(b)], so their columns
 %   are permuted (B is split by location, derivative and state, and was
 %   already correct).
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Test for domain (mandatory variables)

@@ -11,13 +11,18 @@ function [Tops,Kop,Fop,info] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,so
 %
 % INPUT
 % - maps:   1 x N struct array, describing the 1D problem along s_i with
-%           the fields Tops, Rops, Kops, Fop and Qops (the outputs of
-%           compute_Tmap_1D, Qops only if the BCs along s_i have
-%           inputs), info (the 1D problem, see split_BVPs), forced
-%           (struct with fields w, u: logical arrays, the rows of the BCs
-%           with such inputs; [] if there are none) and source (struct
-%           with fields w, u, see the field src of fund_inputs). Empty
-%           for a direction in which no state is differentiable;
+%           the fields Tops, Rops, Kops, Fop and Qops (the operators
+%           solving the 1D problem: maps to the state and its derivatives,
+%           constraints, auxiliary values, and the input map through the
+%           boundary data, Qops only if the BCs along s_i have inputs),
+%           info (the BCs along s_i as E, F, with their states and
+%           orders), forced (struct with fields w, u: logical arrays, the
+%           rows of the BCs with such inputs; [] if there are none) and
+%           source (struct with fields w, u, each a struct with fields
+%           pde, elem, scale, dep: a BC with right-hand side
+%           scale*w_{pde}(elem), an element of an input depending on the
+%           variables dep; pde=0 for other BCs). Empty for a direction in
+%           which no state is differentiable;
 % - vars:   1 x N cellstr, the names of the variables;
 % - dom:    N x 2 array, the intervals of the variables;
 % - sizes:  1 x q array, the sizes of the q states;
@@ -26,7 +31,7 @@ function [Tops,Kop,Fop,info] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,so
 %           compute Tops, or 'all' for all alpha<=Delta. Alpha=0 (the
 %           states themselves) is always included;
 % - sources: true if the inputs in the BCs are determined by other states
-%           (lifted states of lower dimension, see convert_PIETOOLS_BVP),
+%           (lifted states of lower dimension),
 %           so that they satisfy the BCs along rank-deficient directions,
 %           which are then passed through;
 %
@@ -78,7 +83,7 @@ function [Tops,Kop,Fop,info] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,so
 %   other directions.
 % - Inputs are only supported if all directions are admissible, without
 %   more conditions than the order of the states. They are decomposed
-%   into free fundamental inputs (see fund_inputs), so that the user need
+%   into free fundamental inputs, so that the user need
 %   not enforce any compatibility.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,16 +110,8 @@ function [Tops,Kop,Fop,info] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,so
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ (CC), 11/02/2026: Initial coding;
-% DJ (CC), 11/06/2026: Support more conditions than the order of the states
-%   along a direction. The surplus conditions are constraints K_j*xf_I=0, as
-%   for the rank-deficient directions, but also along admissible directions
-%   (m_j=0, K_j nonempty), which were treated as unconstrained (silently
-%   dropping K_j). Not supported (error): non-scalar K_j with other
-%   directions, and inputs with surplus conditions;
-% DJ (CC), 11/13/2026: Take the 1D problems from split_BVPs and
-%   compute_Tmap_1D; return Kop instead of Kops, and info.surplus; drop
-%   the outputs Gops and info.rhs;
 
 % % % Dimensions: N directions, q states of the group, ns scalar
 % % % components. The 1D solutions are expressed in the states regrouped
@@ -162,7 +159,7 @@ end
 % from more conditions than the order of the states), couple the inputs
 % to the fundamental state, which the fundamental inputs do not account
 % for
-if any(any_forced) && any(nK>m)                                             % DJ (CC), 11/06/2026
+if any(any_forced) && any(nK>m)
     error('compose_Tmaps:inputsConstrained',['The boundary conditions have inputs, but along ',strjoin(vars(nK>m),', '),' there are more conditions than the order of the states; inputs are only supported if there are no such conditions.'])
 end
 % Rows without inputs of a type along a direction with inputs of that type:
@@ -192,6 +189,8 @@ for j=find(~triv & m==0)
     T1_blk = maps(j).Tops.T1.C{1,1};
     nnZL_arr = prod(cellfun(@numel,T1_blk.ZL));    nnZR_arr = prod(cellfun(@numel,T1_blk.ZR));
     T1_coefs{j} = zeros(ns,ns,0);
+    % Coefficient of each monomial pair (ZL, ZR) of each nonzero parameter,
+    % as an ns x ns matrix on the states
     for iparam=1:numel(T1_blk.params)
         param = T1_blk.params{iparam};
         if nnz(param)==0
@@ -238,7 +237,7 @@ for i=find(~triv)
         rank_class = rank(Mmat(:,col_class==class_k),tol);
         % With a single class, more conditions than the order of the
         % states are surplus conditions (constraints), not incompatible
-        if rank_class>sum(sizes(class_id==class_k).*Delta(class_id==class_k,i)') && max(class_id)>1  % DJ (CC), 11/06/2026
+        if rank_class>sum(sizes(class_id==class_k).*Delta(class_id==class_k,i)') && max(class_id)>1
             error('compose_Tmaps:orderIncompatible',['The boundary conditions along ',vars{i},' are order incompatible.'])
         end
         rank_sum = rank_sum + rank_class;
@@ -270,6 +269,9 @@ for i=find(~triv)
     offs = cumsum([0,n]);
     idx_E0 = cumsum([0,2*(1:d_i).*n(2:end)]);
     rank_Mmat = rank(Mmat,tol);
+    % Each coefficient M of T_{1,j}, j ~= i, on the states of direction i:
+    % block diagonal in the orders along s_i, with E and F (M acting on their
+    % columns) in the row space of Mmat
     for j=find(~triv & m==0 & (1:N)~=i)
         for k=1:size(T1_coefs{j},3)
             coef_reg = T1_coefs{j}(regroup_idcs{i},regroup_idcs{i},k);
@@ -283,6 +285,7 @@ for i=find(~triv)
                     E_new(:,cols) = info_i.E(:,cols)*kron(eye(2*jj),coef_reg(blk,blk));
                 end
             end
+            % The functionals F with M acting on their columns
             F_new = zeros(size(F_arr));
             for r=1:size(F_arr,3)
                 F_new(:,:,r) = F_arr(:,:,r)*coef_reg;
@@ -313,7 +316,7 @@ adm_idcs = find(~triv & m==0);       rk_idcs = find(m>0);
 % as T_{1,j} is always used. For K to commute with the maps along the
 % other directions, the conditions should be scalar, unless there are no
 % other directions
-adm_K = adm_idcs(nK(adm_idcs)>0);                                           % DJ (CC), 11/06/2026
+adm_K = adm_idcs(nK(adm_idcs)>0);
 if any(~scalar(adm_K)) && nnz(~triv)>1
     error('compose_Tmaps:coupledConstrained',['The boundary conditions along ',strjoin(vars(adm_K(~scalar(adm_K))),', '),' have more conditions than the order of the states, and couple components; this is only supported if there are no other directions with boundary conditions.'])
 end
@@ -386,7 +389,7 @@ for i=find(~triv)
         % With one auxiliary value for each component of the general
         % direction, these are ordered as the regrouped components in the
         % 1D problem. xf is split in blocks per state, with the auxiliary
-        % values in the order of the states (see convert_PIETOOLS_BVP), so
+        % values in the order of the states, so
         % reorder them: the rows of F, and the columns of R0.
         if i==gen_idx && m(i)==ns && ~isequal(perm_back,1:ns)
             ops_1D(i).F = ops_1D(i).F(perm_back,:);
@@ -402,7 +405,7 @@ end
 % is reintroduced per component by kron when composing below
 % Admissible directions with scalar constraints (m=0) only need K
 % unkronned, as their R1 are applied in full below
-for i=[scalar_idcs,adm_K(scalar(adm_K))]                                    % DJ (CC), 11/06/2026
+for i=[scalar_idcs,adm_K(scalar(adm_K))]
     R_names = {'R1','R0'};      if m(i)==0, R_names = {}; end
     for R_name=R_names
         for a=find(~cellfun(@isempty,ops_1D(i).(R_name{1})(:)))'
@@ -530,7 +533,7 @@ for c=1:ncomp
     % extra conditions, for every I: a scalar K acts on all values, and a
     % non-scalar K (only if j is the sole direction, so dim_I=ns) on the
     % components
-    for j=adm_K                                                             % DJ (CC), 11/06/2026
+    for j=adm_K
         X = ops_1D(j).K;
         if scalar(j)
             X = kron(X,speye(dim_I));
@@ -557,6 +560,8 @@ for i=1:numel(maps)
     dirs(i).triv = triv(i) | pass(i);     dirs(i).adm = ~triv(i) & m(i)==0;
     dirs(i).R1 = ops_1D(i).R1;      dirs(i).Rp = ops_1D(i).Rp;
 end
+% Directions with inputs: the map Cw, the order d, and the component pos
+% and Taylor order ell of each entry of the boundary data
 for i=find(any_forced)
     n = maps(i).info.n;     d_i = numel(n)-1;       n_offs = cumsum([0,n]);
     dirs(i).Cw = maps(i).Qops.Cw;
@@ -564,6 +569,7 @@ for i=find(any_forced)
     dirs(i).pos = cell2mat(arrayfun(@(j) repmat(regroup_idcs{i}(n_offs(j+1)+(1:n(j+1)))',j,1),1:d_i,'UniformOutput',false)');
     dirs(i).ell = cell2mat(arrayfun(@(j) repelem((0:j-1)',n(j+1),1),1:d_i,'UniformOutput',false)');
 end
+% Fundamental inputs and their operators, for w and for u
 inputs_info = struct('w',[],'u',[]);        inputs_ops = inputs_info;
 for ty=itypes
     obj_type = ty{1};
@@ -633,7 +639,7 @@ function R_stacked = stack_rows(Rops_1D,n,a,d_i,perm_back)
 %
 % INPUT
 % - Rops_1D:    (d_i+1) x (d_i+1) cell of 'copvar' objects, e.g. the
-%           operators Rops.R1 of compute_Tmap_1D, with Rops_1D{j+1,a+1}
+%           operators Rops.R1 of the 1D solution, with Rops_1D{j+1,a+1}
 %           mapping the 1D fundamental state to the derivative of order a
 %           of the n(j+1) states of order j;
 % - n:      1 x (d_i+1) array, with n(j+1) the number of states of order j;

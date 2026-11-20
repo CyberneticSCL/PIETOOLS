@@ -29,9 +29,7 @@ function PIE_out = npie2pie_struct(PIE_in)
 % NOTES
 % - An error is thrown if the PIE is nonlinear, i.e. if f, gz, or gy has a
 %   monomial in the state of degree different from 1 with a coefficient
-%   above 1e-12, or if an operator involves tensor products of operators,
-%   see `tensopmat2copvar`.
-% - This is the inverse of `pie2npie_struct`.
+%   above 1e-12, or if an operator involves tensor products of operators.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,9 +56,11 @@ function PIE_out = npie2pie_struct(PIE_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
 
 
+% Initialize the PIE if needed
 if ~PIE_in.is_initialized
     PIE_in = initialize(PIE_in);
 end

@@ -1,8 +1,15 @@
 function PIE = convert_PIETOOLS_PDE_terms(PDE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function takes a PDE in new terms format and converts it to the old
-% terms format. Refer to the PIETOOLS manual details on the new terms
-% format and other input formats.
+% terms format.
+%
+% INPUT
+% - PDE:    initialized 'pde_struct' object in the terms format, in one
+%           spatial variable;
+%
+% OUTPUT
+% - PIE:    the PIE of the PDE, converted from the old (legacy) terms
+%           format.
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -29,6 +36,7 @@ function PIE = convert_PIETOOLS_PDE_terms(PDE)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% Initial coding MMP, SS, DJ (PIETOOLS 2021b; in the repository since 12/31/2021)
 % MMP, 11/05/2026: The coefficients of the terms are rewritten from the
 %   variables PDE.vars ([s, s_dum] from the PDE GUI) in s1, s1_dum, the
 %   variables INITIALIZE_PIETOOLS_PDE_terms_legacy sets since DJ,
@@ -42,6 +50,7 @@ function PIE = convert_PIETOOLS_PDE_terms(PDE)
 %   last term (GUI Lamare BC 0 = X2(0) - 0.6*X1(0) - 0.1*X2(0) gave X2(0)
 %   the coefficient -0.1, not 0.9). Placements into Crp, Drb, Bpv, Ebv get
 %   their own rows of r or columns of v per term, and are unchanged.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % For now convert the new terms format to old terms format

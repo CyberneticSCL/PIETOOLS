@@ -1,25 +1,43 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% minimize_PIETOOLS_DDE.m     PIETOOLS 2022a
+% minimize_PIETOOLS_DDE2DDF.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DDF_out=minimize_PIETOOLS_DDE2DDF(DDE)
 %
-% This script takes a fully formed DDE representation and finds the minimal
+% This function takes a fully formed DDE representation and finds the minimal
 % DDF representation of that DDE.
 %
-% A Partial Integral Equation is defined by 12 PI operators as
-%
-% TB1op \dot{w}(t)+TB2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op u(t)+ + B2op w(t)
-%                                             z(t)= C1op x(t) + D11op u(t)+ + D12op w(t)
-%                                             y(t)= C2op x(t) + D21op u(t)+ + D22op w(t)
+% For each delay tau(i), let Pb be the discrete and Pdb(s) the distributed
+% delay coefficients of tau(i) (rows: the x, z, y equations; columns: x,
+% w, u), Pdb(s) = Zth(s)*H with Zth(s) a monomial basis, and
+% [Pb; H] = [Ls; Lsd]*Rs a rank factorization (SVD). The delay channel is
+%   r_i(t) = Rs*[x(t); w(t); u(t)],    nr{i} = rank([Pb; H]),
+% with output Ls*r_i(t-tau(i)) + int_{-tau(i)}^0 Zth(s)*Lsd*r_i(t+s) ds;
+% v = [v_x; v_z; v_y] collects these outputs for the x, z and y equations.
 %
 % The formulae were defined in (12) and (15)-(16) in the paper
 % ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs''
 % reference: https://arxiv.org/abs/1910.03881
 %
-% The use of this script is recommended as it exploits the
-% structure of the system, as opposed to convert_PIETOOLS_DDE.
-% Specifically, in that script, all states and inputs are delayed,
-% forming a rather large-dimensional delay channel
+% INPUT
+%   DDE:      'struct', the DDE with K = numel(DDE.tau) >= 1 delays
+%     \dot x(t) = A0 x(t) + sum_i Ai{i} x(t-tau(i)) + sum_i int_{-tau(i)}^0 Adi{i}(s) x(t+s) ds
+%               + B1 w(t) + (B1i, B1di likewise) + B2 u(t) + (B2i, B2di likewise)
+%          z(t) = C1 x(t) + D11 w(t) + D12 u(t) + (C1i, C1di, D11i, D11di, D12i, D12di likewise)
+%          y(t) = C2 x(t) + D21 w(t) + D22 u(t) + (C2i, C2di, D21i, D21di, D22i, D22di likewise)
+%             with 1 x K cells of 'double' matrices (Ai, ...) and of
+%             'double' or 'polynomial' kernels (Adi, ...); undefined fields
+%             are zero.
+%
+% OUTPUT
+%   DDF_out:  'struct', the minimal DDF
+%     \dot x(t) = A0 x(t) + B1 w(t) + B2 u(t) + Bv v(t)
+%          z(t) = C1 x(t) + D11 w(t) + D12 u(t) + D1v v(t)
+%          y(t) = C2 x(t) + D21 w(t) + D22 u(t) + D2v v(t)
+%        r_i(t) = Cr{i} x(t) + Br1{i} w(t) + Br2{i} u(t) + Drv{i} v(t)
+%          v(t) = sum_i Cv{i} r_i(t-tau(i)) + sum_i int_{-tau(i)}^0 Cvd{i}(s) r_i(t+s) ds
+%             with tau, A0, ..., D22 of the DDE, [Cr{i} Br1{i} Br2{i}] = Rs,
+%             Drv{i} = 0, Cv{i} = Ls, Cvd{i} = Zth*Lsd, and Bv, D1v, D2v
+%             the selectors of v_x, v_z, v_y.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -43,15 +61,17 @@ function DDF_out=minimize_PIETOOLS_DDE2DDF(DDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 %  MP - 5_30_2021; converted script to function format
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDE to a minimal DDF representation
 % The following dimensions assume the DDE has been initialized, so lets
 % make sure.
 DDE=initialize_PIETOOLS_DDE(DDE);
-nK=length(DDE.tau);   % number of states
+nK=length(DDE.tau);   % number of delays
 nx=size(DDE.A0,1);   % number of states
 nw=size(DDE.B1,2);   % number of disturbances
 nu=size(DDE.B2,2);   % number of inputs
@@ -78,30 +98,36 @@ ny=size(DDE.C2,1);  % number of sensed outputs
 
 % The first step is to form the vertical concatenation matrices for each
 % delay, tau(i)
-%%% ADD case logic for when there are no delays
+% No delays: not supported; the call below recurses and assigns no
+% DDF_out.
 if nK==0
-    DDE=convert_PIETOOLS_DDE(DDE);  % This makes no sense...
+    DDE=convert_PIETOOLS_DDE(DDE);
 else
-    % First: tau, A0, B1, B2, C1, D11, D12, C2, D21, D21 are unchanged from the DDE
+    % First: tau, A0, B1, B2, C1, D11, D12, C2, D21, D22 are unchanged from the DDE
     DDF.tau=DDE.tau;DDF.A0=DDE.A0;DDF.B1=DDE.B1;DDF.B2=DDE.B2;DDF.C1=DDE.C1;DDF.C2=DDE.C2;DDF.D11=DDE.D11;DDF.D12=DDE.D12;DDF.D21=DDE.D21;DDF.D22=DDE.D22;
     % However, we must now define:
     % Bv, D1v, D2v, Cr{i}, Br1{i}, Br2{i}, Drv{i}, Cv{i}, Cvd{i}
     
     nv=nx+nz+ny;
     for i=1:nK
+        % Discrete (Pb) and distributed (Pdb) delay coefficients of tau(i):
+        % rows the x, z, y equations, columns x, w, u
         Pb=[DDE.Ai{i} DDE.B1i{i} DDE.B2i{i};
             DDE.C1i{i}  DDE.D11i{i} DDE.D12i{i};
             DDE.C2i{i}  DDE.D21i{i} DDE.D22i{i}];
         Pdb=[DDE.Adi{i} DDE.B1di{i} DDE.B2di{i};
             DDE.C1di{i}  DDE.D11di{i} DDE.D12di{i};
             DDE.C2di{i}  DDE.D21di{i} DDE.D22di{i}];
+        % Pdb(s) = Zth(s)*HT', Zth(s) a monomial basis
         [ZthT,HT] = poly_decomp_1D_econ(Pdb');
         Zth=ZthT';
+        % Rank rT of [Pb; HT'] from its SVD; error if delay i has no terms
         [UT,DT,VT]=svd([Pb;HT'],'econ');
         rT=rank(DT);
         if rT==0
             error(['Delay ', int2str(i), ' has no associated coefficients. Remove the delay or correct the coefficients.'])
         end
+        % Rank factorization [Pb; HT'] = LsT*Rs, LsT = [Ls; Lsd]
         UsT=UT(:,1:rT);
         VsT=VT(:,1:rT);
         DdT=diag(DT);
@@ -121,11 +147,12 @@ else
         DDF.Cvd{i}=Zth*Lsd;
         %       clear Pb Pbd UT DT Vt rT UsT VsT DdT DsT LsT
     end
+    % v = [v_x; v_z; v_y]: Bv, D1v, D2v select the delayed terms of the
+    % x, z and y equations
     DDF.Bv=[eye(nx) zeros(nx,nz) zeros(nx,ny)];
     DDF.D1v=[zeros(nz,nx) eye(nz) zeros(nz,ny)];
     DDF.D2v=[zeros(ny,nx) zeros(ny,nz) eye(ny)];
-    % The DDF formulation is now complete. We can call
-    % convert_PIETOOLS_DDF (initialize is not necessary)
+    % The DDF formulation is now complete.
     %    PIE=convert_PIETOOLS_DDF(DDF);
     DDF_out=DDF;
 end

@@ -3,9 +3,16 @@ function Pop = mat2sopvar(Pmat,vars,dom)
 % 'sopvar' object POP representing the associated multiplier operator
 % between the function spaces defined by DOM.
 %
+% Pmat is the multiplier term of the operator in the variables shared by
+% VARS.in and VARS.out; all other parameters are zero. Input variables not
+% in VARS.out (S1) are integrated over their domain, with a kernel
+% constant in them: (Pop*x)(S2,S3) = Pmat(S2,S3)*int_{S1} x(S3,S1) dS1,
+% S3 the shared and S2 the output-only variables.
+%
 % INPUTS
 % - Pmat:   m x n 'double' or 'polynomial' array, representing a multiplier
-%           operator
+%           operator; it may depend only on the output variables
+%           (vars.out), else an error is thrown
 % - vars:   struct with fields
 %     in:   1 x N cellstr array specifying the names of the input variables
 %           to the operator;
@@ -47,9 +54,8 @@ function Pop = mat2sopvar(Pmat,vars,dom)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 06/12/2026: Initial coding
-% DJ, 10/29/2026: Refuse a matrix that depends on a variable that is
-%                   not in vars.out. 
 
 % Check that the matrix is properly specified
 if isa(Pmat,'double')
@@ -84,7 +90,7 @@ end
 vname_Pmat = Pmat.varname(:);
 has_coef = full(any(Pmat.coefficient,2));
 is_bad = any(full(Pmat.degmat(has_coef,:)),1)' & ~ismember(vname_Pmat,vars.out(:));
-if any(is_bad)                                                              % DJ, 10/29/2026
+if any(is_bad)
     error("Matrix depends on variable(s) '%s', which are not output variables of the operator.",...
         strjoin(vname_Pmat(is_bad)',"', '"))
 end
@@ -103,6 +109,6 @@ params = repmat({spalloc(size(Cmat,1),size(Cmat,2),0)},[3*ones(1,N_S3),1]);
 params{1} = Cmat;
 
 % Declare the operator
-Pop = sopvar(params,vars,ZL,ZR,dom,size(Pmat));                             % MMP, 08/29/2026
+Pop = sopvar(params,vars,ZL,ZR,dom,size(Pmat));
 
 end

@@ -2,10 +2,15 @@ function Psop = dopvar2sdopvar(Pop)
 % PSOP = DOPVAR2SDOPVAR(POP) takes a dopvar object POP and returns an
 % sdopvar object PSOP representing the same decision variable operator
 %
+% The block maps R to R (Pop.P), L2 to R (Pop.Q1, input variable var1),
+% R to L2 (Pop.Q2, output variable var1), or L2 to L2 (Pop.R.R0, R1, R2,
+% output variable var1, input variable var2), on the domain Pop.I.
+%
 % INPUTS
 % - Pop:    'dopvar' object representing a single block of a 4-PI operator.
 %           That is, only one of Pop.P, Pop.Q1, Pop.Q2, and Pop.R may be
-%           nonempty.
+%           nonempty. An 'opvar' object is first converted to 'dopvar'; a
+%           'dopvar2d' object throws an error.
 %
 % OUTPUTS
 % - Psop:   'sdopvar' object representing the same operator as Pop;
@@ -35,13 +40,12 @@ function Psop = dopvar2sdopvar(Pop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/05/2026: Initial coding;
 
 % Check that the input is of appropraite class
 if isa(Pop,'dopvar2d')
     error("Conversion of 'dopvar2d' objects is currently not supported.")
-%    Psop = dopvar2d2sdopvar(Pop);
-%    return
 elseif isa(Pop,'opvar')
     Pop = opvar2dopvar(Pop);
 elseif ~isa(Pop,'dopvar')

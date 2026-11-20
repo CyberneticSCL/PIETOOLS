@@ -1,24 +1,40 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_transform_to_solution.m     PIETOOLS 2025
+% PIESIM_transform_to_solution_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, gridall, solcoeff, opts);
 % This routine transforms solution from the Chebyshev coefficient space of the fundamental states to
 % the physical solution of the primary states in 2D
 % It first performs a transform of Chebshev coefficients of fundamental
-% states to Chebyshev coefficients of primary states using Tcheb_nonsaquare
+% states to Chebyshev coefficients of primary states using Tcheb_2PDEstate
 % operator
 % It then transforms Chebysehv coefficients of the primary states to the
 % physical solution of the preimary states
-
+%   coefficients of the primary states: Tmap*a + Twmap*w_c*w(t) +
+%   Tumap*u_c*u(t); z = C1*a + D11*w_c*w(t) + D12*u_c*u(t); y = C2*a +
+%   D21*w_c*w(t) + D22*u_c*u(t), with a the coefficients of the fundamental
+%   states and w_c, u_c the spatial coefficients of the inputs (for a
+%   non-separable input recomputed at each time, with value 1).
+%
 % Inputs: 
 % 1) psize - size of the PIE problem: all variables defining the size of the PIE problem
-% 2) PIE structure - needed for reconstruction of non-zero boundary terms,
-%  observed and regulated outputs
+%    ('struct' with fields N, n0, nx, ny, n, nw0, nwx, nwy, nw2, nu0, nux,
+%    nuy, nu2, nr0, nrx, nry, nr2, no0, nox, noy, no2, nw, nu)
+% 2) PIE structure - not used
 % 3) Dop- discretized PIE operators
+%    ('struct' with fields Tcheb_2PDEstate, Tucheb_2PDEstate,
+%    Twcheb_2PDEstate, optionally Tchebmap_2PDEstate, Tuchebmap_2PDEstate,
+%    Twchebmap_2PDEstate (used instead when present), C1cheb, C2cheb,
+%    D11cheb, D12cheb, D21cheb, D22cheb)
 % 4) uinput -  user-defined boundary inputs, forcing functions and initial conditions
+%    ('struct' with fields w, u (function handles of t if separable, sym
+%    in st, sx, sy otherwise), wsep, usep)
 % 5) gridall - physical and computational gridall for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+%    ('struct' with cell fields x, y)
 % 6) solcoeff - Chebyshev coefficients of the time-dependent PDE solution
+%    ('struct' with fields final, tf, w, u and, for BDF, timedep.dtime,
+%    timedep.coeff)
 % 7) opts - options for simulation parameters
+%    ('struct' with fields tf, intScheme)
 % 
 % Outputs: 
 % 1) solution 
@@ -53,7 +69,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 %      array of size (N(2)+1) x nry, nry - number of outputs depending only on s2 
 % --- solution.final.regulated{4} - array containing final value of regulated outputs that are the functions of two variables - 
 % It is array of size (N(1)+1) x (N(2)+1) x nr2, nr2 - number of outputs depending on both s1 and s2
-
+%
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2,3,4} - cell array containing all
@@ -81,24 +97,44 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 %     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s1 - 
 %     array of size (N(1)+1) x nrx x Nsteps, nrx - number of regulated outputs depending only on s1
-% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s2 - 
+% --- solution.timedep.regulated{3} - array containing regulated outputs that are only the functions of s2 -
 %     array of size (N(2)+1) x nry x Nsteps, nry - number of regulated outputs depending only on s2
-% --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
+% --- solution.timedep.regulated{4} - array containing regulated outputs that are the functions of two variables -
 %     array of size (N(1)+1) x (N(2)+1) x nr2 x Nsteps, nr2 - number of outptus depending on both s1 and s2
 
-%-------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_transform_to_solution_2D
 %
-% Requires: ifcht (inverse Chebyshev transform)
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding - YP, 4/16/2024
 % YP, 12/31/2025 - Modified treatment of disturbances and control inputs
 % YP, 1/27/2026 - Added support for infinite-dimensional outputs in 2D
 % YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde{1,2,3} into
 % solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
 % solution.timedep.primary{1,2,3,4}
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
@@ -109,6 +145,8 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 
 % Define local variables
     N=psize.N;
+    % Inputs grouped by kind (R, L2[x], L2[y], L2[x,y]), Np(g) coefficients
+    % per input of kind g; offsets of the groups in solcoeff.w, solcoeff.u
     Np=[1, N(1)+1, N(2)+1, prod(N+1)];
 
     nw_groups=[psize.nw0, psize.nwx, psize.nwy, psize.nw2];
@@ -121,12 +159,15 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
     cum_nug = cumsum(nu_groups);
     cum_nup = cumsum(nu_points);
 
+     % Numbers of states and outputs
      n0=psize.n0;
      nx=sum(psize.nx,'all');
      ny=sum(psize.ny,'all');
      n2=sum(psize.n,'all');
      nr_sum=psize.nr0+psize.nrx+psize.nry+psize.nr2;
      no_sum=psize.no0+psize.nox+psize.noy+psize.no2;
+     % Maps to the primary-state coefficients; Tmap, Tumap, Twmap replace
+     % T, Tu, Tw when present
      Tcheb_2PDEstate=Dop.Tcheb_2PDEstate; 
      Tucheb_2PDEstate=Dop.Tucheb_2PDEstate;
      Twcheb_2PDEstate=Dop.Twcheb_2PDEstate;
@@ -139,6 +180,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
       if isfield(Dop,'Twchebmap_2PDEstate') 
          Twcheb_2PDEstate=Dop.Twchebmap_2PDEstate;
      end
+     % Output operators
      C1op=Dop.C1cheb;
      C2op=Dop.C2cheb;
      D11op=Dop.D11cheb;
@@ -146,6 +188,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
      D21op=Dop.D21cheb;
      D22op=Dop.D22cheb;
 
+     % Final time of the computed solution
      if (solcoeff.tf~=opts.tf) 
      disp('Warning: solution final time does not match user input final time');
      disp('Defaulting to solution final time');

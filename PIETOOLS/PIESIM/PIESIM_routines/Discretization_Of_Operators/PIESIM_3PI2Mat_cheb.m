@@ -3,11 +3,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A and A_2PDEstate matrices for the entire multi-dimensional 3PI operator  
 % Discretizes FULL OPERATOR
+%   (R x)(s) = R0(s) x(s) + int_{-1}^{s} R1(s,t) x(t) dt
+%                         + int_{s}^{1} R2(s,t) x(t) dt,   s in [-1,1].
+% Block (i,j) maps the N-pcol(j)+1 Chebyshev coefficients of column state j
+% to the N-p(i)+1 coefficients of row state i (to all N+1 in A_2PDEstate).
 % Inputs:
 % varargin - variable number of arguments (between 3 and 4)
 % Required:
 % 1) varargin(1): N   - polynomial order of Chebyshev discretization polynomial
 % 2) varargin(2): Rop - 3PI operator 
+%    ('struct' with fields R0, R1, R2, each 'polynomial' or 'double' of
+%    size length(p) x length(pcol))
 % 3) varargin(3): p - vector of dimension 1 x number of rows of the entries of Rop (1 x size(Rop{},1))-
 % a "degree of smoothness" structure for vriables corresponding to the
 % rows of Rop
@@ -18,17 +24,42 @@
 %
 % Outputs:
 % A - discretization matrix of the time-dependent PIE propagator
+%     (sum_i (N-p(i)+1) x sum_j (N-pcol(j)+1))
 % A_2PDEstate -discretization matrix for transform between
 % funsamental and primary solution
+%     (length(p)*(N+1) x sum_j (N-pcol(j)+1))
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_3PI2Mat_cheb
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 6_28_2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 function [A, A_2PDEstate]=PIESIM_3PI2Mat_cheb(varargin)
 
+% Inputs; pcol = p if not given
 N=varargin{1};
 Rop=varargin{2};
 p=varargin{3};
@@ -38,15 +69,19 @@ else
     pcol=p;
 end
 
+% Numbers of row and column states
 ns_row=length(p);
 ns_col=length(pcol);
 
 
+  % Multiplier R0 and integral kernels R1, R2
   R0=Rop.R0;
   R1=Rop.R1;
   R2=Rop.R2;
 
 
+% Block (i,j): (N+1) x (N+1) discretizations of the multiplier and of the
+% integrals, restricted to the resolved columns (and rows, in A)
 for i=1:ns_row
      for j=1:ns_col
 %         % Go over the rows of the matrices Tau and A column by column

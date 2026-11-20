@@ -11,36 +11,23 @@ function PIEc = pie2copvar(PIE)
 %                                     z = C1*x + D11*w + D12*u,
 %                                     y = C2*x + D21*w + D22*u,
 %
-%           as returned by 'convert', the twelve operators 'opvar' or
-%           'opvar2d' objects; absent operators are filled by 'initialize';
+%           the twelve operators 'opvar' or 'opvar2d' objects; absent
+%           operators become zero operators of the dimensions the other
+%           operators imply;
 %
 % OUTPUTS
-% - PIEc:   'pie_struct' with the vars, dom, component tables and misc of
-%           PIE, and each of the twelve operators replaced by
-%
-%               op2copvar_sop(<op>)   if <op> has an input and an output,
-%               []                    otherwise (no w, u, z or y),
-%
-%           the container whose block (i,j) maps the j-th input space of
-%           nonzero dimension to the i-th output space of nonzero
-%           dimension, the spaces in the order (R, L2[s]) in 1-D and
-%           (R, L2[s1], L2[s2], L2[s1,s2]) in 2-D.
-%           Optional F and K fields are also converted when nonempty.
+% - PIEc:   the initialized 'pie_struct', with the vars, dom, component
+%           tables and misc of PIE, and each operator (K included, if
+%           present) a 'copvar' container whose block (i,j) maps the j-th
+%           input space of nonzero dimension to the i-th output space of
+%           nonzero dimension, the spaces in the order (R, L2[s]) in 1-D
+%           and (R, L2[s1], L2[s2], L2[s1,s2]) in 2-D.
 %
 % NOTES
-% 'op2copvar_sop' is the conversion the container executives
-% (executives_sopvar) apply to each PIE operator, so PIEc holds the
-% containers they build. A zero operator between spaces of nonzero
-% dimension (D11 = 0, Tw = 0) converts to zero blocks, which keep its
-% spaces defined. An operator with no input or no output space has no
-% container form: a 'copvar' needs a block in every row and column, and
-% 'opvar2copvar' rejects it.
-%
-% PIEc is input for the container functions (lpi_programming_sopvar).
-% Functions that read opvar properties of the PIE ('initialize', PIESIM,
-% the stock and the container executives) still take the opvar PIE;
-% 'copvar2opvar' (1-D) and 'copvar2opvar2d' (2-D) convert single
-% operators back.
+% A zero operator between spaces of nonzero dimension (D11 = 0, Tw = 0)
+% converts to zero blocks, which keep its spaces defined. An operator with
+% no input or no output space (an empty channel) converts to a 'copvar'
+% without spaces on that side.
 %
 % A PIE whose T is already a 'copvar' is returned as is.
 %
@@ -74,31 +61,17 @@ function PIEc = pie2copvar(PIE)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/27/2026
-% DB 10/28/2026: Add conversion for F and K fields, non-empty in the case of Periodic Boundary Conditions.
-% DJ (CC), 10/29/2026: Update to new pie_struct structure: initialize
-%                   converts the operators to copvar objects, and the F field
-%                   no longer exists;
 
+% Check the input
 if ~isa(PIE,'pie_struct')
     error('pie2copvar:pie','The PIE should be a ''pie_struct''.');
 end
 PIEc = PIE;
 if isa(PIE.T,'copvar'),     return,     end         % already converted
-% Absent operators become zero opvars of the dimensions the other operators
-% imply; dimensions, domains and variables are checked, as the executives
-% do before converting.
-% Update to new pie_struct structure: initialize now converts the operators
-% to copvar objects, including those with an empty channel (no input or no
-% output space), which are copvar objects without spaces on that side
-% rather than [].                                                           % DJ (CC), 10/29/2026
+% Initialize: absent operators become zero operators of the dimensions the
+% other operators imply; dimensions, domains and variables are checked; the
+% operators are converted to copvar objects, an operator with an empty
+% channel (no input or no output space) to a copvar object without spaces
+% on that side.
 PIEc = initialize(PIE);
-% ops = {'T','Tw','Tu','A','B1','B2','C1','D11','D12','C2','D21','D22'};   % DJ (CC), 10/29/2026 (was)
-% for k = 1:numel(ops)                                                      % DJ (CC), 10/29/2026 (was)
-%     Pop = PIEc.(ops{k});                                                  % DJ (CC), 10/29/2026 (was)
-%     if any(Pop.dim(:,1)) && any(Pop.dim(:,2))                             % DJ (CC), 10/29/2026 (was)
-%         PIEc.(ops{k}) = op2copvar_sop(Pop);                               % DJ (CC), 10/29/2026 (was)
-%     else                                                                  % DJ (CC), 10/29/2026 (was)
-%         PIEc.(ops{k}) = [];                     % no input or no output space % DJ (CC), 10/29/2026 (was)
-%     end                                                                   % DJ (CC), 10/29/2026 (was)
-% end                                                                       % DJ (CC), 10/29/2026 (was)
 end

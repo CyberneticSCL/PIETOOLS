@@ -6,8 +6,7 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 % coupled BCs only involves states on the same variables. E.g. the BC
 %       x2(s1,0) = x1(s1)
 % of x2(s1,s2) becomes x2(s1,0) = p(s1), for a new input p (the "source"
-% x1). The BC is then solved as a BC of x2 with an input, and p is
-% eliminated afterwards, see eliminate_BVP_sources.
+% x1). The BC is then a BC of x2 with an input.
 %
 % INPUT
 % - PDE:    initialized 'pde_struct' object in the terms format;
@@ -41,7 +40,7 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 %   of such a term are not supported.
 % - A term that fixes several variables of its state (a corner value, or
 %   an integral over the full domain in several variables) cannot be a
-%   condition along a single direction (see split_BVPs), so it is lifted
+%   condition along a single direction, so it is lifted
 %   whatever the dimension of its state, if the BC involves other states:
 %   e.g. x1(0)=int_{0}^{1}int_{0}^{1}x2 is a BC of x1(s1) with the
 %   source int x2 of x2(s1,s2), constant in the integrated variables.
@@ -55,7 +54,7 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 %   constrained state has one, the input terms of the BC (of inputs
 %   without variables, with constant coefficients) are lifted into the
 %   source too; other inputs stay in the BCs, which is not supported in
-%   a group with a source on several variables (convert_PIETOOLS_BVP).
+%   a group with a source on several variables.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lift_BVP_sources
@@ -81,14 +80,8 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ (CC), 11/02/2026: Initial coding;
-% DJ (CC), 11/08/2026: Lift the input terms of a BC into a scalar source of a
-%                   1-D state, so that a row with a state of lower dimension
-%                   and an input has a single input as right-hand side;
-% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
-% DJ (CC), 11/13/2026: Lift terms fixing several variables of a state;
-%                   drop lifted terms with a zero coefficient; return PDE
-%                   if nothing is lifted; shorter error messages;
 
 N = size(PDE.vars,1);
 nw = numel(PDE.w);
@@ -112,7 +105,7 @@ for k=1:numel(BC)
     % For each state term, the variables in which it is a function (not
     % evaluated at a boundary or integrated), and the limits of its
     % integrals, of which those over the full domain, with the variables
-    % that it fixes (see split_BVPs). A term fixing several variables is a
+    % that it fixes. A term fixing several variables is a
     % scalar functional of its state, which cannot be a condition along a
     % single direction. If the BC has another state, the BC constrains
     % that state, and the term is lifted, whatever the dimension of its
@@ -124,6 +117,7 @@ for k=1:numel(BC)
         vidx = find(isvar_states(ii,:));
         loc = polynomial(term.loc);
         is_bdry = arrayfun(@(m) isdouble(loc(m)),1:numel(vidx));
+        % Integrals of the term, and which are over the full domain
         I_term{ii} = cell(numel(vidx),1);       full_int{ii} = false(numel(vidx),1);
         for m=1:numel(vidx)
             if isfield(term,'I') && numel(term.I)>=m && ~isempty(term.I{m})
@@ -132,6 +126,8 @@ for k=1:numel(BC)
                 full_int{ii}(m) = isdouble(I_lim) && numel(I_lim)==2 && isequal(sort(double(I_lim(:))'),sort(PDE.dom(vidx(m),:)));
             end
         end
+        % The state is free in the variables not at a boundary, unless integrated;
+        % several fixed variables (boundary or full integral) mark is_multi
         free_states(ii,vidx) = ~is_bdry;
         if has_int(term)
             free_states(ii,:) = false;
@@ -163,7 +159,7 @@ for k=1:numel(BC)
         % Integrals are only supported over the full domain, in a term that
         % fixes several variables
         if has_delay(term)
-            error("convert_PIETOOLS_BVP:sourceTerm","Delays of a state of lower dimension in a boundary condition are not supported.") % DJ, 11/11/2026
+            error("convert_PIETOOLS_BVP:sourceTerm","Delays of a state of lower dimension in a boundary condition are not supported.")
         elseif has_int(term) && ~(is_multi(ii) && all(full_int{ii} | cellfun(@isempty,I_term{ii})))
             error("convert_PIETOOLS_BVP:sourceTerm","Integrals of a state of lower dimension in a boundary condition are only supported over its full domain, in terms that fix two or more variables.")
         end
@@ -186,7 +182,7 @@ for k=1:numel(BC)
         term = terms{state_terms(ii)};
         C = polynomial(term.C);
         rows_C = rows_of(C);
-        if ~any(rows_C)                                                     % DJ (CC), 11/13/2026
+        if ~any(rows_C)
             continue
         end
         vidx = find(isvar_states(ii,:));
@@ -211,8 +207,8 @@ for k=1:numel(BC)
     % The input terms are lifted into a scalar source of a 1-D state
     % (inputs without variables, constant coefficients), see NOTES. Then
     % each row of the BC has a single input as right-hand side, the
-    % source; the lifted inputs enter the source, and are eliminated with
-    % it (eliminate_BVP_sources). Their rows are rows of the source.
+    % source; the lifted inputs enter the source. Their rows are rows of
+    % the source.
     inp = struct('type',{},'idx',{},'C',{});    in_idx = zeros(1,0);
     if ~any(vars_src) && nnz(isvar_states(ii_main,:))==1
         for jj=1:numel(terms)

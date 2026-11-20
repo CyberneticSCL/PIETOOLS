@@ -3,23 +3,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DDF_out=minimize_PIETOOLS_DDF(DDF)
 %
-% This script takes a fully formed DDF representation and find the minimal
+% This function takes a fully formed DDF representation and finds the minimal
 % DDF realization of that DDF.
 %
-% A Partial Integral Equation is defined by 12 PI operators as
-%
-% TB1op \dot{w}(t)+TB2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op u(t)+ + B2op w(t)
-%                                             z(t)= C1op x(t) + D11op u(t)+ + D12op w(t)
-%                                             y(t)= C2op x(t) + D21op u(t)+ + D22op w(t)
+% For each delay tau(i), let Cvd{i}(s) = Zth(s)*H with Zth(s) a monomial
+% basis, M = [Cr{i} Br1{i} Br2{i} Drv{i}], and [Cv{i}*M; H*M] = [Ls; Lsd]*Rs
+% a rank factorization (SVD). The delay channel is replaced by
+%   r_i(t) = Rs*[x(t); w(t); u(t); v(t)],    nr{i} = rank([Cv{i}*M; H*M]),
+% with Cv{i} = Ls and Cvd{i}(s) = Zth(s)*Lsd: the output of channel i,
+% hence v, is unchanged.
 %
 % The formulae were defined in (12) and (15)-(16) in the paper
 % ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs''
 % reference: https://arxiv.org/abs/1910.03881
-%
-% The use of this script is recommended as it exploits the
-% structure of the system, as opposed to convert_PIETOOLS_DDE.
-% Specifically, in that script, all states and inputs are delayed,
-% forming a rather large-dimensional delay channel
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDF to a minimal DDF representation
@@ -29,10 +25,27 @@ function DDF_out=minimize_PIETOOLS_DDF(DDF)
 %
 % ri(t)=Rs[x(t);
 %          w(t);
-%          u(t)];
+%          u(t);
+%          v(t)];
 %
 % The converter will retain the original variables in x,w,u,z,y,v. However,
 % the dimensions nri will change, as will the physical meaning of the channels r_i
+%
+% INPUT
+%   DDF:      'struct', the DDF with K = numel(DDF.tau) delays
+%     \dot x(t) = A0 x(t) + B1 w(t) + B2 u(t) + Bv v(t)
+%          z(t) = C1 x(t) + D11 w(t) + D12 u(t) + D1v v(t)
+%          y(t) = C2 x(t) + D21 w(t) + D22 u(t) + D2v v(t)
+%        r_i(t) = Cr{i} x(t) + Br1{i} w(t) + Br2{i} u(t) + Drv{i} v(t)
+%          v(t) = sum_i Cv{i} r_i(t-tau(i)) + sum_i int_{-tau(i)}^0 Cvd{i}(s) r_i(t+s) ds
+%             fields tau (1 x K 'double'), the 'double' matrices A0, ...,
+%             D2v, and 1 x K cells Cr, Br1, Br2, Drv, Cv of 'double'
+%             matrices and Cvd of 'double' or 'polynomial' kernels;
+%             undefined fields are zero.
+%
+% OUTPUT
+%   DDF_out:  'struct', the minimal DDF: the fields of DDF, with Cr, Br1,
+%             Br2, Drv, Cv, Cvd replaced as above; DDF itself when K = 0.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -56,21 +69,22 @@ function DDF_out=minimize_PIETOOLS_DDF(DDF)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Construct the DDF representation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The following dimensions should have been defined in the
-% initialize_PIETOOLS_DDE. But, lets make sure the DDF structure is
-% initialized.
+% Complete and check the DDF (undefined terms zero), then read off the
+% dimensions.
 DDF=initialize_PIETOOLS_DDF(DDF);
  nK=length(DDF.tau);   % number of delays
  nx=size(DDF.A0,1);   % number of states
  nw=size(DDF.B1,2);   % number of disturbances
  nu=size(DDF.B2,2);   % number of inputs
- nv=size(DDF.Cv{1},1);   % number of inputs
+ nv=size(DDF.Cv{1},1);   % dimension of v
  for i=1:nK
     nr{i}=size(DDF.Cr{i},1);   % dimension of the original delayed channel, i
  end
@@ -80,8 +94,8 @@ DDF=initialize_PIETOOLS_DDF(DDF);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% First: A0, B1, B2, C1, C2, D11, D12, D21, D21, Bv, D1v, D2v, are
-% unchanged from the original DDF. 
+% First: A0, B1, B2, C1, C2, D11, D12, D21, D22, Bv, D1v, D2v, are
+% unchanged from the original DDF.
 
 DDF_out=DDF;
 
@@ -91,7 +105,7 @@ DDF_out=DDF;
 
 % The first step is to form the vertical concatenation matrices for each
 % delay, tau(i)
-%%% ADD case logic for nK=0
+% No delays: the DDF is returned as initialized.
 if nK==0
     disp('no delay channels detected')
 else
@@ -122,8 +136,7 @@ else
         DDF_out.Drv{i}=RsF(:,(nx+nw+nu+1):end);  % permanently re-assign Drv{i}
         %       clear Pb Pbd UT DT Vt rT UsT VsT DdT DsT LsT
     end
-    % The DDF re-formulation is now complete. We can call
-    % convert_PIETOOLS_DDF (initialize is not necessary)
+    % The DDF re-formulation is now complete.
     %    convert_PIETOOLS_DDF; % This constructs the PIE representation.
 end
 end

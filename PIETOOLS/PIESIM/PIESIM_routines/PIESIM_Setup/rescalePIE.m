@@ -14,8 +14,14 @@ function PIE = rescalePIE(PIE,I)
 %
 % INPUT:
 %
-% T: a 4-PI operator
-% [c,d]: interval, default [-1,1]
+% PIE: a PIE structure, with the operators T, Tw, Tu, A, B1, B2, C1, C2,
+%      D11, D12, D21, D22 (and PIE.misc.Tmap, Tumap, Twmap, PIE.L, PIE.K,
+%      if present) as 4-PI operators
+% I = [c,d]: interval, default [-1,1]
+%
+% OUTPUT:
+%
+% PIE: the PIE structure with each of these operators translated to I
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -51,11 +57,14 @@ function PIE = rescalePIE(PIE,I)
 % YP 6/26/2025 - modified support for Tmap operator with new pie_struct.
 % YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
 % YP 4/7/2026 - Redefined rescaled domain
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
+% Default interval [-1,1]
 if nargin==1
     I = [-1,1];
 end
 
+% Maps from the fundamental to the primary states, if present
 if isfield(PIE.misc,'Tmap')
 PIE.misc.Tmap = transl_mod(PIE.misc.Tmap,I);
 end
@@ -66,6 +75,7 @@ if isfield(PIE.misc,'Twmap')
 PIE.misc.Twmap = transl_mod(PIE.misc.Twmap,I);
 end
 
+% Operators of the PIE
 PIE.T = transl_mod(PIE.T,I);
 PIE.Tw = transl_mod(PIE.Tw,I);
 PIE.Tu = transl_mod(PIE.Tu,I);
@@ -79,6 +89,7 @@ PIE.D12 = transl_mod(PIE.D12,I);
 PIE.D21 = transl_mod(PIE.D21,I);
 PIE.D22 = transl_mod(PIE.D22,I);
 
+% Operators L and K, if present
 if isfield(PIE,'L')
 PIE.L = transl_mod(PIE.L,I);
 end

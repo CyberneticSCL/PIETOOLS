@@ -30,8 +30,8 @@ function [PDEs,info] = decouple_BVPs(PDE)
 %   BCs share an input (e.g. x1(s1)=w and x2(s2)=w) is split into the
 %   groups that share a state, each including the input.
 % - If no component of a group depends on a spatial variable (e.g. a BC
-%   of an ODE state only), the BVP keeps all variables of PDE, as
-%   initialize requires BCs to be constant in at least one variable.
+%   of an ODE state only), the BVP keeps all variables of PDE, since BCs
+%   must be constant in at least one variable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - decouple_BVPs
@@ -57,8 +57,8 @@ function [PDEs,info] = decouple_BVPs(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ (CC), 11/02/2026: Initial coding;
-% DJ (CC), 11/13/2026: Require an initialized 'pde_struct' (no check);
 
 N = size(PDE.vars,1);
 nBC = numel(PDE.BC);
@@ -136,11 +136,13 @@ for g=1:nG
     if ~any(used)
         used = true(1,N);
     end
+    % Variables, domain and delays of the group BVP
     PDE_struct = struct();
     PDE_struct.vars = PDE.vars(used,:);      PDE_struct.dom = PDE.dom(used,:);
     if PDE.has_delay
         PDE_struct.tau = PDE.tau;
     end
+    % State components and inputs of the group, without equations
     PDE_struct.x = cell(numel(idcs.x),1);
     for k=1:numel(idcs.x)
         x_k = PDE.x{idcs.x(k)};
@@ -153,6 +155,7 @@ for g=1:nG
             PDE_struct.(obj_type){k} = struct('size',obj_k.size,'vars',obj_k.vars,'dom',obj_k.dom);
         end
     end
+    % BCs of the group, with components renumbered by new_idx
     PDE_struct.BC = cell(numel(info.BC_idcs{g}),1);
     for kk=1:numel(info.BC_idcs{g})
         terms = PDE.BC{info.BC_idcs{g}(kk)}.term;

@@ -10,23 +10,58 @@ function uinput = PIESIM_disturbance_check(varargin)
 % 2) varargin{2}: uinput - user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values 
 % 3) varargin{3}: psize - size of the problem
+%    ('struct' with fields nw, nu, the numbers of disturbances and control
+%    inputs, and nw0, nu0, the numbers of the finite-dimensional ones)
 % All inputs are REQUIRED
 % Outputs: uinput -user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values 
+% On return, uinput.w{k} and uinput.u{k} hold the temporal parts (sym in
+% st, or 'double' of size 2 x nstep), uinput.wspace{k} and uinput.uspace{k}
+% the spatial parts (sym in sx, sy; sym(1) for a space-independent input
+% on a spatial domain, sym(0) for a finite-dimensional input), and
+% uinput.wsep{k}, uinput.usep{k} are true if the input separates into the
+% two parts. For a PDE, the inputs are reordered by increasing
+% differentiability, with the orders in uinput.w_order and uinput.u_order.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_disturbance_check
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding: YP 1/4/2026
-% MMP, 11/04/2026: The zero defaults of the control inputs assign with
-%   deal, as the other signal types do: uinput.u{1:nu}=0 is an error for
-%   nu > 1 (e.g. a DDE with three control inputs, catalog DDE18).
 
+% Symbolic time and space variables of the input expressions
 syms st sx sy;
 
 nargin=length(varargin);
 
+% Problem structure, user inputs and problem size
 structure=varargin{1};
 uinput=varargin{2};
 psize=varargin{3};
 
+% Type of the structure: PIE or PDE
 if isa(structure,'pie_struct') || isfield(structure,'T')
     type='PIE';
     PIE=structure;
@@ -44,11 +79,12 @@ nw0=psize.nw0;
 nu=psize.nu;
 nu0=psize.nu0;
 
+% Missing control inputs: default to zero or to the signal type
+% uinput.control ('constant', 'sin' or 'sinc' in time)
   if (nu>0 & ~isfield(uinput,'u') )
             if ~isfield(uinput,'control')
                 disp('Signal type for control inputs is not defined. Defaulting to zero');
-%                      uinput.u{1:nu}=0;                                    % MMP, 11/04/2026 (was)
-                       [uinput.u{1:nu}]=deal(0);                            % MMP, 11/04/2026
+                       [uinput.u{1:nu}]=deal(0);
             else
             disp('Control inputs are not defined. Defaulting to a user-specified signal type');
                 switch uinput.control
@@ -60,8 +96,7 @@ nu0=psize.nu0;
                         [uinput.u{1:nu}]=deal(sinc(st));
                     otherwise
                         disp('The specified signal type for control inputs is not supported. Defaulting to zero');
-%                      uinput.u{1:nu}=0;                                    % MMP, 11/04/2026 (was)
-                       [uinput.u{1:nu}]=deal(0);                            % MMP, 11/04/2026
+                       [uinput.u{1:nu}]=deal(0);
                 end
             end
     end
@@ -113,6 +148,8 @@ nu0=psize.nu0;
         end % k
 
         % Check disturbance setup
+        % (missing disturbances: default to zero or to the signal type
+        % uinput.dist)
 
     if (nw>0 & ~isfield(uinput,'w') )
             if ~isfield(uinput,'dist')
@@ -201,6 +238,7 @@ nu0=psize.nu0;
          end   % PDE
 
     % Split disturbances into spatial and temporal parts
+    % (temporal part: the product of the factors that depend on st)
     for k=1:nw
         uinput.wsep{k}=true;
          if (k<=nw0)

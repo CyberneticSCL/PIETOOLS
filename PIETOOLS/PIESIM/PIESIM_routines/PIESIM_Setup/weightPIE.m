@@ -4,10 +4,11 @@
 
 function PIE = weightPIE(PIE,k)
 % Multiplies the left-hand side of the PIE equation by s^k and modifies the
-% corresponding T, Tu, Tw and mapping operators. Utilized in cylindrical
-% coordinates examples.
+% corresponding T, Tu, Tw and mapping operators.
 % Inputs:
-% 1) PIE - a PIE structure
+% 1) PIE - a PIE structure, whose operators T, Tu, Tw are 'struct' objects
+%    of kernels (fields dim, Q2, R.R0, R.R1, R.R2) in the spatial variable
+%    s = s1, with no ODE state (T.dim(1,1) = 0, else an error is thrown)
 % 2) k - weight
 % Both inputs are REQUIRED
 % Outputs: PIE - a PIE with the left-hand side weighted by s^k, such that
@@ -16,14 +17,37 @@ function PIE = weightPIE(PIE,k)
 % Operators Tumap, Twmap, and Tmap are stored in the PIE.misc construct,
 % while the weighted T, Tw and Tu operators are stored in the standard
 % PIE constuct
+% (weighting multiplies the kernels Q2, R0, R1, R2 of each operator by s^k)
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - weightPIE
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding: YP 1/7/2026
-% MMP, 11/04/2026: Weight the kernels directly instead of composing with an
-%   opvar W: PIESIM now passes each operator as a struct of its kernels
-%   (pie2piesim), which has no operator product. W = s1^k I on L2 is a
-%   multiplier without R^n part, so W*X multiplies Q2, R0, R1 and R2 of X
-%   by s1^k and needs X without R^n output, as the product did.
 
+% Spatial variable s1 of the weight
 pvar s1;
 
         % Initialize mapping operators to be unmodified PIE operators
@@ -37,29 +61,17 @@ pvar s1;
         % Modify PIE operators that describe dynamics due to the multiplication
         % of the PDE by r^k (k=weight)
     
-%       opvar W;                                                            % MMP, 11/04/2026 (was)
-%       [m, n] = size(PIE.T.R.R0);                                          % MMP, 11/04/2026 (was)
-%       W.dim = [0 0; m n];                                                 % MMP, 11/04/2026 (was)
-%       W.I = PIE.T.I;                                                      % MMP, 11/04/2026 (was)
-%       W.var1 = s1;                                                        % MMP, 11/04/2026 (was)
-%       W.R.R0 = s1^k * eye(m);                                             % MMP, 11/04/2026 (was)
-%       W.R.R1 = 0;                                                         % MMP, 11/04/2026 (was)
-%       W.R.R2 = 0;                                                         % MMP, 11/04/2026 (was)
-%                                                                           % MMP, 11/04/2026 (was)
-%       PIE.T = W * PIE.T;                                                  % MMP, 11/04/2026 (was)
-%       PIE.Tu = W * PIE.Tu;                                                % MMP, 11/04/2026 (was)
-%       PIE.Tw = W* PIE.Tw;                                                 % MMP, 11/04/2026 (was)
-        % W*X for W = s1^k I on L2: Q2, R0, R1, R2 of X times s1^k; X must  % MMP, 11/04/2026
-        % have no R^n output, since W has no R^n input                      % MMP, 11/04/2026
-        for op = {'T','Tu','Tw'}                                            % MMP, 11/04/2026
-            X = PIE.(op{1});                                                % MMP, 11/04/2026
-            if X.dim(1,1)~=0                                                % MMP, 11/04/2026
-                error("The weight requires a PIE without ODE states.");     % MMP, 11/04/2026
-            end                                                             % MMP, 11/04/2026
-            X.Q2 = s1^k*X.Q2;                                               % MMP, 11/04/2026
-            X.R.R0 = s1^k*X.R.R0;                                           % MMP, 11/04/2026
-            X.R.R1 = s1^k*X.R.R1;                                           % MMP, 11/04/2026
-            X.R.R2 = s1^k*X.R.R2;                                           % MMP, 11/04/2026
-            PIE.(op{1}) = X;                                                % MMP, 11/04/2026
-        end                                                                 % MMP, 11/04/2026
+        % W*X for W = s1^k I on L2: Q2, R0, R1, R2 of X times s1^k; X must
+        % have no R^n output, since W has no R^n input
+        for op = {'T','Tu','Tw'}
+            X = PIE.(op{1});
+            if X.dim(1,1)~=0
+                error("The weight requires a PIE without ODE states.");
+            end
+            X.Q2 = s1^k*X.Q2;
+            X.R.R0 = s1^k*X.R.R0;
+            X.R.R1 = s1^k*X.R.R1;
+            X.R.R2 = s1^k*X.R.R2;
+            PIE.(op{1}) = X;
+        end
 end

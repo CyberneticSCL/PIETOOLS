@@ -14,8 +14,14 @@ function PIE = rescalePIE_2D(PIE,I)
 %
 % INPUT:
 %
-% T: a 2D PI operator defined on an original domain
-% I: new domain
+% PIE: a PIE structure, with 2D PI operators defined on an original domain
+%      (T, Tw, Tu, A, B1, B2, C1, C2, D11, D12, D21, D22, and
+%      PIE.misc.Tmap, Tumap, Twmap, PIE.L, PIE.K, if present)
+% I: new domain (2x2), default [-1,1;-1,1]
+%
+% OUTPUT:
+%
+% PIE: the PIE structure with each operator translated to I
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -49,8 +55,10 @@ function PIE = rescalePIE_2D(PIE,I)
 % YP 6/26/2025 - modified support for Tmap operator with new pie_struct
 % YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
 % YP 4/7/2026 - redefined rescaled domain 
+% MMP, 11/19/2026: Release comment pass (comment-only). 
 
 
+% Default domain [-1,1]^2
 if nargin<2
     I = [-1,1;-1,1];
 elseif nargin>2
@@ -60,6 +68,7 @@ end
 PIE.T = transl_2D(PIE.T,I);
 PIE.A = transl_2D(PIE.A,I);
 
+% Maps from the fundamental to the primary states, if present
 if isfield(PIE.misc,'Tmap')
 PIE.misc.Tmap = transl_2D(PIE.misc.Tmap,I);
 end
@@ -69,6 +78,7 @@ end
 if isfield(PIE.misc,'Twmap')
 PIE.misc.Twmap = transl_2D(PIE.misc.Twmap,I);
 end
+% Remaining operators of the PIE
 PIE.Tw = transl_2D(PIE.Tw,I);
 PIE.Tu = transl_2D(PIE.Tu,I);
 PIE.B1 = transl_2D(PIE.B1,I);
@@ -80,6 +90,7 @@ PIE.D12 = transl_2D(PIE.D12,I);
 PIE.D21 = transl_2D(PIE.D21,I);
 PIE.D22 = transl_2D(PIE.D22,I);
 
+% Operators L and K, if present
 if isfield(PIE,'L')
 PIE.L = transl_2D(PIE.L,I);
 end

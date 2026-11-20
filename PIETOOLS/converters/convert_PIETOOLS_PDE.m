@@ -10,14 +10,14 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % nonlinear PDE, A*xf, Cz*xf and Cy*xf are polynomials f, gz and gy.
 %
 % INPUT
-% - PDE:    'pde_struct' object in the terms format (see also
-%           "@pde_struct/initialize"). A PDE in a legacy format (batch,
-%           or 'terms_legacy') is passed on to the legacy converters;
+% - PDE:    'pde_struct' object in the terms format. A PDE in a legacy
+%           format (batch, or 'terms_legacy') is passed on to the legacy
+%           converters;
 % - flag:   (optional) char or cellstr, with 'silent' to suppress the
 %           summary of how the PIE relates to the PDE (and the warning
 %           for more BCs than the states require), 'Top' to stop
 %           after computing T, Tw, Tu and K, and/or 'nonlinear' to return
-%           an 'npie_struct' also for a linear PDE (as PIESOS needs). For
+%           an 'npie_struct' also for a linear PDE. For
 %           compatibility, FLAG may be the third input, after an empty
 %           (not supported) argument comp_order;
 %
@@ -25,14 +25,14 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % - PIE:    'pie_struct' object with 'copvar' operators for a linear PDE,
 %           'npie_struct' object with 'tensopmat' operators if the PDE is
 %           nonlinear or the flag 'nonlinear' is set. The components of
-%           xf are the blocks of convert_PIETOOLS_BVP (one for each state
-%           and component of the fundamental state), ordered by their
-%           number of variables, and those of wf and uf its fundamental
-%           inputs. The fields space, space_pde, pde2pie and pie2pde
-%           describe the function spaces of the PIE and PDE, and how xf,
-%           wf and uf are derived from the PDE (see
-%           "@pie_struct/pie_struct"). With 'Top', PIE only has the
-%           fields space, T, Tw, Tu and K;
+%           xf are the blocks of the solution of the BCs (one for each
+%           state and component of the fundamental state), ordered by
+%           their number of variables, and those of wf and uf the
+%           fundamental inputs of that solution. The fields space,
+%           space_pde, pde2pie and pie2pde describe the function spaces of
+%           the PIE and PDE, and how xf, wf and uf are derived from the
+%           PDE. With 'Top', PIE only has the fields space, T, Tw, Tu and
+%           K;
 %
 % NOTES
 % - Each PDE state has one main block of xf, its highest derivative in
@@ -41,20 +41,18 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   F times the row of x_pde (the selector of xf_b if F involves no
 %   derivative), their right-hand sides F times that of x_pde, and
 %   K*xf=0 ties them to x_pde.
-% - The inputs in the BCs are decomposed into fundamental inputs, see
-%   convert_PIETOOLS_BVP; the other inputs are their own fundamental
-%   inputs. An input in a BC and elsewhere in the PDE is not supported,
+% - The inputs in the BCs are decomposed into fundamental inputs
+%   (derivatives of the PDE inputs); the other inputs are their own
+%   fundamental inputs. An input in a BC and elsewhere in the PDE is not supported,
 %   and pie2pde.w, pie2pde.u only map the inputs not in the BCs. Inputs
 %   can only appear linearly.
-% - Delays are modeled by transport states (expand_delays), and
-%   higher-order temporal derivatives by additional states
-%   (expand_tderivatives), described by pde2pie.x.delay and
+% - Delays are modeled by transport states, and higher-order temporal
+%   derivatives by additional states, described by pde2pie.x.delay and
 %   pde2pie.x.tdiff. This is not supported for states with inputs in
 %   their BCs.
 % - Static constraints 0=E(s) (outputs listed in PDE.constraint_ID),
 %   linear in the state, are added to K. ODE states and states of lower
-%   dimension may enter the BCs of other states, see
-%   convert_PIETOOLS_BVP.
+%   dimension may enter the BCs of other states.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
@@ -80,6 +78,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/02/2026: Initial coding (ND version);
 % DJ, 11/06/2026: Display PIE states and inputs with a hat in the summary;
 % DJ, 11/06/2026: Get the names of components and variables in the summary
@@ -91,9 +90,10 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %                   for surplus BCs; inline permute_cols; shorter errors;
 % DJ, 11/15/2026: Bugfix in case row of f, gz or gy has no terms;
 % DB, 11/18/2026: Move print_convert_summary to its own file;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
-% % % Pass PDEs in the legacy formats to the legacy converters, as the
-% % % PIETOOLS converter does, and convert other structures to pde_struct
+% % % Pass PDEs in the legacy formats to the legacy converters, and
+% % % convert other structures to pde_struct
 if isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
     PIE = convert_PIETOOLS_PDE_batch(PDE);
     return
@@ -125,8 +125,8 @@ end
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
-% DB 11/07/2026: outputs flagged as static constraints 0=E(s) (see
-% initialize) are not outputs of the PIE; their operator is added to K:
+% DB 11/07/2026: outputs flagged as static constraints 0=E(s)
+% are not outputs of the PIE; their operator is added to K:
 % the PDE is converted without them, and with only them, which have the
 % same fundamental state, and their rows Cz are the rows of K that are
 % added. For an 'npie_struct', these rows are the polynomial gz, which is
@@ -149,13 +149,14 @@ if ~isempty(PDE.constraint_ID) && ~return_Top
     PIE_con = convert_PIETOOLS_PDE(PDE_con,[flag(:)',{'silent'}]);
     if isa(PIE_con,'npie_struct')
         % gz = K_con*xf: the coefficient of each monomial (a block of xf)
-        % is the block of K_con acting on it, as in npie2pie_struct
+        % is the block of K_con acting on it
         gz = combine_terms(PIE_con.gz);     sp = PIE_con.space;
         is_lin = sum(gz.Z>0,2)==1;
         [~,kcol] = ismember(gz.varname(sum(gz.Z(is_lin,:),2)),sp.x.varname);
         K_con = gz.C;
         K_con.ops = cell(size(gz.C.ops,1),numel(sp.x.dims));
         K_con.ops(:,kcol) = gz.C.ops(:,is_lin);
+        % Input space of K_con: the space of xf, variables sorted by name
         [vars_srt,ord] = sort(sp.vars);
         K_con.dims.in = sp.x.dims;          K_con.vars.in = vars_srt;
         K_con.dom.in = sp.dom(ord,:);       K_con.depmat.in = double(sp.x.depmat(:,ord));
@@ -164,6 +165,7 @@ if ~isempty(PDE.constraint_ID) && ~return_Top
         K_con = PIE_con.Cz;
         no_K = isempty(PIE.K) || isempty(PIE.K.C);
     end
+    % Append the constraint K_con to PIE.K
     if no_K
         PIE.K = K_con;
     else
@@ -171,6 +173,7 @@ if ~isempty(PDE.constraint_ID) && ~return_Top
     end
     return
 end
+% Every state component needs a differential equation
 x_noeq = find(cellfun(@(xi) isfield(xi,'tdiff') && isnan(xi.tdiff),PDE.x));
 if ~isempty(x_noeq)
     error(['Conversion to PIE is not supported: no differential equation has been specified for state component(s) x{',strjoin(arrayfun(@num2str,x_noeq(:)','UniformOutput',false),'}, x{'),'}.',...
@@ -187,8 +190,8 @@ if PDE.has_delay
     [PDE,del_tab] = expand_delays(PDE);
 end
 % Higher-order temporal derivatives: the PIE is first derived with these,
-% and expanded to first order afterwards, see expand_tderivatives (of
-% 'pie_struct' or 'npie_struct')
+% and expanded to first order afterwards (for a 'pie_struct' or an
+% 'npie_struct')
 tdiff_pde = ones(numel(PDE.x),1);
 for i=1:numel(PDE.x)
     if isfield(PDE.x{i},'tdiff')
@@ -226,7 +229,7 @@ op_matrix = @(row_sp,col_sp,hit,X) cell2op(arrayfun(@(r,j) select_cell({zero_op(
 
 
 % % % Derive the map from the fundamental state and inputs to the PDE
-% % % state, with a block for each state (see convert_PIETOOLS_BVP)
+% % % state, with a block for each state
 opts = {'all_inputs','blocks'};
 % 'tensopmat' blocks for a nonlinear PDE, or if the flag 'nonlinear' is set
 if is_nonlinear
@@ -252,8 +255,8 @@ if any(Dmap.x.idx==0)
     error("convert_PIETOOLS_PDE:blocks","Rank-deficient (e.g. periodic) boundary conditions that couple states in a shared moment are not supported.")
 end
 % List the blocks by the number of variables they depend on, ascending:
-% the finite-dimensional blocks (ODE states, moments) first, as in the old
-% converters, so that e.g. an ODE state precedes the PDE states in the PIE,
+% the finite-dimensional blocks (ODE states, moments) first, so that e.g.
+% an ODE state precedes the PDE states in the PIE,
 % then the blocks depending on one variable, then on two, etc. The sort is
 % stable, so that the order of the PDE states is kept within each group.
 % The blocks are permuted in Tops, Kops, Dmap and info.space.
@@ -496,13 +499,13 @@ for obj_type={'x','w','u','y','z'}
 end
 PIE.space_pde = space_pde;
 
-% % % Maps from the PDE to the PIE, as Dmap of convert_PIETOOLS_BVP: 
+% % % Maps from the PDE to the PIE, from the map Dmap of the BCs: 
 % % %   xf_b = C_b*D^{diff}x_pde_idx(b), 
 % % % with C_b the block F_b of Dmap.x.C, the identity for the main blocks
 % % % and the integral for the auxiliary ones. The inputs are evaluated at
 % % % the lower boundary of the variables they no longer depend on, C=I.
 pde2pie_s = PIE.pde2pie;
-% Components added by expand_delays are the history of a state or input of
+% Components added for the delays are the history of a state or input of
 % the original PDE (see del_tab): they depend on the delay variable, in
 % which a derivative is a temporal derivative, and are evaluated at loc
 idcs_xwu = zeros(nblocks,3);      loc = zeros(nblocks,N);      delay_idcs = zeros(nblocks,1);
@@ -516,6 +519,7 @@ for b=1:nblocks
     if x_idx<=nx0
         idcs_xwu(b,1) = x_idx;       continue
     end
+    % A history block: the source (state, w or u) from del_tab
     del_idx = x_idx-nx0;              delay_src = del_tab(del_idx,1);
     if delay_src<=nx0
         idcs_xwu(b,1) = delay_src;
@@ -524,6 +528,9 @@ for b=1:nblocks
     else
         idcs_xwu(b,3) = delay_src-nx0-nw0;
     end
+    % Delay variable: the first variable of the block that the source does
+    % not depend on, where a derivative is a time derivative; positions and
+    % derivatives in the original variables from del_tab
     col_idx = find(idcs_xwu(b,:));
     dep_idcs = find(space.x.depmat(b,:));
     rest_idcs = dep_idcs(~dep_pde.(xwu_cell{col_idx})(idcs_xwu(b,col_idx),dep_idcs));
@@ -536,9 +543,12 @@ for b=1:nblocks
     loc(b,vars_idcs0) = del_tab(del_idx,2+(1:nvars0));
     diff_mat(b,vars_idcs0) = del_tab(del_idx,2+size(del_tab,2)/2-1+(1:nvars0));
 end
+% Map from the PDE state: sources, positions, delays, derivatives, and
+% the operators C_b
 pde2pie_s.x.idx = idcs_xwu;        pde2pie_s.x.loc = loc;        pde2pie_s.x.delay = delay_idcs;
 pde2pie_s.x.diff = diff_mat;     pde2pie_s.x.tdiff = tdiff;
 pde2pie_s.x.C = op_matrix(blocks,spaces_pde(x_idcs),eye(nblocks)==1,@(r,j) F_cell{r});
+% Inputs: the derivatives, positions and maps C of the fundamental inputs
 for obj_type={'w','u'}
     inputs = info.inputs.(obj_type{1});       ninp = numel(inputs);
     pde2pie_s.(obj_type{1}).idx = Dmap.(obj_type{1}).idx(:);
@@ -549,6 +559,7 @@ for obj_type={'w','u'}
         pde2pie_s.(obj_type{1}).C = Dmap.(obj_type{1}).C;
     end
 end
+% Outputs: the PDE output of each PIE output
 pde2pie_s.y.idx = PDE.y_tab(:,1);        pde2pie_s.z.idx = PDE.z_tab(:,1);
 PIE.pde2pie = pde2pie_s;
 
@@ -579,8 +590,8 @@ end
 PIE.pie2pde = pie2pde_s;
 
 % The variables of the polynomials f, gz, gy of a nonlinear PIE are named
-% as the PIE state PIE.x, by the default names x01_pie, ... that
-% initialize assigns to the components (see convert_PDE_term)
+% as the PIE state PIE.x, by the default names x01_pie, ... assigned to
+% the components on initialization
 PIE = initialize(PIE);
 
 % Expand higher-order temporal derivatives, introducing states for the

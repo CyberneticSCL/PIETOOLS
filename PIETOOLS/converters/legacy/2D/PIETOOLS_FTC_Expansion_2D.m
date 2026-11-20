@@ -6,12 +6,14 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = PIETOOLS_FTC_Expansion_2D(PDE)
 % 
 % INPUTS:
 % - PDE:    A struct or pde_struct object defining a PDE in the terms
-%           format (see also "@pde_struct/initialize").
+%           format, initialized (the fields dom, vars and x_tab are used).
 %
 % OUTPUTS:
-% - Pop_f2x:    opvar2d object describing the map from the fundamental
+% - Pop_f2x:    opvar2d object (opvar for at most 1 spatial variable)
+%               describing the map from the fundamental
 %               state xf to the PDE state x defined by PDE.x_tab.
-% - Pop_b2x:    opvar2d object describing the map from the core boundary
+% - Pop_b2x:    opvar2d object (opvar for at most 1 spatial variable)
+%               describing the map from the core boundary
 %               state xb to the PDE state x defined by PDE.x_tab.
 % - bc_state_tab:   A Nx(2+2*nvars) array, defining the core boundary state. 
 %               For j=1,...N, element
@@ -127,9 +129,11 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = PIETOOLS_FTC_Expansion_2D(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/09/2022
 % Add support for 1D case, DJ - 10/16/2024.
 % DJ, 12/06/2024: Bugfix `ind2sub` for Matlab 2024b;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 % Extract PDE information.
@@ -228,6 +232,8 @@ if nvars<=1
     Pop_b2x.dim = [np_op,nbc_op];  Pop_b2x.I = dom;
     Pop_b2x.var1 = vars(1);         Pop_b2x.var2 = vars(2);
 
+    % Parameters of Pop_f2x (interior) and Pop_b2x (core boundary values),
+    % set per state component below
     intrr_params = cell(2,2);
     intrr_params{1,1} = {Pop_f2x.P};
     intrr_params{2,2} = {Pop_f2x.R.R0, Pop_f2x.R.R1, Pop_f2x.R.R2};
@@ -235,6 +241,8 @@ if nvars<=1
     bndry_params = cell(2,2);
     bndry_params{2,1} = {Pop_b2x.Q2};
 else
+    % 2 variables: parameters R00, Rxx, Ryy, R22 of Pop_f2x and Rx0, Ry0,
+    % R20, R2x, R2y of Pop_b2x
     Pop_f2x = opvar2d([],[np_op,np_op],dom,vars);
     Pop_b2x = opvar2d([],[np_op,nbc_op],dom,vars);
 
@@ -253,6 +261,7 @@ else
 end
 
 
+% Columns of Pop_b2x filled so far, per column block
 nBCs_arr = zeros(1,2^nvars - 1);
 
 for comp=1:ncomps
@@ -449,6 +458,7 @@ else
     Pop_b2x.R2y = bndry_params{4,3};
 end
 
+% Distinct rows of the core boundary state table, in order of appearance
 bc_state_tab = unique(bc_state_tab,'stable','rows');
 
 end

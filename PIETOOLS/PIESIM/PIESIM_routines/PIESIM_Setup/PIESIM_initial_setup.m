@@ -6,23 +6,63 @@
 % adds them to the field 'uinput'
 % 2) Transforms initial conditions from primary states to fundamental states
 % via differentiation
+%    (PDE and DDE only: the initial condition of a state differentiable
+%    p_x times in x and p_y times in y becomes d^p_x/dx^p_x d^p_y/dy^p_y of
+%    it; in 2D the corner values of boundary inputs become separate
+%    finite-dimensional inputs, placed first, and the spatial parts of the
+%    inputs are differentiated as the states they enter)
+% 3) Converts the temporal part of each separable input to a function
+% handle of t: a sym in st through matlabFunction, a constant to a
+% constant, 2 x m samples [t; w] to a cubic spline, zero outside
+% [min(t), max(t)]; a non-separable input stays sym
 %
 % Input:
 % 1) uinput - user-defined boundary inputs and disturbances
+%    ('struct' with fields ic, the initial conditions of the primary
+%    states (sym in sx, sy); w, u, cells of the temporal parts of the
+%    inputs (or of the entire input if not separable); in 2D also
+%    wspace, uspace, wsep, usep, w_order, u_order)
 % 2) psize - size of the problem
+%    ('struct' with fields dim, n0, n, nw, nu; in 2D also nx, ny, x_tab,
+%    nw0, nu0)
 % 3) PIE - PIE structure of the problem to redefine disturbances due to
 % corner values if needed
+%    ('struct' with fields w_tab, u_tab, dom)
 % 4) type - of class ``char'' - type of the problem: 'PDE', 'DDE' or 'PIE'
 %
 % Output:
 % 1) uinput - temporal derivatives of the user-defined boundary inputs and disturbances are added to the 
 % field 'input' - these are needed for temporal integration of PIE equations
+%    (fields wdot, udot added; ic, w, u, wspace, uspace, wsep, usep
+%    updated)
 % 2) psize - can be modified to account for corner values of disturbances
+%    (nw, nw0, nu, nu0)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_initial_setup
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 9_18_2021
 % YP 12/31/2025 - changed disturbance and control inputs specifications to function handles (for
 % both symbolic and double)
@@ -30,8 +70,10 @@
 % to support inhomogeneous boudnary inputs in 2D
 % YP 2/6/2026 - added corner values for inhomogeneous boudnary inputs in 2D
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function [uinput,psize]=PIESIM_initial_setup(uinput,psize,PIE,type)
+% Symbolic time and space variables
 syms st sx sy sym_array;
 
 sym_array=[sx,sy];
@@ -55,6 +97,7 @@ psize_aux=[1 psize.n];
 nsum=cumsum(psize.n);
 nsump1=cumsum(psize_aux);
 
+% Every input is separable in 1D
 if (psize.nw>0)
 uinput.wsep = cell(size(uinput.w));
 uinput.wsep(:)={true};

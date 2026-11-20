@@ -24,7 +24,7 @@ function [inputs_ops,inputs_info] = fund_inputs(group,dirs)
 %           along each direction s_i, with fields
 %       triv:       true if there are no conditions along s_i, or if s_i is
 %                   passed through (rank deficient, for inputs derived from
-%                   other states, see compose_Tmaps);
+%                   other states);
 %       forced:     true if some conditions along s_i have inputs;
 %       R1:         cell, with R1{a+1} the 'sopvar' mapping the 1D solution
 %                   to the a-th derivative of x_pde in s_i (R1{1} is
@@ -47,8 +47,11 @@ function [inputs_ops,inputs_info] = fund_inputs(group,dirs)
 % OUTPUT
 % - inputs_ops:   nW x nal cell, with inputs_ops{c,a} the operator
 %           wf_c --> D^{alphas(a,:)}x_pde;
-% - inputs_info:  1 x nW struct array describing each wf_c, see
-%           info.inputs of compose_Tmaps;
+% - inputs_info:  1 x nW struct array describing each wf_c, with fields
+%           vars, dom, dim (its variables, domain and size), and pde, sel,
+%           Dorder, loc: wf_c is the derivative Dorder of the elements sel
+%           of the input pde of the PDE, at the lower boundary where loc
+%           is -1;
 %
 % EXAMPLE
 % For one state u(s1,s2) on [0,1]^2, second order in both variables, with
@@ -107,8 +110,8 @@ function [inputs_ops,inputs_info] = fund_inputs(group,dirs)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ (CC), 11/02/2026: Initial coding;
-% DJ (CC), 11/13/2026: Drop the output rhs_ops;
 
 % Directions: Td without conditions, Kd with conditions, Fd with inputs,
 % Hd with conditions without inputs (homogeneous, preserved by the T_{1,j})
@@ -260,8 +263,8 @@ inputs_ops = cell(0,nal);       rhs_ops = cell(nF,0);
 size_J = arrayfun(@(blk) numel(blk.J),blocks);
 Lmaps = cell(nb,nb);
 for b3=1:nb
-    % The pieces that are not forced to vanish (see choose_pieces) are the
-    % new coordinates, the others are zero
+    % The pieces that are not forced to vanish are the new coordinates,
+    % the others are zero
     forced = cell2mat(arrayfun(@(pt) repmat(pt.forced,numel(pt.elem),1),blocks(b3).parts(:),'UniformOutput',false));
     if all(forced)
         continue
@@ -288,6 +291,7 @@ for b3=1:nb
                 % b2 do not depend on b2 (zero).
                 vars_in = group.vars(blocks(b2).I);     vars_out = group.vars(blocks(b).I);
                 Lrows = cell(blocks(b).dim,1);          p = 0;
+                % Row p of Lmaps{b,b2} for each row (i, rho, scale) of each part of block b
                 for g=1:numel(blocks(b).parts)
                     part = blocks(b).parts(g);
                     for k=1:size(part.rows,1)
@@ -298,6 +302,8 @@ for b3=1:nb
                             Lrows{p} = mat2sopvar(zeros(1,blocks(b2).dim),struct('in',{vars_in},'out',{vars_out}),struct('in',group.dom(blocks(b2).I,:),'out',group.dom(blocks(b).I,:)));
                             continue
                         end
+                        % Row rho of the right-hand side along i, differentiated as the part,
+                        % at the lower boundary in the other directions of Ic, divided by scale
                         Row = G(find(find(dirs(i).rows_in)==rho),:);
                         dv = find(part.diff>0);
                         if ~isempty(dv)
@@ -312,12 +318,14 @@ for b3=1:nb
                 end
                 Lmaps{b,b2} = vertcat(Lrows{:});
             end
+            % acc = sum over b2 of Lmaps{b,b2}*X{b2}
             if isempty(acc)
                 acc = Lmaps{b,b2}*X{b2};
             else
                 acc = acc+Lmaps{b,b2}*X{b2};
             end
         end
+        % X{b} = -inv(B_b)*acc
         if ~isempty(acc)
             X{b} = -inv(blocks(b).B)*acc;
         end
@@ -406,11 +414,13 @@ function [parts,B] = choose_pieces(group,dirs,Ic,J,ell,pos,Z)
 % of the values of ghat_J that are derivatives of inputs of the PDE.
 %
 % INPUT
-% - group,dirs:   structs, see fund_inputs, with the fields added there to
-%                 dirs;
+% - group,dirs:   the inputs group and dirs above, dirs with the fields
+%                 cidx, Cinv, Gbox, Sj, Mu added;
 % - Ic,J:         the directions Fd\J of the data in ghat_J, and J;
-% - ell,pos,Z:    the entries and the basis of their values, see
-%                 fund_inputs;
+% - ell,pos,Z:    the entries of the data in ghat_J (ell: mu x p, their
+%                 Taylor orders along Ic; pos: mu x 1, their components of
+%                 x_pde) and Z, a basis of their values allowed by the
+%                 conditions without inputs;
 %
 % OUTPUT
 % - parts:  struct array, one for each derivative of an input of the PDE
@@ -546,14 +556,16 @@ function [ghat_ops_row,rhs_ops_col] = component_operators(group,dirs,cache,J,I,I
 % with inputs.
 %
 % INPUT
-% - group,dirs:   structs, see fund_inputs, with the fields added there to
-%                 dirs;
+% - group,dirs:   the inputs group and dirs above, dirs with the fields
+%                 cidx, Cinv, Gbox, Sj, Mu added;
 % - cache:        containers.Map in which the lifted 1D operators are
 %                 kept, updated by this function;
 % - J,I,Ic:       the directions of the set J, the variables I=J and Td
 %                 of ghat_J, and the directions Ic=Fd\J of the data;
-% - ell,pos,Z:    the entries and the basis of their values, see
-%                 fund_inputs;
+% - ell,pos,Z:    the entries of the data in ghat_J (ell: mu x p, their
+%                 Taylor orders along Ic; pos: mu x 1, their components of
+%                 x_pde) and Z, a basis of their values allowed by the
+%                 conditions without inputs;
 %
 % OUTPUT
 % - ghat_ops_row:  1 x nal cell, with ghat_ops_row{a} the operator

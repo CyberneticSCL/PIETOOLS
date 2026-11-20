@@ -2,16 +2,29 @@
 % initialize_PIETOOLS_DDF.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DDF_out=initialize_PIETOOLS_DDF(DDF)
-% This a initialize/preprocessing routine, executed prior to 
-% convert_PIETOOLS_DDF.m, which then converts a DDF to a PIE.
+% This a initialize/preprocessing routine for a DDF with K = numel(tau)
+% delays,
+%   \dot x(t) = A0 x(t) + B1 w(t) + B2 u(t) + Bv v(t)
+%        z(t) = C1 x(t) + D11 w(t) + D12 u(t) + D1v v(t)
+%        y(t) = C2 x(t) + D21 w(t) + D22 u(t) + D2v v(t)
+%      r_i(t) = Cr{i} x(t) + Br1{i} w(t) + Br2{i} u(t) + Drv{i} v(t)
+%        v(t) = sum_i Cv{i} r_i(t-tau(i)) + sum_i int_{-tau(i)}^0 Cvd{i}(s) r_i(t+s) ds
 % The preprocessing stage checks which matrices have been defined and
-% defines associated auxiliary variables used by the script
-% convert_PIETOOLS_ddf.
-% undefined signals are set to length 1 with 0 value
+% reads the dimensions nx, nz, ny, nr{i}, nv, nw, nu off them; undefined
+% matrices are set to zero, defined ones are checked against these
+% dimensions.
+% undefined signals are set to length 0 with 0 value
 %
-% input: DDF - a partially-defined DDF data structure
+% input: DDF - a partially-defined DDF data structure: 'struct' with the
+%        field tau (1 x K 'double'; required), the 'double' matrices A0,
+%        B1, B2, Bv, C1, D11, D12, D1v, C2, D21, D22, D2v, cells of at
+%        most K 'double' matrices Cr, Br1, Br2, Drv, Cv and of 'double'
+%        or 'polynomial' kernels Cvd (empty or missing elements are zero),
+%        and optional fields nx, nz, ny, nw, nu that fix the dimensions.
 %
-% output: DDF - a fully-defined DDF data structure
+% output: DDF_out - a fully-defined DDF data structure: 'struct' with the
+%        fields tau, A0, B1, B2, C1, C2, D11, D12, D21, D22, Bv, D1v, D2v
+%        and the 1 x K cells Cr, Br1, Br2, Drv, Cv, Cvd.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,8 +49,10 @@ function DDF_out=initialize_PIETOOLS_DDF(DDF)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 % MMP, 5_30_2021; added new data structure and made script a function
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,7 +75,7 @@ nK=length(tau);    % number of delays
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% Before Proceeding, we should check that the user has defined enough 
 %%%% delays. For this we check the number of elements in each of the cell
-%%%% arrays to make sure they are less than nK
+%%%% arrays to make sure they are at most nK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if exist('Cr','var')&&(numel(Cr)>nK)
     error('You have defined an element of Cr for which there is no matching value of delay.')
@@ -96,6 +111,7 @@ nstates=0;noregs=0;nomeas=0;nori=0;nov=0;now=0;nou=0; % toggles to determine if 
 % scanning for the number of states
 if ~exist('nx','var')
     if exist('A0','var')||exist('B1','var')||exist('B2','var')||exist('Bv','var')
+        % nx: rows of A0, B1, B2 or Bv, the first one defined
         if exist('A0','var')
             nx=size(A0,1);
         elseif exist('B1','var')
@@ -112,12 +128,12 @@ if ~exist('nx','var')
     end
 end
 
-% In the case where no states are detected, make sure no states are used
-% The places states are used is in C1, C2, and Cr{i}
+% With no states (nx = 0), C1, C2 and Cr{i} have no columns.
 
 % scanning for the number of regulated outputs
 if ~exist('nz','var')
     if exist('C1','var')||exist('D11','var')||exist('D12','var')||exist('D1v','var')
+        % nz: rows of C1, D11, D12 or D1v, the first one defined
         if exist('C1','var')
             nz=size(C1,1);
         elseif exist('D11','var')
@@ -137,6 +153,7 @@ end
 % scanning for the number of sensed outputs
 if ~exist('ny','var')
     if exist('C2','var')||exist('D21','var')||exist('D22','var')||exist('D2v','var')
+        % ny: rows of C2, D21, D22 or D2v, the first one defined
         if exist('C2','var')
             ny=size(C2,1);
         elseif exist('D21','var')
@@ -165,11 +182,13 @@ else
     lcvd=0;
 end
 
+% No Cv and no Cvd defined: warning
 if lcvd==0&&lcv==0
         warning(['Problem: The delayed channels have no outputs'])
         nv=0;
 end    
 nv=0;
+% nv: rows of Cv{i}, else of Cvd{i}, of the last channel with an output
 for i=1:nK
     if lcv>=i && ~isempty(Cv{i})
         nv=size(Cv{i},1);
@@ -196,6 +215,7 @@ if exist('Br1','var')
 else
     lbr1=0;
 end
+% Numbers of elements of Br2 and Drv
 if exist('Br2','var')
     lbr2=numel(Br2);
 else
@@ -207,6 +227,7 @@ else
     ldrv=0;
 end
 
+% nr{i}: rows of the first defined of Cr{i}, Br1{i}, Br2{i}, Drv{i}
 for i=1:nK
     if lcr>=i&&~isempty(Cr{i})
         nr{i}=size(Cr{i},1);   % number of states
@@ -229,6 +250,7 @@ end
 % scanning for the number of disturbance inputs
 if ~exist('nw','var')
     if exist('B1','var')||exist('D11','var')||exist('D21','var')||exist('Br1','var')
+        % nw: columns of B1, D11 or D21, the first one defined, else of the last element of Br1
         if exist('B1','var')
             nw=size(B1,2);
         elseif exist('D11','var')
@@ -242,6 +264,7 @@ if ~exist('nw','var')
             nw=size(Br1{numel(Br1)},2);
         end
     else
+        % No disturbance coefficient: nw = 0
         disp('No disturbance channels detected')
         now=1;
         nw=0;
@@ -251,6 +274,7 @@ end
 % scanning for the number of control inputs
 if ~exist('nu','var')
     if exist('B2','var')||exist('D12','var')||exist('D22','var')||exist('Br2','var')
+        % nu: columns of B2, D12 or D22, the first one defined, else of the last element of Br2
         if exist('B2','var')
             nu=size(B2,2);
         elseif exist('D12','var')
@@ -265,6 +289,7 @@ if ~exist('nu','var')
             nu=size(Br2{numel(Br2)},2);
         end
     else
+        % No control-input coefficient: nu = 0
         disp('No control input channels detected')
         nu=0;
         nou=1;
@@ -279,6 +304,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%% Group 1 %%%%%%%%%%%%%%%%%%%%%%
+% A0: zero if undefined, else size checked (nx x nx)
 if ~exist('A0','var')
     A0=zeros(nx,nx);
     disp('A0 undefined, defaulting to 0')
@@ -287,6 +313,7 @@ elseif (size(A0,1)~=nx)||(size(A0,2)~=nx)
 end
 
 
+% B1: zero if undefined, else size checked (nx x nw)
 if ~exist('B1','var')
     B1=zeros(nx,nw);
     disp('B1 undefined, defaulting to 0')
@@ -294,6 +321,7 @@ elseif (size(B1,1)~=nx)||(size(B1,2)~=nw)
     error('The dimensions of B1 are inconsistent with the detected number of inputs or states')
 end
 
+% B2: zero if undefined, else size checked (nx x nu)
 if ~exist('B2','var')
     B2=zeros(nx,nu);
     disp('B2 undefined, defaulting to 0')
@@ -301,6 +329,7 @@ elseif (size(B2,1)~=nx)||(size(B2,2)~=nu)
     error('The dimensions of B2 are inconsistent with the detected number of inputs or states')
 end
 
+% Bv: zero if undefined, else size checked (nx x nv)
 if ~exist('Bv','var')
     Bv=zeros(nx,nv);
     disp('Bv undefined, defaulting to 0')
@@ -313,6 +342,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%% Group 2 %%%%%%%%%%%%%%%%%%%%%%%
 
 for i=1:nK
+    % Cr{i}, Br1{i}: zero where undefined or empty, else size checked
+    % (nr{i} x nx, nr{i} x nw; error only if both dimensions differ)
     if lcr<i||isempty(Cr{i})
         Cr{i}=zeros(nr{i},nx);
         disp(['Cr{',int2str(i),'} undefined, defaulting to 0'])
@@ -327,6 +358,7 @@ for i=1:nK
         error(['error in size of Br1',int2str(i)])
     end
     
+    % Br2{i}, Drv{i}: likewise (nr{i} x nu, nr{i} x nv)
     if lbr2<i||isempty(Br2{i})
         Br2{i}=zeros(nr{i},nu);
         disp(['Br2{',int2str(i),'} undefined, defaulting to 0'])
@@ -346,6 +378,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%% Group 3 %%%%%%%%%%%%%%%%%%%%%%%
 
 for i=1:nK
+    % Cv{i}, Cvd{i}: zero where undefined or empty, else size checked
+    % (nv x nr{i}; error only if both dimensions differ)
     if lcv<i||isempty(Cv{i})
         Cv{i}=zeros(nv,nr{i});
         disp(['Cv{',int2str(i),'} undefined, defaulting to 0'])
@@ -364,6 +398,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%% Group 4 %%%%%%%%%%%%%%%%%%%%%%%
 
 
+% C1: zero if undefined, else size checked (nz x nx; error only if
+% both dimensions differ)
 if ~exist('C1','var')
     C1=zeros(nz,nx);
     disp('C1 undefined, defaulting to 0')
@@ -371,6 +407,7 @@ elseif size(C1)~=[nz,nx]
     error(['error in size of C1'])
 end
 
+% D11: likewise (nz x nw)
 if ~exist('D11','var')
     D11=zeros(nz,nw);
     disp('D11 undefined, defaulting to 0')
@@ -378,6 +415,7 @@ elseif size(D11)~=[nz,nw]
     error(['error in size of D11'])
 end
 
+% D12: likewise (nz x nu)
 if ~exist('D12','var')
     D12=zeros(nz,nu);
     disp('D12 undefined, defaulting to 0')
@@ -385,6 +423,7 @@ elseif size(D12)~=[nz,nu]
     error(['error in size of D12'])
 end
 
+% D1v: likewise (nz x nv)
 if ~exist('D1v','var')
     D1v=zeros(nz,nv);
     disp('D1v undefined, defaulting to 0')
@@ -398,6 +437,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%% Group 5 %%%%%%%%%%%%%%%%%%%%%%%
 
 
+% C2: zero if undefined, else size checked (ny x nx; error only if
+% both dimensions differ)
 if ~exist('C2','var')
     C2=zeros(ny,nx);
     disp('C2 undefined, defaulting to 0')
@@ -405,6 +446,7 @@ elseif size(C2)~=[ny,nx]
     error(['error in size of C2'])
 end
 
+% D21: likewise (ny x nw)
 if ~exist('D21','var')
     D21=zeros(ny,nw);
     disp('D21 undefined, defaulting to 0')
@@ -412,6 +454,7 @@ elseif size(D21)~=[ny,nw]
     error(['error in size of D21'])
 end
 
+% D22: likewise (ny x nu)
 if ~exist('D22','var')
     D22=zeros(ny,nu);
     disp('D22 undefined, defaulting to 0')
@@ -419,6 +462,7 @@ elseif size(D22)~=[ny,nu]
     error(['error in size of D22'])
 end
 
+% D2v: likewise (ny x nv)
 if ~exist('D2v','var')
     D2v=zeros(ny,nv);
     disp('D2v undefined, defaulting to 0')
@@ -431,6 +475,7 @@ end
 %clear lcr lbr1 lbr2 ldrv
 %clear lcv lcvd
 
+    % Output: the delays and the coefficients of x, z, y
     DDF_out.tau=tau;
     DDF_out.A0=A0;
     DDF_out.B1=B1;
@@ -441,6 +486,7 @@ end
     DDF_out.D12=D12;
     DDF_out.D21=D21;
     DDF_out.D22=D22;
+    % the delay channels r_i and their outputs v
     DDF_out.Cr=Cr;
     DDF_out.Br1=Br1;
     DDF_out.Br2=Br2;
@@ -456,4 +502,3 @@ end
 
 end
 
-% Now for the hard part - setting up the PIE

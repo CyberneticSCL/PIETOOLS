@@ -1,5 +1,5 @@
 function [A,B,Z,dvars] = dpvars2sdvars(params,vars,Z,chk_vars)
-% [COEFFS,Z,DVARS] = quad_expand(PARAMS,VARS,Z,CHK_VARS)
+% [A,B,Z,DVARS] = DPVARS2SDVARS(PARAMS,VARS,Z,CHK_VARS)
 % takes a cell of parameters and expresses them all in terms of a common
 % set of monomials and decision variables in the specified variables in
 % sdopvar format,
@@ -10,7 +10,7 @@ function [A,B,Z,dvars] = dpvars2sdvars(params,vars,Z,chk_vars)
 % INPUTS
 % - params:     cell of elements of type 'double', 'polynomial', 'dpvar',
 %               or 'quadPoly';
-% - varnames:   struct with fields
+% - vars:       struct with fields
 %         in:   1 x N cellstr, specifying the names of the input variables
 %               appearing in the parameters;
 %        out:   1 x M cellstr, specfiying the names of the output variables
@@ -52,9 +52,12 @@ function [A,B,Z,dvars] = dpvars2sdvars(params,vars,Z,chk_vars)
 % - In the quadratic form, the parameters are expressed as
 %   params{k} = (Im o s1.^Z.out{1} o ... o sM.^Z.out{M})^T * Ccell{k} *
 %                   (In o t1.^Z.in{1} o ... o tN.^Z.in{N})
-% - The elements of Ccell will be sparse matrices, unless the input params
-% involve decision variables, in which case the elements will be 'dpvar'
-% objects.
+%   with Ccell{k} = unvec(A{k} + B{k}'*d), for an m x n parameter.
+% - A{k} is a sparse column vector of length m*nZL*n*nZR and B{k} a sparse
+%   K x (m*nZL*n*nZR) matrix (zero for a parameter without decision
+%   variables), with nZL, nZR the numbers of monomials in the output and
+%   input variables. For a single parameter (not a cell), A and B are
+%   returned as arrays.
 %   
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,6 +84,7 @@ function [A,B,Z,dvars] = dpvars2sdvars(params,vars,Z,chk_vars)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/05/2026: Initial coding;
 
 % Check that the parameters are appropriate
@@ -271,7 +275,7 @@ for k=1:numel(params)       % can be parallelized
         ccidcs = (cidcs-1)*nnZR_arr(1) + ZRidcs;
         lidcsA = (ccidcs-1)*nnZL_arr(1)*m + rridcs;
         A{k} = sparse(lidcsA,1,vals,m*nnZL_arr(1)*n*nnZR_arr(1),1);
-        % We store A as m*n row vector
+        % We store A as m*n column vector
         
         % Also declare a 0 coefficient matrix acting on the decision 
         % variable terms
@@ -323,7 +327,7 @@ for k=1:numel(params)       % can be parallelized
         lidcsA = (ccidcsA-1)*nnZL_arr(1)*m + rridcsA;
         valsA = vals(isA);
         A{k} = sparse(lidcsA,1,valsA,m*nnZL_arr(1)*n*nnZR_arr(1),1);
-        % We store A as m*n row vector
+        % We store A as m*n column vector
 
         % Declare a coefficient matrix acting on the decision variable terms
         rridcsB = (ridcs(isB)-1)*nnZL_arr(1) + ZLidcs(isB);
@@ -385,7 +389,7 @@ for k=1:numel(params)       % can be parallelized
         ccidcs = (cidcs-1)*nnZR_arr(1) + ZRidcs;
         lidcsA = (ccidcs-1)*nnZL_arr(1)*m + rridcs;
         A{k} = sparse(lidcsA,1,vals,m*nnZL_arr(1)*n*nnZR_arr(1),1);
-        % We store A as m*n row vector
+        % We store A as m*n column vector
         
         % Also declare a 0 coefficient matrix acting on the decision 
         % variable terms

@@ -8,28 +8,62 @@
 % system of ODEs)
 % Provides the most accurate solution but slow for large N (due to the use
 % of symbolic integration)
+% For a_t = Atotal*a + inv(T)*f(t), Atotal = inv(T)*A = V*D*inv(V)
+% diagonalizable, f = B1*w - Tw*w_t + B2*u - Tu*u_t:
+%   a(tf) = V*exp(D*tf)*inv(V)*a(0)
+%           + V*int_0^tf exp(D*(tf-s))*inv(V)*inv(T)*f(s) ds.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Inputs:
 % psize - size of the PIE problem: nw, nu, no 
 % opts - options for temporal scheme parameters
+%    ('struct' with field tf, the final time)
 % uinput   - user-defined boundary inputs
+%    ('struct' with fields w, wdot, u, udot, the temporal parts of the
+%    inputs, indexed as arrays and symbolic in st)
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
+%    ('struct' with fields acheb_f0, w, u)
 % Dop - discretized PIE operators
+%    ('struct' with fields Atotal, V, D (Atotal = V*D*inv(V)), Tcheb_inv,
+%    B1cheb, B2cheb, Twcheb, Tucheb)
 %
 % % Output:
 % solcoeff - contains:
-% 1) solcoeff.acheb_f - Chebyshev coefficients of the final
+% 1) solcoeff.final - Chebyshev coefficients of the final
 % solution, ODE+PDE states
 % 2) solcoeff.tf - final time of the solution
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_int_symbolic
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 5_26_2021
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
+        % st: time variable of the inputs; tt: upper limit of the
+        % convolution integrals
         syms tt intsym st;
 
         nw=psize.nw;
@@ -37,6 +71,8 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
         no=psize.no;        
         tf=opts.tf;
         
+        % Discretized operators, eigendecomposition and initial
+        % coefficients
         Twcheb=Dop.Twcheb;
         Tucheb=Dop.Tucheb;
         B1cheb=Dop.B1cheb;
@@ -49,6 +85,10 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
         Nsize=size(Atotal,1);
         acheb_f0=coeff.acheb_f0;
         
+           % Row j of inhom: B1*coeff.w*wvec - Tw*coeff.w*wdotvec
+           % + B2*coeff.u*uvec - Tu*coeff.u*udotvec, with
+           % wvec(i) = int_0^tf exp(lambda_j*(tf-s))*w_i(s) ds, lambda_j =
+           % D(j,j) (likewise wdotvec, uvec, udotvec)
            inhom=zeros(Nsize,Nsize);
            for j=1:Nsize
              lambda=D(j,j);
@@ -122,6 +162,7 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
        end
 
      
+        % a(tf) = V*exp(D*tf)/V*a(0) + V*addition_symbolic
         exp_lambda=exp(diag(D*tf));
         solcoeff.final=V*diag(exp_lambda)/V*acheb_f0+V*addition_symbolic;
         solcoeff.tf=tf;

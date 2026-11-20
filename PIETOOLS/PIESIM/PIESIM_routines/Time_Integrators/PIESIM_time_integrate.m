@@ -8,25 +8,31 @@
 % exponential formula
 %
 % Inputs:
-% psize - size of the PIE problem: nw, nu, nf, no
+% psize - size of the PIE problem: N, dim, n0, nw, nu (nw0, nwx, nwy, nw2,
+% nu0, nux, nuy, nu2 in 2D)
 % opts - options for temporal scheme parameters
+%    ('struct' with fields intScheme, Norder, dt, Nsteps, tf, N, ploteig)
 % uinput   - user-defined boundary inputs
+%    ('struct' with fields w, wdot, u, udot, wsep, usep, wspace, uspace)
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
+%    ('struct' with fields acheb_f0, w, u)
 % gridall - physical grids for solution states of different degree of
 % differentiability
 % Dop - discretized PIE operators
+%    ('struct' with fields Acheb, Atotal = inv(T)*A, Tcheb_inv, B1cheb,
+%    B2cheb, Twcheb, Tucheb)
 %
 % Output:
 % solcoeff - contains:
-% 1) solcoeff.acheb_f - Chebyshev coefficients of the final
+% 1) solcoeff.final - Chebyshev coefficients of the final
 % solution, ODE+PDE states
 % 2) solcoeff.tf - final time of the solution
 %----------------------------------------
-% NOTE: the following three options are only avaialble for BDF scheme (opts.intScheme=1),
-% which performs a temporal discretiztion of the PIE equation. The other two
-% schemes solve for the temporal integral in a convolution form directly,
-% either analytically (opts.intScheme=3) or with approximate Gauss inegration (opts.intScheme=2), 
-% thus a temporal history of solution is not available with these two schemes, and only the final answer is. 
+% NOTE: the following options are only avaialble for BDF scheme (opts.intScheme=1),
+% which performs a temporal discretiztion of the PIE equation. The other
+% scheme solves for the temporal integral in a convolution form directly,
+% analytically (opts.intScheme=2),
+% thus a temporal history of solution is not available with this scheme, and only the final answer is.
 %-----------------------------------------
 % 3) solcoeff.timedep.ode -
 % time-dependent Chebyshev coefficients of the ODE states of PIE system for
@@ -37,24 +43,52 @@
 % (for PDE states, an inverse Fourier transform needs to be performed to recover physical solution from its )
 % Chebyshev coefficients)
 % 5)solcoeff.timedep.dtime - temporal stamps (discrete time values) of the time-dependent solution
+% 6) solcoeff.timedep.coeff - coefficients of all states, one column per
+% time step; solcoeff.w, solcoeff.u - coeff.w, coeff.u at the final time
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_time_integrate
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 9_18_2021
 % YP 6/16/2022 - added stability check
 % YP 2/12/2026 - passing grid for general non-separable distrubances
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, gridall, Dop)
 N=psize.N;
 
+% Stability of the time scheme for the eigenvalues of Atotal
 PIESIM_stability_check(opts, Dop.Atotal);
     
 switch opts.intScheme 
      case 1    
+     % BDF of order opts.Norder
      solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop);
      case 2
+         % Symbolic integration through Atotal = V*D/V; if Atotal is not
+         % diagonalizable, BDF2 with the time step tf/floor(tf/1e-3)
          [Dop.V,Dop.D] = eig(Dop.Atotal);
          Nsize=size(Dop.Atotal,1);
          if (rank(Dop.V)==Nsize)

@@ -1,8 +1,9 @@
 function PIE_out = pie2piesim(PIE)
-% PIE_OUT = PIE2PIESIM(PIE) returns the linear PIE PIE as the struct that
-% PIESIM and the executive witness (PIE_WITNESS_SOP) discretize: each
-% operator a struct of its polynomial kernels, with the components of each
-% kind of space (R, L2[s1], L2[s2], L2[s1,s2]) stacked in that order.
+% PIE_OUT = PIE2PIESIM(PIE) returns the linear PIE PIE as a struct with
+% each operator a struct of its polynomial kernels, with the components of
+% each kind of space (R, L2[s1], L2[s2], L2[s1,s2]) stacked in that order.
+% A constraint K x = 0 that involves the inputs (Kw or Ku nonzero), or more
+% than 2 spatial variables, throws an error.
 %
 % INPUT
 % - PIE:        'pie_struct' object, a linear PIE in at most 2 spatial
@@ -67,13 +68,8 @@ function PIE_out = pie2piesim(PIE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 11/04/2026: the assembly of PIE2OPVAR (DJ, 10/29/2026)
-%   and the kernel formulas of SOPVAR2OPVAR, SOPVAR2OPVAR2D and the
-%   orientation rule of COPVAR2OPVAR2D, writing plain structs, so that PIESIM
-%   needs no operator class.
-% MMP, 11/04/2026: Moved from PIESIM/PIESIM_routines/PIESIM_Setup to
-%   converters/operator_converters, since PIE_WITNESS_SOP calls it too.
-% DJ, 11/18/2026: Account for updated `size` function.
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding MMP, 11/04/2026
 
 % Operators as 'copvar' objects; at most 2 spatial variables
 if ~isa(PIE,'pie_struct')
@@ -163,7 +159,7 @@ end
 
 % Kind of each output and input space: 1 for R, 2 for L2[s1], 3 for
 % L2[s2], 4 for L2[s1,s2]
-[M,N] = size(Pc,'block');                                                   % DJ, 11/18/2026
+[M,N] = size(Pc,'block');
 kind_out = ones(M,1);       kind_in = ones(N,1);
 for kk=1:nvars
     is_var = strcmp(Pc.vars,vnames{kk});
@@ -237,8 +233,11 @@ else
           'Rx0','Rxx','Rxy','Rx2';
           'Ry0','Ryx','Ryy','Ry2';
           'R20','R2x','R2y','R22'};
+    % Spaces 1-4 (R, L2[x], L2[y], L2[x,y]): which depend on x, on y
     hasx = [0 1 0 1];       hasy = [0 0 1 1];
     Pop = struct();
+    % Zero slot (a,b) of size d(a,1) x d(b,2); a cell of 3 along each
+    % variable both spaces depend on
     for a=1:4
         for b=1:4
             dab = [d(a,1),d(b,2)];
@@ -258,6 +257,7 @@ else
         end
     end
 end
+% Domain, variables and dimensions
 Pop.I = dom;
 Pop.var1 = vars(:,1);       Pop.var2 = vars(:,2);
 Pop.dim = d;

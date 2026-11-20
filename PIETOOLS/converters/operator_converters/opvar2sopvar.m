@@ -5,7 +5,12 @@ function Psop = opvar2sopvar(Pop)
 % INPUTS
 % - Pop:    'opvar' object representing a single block of a 4-PI operator.
 %           That is, only one of Pop.P, Pop.Q1, Pop.Q2, and Pop.R may be
-%           nonempty.
+%           nonempty. Pop.P must be constant (a 'polynomial' P is
+%           converted to 'double'; one that depends on a variable throws
+%           an error); in Pop.R, the dummy variable must be named
+%           <var1>_dum, else an error is thrown. An 'opvar2d' object is
+%           converted as a 2D operator, a 'dopvar' object to an 'sdopvar'
+%           object;
 %
 % OUTPUTS
 % - Psop:   'sopvar' object representing the same operator as Pop;
@@ -35,25 +40,14 @@ function Psop = opvar2sopvar(Pop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 05/27/2026: Initial coding
-% MMP, 09/21/2026: Convert the R -> R component to a numeric matrix. The
-%                   branch passed 'Pop.P' straight through, so a 'polynomial'
-%                   P - which is what 'convert(...,''pie'')' produces even
-%                   for a constant - reached 'sopvar' as a parameter and then
-%                   failed inside '@sopvar/mtimes', which calls 'find' on the
-%                   parameters. Found via 'opvar2copvar' on a coupled ODE-PDE
-%                   PIE, where the R -> R block is the one carrying it.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  opvar2mopvar -> opvar2copvar.
-% DJ, 10/05/2026: Add call to 'dopvar2sdopvar';
 
 % Check that the input is of appropraite class
 if isa(Pop,'opvar2d')
     Psop = opvar2d2sopvar(Pop);
     return
-elseif isa(Pop,'dopvar')                                                    % DJ, 10/05/2026
+elseif isa(Pop,'dopvar')
     Psop = dopvar2sdopvar(Pop);
     return
 elseif ~isa(Pop,'opvar')
@@ -80,20 +74,16 @@ ZL = cell(1,0);         ZR = cell(1,0);
 if Pdim(1,1) && Pdim(1,2)
     % % Pop maps R to R
     dims = Pdim(1,:);
-    % 'sopvar' documents its parameters as sparse matrices and 'mtimes'     % MMP, 09/21/2026
-    % calls 'find' on them, so a 'polynomial' here fails there rather than  % MMP, 09/21/2026
-    % on construction. The other three branches already go through          % MMP, 09/21/2026
-    % 'full', and 'convert(...,''pie'')' returns a constant P typed         % MMP, 09/21/2026
-    % 'polynomial'. A P that genuinely depends on a spatial variable is not % MMP, 09/21/2026
-    % an R -> R map at all, so refuse it here.                              % MMP, 09/21/2026
-    Pmat = polynomial(Pop.P);                                               % MMP, 09/21/2026
-    if ~isempty(Pmat.varname)                                               % MMP, 09/21/2026
-        error("The R -> R component depends on the variable(s) "...         % MMP, 09/21/2026
-              +strjoin(Pmat.varname(:)',", ")+", but a map R^m -> R^m "...  % MMP, 09/21/2026
-              +"must be a constant matrix.")                                % MMP, 09/21/2026
-    end                                                                     % MMP, 09/21/2026
-%   params = {Pop.P};                                                       % MMP, 09/21/2026 (was)
-    params = {double(Pmat)};                                                % MMP, 09/21/2026
+    % The parameters of an 'sopvar' are numeric matrices: a constant
+    % 'polynomial' P is converted to 'double'. A P that depends on a
+    % spatial variable is not an R -> R map: throw an error.
+    Pmat = polynomial(Pop.P);
+    if ~isempty(Pmat.varname)
+        error("The R -> R component depends on the variable(s) "...
+              +strjoin(Pmat.varname(:)',", ")+", but a map R^m -> R^m "...
+              +"must be a constant matrix.")
+    end
+    params = {double(Pmat)};
 
 elseif Pdim(1,1)
     % % Pop maps L2 to R
@@ -121,15 +111,13 @@ elseif Pdim(1,2)
 
 else
     % % Pop maps L2 to L2
-    % An 'sopvar' records one name per direction, so a dummy that is not     % MMP, 08/30/2026
-    % <primary>_dum cannot be recovered and 'sopvar2opvar' would hand it     % MMP, 08/30/2026
-    % back renamed. Since these converters exist to check sopvar code        % MMP, 08/30/2026
-    % against opvar, refuse rather than compare relabelled operators.        % MMP, 08/30/2026
-    if ~strcmp(var2{1},[var1{1},'_dum'])                                     % MMP, 08/30/2026
-        error("opvar2sopvar: dummy variable '"+var2{1}+"' does not follow the "...% MMP, 08/30/2026
-              +"'"+var1{1}+"_dum' convention. An 'sopvar' does not record the "...% MMP, 08/30/2026
-              +"dummy name, so it would be silently renamed on conversion back.")% MMP, 08/30/2026
-    end                                                                      % MMP, 08/30/2026
+    % An 'sopvar' records one name per direction, so a dummy that is not
+    % <primary>_dum cannot be recovered: throw an error.
+    if ~strcmp(var2{1},[var1{1},'_dum'])
+        error("opvar2sopvar: dummy variable '"+var2{1}+"' does not follow the "...
+              +"'"+var1{1}+"_dum' convention. An 'sopvar' does not record the "...
+              +"dummy name, so it would be silently renamed on conversion back.")
+    end
     % Extract the parameters
     R0fun = quadPoly.polynomial2quadPoly(Pop.R.R0, var1, var2);
     R1fun = quadPoly.polynomial2quadPoly(Pop.R.R1, var1, var2);
@@ -143,7 +131,7 @@ else
 end
 
 % Declare the operator
-Psop = sopvar(params,vars,ZL,ZR,dom,dims);                                  % MMP, 08/29/2026
+Psop = sopvar(params,vars,ZL,ZR,dom,dims);
 
 end
 

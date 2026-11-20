@@ -8,21 +8,48 @@
 % defines initial and boundary conditions, and, if applicable, 
 % an exact PDE solution for verification (exact solutions for PDE/ODE systems
 % are not yet available)
-
+%
 % Inputs:
-% example - the index number of example from the library to be used (see
-% below)
+% example - the index number of example from the library to be used
+% (integer, 1 to 41)
 %
 % Outputs:
 % PDE - PDE structure of the problem
+%    ('pde_struct', or 'struct' in the legacy batch or terms format)
 % uinput   - user-defined boundary inputs
+%    ('struct' with fields ic, the initial conditions of the primary
+%    states (sym in sx; ODE states constants); w (u), the disturbances
+%    (control inputs): sym in st (and sx), or 2 x m samples [t; value];
+%    exact, the exact solution (sym in st, sx), where known; weight, the
+%    power of the weight r^weight of the cylindrical examples)
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - examples_pde_library_PIESIM_1D
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 5_29_2021
 % YP, 6/16/2022 - updated to include terms format and added more examples in
 % terms format
@@ -31,6 +58,7 @@
 % YP, 12/29/2025: Changed distirbance format to cell array to accommodate
 % disturbances in a symbolic and a double array format
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)

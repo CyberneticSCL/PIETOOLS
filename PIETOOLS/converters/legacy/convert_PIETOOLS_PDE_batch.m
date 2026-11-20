@@ -11,15 +11,30 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %
 % For reference, the batch input format is listed at the end of this file.
 %
-% A Partial Integral Equation is defined by 11 PI operators as
+% A Partial Integral Equation is defined by 12 PI operators as
 %
-% BT1op \dot{w}(t)+BT2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op u(t)+ + B2op w(t)
-%                                             z(t)= C1op x(t) + D11op u(t)+ + D12op w(t)
-%                                             y(t)= C2op x(t) + D21op u(t)+ + D22op w(t)
+% BT1op \dot{w}(t)+BT2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B1op w(t) + B2op u(t)
+%                                             z(t)= C1op x(t) + D11op w(t) + D12op u(t)
+%                                             y(t)= C2op x(t) + D21op w(t) + D22op u(t)
 %
-% This script takes a user-defined PDE system in the format outlined in the
-% header of solver_PIETOOLS_PDE and converts it to a PIE by defining the 11
-% PI operators {BT1op,BT2op,Top,Aop,B1op,B2op,C1op,D11op,D12op,C2op,D21op,D22op} 
+% This script takes a user-defined PDE system in the batch format and
+% converts it to a PIE by defining the 12
+% PI operators {BT1op,BT2op,Top,Aop,B1op,B2op,C1op,D11op,D12op,C2op,D21op,D22op}
+% The PIE state is [xo; xf], xo the ODE state and xf the n0, n1 and n2 PDE
+% states differentiated 0, 1 and 2 times in s.
+%
+% INPUT
+%   PDE:      'struct', the ODE-PDE in the batch format: the required fields
+%             n0, n1, n2, dom (1 x 2 'double'), B, A0, A1, A2, and the
+%             optional nx, nw, nu, nz, ny, A, B11, B12, Bx, Bw, Bu, B21,
+%             B22, E, E0, Ea, Eb, Ec, Exx, C1, C10, Ca1, Cb1, Cc1, C2, C20,
+%             Ca2, Cb2, Cc2, D11, D12, D21, D22 (dimensions at the end of
+%             this file; undefined ones zero), and vars (1 x 2 'polynomial',
+%             the spatial variable and its dummy; default s1, s1_dum).
+%
+% OUTPUT
+%   PIE_out:  'pie_struct', initialized: the twelve 'copvar' operators on
+%             R^nx x L2^(n0+n1+n2)[dom].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2024 PIETOOLS Team
@@ -43,6 +58,7 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP  - 5_29_2019
 %    MMP - updated to new data structure and made the script a function
 % DJ, 09/29/2021: correction at the end to fill in empty parameters with
@@ -65,9 +81,10 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %   converter does. The dummy variable is VAR1 with '_dum' appended, the
 %   name PI4_COPVAR_SOP and INITIALIZE use. This supersedes the entry of
 %   DJ, 09/29/2021 (the zero filling of empty opvar parameters).
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
-% undefined operators to empty opbjects.
+% undefined parameters to zero.
 PDE=initialize_PIETOOLS_PDE_batch(PDE);
 
 n0=PDE.n0;
@@ -192,6 +209,8 @@ end
 Rxx1=zeros(np,nrL2);
 Rxx2=zeros(np,nrL2);
 
+% [z; y; d/dt xo; d/dt x] = Apop*[w; u; xo; boundary values; x; x_s;
+% x_ss], with the blocks Pb, Q1b, Q2b and R0b
 Pb=[D11 D12 C1 C10;
     D21 D22 C2 C20;
     B11 B12 A  E0];
@@ -237,17 +256,23 @@ if rcond(B*T)<1e-15
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Boundary values = T*(core values at a) + int_a^b Q(s) xf(s) ds, the
+% core values the PDE states and first derivatives at a
 Q = [z10 z11 z12;
      z10 I1 z12;
      z20 z21 z22;
      z20 z21 (b-var1)*I2;
      z20 z21 z22;
      z20 z21 I2];
- 
+
+% Core values from the BCs: (B*T)^-1*([Bw Bu Bx]*[w; u; xo] + int_a^b
+% (Bxx - B*Q) xf ds)
 BTinv=inv(B*T);
 Btemp=BTinv*[Bw Bu Bx];
 Btemp2=BTinv*(Bxx-B*Q);
 
+% PDE state x(s) = R0f xf(s) + int_a^s R1f xf + int_s^b R2f xf + Q2f(s)
+% [w; u; xo], K(s) mapping the core values to x(s)
 K = [z01 z02 z02;
      I1 z12 z12;
      z21 I2 (var1-a)*I2];
@@ -348,8 +373,8 @@ R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,var1),var1);
 
 % % % BEGIN MMP, 11/04/2026: the operators as 'copvar' containers (header
 % % % entry); everything from here to the END marker is new.
-% The dummy variable as PI4_COPVAR_SOP names it: VAR1 with '_dum'. A
-% different dummy (PDE.vars) is renamed in the kernels that hold it.
+% The dummy variable of the operators is VAR1 with '_dum'. A different
+% dummy (PDE.vars) is renamed in the kernels that hold it.
 vdum = pvar([var1.varname{1},'_dum']);
 if ~strcmp(var2.varname{1},vdum.varname{1})
     if isa(R1f,'polynomial'),   R1f = subs(R1f,var2,vdum);      end
@@ -398,7 +423,7 @@ PIE_out.T = Top;   PIE_out.Tw = TB1op;  PIE_out.Tu = TB2op;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
-% Spaces and maps from the copvar operators, as the pde_struct converter    % MMP, 11/04/2026
+% Spaces and maps from the copvar operators                                 % MMP, 11/04/2026
 PIE_out = initialize(PIE_out);                                              % MMP, 11/04/2026
 end
 
@@ -414,8 +439,9 @@ function Pop = mult_or_zero(L,R,dims,pi4)
 %        dims:  2 x 2 'double', [q0 p0; q1 p1], the finite-dimensional and
 %               L2 dimensions of the output (column 1) and input (column 2)
 %               of the product;
-%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) = PI4_COPVAR_SOP with
-%               the variables and domain of the PIE.
+%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) the 'copvar' operator
+%               with blocks P, Q1, Q2, R = {R0,R1,R2} and dimensions DIMS,
+%               in the variables and domain of the PIE.
 % OUTPUT Pop:   'copvar' object.
 if sum(dims(:,1))==0 || sum(dims(:,2))==0
     Pop = pi4(zeros(dims(1,1),dims(1,2)),[],[],{[],[],[]},dims);

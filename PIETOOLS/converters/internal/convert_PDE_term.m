@@ -12,12 +12,12 @@ function [Pblk,Px] = convert_PDE_term(term,Tops,PDE,opts)
 %           D, loc, C, I (and delay), as the terms of a PDE;
 % - Tops:   struct with fields
 %           - x:    nx x 1 cell, with Tops.x{k}{alpha+1} the 1 x nV
-%                   'copvar' (or 'tensopmat') xf --> D^{alpha}x_k, as
-%                   Tops.x of convert_PIETOOLS_BVP with derivatives;
+%                   'copvar' (or 'tensopmat') xf --> D^{alpha}x_k, for the
+%                   derivative orders alpha of the state x_k;
 %           - w,u:  the same for wf and uf ([] if no such inputs);
 %           - Iw,Iu:    (if the term involves inputs w_r or u_r) cells
-%                   with Iw{r} the operator wf --> w_r, see info.Iw of
-%                   convert_PIETOOLS_BVP ([] for inputs in the BCs);
+%                   with Iw{r} the operator wf --> w_r ([] for inputs in
+%                   the BCs);
 % - PDE:    initialized 'pde_struct' object;
 % - opts:   struct with fields nonlinear (true for a nonlinear PDE, the
 %           only case in which a term can have several factors) and
@@ -67,10 +67,8 @@ function [Pblk,Px] = convert_PDE_term(term,Tops,PDE,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/02/2026: Initial coding;
-% DJ, 11/11/2026: Rename solve_PIETOOLS_BVP to convert_PIETOOLS_BVP;
-% DJ (CC), 11/13/2026: Return the blocks first, and the polynomial only for
-%                   a nonlinear PDE (of xf only); opts is a struct;
 
 term = term(:);
 nfactors = numel(term);
@@ -146,10 +144,10 @@ function Pfactor = convert_PDE_factor(fctr,Tops,PDE,vars_eq)
 %
 % INPUT
 % - fctr:   'struct' defining a single factor, with fields x, w or u, D,
-%           loc, C, I (and delay), see convert_PDE_term;
+%           loc, C, I (and delay), as a term of a PDE;
 % - Tops:   struct with the operators mapping the fundamental state xf
 %           and inputs wf, uf to the derivatives of the states, and to the
-%           inputs of the PDE, see convert_PDE_term;
+%           inputs of the PDE (fields x, w, u, Iw, Iu);
 % - PDE:    initialized 'pde_struct' object;
 % - vars_eq:    cellstr, the names of the variables of the equation in
 %           which the factor appears;
@@ -165,7 +163,7 @@ function Pfactor = convert_PDE_factor(fctr,Tops,PDE,vars_eq)
 %
 % NOTES
 % - The factor is the composition of the operator K, defined by the
-%   coefficient C and the integrals (see kernel_operator), with the
+%   coefficient C and the integrals, with the
 %   operators that give D^{D}x_r(loc), obtained from Tops.x, Tops.w and
 %   Tops.u by evaluating the output variables with loc at their boundary
 %   position (the 'subs' method of 'sopvar').
@@ -218,7 +216,7 @@ if ~is_input
             end
             Tops_rows.(obj_type{1}) = R_cell{D_idcs{:}};
             if isempty(Tops_rows.(obj_type{1})) && strcmp(obj_type{1},'x')
-                error('convert_PDE_term:derivativeMissing',"The derivative D^{%s} of x_%d was not computed by convert_PIETOOLS_BVP: request it in the derivatives specified for convert_PIETOOLS_BVP.",mat2str(D),comp_idx) % DJ, 11/11/2026
+                error('convert_PDE_term:derivativeMissing',"The derivative D^{%s} of x_%d was not computed by convert_PIETOOLS_BVP: request it in the derivatives specified for convert_PIETOOLS_BVP.",mat2str(D),comp_idx)
             end
         end
     end
@@ -232,6 +230,7 @@ is_bdry = false(1,nvars_y);       bdry_vals = zeros(1,nvars_y);
 Itype_cell = repmat({''},1,nvars_y);
 for k=1:nvars_y
     s_k = PDE.vars(vars_idcs(k),1);
+    % Evaluation at a boundary of s_k
     if has('loc') && ~is_input
         loc_k = polynomial(fctr.loc(k));
         is_bdry(k) = isdouble(loc_k);
@@ -239,6 +238,7 @@ for k=1:nvars_y
             bdry_vals(k) = double(loc_k);
         end
     end
+    % Type of the integral over s_k
     if has('I') && numel(fctr.I)>=k && ~isempty(fctr.I{k})
         if is_bdry(k)
             error("Integration over a variable at which the state is evaluated at a boundary is not supported.")
@@ -287,6 +287,8 @@ for obj_type={'x','w','u'}
         end
         depmat_in = P_row.depmat.in>0;    vars_cols = P_row.vars.in; dom_cols = P_row.dom.in;  dims_cols = P_row.dims.in;
     end
+    % Column spaces; each nonzero block evaluated at the boundary values and
+    % multiplied by K, vanishing blocks dropped
     col_spaces = arrayfun(@(j) struct('vars',{vars_cols(depmat_in(j,:))},'dom',dom_cols(depmat_in(j,:),:),'dim',dims_cols(j)),1:ncols);
     for j=find(~cellfun(@isempty,B_cell))
         if ~any(cellfun(@nnz,B_cell{j}.params(:)))
@@ -300,6 +302,7 @@ for obj_type={'x','w','u'}
             B_cell{j} = [];
         end
     end
+    % Keep the factor if a block is nonzero
     if ~all(cellfun(@isempty,B_cell))
         Pfactor.(obj) = struct('B',{B_cell},'cols',col_spaces);
     end

@@ -1,11 +1,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_PDEs.m     PIETOOLS 2022
+% initialize_PIETOOLS_PDE.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE_out = initialize_PIETOOLS_PDE(PDE,silent_initialize)
 % Initializes and checks the PDE formulation.
 % Depending on the structure of the input "PDE", the "terms", "batch", or
-% "terms_old" initialization function will be called. See the separate
-% functions and the manual for more information on the input format.
+% "terms_old" initialization function will be called.
+%
+% INPUT
+% - PDE:    'pde_struct' object, or 'struct' in the terms format (field
+%           x), the batch format (fields n0, n1, n2) or the legacy terms
+%           format (fields n, ODE, PDE); other inputs throw an error;
+% - silent_initialize:  (optional) logical, true to suppress the
+%           warnings of the initialization;
+%
+% OUTPUT
+% - PDE_out:    the initialized PDE: a 'pde_struct' object for the terms
+%           format, a 'struct' for the batch and legacy terms formats; an
+%           empty 'pde_struct' object if no input is given.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -29,7 +40,9 @@ function PDE_out = initialize_PIETOOLS_PDE(PDE,silent_initialize)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ, 08/18/2022.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin==0
@@ -39,6 +52,7 @@ end
     
 % Call the appropriate initialization function.
 if isa(PDE,'pde_struct') || isa(PDE,'struct') && isfield(PDE,'x')
+    % 'pde_struct', or 'struct' with field x: pde_struct initialization
     if isa(PDE,'struct')
         PDE = pde_struct(PDE);
     end
@@ -47,8 +61,11 @@ if isa(PDE,'pde_struct') || isa(PDE,'struct') && isfield(PDE,'x')
     else
         PDE_out = initialize(PDE,silent_initialize);
     end
+% Batch format (fields n0, n1, n2)
 elseif isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
     PDE_out = initialize_PIETOOLS_PDE_batch(PDE);
+% Terms format (fields n, ODE or PDE); silent through the base-workspace
+% flag silent_initialize_pde
 elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
     if nargin==2 && silent_initialize
         evalin('base','silent_initialize_pde=true;');

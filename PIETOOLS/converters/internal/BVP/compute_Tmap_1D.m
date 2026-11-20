@@ -82,7 +82,7 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 %           Left empty if n_{j}=0 or i>j, as for Rops;
 %
 % NOTES
-% The BCs are first converted to canonical form (compute_canonical_BCs),
+% The BCs are first converted to canonical form,
 %   G*[D_{1}u_{1}(a);...;D_{d}u_{d}(a)] + int_{a}^{b} H(s)*v1(s) ds = w,
 % where the first r=rank(G) rows (G1,H1) are such that G1 has full row
 % rank, and the last mK rows constrain only v1, defining K. The remaining
@@ -124,12 +124,8 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/02/2026: Initial coding;
-% DJ, 11/06/2026: Allow q>=n_tot BCs. The number m=n_tot-r of auxiliary
-%   values (v0) and the number mK=q-r of constraints on v1 differ for
-%   q>n_tot, so K1,Kw are declared whenever mK>0 (was m>0), and w has q
-%   entries (was n_tot);
-% DJ (CC), 11/13/2026: Require vars and orders;
 
 
 % % Convert BCs to canonical form,
@@ -137,7 +133,7 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % % with J*[BCs] reordered such that the first r rows involve Lambda_a u.
 [G,H,p,J] = compute_canonical_BCs(n,E,F,dom,vars);
 % A 'sopvar' does not record the dummy variable, so the convention
-% <var1>_dum is used (as in opvar2sopvar), whatever dummy was specified
+% <var1>_dum is used, whatever dummy was specified
 var1 = vars(1);     var2 = pvar([char(var1.varname{1}),'_dum']);
 a = dom(1);         b = dom(2);
 
@@ -149,7 +145,7 @@ m = n_tot-r;
 % The q-r rows of G beyond its rank r are constraints on v1, outnumbering
 % the m=n_tot-r auxiliary values (the boundary values not fixed by the BCs)
 % if q>n_tot
-q = size(E,1);                                                              % DJ, 11/06/2026
+q = size(E,1);
 mK = q-r;
 c = setdiff(1:n_tot,p);             % non-pivot columns of G
 
@@ -285,7 +281,7 @@ Kops = struct('K1',[],'Kw',[]);
 Fop = [];
 % The constraints exist whenever mK>0, also if there are no auxiliary
 % values (m=0)
-if mK>0                                                                     % DJ, 11/06/2026
+if mK>0
     Kops.K1 = mk({K},mK,n_all,true,false);
     Kops.Kw = mk({J2},mK,q,false,false);
 end
@@ -303,11 +299,14 @@ for j=0:d
     if nj==0
         continue
     end
+    % Block (j,i): derivative of order i of the states of order j
     for i=orders(orders<=j)
         if i==j
             R0ji = zeros(nj,m);     Rwji = zeros(nj,q);
             R1ji = {S{j+1},zeros(nj,n_all),zeros(nj,n_all)};
         else
+            % i < j: rows S{j+1} of T0, T1, Tw differentiated i times, plus the
+            % kernel p_{j-1-i}(s-theta) of v1_j
             T0ji = S{j+1}*T0;       
             T1ji = S{j+1}*T1;       
             Twji = S{j+1}*Tw;
@@ -320,6 +319,7 @@ for j=0:d
             Rwji = Twji;
             R1ji = {0*S{j+1},(var1-var2)^(j-1-i)/factorial(j-1-i)*S{j+1}+T1ji,T1ji};
         end
+        % The 'sopvar' blocks (j,i)
         if m>0
             Rops.R0{j+1,i+1} = mk({R0ji},nj,m,false,true);
         end
@@ -416,6 +416,8 @@ else
         end
         cf{k} = full(Pk.coefficient);       dm = full(Pk.degmat);
         dgL{k} = zeros(size(cf{k},1),1);    dgR{k} = dgL{k};
+        % Degrees in the output variable (dgL) and the input variable (dgR); any
+        % other variable is an error
         for v=1:numel(Pk.varname)
             if strcmp(Pk.varname{v},vname)
                 if out_L2

@@ -6,9 +6,8 @@
 % For support, contact Y. Peet, Arizona State University at ypeet@asu.edu
 
 % This is the wrapper for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
-% It can be called instead of PIETOOLS_PDE in this case. 
-% Examples can be drawn from 'examples_pde_library_PIESIM.m' for 1D or
-% 'examples_pde_library_PIESIM_2D.m' for 2D.
+% It simulates an example of the 1D or 2D PIESIM example library, chosen by
+% the variables dim and example below.
 %
 % This routine performs:
 %
@@ -18,6 +17,25 @@
 % system 
 % 4) Plotting and output of results
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - solver_PIESIM
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date,
@@ -29,6 +47,7 @@
 % YP 12/21/2025 - (1) moved options before example setup, (2) pass options to examples for
 % generating data array disturbance, (3) moved uinput.ifexact to
 % opts.ifexact
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 clear all;
 clc
@@ -52,7 +71,7 @@ end
 
 % Set up options for the simulations
 
-% If exact solution is known (see examples) and is desired to be provided for testing,
+% If exact solution is known and is desired to be provided for testing,
 % select opts.ifexact=true.
 % NOTE: Only choose opts.ifexact=true if exact solution for all the states is
 %       available. Otherwise, choose opts.ifexact=false.
@@ -109,9 +128,9 @@ end
 % be added to the library by the user).
 %------------------------------------------------------------------------------
 % For 1D problems: example = xxx (between 1 and 41) to correspond to an Example number in
-% the 'examples_pde_library_PIESIM_1D.m'
+% the 1D example library
 % For 2D problems: example = xxx (between 1 and 32) to correspond to an Example number in
-% the 'examples_pde_library_PIESIM_2D.m'
+% the 2D example library
 %------------------------------------------------------------------------------
 
     example=41;

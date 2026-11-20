@@ -15,8 +15,14 @@ function T = transl_mod(T,I)
 %
 % INPUT:
 %
-% T: a 4-PI operator
+% T: a 4-PI operator ('opvar' object, or 'struct' of its kernels with
+%    fields P, Q1, Q2, R.R0, R.R1, R.R2, I, var1, var2)
 % I: new interval, default [-1,1]
+%
+% OUTPUT:
+%
+% T: the operator on I, the kernels translated by the change of variables
+% from T.I to I
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -50,6 +56,7 @@ function T = transl_mod(T,I)
 % DJ, 12/07/2024: Remove hardcoded PI vars.
 % MMP, 11/04/2026: Accept T as a struct of its kernels (pie2piesim), as
 %   PIESIM now passes it; the body only reads and writes fields.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 if nargin==1
@@ -59,7 +66,7 @@ elseif nargin>2
 end
 % if ~isa(T,'opvar')                                                        % MMP, 11/04/2026 (was)
 %     error("First argument must be a opvar class object");                 % MMP, 11/04/2026 (was)
-% A struct of kernels (pie2piesim) or an opvar: the body reads only fields  % MMP, 11/04/2026
+% A struct of kernels or an opvar: the body reads only fields               % MMP, 11/04/2026
 if ~isa(T,'opvar') && ~isstruct(T)                                          % MMP, 11/04/2026
     error("First argument must be a struct of kernels or an opvar object"); % MMP, 11/04/2026
 end

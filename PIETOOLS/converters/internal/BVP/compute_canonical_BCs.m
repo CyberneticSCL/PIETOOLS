@@ -65,17 +65,8 @@ function [G,H,p,J] = compute_canonical_BCs(n,E,F,dom,vars,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/02/2026: Initial coding;
-% MMP, 11/04/2026: For a constant F, the variables s and s_dum are declared
-%   as s1 and s1_dum directly instead of read off an empty 'opvar', whose
-%   defaults they are: the conversion of a pde_struct PDE no longer needs
-%   the opvar class (removal of the opvar classes);
-% DJ, 11/06/2026: Allow q>=n_tot conditions, instead of exactly n_tot, so
-%   that conditions beyond the total order of the states become constraints
-%   on the highest derivatives (zero rows of G, rows of H). The row
-%   reduction acts on the q rows (was n_tot);
-% DJ (CC), 11/13/2026: Require vars; drop the input checks and the
-%   output vars; rank tolerance relative to the terms summed into G;
 
 do_split = nargin<6 || ~strcmpi(opts,'nosplit');
 n = n(:)';
@@ -165,7 +156,7 @@ end
 % % cannot create spurious pivots (and hence overestimate the rank r). The
 % % tolerance is relative to the terms summed into G, so that the round-off
 % % of terms that cancel (a zero column of G) is not a pivot either.
-tol = 1e-12*G_scale;                                                        % DJ (CC), 11/13/2026
+tol = 1e-12*G_scale;
 ii_strt = 1;
 for jj=1:n_tot
     % Find row in G with nonzero element in column jj
@@ -177,7 +168,7 @@ for jj=1:n_tot
     ii = ii+ii_strt-1;
     % Construct a row permutation matrix Pjj such that Pjj*G has all zeros
     % in column jj, except in element (ii,jj), which must be equal to 1;
-    Pjj = eye(q);                                                           % DJ, 11/06/2026
+    Pjj = eye(q);
     Pii = -G(:,jj)/G(ii,jj);
     Pii(ii) = 1/G(ii,jj);
     Pjj(:,ii) = Pii;

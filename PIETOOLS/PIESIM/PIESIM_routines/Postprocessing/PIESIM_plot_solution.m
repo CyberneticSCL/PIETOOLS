@@ -3,7 +3,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % This routine outputs and plots solution of ODE and PDE states
-
+% It prints the final values of the ODE states and of the
+% finite-dimensional outputs; if opts.plot = 'yes', it plots the PDE states
+% at the final time (with the exact solution if opts.ifexact) and, for
+% BDF with tf > 0, the evolution of the ODE states, of the
+% finite-dimensional outputs and of the PDE states, at most 100 times.
+%
 % Inputs: 
 % 1) solution 
 % solution is a strucutre with the following fields
@@ -22,8 +27,7 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 %     final value of finite-dimensional regulated outputs
 % --- solution.final.regulated{2} - array of size (N+1) x nrx 
 %      containing final value of infinite-dimensional regulated ooutputs
-
-
+%
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2} - cell array containing final value of
@@ -41,18 +45,44 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 %     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated{2} - array of size (N+1) x nrx x Nsteps
 % containing infinite-dimensional regulated ooutputs
-
-% 2) psize - size of the PIE problem: nw, nu, nf, n0
+%
+% 2) psize - size of the PIE problem: n0, n, nr0, no0
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
+%    ('struct' with fields a, b and, if opts.ifexact, exact)
 % 4) grid - physical grid for primary states
+%    ((N+1) x 1 'double')
 % 5) opts - options for simulation parameters
+%    ('struct' with fields plot, intScheme, tf, dt, type, ifexact)
 % 
-% Outputs: none
+% Outputs: figs - 1 x nfig cell of the handles of the figures created
+% (empty if nothing is plotted)
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_plot_solution
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 9_19_2021
 % YP, 6/16/2022 - added outputs for observed and regulated outputs; 
 % DJ, 12/26/2024 - Plot PDE state evolution using surf;
@@ -64,6 +94,7 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde into
 % solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
 % solution.timedep.primary{1,2}
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 syms sx;
 
@@ -182,6 +213,7 @@ colors_y = [0, 0, 1;
             0.75, 0, 0.75;
             0.75, 0.75, 0;
             0.25, 0.25, 0.25];
+% Finite-dimensional observed outputs (BDF only)
 if (psize.no0>0) && plot_y && opts.intScheme==1
 
     fig2 = figure('Position',[200 150 800 450]);
@@ -190,6 +222,7 @@ if (psize.no0>0) && plot_y && opts.intScheme==1
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$y$','FontSize',15,'Interpreter','latex');
     hold on
+    % One line per output at the plotting times tval
     for ii=1:psize.no0
         y_ii = solution.timedep.observed{1}(ii,t_idcs);
         if ii<=size(colors_y,1)
@@ -210,6 +243,7 @@ end
 
 % % Plot the regulated outputs evolution in a single plot.
 colors_z = {'b','g','m','r','k','c','r','y'};
+% Finite-dimensional regulated outputs (BDF only)
 if (psize.nr0>0) && plot_z && opts.intScheme==1
 
     fig3 = figure('Position',[200 150 800 450]);
@@ -218,6 +252,7 @@ if (psize.nr0>0) && plot_z && opts.intScheme==1
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$z$','FontSize',15,'Interpreter','latex');
     hold on
+    % One line per output at the plotting times tval
     for ii=1:psize.nr0
         z_ii = solution.timedep.regulated{1}(ii,t_idcs);
         if ii<=length(colors_z)
@@ -265,6 +300,8 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
     if nx>1
         sgtitle('PDE State at Final Time','Interpreter','latex','FontSize',16)
     end
+    % One subplot per state: numerical solution on grid; exact solution at
+    % tf on exact_grid if opts.ifexact
     for n=1:nx
         if (opts.ifexact==true)
             exsol_grid_time = subs(uinput.exact(n),sx,exact_grid);
@@ -281,6 +318,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
             legend('FontSize',13,'Interpreter','latex');
         end
         hold off
+        % Labels and title
         xlabel('$s$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         if nx==1
@@ -306,6 +344,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
     if nx>1
         sgtitle('PDE State Evolution','Interpreter','latex','FontSize',16)
     end
+    % One surface per state over (t,s), at the plotting times tval
     for ii=1:nx
         x_ii = reshape(solution.timedep.primary{2}(:,ii,t_idcs),Ngp,[]);
         subplot(1,nx,ii);
@@ -313,6 +352,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
         h = colorbar;
         colormap jet
         box on
+        % Labels and title
         if nx==1
             title('PDE State Evolution $\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
         else

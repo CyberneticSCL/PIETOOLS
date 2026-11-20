@@ -1,30 +1,26 @@
 function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
-% Construct PI operators Pop_f2x and Pop_b2x such that the PDE state x
-% can be expressed in terms of the associated fundamental state xf and a
-% set of core boundary values xb as
-%   x = Pop_f2x * xf + Pop_b2x * xb;
-% 
+% Rewrite the boundary conditions (BCs) of a PDE in terms of the core
+% boundary values xb and the fundamental state xf (defined below): each
+% state term of a BC is expanded with the fundamental theorem of calculus,
+%   x(b) = x(a) + (b-a)*d/ds x(a) + ... + int_{a}^{b} (b-s)^(n-1)/(n-1)! * d^n/ds^n x(s) ds,
+%   x(s) = x(a) + int_{a}^{s} d/dtheta x(theta) dtheta,
+% until each state appears at a lower boundary or differentiated to its
+% maximal order. A BC that varies in spatial variables is split into one
+% BC per subset of these variables (e.g. plane, edges, corners), the other
+% variables at their lower boundary; a split BC with no terms, or with a
+% term that depends on a variable it does not, is dropped. The BCs are
+% then sorted by the variables they depend on and their order of
+% differentiation. BCs with inputs that vary in space are not supported.
+%
 % INPUTS:
 % - PDE:    A struct or pde_struct object defining a PDE in the terms
-%           format (see also the "@pde_struct/initialize" function).
+%           format; initialized here if it is not.
 %
 % OUTPUTS:
-% - Pop_f2x:    opvar2d object describing the map from the fundamental
-%               state xf to the PDE state x defined by PDE.x_tab.
-% - Pop_b2x:    opvar2d object describing the map from the core boundary
-%               state xb to the PDE state x defined by PDE.x_tab.
-% - bc_state_tab:   A Nx(2+2*nvars) array, defining the core boundary state. 
-%               For j=1,...N, element
-%               (j,2) should provide the size of the state component;
-%               (j,3:2+nvars) should be binary indices, indicating for
-%               each of the nvars variables whether the component j depends
-%               on this variable. If the associated fundamental state
-%               component depends on a variable s, but the boundary state
-%               component does not, the boundary state component is
-%               evaluated at the lower boundary s=a (for s\in[a,b]).
-%               (j,3+nvars:end) should be integer values, indicating for
-%               each of the nvars variables to what degree the state is
-%               differentiated wrt this variable.
+% - PDE:    The 'pde_struct' with the expanded, sorted BCs in PDE.BC and
+%           their table PDE.BC_tab (one row per BC: index, size, binary
+%           dependence on each of the nvars variables, order of
+%           differentiation along each variable).
 %
 % NOTES:
 % - For a state variables x(s1,s2), differentiable up to order i wrt s1 and
@@ -127,7 +123,9 @@ function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/09/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 %
 
 

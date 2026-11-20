@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_terms.m     PIETOOLS 2022
+% convert_PIETOOLS_PDE_terms_internal.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE_out=convert_PIETOOLS_PDE_terms_internal(PDE)
 % convert_PIETOOLS_PDE_terms is the new version of the PDE converter
@@ -17,17 +17,23 @@ function PIE_out=convert_PIETOOLS_PDE_terms_internal(PDE)
 % where X_D is all derivatives ordered as X_D = [X_0; X_1...;X_N; dX_1...;dX_N;....;d^(N)X_N]
 % and X_b is all boundary values ordered as X_b =
 % [X_1(a)...;X_N(a);dX_2(a)...;dX_N(a)...;X_1(b)...;X_N(b);dX_2(b)...;d^(N-1)X_N(b)].
-
-
+%
 % A Partial Integral Equation is defined by 12 PI operators as
 %
 % BT1op \dot{w}(t)+BT2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B2op u(t) + B1op w(t)
 %                                             z(t)= C1op x(t) + D12op u(t) + D11op w(t)
 %                                             y(t)= C2op x(t) + D22op u(t) + D21op w(t)
 %
-% This script takes a user-defined PDE system in the format outlined in the
-% header of solver_PIETOOLS_PDE and converts it to a PIE by defining the 11
+% This script takes a user-defined PDE system in the legacy terms format
+% and converts it to a PIE by defining the 11
 % PI operators {BT1op,BT2op,Top,Aop,B1op,B2op,C1op,D11op,D12op,C2op,D21op,D22op}
+%
+% INPUT
+% - PDE:    'struct' of a PDE in the legacy terms format;
+%
+% OUTPUT
+% - PIE_out:    the PIE structure, or a message (char) if the PDE has no
+%           distributed state or the operator B_T is singular.
 %
 %
 % ~ NOTE: The workspace is cleaned at the end of the file, but feel free to
@@ -38,10 +44,32 @@ function PIE_out=convert_PIETOOLS_PDE_terms_internal(PDE)
 % collecting all the necessary/useful variables. I don't know what other
 % codes would then also have to be adjusted though.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - convert_PIETOOLS_PDE_terms_internal
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 12/05/2022
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +116,7 @@ Crp = []; Drb =[]; % pde to ode signal parameters
 B = []; Bp = []; % BC parameters
 for j=1:N+1
     TAp0 = []; TAp1 = []; TAp2 = []; % < - temp variables
+    % Ap0 (multiplier), Ap1 (integral on [a,s1]), Ap2 (integral on [s1,b])
     for i=1:np_all_der
         tmp = PDE.PDE.A{i+(j-1)*np_all_der};
         tmp2 = PDE.PDE.A{i+(j-1)*np_all_der+(N+1)*np_all_der};
@@ -101,6 +130,7 @@ for j=1:N+1
     Ap2 = [Ap2;TAp2];
 end
 for j=1:N+1
+    % Bpb: coefficients of the boundary values in the PDE
     TBpb = [];
     for i=1:2*(np_all_der-N-1)
         tmp = PDE.PDE.Bpb{i+(j-1)*2*(np_all_der-N-1)};
@@ -108,18 +138,21 @@ for j=1:N+1
     end
     Bpb = [Bpb;TBpb];
 end
+% Crp: kernels of the derivatives in r; Bp: in the BCs
 for i=1:np_all_der
     tmp4 = PDE.PDE.Crp{i}; tmp5 = PDE.BC.Ebp{i};
     Crp = [Crp tmp4.coeff];
     Bp = [Bp tmp5.coeff];
 end
 
+% B: coefficients of the boundary values in the BCs; Drb: in r
 for i=1:2*(np_all_der-N-1)
     tmp = PDE.BC.Ebb{i}; tmp2 = PDE.PDE.Drb{i};
     Drb = [Drb tmp2.coeff];
     B = [B tmp.coeff];
 end
 
+% Bv: coefficients of v in the BCs
 Bv = PDE.BC.Ebv;
 
 
@@ -136,6 +169,9 @@ end
 U1 = bigI(:,idx2);
 U2 = bigI(:,setdiff(1:end,idx2));
 
+% Taylor expansion about a of derivative i-1 of the states of order >= i:
+% T(s1) multiplies the derivatives at a, (s1-a)^(k-i)/(k-i)!; Q(s1,s1_dum)
+% the fundamental state, (s1-s1_dum)^(k-i)/(k-i)!
 T = []; Q = [];
 for i =1:N
     Ti=[]; Qi=[]; % <- temp variables
@@ -149,6 +185,7 @@ for i =1:N
         end
         Ti = [Ti,tau{i,k}];
     end
+    % T1, Q1: T and Q for the states themselves (i = 1)
     if i==1
         T1 = Ti;
         Q1 = [zeros(size(Qi,1),n_pde(1)), Qi];
@@ -157,6 +194,7 @@ for i =1:N
     T = [T; Ti];
 end
 
+% G0: an undifferentiated state is its own fundamental state
 G0 = [eye(n_pde(1)) zeros(n_pde(1),np-n_pde(1)); 
      zeros(np-n_pde(1),n_pde(1)) zeros(np-n_pde(1))];
 

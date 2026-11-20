@@ -1,10 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_plot_solution.m     PIETOOLS 2024
+% PIESIM_plot_solution_2D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % This routine outputs and plots solution of ODE and PDE states in 2D
-
-
+% It prints the final values of the ODE states and of the
+% finite-dimensional outputs; if opts.plot = 'yes', it plots, for BDF with
+% tf > 0, the evolution of the ODE states and of the finite-dimensional
+% outputs at most at 100 times, and the PDE states at the final time (with
+% the exact solution and the error if opts.ifexact).
+%
 % Inputs: 
 % 1) solution
 % solution is a structure with the following fields
@@ -38,7 +42,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 %      array of size (N(2)+1) x nry, nry - number of outputs depending only on s2 
 % --- solution.final.regulated{4} - array containing final value of regulated outputs that are the functions of two variables - 
 % It is array of size (N(1)+1) x (N(2)+1) x nr2, nr2 - number of outputs depending on both s1 and s2
-
+%
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2,3,4} - cell array containing all
@@ -52,7 +56,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 %      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
-% --- solution.timedep.observed[1} - array of size n0 x Nsteps -
+% --- solution.timedep.observed[1} - array of size no0 x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
 % --- solution.timedep.observed{2} - array containing observed outputs that are only the functions of s1 - 
 %     array of size (N(1)+1) x nox x Nsteps, nox - number of observed outputs depending only on s1
@@ -66,22 +70,48 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 %     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s1 - 
 %     array of size (N(1)+1) x nrx x Nsteps, nrx - number of regulated outputs depending only on s1
-% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s2 - 
+% --- solution.timedep.regulated{3} - array containing regulated outputs that are only the functions of s2 -
 %     array of size (N(2)+1) x nry x Nsteps, nry - number of regulated outputs depending only on s2
-% --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
+% --- solution.timedep.regulated{4} - array containing regulated outputs that are the functions of two variables -
 %     array of size (N(1)+1) x (N(2)+1) x nr2 x Nsteps, nr2 - number of outptus depending on both s1 and s2
-
+%
 % 2) psize - all variables defining the size of the PIE problem
+%    ('struct' with fields n0, nr0, no0, nx, ny, n)
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
+%    ('struct' with fields dom and, if opts.ifexact, exact)
 % 4) grid - physical grid for states differentiable up to order zero (corresponding to a orimary = PDE state discretization)
+%    (2x1 cell, the grids in s1 and in s2)
 % 5) opts - options for simulation parameters
+%    ('struct' with fields plot, intScheme, tf, type, ifexact)
 % 
 % Outputs: none
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_plot_solution_2D
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 4_16_2024
 % DJ, 07/17/2024 - Bugfix for extraction of exact solutions;
 % DJ, 01/01/2025 - Change plot specifications;
@@ -89,6 +119,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde{1,2,3} into
 % solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
 % solution.timedep.primary{1,2,3,4}
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 syms sx sy;
 
@@ -174,6 +205,7 @@ colors_y = [0, 0, 1;
             0.75, 0, 0.75;
             0.75, 0.75, 0;
             0.25, 0.25, 0.25];
+% Finite-dimensional observed outputs (BDF only)
 if opts.intScheme==1 && (psize.no0>0) && ~isempty(solution.timedep.observed{1})
     fig2 = figure('Position',[200 150 800 400]);
     box on
@@ -181,6 +213,7 @@ if opts.intScheme==1 && (psize.no0>0) && ~isempty(solution.timedep.observed{1})
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$y$','FontSize',15,'Interpreter','latex');
     hold on
+    % One line per output at the plotting times tval
     for ii=1:psize.no0
         y_ii = solution.timedep.observed{1}(ii,t_idcs);
         if ii<=size(colors_y,1)
@@ -204,6 +237,7 @@ end
 
 % % Plot the regulated outputs evolution in a single plot.
 colors_z = {'b','g','m','r','k','c','r','y'};
+% Finite-dimensional regulated outputs (BDF only)
 if opts.intScheme==1 && (psize.nr0>0) && ~isempty(solution.timedep.regulated{1})
     fig3 = figure('Position',[200 150 800 400]);
     box on
@@ -211,6 +245,7 @@ if opts.intScheme==1 && (psize.nr0>0) && ~isempty(solution.timedep.regulated{1})
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$z$','FontSize',15,'Interpreter','latex');
     hold on
+    % One line per output at the plotting times tval
     for ii=1:psize.nr0
         z_ii = solution.timedep.regulated{1}(ii,t_idcs);
         if ii<=length(colors_z)
@@ -276,6 +311,8 @@ if sum(psize.nx)>0
     if ns>1
         sgtitle('Simulated Final 1D PDE State','Interpreter','latex','FontSize',16)
     end
+    % One subplot per state; exact solution at tf on exact_grid_x if
+    % opts.ifexact
     for n=1:ns
         subplot(1,ns,n);
         box on
@@ -292,6 +329,7 @@ if sum(psize.nx)>0
             legend('FontSize',13,'Interpreter','latex');
             hold off
         end
+        % Labels and title
         xlabel('$s_{1}$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         if ns==1 && n_pde_tot==1
@@ -318,6 +356,8 @@ if sum(psize.ny)>0
     if ns>1
         sgtitle('Simulated Final 1D PDE State','Interpreter','latex','FontSize',16)
     end
+    % One subplot per state; exact solution at tf on exact_grid_y if
+    % opts.ifexact
     for n=1:ns
         subplot(1,ns,n);
         box on
@@ -334,6 +374,7 @@ if sum(psize.ny)>0
             legend('FontSize',13,'Interpreter','latex');
             hold off
         end
+        % Labels and title
         xlabel('$s_{2}$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         if ns==1 && n_pde_tot==1
@@ -437,6 +478,7 @@ if sum(psize.n,'all')>0
             surf(ax3,grid{1},grid{2},exsol_numgrid'-solution.final.primary{4}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
             h = colorbar(ax3);
             %colormap jet
+            % Labels and title of the error plot
             xlabel(ax3,'$s_{1}$','FontSize',22,'Interpreter','latex');
             ylabel(ax3,'$s_{2}$','FontSize',22,'Interpreter','latex');
             zlabel(ax3,'$\mathbf{x}_{true}-\mathbf{x}_{num}$','FontSize',22,'Interpreter','latex');
@@ -448,6 +490,7 @@ if sum(psize.n,'all')>0
             else
                 title(ax3,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})-\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',22,'Interpreter','latex');
             end
+            % Axes and color bar of the error plot
             ax3.XLim = [min(grid{1}),max(grid{1})];
             ax3.YLim = [min(grid{2}),max(grid{2})];
             ax3.TickLabelInterpreter = 'latex';

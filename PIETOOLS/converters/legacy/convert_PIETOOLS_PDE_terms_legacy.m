@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_terms.m     PIETOOLS 2022
+% convert_PIETOOLS_PDE_terms_legacy.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
-% convert_PIETOOLS_PDE_terms is the new version of the PDE converter 
+% convert_PIETOOLS_PDE_terms_legacy is a version of the PDE converter
 % file which uses the term-based data structure and performs the following tasks.
 % 1) It verifies the dimension compatibility of input parameters of ODE-PDE
 % and sets any missing parameters to zero.
@@ -10,30 +10,60 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 % representation.
 % 3) It accepts PDEs with higher order spatial derivatives and integral
 % terms.
-
+%
 % A Partial Integral Equation is defined by 12 PI operators as
 %
 % BT1op \dot{w}(t)+BT2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B2op u(t) + B1op w(t)
 %                                             z(t)= C1op x(t) + D12op u(t) + D11op w(t)
 %                                             y(t)= C2op x(t) + D22op u(t) + D21op w(t)
 %
-% This script takes a user-defined PDE system in the format outlined in the
-% header of solver_PIETOOLS_PDE and converts it to a PIE by defining the 11
-% PI operators {BT1op,BT2op,Top,Aop,B1op,B2op,C1op,D11op,D12op,C2op,D21op,D22op} 
+% This script takes a user-defined PDE system in the terms format and
+% converts it to a PIE by defining the 12
+% PI operators {BT1op,BT2op,Top,Aop,B1op,B2op,C1op,D11op,D12op,C2op,D21op,D22op}
+% The PIE state is [xo; x_f], xo the ODE state and x_f the highest
+% derivative in s of each PDE state.
 %
+% INPUT
+%   PDE:      'struct', an ODE-PDE in the terms format: n (n_pde, the numbers
+%             of PDE states differentiable 0, ..., N times; nx, nw, nu,
+%             nz, ny; nv, nr, the sizes of the ODE-to-PDE signal v and the
+%             PDE-to-ODE signal r), dom (1 x 2 'double'), vars (1 x 2
+%             'polynomial', the spatial variable and its dummy), ODE (A,
+%             Bxw, Bxu, Bxr, Cz, Dzw, Dzu, Dzr, Cy, Dyw, Dyu, Dyr, Cv, Dvw,
+%             Dvu), PDE (cells A, Bpb, Crp, Drb of terms with field coeff;
+%             Bpv, Drv) and BC (cells Ebb, Ebp; Ebv); missing ones zero.
 %
-% ~ NOTE: The workspace is cleaned at the end of the file, but feel free to
-% exclude variables from this cleaning process if they are needed for
-% anything.
+% OUTPUT
+%   PIE_out:  'pie_struct', initialized: the twelve 'copvar' operators on
+%             R^nx x L2^np[dom], np = sum(n_pde); the 'char' message
+%             'Cannot convert to PIE' if no PDE state is differentiable
+%             (N < 1), or 'Singular B_T: ...' if the boundary conditions
+%             do not determine the boundary values (|det(E_T)| <= eps).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - convert_PIETOOLS_PDE_terms_legacy
 %
-% Perhaps we should create a PIE structure similar to the PDE structure,
-% collecting all the necessary/useful variables. I don't know what other
-% codes would then also have to be adjusted though.
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS  - 5_29_2021;
 % MMP, 5_29_2021: made the script a function;
 % SS, 6/1/2021: initialize D and I to zero if undefined in A, Crp, Ebp,
@@ -59,10 +89,11 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 %   are gone; the PIE is initialized here, as the batch and pde_struct
 %   converters do. This supersedes the entry of DJ, 09/29/2021 (the zero
 %   filling of empty opvar parameters).
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
-% undefined operators to empty opbjects.
+% undefined parameters to zero.
 PDE=initialize_PIETOOLS_PDE_terms_legacy(PDE);
 
 
@@ -74,6 +105,7 @@ fprintf('\n --- Converting ODE-PDE to PIE --- \n');
 % Define auxiliary variables to convert the ODE-PDE to a PIE
 X = PDE.dom;
 
+% Spatial variable s1, dummy s1_dum; N, the highest order of differentiability
 polyvars = PDE.vars;
 s1 = polyvars(1);
 s1_dum = polyvars(2);
@@ -81,6 +113,7 @@ n = PDE.n;
 n_pde = n.n_pde;
 N = length(n_pde)-1;
 
+% No differentiable PDE state: a message instead of a PIE
 if N<1
 PIE_out = 'Cannot convert to PIE';
 return
@@ -88,6 +121,7 @@ end
 
 a = X(1);      b = X(2);
 
+% Numbers of derivative terms; nBVs, the number of boundary values
 np_all_der = sum((1:N+1));
 np_all_der_full = sum((1:N+1).*n_pde);
 
@@ -95,6 +129,9 @@ no= n.nx; np = sum(n_pde); nw = n.nw; nu = n.nu; nz = n.nz; ny = n.ny;
 nv = n.nv; nr = n.nr;
 nBVs = 2*sum((0:N).*PDE.n.n_pde);
 
+% Coefficient matrices of the terms: Ap0 (multiplier), Ap1 (integral on
+% [a,s1]) and Ap2 (integral on [s1,b]) of PDE.A, by state order (rows) and
+% derivative (columns)
 Ap0=[]; Ap1 = []; Ap2 = []; Crp = []; Ebp = []; Bpb = []; Drb =[]; Ebb = [];
 for j=1:N+1
     TAp0 = []; TAp1 = []; TAp2 = []; 
@@ -111,6 +148,7 @@ for j=1:N+1
     Ap2 = [Ap2;TAp2];
 end
 for j=1:N+1
+    % Bpb: coefficients of the boundary values in the PDE
     TBpb = []; 
     for i=1:2*(np_all_der-N-1)
         tmp = PDE.PDE.Bpb{i+(j-1)*2*(np_all_der-N-1)}; 
@@ -118,18 +156,21 @@ for j=1:N+1
     end
     Bpb = [Bpb;TBpb];
 end
+% Crp: kernels of the derivatives in r; Ebp: in the BCs
 for i=1:np_all_der
     tmp4 = PDE.PDE.Crp{i}; tmp5 = PDE.BC.Ebp{i};   
     Crp = [Crp tmp4.coeff];
     Ebp = [Ebp tmp5.coeff];
 end
 
+% Ebb: coefficients of the boundary values in the BCs; Drb: in r
 for i=1:2*(np_all_der-N-1)
     tmp = PDE.BC.Ebb{i}; tmp2 = PDE.PDE.Drb{i};
     Drb = [Drb tmp2.coeff];
     Ebb = [Ebb tmp.coeff];
 end
 
+% Ebv: coefficients of v in the BCs
 Ebv = PDE.BC.Ebv;
 
 % % % BEGIN MMP, 11/05/2026: the empty opvars of the PIE are commented out;
@@ -179,6 +220,9 @@ end
 U2 = bigI(:,idx2);
 U1 = bigI(:,setdiff(1:end,idx2)); 
 
+% Taylor expansion about a of derivative i-1 of the states of order >= i:
+% T(s1) multiplies the derivatives at a, (s1-a)^(k-i)/(k-i)!; Q(s1,s1_dum)
+% the fundamental state, (s1-s1_dum)^(k-i)/(k-i)!
 T=[];Q = [];
 for i =1:N
     Ti=[];
@@ -192,8 +236,9 @@ for i =1:N
             Qi = blkdiag(Qi,((s1-s1_dum)^(k-i)/factorial(k-i))*eye(n_pde(k+1)));
         end
         Ti = [Ti,tau{i,k}];
-        
+
     end
+    % K, L1: T and Q for the states themselves (i = 1)
     if i==1
         K = [zeros(n_pde(1),sum((1:N).*n_pde(2:end))); Ti];
         L1 = [zeros(n_pde(1),np); [zeros(size(Qi,1),n_pde(1)), Qi]];
@@ -202,6 +247,7 @@ for i =1:N
     T = [T; Ti];
 end
 
+% G0: an undifferentiated state is its own fundamental state
 G0 = [eye(n_pde(1)) zeros(n_pde(1),np-n_pde(1)); zeros(np-n_pde(1),n_pde(1)) zeros(np-n_pde(1))];
 
 
@@ -392,7 +438,7 @@ PIE_out.T = Top;   PIE_out.Tw = Twop;   PIE_out.Tu = Tuop;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
-% Spaces and maps from the copvar operators, as the batch converter         % MMP, 11/05/2026
+% Spaces and maps from the copvar operators                                 % MMP, 11/05/2026
 PIE_out = initialize(PIE_out);                                              % MMP, 11/05/2026
 
 % %remove temporary opvars
@@ -419,8 +465,9 @@ function Pop = pie_op(P0,L,MV,dims,pi4)
 %               of MV ([] when DIMS has no input space);
 %        dims:  2 x 2 'double', [q0 p0; q1 p1], the finite-dimensional and
 %               L2 dimensions of the output (column 1) and input (column 2);
-%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) = PI4_COPVAR_SOP with
-%               the variables and domain of the PIE.
+%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) the 'copvar' operator
+%               with blocks P, Q1, Q2, R = {R0,R1,R2} and dimensions DIMS,
+%               in the variables and domain of the PIE.
 % OUTPUT Pop:   'copvar' object.
 if sum(dims(:,1))==0 || sum(dims(:,2))==0
     Pop = pi4(zeros(dims(1,1),dims(1,2)),[],[],{[],[],[]},dims);

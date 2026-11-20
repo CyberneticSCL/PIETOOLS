@@ -1,11 +1,10 @@
-function PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag)       % DJ (CC), 11/02/2026
+function PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag)
 % PIE = CONVERT_PIETOOLS_PDE_NONLINEAR_2D(PDE,COMP_ORDER,FLAG) converts a
 % coupled ODE-1D PDE-2D PDE system, possibly with nonlinear terms, to an
 % equivalent PIE.
 %
 % INPUTS
-% - PDE:        'pde_struct' object defining a PDE in the terms format
-%               (see also "@pde_struct/initialize");
+% - PDE:        'pde_struct' object defining a PDE in the terms format;
 % - comp_order: (optional) struct with fields 'x', 'y', 'z', 'w' and 'u',
 %               and optionally 'BC', specifying the order of the state
 %               components, outputs, inputs and boundary conditions of
@@ -21,8 +20,8 @@ function PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag)       % DJ
 %               state) have been computed, returning only those;
 %
 % OUTPUTS
-% - PIE:        'npie_struct' object (see "@npie_struct/npie_struct")
-%               representing the PIE, with, in particular, fields
+% - PIE:        initialized 'npie_struct' object representing the PIE,
+%               with, in particular, fields
 %                   'T', 'Tw', 'Tu':  the map from the fundamental state
 %                           xf, exogenous input w, and actuator input u
 %                           to the PDE state x. T is a 'tensopmat' object
@@ -53,9 +52,9 @@ function PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag)       % DJ
 %                           the PIE, PIE.space, in which
 %                           PIE.space.x.varname and
 %                           PIE.space_pde.x.varname are the names of the
-%                           PIE and PDE states. The earlier fields 'B1',
-%                           ..., 'D22' remain accessible as aliases, and
-%                           the polynomials 'g' and 'h' are now 'gy' and
+%                           PIE and PDE states. The fields 'B1', ...,
+%                           'D22' are aliases of 'Bw', ..., 'Dyu', and the
+%                           polynomials g and h of the NOTES are 'gy' and
 %                           'gz', respectively;
 %               If flag contains 'Top', PIE is a 'pie_struct' object,
 %               with only the fields 'dom', 'vars', 'T', 'Tw' and 'Tu';
@@ -132,20 +131,8 @@ function PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag)       % DJ
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ (CC), 10/29/2026: Update to new npie_struct structure: return an
-%                   'npie_struct' object, with the maps between PDE and PIE
-%                   in PIE.space_pde, PIE.pie2pde and PIE.pde2pie (using
-%                   "pie_pde_maps_2D"). The polynomials g and h are renamed
-%                   gy and gz;
-% DJ (CC), 10/29/2026: The names of the states are stored in
-%                   PIE.space.x.varname, and the PIE state PIE.x is computed
-%                   from the function space, and no longer stored in
-%                   PIE.misc; the PIE is initialized before returning;
-% DJ (CC), 11/02/2026: Renamed from convert_PIETOOLS_PDE_nonlinear and
-%   moved to converters/legacy: convert_PIETOOLS_PDE now also converts
-%   nonlinear PDEs, in any number of spatial variables. Calls
-%   pie_pde_maps_2D, renamed likewise;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,7 +142,7 @@ if ~isa(PDE,'pde_struct')
     error('The input PDE is not appropriately specified. Please define your PDE as a "pde_struct" class object, and consult the manual and examples for illustration of the structure.')
 end
 
-% % Check the optional input arguments                                      % DJ, 06/18/2025
+% % Check the optional input arguments
 suppress_summary = false;       % set to true to suppress display of conversion summary
 return_Top = false;             % set to true to ONLY return the fundamental to PDE state map
 if nargin==1
@@ -191,19 +178,13 @@ if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
 
-% % % Get rid of any higher-order temporal derivatives and delays in the
-% % % system, and try to reduce the number of spatial variables.
-% if PDE.has_hotd                                                             % DJ, 06/18/2025
-%     fprintf(['\n','Higher-order temporal derivatives were encounterd:\n']);
-%     fprintf([' --- Running "expand_tderivatives" to reduce to first-order temporal derivatives ---\n']);
-%     PDE = expand_tderivatives(PDE);
-% end
-PDE0 = PDE;     del_tab = [];                                               % DJ (CC), 10/29/2026
+% % % Get rid of any delays in the system (higher-order temporal
+% % % derivatives are not supported, and throw an error after conversion).
+PDE0 = PDE;     del_tab = [];
 if PDE.has_delay
     fprintf(['\n','Delayed states on inputs were encounterd:\n']);
     fprintf([' --- Running "expand_delays" to remove the delays --- \n']);
-%   PDE = expand_delays(PDE);                                               % DJ (CC), 10/29/2026 (was)
-    [PDE,del_tab] = expand_delays(PDE);                                     % DJ (CC), 10/29/2026
+    [PDE,del_tab] = expand_delays(PDE);
 end
 if PDE.dim>2
     fprintf(['\n','The PDE involves more than 2 spatial variables:\n']);
@@ -213,7 +194,7 @@ if PDE.dim>2
         error('The number of spatial variables could not be reduced to 2 or fewer; conversion to PIE is not currently supported.')
     end
     % The maps between the PDE and PIE are described for the PDE with the
-    % combined variables; delays are not supported in this case.            % DJ (CC), 10/29/2026
+    % combined variables; delays are not supported in this case.
     if ~isempty(del_tab)
         error('Delays are not supported for PDEs in more than 2 spatial variables.')
     end
@@ -248,6 +229,7 @@ if nargin==1 || ~isa(comp_order,'struct')
     [PDE,wcomp_order] = reorder_comps(PDE,'w',true);
     [PDE,ucomp_order] = reorder_comps(PDE,'u',true);
     
+    % Store the order of each type of component; the BCs keep their order
     comp_order = struct();
     comp_order.x = xcomp_order;
     comp_order.y = ycomp_order;
@@ -256,6 +238,7 @@ if nargin==1 || ~isa(comp_order,'struct')
     comp_order.u = ucomp_order;
     comp_order.BC = (1:numel(PDE.BC))';
 else
+    % Order given in comp_order
     xcomp_order = comp_order.x;
     ycomp_order = comp_order.y;
     zcomp_order = comp_order.z;
@@ -342,7 +325,7 @@ if (is2D && (any(any(w_tab(:,3:2+nvars))) || any(any(u_tab(:,3:2+nvars)))))
     [Top,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,true);
     use_Tmap_opt2 = false;
     Dvals_w = Dvals.w;      Dvals_u = Dvals.u;
-    Wop = Top.wmap;         Uop = Top.umap;                                 % DJ, 02/15/2026
+    Wop = Top.wmap;         Uop = Top.umap;
     w_idcs = Dvals.w_idcs;  u_idcs = Dvals.u_idcs;
 
     % Correct values of global variables.
@@ -403,7 +386,7 @@ np_op.BC = get_opdim(PDE.BC_tab);
 % % %     = (P_b2x*Pf2b + P_f2x) * xf + (P_b2x*P_u2b) * u + (P_b2x*P_w2b) * w
 % % %     = Tx * xf + Tu * u + Tw * w;
 % Start with Tx.
-if Pop_f2BC==0 && (~any(np_op.u) || Pop_u2BC==0) && (~any(np_op.w) || Pop_w2BC==0)      % DJ, 01/25/2026
+if Pop_f2BC==0 && (~any(np_op.u) || Pop_u2BC==0) && (~any(np_op.w) || Pop_w2BC==0)
     % If boundary conditions are imposed only on lower boundaries, the core
     % boundary states must all be zero.
     % --> x = P_b2x * 0 + P_f2x * xf = P_f2x * xf
@@ -417,9 +400,9 @@ else
             error('The boundary conditions appear to be infinite-dimensional, something is going wrong...')
         else
             % Test for well-posedness of boundary conditions
-            if size(Pop_b2BC.P,1)<size(Pop_b2BC.P,2)                        % DJ, 01/12/2025
+            if size(Pop_b2BC.P,1)<size(Pop_b2BC.P,2)
                 error('It appears insufficient boundary conditions have been specified; conversion to PIE is not supported.')
-            elseif size(Pop_b2BC.P,1)>size(Pop_b2BC.P,2)                    % DJ, 03/24/2025
+            elseif size(Pop_b2BC.P,1)>size(Pop_b2BC.P,2)
                 error('It appears too many boundary conditions have been specified; either declare a higher order of differentiability of the PDE state, or reduce the number of boundary conditions.')
             end    
             if abs(det(double(Pop_b2BC.P)))>eps
@@ -527,9 +510,8 @@ end
 if return_Top
     % If only the T operators are requested, we stop here.
     PIE = pie_struct();
-%   PIE.dom = dom;  PIE.vars = vars;                                        % DJ (CC), 10/29/2026 (was)
-    PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);                 % DJ (CC), 10/29/2026
-    PIE.space.dom = dom;                                                    % DJ (CC), 10/29/2026
+    PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);
+    PIE.space.dom = dom;
     PIE.T = Top.x;  PIE.Tw = Top.w;     PIE.Tu = Top.u;
     return
 end
@@ -593,20 +575,12 @@ end
 % Finally, we define the PIE structure, collecting the PI operators that
 % define our PIE.
 
-% Keep track of the variables and domain of the system.
-% % % Start of changes DJ (CC), 10/29/2026: the PIE is now an 'npie_struct'
-% % % object, with polynomials f, gy, and gz, and the operators Tw, Tu, Bw, ...
-% % % set below as 'tensopmat' objects (the old fields B1, ..., D22 remain
-% % % accessible as aliases, g and h are renamed gy and gz, and the names of the
-% % % components are stored in PIE.space.x.varname). The previous version
-% % % returned a struct, with these fields.
-%   PIE = struct();                                                         % DJ (CC), 10/29/2026 (was)
-%   PIE.dom = dom;                                                          % DJ (CC), 10/29/2026 (was)
-%   PIE.vars = vars;                                                        % DJ (CC), 10/29/2026 (was)
-%   PIE.dim = size(PIE.vars,1);                                             % DJ (CC), 10/29/2026 (was)
-PIE = npie_struct();                                                        % DJ (CC), 10/29/2026
-PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);                     % DJ (CC), 10/29/2026
-PIE.space.dom = dom;                                                        % DJ (CC), 10/29/2026
+% Keep track of the variables and domain of the system. The PIE is an
+% 'npie_struct' object, with polynomials f, gy, and gz, and the operators
+% Tw, Tu, Bw, ... set below as 'tensopmat' objects.
+PIE = npie_struct();
+PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);
+PIE.space.dom = dom;
 
 % Store the PI operators defining the fundamental to PDE state map.
 Topi = [];
@@ -621,18 +595,12 @@ for i=1:size(x_tab,1)
     end
     Topi = [Topi;Topj];
 end
-%PIE.T = opvar2sopvar(clean_opvar(Top.x,op_clean_tol));
 PIE.T = Topi;
-%   PIE.Tw = clean_opvar(Top.w,op_clean_tol);                               % DJ (CC), 10/29/2026 (was)
-%   PIE.Tu = clean_opvar(Top.u,op_clean_tol);                               % DJ (CC), 10/29/2026 (was)
-% Tw, Tu, Bw, ..., are set below, once the tables describing the components % DJ (CC), 10/29/2026
-% are available.                                                            % DJ (CC), 10/29/2026
+% Tw, Tu, Bw, ..., are set below, once the tables describing the components
+% are available.
 
 % Store the PI operators defining the PIE.
-%   PIE.f = fx;     PIE.B1 = Bop_w2x;       PIE.B2 = Bop_u2x;               % DJ (CC), 10/29/2026 (was)
-%   PIE.g = fy;     PIE.D11 = Dop_w2z;      PIE.D12 = Dop_u2z;              % DJ (CC), 10/29/2026 (was)
-%   PIE.h = fz;     PIE.D21 = Dop_w2y;      PIE.D22 = Dop_u2y;              % DJ (CC), 10/29/2026 (was)
-PIE.f = fx;     PIE.gz = fz;    PIE.gy = fy;                                % DJ (CC), 10/29/2026
+PIE.f = fx;     PIE.gz = fz;    PIE.gy = fy;
 
 % Keep track of how the state components in the original PDE are
 % now ordered in the PIE.
@@ -643,27 +611,16 @@ u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
 
 % Store the variable names of the PDE and PIE states
-%   PIE.varname_pie = cell(size(x_tab,1),1);                                % DJ (CC), 10/29/2026 (was)
-%   PIE.varname_pde = cell(size(x_tab,1),1);                                % DJ (CC), 10/29/2026 (was)
-%   ndig_x = numel(num2str(size(x_tab,1)));                                 % DJ (CC), 10/29/2026 (was)
-%   for i=1:size(x_tab,1)                                                   % DJ (CC), 10/29/2026 (was)
-%       PIE.varname_pde{i} = ['x',num2str(x_tab(i,1))];                     % DJ (CC), 10/29/2026 (was)
-%       PIE.varname_pie{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];   % DJ (CC), 10/29/2026 (was)
-%   end                                                                     % DJ (CC), 10/29/2026 (was)
-%   % Store the PIE state variables                                         % DJ (CC), 10/29/2026 (was)
-%   xvars = polyopvar(PIE.varname_pie,x_tab(:,2),PIE.vars(:,1),PIE.dom,logical(x_tab(:,3:2+nvars)));   % DJ (CC), 10/29/2026 (was)
-%   PIE.x = xvars;                                                          % DJ (CC), 10/29/2026 (was)
 
 % The names of the PIE states are those used in the polynomials f, gy, gz,
-% and the zero-padded numbers ensure the names are sorted, as the components   % DJ (CC), 10/29/2026
-% of PIE.x are. The PIE state PIE.x is now constructed from PIE.space, and    % DJ (CC), 10/29/2026
-% the names of the PDE states, 'x1', 'x2', ..., are assigned by "initialize". % DJ (CC), 10/29/2026
-ndig_x = numel(num2str(size(x_tab,1)));                                     % DJ (CC), 10/29/2026
-PIE.space.x.varname = cell(size(x_tab,1),1);                                % DJ (CC), 10/29/2026
-for i=1:size(x_tab,1)                                                       % DJ (CC), 10/29/2026
-    PIE.space.x.varname{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];    % DJ (CC), 10/29/2026
-end                                                                         % DJ (CC), 10/29/2026
-% % % End of changes DJ (CC), 10/29/2026
+% and the zero-padded numbers ensure the names are sorted, as the components
+% of PIE.x are. The PIE state PIE.x is constructed from PIE.space, and the
+% PDE states are named 'x1', 'x2', ... on initialization.
+ndig_x = numel(num2str(size(x_tab,1)));
+PIE.space.x.varname = cell(size(x_tab,1),1);
+for i=1:size(x_tab,1)
+    PIE.space.x.varname{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];
+end
 % Account for the introduction of boundary values of the inputs
 PIE.w_tab = PIE.w_tab(w_idcs,:);
 PIE.u_tab = PIE.u_tab(u_idcs,:);
@@ -687,32 +644,27 @@ end
 % Get rid of any higher-order temporal derivatives in the PIE.
 if any(tdiff_list>1)
     error("Higher-order temporal derivatives in nonlinear PDEs are currently not supported.")
-    %[PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,true);
 else
     tdiff_tab = [(1:numel(PDE.x))',zeros(numel(PDE.x),1)];
 end
 
-% % % Start of changes DJ (CC), 10/29/2026: convert the operators mapping the
-% % % inputs to 'tensopmat' objects, with a block for each of the components
-% % % of the state, inputs, and outputs (these were previously the 'opvar' or
-% % % 'opvar2d' objects Top.w, Top.u, Bop_w2x, ..., stored as PIE.Tw, ..., PIE.D22).
-PIE.Tw = opvar2tensopmat_comps(Top.w,PIE.x_tab,PIE.w_tab,op_clean_tol);     % DJ (CC), 10/29/2026
-PIE.Tu = opvar2tensopmat_comps(Top.u,PIE.x_tab,PIE.u_tab,op_clean_tol);     % DJ (CC), 10/29/2026
-PIE.Bw = opvar2tensopmat_comps(Bop_w2x,PIE.x_tab,PIE.w_tab,op_clean_tol);   % DJ (CC), 10/29/2026
-PIE.Bu = opvar2tensopmat_comps(Bop_u2x,PIE.x_tab,PIE.u_tab,op_clean_tol);   % DJ (CC), 10/29/2026
-PIE.Dzw = opvar2tensopmat_comps(Dop_w2z,PIE.z_tab,PIE.w_tab,op_clean_tol);  % DJ (CC), 10/29/2026
-PIE.Dzu = opvar2tensopmat_comps(Dop_u2z,PIE.z_tab,PIE.u_tab,op_clean_tol);  % DJ (CC), 10/29/2026
-PIE.Dyw = opvar2tensopmat_comps(Dop_w2y,PIE.y_tab,PIE.w_tab,op_clean_tol);  % DJ (CC), 10/29/2026
-PIE.Dyu = opvar2tensopmat_comps(Dop_u2y,PIE.y_tab,PIE.u_tab,op_clean_tol);  % DJ (CC), 10/29/2026
+% Convert the operators mapping the inputs to 'tensopmat' objects, with a
+% block for each of the components of the state, inputs, and outputs.
+PIE.Tw = opvar2tensopmat_comps(Top.w,PIE.x_tab,PIE.w_tab,op_clean_tol);
+PIE.Tu = opvar2tensopmat_comps(Top.u,PIE.x_tab,PIE.u_tab,op_clean_tol);
+PIE.Bw = opvar2tensopmat_comps(Bop_w2x,PIE.x_tab,PIE.w_tab,op_clean_tol);
+PIE.Bu = opvar2tensopmat_comps(Bop_u2x,PIE.x_tab,PIE.u_tab,op_clean_tol);
+PIE.Dzw = opvar2tensopmat_comps(Dop_w2z,PIE.z_tab,PIE.w_tab,op_clean_tol);
+PIE.Dzu = opvar2tensopmat_comps(Dop_u2z,PIE.z_tab,PIE.u_tab,op_clean_tol);
+PIE.Dyw = opvar2tensopmat_comps(Dop_w2y,PIE.y_tab,PIE.w_tab,op_clean_tol);
+PIE.Dyu = opvar2tensopmat_comps(Dop_u2y,PIE.y_tab,PIE.u_tab,op_clean_tol);
 
 % Describe the function spaces of the PDE, and the maps between the PDE and
-% PIE variables.                                                            % DJ (CC), 10/29/2026
-%PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop);                              % DJ (CC), 11/02/2026 (was); earlier: DJ (CC), 10/29/2026
-PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop);                            % DJ (CC), 11/02/2026
-% Check that the PIE is well-defined, and name the components that have not  % DJ (CC), 10/29/2026
-% been named, using "initialize".                                           % DJ (CC), 10/29/2026
-PIE = initialize(PIE);                                                      % DJ (CC), 10/29/2026
-% % % End of changes DJ (CC), 10/29/2026
+% PIE variables.
+PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop);
+% Check that the PIE is well-defined, and name the components that have not
+% been named.
+PIE = initialize(PIE);
 
 % Finally, provide an overview of how the new state variables relate to the
 % PDE variables.
@@ -736,7 +688,7 @@ end
 function Cop = opvar2tensopmat_comps(Pop,tab_out,tab_in,tol)
 % COP = OPVAR2TENSOPMAT_COMPS(POP,TAB_OUT,TAB_IN,TOL) converts an 'opvar' or
 % 'opvar2d' object to a 'tensopmat' object with a block for each of the
-% components of the output and input.                                       % DJ (CC), 10/29/2026
+% components of the output and input.
 %
 % INPUT
 % - Pop:    'opvar' or 'opvar2d' object, mapping between spaces ordered by
@@ -838,8 +790,7 @@ function [Pop_b2BC, Pop_f2BC, Pop_u2BC, Pop_w2BC] = construct_PI_ops_BCs(PDE,bc_
 %
 % INPUTS:
 % - PDE:            A struct or pde_struct type object, defining a PDE in 
-%                   the terms format (see also the "@pde_struct/initialize"
-%                   function).
+%                   the terms format.
 % - bc_state_tab:   A Nx(2+2*nvars) array, defining the core boundary state. 
 %               For j=1,...N, element
 %               (j,2) should provide the size of the state component;
@@ -1087,7 +1038,6 @@ for BCnum = 1:numel(PDE.BC)
                     param_linsz = cumprod([1,param_sz_full]);
                     param_linsz = param_linsz(1:end-1);
                     for ll=1:size(Pop_int_indx_full,1)
-                        %int_lindx = (Pop_int_indx(ll,:)-1)*param_linsz' + 1;
                         int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
                         f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
                     end
@@ -1206,6 +1156,7 @@ if nvars<=1
         Pop_w2BC.(Rparams{kk}) = w2BC_params.(Rparams{kk});
         Pop_u2BC.(Rparams{kk}) = u2BC_params.(Rparams{kk});
     end
+    % Kernels R0, R1, R2 of R
     RRparams = {'R0','R1','R2'};
     for kk=1:numel(RRparams)
         Pop_b2BC.R.(RRparams{kk}) = b2BC_params.R{kk};
@@ -1214,6 +1165,7 @@ if nvars<=1
         Pop_u2BC.R.(RRparams{kk}) = u2BC_params.R{kk};
     end
 else
+    % Two variables: every parameter
     for kk=1:numel(Rparams)
         Pop_b2BC.(Rparams{kk}) = b2BC_params.(Rparams{kk});
         Pop_f2BC.(Rparams{kk}) = f2BC_params.(Rparams{kk});
@@ -1238,7 +1190,7 @@ function [fx, Pop_u, Pop_w] = compute_RHS_PIE(PDE,obj,Top,Wop,Uop,is_diff_w,is_d
 %
 % INPUTS:
 % - PDE:    A struct or pde_struct type object, defining a PDE in the terms
-%           format (see also the "@pde_struct/initialize" function).
+%           format.
 % - obj:    'x', 'y', or 'z', indicating which equations to be represented
 %           using PI operators.
 % - Top:    Struct with field 'x', 'u' and 'w', containing PI operators Tx,
@@ -1324,10 +1276,13 @@ if nvars<=1
     Pop_w_tmp.I = dom;
     Pop_w_tmp.var1 = vars(1,1);     Pop_w_tmp.var2 = vars(1,2);
 else
+    % Two variables: zero operators on the 2D spaces
     Pop_tmp = opvar2d([],[nr_op,nx_op],dom,vars);
     Pop_u_tmp = opvar2d([],[nr_op,nu_op],dom,vars);
     Pop_w_tmp = opvar2d([],[nr_op,nw_op],dom,vars);
 end
+% Input operators, with the columns of the fundamental inputs when
+% Uop (Wop) maps them to the PDE inputs
 if isa(Uop,'double')
     Pop_u = Pop_u_tmp;
 else
@@ -1345,10 +1300,6 @@ if nnr_op(end)==0
     return
 end
 
-% % Declare a matrix of degrees of monomials that appear in the PIE, and
-% % associated cell of operators
-% degmat = zeros(0,size(x_tab,1));
-
 % % % Loop over all equations of the considered "obj" (PDEs or outputs)
 % % % For each equation, loop over all the terms, and add the coefficients
 % % % that appear in each term to the appropriate parameter in the
@@ -1362,15 +1313,6 @@ for eqnum=1:numel(PDE.(obj))
     Cop_rnum = find((rindcs(1)>nnr_op(1:end-1) & rindcs(1)<=nnr_op(2:end)),1);
 
     % Declare a polynomial representing the current equation
-    % fi = fx;
-    % fi.Z = zeros(0,0);
-    % fi.C.ops = cell(1,0);
-    % fi.dims.out = fi.dims.out(eqnum);
-    % fi.depmat.out = fi.depmat.out(eqnum,:);
-    % fi.C.dims.out = fi.dims.out;
-    % fi.C.depmat.out = fi.depmat.out;
-    % fi.chkval = true;
-
     fi = 0;
     
     for jj=1:numel(PDE.(obj){eqnum}.term)
@@ -1425,9 +1367,6 @@ for eqnum=1:numel(PDE.(obj))
 
             % Determine the number of factors in the term
             nfctrs = numel(term_jj);
-            %state_nums_jj = zeros(1,0);
-            %op_cell_jj = cell(1,0);
-            %fj = fi;
             fj = 1;
 
             for fctr_num=1:nfctrs
@@ -1499,9 +1438,6 @@ for eqnum=1:numel(PDE.(obj))
                 Pop_u(rindcs,:) = Pop_u(rindcs,:) + Pop_u2x_ll;
                 Pop_w(rindcs,:) = Pop_w(rindcs,:) + Pop_w2x_ll;
 
-                % Augment x operator to map to all equations
-                %Pop_x2x_ll = [Pop_tmp(1:rindcs(1)-1,:); Pop_x2x_ll; Pop_tmp(rindcs(end)+1:end,:)];
-
                 % Declare the factor as a distributed polynomial
                 fl = ftmp;
                 fl.C.ops = cell(1,numel(nx_arr));
@@ -1556,22 +1492,7 @@ for eqnum=1:numel(PDE.(obj))
         fi.C.ops = {tensopvar(mat2sopvar(zeros(fi.dims.out,1),vars_tmp,dom_tmp))};        
     end
     fx = [fx;fi];
-    % if ~isempty(fi.Z)
-    %     % Get a unique basis of monomials
-    %     %[fx,fi] = common_basis(f,fi);
-    %     %fx.C.ops(eqnum,:) = fi.C.ops(1,:);
-    %     fx = [fx;fi];
-    % end
 end
-
-% % % Finally, declare the distributed polynomial based on the encountered
-% % % monomials and associated operators
-% % Declare the degrees of the monomials appearing in f
-% [degmat_f,deg_order] = sortrows_integerTable([sum(degmat,2),degmat(:,end:-1:1)]);
-% fx.degmat = degmat_f(:,end:-1:2);
-% % Declare the coefficients acting on these monomials
-% Cop = tensopmat(op_cell_full(1,deg_order));
-% fx.C = Cop;
 
 % Add the contribution of the inputs
 Pop_u = Pop_u + Pop_u_tmp*Uop;
@@ -1781,10 +1702,6 @@ thin_space = char(8201);
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 partial = '\x2202';
 sub_t = '\x209C';
-%sub_s = '\x209B';
-%int = '\x222B';
-%xdot = '\x1E8B';
-%xdot = [partial,sub_t,' x'];
 % Also use UNICODE for superscript orders of the temporal derivative
 sup_num = cell(10,1);    % Superscripts
 sup_num{1} = '\x2070';  % Superscript 0
@@ -1910,6 +1827,7 @@ for ii=1:ncomps
     else
         diff_str = '';
     end
+    % Spatial derivatives (d/ds_j)^k of the PDE component, before its name
     if has_diffs
         Dvals = obj_tab(ii,2+nvars+1:2+2*nvars);
         for jj=1:nvars

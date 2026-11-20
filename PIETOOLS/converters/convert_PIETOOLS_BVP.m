@@ -13,7 +13,7 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 % - diffs:  (optional) the derivatives of the states to compute: [] (the
 %           default) for none, 'all' for all up to the order of each
 %           state, 'terms' for those in the terms of the equations and
-%           outputs (as convert_PDE_term needs), or an nx x 1 cell, with
+%           outputs, or an nx x 1 cell, with
 %           diffs{k} 'all' or an array with a row of derivative orders
 %           (in the variables of state k) for each derivative;
 % - opts:   (optional) char or cellstr, with 'no_decouple' (solve all
@@ -52,9 +52,16 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %                       component depends on a variable);
 %           - groups:   for each group of coupled BCs, its BCs (BC_idcs),
 %                       variables (vars), and the directions passed
-%                       through (pass, see compose_Tmaps);
+%                       through (pass: true for the rank-deficient
+%                       directions, whose BCs the lifted sources satisfy);
 %           - fund:     for each xf_c: group, x_idcs, vars, dom, dim,
-%                       Dorder and p, see compose_Tmaps;
+%                       Dorder (the derivative orders of the states that
+%                       xf_c holds) and p, the size of each block of xf_c
+%                       (one block per auxiliary value of the scalar
+%                       rank-deficient directions): the total size of the
+%                       states if each block stacks the states, else the
+%                       number of auxiliary values of the rank-deficient
+%                       direction that is not scalar;
 %           - blocks:   for each block of xf: fund (the index c), x (the
 %                       state), comp (its entries of xf_c), dim, vars,
 %                       dom and Dorder;
@@ -72,11 +79,13 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %                       be overdetermined;
 %
 % NOTES
-% - The BCs are split into groups sharing no state (decouple_BVPs), and
-%   into 1D problems along each direction (split_BVPs), which are solved
-%   (compute_Tmap_1D) and composed (compose_Tmaps, see there for the BCs
-%   that are supported). More BCs along a direction than the order of
-%   the states give constraints Kops.x*xf=0.
+% - The BCs are split into groups sharing no state, and into 1D problems
+%   along each direction, which are solved and composed. The composition
+%   requires the BCs along each direction to be order compatible, the
+%   solution maps of the admissible directions to preserve the BCs along
+%   the other directions, and all but one rank-deficient direction to be
+%   scalar (an error is thrown otherwise). More BCs along a direction
+%   than the order of the states give constraints Kops.x*xf=0.
 % - BCs that fix several variables in each term of a state with
 %   variables (e.g. x(0,0)=0, or an integral over the full domain) are
 %   imposed on the solution of the other BCs. A scalar BC that fixes an
@@ -85,12 +94,11 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %   involve inputs, nor states with inputs in their BCs.
 % - States of lower dimension (e.g. ODE states, or boundary values of
 %   states on other variables, as in x4(a)=x3(d)) in the BCs of other
-%   states act as inputs of these BCs: they are lifted to inputs
-%   (lift_BVP_sources), and eliminated after solving
-%   (eliminate_BVP_sources). They must satisfy the compatibility
+%   states act as inputs of these BCs: they are lifted to inputs, and
+%   eliminated after solving. They must satisfy the compatibility
 %   conditions of the BCs they enter.
 % - Inputs w, u in the BCs are decomposed into free fundamental inputs
-%   (derivatives of the PDE inputs, see fund_inputs), so that the BC data
+%   (derivatives of the PDE inputs), so that the BC data
 %   are compatible by construction. This needs all directions of the
 %   group to be admissible (e.g. not periodic), and each BC row with an
 %   input to have a single element of a single input as right-hand side.
@@ -123,15 +131,8 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/02/2026: Initial coding;
-% DJ (CC), 11/08/2026: Lift the inputs in a BC with a state of lower dimension
-%                   into its source, as fundamental inputs, and map each
-%                   input that is its own fundamental input to the PDE input
-%                   (Iin), also if in the BCs; add info.input_maps;
-% DJ, 11/11/2026: Rename from solve_PIETOOLS_BVP;
-% DJ (CC), 11/13/2026: Solve the 1D problems with compute_Tmap_1D, and
-%                   simplify the code; impose BCs that fix several
-%                   variables at once; add info.surplus;
 
 % % % Check the inputs
 msg = "Options should be specified as 'no_decouple', 'all_inputs', 'blocks' or 'nonlinear'.";
@@ -143,12 +144,15 @@ end
 if nargin<2    
     diffs = [];     
 end
+% Swap diffs and opts if given in the order (opts,diffs)
 is_text = @(a) ischar(a) || isstring(a) || iscellstr(a);
 is_diffs = @(a) ~isempty(a) && (~is_text(a) || any(ismember(lower(cellstr(a)),{'all','terms'})));
 if ~isempty(diffs) && ~is_diffs(diffs) && (isempty(opts) || is_diffs(opts))
     [diffs,opts] = deal(opts,diffs);
 end
 diffs = convertStringsToChars(diffs);
+% opts: a cell of options among 'no_decouple', 'all_inputs', 'blocks',
+% 'nonlinear'
 if isempty(opts)
     opts = '';
 end
@@ -161,6 +165,8 @@ if ~all(ismember(opts,{'no_decouple','all_inputs','blocks','nonlinear'}))
     error(msg)
 end
 is_an_opt = @(o) any(strcmp(opts,o));
+% Initialized PDE with at least one state; N variables, and the
+% dependence isvar and orders Delta of each state
 PDE = pde_struct(PDE);
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
@@ -179,6 +185,8 @@ Delta = PDE.x_tab(:,2+N+(1:N));
 % derivative of state k (in its own variables); alpha=0 is always included
 want_diffs = ~isempty(diffs);
 diffs_k = cell(nx,1);
+% diffs_k from 'all', 'terms' (the derivatives in the terms of the
+% equations of x, z and y) or an nx x 1 cell
 if want_diffs
     if ischar(diffs) && strcmpi(diffs,'all')
         diffs_k(:) = {'all'};
@@ -190,6 +198,8 @@ if want_diffs
     else
         error('convert_PIETOOLS_BVP:diffs',"The derivatives should be specified as 'all', 'terms', or an nx x 1 cell.")
     end
+    % Each diffs_k{k} is 'all', or nonnegative integer orders that do not
+    % exceed those of state k
     for k=1:nx
         Dk = Delta(k,isvar(k,:));
         if ischar(diffs_k{k})
@@ -252,7 +262,7 @@ else
     [PDEs,dec] = decouple_BVPs(PDE_lift);
 end
 % Eliminating the sources needs all derivatives of the lifted states, and
-% those in the BCs of the states they enter (see eliminate_BVP_sources);
+% those in the BCs of the states they enter;
 % imposing the BCs set aside needs those in these BCs
 diffs_comp = diffs_k;
 multi_terms = cellfun(@(b) b.term(:),PDE_full.BC(multi),'UniformOutput',false);
@@ -377,8 +387,8 @@ for ty={'x','w','u'}
         if isempty(col_spaces)
             col_spaces = struct('vars',{},'dom',{},'dim',{},'pde',{},'Dorder',{},'loc',{},'sel',{},'group',{});
         else
-            % An input shared by BCs of groups on different variables (see
-            % decouple_BVPs) gives fundamental inputs in each of these
+            % An input shared by BCs of groups on different variables
+            % gives fundamental inputs in each of these
             % groups, which are the same input if they are the same
             % derivative at the same location of the same elements. Inputs
             % that are not identical, but depend on the same element of an
@@ -389,6 +399,8 @@ for ty={'x','w','u'}
                 f = col_spaces(c);
                 keys{c} = sprintf('%d|%s|%s|%s',f.pde,mat2str(f.Dorder),mat2str(f.loc),mat2str(sort(f.sel(:))'));
             end
+            % Identical inputs share a column; different inputs on the same element
+            % of a PDE input must be in a common group
             [~,first_idx,col_id] = unique(keys,'stable');
             groups_c = arrayfun(@(u) unique(col_group(col_id==u)),1:numel(first_idx),'UniformOutput',false);
             for c1=1:numel(first_idx)
@@ -399,6 +411,7 @@ for ty={'x','w','u'}
                     end
                 end
             end
+            % colmap{g}: the columns of group g
             colmap = arrayfun(@(g) col_id(col_group==g)',1:nG,'UniformOutput',false);
             col_spaces = col_spaces(first_idx);
             ncols_tot = numel(first_idx);
@@ -431,6 +444,8 @@ for ty={'x','w','u'}
             R_group = sol(g).Tops.x{k_grp};
             Rk = cell(size(R_group));
             for lidx=find(~cellfun(@isempty,R_group(:)))'
+                % Row of the map: the blocks of group g in its columns colmap{g}, zero
+                % blocks in the others
                 blk_ref = R_group{lidx}.C{1,1};
                 row = cell(1,ncols_tot);
                 if ~isempty(colmap{g})
@@ -444,6 +459,7 @@ for ty={'x','w','u'}
             R_cell{dec.x_idcs{g}(k_grp)} = Rk;
         end
     end
+    % The maps from the columns of this type to the derivatives of the states
     Rops.(obj_type) = R_cell;
 
     if is_state
@@ -487,11 +503,13 @@ end
 % % % states with variables (as for periodic BCs) where possible, giving
 % % % xf_c=Q_c*xf for these (pinned) components c, which are eliminated by
 % % % xf=P*xf_free. The other rows (nonzero) are constraints, added to K.
-if any(multi)                                                               % DJ (CC), 11/13/2026
+if any(multi)
     fund = info.fund;       ncol = numel(fund);
     idx_m = find(multi);    nm = numel(idx_m);
     Tops_m = struct('x',{Rops.x},'w',{Rops.w},'u',{Rops.u});
     R = cell(nm,ncol);      vars_m = cell(nm,1);        sz_m = zeros(nm,1);
+    % R{r,c}: BC r, fixing several variables, as an operator on xf_c (sum
+    % of its terms); error if it has inputs
     for r=1:nm
         BC = PDE_full.BC{idx_m(r)};
         vars_m{r} = vars_pde(logical(PDE_full.BC_tab(idx_m(r),3:2+N)));
@@ -503,6 +521,7 @@ if any(multi)                                                               % DJ
             elseif isempty(Pblk.x)
                 continue
             end
+            % Add the blocks of the term
             for c=find(~cellfun(@isempty,Pblk.x.B))
                 if isempty(R{r,c})
                     R{r,c} = Pblk.x.B{c};
@@ -530,6 +549,7 @@ if any(multi)                                                               % DJ
     for c=1:ncol
         S{c} = vertcat(R{is_sc,c});
     end
+    % Defaults: W = I, no pivots
     W = eye(m_sc);      jb = zeros(1,0);        cols = zeros(1,0);
     dims_c = arrayfun(@(c) fund(c).dim,cand);
     comp_of = zeros(1,0);
@@ -540,6 +560,7 @@ if any(multi)                                                               % DJ
     if m_sc>0 && ~isempty(cand)
         A = cell2mat(cellfun(@(c) full(S{c}.params{1}),num2cell(cand),'UniformOutput',false));
         tol = 1e-10*max(1,norm(A,'fro'));
+        % Drop the candidates with only some entries pivots, until none remain
         while true
             cols = find(keep(comp_of));
             [RW,jb] = rref([A(:,cols),eye(m_sc)],tol);
@@ -553,6 +574,7 @@ if any(multi)                                                               % DJ
         end
         W = RW(:,numel(cols)+1:end);
     end
+    % Pinned components: the candidates with pivots; WS{c} = W*S{c}
     pinned = cand(npiv>0);
     WS = cellfun(@(X) W*X,S,'UniformOutput',false);
     % Q{i,c}: xf_{pinned(i)} = sum_c Q{i,c}*xf_c, from the pivot rows of
@@ -592,6 +614,7 @@ if any(multi)                                                               % DJ
     % states, the constraints, and the map F from the states to xf
     free = setdiff(1:ncol,pinned);
     if ~isempty(pinned)
+        % P: the identity on the free components, Q on the pinned ones
         Pc = cell(ncol,numel(free));
         for j=1:numel(free)
             f = fund(free(j));
@@ -599,6 +622,7 @@ if any(multi)                                                               % DJ
         end
         Pc(pinned,:) = Q(:,free);
         P = copvar(Pc);
+        % Substitute xf = P*xf_free in the maps, the constraints and F
         for k=1:nx
             for l=find(~cellfun(@isempty,Rops.x{k}(:)))'
                 Rops.x{k}{l} = Rops.x{k}{l}*P;
@@ -610,6 +634,7 @@ if any(multi)                                                               % DJ
         Fop = copvar(Fop.C(free,:));
         info.fund = fund(free);
     end
+    % Append the new constraints K_rows, in xf_free
     if ~isempty(K_rows)
         K_new = copvar(K_rows);
         if ~isempty(pinned)
@@ -718,7 +743,7 @@ if is_an_opt('all_inputs')
         % sources, and an input in the BCs that is itself fundamental,
         % which may then also be used in the equations), and zero
         % elsewhere; empty for the inputs decomposed in the BCs, which
-        % cannot be used elsewhere (see convert_PDE_term)
+        % cannot be used elsewhere
         Iin = cell(nin,1);
         for r=1:nin
             c_r = find([inputs.pde]==r);
@@ -826,6 +851,8 @@ end
 % % % the inputs as the PDE inputs (see the header for those in the BCs)
 ncomp = numel(comps_x);
 diff_arr = zeros(ncomp,nx,N);      idx_x = zeros(ncomp,1);
+% Component c: its fundamental component f, the states it derives from,
+% and the orders of the derivatives in the variables of its group
 for c=1:ncomp
     if is_split
         f = info.fund(comps_x(c).fund);     states = comps_x(c).x;
@@ -840,6 +867,7 @@ for c=1:ncomp
         idx_x(c) = states;
     end
 end
+% Dmap.x, then the maps of the inputs
 Dmap = struct('x',struct('idx',idx_x,'diff',diff_arr,'loc',zeros(ncomp,N),'C',Fop),'w',[],'u',[]);
 for types={'w','u'}
     obj_type = types{1};
@@ -874,6 +902,8 @@ info.input_maps = struct('w',~isempty(Tops.w),'u',~isempty(Tops.u));
 % % % operator with the rows of P and the columns of the space sp
 Kx = Kops.K;
 Kops = struct('x',Kx,'w',[],'u',[]);
+% zero_map and the empty row space no_rows: 'tensopmat' (nonlinear) or
+% 'copvar' (linear)
 if use_nonlin
     [vars_srt,ord] = sort(vars_pde);
     zero_map = @(P,sp) mat2tensopmat(zeros(sum(P.dims.out),sum(sp.dims)),struct('in',sp.dims,'out',P.dims.out),...
@@ -885,10 +915,12 @@ else
         struct('vars',{vars_pde},'dom',space.dom));
     no_rows = struct('dim_out',zeros(0,1),'vars',{cell(1,0)},'space_out',false(0,0));
 end
+% No constraints: a zero map with no rows
 if isempty(Kx)
     Kx = no_rows;
     Kops.x = zero_map(Kx,space.x);
 end
+% Kw, Ku zero; Tops.w, Tops.u zero where no input enters the states
 for ty={'w','u'}
     sp = space.(ty{1});
     Kops.(ty{1}) = zero_map(Kx,sp);
@@ -899,6 +931,7 @@ for ty={'w','u'}
         Tops.(ty{1}) = zero_map(Tops.x,sp);
         continue
     end
+    % With derivatives: a zero map for each derivative of each state
     Tops.(ty{1}) = cell(size(Tops.x));
     for k=1:numel(Tops.x)
         Tops.(ty{1}){k} = cell(size(Tops.x{k}));
@@ -953,20 +986,28 @@ end
 function [Tops,Kop,Fop,info] = solve_BVP_group(PDE,alphas,sources)
 % [Tops,Kop,Fop,info] = SOLVE_BVP_GROUP(PDE,alphas,sources) computes
 % the operators parameterizing the states that satisfy the BCs of one
-% group of coupled BCs (see decouple_BVPs): the BCs are split into 1D
-% problems along each direction (split_BVPs), these are solved by
-% compute_Tmap_1D, and the solutions are composed by compose_Tmaps.
+% group of coupled BCs: the BCs are split into 1D problems along each
+% direction, these are solved, and the solutions are composed.
 %
 % INPUT
 % - PDE:    initialized 'pde_struct' whose states all depend on the same
 %           variables. Only the BCs are used;
-% - alphas: the derivative orders to compute, as in compose_Tmaps;
+% - alphas: nal x N array of the derivative orders alpha for which to
+%           compute Tops, or 'all' for all alpha up to the orders of the
+%           states;
 % - sources: true if the inputs in the BCs represent states of lower
-%           dimension, see compose_Tmaps;
+%           dimension, so that the BCs along rank-deficient directions
+%           are passed through;
 %
 % OUTPUT
-% - Tops,Kop,Fop,info:   as returned by compose_Tmaps, for the
-%           states, BCs and inputs of PDE;
+% - Tops:   struct with fields x, w, u: cells, with x{k}{alpha+1} the map
+%           xf --> D^{alpha}x_k, and w{k}, u{k} the same for wf, uf;
+% - Kop:    the constraints Kop*xf=0 ([] if none);
+% - Fop:    the map from the states to the components of xf;
+% - info:   struct with fields vars, pass, fund, inputs and surplus,
+%           describing the directions passed through, the components of
+%           xf and wf, uf, and whether a direction has more BCs than the
+%           order of the states;
 N = size(PDE.vars,1);
 sizes = PDE.x_tab(:,2)';
 isvar = logical(PDE.x_tab(:,3:2+N));

@@ -3,31 +3,74 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 % Check if necessary inputs are defined to start the simulations
-% notE: All other variables will be checked in PIETOOLS converter
+% notE: No other variables are checked here.
+% A PDE is initialized and its state components reordered by increasing
+% differentiability; the initial conditions and the exact solution are
+% reordered with them.
 % Inputs:
-% varargin - variable number of arguments (between 1 and 4)
+% varargin - three arguments {structure, uinput, opts}
 % Required:
 % 1) varargin{1}: data structure of the proglem: PDE, DDE or PIE
 % PIE structure of the problem specifies PI operators, T,Tu,Tw, A, Bi, Ci, Dij as fields
-% Optional:
-% 2) varargin{2}: opts - options for simulation parameters. If empty or incomplete, will be
-% set to default values
-% 3) varargin{3}: uinput - user-defined boundary inputs, forcing and initial
+%    (a DDE is passed as its PIE: 'struct' of the operators, each a
+%    'struct' of its kernels with the field dim, and x_tab, w_tab, u_tab,
+%    dom)
+% 2) varargin{2}: uinput - user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values
+%    ('struct' with optional fields ic, exact, w, u, dom)
+% 3) varargin{3}: opts - options for simulation parameters. If empty or incomplete, will be
+% set to default values
+%    ('struct' with fields type ('PDE', 'PDE_t', 'PDE_b', 'DDE' or 'PIE'),
+%    N, ifexact, and the optional signal forms dist, control)
 % Outputs:
 % 1) structure - PDE, DDE or PIE - updated data structure with variables properly defined (if
 % previously undefined).
 % 2) uinput - updated user's input structure with variables properly defined (if
 % previously undefined).
+%    (also a, b, the 1D domain, or dom, the 2D domain; dist, control; and
+%    w, u, wspace, uspace, wsep, usep, w_order, u_order, the inputs split
+%    into temporal and spatial parts)
 % 3) opts: opts.ifexact will be updated to 'false' if exact solution is not
 % provided
+%    (N: scalar in 1D, 1x2 in 2D)
 % 3) psize - size of the problem. 
+%    ('struct': dim, the number of spatial variables; N, the Chebyshev
+%    order(s); n0, the number of ODE states; n, the numbers of PDE states
+%    by order of differentiability (1D: n(i) differentiable i-1 times;
+%    2D: n(i,j) on [a,b]x[c,d], i-1 times in x and j-1 in y); nx, ny
+%    (2D), likewise for the states of x or of y only; x_tab (PDE), one row
+%    per scalar state; nw, nu, the numbers of disturbances and control
+%    inputs, of which nw0, nwx, nwy, nw2 (nu0, nux, nuy, nu2) are
+%    finite-dimensional, functions of x, of y, of (x,y); nr0, nrx, nry,
+%    nr2 and no0, nox, noy, no2, likewise for the regulated and observed
+%    outputs)
 % All properly defined variables are uchanged.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESIM_input_check
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 6_1_2021
 % YP 6/16/2022 - Separated inputs check for batch and terms format
 % of PDE. Enhanced the input check for terms format. Terms format has n0w
@@ -51,6 +94,7 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 %   read ns, which only the PDE branch defines (Unrecognized function or
 %   variable 'ns', e.g. a 2-state DDE with the 3 initial conditions of
 %   PIETOOLS_DDE.m).
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 syms st sx sy;
 structure=varargin{1};
@@ -203,6 +247,7 @@ end
          opts.N=opts.N(1);
      end
 
+    % Inputs and outputs: functions of x, the rest finite-dimensional
     psize.nwx = sum(PDE.w_tab(:,3) == 1);
     psize.nwy = 0;
     psize.nw2 = 0;
@@ -227,6 +272,8 @@ end
         opts.N=opts.N';
     end
 
+    % Inputs and outputs: functions of x only, of y only, of (x,y); the
+    % rest finite-dimensional
     psize.nwx = sum(PDE.w_tab(:,3) == 1 & PDE.w_tab(:,2+PDE.dim) == 0);
     psize.nwy = sum(PDE.w_tab(:,3) == 0 & PDE.w_tab(:,2+PDE.dim) == 1);
     psize.nw2 = sum(PDE.w_tab(:,3) == 1 & PDE.w_tab(:,2+PDE.dim) == 1);
@@ -237,6 +284,7 @@ end
     psize.nu2 = sum(PDE.u_tab(:,3) == 1 & PDE.u_tab(:,2+PDE.dim) == 1);
     psize.nu0 = psize.nu-(psize.nux+psize.nuy+psize.nu2);
 
+    % Regulated and observed outputs
     psize.nrx = sum(PDE.z_tab(:,3) == 1 & PDE.z_tab(:,2+PDE.dim) == 0);
     psize.nry = sum(PDE.z_tab(:,3) == 0 & PDE.z_tab(:,2+PDE.dim) == 1);
     psize.nr2 = sum(PDE.z_tab(:,3) == 1 & PDE.z_tab(:,2+PDE.dim) == 1);
@@ -252,6 +300,7 @@ end
     
     psize.N = opts.N;
 
+    % Initial conditions: zero if not given
     if ~isfield(uinput,'ic')
         if n0>0
             disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
@@ -270,6 +319,8 @@ end
    
     else
 
+    % Given: symbolic in sx (and sy) only; extra entries dropped, missing
+    % ones zero; reordered with the states; ODE entries constant (else zero)
     ireorder=0;
 
   
@@ -298,6 +349,8 @@ end
         end
     end % ~isfield(uinput,'ic')
 
+    % Exact solution: one entry per state, reordered with the states; else
+    % opts.ifexact = false
     if (opts.ifexact)
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
@@ -324,8 +377,11 @@ end
         uinput.control=opts.control;
     end
 
+        % Check the inputs and split them into temporal and spatial parts
         uinput = PIESIM_disturbance_check(PDE,uinput,psize);
  
+    % Domain: a degenerate interval defaults to [-1,1]; uinput.a, uinput.b
+    % in 1D, uinput.dom (unless given) in 2D
     if (PDE.dim<2)
     if (PDE.dom(1)==PDE.dom(2))
         disp('Warning: left and right ends of the domain are the same. Defaulting domain to [-1, 1]');
@@ -359,7 +415,7 @@ elseif (opts.type=='DDE')
     psize.dim = 1;      % DDE is 1D
 %   psize.nu=size(PIE.Tu,2);                                                % MMP, 11/04/2026 (was)
 %   psize.nw=size(PIE.Tw,2);                                                % MMP, 11/04/2026 (was)
-    % Sizes from dim: an operator is a struct of kernels (pie2piesim)       % MMP, 11/04/2026
+    % Sizes from dim: an operator is a struct of its kernels                % MMP, 11/04/2026
     psize.nu=sum(PIE.Tu.dim(:,2));                                          % MMP, 11/04/2026
     psize.nw=sum(PIE.Tw.dim(:,2));                                          % MMP, 11/04/2026
     psize.n0=PIE.T.dim(1,1);
@@ -372,7 +428,7 @@ elseif (opts.type=='DDE')
     psize.no0 = size(PIE.C2.Q1,1); 
 %   psize.nrx = size(PIE.C1,1)-psize.nr0;                                   % MMP, 11/04/2026 (was)
 %   psize.nox = size(PIE.C2,1)-psize.no0;                                   % MMP, 11/04/2026 (was)
-    % Sizes from dim: an operator is a struct of kernels (pie2piesim)       % MMP, 11/04/2026
+    % Sizes from dim: an operator is a struct of its kernels                % MMP, 11/04/2026
     psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % MMP, 11/04/2026
     psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % MMP, 11/04/2026
 
@@ -398,6 +454,7 @@ elseif (opts.type=='DDE')
     psize.nw2 = 0;
     psize.nw0 = psize.nw-(psize.nwx+psize.nwy+psize.nw2);
 
+    % Control inputs likewise
     if ~isempty(PIE.u_tab)
     psize.nux = sum(PIE.u_tab(:,3) == 1);
     else
@@ -427,8 +484,11 @@ elseif (opts.type=='DDE')
         uinput.control=opts.control;
     end
 
+    % Check the inputs and split them into temporal and spatial parts
     uinput = PIESIM_disturbance_check(PIE,uinput,psize);
 
+    % Initial conditions: zero if not given; missing entries zero, extra
+    % entries dropped
     n0=psize.n0;
     if ~isfield(uinput,'ic')
         if (n0>0)
@@ -450,6 +510,7 @@ elseif (opts.type=='DDE')
          uinput.ic(n0+nx+1:length(uinput.ic))=[];  % keep n0+nx             % MMP, 11/04/2026
     end
 
+        % ODE initial conditions must be constants (else zero)
         if (n0>0)
             ic_ode=uinput.ic(1:n0);
             if isa(ic_ode, 'sym')
@@ -461,6 +522,7 @@ elseif (opts.type=='DDE')
         end
 
 
+     % Exact solution: one entry per state, else opts.ifexact = false
      if (opts.ifexact)
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
@@ -513,7 +575,7 @@ elseif (opts.type=='PIE')
     psize.no0 = size(PIE.C2.Q1,1); 
 %   psize.nrx = size(PIE.C1,1)-psize.nr0;                                   % MMP, 11/04/2026 (was)
 %   psize.nox = size(PIE.C2,1)-psize.no0;                                   % MMP, 11/04/2026 (was)
-    % Sizes from dim: an operator is a struct of kernels (pie2piesim)       % MMP, 11/04/2026
+    % Sizes from dim: an operator is a struct of its kernels                % MMP, 11/04/2026
     psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % MMP, 11/04/2026
     psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % MMP, 11/04/2026
 
@@ -532,6 +594,7 @@ elseif (opts.type=='PIE')
          opts.N=opts.N(1);
      end
     
+    % Disturbances: functions of s, the rest finite-dimensional
     if ~isempty(PIE.w_tab)     
     psize.nwx = sum(PIE.w_tab(:,3) == 1);
     else
@@ -541,6 +604,7 @@ elseif (opts.type=='PIE')
     psize.nw2 = 0;
     psize.nw0 = psize.nw-(psize.nwx+psize.nwy+psize.nw2);
 
+    % Control inputs likewise
     if ~isempty(PIE.w_tab)   
     psize.nux = sum(PIE.u_tab(:,3) == 1);
     else
@@ -552,6 +616,8 @@ elseif (opts.type=='PIE')
     % % 
      else % psize.dim 
 
+    % 2D: functions of x only, of y only, of (x,y); the rest
+    % finite-dimensional
     psize.nwx = sum(PIE.w_tab(:,3) == 1 & PIE.w_tab(:,2+psize.dim) == 0);
     psize.nwy = sum(PIE.w_tab(:,3) == 0 & PIE.w_tab(:,2+psize.dim) == 1);
     psize.nw2 = sum(PIE.w_tab(:,3) == 1 & PIE.w_tab(:,2+psize.dim) == 1);
@@ -566,6 +632,8 @@ elseif (opts.type=='PIE')
 
     %------------------------
 
+    % Domain [a,b]: PIE.dom if present, else uinput.a, uinput.b, default
+    % [0,1]
     if isfield(PIE,'dom')
         uinput.a=PIE.dom(1);
         uinput.b=PIE.dom(2);
@@ -588,10 +656,13 @@ elseif (opts.type=='PIE')
         uinput.control=opts.control;
      end  
 
+    % Check the inputs and split them into temporal and spatial parts
     uinput = PIESIM_disturbance_check(PIE,uinput,psize);
 
     n0=psize.n0;
     
+    % Initial conditions: zero if not given; missing entries zero, extra
+    % entries dropped
     if ~isfield(uinput,'ic')
         if (n0>0)
         disp('Initial conditions on ODE states are not defined. Defaulting to zero');
@@ -611,6 +682,7 @@ elseif (opts.type=='PIE')
          uinput.ic(n0+nx+1:length(uinput.ic))=[];
     end
 
+     % ODE initial conditions must be constants (else zero)
      if (n0>0)
             ic_ode=uinput.ic(1:n0);
             if isa(ic_ode, 'sym')
@@ -622,6 +694,7 @@ elseif (opts.type=='PIE')
         end
 
 
+ % Exact solution: one entry per state, else opts.ifexact = false
  if (opts.ifexact)
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
@@ -643,6 +716,12 @@ function [structure, uinput, opts, psize] = PIESIM_input_check_PDE_batch(varargi
 %  Input check for PDEs in batch format - 1D cases only 
 %  (infinite-dimensional inputs and outputs not supported)
 % -----------------------------------------------------------
+% INPUT: varargin = {PDE, uinput, opts}: the PDE 'struct' in batch format
+%   (fields n0, n1, n2, no, nw, nu, nb, nz, ny, missing ones 0; dom,
+%   default [-1,1]; optional Bw, B21_nonpol), uinput, opts.
+% OUTPUT: structure, the PDE with the defaults; uinput with a, b, ic, w,
+%   u (cells) and Bpw_nonpol; opts (N scalar, ifexact); psize with fields
+%   n = [n0 n1 n2], nu, nw, n0, nr0, no0, N, dim = 1.
 
 syms st sx;
 structure=varargin{1};
@@ -652,11 +731,13 @@ opts=varargin{3};
 PDE=structure;
 % Checking of the PDE inputs begins
 
+% Scalar Chebyshev order
 if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
 
+% Numbers of PDE states differentiable 0, 1, 2 times (default 0)
 if ~isfield(PDE,'n0')
     disp('Warning: number of PDE states with differentiability of zero were not defined. Defaulting to zero');
     PDE.n0=0;
@@ -673,6 +754,7 @@ end
 psize.n=[PDE.n0 PDE.n1 PDE.n2];
 ns = PDE.n0+PDE.n1+PDE.n2;
 
+% Numbers of ODE states and inputs (default 0)
 if ~isfield(PDE,'no')
     disp('Warning: number of ODE states is not defined. Defaulting to zero');
     PDE.no=0;
@@ -689,6 +771,7 @@ if ~isfield(PDE,'nb')
     disp('Warning: nb number is not defined. Defaulting to zero');
     PDE.nb=0;
 end
+% Numbers of regulated and observed outputs (default 0)
 if ~isfield(PDE,'nz')
     disp('Warning: number of regulated outputs is not defined. Defaulting to zero');
     PDE.nz=0;
@@ -715,6 +798,7 @@ elseif ~isempty(symvar(sym(uinput.ic))) && any(~ismember(symvar(uinput.ic),{'sx'
     error('Initial conditions for PDE must be symbolic expressions in sx');
 end
 
+% Missing entries zero, extra entries dropped
 if(length(uinput.ic)<n0+ns)
     disp('Warning: Number of initial conditions is less than the number of states');
     disp('Defalting the rest to zero');
@@ -727,6 +811,7 @@ if(length(uinput.ic)>n0+ns)
     uinput.ic(n0+ns+1:length(uinput.ic))=[];
 end
 
+       % ODE initial conditions must be constants (else zero)
        if (n0>0)
             ic_ode=uinput.ic(1:n0);
             if isa(ic_ode, 'sym')
@@ -754,6 +839,7 @@ if (PDE.nu>0)
                 end
          end
         
+        % Missing inputs zero; more inputs than nu sets nu = 0
         if (size(uinput.u,2)<PDE.nu)
             disp('Warning: Number of provided u inputs is less than nu');
             disp('Defalting the rest of u inputs to zero');
@@ -785,6 +871,7 @@ if (PDE.nw>0)
                 end
             end
         
+        % Missing disturbances zero; more than nw sets nw = 0
         if (size(uinput.w,2)<PDE.nw)
             disp('Warning: Number of provided w inputs is less than nw');
             disp('Defalting the rest of w inputs to zero');
@@ -797,6 +884,8 @@ if (PDE.nw>0)
         end
     end
 
+    % Missing columns of Bw zero; non-polynomial forcing to
+    % uinput.Bpw_nonpol
     if isfield(PDE,'Bw')
         nc_Bw=size(PDE.Bw,2);
         if (nc_Bw<PDE.nw)
@@ -813,6 +902,7 @@ if (PDE.nw>0)
 
 end
 
+% Domain: [-1,1] if not given or degenerate
 if ~isfield(PDE,'dom')
     disp('PDE domain is not defined. Defaulting to [-1, 1]');
     PDE.dom=[-1 1];
@@ -839,6 +929,7 @@ psize.N=opts.N; % order of disceretization in space
 psize.dim=1;
 
 
+ % Exact solution: one entry per state, else opts.ifexact = false
  if (opts.ifexact)
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
@@ -858,6 +949,12 @@ function [structure, uinput, opts, psize] = PIESIM_input_check_PDE_terms_legacy(
 %  Input check for PDEs in legacy terms format - only for 1D cases
 %  (infinite-dimensional inputs and outputs not supported)
 % -----------------------------------------------------------
+% INPUT: varargin = {PDE, uinput, opts}: the PDE 'struct' in legacy terms
+%   format (field n with nu, nw, nx, nz, ny, missing ones 0, and n_pde;
+%   PDE, with the optional Bpw_nonpol; dom, default [-1,1]), uinput, opts.
+% OUTPUT: structure, the PDE with the defaults; uinput with a, b, ic, w,
+%   u (cells) and Bpw_nonpol; opts (N scalar, ifexact); psize with fields
+%   nu, nw, n0, nr0, no0, N, n = n_pde, dim = 1.
 
 syms st sx;
 structure=varargin{1};
@@ -874,6 +971,7 @@ if length(opts.N)>1
          opts.N=opts.N(1);
 end
 
+% Numbers of inputs and ODE states (default 0)
 if ~isfield(psize.n,'nu')
     disp('Warning: number of control inputs is not defined. Defaulting to zero');
     psize.n.nu=0;
@@ -889,6 +987,7 @@ if ~isfield(psize.n,'nx')
     psize.n.nx=0;
 end
 
+% Numbers of regulated and observed outputs (default 0)
 if ~isfield(psize.n,'nz')
     disp('Warning: number of regulated outputs is not defined. Defaulting to zero');
     psize.n.nz=0;
@@ -899,6 +998,7 @@ if ~isfield(psize.n,'ny')
     psize.n.ny=0;
 end
 
+% Non-polynomial forcing
 if isfield(psize.PDE,'Bpw_nonpol')
     uinput.Bpw_nonpol=psize.PDE.Bpw_nonpol;
 end
@@ -948,6 +1048,7 @@ if (psize.n.nu>0)
     end % psize.n.nu>0
 
 
+% Domain: [-1,1] if not given or degenerate
 if ~isfield(psize,'dom')
     disp('PDE domain is not defined. Defaulting to [-1, 1]');
     psize.dom=[-1 1];
@@ -961,6 +1062,7 @@ end
 uinput.a=psize.dom(1);
 uinput.b=psize.dom(2);
 
+% psize from the numbers in structure.n
 structure=psize;
 clear psize;
 
@@ -975,6 +1077,7 @@ psize.dim=1;
 
 ns = sum(psize.n);
 
+ % Exact solution: one entry per state, else opts.ifexact = false
  if (opts.ifexact)
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
@@ -1003,6 +1106,7 @@ elseif ~isempty(symvar(sym(uinput.ic))) && any(~ismember(symvar(uinput.ic),{'sx'
     error('Initial conditions for PDE must be symbolic expressions in sx');
 end
 
+% Missing entries zero, extra entries dropped
 if(length(uinput.ic)<n0+ns)
     disp('Warning: Number of initial conditions is less than the number of states');
     disp('Defalting the rest to zero');
@@ -1015,6 +1119,7 @@ if(length(uinput.ic)>n0+ns)
     uinput.ic(n0+ns+1:length(uinput.ic))=[];
 end
 
+        % ODE initial conditions must be constants (else zero)
         if (n0>0)
             ic_ode=uinput.ic(1:n0);
             if isa(ic_ode, 'sym')
