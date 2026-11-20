@@ -37,8 +37,8 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %           requested alpha (and alpha=0), and [] for the others;
 % - Kops:   struct with fields x, w, u, the constraints
 %           Kops.x*xf + Kops.w*wf + Kops.u*uf = 0, with a row for each
-%           constraint (none if there are none). The inputs do not enter
-%           the constraints, so Kops.w and Kops.u are zero;
+%           constraint (none if there are none). Kops.w and Kops.u are
+%           zero unless an algebraic constraint involves inputs;
 % - Dmap:   struct with fields x, w, u, defining each component c of xf,
 %           wf, uf as PIE.pde2pie does: the PDE state or input idx(c),
 %           differentiated (orders diff(c,:)), evaluated at the lower
@@ -77,6 +77,8 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %           - surplus:  true if there are more BCs than the orders of the
 %                       states require (see NOTES), so that the PDE may
 %                       be overdetermined;
+%           - K_inputs: true if inputs enter the constraints (Kops.w or
+%                       Kops.u nonzero);
 %
 % NOTES
 % - The BCs are split into groups sharing no state, and into 1D problems
@@ -92,6 +94,12 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %   auxiliary value without variables (as for periodic BCs) eliminates
 %   it from xf; the others give constraints Kops.x*xf=0. Such BCs cannot
 %   involve inputs, nor states with inputs in their BCs.
+% - Conditions that are not a BC along any single direction are algebraic
+%   constraints, imposed in the same way, and not used to compute Tops:
+%   static constraints 0=E(s) (PDE.constraint_ID), conditions varying on
+%   the whole domain (e.g. 0=x2(s)-x1(1)), and conditions on ODE states
+%   only (e.g. 0=x2-2*x1). Inputs in them give rows of Kops.w, Kops.u
+%   (not for 'tensopmat' operators), and are fundamental inputs.
 % - States of lower dimension (e.g. ODE states, or boundary values of
 %   states on other variables, as in x4(a)=x3(d)) in the BCs of other
 %   states act as inputs of these BCs: they are lifted to inputs, and
@@ -171,6 +179,9 @@ PDE = pde_struct(PDE);
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
+% Static constraints 0=E(s) are listed with the BCs, as algebraic
+% constraints
+PDE = static_constraints(PDE,'list');
 nx = numel(PDE.x);
 if nx==0
     error("The PDE does not involve any states.")
@@ -216,10 +227,16 @@ end
 
 % % % Set aside the BCs that fix several variables at once in each term of
 % % % a state with variables (by evaluating at a boundary, or integrating
-% % % over the full domain), to impose them on the solution of the others
+% % % over the full domain), to impose them on the solution of the others.
+% % % Likewise the algebraic constraints (is_alg), which are not a BC
+% % % along any variable s_i: no term fixes s_i alone with the condition
+% % % constant in s_i.
 multi = false(numel(PDE.BC),1);
+is_alg = false(numel(PDE.BC),1);
 for k=1:numel(PDE.BC)
     nfix = zeros(1,0);
+    % fixed1: the variables fixed by a term that fixes no other variable
+    fixed1 = false(1,N);
     for j=1:numel(PDE.BC{k}.term)
         tm = PDE.BC{k}.term{j};
         if ~isfield(tm,'x') || ~any(isvar(tm.x,:))
@@ -235,12 +252,27 @@ for k=1:numel(PDE.BC)
             is_fixed(m) = isdouble(loc(m)) || (numel(I_m)==2 && isdouble(I_m) && isequal(sort(double(I_m(:)))',PDE.dom(vidx(m),:)));
         end
         nfix(end+1) = nnz(is_fixed);                                        %#ok<AGROW>
+        if nnz(is_fixed)==1
+            fixed1(vidx(is_fixed)) = true;
+        end
     end
     multi(k) = ~isempty(nfix) && all(nfix>1);
+    % Algebraic: involves a state, and is not a BC along any s_i in fixed1
+    % (the condition must be constant in s_i, BC_tab)
+    has_x = any(cellfun(@(tm) isfield(tm,'x'),PDE.BC{k}.term));
+    is_alg(k) = has_x && ~multi(k) && ~any(fixed1 & ~PDE.BC_tab(k,3:2+N));
+    multi(k) = multi(k) || is_alg(k);
 end
-msg_multi = "Boundary conditions that fix several variables at once are not supported for states with inputs in their boundary conditions.";
-if any(cellfun(@(b) any(cellfun(@(tm) any(isfield(tm,{'w','u'})),b.term)),PDE.BC(multi)))
+msg_multi = "Conditions that are not a boundary condition along a single direction (fixing several variables at once, or algebraic constraints) cannot involve inputs, nor states whose boundary conditions have inputs.";
+% Input terms are allowed in algebraic constraints, not in BCs fixing
+% several variables; their inputs are made fundamental inputs
+has_in_term = cellfun(@(b) any(cellfun(@(tm) any(isfield(tm,{'w','u'})),b.term)),PDE.BC);
+if any(has_in_term(:) & multi(:) & ~is_alg(:))
     error('convert_PIETOOLS_BVP:multiInput',msg_multi)
+end
+if any(has_in_term(:) & is_alg(:)) && ~is_an_opt('all_inputs')
+    opts{end+1} = 'all_inputs';
+    is_an_opt = @(o) any(strcmp(opts,o));      % redefined for the new opts
 end
 PDE_full = PDE;
 PDE.BC(multi) = [];     PDE.BC_tab(multi,:) = [];
@@ -503,22 +535,47 @@ end
 % % % states with variables (as for periodic BCs) where possible, giving
 % % % xf_c=Q_c*xf for these (pinned) components c, which are eliminated by
 % % % xf=P*xf_free. The other rows (nonzero) are constraints, added to K.
+% alg_in: the rows of K of algebraic constraints with inputs, whose input
+% parts are added to Kops.w, Kops.u once all inputs are fundamental
+alg_in = [];
 if any(multi)
     fund = info.fund;       ncol = numel(fund);
     idx_m = find(multi);    nm = numel(idx_m);
     Tops_m = struct('x',{Rops.x},'w',{Rops.w},'u',{Rops.u});
     R = cell(nm,ncol);      vars_m = cell(nm,1);        sz_m = zeros(nm,1);
     % R{r,c}: BC r, fixing several variables, as an operator on xf_c (sum
-    % of its terms); error if it has inputs
+    % of its terms). Input parts (algebraic constraints only): Rin.w{r,c} on
+    % the fundamental inputs of the BCs, through the maps of the states
+    % (nonzero blocks only, as input blocks exist for every state once a BC
+    % has inputs), and the input terms in_terms{r}, added once all inputs
+    % are fundamental
+    nz_in = @(P) ~isempty(P) && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),P.B(:)));
+    has_in = false(nm,1);       in_terms = repmat({zeros(1,0)},nm,1);
+    Rin = struct('w',{cell(nm,numel(info.inputs.w))},'u',{cell(nm,numel(info.inputs.u))});
     for r=1:nm
         BC = PDE_full.BC{idx_m(r)};
         vars_m{r} = vars_pde(logical(PDE_full.BC_tab(idx_m(r),3:2+N)));
         sz_m(r) = BC.size;
         for j=1:numel(BC.term)
+            if any(isfield(BC.term{j},{'w','u'}))
+                in_terms{r}(end+1) = j;     has_in(r) = true;
+                continue
+            end
             Pblk = convert_PDE_term(BC.term{j},Tops_m,PDE_full,struct('nonlinear',false,'outvars',{vars_m{r}}));
-            if ~isempty(Pblk.w) || ~isempty(Pblk.u)
-                error('convert_PIETOOLS_BVP:multiInput',msg_multi)
-            elseif isempty(Pblk.x)
+            if nz_in(Pblk.w) || nz_in(Pblk.u)
+                if ~is_alg(idx_m(r))
+                    error('convert_PIETOOLS_BVP:multiInput',msg_multi)
+                end
+                has_in(r) = true;
+                for ty={'w','u'}
+                    if isempty(Pblk.(ty{1})), continue; end
+                    for c=find(~cellfun(@isempty,Pblk.(ty{1}).B))
+                        if isempty(Rin.(ty{1}){r,c}), Rin.(ty{1}){r,c} = Pblk.(ty{1}).B{c};
+                        else, Rin.(ty{1}){r,c} = Rin.(ty{1}){r,c}+Pblk.(ty{1}).B{c}; end
+                    end
+                end
+            end
+            if isempty(Pblk.x)
                 continue
             end
             % Add the blocks of the term
@@ -536,7 +593,9 @@ if any(multi)
             R{r,c} = zero_op(sz_m(r),fund(c),vars_m{r},dom_r);
         end
     end
-    is_sc = cellfun(@isempty,vars_m);
+    % Rows with inputs are not combined with others (pinning), so that each
+    % keeps its input part
+    is_sc = cellfun(@isempty,vars_m) & ~has_in;
     % S{c}: the scalar BCs stacked, acting on xf_c; on the candidates for
     % pinning (cand) these are matrices, the columns of A. Row reduction
     % W*A=rref(A) gives a pivot row for each pinned entry, which has the
@@ -589,12 +648,18 @@ if any(multi)
     % BCs with variables; zero rows (BCs implied by the others) are dropped
     E = eye(m_sc);      E = E(numel(jb)+1:end,:);
     K_rows = R(~is_sc,:);
+    rows_cond = find(~is_sc);       % condition r of each row (0: the scalar block)
     if ~isempty(E)
         K_rows = [cellfun(@(X) E*X,WS,'UniformOutput',false);K_rows];
+        rows_cond = [0;rows_cond];
     end
     coefs = cellfun(@(X) max([0;cellfun(@(p) max([0;abs(full(p(:)))]),X.params(:))]),K_rows);
     tol_K = 1e-10*max([1;coefs(:)]);
     is_zero = all(coefs<=tol_K,2);
+    % A row with inputs is kept, also if zero on xf (e.g. 0=w-u)
+    row_in = false(size(rows_cond));
+    row_in(rows_cond>0) = has_in(rows_cond(rows_cond>0));
+    is_zero = is_zero & ~row_in;
     if ~isempty(E) && ~is_zero(1)
         % Zero rows of the scalar block, by entry: the params of an operator
         % without output variables have a row for each entry
@@ -608,7 +673,10 @@ if any(multi)
         K_rows(1,:) = cellfun(@(X) E*X,K_rows(1,:),'UniformOutput',false);
     end
     K_rows = K_rows(~is_zero,:);
-    info.surplus = info.surplus || ~isempty(pinned) || ~isempty(K_rows);
+    rows_cond = rows_cond(~is_zero);    row_in = row_in(~is_zero);
+    % Surplus BCs: those fixing several variables that pin or add rows, not
+    % algebraic constraints
+    info.surplus = info.surplus || ~isempty(pinned) || (~isempty(K_rows) && any(~is_alg(idx_m)));
 
     % Eliminate the pinned components, xf=P*xf_free, from the maps to the
     % states, the constraints, and the map F from the states to xf
@@ -639,6 +707,14 @@ if any(multi)
         K_new = copvar(K_rows);
         if ~isempty(pinned)
             K_new = K_new*P;
+        end
+        % The rows of Kops.K with inputs (pos), their conditions, and input
+        % parts, for Kops.w, Kops.u below
+        if any(row_in)
+            nK0 = 0;
+            if ~isempty(Kops.K), nK0 = size(Kops.K.C,1); end
+            alg_in = struct('pos',nK0+find(row_in),'cond',rows_cond(row_in),'Rin',Rin,...
+                            'terms',{in_terms},'vars',{vars_m},'idx',idx_m);
         end
         if isempty(Kops.K)
             Kops.K = K_new;
@@ -896,8 +972,8 @@ end
 % Whether the inputs enter the states, or Tops.w, Tops.u are zero (below)
 info.input_maps = struct('w',~isempty(Tops.w),'u',~isempty(Tops.u));
 % % % The constraints Kx*xf + Kw*wf + Ku*uf = 0, with a row for each
-% % % constraint (none if there are none); the inputs do not enter the
-% % % constraints (yet), so Kw and Ku are zero. Tops.w and Tops.u are zero
+% % % constraint (none if there are none); Kw, Ku are zero outside the
+% % % rows of algebraic constraints with inputs. Tops.w and Tops.u are zero
 % % % if there are no such inputs in the BCs. zero_map(P,sp) is the zero
 % % % operator with the rows of P and the columns of the space sp
 Kx = Kops.K;
@@ -921,9 +997,41 @@ if isempty(Kx)
     Kops.x = zero_map(Kx,space.x);
 end
 % Kw, Ku zero; Tops.w, Tops.u zero where no input enters the states
+info.K_inputs = ~isempty(alg_in);
+if info.K_inputs && use_nonlin
+    error('convert_PIETOOLS_BVP:nonlinearConstraintInputs',"Algebraic constraints involving inputs are not supported for a nonlinear PDE.")
+end
 for ty={'w','u'}
     sp = space.(ty{1});
     Kops.(ty{1}) = zero_map(Kx,sp);
+    % The rows alg_in.pos of the algebraic constraints with inputs: the
+    % input parts of their state terms (the first columns, the fundamental
+    % inputs of the BCs), and their input terms, through info.Iw (Iu)
+    if info.K_inputs && ~isempty(sp.dims)
+        Kb = Kops.(ty{1}).C;
+        Iin = struct('Iw',{{}},'Iu',{{}});
+        for fn={'Iw','Iu'}
+            if isfield(info,fn{1}), Iin.(fn{1}) = info.(fn{1}); end
+        end
+        Tops_in = struct('x',[],'w',[],'u',[],'Iw',{Iin.Iw},'Iu',{Iin.Iu});
+        for q=1:numel(alg_in.pos)
+            r = alg_in.cond(q);     row = cell(1,numel(sp.dims));
+            row(1:size(alg_in.Rin.(ty{1}),2)) = alg_in.Rin.(ty{1})(r,:);
+            BC = PDE_full.BC{alg_in.idx(r)};
+            for j=alg_in.terms{r}
+                if ~isfield(BC.term{j},ty{1}), continue; end
+                Pblk = convert_PDE_term(BC.term{j},Tops_in,PDE_full,struct('nonlinear',false,'outvars',{alg_in.vars{r}}));
+                for c=find(~cellfun(@isempty,Pblk.(ty{1}).B))
+                    if isempty(row{c}), row{c} = Pblk.(ty{1}).B{c};
+                    else, row{c} = row{c}+Pblk.(ty{1}).B{c}; end
+                end
+            end
+            for c=find(~cellfun(@isempty,row))
+                Kb{alg_in.pos(q),c} = row{c};
+            end
+        end
+        Kops.(ty{1}) = copvar(Kb);
+    end
     if ~isempty(Tops.(ty{1}))
         continue
     end

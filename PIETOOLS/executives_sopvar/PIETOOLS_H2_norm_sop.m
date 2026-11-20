@@ -26,6 +26,7 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % boundary conditions): in 'o' and 'oco' the block of the negativity
 % condition on the state carries + K'*Z + Z'*K, with Z a free operator,
 % which vanishes on ker K; 'c' and 'cco' are posed as 'o' and 'oco'.
+% Constraints involving the input w (Kw nonzero) are not supported.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
@@ -125,6 +126,10 @@ end
 % The constraint K x = 0 on the state, if any (empty for most PIEs). 'c'
 % and 'cco' have no term for it: posed as 'o' and 'oco'
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+% A constraint involving the input (Kw nonzero) is not supported; u is zero
+if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
+    error('PIETOOLS_H2_norm_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
+end
 if hasK && strcmp(form,'c'),    form = 'o';     end
 if hasK && strcmp(form,'cco'),  form = 'oco';   end
 qform = any(strcmp(form,{'c','o'}));

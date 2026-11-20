@@ -23,6 +23,7 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % satisfies K x = 0 (e.g. periodic boundary conditions), and the block of
 % the negativity condition on the state carries + K'*Z_K + Z_K'*K, with
 % Z_K a free operator, which vanishes on ker K.
+% Constraints involving the input w (Kw nonzero) are not supported.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in one spatial variable,
@@ -116,6 +117,10 @@ eppos = tl.eppos;
 Tm = PIE.T;     Am = PIE.A;
 % The constraint K x = 0 on the state, if any (empty for most PIEs)
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+% A constraint involving the input (Kw nonzero) is not supported; u is zero
+if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
+    error('PIETOOLS_H2_estimator_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
+end
 Bw = PIE.B1;    Cz = PIE.C1;
 C2m = PIE.C2;   D21m = PIE.D21;
 Iz = tl.ident(PIE.C1,1);

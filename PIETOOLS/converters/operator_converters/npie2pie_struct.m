@@ -159,8 +159,11 @@ for obj = obj_types
     if isfield(p2p,'C') && isa(p2p.C,'tensopmat') && size(p2p.C,1)>0
         PIE_out.pde2pie.(obj{1}).C = tensopmat2copvar(p2p.C);
     end
-    if isa(PIE_in.pie2pde.(obj{1}),'tensopmat') && size(PIE_in.pie2pde.(obj{1}),1)>0
-        PIE_out.pie2pde.(obj{1}) = tensopmat2copvar(PIE_in.pie2pde.(obj{1}));
+end
+% The maps from PIE to PDE, each field of pie2pde
+for fname = {'X','T','Tw','Tu','W','U','Y','Z'}
+    if isa(PIE_in.pie2pde.(fname{1}),'tensopmat') && size(PIE_in.pie2pde.(fname{1}),1)>0
+        PIE_out.pie2pde.(fname{1}) = tensopmat2copvar(PIE_in.pie2pde.(fname{1}));
     end
 end
 PIE_out.misc = PIE_in.misc;

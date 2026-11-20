@@ -96,11 +96,11 @@ classdef npie_struct
 %               PDE components as in PDE.x{i}.ID, so that row i of ID,
 %               dims, and depmat describes the same component;
 % - PIE.pie2pde:
-%               struct with fields x, y, z, u, w, with tensopmat objects
-%               representing X_pde, Y_pde, Z_pde, U_pde and W_pde, with a
-%               column for each PIE component and a row for each PDE
-%               component. For the state, the columns correspond to the
-%               components of T*x+Tw*w+Tu*u. Y_pde and Z_pde are
+%               struct with fields X, T, Tw, Tu, W, U, Y, Z, with tensopmat
+%               objects representing X_pde, T_pde, ..., Z_pde as for a
+%               pie_struct: x_pde = T_pde*x+Tw_pde*w+Tu_pde*u, and, with the
+%               columns of X the rows of T, x_pde = X_pde*(T*x+Tw*w+Tu*u)
+%               and d/dt x_pde = X_pde*(f(x)+Bw*w+Bu*u). Y_pde and Z_pde are
 %               permutation matrices, accounting for a reordering of the
 %               outputs, and U_pde and W_pde are often identity or
 %               permutation matrices;
@@ -137,7 +137,7 @@ classdef npie_struct
 %       pde2pie.x:  idx=[1,0,0],  diff=2,  tdiff=0,  loc=0,  delay=0,  C=1,
 % i.e. v is PDE state 1, differentiated twice in s, evaluated in the
 % interior, and left unchanged by C. Conversely, T is the integral operator
-% with kernel -min(s,theta), and pie2pde.x = X_pde = 1, so that
+% with kernel -min(s,theta), and pie2pde.X = X_pde = 1, so that
 %    u(t,s) = X_pde*(T*v)(t,s) = -int_0^1 min(s,theta) v(t,theta) dtheta.
 % A component d/dt u would instead have tdiff=1, and the boundary value
 % u(t,1) would have diff=0 and loc=1.
@@ -145,8 +145,8 @@ classdef npie_struct
 % The PDE state, as a `polyopvar` object in terms of the PIE state, is
 % available as
 %
-% - PIE.x_pde:  (dependent) 'polyopvar' representing x_pde = X_pde*T*x,
-%               computed as PIE.pie2pde.x*PIE.T*PIE.x. Assumes that Tw and
+% - PIE.x_pde:  (dependent) 'polyopvar' representing x_pde = T_pde*x,
+%               computed as PIE.pie2pde.T*PIE.x. Assumes that Tw and
 %               Tu are empty, so that x_pde does not depend on w and u;
 % - PIE.f_pde:  (dependent) 'polyopvar' representing f_pde = X_pde*f(x),
 %               the dynamics d/dt x_pde = f_pde(x) of the PDE state in
@@ -354,19 +354,18 @@ end
 
 % The PDE state in terms of the PIE state (polyopvar)
 function val = get.x_pde(obj)
-    % VAL = GET.X_PDE(OBJ) returns the PDE state x_pde = X_pde*T*x as a
-    % polyopvar in the PIE state, with X_pde = pie2pde.x, see the header.
-    % Tw and Tu are ignored (assumed empty), as 
-    %   x_pde = X_pde*(T*x+Tw*w+Tu*u).
+    % VAL = GET.X_PDE(OBJ) returns the PDE state x_pde = T_pde*x as a
+    % polyopvar in the PIE state, with T_pde = pie2pde.T, see the header.
+    % Tw and Tu are ignored (assumed empty), as
+    %   x_pde = T_pde*x+Tw_pde*w+Tu_pde*u.
     % This may differ from just T*x in the case of e.g. PDEs with
-    % higher-order temporal derivatives or delays, in which case X_pde may
-    % not be an identity operator.
+    % higher-order temporal derivatives or delays.
     %
     % INPUT
     % - obj:    1x1 'npie_struct';
     %
     % OUTPUT
-    % - val:    'polyopvar' with a component for each row of pie2pde.x, in
+    % - val:    'polyopvar' with a component for each row of pie2pde.T, in
     %           the variables of PIE.x; empty polyopvar if the PIE has no
     %           PDE state components;
     if isempty(obj.space.x.dims) || isempty(obj.space_pde.x.dims)
@@ -374,14 +373,14 @@ function val = get.x_pde(obj)
         val = polyopvar();
         return
     end
-    val = obj.pie2pde.x*obj.T*obj.x;
+    val = obj.pie2pde.T*obj.x;
 end
 
 % The dynamics for just the PDE state (polyopvar)
 function val = get.f_pde(obj)
     % VAL = GET.F_PDE(OBJ) returns the polynomial f_pde = X_pde*f(x) as a
-    % polyopvar in the PIE state, with X_pde = pie2pde.x, see the header.
-    % Tw and Tu are ignored (assumed empty), as 
+    % polyopvar in the PIE state, with X_pde = pie2pde.X, see the header.
+    % Tw and Tu are ignored (assumed empty), as
     %   f_pde(x) = X_pde*(f(x)+Bw*w+Bu*u).
     % This gives the dynamics of the PDE state, expressed in terms of the
     % PIE state
@@ -391,7 +390,7 @@ function val = get.f_pde(obj)
     % - obj:    1x1 'npie_struct';
     %
     % OUTPUT
-    % - val:    'polyopvar' with a component for each row of pie2pde.x, in
+    % - val:    'polyopvar' with a component for each row of pie2pde.X, in
     %           the variables of PIE.x; empty polyopvar if the PIE has no
     %           PDE state components;
     if isempty(obj.space.x.dims) || isempty(obj.space_pde.x.dims)
@@ -399,7 +398,7 @@ function val = get.f_pde(obj)
         val = polyopvar();
         return
     end
-    val = obj.pie2pde.x*obj.f;
+    val = obj.pie2pde.X*obj.f;
 end
 
 function val = get.D11(obj),        val = obj.Dzw;          end
@@ -498,11 +497,11 @@ end
 function m = empty_pie2pde()
 % M = EMPTY_PIE2PDE() returns the struct describing the map from PIE to PDE
 % states, inputs and outputs, without any components, with an empty
-% tensopmat object for each of the fields x, y, z, u, w (see the header of
-% npie_struct).                                                           
+% tensopmat object for each of the fields X, T, Tw, Tu, W, U, Y, Z (see
+% the header of npie_struct).
 % INPUT: none. OUTPUT: m, 'struct' with an empty 'tensopmat' per field.
-m = struct('x',tensopmat(),'y',tensopmat(),'z',tensopmat(),...
-           'u',tensopmat(),'w',tensopmat());
+m = struct('X',tensopmat(),'T',tensopmat(),'Tw',tensopmat(),'Tu',tensopmat(),...
+           'W',tensopmat(),'U',tensopmat(),'Y',tensopmat(),'Z',tensopmat());
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 

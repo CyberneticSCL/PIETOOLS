@@ -26,7 +26,8 @@ function PIE = convert(PDE,out_type)
 %   operators T, Tw, Tu and K, Kw, Ku specified, for which
 %       x_pde = T*xf + Tw*wf + Tu*uf,       K*xf + Kw*wf + Ku*uf = 0,
 %   for the fundamental state xf and inputs wf, uf. A PDE without dynamics
-%   cannot have static constraints 0=F(s) on the whole domain, nor delays.
+%   cannot have delays. Its static constraints 0=F(s) on the whole domain,
+%   and other algebraic constraints, are rows of K.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,6 +70,8 @@ function PIE = convert(PDE,out_type)
 %                   convert_PIETOOLS_PDE, and for delays in a PDE without
 %                   dynamics; shorter error messages;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Allow static constraints in a BVP (rows of K); set
+%                   pie2pde.X, T, Tw, Tu; print a heading and summary;
 
 % We support only PDE to PIE conversion. The second argument is 'pie', or
 % flags of the converter, with the 'pie' left out.
@@ -94,7 +97,7 @@ is_BVP = ~isempty(PDE.x) && ~PDE.is_nonlinear && ~ismember('nonlinear',flag) &&.
 % Call the appropriate converter.
 if is_BVP
     % Convert BVP to PIE
-    PIE = BVP2pie_struct(PDE);
+    PIE = BVP2pie_struct(PDE,ismember('silent',flag));
 else
     % Convert PDE to PIE
     PIE = convert_PIETOOLS_PDE(PDE,flag);
@@ -110,15 +113,18 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function PIE = BVP2pie_struct(PDE)
-% PIE = BVP2PIE_STRUCT(PDE) converts a PDE without dynamics, i.e. a
-% boundary value problem, to a 'pie_struct' object with only the operators
-% T, Tw, Tu and K, Kw, Ku specified, solving the BVP for the PDE state.
+function PIE = BVP2pie_struct(PDE,suppress_summary)
+% PIE = BVP2PIE_STRUCT(PDE,SUPPRESS_SUMMARY) converts a PDE without
+% dynamics, i.e. a boundary value problem, to a 'pie_struct' object with
+% only the operators T, Tw, Tu and K, Kw, Ku specified, solving the BVP for
+% the PDE state.
 %
 % INPUT
 % - PDE:    initialized, linear 'pde_struct' object with nx states, with no
-%           equation specified for any of them, and without static
-%           constraints (PDE.constraint_ID empty);
+%           equation specified for any of them; its static constraints
+%           (PDE.constraint_ID) become rows of K;
+% - suppress_summary:   logical, true to not print the heading and how
+%           the fundamental state and inputs relate to the PDE;
 %
 % OUTPUT
 % - PIE:    initialized 'pie_struct' object, with T, Tw, Tu the nx x ncomp
@@ -129,14 +135,12 @@ function PIE = BVP2pie_struct(PDE)
 %           PIE.pde2pie.x, and each component of wf and uf from a
 %           PDE input by PIE.pde2pie.w and PIE.pde2pie.u;
 
-% Static constraints 0=F(s) would be dropped in solving BVP, and are thus
-% not supported.
-if ~isempty(PDE.constraint_ID)                                              % DJ, 11/12/2026
-    error('Static constraints 0=F(s) are not supported in a PDE without dynamics.')
-elseif PDE.has_delay
+if PDE.has_delay
     error('Delays are not supported in a PDE without dynamics.')
 end
-
+if ~suppress_summary
+    fprintf('\n --- Solving the boundary value problem: parameterizing the PDE state by a fundamental state --- \n')
+end
 % Parameterize the states satisfying the BCs by the fundamental state xf
 % and inputs wf, uf.
 [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE);
@@ -145,6 +149,8 @@ end
 if any(Dmap.x.idx==0)
     [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,'blocks');
 end
+% Static constraints are rows of K, not outputs of the PDE in space_pde
+PDE = static_constraints(PDE,'drop');
 if any(Dmap.x.idx==0)                                                       % DJ (CC), 11/13/2026
     error("convert_PIETOOLS_PDE:blocks","Rank-deficient (e.g. periodic) boundary conditions that couple states in a shared moment are not supported.")
 end
@@ -212,15 +218,36 @@ end
 PIE.pde2pie = pde2pie;
 
 % % % Map from the PIE to the PDE state: x_pde = X_pde*(T*xf+Tw*wf+Tu*uf),
-% % % with the rows of T the PDE states, so that X_pde is the identity
+% % % with the rows of T the PDE states, so that X_pde is the identity,
+% % % and pie2pde.T, Tw, Tu are T, Tw, Tu
 pie2pde = PIE.pie2pde;
 X_blocks = cell(nx);
 for k=1:nx
     X_blocks{k,k} = identity_op(x_sp(k));
 end
-pie2pde.x = copvar(X_blocks);
+pie2pde.X = copvar(X_blocks);
+pie2pde.T = Tops.x;     pie2pde.Tw = Tops.w;    pie2pde.Tu = Tops.u;
 PIE.pie2pde = pie2pde;
 
 PIE = initialize(PIE);
+
+% % % Summary of the fundamental state and inputs in terms of the PDE; the
+% % % auxiliary components (on fewer variables than their state, e.g. means
+% % % for periodic BCs) are shown as F*x, F their block of pde2pie.x.C
+if ~suppress_summary
+    is_aux = arrayfun(@(c) ~isequal(PIE.space.x.depmat(c,:),space_pde.x.depmat(idx_x(c),:)),1:ncomp);
+    for ty = {'x','w','u'}
+        if isempty(PIE.space.(ty{1}).dims)
+            continue
+        elseif strcmp(ty{1},'x') && any(is_aux)
+            aux_idcs = find(is_aux);
+            print_convert_summary(PIE,'x',aux_idcs,arrayfun(@(c) C_blocks{c,c},aux_idcs,'UniformOutput',false));
+            fprintf('\nThe PIE state must satisfy PIE.K*xf = 0.\n');
+            fprintf('The states are defined by PIE.pde2pie.x.C.\n');
+        else
+            print_convert_summary(PIE,ty{1});
+        end
+    end
+end
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

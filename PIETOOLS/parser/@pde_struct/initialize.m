@@ -231,6 +231,8 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % DJ, 11/08/2026: Bugfix in case a state depends on all spatial variables
 %                   but lists them in incorrect order;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Accept a condition 0=F(s) varying on the whole domain, as
+%                   an algebraic constraint;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -622,17 +624,12 @@ for ii=1:numel(PDE.BC)
     BC_state_tab(ii,BC_state_indcs) = true;
     BC_diff_tab(ii,:) = BC_diff_tab_ii;
     
-    % Make sure that the boundary condition is indeed a boundary condition.
-    if all(PDE.BC_tab(ii,3:2+nvars))
-        error(['The boundary condition "BC{',num2str(ii),'}", of the form 0=F(s), is defined by a function F(s) that varies on the interior of the spatial domain.',...
-                ' Please use boundary positions in "BC{',num2str(ii),'}.term{j}.loc" and integrals "BC{',num2str(ii),'}.term{j}.I" to make sure the boundary condition function F(s) does not vary along all spatial directions.'])
-    else
-        % Keep track of which variables s the function f(s) in the BC
-        % 0=f(s) depends on, and their associated domain.
-        PDE.BC{ii}.vars = global_vars(logical(PDE.BC_tab(ii,3:2+nvars)),1);
-        PDE.BC{ii}.dom = global_dom(logical(PDE.BC_tab(ii,3:2+nvars)),:);
-    end
-    
+    % Keep track of which variables s the function f(s) in the BC 0=f(s)
+    % depends on, and their associated domain; an F varying on the whole
+    % domain is accepted, as an algebraic constraint
+    PDE.BC{ii}.vars = global_vars(logical(PDE.BC_tab(ii,3:2+nvars)),1);
+    PDE.BC{ii}.dom = global_dom(logical(PDE.BC_tab(ii,3:2+nvars)),:);
+
     if isfield(PDE.BC{ii},'eq_num')
         % The field eq_num was only for internal use...
         PDE.BC{ii} = rmfield(PDE.BC{ii},'eq_num');

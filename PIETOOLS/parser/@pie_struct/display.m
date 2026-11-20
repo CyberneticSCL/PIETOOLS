@@ -85,6 +85,7 @@ function display(PIE,name,width_max,expand)
 % DJ, 11/12/2026: Display only T and K operators in case of no dynamics
 %                   (converted BVP);
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Use the renamed fields pie2pde.W, U, Y, Z;
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -120,8 +121,8 @@ end
 
 % Symbols: the partial derivative in time, and the names of the state, inputs and
 % outputs of the PIE, as given by 'varname2display' for a name ending with _pie.
-% The inputs w, u are named as for the PIE, unless the map PIE.pie2pde.w,
-% PIE.pie2pde.u to the PDE input is specified and an identity operator, so that
+% The inputs w, u are named as for the PIE, unless the map PIE.pie2pde.W,
+% PIE.pie2pde.U to the PDE input is specified and an identity operator, so that
 % it is the PDE input. The outputs z, y are named as for the PDE, unless the map
 % to the PDE output is specified, and not an identity operator
 dt_sym = [char(8706),char(8348)];
@@ -132,8 +133,8 @@ sig_names = struct('w',varname2display('w_pie'),'u',varname2display('u_pie'),'y'
 for sig = {'w','u','y','z'}
     is_specified = false;       is_pde_id = false;
     try
-        is_specified = prod(size(PIE.pie2pde.(sig{1})))>0;       % an empty cell, or 0 x 0 tensopmat, if not
-        is_pde_id = is_specified && is_id_op(PIE.pie2pde.(sig{1}));
+        is_specified = prod(size(PIE.pie2pde.(upper(sig{1}))))>0;   % an empty cell, or 0 x 0 tensopmat, if not
+        is_pde_id = is_specified && is_id_op(PIE.pie2pde.(upper(sig{1})));  % DJ, 11/20/2026
     catch
     end
     if is_pde_id && any(strcmp(sig{1},{'w','u'}))

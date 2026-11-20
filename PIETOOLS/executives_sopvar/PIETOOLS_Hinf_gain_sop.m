@@ -30,6 +30,7 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % boundary conditions): in 'Q' and 'P' the block of the KYP operator on the
 % state carries + K'*Z + Z'*K, with Z a free operator, which vanishes on
 % ker K; 'Qd' and 'Pd' are posed as 'Q' and 'P'.
+% Constraints involving the input w (Kw nonzero) are not supported.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
@@ -136,6 +137,10 @@ end
 % The constraint K x = 0 on the state, if any (empty for most PIEs). The
 % dual forms have no term for it: posed as the primal ones
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+% A constraint involving the input (Kw nonzero) is not supported; u is zero
+if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
+    error('PIETOOLS_Hinf_gain_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
+end
 if hasK && strcmp(form,'Qd'),   form = 'Q';     end
 if hasK && strcmp(form,'Pd'),   form = 'P';     end
 switch form
