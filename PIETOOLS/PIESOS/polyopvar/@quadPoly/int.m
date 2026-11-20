@@ -5,11 +5,15 @@ function [P_int] = int(P1, vars, low_limit, high_limit)
 % INPUTS
 % - P1:   'quadpoly' class object.
 % - vars:  cell array of names of vars
-% - low_limit (optional) : 'double' array
+% - low_limit (optional) : 'double' array, one value per variable; the
+%                          upper limit (lower limit 0) if high_limit is
+%                          not given
 % - high_limit (optional): 'double' array
 %
 % OUTPUTS
-% - P_int:      'quadpoly' object integrated with respect all vars
+% - P_int:      'quadpoly' object integrated with respect all vars: the
+%               antiderivative (constant 0) without limits, else the
+%               antiderivative at high_limit minus that at low_limit
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -41,10 +45,12 @@ function [P_int] = int(P1, vars, low_limit, high_limit)
 
 
 
+% Only 'quadPoly' objects are integrated
 if ~isa(P1, 'quadPoly')
     error('quadPoly:int:badType', 'int supports only quadPoly');
 end
 
+% Variables as a cell array of names
 if isa(vars, 'char')
     vars = string(vars);
 end
@@ -54,6 +60,7 @@ if ~isa(vars, 'cell')
 end
 
 
+% Definite integral: the antiderivative at the upper minus the lower limits
 if nargin > 2
     if nargin < 4
         high_limit = low_limit;
@@ -78,8 +85,6 @@ C = P1.C;
 dim = P1.dim;
 
 % locate var names in ns or nt
-% subs_in_ns = {};
-% subs_in_nt = {};
 
 vals_in_ns = cell(size(ns_str));
 vals_in_nt = cell(size(nt_str));
@@ -120,7 +125,7 @@ end
 left_multiplier = kron(speye(dim(1)), left_multiplier);
 
 
-% Update left-monomials to account for antiderivative
+% Update right-monomials to account for antiderivative
 hatZt = cell(1,numel(nt));
 right_multiplier = 1;
 for right_index = 1:numel(nt)
@@ -144,5 +149,4 @@ hatC = left_multiplier'*C*right_multiplier;
 
 % Set the new quadPoly
 P_int = quadPoly(hatC, hatZs, hatZt, dim, ns, nt);
-% we need to call clean quadpoly after diff
 end

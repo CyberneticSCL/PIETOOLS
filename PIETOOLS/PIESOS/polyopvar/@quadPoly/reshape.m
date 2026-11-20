@@ -1,12 +1,46 @@
 function P_reshaped = reshape(P1, M, N)
 % reshape  reshape of P1 object.
 %   
-%   B = RESHAPE(A,M,N) or RESHAPE(A,[M,N]) returns the M-by-N quadpoly whose
+%   B = RESHAPE(A,M,N) returns the M-by-N quadpoly whose
 %   elements are taken columnwise from A. A must have M*N elements.
-% Input P1 quadPoly obj (n times n)
-% Output sum_i obj(i, i)
+%
+% INPUT
+% - P1:         m x n 'quadPoly' object (or 'double' array);
+% - M, N:       positive integers with M*N = m*n;
+%
+% OUTPUT
+% - P_reshaped: M x N 'quadPoly' object, the entries of P1 taken
+%               columnwise, with the same monomial bases.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - reshape
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding AT - 02/18/2026
  
 
+% A 'double' array is reshaped by the builtin reshape
 if isa(P1, 'double')
     P_reshaped = reshape(P1, M, N);
     return
@@ -17,6 +51,7 @@ if ~isa(P1, 'quadPoly')
 end
 
 
+% The number of elements is kept
 sz = P1.dim;
 
 if sz(1)*sz(2) ~= M*N
@@ -55,30 +90,10 @@ full_index = ib + jb*sz(1); % numbering of blocks
 iblc2 = mod(full_index, M); %new row indx of blocks
 jblc2 = floor(full_index/M); %new col indx of blocks
 
-i2 = iblc2*n_Zs + a;             % rows: n blocks of size ds
-j2 = jblc2*n_Zt + b;             % cols: m blocks of size dt
+i2 = iblc2*n_Zs + a;             % rows: M blocks of size n_Zs
+j2 = jblc2*n_Zt + b;             % cols: N blocks of size n_Zt
 
 Cnew = sparse(i2, j2, v, M*n_Zs, N*n_Zt);
-
-% % uncomment for testing Cnew
-% % create 4D array of C indeces
-% C_ND_array = reshape(full(C), n_Zs, sz(1), n_Zt, sz(2)); 
-% % C_ND_array(:, i, :, j) is coefficients for P1(i, j).C
-% 
-% C_ND_array = permute(C_ND_array, [1, 3, 2, 4]); %change dimensions now
-% % C_ND_array(:, :, i, j) is coefficients for P1(i, j).C
-% 
-% %Now reshape coefficients
-% C_ND_array = reshape(C_ND_array, n_Zs, n_Zt, M, N);
-% 
-% %now permute indeces back
-% C_ND_array = ipermute(C_ND_array, [1, 3, 2, 4]);
-% 
-% %finally, compute the final C matrix
-% 
-% C_reshaped = reshape(C_ND_array, n_Zs*M, n_Zt*N);
-% 
-% % C_reshaped is block reshape of C matrix without using sparce str
 
 % define reshaped quadpoly 
 P_reshaped = quadPoly(Cnew, Zs, Zt, [M, N], ns, nt);

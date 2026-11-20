@@ -51,8 +51,8 @@ function C = mtimes(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/21/2026: Compare empty variable lists regardless of shape;
 
 % Check that multiplication is supported
 if isa(A,'sopvar') || isa(A,'tensopvar') || isa(A,'intop')
@@ -95,7 +95,7 @@ if isa(A,'double') && ~all(size(A)==1) && isa(B,'tensopmat')
                 Cj = term;
             elseif is_native_op(Cj) || is_native_op(term)
                 % Matrices of type double/polynomial/dpvar are added to each other, or to a tensopvar
-                % acting on a constant monomial, converted to a polynomial, as in plus
+                % acting on a constant monomial, converted to a polynomial
                 if ~is_native_op(Cj)
                     [Cj,is_ok] = tensopvar2polynomial(Cj);
                 elseif ~is_native_op(term)
@@ -107,6 +107,8 @@ if isa(A,'double') && ~all(size(A)==1) && isa(B,'tensopmat')
                     error("A block of type 'double', 'polynomial' or 'dpvar' can only be added to an operator that acts on R, a constant monomial, and can be converted to a 'polynomial'.")
                 end
                 Cj = Cj+term;
+            % Operators are added only if size, variables, domains and
+            % degrees match
             elseif ~isequal(size(Cj),size(term)) || ~isequal(Cj.vars,term.vars) || ~isequal(Cj.dom,term.dom) || ~isequal(Cj.deps,term.deps)
                 error("tensopmat:mtimes_heterogeneous_rows", ...          
                     ['Matrix-multiplication of a general matrix with a ' ...
@@ -120,15 +122,15 @@ if isa(A,'double') && ~all(size(A)==1) && isa(B,'tensopmat')
                 Cj = Cj+term;
             end
         end
+        % Column-block j of the single row-block of C
         ops_new{1,j} = Cj;
     end
-    % The d columns above populate a SINGLE row-block, so (per 
-    % @tensopmat/initialize.m's row check) all columns must share the same
-    % output vars/dom/deps
+    % The d columns above populate a SINGLE row-block, so all columns must
+    % share the same output vars/dom/deps
     Cref = [];
     for j=1:d
         if isempty(ops_new{1,j}) || is_native_op(ops_new{1,j})
-            continue        % no variables to compare for a matrix, see initialize
+            continue        % no variables to compare for a matrix
         elseif isempty(Cref)
             Cref = ops_new{1,j};
         elseif ~isequal(Cref.vars.out,ops_new{1,j}.vars.out) || ~isequal(Cref.dom.out,ops_new{1,j}.dom.out) || ~isequal(Cref.deps.out,ops_new{1,j}.deps.out)
@@ -237,7 +239,7 @@ if isa(A,'tensopmat')
         for k=1:size(A.ops,2)
             if ~isempty(A.ops{ridx,k}) && ~isempty(B.ops{k,cidx})
                 % The product of the blocks, of a block of type double/polynomial/dpvar with an operator
-                % if needed, see block_product
+                % if needed
                 Pk = block_product(A,ridx,k,B.ops{k,cidx});
                 if isempty(C.ops{idx})
                     C.ops{idx} = Pk;
@@ -278,6 +280,14 @@ function P = block_product(A,i,k,Bkj)
 %   converted to the multiplier operator from R (native2op), and the operators are composed;
 % - operator times a matrix, which maps R to functions: the operator is applied to the functions in
 %   the columns of the matrix (apply_to_native), the result is a matrix.
+%
+% INPUT
+% - A:        'tensopmat' object, the first factor;
+% - i, k:     integers, the block of A;
+% - Bkj:      block (k,j) of the second factor;
+%
+% OUTPUT
+% - P:        the product block.
 Aik = A.ops{i,k};
 is_natA = is_native_op(Aik);        is_natB = is_native_op(Bkj);
 if is_natA==is_natB
@@ -294,7 +304,13 @@ end
 
 function P = add_blocks(P1,P2)
 % P = ADD_BLOCKS(P1,P2) returns the sum of two blocks. A matrix of type 'double', 'polynomial' or 'dpvar'
-% is added to an operator after converting the operator to a 'polynomial', if it acts on R, as in plus.
+% is added to an operator after converting the operator to a 'polynomial', if it acts on R.
+%
+% INPUT
+% - P1, P2:   blocks (operators or matrices acting on R);
+%
+% OUTPUT
+% - P:        the sum block.
 is_nat1 = is_native_op(P1);         is_nat2 = is_native_op(P2);
 is_ok = true;
 if is_nat1 && ~is_nat2
@@ -311,7 +327,7 @@ end
 function Y = apply_to_native(Aop,M)
 % Y = APPLY_TO_NATIVE(AOP,M) applies the operator AOP to the functions in the columns of
 % the matrix M of type 'double', 'polynomial' or 'dpvar', which maps R^k to the functions
-% in L2^n[S] (see `tensopmat`), and returns the matrix Y of the same type that represents
+% in L2^n[S], and returns the matrix Y of the same type that represents
 % the composition x -> AOP*(M*x), mapping R^k to the output space of AOP.
 %
 % INPUTS
@@ -355,6 +371,7 @@ if na==0 || isempty(nonzeros(M.C))
     Y = apply_op(Aop,polynomial(zeros(n,kcols)));       % M is zero
     return
 end
+% Apply the operator to e_r*s^a for each row r and monomial a of M
 Pcols = cell(1,n*na);
 Id = eye(n);
 for al=1:na

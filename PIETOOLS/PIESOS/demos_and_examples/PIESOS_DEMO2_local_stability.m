@@ -20,6 +20,15 @@
 % with dV the derivative of V along solutions to the PDE. By the second
 % condition, dV <= 0 whenever ||u|| <= R, so that solutions starting in the
 % ball of radius rho = R*sqrt(eppos/gam) remain in the ball of radius R.
+%
+% INPUT
+% - none: the reaction rate r and the radius R are set in the script;
+%
+% OUTPUT (workspace)
+% - prog_sol:   'struct', the solved PIESOS program; V, dV, the 'polyopvar'
+%               Lyapunov functional and its derivative; gam_sol, the
+%               minimized bound gam (if feasible). A message states whether
+%               local stability was verified, and the radius rho.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,6 +55,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/07/2026: Initial coding;
 
 clc; clear; clear stateNameGenerator

@@ -1,7 +1,7 @@
 function is_nat = native_mask(ops)
 % IS_NAT = NATIVE_MASK(OPS) returns a logical array of the size of the cell
 % OPS, with element k true if OPS{k} is a matrix of type 'double',
-% 'polynomial' or 'dpvar', see `is_native_op`. This applies the test of
+% 'polynomial' or 'dpvar'. This applies the test of
 % `is_native_op` to all blocks of a 'tensopmat' at once, using the built-in
 % forms of cellfun.
 %
@@ -41,6 +41,7 @@ function is_nat = native_mask(ops)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 is_nat = cellfun('isclass',ops,'polynomial') | cellfun('isclass',ops,'dpvar') | ...

@@ -1,13 +1,14 @@
 function P_repmat = repmat(P1, N, M)
-% F = repmat(varargin) generates repmat of quadpoly objects using
-% varargs as the blocks on the diagonal
+% P_REPMAT = REPMAT(P1,N,M) tiles the quadpoly P1 N times vertically and
+% M times horizontally, keeping its monomial bases
 % 
 % INPUTS
-% - varargin:   'quadpoly' class objects.
+% - P1:         m x n 'quadpoly' class object;
+% - N, M:       (optional) positive integers, M = N if omitted; without
+%               N and M, P1 is returned.
 % 
 % OUTPUTS
-% - P_repmat:      'quadpoly' object with each of the parameters definined as the
-%               repmat of quadpoly 
+% - P_repmat:      m*N x n*M 'quadpoly' object, the N x M tiling of P1 
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -37,6 +38,7 @@ function P_repmat = repmat(P1, N, M)
 %
 % AT, 02/18/2026: Initial coding;
 
+% Only 'quadPoly' objects; P1 itself without N, M; M = N by default
 if ~isa(P1, 'quadPoly')
     error('quadPoly:repmat:badType', 'repmat supports quadPoly only.');
 end
@@ -61,6 +63,7 @@ nt = P1.nt;
 ns = P1.ns;
 C = P1.C;
 
+% Tile the coefficients (blocks of rows m*ds, columns n*dt), same bases
 C_repmat = repmat(C, N, M); 
 
 P_repmat = quadPoly(C_repmat, Zs, Zt, P1.dim.*[N, M], ns, nt); 

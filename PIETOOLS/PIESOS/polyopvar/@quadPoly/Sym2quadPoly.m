@@ -1,7 +1,7 @@
 function Q = Sym2quadPoly(Fsym, sVars, tVars)
 %Sym2quadPoly Convert symbolic polynomial/matrix to quadPoly object.
 %
-%   Q = quadPoly_fromSym(Fsym, sVars, tVars)
+%   Q = Sym2quadPoly(Fsym, sVars, tVars)
 %
 % Inputs:
 %   Fsym  : sym scalar or sym matrix (m x n)
@@ -19,6 +19,33 @@ function Q = Sym2quadPoly(Fsym, sVars, tVars)
 %   - Coefficients must be convertible to double. If not, error.
 %   - Degree sets Zs{i}, Zt{j} are inferred from monomials present in Fsym.
 %   - Ordering matches MATLAB kron ordering: last variable varies fastest.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - Sym2quadPoly
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 02/11/2026
 
     if ~isa(Fsym, 'sym')
         error('Fsym must be a symbolic (sym) scalar or matrix.');

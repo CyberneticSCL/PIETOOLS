@@ -45,6 +45,7 @@ function [A_out,B_out] = common_basis(A_in,B_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Initialize the polynomials
@@ -70,7 +71,7 @@ Z_B = [Z_B,zeros(nrB,max(ncA-ncB,0))];
 Z_full = [Z_A;Z_B];
 % Monomials with the same Z but different numbers of factors are different monomials: e.g.
 % x o c, with c a multiplier from R, Z=[1,0], and x, Z=[1], which are the same row once padded
-% to the same width, see `polyopvar`
+% to the same width
 [~,nops_A,empty_A] = num_factors(A);        [~,nops_B,empty_B] = num_factors(B);
 nops_full = factor_key(Z_full,[nops_A;nops_B],[empty_A;empty_B]);   % empty monomials merge with those of the same Z
 [~,old2new_Cdcs,new2old_Cdcs] = unique([Z_full,nops_full],'rows');
@@ -104,6 +105,14 @@ end
 function ops_new = place_ops(ops,idcs,nZ)
 % Place column k of the cell array OPS in column IDCS(k) of an array with NZ columns. If the monomials
 % of several columns are equal (duplicates in Z), the operators acting on them are added.
+%
+% INPUT
+% - ops:      cell of operators, a column per monomial;
+% - idcs:     array, the new column of each column of ops;
+% - nZ:       integer, the number of columns of the result;
+%
+% OUTPUT
+% - ops_new:  cell with nZ columns.
 ops_new = cell(size(ops,1),nZ);
 ops_new(:,idcs) = ops;
 [u,~,ic] = unique(idcs);

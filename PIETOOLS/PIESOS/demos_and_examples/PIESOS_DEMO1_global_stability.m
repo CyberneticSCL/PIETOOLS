@@ -17,7 +17,15 @@
 % For r > pi^2, the PDE is unstable, as its linearization is unstable.
 %  
 % The test below enforces this positivity condition as a distributed sum
-% of squares (SOS) constraint, -dV = W >= 0, using PIESOS. 
+% of squares (SOS) constraint, -dV = W >= 0, using PIESOS.
+%
+% INPUT
+% - none: the reaction rate r is set in the script;
+%
+% OUTPUT (workspace)
+% - prog_sol:   'struct', the solved PIESOS program; W, the 'polyopvar'
+%               SOS functional with -dV = W. A message states whether
+%               global stability was verified.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIESOS_DEMO1
@@ -43,6 +51,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/07/2026: Initial coding;
 
 clc; clear; clear stateNameGenerator

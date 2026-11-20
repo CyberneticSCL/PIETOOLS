@@ -24,24 +24,23 @@ function display(P,name,width_max,expand,call_name)
 %           display the polynomial that an adjoint is the adjoint of;
 %
 % OUTPUTS
-% Display of the polynomials in the command window, with the terms
-% constructed by 'get_display'.
+% Display of the polynomials in the command window.
 %
 % NOTES
 % - If each row of P is a state variable (an identity operator acting on a
-%   single state, see 'ispvar'), as for P.vartab, only the states are
+%   single state), as for P.vartab, only the states are
 %   displayed, one per row, with the spatial variables that they depend on,
 %   e.g. x(s_1,s_2).
 % - Each polynomial is displayed as a sum over the monomials with a nonzero
 %   operator C_ij = P.C.ops{i,j}, acting on the monomial j, defined by the
 %   state variables in the jth row of P.Z. The operators are displayed as
-%   the actual operators if they are small enough, see 'get_display'.
+%   the actual operators if they are small enough.
 %   Otherwise, they are displayed as C_ij, and can be extracted by calling
 %   P.C{i,j}.
 % - A monomial is displayed as the tensor product of its factors, in the
 %   order of P.Z, with the tensor product of d consecutive copies of a
 %   state x displayed as x^{od}. A factor of a monomial that is a known
-%   function (a multiplier from R, see 'polyopvar') is displayed as 1.
+%   function (a multiplier from R) is displayed as 1.
 % - The polynomials are named NAME_i, dropping i if P has only one row.
 %   They are displayed as functions of the states in their monomials,
 %   followed by the output variables, those in P.vars.out, with a
@@ -52,14 +51,13 @@ function display(P,name,width_max,expand,call_name)
 % - A number at the end of the name of a state or a variable is displayed
 %   as a subscript, followed by the subscript of the copy of a variable,
 %   separated by a comma, and a state ending in _pie is displayed with a
-%   hat over its name, e.g. x1_pie as x_1 with a hat on the x, see
-%   'varname2display'.
+%   hat over its name, e.g. x1_pie as x_1 with a hat on the x.
 % - All terms are displayed for each polynomial. The terms are placed on
 %   the same line, unless the line would have more characters than fit in
 %   the command window, in which case the whole next term is moved to the
 %   next line, so that no term is split by the command window, with the +
 %   aligned under the equality sign.
-% - An adjoint (P.is_adjoint, see 'ctranspose') is displayed as
+% - An adjoint (P.is_adjoint) is displayed as
 %       NAME = <p(x_1,...), \cdot >, where:
 %   or, for a weight W other than the identity, as
 %       NAME = <p(x_1,...), W, \cdot >, where:
@@ -90,10 +88,8 @@ function display(P,name,width_max,expand,call_name)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
-% DJ, 11/07/2026: Display adjoints, see 'ctranspose'; add input call_name;
-% DJ, 11/07/2026: Test for the identity weight with is_eye;
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -112,6 +108,7 @@ if strcmp(name,'ans')
         fprintf('\n  ans = %s, where\n',name);
     end
 end
+% Default line width and expansion of the operators
 if nargin<3
     width_max = [];
 end
@@ -119,6 +116,8 @@ if nargin<4
     expand = true;
 end
 
+% An empty polynomial, or one that cannot be initialized, is not displayed
+% term by term
 if isempty(P.C.ops)
     fprintf('\n  %s is an empty distributed polynomial, with input dimension %d and output dimension %d.\n\n',name,sum(P.dims.in),sum(P.dims.out));
     return
@@ -180,6 +179,7 @@ if is_state
     return
 end
 
+% Print each row as a polynomial, term by term
 row_disp = get_display(P,expand);
 fprintf('\n');
 use_C = false;
@@ -202,6 +202,7 @@ for i=1:nr
 end
 fprintf('\n');
 
+% Operators displayed by name: print how to extract them
 if use_C
     op_name = 'C';
     if nr>1,    [~,sub_i] = varname2display('i');   op_name = [op_name,sub_i];  end         % subscript i

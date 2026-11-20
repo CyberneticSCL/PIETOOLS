@@ -21,8 +21,7 @@ function display(Kop,name,width_max,call_name)
 %           'Rop.ops{1,1}';
 %
 % OUTPUTS
-% Display of the functional in the command window, with the terms
-% constructed by 'get_display', see there for the integrals. The terms are
+% Display of the functional in the command window. The terms are
 % placed on the same line, unless the line would have more characters than
 % fit in the command window, in which case the whole next term is moved to
 % the next line, so that no term is split by the command window, with the
@@ -30,8 +29,8 @@ function display(Kop,name,width_max,call_name)
 %
 % NOTES
 % - The integrals involve only dummy variables, displayed as gamma, with
-%   the number of the integrated copy as subscript if there are multiple,
-%   see 'display_term'. The domains of the variables are those of Kop.dom.
+%   the number of the integrated copy as subscript if there are multiple.
+%   The domains of the variables are those of Kop.dom.
 % - A kernel with at most 4 nonzero coefficients is displayed explicitly,
 %   if the functional is scalar-valued. Other kernels K_i are displayed by
 %   name; the kernel K_i can be extracted by calling Kop.kernels{i}, which
@@ -70,8 +69,8 @@ function display(Kop,name,width_max,call_name)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -93,12 +92,14 @@ if ~Kop.chkval && ~isvalid(Kop)
     builtin('disp',Kop);
     return
 end
+% An empty functional has no terms to display
 [m,n] = size(Kop);
 if m*n==0
     fprintf('\n  %s is an empty functional, with input dimension %d and output dimension %d.\n\n',name,n,m);
     return
 end
 
+% Build the terms and print them, wrapping lines at width_max characters
 if nargin<3
     width_max = [];
 end
@@ -107,6 +108,7 @@ lhs = [name,' ',disp_struct.xname,' ='];
 fprintf('\n');
 print_terms(lhs,disp_struct.terms,disp_struct.signs,width_max);
 
+% Kernels displayed by name: print how to extract them
 if disp_struct.use_K
     if isscalar(Kop.params)
         fprintf('\n  Call "%s.kernels{1}" to extract kernel K.\n',call_name);

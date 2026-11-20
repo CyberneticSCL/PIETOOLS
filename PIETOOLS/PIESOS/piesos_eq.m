@@ -3,7 +3,7 @@ function prog = piesos_eq(prog,f,tol)
 % PIESOS program PROG, for a distributed polynomial F.
 %
 % INPUTS
-% - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
+% - prog:   'struct' specifying a PIESOS program;
 % - f:      'polyopvar' object representing a distributed polynomial,
 %           with coefficients of type 'dpvar' or 'intop';
 % - tol:    (optional) scalar value specifying the tolerance below which
@@ -38,8 +38,8 @@ function prog = piesos_eq(prog,f,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
 
 
 if ~isa(f,'polyopvar')

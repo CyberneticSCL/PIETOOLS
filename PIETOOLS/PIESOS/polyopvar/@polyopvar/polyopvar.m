@@ -64,8 +64,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})pol
 %               s_j.
 % - P.is_adjoint:   logical, true if P represents the L2-adjoint U'*W of
 %               the polynomial U defined by C and Z, with weight W. Then
-%               U'*V = innerprod(U,W,V) for a polynomial V, see ctranspose
-%               and mtimes. Defaults to false;
+%               U'*V = innerprod(U,W,V) for a polynomial V.
+%               Defaults to false;
 % - P.weight:   an n x k array of type 'double', 'polynomial' or 'dpvar',
 %               the weight W of an adjoint P=U'*W for a polynomial U with n
 %               rows, with scalar W=w representing w*eye(n). Defaults to
@@ -87,7 +87,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})pol
 % - The monomials in Z are NOT necessarily ordered in any particular way.
 %   Functions like clean_poly may order the monomials.
 % - chkval is set to false when a field is assigned outside of the
-%   methods of the class, e.g. f.C = Cnew, see subsasgn. Use initialize
+%   methods of the class, e.g. f.C = Cnew. Use initialize
 %   to check the fields and set chkval to true.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -114,10 +114,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})pol
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Set method for C: output space follows the coefficients;
-% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
-% DJ, 11/07/2026: Add properties is_adjoint and weight, see 'ctranspose';
 
 properties
     C = tensopmat();
@@ -144,6 +142,27 @@ end
 methods
 
 function [P] = polyopvar(varargin) %constructor
+% P = POLYOPVAR(VARNAME,DIMS,VARS,DOM,DEPMAT) declares the vector of
+% distributed state variables x_1,...,x_p, P = [x_1;...;x_p], each the
+% identity operator on its state. Without output, POLYOPVAR('x1(s1,s2)',
+% 'x2(s1)',...) declares each state x_i, and its spatial variables as
+% 'pvar' objects, in the workspace of the caller.
+%
+% INPUT
+% - varname:    p x 1 cellstr (or char), the names of the states;
+% - dims:       (optional) p x 1 array of positive integers, the vector
+%               size of each state. Defaults to ones(p,1); may be omitted
+%               if the second input is not numeric;
+% - vars:       (optional) 1 x N cellstr or 'pvar' array, or a struct with
+%               field 'in', the spatial variables. Defaults to none;
+% - dom:        (optional) N x 2 array (or 1 x 2 for all variables), or a
+%               struct with field 'in', the intervals. Defaults to [0,1];
+% - depmat:     (optional) p x N logical array, true if x_i depends on
+%               variable j. Defaults to true(p,N);
+%
+% OUTPUT
+% - P:          p x 1 'polyopvar' object; without inputs, an empty
+%               'polyopvar' object.
     if nargout==0
         % Declare state variables as
         %   polyopvar x1(s1,s2) x2(s1) x3(s3)
@@ -326,7 +345,7 @@ function obj = set.C(obj,c)
 % OUTPUTS
 % - obj:    'polyopvar' object with obj.C=c. If c has been checked
 %           (c.chkval), obj.dims.out, obj.vars.out, obj.dom.out and
-%           obj.depmat.out are those of c. They must be, see initialize.
+%           obj.depmat.out are those of c. They must be.
 %           The input space is not changed, as it concerns the states,
 %           not the monomials on which c acts. If c has not been checked,
 %           nothing else is changed;
@@ -342,6 +361,12 @@ end
 function matdim = get.matdim(obj)
     % % Determine the dimensions of the matrix-valued distributed
     % % polynomial
+    %
+    % INPUT
+    % - obj:      'polyopvar' object;
+    %
+    % OUTPUT
+    % - matdim:   1 x 2 array, the matrix dimensions of the polynomial.
     [nr,nc] = size(obj.C);
     degmat1 = obj.degmat;
     nZ = size(degmat1,1);
@@ -362,12 +387,25 @@ function vartab = get.vartab(obj)
     % % Return a polyopvar object specifying the variables that
     % % appear in the distributed polynomial
     % Pass dims and depmat, so states keep their size and spatial dependency
+    %
+    % INPUT
+    % - obj:      'polyopvar' object;
+    %
+    % OUTPUT
+    % - vartab:   'polyopvar' object of the states of obj.
     vartab = polyopvar(obj.varname,obj.dims.in,obj.vars.in,obj.dom.in,obj.depmat.in);
 end
 
 
 function degmat = get.degmat(obj)
 % Get the degree of each variable in each of the monomials
+%
+% INPUT
+% - obj:      'polyopvar' object;
+%
+% OUTPUT
+% - degmat:   nZ x p sparse array, the degree of each state in each
+%             monomial.
 nZ = size(obj.Z,1);
 nvars = numel(obj.varname);
 degmat = spalloc(nZ,nvars,nnz(obj.Z));

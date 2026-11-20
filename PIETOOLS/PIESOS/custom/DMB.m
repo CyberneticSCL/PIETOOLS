@@ -1,7 +1,7 @@
 function C = DMB(A,B)
     % C = DMB(A,B) returns the 'polyopvar' object C representing the
-    % product of the distributed monomials of A and B, as in the m=1 case
-    % of Def. 4 in Paper1. The tensor-PI operators of A and B are combined
+    % product of the distributed monomials of A and B. The tensor-PI
+    % operators of A and B are combined
     % using the tensor-PI product otimes, so that C acts on the tensor
     % product of the monomials of A and B. This allows products such as
     % Zs{2} = Zx*Zx, where Zs{i} represents (Z*x)^(\otimes i).
@@ -27,15 +27,29 @@ function C = DMB(A,B)
     % it under the terms of the GNU General Public License as published by
     % the Free Software Foundation; either version 2 of the License, or
     % (at your option) any later version.
+    %
+    % This program is distributed in the hope that it will be useful,
+    % but WITHOUT ANY WARRANTY; without even the implied warranty of
+    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    % GNU General Public License for more details.
+    %
+    % You should have received a copy of the GNU General Public License
+    % along with this program; if not, write to the Free Software
+    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %
+    % If you modify this code, document all changes carefully and include date
+    % authorship, and a brief description of modifications
+    %
+    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
     % CR, 09/03/2026: Initial coding
-    % CR, 09/07/2026: Use Def. 4 for vector-valued 3-PI factors. The output
-    %                   component count is the product of the two counts.
-    % DJ, 10/15/2026: Updated to use new polyopvar functions;
 
+    % Check the inputs: two single-monomial 'polyopvar' objects in the
+    % same scalar state, on the same spatial variables and domain
     narginchk(2,2);
-    
+
+    % Both 'polyopvar', in the same states of the same dimensions
     if ~isa(A,'polyopvar') || ~isa(B,'polyopvar')
         error('polyopvar_product:InvalidInput', ...
             'Both inputs must be polyopvar objects.');
@@ -51,6 +65,7 @@ function C = DMB(A,B)
             'Both polyopvar objects must contain the vector-dimension of the state variables.');
     end
 
+    % A single monomial each, on the same spatial variables and domain
     if ~isequal(size(A.degmat),size(B.degmat)) || ~isequal(size(A.degmat),[1,1])
         error('polyopvar_product:Invalid_degmat', ...
             'Both polyopvar objects must contain one tensopmat coefficient.');
@@ -67,6 +82,7 @@ function C = DMB(A,B)
             'The polyopvar objects must have the same domain.');
     end
 
+    % One scalar state, and one 'tensopvar' coefficient C{1,1} each
     if ~isequal(A.depmat.in,B.depmat.in) || ~isequal(A.dims.in,1)
         error('polyopvar_product:Incompatible_varmat', ...
             'Both input factors must describe one scalar state variable.');
@@ -78,7 +94,7 @@ function C = DMB(A,B)
             'Each input must contain one tensopvar coefficient in C{1,1}.');
     end
 
-    % Def. 4 maps the tensor-product input through R_A otimes R_B. Since
+    % The tensor-product input is mapped through R_A otimes R_B. Since
     % R_A and R_B have k_A and k_B output components, respectively, the new
     % TDP has k_A*k_B components while retaining one TDP coefficient.
     TA = A.C.ops{1};
@@ -86,9 +102,9 @@ function C = DMB(A,B)
     kA = size(TA,1);
     kB = size(TB,1);
     % Kronecker product of the components at the same point s, tensor product of the inputs. The new
-    % otimes takes this as the pointwise product (type 1) of the rows repelem(TA,kB,1) and repmat(TB,kA,1)
-    % (as `piesos_quadvar`), and type 2 would give a function of (s1,s2)
-    TDP = otimes(repelem(TA,kB,1),repmat(TB,kA,1),[1,2]);                   % DJ, 10/14/2026
+    % otimes takes this as the pointwise product (type 1) of the rows repelem(TA,kB,1) and repmat(TB,kA,1),
+    % and type 2 would give a function of (s1,s2)
+    TDP = otimes(repelem(TA,kB,1),repmat(TB,kA,1),[1,2]);
     if size(TDP,1) ~= kA*kB
         error('polyopvar_product:InvalidProductDimension', ...
             'Def. 4 product has an inconsistent output component count.');
@@ -97,20 +113,17 @@ function C = DMB(A,B)
     % The monomial of the product has the factors of A, followed by those of B
     % (as the input of the tensor product otimes(TA,TB)), degmat is not settable
     C = A;
-    C.Z = [A.Z,B.Z];                                                        % DJ, 10/14/2026
+    C.Z = [A.Z,B.Z];
 
     % Rebuild the enclosing tensopmat from the TDP. Direct cell assignment
     % leaves vars, dom, and dependency arrays empty for later products.
-    C.C = tensopmat(TDP);                                                % CR, 09/07/2026
+    C.C = tensopmat(TDP);
 
-    % The output space of the product is that of the new tensopmat (as in piesos_quadvar)
+    % The output space of the product is that of the new tensopmat
     C.dims.out = C.C.dims.out;
     C.vars.out = C.C.vars.out;
     C.dom.out = C.C.dom.out;
     C.depmat.out = C.C.depmat.out;
     C.chkval = true;
-
-    % Stacking varmat would incorrectly create a second state variable.
-    % C.varmat = [A.varmat; B.varmat];
 
 end

@@ -36,8 +36,8 @@ function fnew = subs(f,var,val)
 %   (without decision variables) column vector, stacking the values of
 %   all substituted states/factors, in order. If only some of the factors
 %   in a monomial are replaced, e.g. x in x*y, they remain as known
-%   factors (multipliers from R, zeros in Z, see 'polyopvar'), and the
-%   result is cleaned (clean_poly).
+%   factors (multipliers from R, zeros in Z), and the result is cleaned
+%   of zero coefficients, zero monomials and unused states.
 % - If var specifies states, val has a row for each, in the same order,
 %   and all factors in these states are replaced, e.g. subs(V,u,Top*x).
 %   If val is a cellstr as well, the states are renamed. Several factors
@@ -46,8 +46,9 @@ function fnew = subs(f,var,val)
 %   once if var specifies the factors by number.
 % - The operator acting on a monomial may be nested, i.e. have factors
 %   that are 'tensopvar' objects acting on several factors of the
-%   monomial, see tensopvar/plus. Some or all factors can then be
+%   monomial. Some or all factors can then be
 %   substituted.
+% - An adjoint f (f.is_adjoint = true) gives an error.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,11 +75,8 @@ function fnew = subs(f,var,val)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/28/2026: Substitute constants in functionals of degree d>1;
-% DJ, 11/06/2026: Set chkval of the coefficients after editing them;
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
-% DJ, 11/19/2026: Name copy s_1 and bare s by 'get_tensorvars';
 
 if ~isa(f,'polyopvar')
     error("Input must be of type 'polyopvar'.")
@@ -113,6 +111,14 @@ function fnew = subs_var(f,var,val)
 % FNEW = SUBS_VAR(F,VAR,VAL) replaces the states VAR of F (cellstr or
 % polyopvar of individual states) by the rows of the polynomial VAL, or
 % renames them if VAL is a cellstr too, fnew = f|_{var=val}
+%
+% INPUT
+% - f:        'polyopvar' object;
+% - var:      cellstr or 'polyopvar' of individual states;
+% - val:      'polyopvar' (a row per state) or cellstr of new names;
+%
+% OUTPUT
+% - fnew:     'polyopvar' object, f with the substitution.
 
 if iscellstr(var) && iscellstr(val)
     % Replace each of the variable names in 'var' by variable names 'val'
@@ -246,6 +252,14 @@ function fnew = subs_fctrs(f,var_idcs,val)
 %
 % subs_factor merges equivalent integrals (combine_terms) after each
 % factor. The factors are found by their state, as combine_terms sorts them.
+%
+% INPUT
+% - f:        'polyopvar' object with a single monomial;
+% - var_idcs: array, the indices of the states to substitute;
+% - val:      'polyopvar' object, a row per state;
+%
+% OUTPUT
+% - fnew:     'polyopvar' object.
 
 [is_fctr,val_idcs] = ismember(full(f.Z(1,:)),var_idcs);
 j = find(is_fctr,1,'first');
@@ -282,6 +296,14 @@ function fnew = subs_factor(f,fctr,val)
 % integers, by position in Z, so that factors that are multipliers from R
 % (zeros) are counted but cannot be substituted) in the single monomial of F
 % by the rows of the polynomial VAL, fnew = f|_{f.Z(fctr)=val}
+%
+% INPUT
+% - f:        'polyopvar' object with a single monomial;
+% - fctr:     array of factor positions in f.Z;
+% - val:      'polyopvar' object, a row per factor;
+%
+% OUTPUT
+% - fnew:     'polyopvar' object.
 
 if ~isa(fctr,'double') || any(round(abs(fctr))~=fctr) || any(fctr<1) || numel(unique(fctr))~=numel(fctr)
     error("Indices of factors to substitute must be specified as unique positive integers.")
@@ -391,6 +413,13 @@ end
 
 function val = val_rows(val,idcs)
 % Rows idcs of the vector of polynomials val
+%
+% INPUT
+% - val:      'polyopvar' object;
+% - idcs:     array of row indices;
+%
+% OUTPUT
+% - val:      'polyopvar' object, the selected rows.
 val.C.ops = val.C.ops(idcs,:);
 val.C.dims.out = val.C.dims.out(idcs);
 val.C.depmat.out = val.C.depmat.out(idcs,:);
@@ -407,6 +436,14 @@ function [D,is_in] = depmat_in_vars(val,vars)
 % polyopvar VAL on the variables VARS, by name: D(i,j) is the degree to which
 % row i depends on VARS{j}. IS_IN(i) is false if row i depends on a variable
 % not in VARS.
+%
+% INPUT
+% - val:      'polyopvar' object;
+% - vars:     cellstr of variable names;
+%
+% OUTPUT
+% - D:        nrows x numel(vars) array of degrees;
+% - is_in:    nrows x 1 logical array.
 D = zeros(size(val.depmat.out,1),numel(vars));
 [tf,loc] = ismember(val.vars.out,vars);
 D(:,loc(tf)) = val.depmat.out(:,tf);
@@ -423,6 +460,7 @@ function fnew = subs_const(f,var,val)
 % VAL.
 %
 % INPUTS
+% - f:      'polyopvar' object;
 % - var:    'cellstr' or 'polyopvar' array of individual states, or integer
 %           array of factors in the monomial defining F (then F must have a
 %           single monomial), by position in Z;
@@ -431,16 +469,18 @@ function fnew = subs_const(f,var,val)
 %           in VAR, in order. A 'polynomial' may only be expressed in terms
 %           of the spatial variables of the corresponding state;
 %
+% OUTPUT
+% - fnew:   'polyopvar' object, F with the states or factors replaced;
+%
 % NOTES
 % - A monomial in which all states are replaced becomes a constant (degree-0)
 %   term, Kop*(val o ... o val). Functions are supported only if their output
-%   is a pointwise (not tensor) product of the factors, as this relies on
-%   apply_op of 'tensopmat'.
+%   is a pointwise (not tensor) product of the factors.
 % - In a monomial in which only some states are replaced, the factors replaced
-%   stay in the operator, as multipliers from R (zeros in Z, see `polyopvar`)
+%   stay in the operator, as multipliers from R (zeros in Z)
 %   mapping the dummy input 1 to the constant function (in the variables the
-%   state depends on), by subs_factor. Afterwards the result is cleaned
-%   (clean_poly): consecutive multipliers from R are combined, monomials that
+%   state depends on). Afterwards the result is cleaned:
+%   consecutive multipliers from R are combined, monomials that
 %   coincide are added, and states that no longer appear are removed;
 
 % Constants cannot depend on decision variables
@@ -479,6 +519,7 @@ if iscellstr(var)
     elseif numel(unique(state_idcs))~=numel(state_idcs)
         error("Variables to substitute should be unique.")
     end
+    % Split val into the values of the states, by their dimensions
     dims = f.dims.in(state_idcs);
     if size(val,1)~=sum(dims)
         error("Number of rows of constant should match the sum of the dimensions of the variables to substitute.")
@@ -488,6 +529,8 @@ if iscellstr(var)
     for k=1:numel(state_idcs)
         vals_state{state_idcs(k)} = val(rows(k)+1:rows(k+1));
     end
+    % Fill Xcell{j} if all states in monomial j are substituted, Pcell{j}
+    % if only some are
     for j=1:nZ
         Zj = full(f.Z(j,f.Z(j,:)~=0));
         is_sub = reshape(~cellfun(@isempty,vals_state(Zj)),1,[]);
@@ -643,7 +686,7 @@ else
     g0 = polyopvar();
     g0.Z = sparse(1,0);
     g0.C = tensopmat(Gcell);
-    g0.varname = cell(0,1);         % no states: input spaces determined by 'initialize', as in constant2polyopvar
+    g0.varname = cell(0,1);         % no states: input spaces determined by 'initialize'
     g0 = initialize(g0);
 end
 

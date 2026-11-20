@@ -6,11 +6,11 @@ function dV = Liediff(V,PIE)
 %
 % INPUTS
 % - V:      1 x 1 'polyopvar' object representing a distributed polynomial
-%           functional (as declared by e.g. `piesos_quadvar`, `innerprod`),
-%           in terms of the PDE state variables u=T*x, and potentially also
-%           the associated PIE state variables x (see NOTES);
-% - PIE:    'npie_struct' representing a distributed polynomial PIE, as
-%           output by `convert_PIETOOLS_PDE`, with fields
+%           functional, in terms of the PDE state variables u=T*x, and
+%           potentially also the associated PIE state variables x (see
+%           NOTES); not an adjoint (u');
+% - PIE:    'npie_struct' representing a distributed polynomial PIE, with
+%           fields
 %           T:  'tensopmat' representing the map x -> u=T*x from PIE state
 %               to PDE state;
 %           f:  'polyopvar' representing the right-hand side of the PIE,
@@ -20,12 +20,14 @@ function dV = Liediff(V,PIE)
 %               variables are collected in PIE.x;
 %           space_pde.x.varname: cellstr with the names of the PDE state
 %               variables u, associated to the PIE state variables in the
-%               rows of T, f by PIE.pde2pie.x.idx;
+%               rows of T, f by PIE.pde2pie.x.idx. A name shared by
+%               several rows (e.g. a delayed state and its history) is
+%               made unique by appending _i, i the row index, for every
+%               row after the first;
 %
 % OUTPUTS
 % - dV:     1 x 1 'polyopvar' object representing the derivative of V along
-%           the PIE, in terms of the PIE state variables PIE.space.x.varname
-%           (V and dV as declared by `piesos_LF`);
+%           the PIE, in terms of the PIE state variables PIE.space.x.varname;
 %
 % NOTES
 % - Each monomial of V is treated separately:
@@ -34,8 +36,8 @@ function dV = Liediff(V,PIE)
 %     the remaining u replaced by T*x;
 %   - In PDE and PIE states, V(x,u)=K(x_{i1} o ... o u_{j1} o ...): the
 %     symmetry condition V(xL,T*xR)=V(xR,T*xL) for independent copies xL,
-%     xR of the PIE state is assumed to hold, as enforced by `piesos_LF`
-%     for PIE states. Then the derivative of the factors x, which are left
+%     xR of the PIE state is assumed to hold. Then the derivative of the
+%     factors x, which are left
 %     as is, equals that of the factors u, so that dV is twice the sum
 %     over the factors u of the terms above. The symmetry is not verified:
 %     without it, dV is not the derivative of V;
@@ -68,15 +70,8 @@ function dV = Liediff(V,PIE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/29/2026: Use the function spaces and names of the components in
-%                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
-% DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
-%   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
-% DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
-% DJ, 11/08/2026: Extract term k of V by V.C{':',k} and V.Z(k,:);
-% DJ, 11/09/2026: Give PIE components obtained from the same PDE component
-%                  (e.g. a delayed state and its history) unique PDE names;
 
 % Check the inputs
 if ~isa(V,'polyopvar')
@@ -87,10 +82,10 @@ end
 if ~isequal(size(V),[1,1])
     error("The functional must be scalar-valued.")
 end
-if ~isa(PIE,'npie_struct')                                                  % DJ, 10/29/2026
+if ~isa(PIE,'npie_struct')
     error("The PIE must be specified as 'npie_struct'.") 
 end                                                                         
-if ~PIE.is_initialized                                                      % DJ, 10/29/2026
+if ~PIE.is_initialized
     PIE = initialize(PIE);
 end                 
 if ~V.chkval
@@ -100,9 +95,9 @@ V = clean_poly(V);
 
 % Every state in V must be a PDE state u or a PIE state x of the PIE; names
 % in both lists could not be told apart
-names_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));                % DJ, 10/29/2026
+names_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));
 % PIE components from the same PDE component share its name: make unique
-[~,idcs_first] = unique(names_pde,'stable');                                % DJ, 11/09/2026
+[~,idcs_first] = unique(names_pde,'stable');
 for i=setdiff(1:numel(names_pde),idcs_first)
     names_pde{i} = [names_pde{i},'_',num2str(i)];
 end
@@ -124,7 +119,7 @@ names_u = names_pde(idcs);
 Top = PIE.T;
 fx = PIE.f;
 if ~isequal(idcs,1:numel(names_pde))
-    % Restrict T, f to the rows of the PDE states in V, as in piesos_LF
+    % Restrict T, f to the rows of the PDE states in V
     Top = Top(idcs,:);
     fx = fx(idcs,:);
 end
@@ -132,7 +127,7 @@ Tx = Top*PIE.x;                     % row i is the PDE state names_u{i}
 fu = cell(numel(idcs),1);           % fu{i}: d/dt of the PDE state names_u{i}
 for i=1:numel(idcs)
     if size(fx,1)==1
-        fu{i} = fx;                 % single row: use as is, as in piesos_LF
+        fu{i} = fx;                 % single row: use as is
     else
         fu{i} = fx(i,:);
     end
@@ -160,7 +155,7 @@ for k=1:size(V.Z,1)
         error("The derivative of a monomial in PIE states only is not defined by the PIE, which specifies only d/dt (T*x).")
     end
     % Product rule: replace each factor u in turn by f(x), and the other
-    % factors u by T*x. Factors are numbered by position in Wk.Z, as in subs
+    % factors u by T*x. Factors are numbered by position in Wk.Z
     dWk = 0;
     for j=find(is_u(:))'
         dWk = dWk + subs(subs(Wk,pos(j),fu{rows(j)}),names_u,Tx);

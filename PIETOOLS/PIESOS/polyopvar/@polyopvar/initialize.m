@@ -15,7 +15,7 @@ function f = initialize(f)
 %           (every monomial is acted on by f.C). If f.is_adjoint is true,
 %           f represents the adjoint of the polynomial defined by f.C and
 %           f.Z, with weight f.weight (1, or with a row for each row of
-%           f.C), see 'polyopvar';
+%           f.C);
 %
 % OUTPUTS
 % - f:      'polyopvar' object representing the same distributed
@@ -23,14 +23,13 @@ function f = initialize(f)
 %           f.chkval = true, and with the nonzeros of each row of f.Z
 %           moved to the leading columns (order kept), unless the operators
 %           acting on the monomial have more factors than its degree: then
-%           the zeros mark the factors that are multipliers from R, see
-%           'polyopvar' and num_factors;
+%           the zeros mark the factors that are multipliers from R;
 %
 % NOTES
 % - Only scalar or column-vector-valued 'polyopvar' objects are
 %   supported: an error is thrown if f.matdim(2)>1, unless f is an adjoint
 %   (a row vector).
-% - An error is thrown if f.weight is not the scalar 1 (see 'is_eye'),
+% - An error is thrown if f.weight is not the scalar 1,
 %   but f.is_adjoint is false.
 %
 
@@ -58,8 +57,8 @@ function f = initialize(f)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/07/2026: Check the fields is_adjoint and weight;
 
 % Decompose the distributed polynomial
 C = f.C;
@@ -104,7 +103,7 @@ end
 % [1,0,2,0] -> [1,2,0,0]. Zeros are then padding (no operator factor), so C is
 % unaffected. This is only done for monomials acted on by no more factors than
 % their degree: otherwise the zeros are the positions of the factors that are
-% multipliers from R, see `polyopvar`.
+% multipliers from R.
 f.C = C;
 [~,nops] = num_factors(f);          % number of factors acting on each monomial
 deg = full(sum(Z~=0,2));            % degree of each monomial
@@ -132,6 +131,7 @@ elseif ~isstruct(fdepmat) || ~isfield(fdepmat,'in') || ~isfield(fdepmat,'out')
 end
 
 % Make sure the output function spaces of f match those of C
+% - dimensions and variables: taken from C if empty, else checked
 if isempty(fdims.out)
     fdims.out = Cdims.out;
 elseif ~isequal(fdims.out,Cdims.out)
@@ -142,6 +142,7 @@ if isempty(fvars.out)
 elseif ~isequal(fvars.out,Cvars.out)
     error("Output spatial variables of the polynomial should match those of the coefficient operator.")
 end
+% - domains and degrees of the variables: likewise
 if isempty(fdom.out)
     fdom.out = Cdom.out;
 elseif ~isequal(fdom.out,Cdom.out)
@@ -256,7 +257,7 @@ for i=1:size(Z,1)
 end
 
 % Monomials acted on by more factors than their degree: factor j acts on state
-% Z(i,j), or is a multiplier from R if Z(i,j)=0, see `polyopvar`. Check that this
+% Z(i,j), or is a multiplier from R if Z(i,j)=0. Check that this
 % matches the factors of the operator, as moving the zeros to the right, or
 % placing them elsewhere, changes which factor acts on which state.
 for i=find(nops(:)'>deg(:)')
@@ -320,6 +321,13 @@ end
 function [nin,hasvar] = leaf_inputs(op)
 % Column dimension (nin) and whether it has input variables (hasvar), for each
 % factor in the first term of the (nested) 'tensopvar' op
+%
+% INPUT
+% - op:       'tensopvar' (possibly nested) or 'sopvar' object;
+%
+% OUTPUT
+% - nin:      1 x k array, the column dimension of each factor;
+% - hasvar:   1 x k logical array, true for a factor with input variables.
 nin = zeros(1,0);       hasvar = false(1,0);
 fctrs = op.ops(1,:);
 for j=1:numel(fctrs)

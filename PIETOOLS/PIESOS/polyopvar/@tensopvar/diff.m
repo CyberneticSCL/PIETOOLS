@@ -64,6 +64,7 @@ function dRop = diff(Rop,vars,d)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/20/2026: Initial coding;
 
 % Check that the operator is properly specified
@@ -91,9 +92,18 @@ end
 function [dRop,is_zero] = diff_tensopvar(Rop,vars,d)
 % [DROP,IS_ZERO] = DIFF_TENSOPVAR(ROP,VARS,D) returns the derivative of the
 % tensor-PI operator ROP, for VARS a 1 x r cellstr of unique names and D a
-% p x r array of nonnegative integers (as returned by parse_diff_inputs).
+% p x r array of nonnegative integers.
 % IS_ZERO is true if the derivative is known to be zero, and DROP then is
 % the zero operator.
+%
+% INPUT
+% - Rop:      'tensopvar' object;
+% - vars:     1 x r cellstr of variable names;
+% - d:        p x r array of nonnegative derivative orders;
+%
+% OUTPUT
+% - dRop:     'tensopvar' object, the derivative;
+% - is_zero:  logical.
 if ~Rop.chkval
     Rop = initialize(Rop);
 end
@@ -260,6 +270,13 @@ function C = stack_nested(B,is_valid)
 % for a pointwise product, so that the term is zero outside of block row rr.
 % Differentiation does not change the dimensions and variables of nested
 % factors, so all B{rr} have the same number of columns.
+%
+% INPUT
+% - B:        1 x p cell of nested 'tensopvar' operators;
+% - is_valid: 1 x p logical array;
+%
+% OUTPUT
+% - C:        'tensopvar' object, the stack.
 p = numel(B);
 rr_valid = find(is_valid(:))';
 C = B{rr_valid(1)};

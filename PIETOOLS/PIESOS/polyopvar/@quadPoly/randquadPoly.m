@@ -21,9 +21,33 @@ function F = randquadPoly(dim, nMons, var_s, var_t, maxdeg, density)
 %   This generator builds per-variable exponent sets Zs{i}, Zt{j} such that
 %   prod_i numel(Zs{i}) == ds and prod_j numel(Zt{j}) == dt by distributing
 %   the desired tensor sizes across variables.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - randquadPoly
 %
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                   factorCounts (one caller) inlined into randExpCell.
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 01/16/2026
 
 m = dim(1); 
 n = dim(2);
@@ -62,6 +86,16 @@ function Zcell = randExpCell(dTot, nvar, deg)
 %   - choose per-variable basis sizes ni such that prod(ni)=dTot
 %   - for each variable i, draw ni unique exponents from [0..deg_i] (or allow
 %     repeats if range too small, then unique+sort reduces size, so we guard)
+%
+% INPUT
+% - dTot:   positive integer, the size of the tensor-product basis;
+% - nvar:   nonnegative integer, the number of variables;
+% - deg:    scalar or 1 x nvar array of nonnegative integers, the maximal
+%           degree deg_i of each variable, raised to ni-1 where needed;
+%
+% OUTPUT
+% - Zcell:  1 x nvar cell of sorted unique exponent column vectors, with
+%           prod_i numel(Zcell{i}) = dTot ({} for nvar = 0).
 
 if nvar == 0
     % no variables => constant basis of size 1
@@ -70,17 +104,16 @@ if nvar == 0
 end
 
 % Choose per-variable counts ni with product exactly dTot
-% nPer = factorCounts(dTot, nvar);                                          % MMP, 11/09/2026 (was)
-% Per-variable counts nPer with product exactly dTot: each prime factor of  % MMP, 11/09/2026
-% dTot goes to the currently smallest bucket (the former local              % MMP, 11/09/2026
-% FACTORCOUNTS; dTot = 12, nvar = 3 gives [2 2 3])                          % MMP, 11/09/2026
-pf = factor(dTot);                                                          % MMP, 11/09/2026
-nPer = ones(1, nvar);                                                       % MMP, 11/09/2026
-for p = pf                                                                  % MMP, 11/09/2026
-    [~, idx] = min(nPer);                                                   % MMP, 11/09/2026
-    nPer(idx) = nPer(idx) * p;                                              % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
-nPer = nPer(:).';                                                           % MMP, 11/09/2026
+% Per-variable counts nPer with product exactly dTot: each prime factor of
+% dTot goes to the currently smallest bucket (dTot = 12, nvar = 3 gives
+% [2 2 3])
+pf = factor(dTot);
+nPer = ones(1, nvar);
+for p = pf
+    [~, idx] = min(nPer);
+    nPer(idx) = nPer(idx) * p;
+end
+nPer = nPer(:).';
 
 % Per-variable degree bounds
 if isscalar(deg)

@@ -14,8 +14,7 @@ function n = num_factors(Cop)
 % - The number of factors is that of the first term; 'initialize' checks
 %   that all terms have the same structure.
 % - This is a method of the class, so that Cop.ops is read directly as a
-%   property, not through the 'subsref' of the class (see
-%   @polyopvar/num_factors.m).
+%   property, not through the 'subsref' of the class.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,6 +41,7 @@ function n = num_factors(Cop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 fctrs = Cop.ops(1,:);

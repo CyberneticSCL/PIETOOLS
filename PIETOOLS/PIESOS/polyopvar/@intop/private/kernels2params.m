@@ -4,7 +4,7 @@ function [params,Z,Zd] = kernels2params(kernels,intmat,vars)
 % an 'intop' object in the variables VARS with intervals of integration
 % INTMAT, in terms of the same monomials and decision variables, returning
 % the cell PARAMS of sparse coefficient matrices, the monomials Z, and the
-% decision variables ZD, see the documentation of the 'intop' class.
+% decision variables ZD.
 %
 % INPUTS
 % - kernels:    cell of m x n kernels of type 'double', 'polynomial', or
@@ -20,7 +20,7 @@ function [params,Z,Zd] = kernels2params(kernels,intmat,vars)
 %               'intop' object), with vars.in a 1 x N cellstr specifying
 %               the names of the spatial variables. The dummy variables of
 %               variable vars.in{i} are named
-%               vars.in{i}_dum1,...,vars.in{i}_dumdi (see 'get_tensorvars');
+%               vars.in{i}_dum1,...,vars.in{i}_dumdi;
 %
 % OUTPUTS
 % - params:     cell of the same size as kernels, with element {i1,...,iN}
@@ -43,8 +43,32 @@ function [params,Z,Zd] = kernels2params(kernels,intmat,vars)
 %   in order of first appearance.
 %
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - kernels2params
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/19/2026: Name dummy variables by 'get_tensorvars';
 
 N = numel(vars.in);
 deps = zeros(1,N);

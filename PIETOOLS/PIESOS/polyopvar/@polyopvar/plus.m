@@ -16,7 +16,7 @@ function C = plus(A,B)
 % NOTES
 % - Adding the scalar 0 to a 'polyopvar' object returns that object.
 % - If the output spaces of the polynomials differ, they are lifted to the
-%   same space by 'lift_output': the output of a polynomial is constant
+%   same space: the output of a polynomial is constant
 %   along the output variables it is not defined in. For example, for
 %   p1(x)(s1) and p2(y)(s2), the sum is the function of (s1,s2) defined
 %   by p1(x)(s1) + p2(y)(s2), and the sum of a polynomial in an ODE state
@@ -25,7 +25,7 @@ function C = plus(A,B)
 % - A scalar-valued polynomial (or constant) can be added to a
 %   vector-valued polynomial, and is then added to each of its rows.
 %   Otherwise, the vector dimensions must match.
-% - An adjoint (A=U1', see 'ctranspose') can only be added to an adjoint of
+% - An adjoint (A=U1') can only be added to an adjoint of
 %   the same size with the same weight W, as then U1'*W + U2'*W =
 %   (U1+U2)'*W. The adjoints of scalar polynomials are not added to
 %   adjoints of vectors.
@@ -54,10 +54,8 @@ function C = plus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/03/2026: Add support for addition of polynomials with different
-%                   output spaces (e.g. p1(x1)(s1) + p2(x2)(s2));
-% DJ, 11/07/2026: Add adjoints with the same weight, see 'ctranspose';
 
 % Allow addition of polynomial with 0
 if isnumeric(A) && isequal(A,0)
@@ -107,7 +105,7 @@ end
 
 % Make sure the two distributed polynomials have the same output space, so
 % that the operators defining them can be added
-[A,B] = common_outputs(A,B);                                                % DJ, 11/03/2026
+[A,B] = common_outputs(A,B);
 
 % Make sure the sizes of the polynomials match
 if any(size(A)~=size(B))

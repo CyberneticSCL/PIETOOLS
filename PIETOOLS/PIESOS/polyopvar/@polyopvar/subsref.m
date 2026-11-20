@@ -22,12 +22,12 @@ function out = subsref(obj,ref)
 %           ref(2:end) are applied to the resulting object;
 %
 % NOTES
-% - Only vector-valued polynomials are supported: obj is a single column
-%   (see 'size'), so that the column index j of obj(i,j) and obj{i,j} can
+% - Only vector-valued polynomials are supported: obj is a single column,
+%   so that the column index j of obj(i,j) and obj{i,j} can
 %   only be 1 or ':'. With a single index k, obj(k) is obj(k,1) and obj{k}
 %   is obj{k,1}.
 % - For ref(1).type = '()', i counts the scalar rows of obj, i.e. of the
-%   'tensopmat' obj.C, see 'subsref' for 'tensopmat'. All monomials are
+%   'tensopmat' obj.C. All monomials are
 %   retained. If all blocks are scalar-valued, obj(i,1) represents the
 %   same polynomial as obj{i,1}.
 % - For ref(1).type = '{}', i counts the blocks of rows of obj.C.ops
@@ -39,6 +39,8 @@ function out = subsref(obj,ref)
 % - The keyword 'end' cannot be used: it evaluates to 1 for a 'polyopvar'
 %   (MATLAB's size of the scalar object), so f{end} is f{1} and f(end) is
 %   f(1). Use f{size(f.C.ops,1)} or f(size(f,1)) instead.
+% - For an adjoint obj (obj.is_adjoint = true), '()' and '{}' give an
+%   error.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,13 +67,8 @@ function out = subsref(obj,ref)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/23/2026: Support ':' in f{i,j}, and drop the monomials without a
-%                   nonempty block; several blocks via C{I,J} of tensopmat;
-% DJ, 11/06/2026: Output space of f(i,j), f{i,j} follows from C (see set.C);
-% DJ, 11/07/2026: Reject adjoints for f(i,j) and f{i,j}, see 'ctranspose';
-% DJ, 11/08/2026: Support f(i,1) to extract element (i,1) of f, and f{i,1}
-%                   to extract block (i,1) of (vector-valued) elements;
 
 if isempty(ref)
     out = obj;
@@ -102,7 +99,7 @@ switch ref(1).type
             ref(1).subs{2} = ':';
         end
         C = subsref(C,ref(1));
-        % The output space of out is set by the assignment of out.C, see set.C
+        % The output space of out is set by the assignment of out.C
         out.C = C;
         out.chkval = false;
         out = initialize(out);

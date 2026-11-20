@@ -52,17 +52,8 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/21/2026: Compare empty variable lists regardless of shape;
-% DJ, 10/21/2026: Name variable groups S1, S2 as in 'sopvar';
-% DJ, 10/22/2026: Move 'enumerate_valid_orders' to '@intop/private';
-% DJ, 10/23/2026: Support Kronecker product of operators as a factor in a
-%                   pointwise product.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals
-%                   sparse2struct (one caller, the coefficient loop) and
-%                   IkronZ (one caller, the right basis) inlined.
-% DJ, 11/19/2026: Name copies of the placeholder variables t1,...,tN by
-%                   'get_tensorvars';
 
 % Check that the functional is properly specified.
 if ~isa(Aop,'intop')
@@ -106,7 +97,7 @@ dom = Bop.dom;
 deps1 = Bop.deps.out;         % to what degree does the output depend on each var
 deps2 = Bop.deps.in;
 % Determine which variables are passed through Bop
-% Names as in 'sopvar': S1 = vars.in\vars.out (integrated out),
+% Names: S1 = vars.in\vars.out (integrated out),
 % S2 = vars.out\vars.in (introduced), S3 = common (passed through)
 [vars_S3,idcs_S3_out,idcs_S3_in] = intersect(vars1,vars2,'stable');
 idcs_S2 = setdiff(1:M,idcs_S3_out);
@@ -194,15 +185,13 @@ zmapA = Zmap(Aop.Z.in,Zgrid_A);
 nZgrid_A = prod(cellfun(@(a) size(a,1),Zgrid_A));
 Acoeffs = cell(size(Aparams));
 for k=1:numel(Aparams)
-%   Acoeffs{k} = sparse2struct(Aparams{k},zmapA,nZgrid_A);                  % MMP, 11/09/2026 (was)
-    % the struct of the nonzeros of Aparams{k}, columns (j-1)*nZ+z, with the % MMP, 11/09/2026
-    % monomial z moved to zmapA(z) in a basis of nZgrid_A monomials (the    % MMP, 11/09/2026
-    % former local SPARSE2STRUCT)                                           % MMP, 11/09/2026
-    nZa = numel(zmapA);                                                     % MMP, 11/09/2026
-    [iA,jA,vA] = find(Aparams{k});                                          % MMP, 11/09/2026
-    jbA = ceil(jA/nZa);                                                     % MMP, 11/09/2026
-    zA = jA - (jbA-1)*nZa;                                                  % MMP, 11/09/2026
-    Acoeffs{k} = struct('i',iA(:),'j',(jbA(:)-1)*nZgrid_A + zmapA(zA(:)),'v',vA(:),'m',size(Aparams{k},1),'n',(size(Aparams{k},2)/nZa)*nZgrid_A); % MMP, 11/09/2026
+    % the struct of the nonzeros of Aparams{k}, columns (j-1)*nZ+z, with the
+    % monomial z moved to zmapA(z) in a basis of nZgrid_A monomials
+    nZa = numel(zmapA);
+    [iA,jA,vA] = find(Aparams{k});
+    jbA = ceil(jA/nZa);
+    zA = jA - (jbA-1)*nZa;
+    Acoeffs{k} = struct('i',iA(:),'j',(jbA(:)-1)*nZgrid_A + zmapA(zA(:)),'v',vA(:),'m',size(Aparams{k},1),'n',(size(Aparams{k},2)/nZa)*nZgrid_A);
 end
 ZAR = quadPoly(1);
 if ~isempty(Zdegs_A)
@@ -343,6 +332,7 @@ for i=1:N3
                 %     integrals that are consistent with these limits
                 intmat_tmp = switch_ints(row_out,varsA);
                 ntrms_ll = size(intmat_tmp,1);                            
+                % Each resulting row keeps the parameter indices, order and coefficient of term trm
                 intmat_blocks{j} = intmat_tmp;
                 param_idcsA_blocks{j} = param_idcsA_tmp(trm)*ones(ntrms_ll,1);
                 param_idcsB_blocks{j} = param_idcsB_tmp(trm)*ones(ntrms_ll,1);
@@ -350,12 +340,14 @@ for i=1:N3
                 Ccell_blocks{j} = repmat(Ccell_tmp(trm),ntrms_ll,1); 
                 continue
             end
+            % Otherwise the single row row_out
             intmat_blocks{j} = row_out;                                   
             param_idcsA_blocks{j} = param_idcsA_tmp(trm);               
             param_idcsB_blocks{j} = param_idcsB_tmp(trm);              
             var_orderA_idx_blocks{j} = var_orderA_idx_tmp(trm);  
             Ccell_blocks{j} = Ccell_tmp(trm);
         end
+        % Stack the rows of all terms
         intmat_i = vertcat(intmat_blocks{:});                            
         param_idcsA_i = vertcat(param_idcsA_blocks{:});                   
         param_idcsB_i = vertcat(param_idcsB_blocks{:});                  
@@ -450,11 +442,10 @@ nZ = size(Z_inner,1);
 % (B o I_nZ) is not formed: A*(B o I_nZ) is computed from B itself, by
 % mtimes_kronL below
 % Multiply with right-monomials from B parameters
-% ZR = IkronZ(size(ZBR,1),Z_inner)*ZBR;                                     % MMP, 11/09/2026 (was)
-% I_n o Z_inner for the RIGHT monomial basis Z_inner (a 'quadPoly' whose    % MMP, 11/09/2026
-% coefficients are the identity), n = size(ZBR,1) (the former local IKRONZ) % MMP, 11/09/2026
-nZi = prod(cellfun(@(a) numel(a),Z_inner.Zt));                              % MMP, 11/09/2026
-ZR = quadPoly(speye(size(ZBR,1)*nZi),Z_inner.Zs,Z_inner.Zt,size(ZBR,1)*size(Z_inner),Z_inner.ns,Z_inner.nt)*ZBR; % MMP, 11/09/2026
+% I_n o Z_inner for the RIGHT monomial basis Z_inner (a 'quadPoly' whose
+% coefficients are the identity), n = size(ZBR,1)
+nZi = prod(cellfun(@(a) numel(a),Z_inner.Zt));
+ZR = quadPoly(speye(size(ZBR,1)*nZi),Z_inner.Zs,Z_inner.Zt,size(ZBR,1)*size(Z_inner),Z_inner.ns,Z_inner.nt)*ZBR;
 
 % Terms with the same intervals of integration are merged, as unique_intmat does
 % below, but here on the coefficient structs, before each term is converted to a
@@ -587,7 +578,7 @@ function [params,intmat] = get_params(Rop,vars,varnames,dtot,degs_out,degs_in,pr
 %   dummy variable, which is what the products of the parameters use;
 %
 % OUTPUTS
-% - params:     struct (quadPolyCell-style; see otimes_params.m) with
+% - params:     struct (a 'quadPoly' with cell coefficients) with
 %               fields 'C' (n_ints{1} x ... x n_ints{N3} cell of sparse
 %               coefficient matrices), 'Zs'/'Zt' (shared monomial bases),
 %               'dim', 'ns'/'nt';
@@ -937,6 +928,7 @@ for k=1:numel(coeffs)
 end
 
 % Declare 'quadPoly' objects representing the left- and right-bases
+% ZR: column of the input monomials, the identity coefficients (1 without input variables)
 ZR = quadPoly(1);
 if ~isempty(Zdegs.in)
     n = 1;
@@ -945,6 +937,7 @@ if ~isempty(Zdegs.in)
     sz_coeffs = n*nZ;
     ZR = quadPoly(speye(sz_coeffs),cell(1,0),Zdegs.in,[sz_coeffs,n],cell(1,0),varnames.in);
 end
+% ZL: row of the output monomials (1 without output variables)
 ZL = quadPoly(1);
 if ~isempty(Zdegs.out)
     m = 1;
@@ -974,6 +967,13 @@ function B = mtimes_kronR(A,C)
 % NOTE: A and C should be specified as structs, representing sparse
 % matrices (or dpvar objects) by the nonzero values and the row/column
 % indices in which they appear
+%
+% INPUT
+% - A:      'struct' of a sparse matrix or 'dpvar' (fields i, j, v, m, n);
+% - C:      'struct' of a sparse coefficient matrix;
+%
+% OUTPUT
+% - B:      'struct' of the product A*(Im o C).
 
 % Get the dimension of the coefficient matrices and identity matrix
 n = C.m;    p = C.n;
@@ -1053,6 +1053,13 @@ function C = mtimes_kronL(A,B,n)
 % which has nnz(B)*n nonzeros: column (b-1)*n+z of A (block b, monomial z)
 % is mapped to the columns (j-1)*n+z for the nonzeros (b,j) of B, so the
 % join is over the rows of B only
+%
+% INPUT
+% - A, B:   'struct' of sparse matrices (fields i, j, v, m, n);
+% - n:      integer, the size of the identity I_n;
+%
+% OUTPUT
+% - C:      'struct' of the product A*(B o I_n).
 
 % Multiplication with 0 returns 0
 if isempty(A.v) || isempty(B.v)
@@ -1093,6 +1100,12 @@ end
 function C = mtimes_spstruct(A,B)
 % Take the matrix product of two sparse matrices, specified as structs with
 % fields i, j, v, m, n;
+%
+% INPUT
+% - A, B:   'struct' of sparse matrices (fields i, j, v, m, n);
+%
+% OUTPUT
+% - C:      'struct' of the product A*B.
 
 % The first factor can be 1, the initial value of a product
 if isequal(A,1)
@@ -1138,6 +1151,12 @@ end
 function C = plus_spstruct(A,B)
 % Take the sum of two sparse matrices, specified as structs with
 % fields i, j, v, m, n;
+%
+% INPUT
+% - A, B:   'struct' of sparse matrices of the same size;
+%
+% OUTPUT
+% - C:      'struct' of the sum A+B.
 
 % The first term can be 0, the initial value of a sum
 if isequal(A,0)
@@ -1412,6 +1431,13 @@ function [Zgrid,Zdegs] = grid_basis(Zin)
 % appearing in dummy variable k (in order, for all variables), and ZGRID{i}
 % the array of all combinations of the degrees ZDEGS of the dummy variables
 % of variable i, the first dummy variable changing slowest.
+%
+% INPUT
+% - Zin:    1 x N cell of arrays of monomial degrees;
+%
+% OUTPUT
+% - Zgrid:  1 x N cell of arrays of all combinations of the degrees;
+% - Zdegs:  cell of column vectors, the degrees in each dummy variable.
 
 N = numel(Zin);
 Zgrid = cell(1,N);
@@ -1436,6 +1462,12 @@ function Zgrid = cartesian_grid(Dk)
 % ZGRID = CARTESIAN_GRID(DK) returns the array of all combinations of the
 % degrees in the cell DK of column vectors, one column for each of the
 % cells, the first changing slowest.
+%
+% INPUT
+% - Dk:     cell of column vectors of degrees;
+%
+% OUTPUT
+% - Zgrid:  array of all combinations, a column per cell.
 
 Zgrid = zeros(1,0);
 for k=1:numel(Dk)

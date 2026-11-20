@@ -57,7 +57,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 %           kernel. If vars.in{i} = 'si', then the associated variable
 %           names in the kernel will be
 %               {'si_dum1',...,'si_dumdi'}
-%           for di the "degree" of v in variable si (see 'get_tensorvars');
+%           for di the "degree" of v in variable si;
 %    out:   1 x M cell specifying the names of the spatial variables
 %           defining the output of the operator. Should be empty (M=0) for
 %           the object to be a functional;
@@ -130,12 +130,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Require ordered intmat, see 'intop.canonicalize_intmat';
-% DJ, 11/04/2026: Add dependent property 'kernels';
-% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
-% DJ, 11/19/2026: Name copies in 'get.varnames', 'get.pvars' by
-%                   'get_tensorvars';
 
 
 properties
@@ -209,7 +205,7 @@ function Kop = intop(params,intmat,vars,dom,Z,Zd,chkval)
 % - The spatial variables are sorted, and dom, intmat, params, and Z.in
 %   are permuted accordingly.
 % - Without inputs, INTOP returns an object with the default properties.
-% - The rows of intmat must be ordered, see intop.canonicalize_intmat. This
+% - The rows of intmat must be ordered (canonical form). This
 %   is checked by isvalid; only set chkval to true if the intmat is known 
 %   to be ordered, e.g. if all rows are those of PI operators.
 
@@ -338,6 +334,12 @@ end
 function matdim = get.matdim(Kop)
 % MATDIM = GET.MATDIM(KOP) returns the matrix dimensions of the
 % functional
+%
+% INPUT
+% - Kop:    'intop' object;
+%
+% OUTPUT
+% - matdim: 1 x 2 array [m,n], the matrix dimensions of the functional.
 
 % The dimensions follow from the size of the parameters, the number of
 % decision variables, and the number of monomials
@@ -354,6 +356,9 @@ function dims = get.dims(Kop)
 % DIMS = GET.DIMS(KOP) returns the dimensions of the input and output of
 % the functional
 %
+% INPUT
+% - Kop:  'intop' object;
+%
 % OUTPUTS
 % - dims:   struct with fields 'in' and 'out', with dims.in = n and
 %           dims.out = m, for [m,n] = Kop.matdim.
@@ -368,6 +373,9 @@ end
 function depmat = get.depmat(Kop)
 % DEPMAT = GET.DEPMAT(KOP) returns the degrees of the different
 % variables as they appear in the functional
+%
+% INPUT
+% - Kop:  'intop' object;
 %
 % OUTPUTS
 % - depmat: struct with fields 'in' and 'out'. Each field is a 1 x N array,
@@ -395,6 +403,9 @@ function deps = get.deps(Kop)
 % DEPS = GET.DEPS(KOP) returns the degrees of the different
 % variables as they appear in the functional, as KOP.DEPMAT
 %
+% INPUT
+% - Kop:  'intop' object;
+%
 % OUTPUTS
 % - deps:   struct with fields 'in' and 'out'. Each field is a 1 x N array,
 %           specifying the degree of the input and output to the functional
@@ -410,6 +421,9 @@ end
 function pvars = get.pvars(Kop)
 % PVARS = GET.PVARS(KOP) returns the variables in terms of which the
 % kernels defining Kop are defined.
+%
+% INPUT
+% - Kop:  'intop' object;
 %
 % OUTPUTS
 % - pvars:  struct with fields 'in' and 'out'. Each element is a 1 x N
@@ -438,6 +452,9 @@ function varnames = get.varnames(Kop)
 % VARNAMES = GET.VARNAMES(KOP) returns the names of the variables in terms
 % of which the kernels defining Kop are defined.
 %
+% INPUT
+% - Kop:  'intop' object;
+%
 % OUTPUTS
 % - varnames:   struct with fields 'in', 'in_dum', 'out', and 'out_dum'.
 %               Each element is a 1 x N cell, with each element a 1xdi
@@ -465,6 +482,9 @@ function int_order = get.int_order(Kop)
 % INT_ORDER = GET.INT_ORDER(KOP) returns the order in which integration
 % must be performed for each of the variables in each of the terms in the
 % functional KOP
+%
+% INPUT
+% - Kop:  'intop' object;
 %
 % OUTPUTS
 % - int_order:  1 x N cell, where element i is a qi x di array of integers.
@@ -545,6 +565,9 @@ function K = get.kernels(Kop)
 % cell of the same size as KOP.params, with element K{i1,...,iN} the m x n
 % kernel K_{i1,...,iN} associated with KOP.params{i1,...,iN}, see the
 % documentation of the class.
+%
+% INPUT
+% - Kop:  'intop' object;
 %
 % OUTPUTS
 % - K:      cell of the same size as Kop.params, with each element an m x n

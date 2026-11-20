@@ -17,8 +17,7 @@ function P_out = repelem(P_in,R,varargin)
 %
 % NOTES
 % - Only row-wise replication is supported: repelem(P_in,R,C) with C~=1
-%   is rejected, for the same reason column replication is rejected in
-%   repmat.m.
+%   is rejected, as multi-column 'polyopvar' objects are not supported.
 % - At least one entry of R must be positive, otherwise an error is
 %   thrown.
 
@@ -46,8 +45,10 @@ function P_out = repelem(P_in,R,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
+% Only the column factor 1 (or empty)
 if nargin==3
     if ~(isequal(varargin{1},1) || isempty(varargin{1}))
         error("repelem of 'polyopvar' objects is currently only supported for column replication factor 1.")
@@ -56,6 +57,7 @@ elseif nargin~=2
     error("repelem expects 2 or 3 input arguments.")
 end
 
+% One nonnegative integer count per row
 nr = size(P_in,1);
 if isscalar(R)
     R = R*ones(nr,1);
@@ -65,6 +67,7 @@ if numel(R)~=nr || any(R<0) || any(round(R)~=R)
     error("Replication counts must be nonnegative integers, one per row of P_in.")
 end
 
+% Stack R(i) copies of each row i, in order
 P_out = [];
 for row_idx=1:nr
     Pi = subsref(P_in,substruct('()',{row_idx,':'}));

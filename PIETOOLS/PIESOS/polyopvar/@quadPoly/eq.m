@@ -1,13 +1,13 @@
 function logval = eq(P1,P2,tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % logval = eq(P1,P2,tol) tests equality of two quadpoly P1 and P2 with tolerance tol
-% Date: 6/13/19
 % Version: 1.0
-% 
+%
 % INPUT
-% P1, P2: quadpoly class objects
-% tol: acceptable tolerance value. If max(P1-P2)<tol, then P1=P2
-% 
+% P1, P2: quadpoly class objects; one of them may be the scalar 0
+% tol: (optional) acceptable tolerance value, default 1e-14. If every
+%      coefficient of P1-P2 is smaller than tol in magnitude, then P1=P2
+%
 % OUTPUT
 % logval: returns 1 if the objects are equal, 0 if not equal
 %
@@ -36,29 +36,26 @@ function logval = eq(P1,P2,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % AT, 01/21/2026: Initial coding
+
+% Default tolerance
 if nargin<3
     tol=1e-14;
 end    
 
+% A scalar 0 is replaced by the zero 'quadPoly' of the size of the other
 if ~isa(P1,'quadPoly')&&(P1==0)
     P1 = 0*P2;
-    % ndopvar P1
-    % P1.dom = P2.dom;
-    % P1.dim = P2.dim;
-    % P1.vars = P2.vars;
 elseif  ~isa(P2,'quadPoly')&&(P2==0) 
     P2 = 0*P1;
-    % ndopvar P2
-    % P2.dom = P1.dom;
-    % P2.dim = P1.dim;
-    % P2.vars = P1.vars;
 elseif ~isa(P1,'quadPoly')|| ~isa(P2,'quadPoly')
     error('To check equality either both values must be quadPoly objects, or one of them have to be zero');
 end
 
 diff = P1 - P2; % compute the difference between quadpoly objects
 
+% Equal if every coefficient of the difference is below tol in magnitude
 if max(max(abs(diff.C))) < tol
     logval = true;
 else

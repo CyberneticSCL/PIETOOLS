@@ -6,7 +6,7 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 % where n = MATDIM(2), [ai,bi] = DOM(i,:), and qi = DEPS(i).
 %
 % INPUTS
-% - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
+% - prog:   'struct' specifying a PIESOS program;
 % - matdim: 1 x 2 array specifying the matrix dimensions of the functional;
 % - vars:   1 x N cellstr specifying the names of the spatial variables in
 %           terms of which the functional is defined. Can also be specified
@@ -97,7 +97,7 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 %           specified integrals. The kernels are 'dpvar' objects, defined
 %           by monomials of degrees determined by DEGS, in terms of the
 %           dummy variables 'si_dum1',...,'si_dum<deps(i)>'. The
-%           variables are sorted as in any 'intop' object;
+%           variables are sorted by name;
 %
 % NOTES
 % - A kernel in a term where a dummy variable si_j is set equal to
@@ -129,10 +129,8 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                   select_degs (one caller) inlined as a loop over the
-%                   terms;
 
 
 % Check the matrix dimensions
@@ -263,17 +261,20 @@ else
     degv = degs.full;
     if ~iscell(degv)
         error("Full degrees must be specified as ntrms(1) x ... x ntrms(N) cell, with the monomials of each term, or as 1 x N cell, with the monomials of each variable.")
-    end                                                                     
+    end
     % 1 x N cell of arrays with deps(i) columns for variable i
     is_var_cell = isequal(size(degv),[1,N]) && all(cellfun(@isnumeric,degv(:)));
     for i=1:N
         is_var_cell = is_var_cell && size(degv{i},2)==deps(i);
     end
+    % or an ntrms(1) x ... x ntrms(N) cell, with the monomials of each term
     Nd = max(N,2);
     is_term_cell = ndims(degv)<=Nd && (isequal(size(degv,1:Nd),[ntrms,ones(1,Nd-N)]) || (N==1 && isvector(degv) && numel(degv)==ntrms(1)));
     if is_var_cell
         degs = reshape(degv,1,N);
     elseif is_term_cell
+        % Monomials of each term: an array, or a 1 x N cell of arrays with
+        % deps(i) columns for variable i
         per_term = true;
         if any(cellfun(@(a) ~(isnumeric(a) || iscell(a)),degv(:)))
             error("The monomials of a term must be specified as array, or as 1 x N cell.")
@@ -295,13 +296,11 @@ varnames = reshape(varnames(is_dep),1,[]);    domval = domval(is_dep,:);
 ntrms = ntrms(is_dep);          deps = deps(is_dep);
 intmat = intmat(is_dep);
 if per_term
-%   degs = cellfun(@(a) select_degs(a,is_dep),degs,'UniformOutput',false);  % MMP, 11/09/2026 (was)
-    % the degrees of each term restricted to the kept variables when given  % MMP, 11/09/2026
-    % as a 1 x N cell (the former local SELECT_DEGS; arrays have a column   % MMP, 11/09/2026
-    % per dummy variable and lose none)                                     % MMP, 11/09/2026
-    for kt = 1:numel(degs)                                                  % MMP, 11/09/2026
-        if iscell(degs{kt}),    degs{kt} = degs{kt}(is_dep);    end         % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
+    % Restrict the degrees of each term given as a 1 x N cell to the kept
+    % variables (an array has a column per dummy variable and loses none)
+    for kt = 1:numel(degs)
+        if iscell(degs{kt}),    degs{kt} = degs{kt}(is_dep);    end
+    end
     degs = reshape(degs,[ntrms,1]);     % drop singleton terms of discarded variables
 else
     degs = degs(is_dep);
@@ -367,6 +366,15 @@ function intmat = build_intmat(opt,deps)
 % Then the variables are ordered as r, and every ordering gives a different
 % integral (intmat entries 0 and d+1 stand for the boundaries a and b of
 % the domain).
+%
+% INPUT
+% - opt:    char, 'full', 'nomult', 'lower' or 'upper';
+% - deps:   1 x N array, the number of dummy variables of each variable;
+%
+% OUTPUT
+% - intmat: 1 x N cell; intmat{i} is an ntrms(i) x 2*deps(i) array of the
+%           limits of integration of the dummy variables of variable i, one
+%           row per integral (a 1 x 0 array if deps(i)=0).
 
 N = numel(deps);
 intmat = cell(1,N);
@@ -376,6 +384,7 @@ for i=1:N
         intmat{i} = zeros(1,0);
         continue
     end
+    % Rank vectors R of the orderings of the d dummy variables
     switch opt
         case 'lower'
             R = d:-1:1;
@@ -387,10 +396,12 @@ for i=1:N
                 R = R(max(R,[],2)==d,:);
             end
             % Fewest distinct values first, then decreasing ranks, so that
-            % for d=2 the order is multiplier, lower, upper (as in monopmat)
+            % for d=2 the order is multiplier, lower, upper
             [~,idcs] = sortrows([max(R,[],2),-R]);
             R = R(idcs,:);
     end
+    % One row per ordering r: rep(b) is the first variable of rank b, the
+    % other variables of rank b equal it
     intmat_i = zeros(size(R,1),2*d);
     for t=1:size(R,1)
         r = R(t,:);
@@ -399,6 +410,8 @@ for i=1:N
         for b=1:nb
             rep(b) = find(r==b,1,'first');
         end
+        % Limits of variable j of rank b: [rep(b),rep(b)] if j is not
+        % rep(b), else [0,rep(b+1)], or [0,d+1] for the highest rank
         for j=1:d
             b = r(j);
             if j~=rep(b)
@@ -424,6 +437,13 @@ function R = weak_orders(d)
 % of D variables, so that R(t,j) is the rank of variable j in the t-th
 % ordering, and R(t,:) contains all integers from 1 to max(R(t,:)).
 % Built by choosing the variables with rank 1, and ordering the rest.
+%
+% INPUT
+% - d:  nonnegative integer, the number of variables;
+%
+% OUTPUT
+% - R:  nord x d array of ranks, nord the number of weak orderings (a
+%       1 x 0 array if d=0).
 
 if d==0
     R = zeros(1,0);
@@ -459,8 +479,24 @@ function Zcell = build_monoms(degs,per_term,is_max,intmat,deps,varnames_dum,ntrm
 % of each variable, or if it is a cell of terms with such a 1 x N cell for 
 % each term, the monomials are the product of the monomials in the dummy 
 % variables along each variable, with the first variable changing slowest. 
-% If DEGS is a cell of terms with an array for a term, the array specifies 
-% the monomials in all dummy variables of the term together.                               
+% If DEGS is a cell of terms with an array for a term, the array specifies
+% the monomials in all dummy variables of the term together.
+%
+% INPUT
+% - degs:         1 x N cell (per variable), or ntrms(1) x ... x ntrms(N)
+%                 cell (per term), of degrees as DEGS of the main function;
+% - per_term:     logical, true if degs is a cell of terms;
+% - is_max:       logical, true if degs holds maximal degrees;
+% - intmat:       1 x N cell of the limits of integration, as INTMAT;
+% - deps:         1 x N array, the number of dummy variables per variable;
+% - varnames_dum: 1 x N cell; element i is the cellstr of the names of the
+%                 dummy variables of variable i;
+% - ntrms:        1 x N array, the number of terms along each variable;
+%
+% OUTPUT
+% - Zcell:        ntrms(1) x ... x ntrms(N) cell; element k is the nZ x 1
+%                 'polynomial' of the monomials of the kernel of term k, or
+%                 [] if no monomial remains.
 
 N = numel(deps);
 Zcell = cell([ntrms,1]);
@@ -517,8 +553,19 @@ end
 function a = sort_degs(a,sort_idx,deps)
 % A = SORT_DEGS(A,SORT_IDX,DEPS) reorders the monomials A of a term to 
 % match the variables sorted as SORT_IDX, where DEPS is the degree of each 
-% of the variables in the order specified. The columns of an array, one for 
+% of the variables in the order specified. The columns of an array, one for
 % each of the dummy variables, are reordered in blocks of DEPS(i) columns.
+%
+% INPUT
+% - a:        1 x N cell of monomial degrees per variable, or nmons x
+%             sum(deps) array of monomial degrees;
+% - sort_idx: 1 x N array, the permutation sorting the variables;
+% - deps:     1 x N array, the number of dummy variables of each variable,
+%             in the order specified;
+%
+% OUTPUT
+% - a:        the same degrees, with elements (cell) or column blocks
+%             (array) permuted by sort_idx.
 
 if iscell(a)
     a = a(sort_idx);
@@ -529,7 +576,7 @@ else
     if numel(deps)>1
         cols = mat2cell(1:sum(deps),1,deps);
         a = a(:,[cols{sort_idx}]);
-    end  
+    end
 end
 
 end
@@ -549,6 +596,16 @@ function degmat = degs2degmat(degs,nvars,rm_vars,is_max)
 % variable, or of all variables of a term.
 % Monomials which are not constant in variables RM_VARS are removed, and
 % the columns associated with variables RM_VARS are removed from DEGMAT.
+%
+% INPUT
+% - degs:     scalar or 1 x nvars array of maximal degrees (is_max true),
+%             or nmons x nvars array of monomial degrees;
+% - nvars:    nonnegative integer, the number of dummy variables;
+% - rm_vars:  1 x nvars logical array, the dummy variables to remove;
+% - is_max:   logical, true if degs holds maximal degrees;
+%
+% OUTPUT
+% - degmat:   nmons x nnz(~rm_vars) array of monomial degrees, rows sorted.
 
 if ~isnumeric(degs) || isempty(degs) || any(degs(:)<0) || any(round(degs(:))~=degs(:))
     error("Degrees of the monomials must be specified as nonnegative integers.")
@@ -580,6 +637,12 @@ end
 function degmat = box_degs(maxdegs)
 % DEGMAT = BOX_DEGS(MAXDEGS) returns the degrees (rows) of all monomials in
 % numel(MAXDEGS) variables, of degree at most MAXDEG(j) in variable j.
+%
+% INPUT
+% - maxdegs:  1 x d array of nonnegative integers;
+%
+% OUTPUT
+% - degmat:   prod(maxdegs+1) x d array of monomial degrees.
 
 d = numel(maxdegs);
 vecs = cell(1,d);

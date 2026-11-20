@@ -36,15 +36,15 @@ function disp_struct = get_display(Rop,name,expand)
 %       rows:   struct array with the fields lhs, terms and signs, for each
 %               block row of Rop, with lhs the left-hand side, e.g.
 %               '(Rop x)_1(s) =', and terms and signs for the sum of the
-%               blocks in the row acting on x_j, see
-%               'tensopvar/get_display' and 'intop/get_display'. Empty if
+%               blocks in the row acting on x_j.
+%               Empty if
 %               the operator is not displayed explicitly, see the notes;
 %       xnames: 1 x d cellstr, the names x_j of the functions that the
 %               blocks act on;
 %       xsym:   char, the name x of the function that Rop acts on, from
 %               which x_j follows;
-%       is_id:  logical, true if Rop is an identity operator, see
-%               'is_id_op', in which case 'display' shows (Rop x)_i(s) =
+%       is_id:  logical, true if Rop is an identity operator,
+%               in which case 'display' shows (Rop x)_i(s) =
 %               x_i(s) for each block row i. A block that is an identity
 %               operator is defined as (C_ij x_j)(s) = x_j(s)
 %               = x_j;
@@ -102,8 +102,8 @@ function disp_struct = get_display(Rop,name,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_blocks = 6;         % maximal number of blocks defined as the actual operators
@@ -125,6 +125,7 @@ sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
 sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 L2_sym = ['L',sub_str(2)];                              % L_2
 
+% Names of the blocks: 0 if empty, the value of a scalar double
 blk = cell(p,d);
 types = cell(p,d);
 for i=1:p
@@ -138,6 +139,8 @@ for i=1:p
             blk{i,j} = sprintf('%g',op_ij);
             continue
         end
+        % Otherwise C_ij: subscripts for several block rows, columns, and a
+        % comma between them if an index exceeds 9
         blk_name = 'C';
         if p>1
             blk_name = [blk_name,sub_str(i)];
@@ -195,6 +198,7 @@ for s=1:2
                     dom_strs{q} = [dom_strs{q},sup_str(deps{s}(l,var_idcs(q)))];
                 end
             end
+            % Brackets around a product of intervals, or a power
             if isscalar(var_idcs) && deps{s}(l,var_idcs)==1
                 dom_str = dom_strs{1};
             else
@@ -251,11 +255,13 @@ for k=1:nrows
     else
         line_str = repmat(' ',1,2+numel(lhs));
     end
+    % Row k of blocks (blanks below the last row)
     if k<=numel(row_str)
         line_str = [line_str,row_str{k}];
     else
         line_str = [line_str,repmat(' ',1,numel(row_str{1}))];
     end
+    % Input space k and output space k, with ' : ' and ' --> ' on line 1
     if k<=numel(spc{1})
         spc_in_k = spc_in_str{k};
     else
@@ -273,6 +279,7 @@ for k=1:nrows
     lines{k} = regexprep(line_str,'\s+$','');
 end
 
+% The display structure; notes, definitions and rows are set below
 disp_struct = struct('lines',{lines},'notes',{cell(1,0)}, ...
     'defs',struct('lhs',{},'terms',{},'signs',{}),'xnames',{cell(1,d)},'xsym','','is_id',false,'out_args',{out_args}, ...
     'rows',struct('lhs',{},'terms',{},'signs',{}),'spc_in',{spc{1}},'spc_out',{spc{2}});
@@ -382,6 +389,8 @@ for i=1:p
         if isempty(op_ij) || isa(op_ij,'double')
             continue
         end
+        % (C_ij x_j)(s) = ... for a single-factor 'tensopvar', and
+        % C_ij x_j = ... for an 'intop'
         if isa(op_ij,'tensopvar') && size(op_ij.ops,2)==1
             blk_disp = get_display(op_ij,disp_struct.xnames(j));
             is_ok = blk_disp.expanded;
@@ -396,6 +405,7 @@ for i=1:p
         else
             is_ok = false;
         end
+        % No definitions if some block cannot be displayed explicitly
         if ~is_ok
             return
         end

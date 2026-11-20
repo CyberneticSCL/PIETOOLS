@@ -44,8 +44,8 @@ function disp_struct = get_display(Rop,xnames,expand)
 %               of each of the factors;
 %       in_sym:     char, the symbol that joins the factors x_j of x, which
 %               is o for a tensor product, and = for a pointwise product;
-%       is_id:  logical, true if Rop is an identity operator, see
-%               'is_id_op'. The only term is then the function with its
+%       is_id:  logical, true if Rop is an identity operator.
+%               The only term is then the function with its
 %               spatial variables, e.g. x(s), and expanded is true;
 %
 % NOTES
@@ -83,9 +83,8 @@ function disp_struct = get_display(Rop,xnames,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
-% DJ, 11/06/2026: Get the tensor product from 'varname2display';
 
 % Default settings
 max_ops = 3;           % maximal number of terms for which the operators R_ij are
@@ -149,12 +148,15 @@ fctr_args_side = cell(1,2);     args_side = cell(1,2);      copy_offs_side = cel
 for s=1:2
     nvars_side = numel(var_names{s});
     dep_side = depmat_sides{s};       deg_side = deg_sides{s};
+    % Copies numbered over the factors (tensor product), or from 1 in each
+    % factor (pointwise product)
     if Rop.otype(s)==2
         copy_offs = cumsum(dep_side,1) - dep_side;
     else
         copy_offs = zeros(d,nvars_side);
     end
     copy_offs_side{s} = copy_offs;
+    % Arguments of each factor
     fctr_args = cell(1,d);
     for j=1:d
         fctr_args{j} = cell(1,0);
@@ -170,6 +172,7 @@ for s=1:2
         end
     end
     fctr_args_side{s} = fctr_args;
+    % Arguments of the side: the arguments of all factors, for a tensor product
     if Rop.otype(s)==2
         args_side{s} = [fctr_args{:}];
     else
@@ -265,6 +268,8 @@ if ~expanded
     if K>max_ops
         terms_shown = [1,K];
     end
+    % Term i: the product of the factors (R_ij x_j)(s), with subscripts i, j
+    % for several terms, factors
     terms = cell(1,numel(terms_shown));
     for ii=1:numel(terms_shown)
         i = terms_shown(ii);
@@ -280,6 +285,7 @@ if ~expanded
             if d>1
                 op_name = [op_name,sub_str(j)];
             end
+            % Factor j with its output arguments
             fctr_strs{j} = ['(',op_name,' ',xnames{j},')'];
             if ~isempty(fctr_args_side{1}{j})
                 fctr_strs{j} = [fctr_strs{j},'(',strjoin(fctr_args_side{1}{j},','),')'];
@@ -288,11 +294,13 @@ if ~expanded
         terms{ii} = strjoin(fctr_strs,out_sym);
     end
     signs = ones(1,numel(terms));
+    % An ellipsis between the first and last term
     if K>max_ops
         terms = [terms(1),{'...'},terms(2)];
         signs = ones(1,3);
     end
 end
+% Store the terms
 disp_struct.terms = terms;
 disp_struct.signs = signs;
 disp_struct.expanded = expanded;

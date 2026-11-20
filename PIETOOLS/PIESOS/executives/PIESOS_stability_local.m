@@ -23,9 +23,8 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 % containing u(0) lies in the ball, and V decays along solutions.
 %
 % INPUT
-% - PIE:        'npie_struct' object representing the PIE, as output by
-%               `convert` for a nonlinear PDE. A 'pde_struct' object is
-%               converted to a PIE. Coupled systems, with several PDE
+% - PIE:        'npie_struct' object representing the PIE. A 'pde_struct'
+%               object is converted to a PIE. Coupled systems, with several PDE
 %               states (possibly vector-valued, or ODE states), are
 %               supported;
 % - r:          positive scalar, the radius of the ball;
@@ -35,7 +34,7 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 %               states were declared. For a state depending on N spatial
 %               variables s_1,...,s_N, the array alpha(k_1+1,...,k_N+1)
 %               is the weight of the squared L2 norm of the derivative of
-%               order k_j in s_j, j=1,...,N (see weighted_sobolev_norm): a
+%               order k_j in s_j, j=1,...,N: a
 %               scalar for an ODE state (N=0), a vector for N=1 (use alpha
 %               = [w0,w1,...] for the weights of the derivatives of order
 %               0,1,...), and an array with N dimensions for N>1.
@@ -54,9 +53,11 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 %               ('pie'), or a SOS polynomial in the PDE states u=T*x, plus
 %               eppos*N ('pde'). The form 'pde' can only be used if the
 %               weights alpha involve no derivatives. Defaults to 'pie';
-% - settings:   (optional) 'struct' of settings, as output by
-%               `PIESOS_settings` (see there for the fields). Defaults to
-%               PIESOS_settings();
+% - settings:   (optional) 'struct' of settings, with fields LF
+%               (dist_deg, mon_deg, exclude, sep, psatz, eppos, C, lower),
+%               mult (dist_deg, mon_deg, psatz, exclude), sos (use_ineq,
+%               mon_deg, psatz, exclude), solver, simplify, tol_feas and
+%               verbose. Defaults to PIESOS_settings();
 %
 % OUTPUT
 % - prog_sol:   PIESOS program structure of the solved program;
@@ -109,11 +110,12 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, CR, 11/09/2026: Initial coding, based on LocalStability_v2 by CR;
 
 t_start = tic;
 
-% Check the inputs
+% Check the inputs; defaults alpha = 1, lambda = 0, LF_form = 'pie'
 if nargin<3 || isempty(alpha)
     alpha = 1;
 end
@@ -126,9 +128,12 @@ end
 if nargin<6 || isempty(settings)
     settings = PIESOS_settings();
 end
+% A PDE is converted to a PIE
 if isa(PIE,'pde_struct')
     PIE = convert(PIE,'silent');
 end
+% The radius r is positive and lambda nonnegative; settings.LF.C is a
+% finite positive bound on V (or empty), and settings.LF.lower = 'u'
 states = lower(char(LF_form));
 LF = settings.LF;
 eppos = LF.eppos;
@@ -193,7 +198,7 @@ end
 if strcmp(states,'pie') && ~settings.sos.use_ineq
     % Manual W (Z of degree floor(deg/2), fixed exclude) was infeasible for
     % the heat equation with the weighted H1 norm, where piesos_ineq was
-    % feasible (11/2026)
+    % feasible
     warning("The manual SOS construction (sos.use_ineq=false) is unreliable for V in the PIE states: use sos.use_ineq=true.")
 end
 % ODE states, without spatial variables, only have a multiplier term
@@ -316,6 +321,8 @@ sinfo = prog_sol.solinfo.info;
 feasible = ~(sinfo.pinf || sinfo.dinf || sinfo.numerr || (isempty(C_set) && abs(sinfo.feasratio-1)>settings.tol_feas));
 info = struct('feasible',feasible,'solinfo',sinfo,'V',[],'dV',[],'C',NaN, ...
                 'gain',NaN,'rho',NaN,'lambda',lambda);
+% If feasible: V, dV, the bound C, the gain sqrt(C/eppos) and the radius
+% rho = r*sqrt(eppos/C) of the certified region of attraction
 if feasible
     info.V = piesos_getsol(prog_sol,V);
     info.dV = piesos_getsol(prog_sol,dV);
@@ -328,6 +335,7 @@ if feasible
     info.rho = r*sqrt(eppos/info.C);
 end
 info.time = toc(t_start);
+% Report the result
 if settings.verbose
     if feasible
         fprintf(" --- Local exponential stability verified, with decay rate %g ---\n",lambda)

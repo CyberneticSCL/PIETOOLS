@@ -10,7 +10,7 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program in which to declare the
-%           operator variable (see `piesos_program`);
+%           operator variable;
 % - dims:   q x 1 array specifying the number of coupled state variables
 %           (ni) on which each of the blocks in Zop acts. Can also be
 %           specified as struct with field 'in' containing this array;
@@ -82,7 +82,7 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %               if its type is excluded in any of these variables (e.g.
 %               exclude = [0;0;1] excludes every term with an upper
 %               integral). Variables a state does not depend on are
-%               ignored, see `monopmat`;
+%               ignored;
 %       'sep':  1 x q cell, specifying for each of the operator blocks
 %               whether to enforce separability along each of the
 %               variables. Element opts.sep{i} is a 1 x N3(i) logical
@@ -96,7 +96,7 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %               tensor-PI operator basis. If otype==1, then d_out =
 %               depmat.out. If otype==2, then d_out = d*depmat.out,
 %               where d = max(depmat.in(i,:)). For otype==2, Pmat is a
-%               matrix in the d copies, see `piesos_quadopvar`;
+%               matrix in the d copies si_1,...,si_d of each variable si;
 %
 % OUTPUTS
 % - prog:   'struct' specifying the PIESOS program with the positive
@@ -125,8 +125,7 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %   For example, for state x(s1) and y(s1,s2), Zop maps x to a function
 %   of both s1 and s2.
 % - The operator is declared by `piesos_quadopvar`, with opts.pos=true,
-%   for the same function space and operators on the left and right, see
-%   there for more details on the options.
+%   for the same function space and operators on the left and right.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_poslpivar
@@ -152,13 +151,15 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/21/2026: Describe 3 x 1 'exclude' as OR over variables of a state;
 
 % Check that the inputs are appropriate
 if isstruct(dims) && isfield(dims,'in')
     dims = dims.in;     % monopmat needs only the input dimensions
 end
+% Variables and domains as structs with field 'in'; output fields, if
+% given, must equal the input fields
 if isa(vars,'struct')
     if isfield(vars,'out') && ~isequal(vars.in,vars.out)
         error("Input and output variables must match for self-adjoint positive semidefinite operator.")
@@ -173,6 +174,7 @@ if isa(dom,'struct')
 else
     dom = struct('in',dom);
 end
+% Function spaces likewise
 if isa(depmat,'struct')
     if isfield(depmat,'out') && ~isequal(depmat.in,depmat.out)
         error("Input and output function spaces must match for self-adjoint positive semidefinite operator.")

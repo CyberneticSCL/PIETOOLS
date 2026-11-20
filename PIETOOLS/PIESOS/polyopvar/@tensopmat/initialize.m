@@ -7,8 +7,7 @@ function Cop = initialize(Cop)
 % - Cop:    'tensopmat' object with field Cop.ops specified as a p x d cell
 %           array of 'tensopvar' or 'intop' objects, representing a
 %           concatenation of tensor-PI operators, or of matrices of type
-%           'double', 'polynomial' or 'dpvar' acting on R (see
-%           `tensopmat`). The domains of the variables in such matrices are
+%           'double', 'polynomial' or 'dpvar' acting on R. The domains of the variables in such matrices are
 %           taken from the other blocks, or from Cop.vars and Cop.dom if
 %           already set;
 %
@@ -47,6 +46,7 @@ function Cop = initialize(Cop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Determine the input domain from the first row of operators
@@ -95,6 +95,7 @@ for i=1:p
         for j=find(is_nat(i,:))
             vars_i = [vars_i,native_vars(Cop.ops{i,j})];
         end
+        % Merge them into the output variables, with their domains
         vars_i = unique(vars_i);
         vars_rows{i} = vars_i;
         dom_i = lookup_dom(Cop,is_nat,vars_i);
@@ -104,6 +105,7 @@ for i=1:p
         dom_out = dom_out_full(idcs1_out,:);
         continue
     end
+    % Otherwise the first nonempty block of the row sets the output
     for j=1:d
         op_ij = Cop.ops{i,j};
         if isempty(op_ij)
@@ -153,11 +155,13 @@ for i=1:p
             elseif ~all(ismember(native_vars(op_ij),vars_rows{i}))
                 error("Variables in the block of type 'double', 'polynomial' or 'dpvar' on row %d, column %d must be output variables of the other blocks in the row.",i,j)
             end
+            % A row of such blocks depends only on the variables in them
             if is_nat_row(i)
                 depmat_out(i,ismember(vars_out,vars_rows{i})) = 1;
             end
             continue
         end
+        % Convert other operator classes to 'tensopvar'; initialize or check
         if isa(op_ij,'opvar') || isa(op_ij,'opvar2d')
             op_ij = tensopvar(opvar2sopvar(op_ij));
             Cop.ops{i,j} = op_ij;
@@ -230,10 +234,20 @@ function dom = lookup_dom(Cop,is_nat,names)
 % DOM = LOOKUP_DOM(COP,IS_NAT,NAMES) returns the M x 2 domains of the variables NAMES (1 x M cellstr)
 % that appear in the blocks of type 'double', 'polynomial' or 'dpvar' (marked in IS_NAT), which carry no
 % domain themselves. These are taken from the other blocks, and from Cop.vars, Cop.dom if already set.
+%
+% INPUT
+% - Cop:      'tensopmat' object;
+% - is_nat:   logical array, the blocks of type 'double', 'polynomial' or
+%             'dpvar';
+% - names:    1 x M cellstr of variable names;
+%
+% OUTPUT
+% - dom:      M x 2 array of intervals.
 dom = zeros(numel(names),2);
 if isempty(names)
     return
 end
+% Pool the variables and domains of the other blocks, and of Cop if set
 pool_vars = cell(1,0);      pool_dom = zeros(0,2);
 for k=find(~is_nat(:)' & ~cellfun('isempty',Cop.ops(:))')
     op = Cop.ops{k};
@@ -247,6 +261,7 @@ if numel(Cop.vars.in)==size(Cop.dom.in,1) && numel(Cop.vars.out)==size(Cop.dom.o
     pool_vars = [pool_vars,Cop.vars.in,Cop.vars.out];
     pool_dom = [pool_dom; Cop.dom.in; Cop.dom.out];
 end
+% Domain of each name: its first occurrence in the pool
 [is_found,idcs] = ismember(names,pool_vars);
 if ~all(is_found)
     error("The domain of variable '%s' in a block of type 'double', 'polynomial' or 'dpvar' cannot be determined: specify the variables and their domains as inputs 'vars' and 'dom' to the constructor, or in Cop.vars.out and Cop.dom.out.",names{find(~is_found,1)})

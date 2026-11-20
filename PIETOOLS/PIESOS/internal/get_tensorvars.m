@@ -31,16 +31,9 @@ function vars_out = get_tensorvars(vars,degs,opts)
 %               elements, ordered by variable and then by copy;
 %
 % NOTES
-% - This is the convention of Kop.varnames.in and Kop.varnames.in_dum for
-%   an 'intop' object Kop, of the output of 'apply_op' for a 'tensopvar'
-%   object with otype(1)=2, and of 'piesos_quadopvar', 'piesos_quadvar'.
 % - A single copy is named si_1 (si_dum1), never si (si_dum), so that the
 %   name of a copy does not depend on the number of copies. The bare name
-%   si (option 'bare') is used only where there are no copies: for the
-%   output of an operator without tensor product (a 'sopvar' object, or a
-%   'tensopvar' object with otype(1)=1), and for an output of degree at
-%   most 1 in si returned by 'apply_poly' or 'subs'. The dummy variable
-%   si_dum of a 'sopvar' object is not a copy in this sense.
+%   si (option 'bare') is the name of a variable without copies.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - get_tensorvars
@@ -66,6 +59,7 @@ function vars_out = get_tensorvars(vars,degs,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/19/2026: Initial coding;
 
 % Check the options
@@ -80,6 +74,7 @@ is_valid = ismember(opts,{'dum','full','bare','pvar','polynomial','cellstr','cel
 if ~all(is_valid)
     error("Unknown option '%s'.",opts{find(~is_valid,1)})
 end
+% Flags of the options; 'pvar' and 'cellstr' exclude each other
 is_dum = ismember('dum',opts);
 is_full = ismember('full',opts);
 is_bare = ismember('bare',opts);
@@ -133,7 +128,7 @@ if is_full
     vars_out = [cell(1,0),vars_out{:}];
 end
 
-% Return column vectors of 'pvar' objects, as Kop.pvars for 'intop'
+% Return column vectors of 'pvar' objects
 if is_pvar_out && is_full
     vars_out = polynomial(vars_out(:));
 elseif is_pvar_out

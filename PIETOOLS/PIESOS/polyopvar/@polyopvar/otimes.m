@@ -5,9 +5,9 @@ function C = otimes(A,B,otype)
 %
 % INPUTS
 % - A:     m1 x n1 'polyopvar' object, or a constant such that A.*B.C is
-%          defined, see @tensopmat/times.m;
+%          defined;
 % - B:     m2 x n2 'polyopvar' object, or a constant such that A.C.*B is
-%          defined, see @tensopmat/times.m;
+%          defined;
 % - otype: (optional) scalar 1 or 2, specifying the type of product.
 %          If otype=2 (default), the tensor product is taken, so that C is
 %          the Kronecker product of A and B, with entries Ai(s1)*Bj(s2) in
@@ -24,12 +24,12 @@ function C = otimes(A,B,otype)
 %
 % NOTES
 % - The monomials of C are the products of each monomial of A with each
-%   monomial of B, where the factors of B follow those of A, see
-%   'polyopvar'. For otype=2, the output of such a monomial is a function
+%   monomial of B, where the factors of B follow those of A.
+%   For otype=2, the output of such a monomial is a function
 %   of a copy of the variables for each factor, for otype=1 of a single
-%   copy, see 'polyopvar'.
-% - A.*B calls otimes(A,B,1), see @polyopvar/times.m.
-% - An adjoint (see 'ctranspose') is not supported as a factor, also for
+%   copy.
+% - A.*B calls otimes(A,B,1).
+% - An adjoint is not supported as a factor, also for
 %   times, power and mpower, which call otimes or opower.
 %
 
@@ -57,12 +57,8 @@ function C = otimes(A,B,otype)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/22/2026: Initial coding;
-% DJ, 10/28/2026: Do not merge two states without spatial variables, e.g.
-%                   x.*x, into one factor;
-% DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
-% DJ, 11/06/2026: Set chkval of C.C after replacing its blocks;
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % An adjoint is not a polynomial in the states, so cannot be multiplied
 if (isa(A,'polyopvar') && A.is_adjoint) || (isa(B,'polyopvar') && B.is_adjoint)
@@ -117,7 +113,7 @@ C = A;
 % Declare the full list of monomials appearing in the product of A and B
 [ridcsA,cidcsA,ZvalsA] = find(A.Z);     [nrA,ncA] = size(A.Z);
 [ridcsB,cidcsB,ZvalsB] = find(B.Z);     [nrB,ncB] = size(B.Z);
-% The factors of B follow all factors of A, including the multipliers from R (zeros in Z), see `polyopvar`
+% The factors of B follow all factors of A, including the multipliers from R (zeros in Z)
 [nfacA,~] = num_factors(A);
 dA = repelem(nfacA,nrB,1);
 ridcsA = (ridcsA(:)-1)*nrB + (1:nrB);       % repelem(A.Z,nrB,1)
@@ -131,7 +127,7 @@ Znew = sparse([ridcsA(:);ridcsB(:)],[cidcsA(:);cidcsB(:)],[ZvalsA(:);ZvalsB(:)],
 % Declare the coefficients acting on the full vector of monomials: the
 % product of the outputs of type otype (pointwise or Kronecker), and the
 % tensor product of the inputs, the monomials
-% The output space of C is set by the assignment of C.C, see set.C
+% The output space of C is set by the assignment of C.C
 C.C = otimes(A.C,B.C,[otype,2]);
 C.chkval = true;
 
@@ -186,6 +182,13 @@ end
 function is_ode = ode_monomials(P,nfac)
 % Monomials of P that consist of a single scalar state without spatial 
 % variables, with one factor
+%
+% INPUT
+% - P:        'polyopvar' object;
+% - nfac:     nZ x 1 array, the number of factors of each monomial;
+%
+% OUTPUT
+% - is_ode:   nZ x 1 logical array.
 is_state = P.dims.in(:)==1 & ~any(P.depmat.in,2);
 [ridcs,~,vals] = find(P.Z);
 is_ode = false(size(P.Z,1),1);

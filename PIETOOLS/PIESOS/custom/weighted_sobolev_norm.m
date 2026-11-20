@@ -42,8 +42,8 @@ function g = weighted_sobolev_norm(u,alpha)
 %   g = ||u1||^2 + 2*||d^2 u1/ds1^2||^2 + ||u2||^2 + 3*||d u2/ds2||^2 + 5*u3^2.
 %
 % NOTES
-% - The derivatives are taken of the output of u, see 'diff' for
-%   'polyopvar', so they must again be operators acting on x: an error is
+% - The derivatives are taken of the output of u, so they must again be
+%   operators acting on x: an error is
 %   thrown for a derivative of nonzero weight if u_i involves a multiplier
 %   along the differentiated variable (a derivative of x would be needed);
 % - g is a norm only if all weights are nonnegative, which is not checked;
@@ -72,8 +72,10 @@ function g = weighted_sobolev_norm(u,alpha)
 % If you modify this code, document all changes carefully and
 % include date authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % CR, DJ, 11/09/2026: Initial coding;
 
+% Check the state
 if ~isa(u,'polyopvar')
     error("weighted_sobolev_norm: the state must be specified as 'polyopvar' object.")
 end
@@ -86,6 +88,7 @@ elseif numel(alpha)~=m
     error("weighted_sobolev_norm: alpha must specify the weights for each of the %d components of u.",m)
 end
 
+% Sum the weighted squared L2 norms of the derivatives of each component
 g = 0;
 for i=1:m
     A = alpha{i};

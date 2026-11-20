@@ -48,8 +48,8 @@ function out = subsref(obj,ref)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Allow '()' subsref for single-factor Kronecker products.
 
 if isempty(ref)
     out = obj;

@@ -5,9 +5,9 @@ function F = horzcat(varargin)
 %
 % INPUTS
 % - varargin:   'polyopvar' objects representing distributed polynomials,
-%               or numeric arrays, which are converted to 'polyopvar'
-%               objects using constant2polyopvar. Empty inputs are
-%               ignored. Adjoints (see 'ctranspose') can only be
+%               or numeric arrays, which are converted to constant
+%               'polyopvar' objects. Empty inputs are
+%               ignored. Adjoints can only be
 %               concatenated with other adjoints;
 %
 % OUTPUTS
@@ -49,8 +49,8 @@ function F = horzcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/07/2026: Support horzcat for adjoints of polynomials;
 
 % Return an empty 'polyopvar' object if no inputs are specified
 if nargin==0

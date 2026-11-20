@@ -46,9 +46,10 @@ function logval = is_id_op(Cop,ztol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
-% Check that the operator is properly specified, as in clean_op
+% Check that the operator is properly specified
 if ~Cop.chkval && ~isvalid(Cop)
     error("Tensopmat object is not properly declared.")
 end

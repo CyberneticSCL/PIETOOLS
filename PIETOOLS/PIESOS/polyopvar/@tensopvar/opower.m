@@ -9,8 +9,8 @@ function C = opower(A,d,type)
 % - A:      m x n 'tensopvar' object (or 'sopvar');
 % - d:      nonnegative integer, the order of the product;
 % - type:   (optional) 1 x 2 array of values 1 or 2 indicating what type of
-%           product is taken along the row and column dimensions, as in
-%           'otimes'. Defaults to [1,2]; a scalar specifies type(1), with
+%           product is taken along the row and column dimensions (1:
+%           elementwise, 2: tensor). Defaults to [1,2]; a scalar specifies type(1), with
 %           type(2)=2;
 %
 % OUTPUTS
@@ -50,8 +50,10 @@ function C = opower(A,d,type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
 
+% Check the inputs: d a nonnegative integer; type [1,2] by default
 if nargin<2
     error("Not enough inputs")
 elseif ~isscalar(d) || d<0 || d~=round(d)
@@ -62,10 +64,12 @@ if nargin<=2
 elseif isscalar(type)
     type = [type,2];
 end
+% d = 0: the constant 1
 if d==0
     C = 1;
     return
 end
+% A as an initialized 'tensopvar' (an empty A gives an empty array)
 if ~isa(A,'tensopvar')
     if isa(A,'sopvar')
         A = sopvar2tensopvar(A);
@@ -80,12 +84,13 @@ end
 if ~A.chkval
     A = initialize(A);
 end
+% d = 1: A itself
 if d==1
     C = A;
     return
 end
 
-% A single factor is of any type, as in otimes
+% A single factor is of any type
 if size(A.ops,2)==1
     A.otype = type;
 end
@@ -93,7 +98,7 @@ end
 C = A;
 if all(type==A.otype)
     % Same type as the factors of A: concatenate d copies of each term, the
-    % first copy varying fastest, as in otimes
+    % first copy varying fastest
     K = size(A.ops,1);
     idcs = cell(1,d);
     [idcs{:}] = ndgrid(1:K);

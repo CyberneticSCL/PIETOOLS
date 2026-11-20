@@ -37,6 +37,7 @@ function H = mtimes(F, G)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 06/25/2026: Initial coding;
 
 % ---------- Deal with numeric * quadPoly case ----------
@@ -148,6 +149,13 @@ end
 %%
 function H = leftNumericTimes(A, F)
 % Perform multiplication of numeric A with quadPoly F
+%
+% INPUT
+% - A:      q x m 'double' matrix, or a scalar;
+% - F:      m x n 'quadPoly' object;
+%
+% OUTPUT
+% - H:      q x n 'quadPoly' object A*F (m x n for a scalar A).
 [q, m] = size(A);
 if q==1 && m==1
     % Multiplication with scalar
@@ -170,6 +178,13 @@ end
 %%
 function H = rightNumericTimes(F, B)
 % Perform multiplication of quadPoly F with numeric B
+%
+% INPUT
+% - F:      m x n 'quadPoly' object;
+% - B:      n x p 'double' matrix, or a scalar;
+%
+% OUTPUT
+% - H:      m x p 'quadPoly' object F*B (m x n for a scalar B).
 [n, p] = size(B);
 if n==1 && p==1
     % Multiplication with scalar
@@ -195,12 +210,13 @@ function [ZP, mapMats, nZP] = productBasis1D(ZA, ZB)
 % Take the product of the monomial bases defined by ZA and ZB, by summing
 % all degrees in ZA with all degrees in ZB
 %
-% Inputs:
-%   ZA, ZB : 1×k cells, sorted-unique exponent vectors per variable
-% Outputs:
-%   ZP      : 1×k cells, sorted-unique sums per variable
-%   mapMats : 1×k cells, mapMats{i} is (nAi×nBi) matrix giving index in ZP{i}
-%   nZP     : 1 x k array of integers specifying the new number of exponents
+% INPUT
+% - ZA, ZB:   1×k cells, sorted-unique exponent vectors per variable;
+%
+% OUTPUT
+% - ZP:       1×k cells, sorted-unique sums per variable;
+% - mapMats:  1×k cells, mapMats{i} is (nAi×nBi) matrix giving index in ZP{i};
+% - nZP:      1 x k array of integers specifying the new number of exponents.
 
 k = numel(ZA);
 ZP = cell(1,k);
@@ -243,7 +259,7 @@ function [rsubs,csubs,vals] = find_idcs(C,nr,nc)
 % OUTPUTS
 % - rsubs:  k x m array specifying the monomial index in ZL associated with
 %           each nonzero element of C;
-% - csubs:  k x m array specifying the monomial index in ZL associated with
+% - csubs:  k x n array specifying the monomial index in ZR associated with
 %           each nonzero element of C;
 % - vals:   k x 1 array specifying the nonzero values appearing in C
 %
@@ -283,7 +299,7 @@ function subsC = pairToProdIndex(subsA, subsB, mapMats)
 % SUBSA and SUBSB of A and B, respectively, and determines associated 
 % monomial indices in C, based on MAPMATS;
 %
-% INPTUS
+% INPUTS
 % - subsA:  k x N array of integers, with element (i,j) specifying which 
 %           monomial in variable j in A appears in term i;
 % - subsB:  k x N array of integers, with element (i,j) specifying which 

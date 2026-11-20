@@ -45,8 +45,8 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % - Blocks of type 'tensopvar' are lifted by 'lift_output', which
 %   determines in which factors the new copies of the variables are
 %   introduced.
-% - Blocks of type 'double', 'polynomial' or 'dpvar' acting on R (see
-%   'tensopmat') are not changed (a constant is a constant function),
+% - Blocks of type 'double', 'polynomial' or 'dpvar' acting on R are not
+%   changed (a constant is a constant function),
 %   apart from repeating the rows to lift a scalar to a vector. This also
 %   holds for a row-block consisting of such blocks only, which maps to
 %   the variables that appear in the blocks, and for which the output
@@ -82,6 +82,7 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
 
 % Check that the block operator is properly declared

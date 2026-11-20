@@ -58,6 +58,7 @@ function C = otimes_params(A,B,otype)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 if nargin<=2
@@ -95,10 +96,12 @@ if isa(A,'double') && isa(B,'double')
     else
         C = otimes_double(A,B,otype);
     end
+% Sparse coefficients given as structs of indices, and cells of parameters
 elseif isa(A,'struct') && isfield(A,'ridcs')
     C = otimes_sparse_struct(A,B,otype);
 elseif isa(A,'cell') || isa(B,'cell')
     C = otimes_cell(A,B,otype);
+% Polynomial matrices, and 'quadPoly' objects or their struct form
 elseif (isa(A,'dpvar') || isa(A,'polynomial') || isa(A,'double')) &&...
         (isa(B,'dpvar') || isa(B,'polynomial') || isa(B,'double'))
     C = otimes_dpvar(A,B,otype);
@@ -117,6 +120,14 @@ end
 %%
 function C = otimes_double(A,B,type)
 % % Compute the otimes product for full arrays
+%
+% INPUT
+% - A, B:   full 'double' arrays;
+% - type:   1 x 2 array, the product along the rows and the columns (1
+%           elementwise, 2 Kronecker);
+%
+% OUTPUT
+% - C:      full 'double' array, the product.
 
 if type(1)==1 && type(2)==1
     % Elementwise product along both dimensions
@@ -142,6 +153,15 @@ end
 %% Sparse Matrix Implementation (explicitly using row and column indices)
 function C = otimes_sparse_struct(A,B,type)
 % % Compute the otimes product for sparse matrices specified as structs
+%
+% INPUT
+% - A, B:   'struct' with fields 'ridcs', 'cidcs', 'vals' (the nonzero
+%           triplets) and 'size';
+% - type:   1 x 2 array, the product along the rows and the columns (1
+%           elementwise, 2 Kronecker);
+%
+% OUTPUT
+% - C:      'struct' of the same form, the product.
 ridcsA = A.ridcs(:);    ridcsB = B.ridcs(:);
 cidcsA = A.cidcs(:);    cidcsB = B.cidcs(:);
 valsA = A.vals(:);      valsB = B.vals(:);
@@ -223,6 +243,14 @@ end
 %% Sparse Matrix Implementation
 function C = otimes_sparse(A,B,type)
 % % Compute the otimes product for sparse matrices
+%
+% INPUT
+% - A, B:   'double' arrays, at least one sparse;
+% - type:   1 x 2 array, the product along the rows and the columns (1
+%           elementwise, 2 Kronecker);
+%
+% OUTPUT
+% - C:      sparse 'double' array, the product.
 
 % Distinguish different types
 if type(1)==1 && type(2)==1
@@ -261,6 +289,14 @@ end
 %% dpvar Implementation
 function C = otimes_dpvar(A,B,otype)
 % % Compute the otimes product for 'dpvar' with 'polynomial' objects
+%
+% INPUT
+% - A, B:   'dpvar', 'polynomial' or 'double' arrays, at most one 'dpvar';
+% - otype:  1 x 2 array, the product along the rows and the columns (1
+%           elementwise, 2 Kronecker);
+%
+% OUTPUT
+% - C:      'dpvar' or 'polynomial' array, the product.
 
 % Only one of the object can be of type 'dpvar'
 if isa(A,'dpvar') && isa(B,'dpvar')
@@ -428,6 +464,14 @@ function C = otimes_quadPoly(A,B,otype)
 % % Compute the otimes product for 'quadPoly' objects
 % A = (Im o ZL)' C (In o ZR)
 % B = (Ip o ZL)' D (Iq o ZR)
+%
+% INPUT
+% - A, B:   'quadPoly' objects, or 'double' arrays (constant 'quadPoly');
+% - otype:  1 x 2 array, the product along the rows and the columns (1
+%           elementwise, 2 Kronecker);
+%
+% OUTPUT
+% - C:      'quadPoly' object, the product, in the union of the variables.
 
 if isa(A,'double')
     A = quadPoly(A);
@@ -591,6 +635,16 @@ function C = otimes_quadPolyCell(A,B,otype)
 % coefficients are specified as cells
 % A = (Im o ZL)' C (In o ZR)
 % B = (Ip o ZL)' D (Iq o ZR)
+%
+% INPUT
+% - A, B:   'struct' with the fields of a 'quadPoly' object and a cell of
+%           coefficients C, or 'quadPoly' objects or 'double' arrays;
+% - otype:  1 x 2 array, the product along the rows and the columns (1
+%           elementwise, 2 Kronecker);
+%
+% OUTPUT
+% - C:      'struct' of the same form, the product, with a cell of
+%           coefficients.
 
 if isa(A,'double')
     A = quadPoly(A);
@@ -818,6 +872,15 @@ function C = otimes_cell(A,B,otype)
 % Each element of the cells is assumed to represent a term in an operator,
 % so that the product of the operators (independent of otype) should
 % involve the product of each pair of terms in A and B.
+%
+% INPUT
+% - A, B:   cells of parameters (a non-cell is one parameter), with the
+%           same number of dimensions;
+% - otype:  1 x 2 array, the product along the rows and the columns;
+%
+% OUTPUT
+% - C:      cell of size size(A).*size(B), element k the product of the
+%           elements of A and B at the corresponding indices.
 
 % Assume a single parameter if object is not a cell
 if ~isa(A,'cell')

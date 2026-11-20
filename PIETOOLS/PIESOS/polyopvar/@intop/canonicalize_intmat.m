@@ -129,14 +129,17 @@ function [intmat,params,is_ord] = canonicalize_intmat(intmat,params,check_only)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/22/2026: Initial coding;
 
+% Defaults: no parameters; canonicalize, not only check
 if nargin<2    
     params = [];            
 end
 if nargin<3
     check_only = false;
 end
+% A single array is processed as a cell with one element
 is_array = ~iscell(intmat);
 if is_array
     intmat = {intmat};
@@ -146,6 +149,8 @@ is_ord = cell(1,N);
 if ~isempty(params)
     params = reshape(params,[size(params,1:max(N,1)),1]);
 end
+% Per direction: split the unordered rows into ordered ones, and repeat
+% the parameters of each split row along that direction
 for i=1:N
     [intmat_i,idcs,is_ord{i}] = canonicalize_dir(intmat{i},check_only);
     if check_only || all(is_ord{i})
@@ -184,6 +189,15 @@ function [intmat,idcs,is_ord] = canonicalize_dir(intmat,check_only)
 %   % returns intmat = [0,4,0,3,1,4; 0,2,0,3,0,4], idcs = [1;2] and
 %   % is_ord = [1;0;0]: the first row is ordered, the second is replaced
 %   % by [0,2,0,3,0,4], and the third has an empty region, and is removed.
+%
+% INPUT
+% - intmat:     ntrms x 2*d array, the intmat along one direction;
+% - check_only: logical, true to only check the ordering;
+%
+% OUTPUT
+% - intmat:     the rows in canonical (ordered) form;
+% - idcs:       column array, the input row of each output row;
+% - is_ord:     ntrms x 1 logical array, true for an ordered input row.
 
 q = size(intmat,1);
 d = size(intmat,2)/2;
@@ -204,6 +218,8 @@ if check_only || all(is_ord)
     return
 end
 
+% Replace each unordered row by the ordered rows it splits into; idcs maps
+% each new row to its input row
 rows_new = num2cell(intmat,2);
 for r=find(~is_ord)'
     rows_new{r} = split_row(intmat(r,:));
@@ -296,6 +312,12 @@ function rows = split_row(row)
 %   % returns the rows [0,2,0,4,0,1,0,5] and [0,4,0,1,0,2,0,5], for the
 %   % orderings x_3<=x_1<=x_2<=x_4 and x_3<=x_2<=x_1<=x_4, whereas
 %   % split_row([3,4,1,3,0,4]) returns zeros(0,6): the region is empty.
+%
+% INPUT
+% - row:    1 x 2*d array, a row of an intmat;
+%
+% OUTPUT
+% - rows:   k x 2*d array of ordered rows (k=0 for an empty region).
 
 d = numel(row)/2;
 [bad_vars,Lr,Ur] = unordered_vars(row);

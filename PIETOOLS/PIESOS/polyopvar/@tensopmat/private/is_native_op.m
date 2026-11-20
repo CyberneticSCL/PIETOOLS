@@ -3,8 +3,7 @@ function logval = is_native_op(op)
 % object is a nonempty matrix of type 'double', 'polynomial', or 'dpvar'.
 %
 % Such a block is a multiplier from R, mapping a vector x in R^n to the
-% function M*x in L2^m[S], for S the spatial variables appearing in M, see
-% `tensopmat`.
+% function M*x in L2^m[S], for S the spatial variables appearing in M.
 %
 % INPUTS
 % - op:     block of a 'tensopmat' object, e.g. an m x n matrix of type
@@ -40,6 +39,7 @@ function logval = is_native_op(op)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 logval = (isa(op,'double') || isa(op,'polynomial') || isa(op,'dpvar')) && ~isempty(op);

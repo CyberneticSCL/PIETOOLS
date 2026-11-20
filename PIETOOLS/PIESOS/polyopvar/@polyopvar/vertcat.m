@@ -5,8 +5,8 @@ function F = vertcat(varargin)
 %
 % INPUTS
 % - varargin:   'polyopvar' objects representing distributed polynomials,
-%               or numeric arrays, which are converted to 'polyopvar'
-%               objects using constant2polyopvar. Empty inputs are
+%               or numeric arrays, which are converted to constant
+%               'polyopvar' objects. Empty inputs are
 %               ignored;
 %
 % OUTPUTS
@@ -16,6 +16,7 @@ function F = vertcat(varargin)
 % NOTES
 % - The input function spaces of the coefficients defining the
 %   polynomials (C.dims.in, C.vars.in and C.depmat.in) must match.
+% - Adjoint inputs (is_adjoint = true) give an error.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,15 +43,15 @@ function F = vertcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Determine the output dimensions before assigning F.C;
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % Return an empty 'polyopvar' object if no inputs are specified
 if nargin==0
     F = polyopvar();
     return
 end
+% Adjoints are not concatenated vertically
 if any(cellfun(@(a) isa(a,'polyopvar') && a.is_adjoint,varargin))
     error("polyopvar:adjoint_not_supported","'vertcat' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
@@ -94,7 +95,7 @@ for i=2:nargin
         error("Input function spaces of the coefficients defining the polynomials must match for vertical concatenation.")
     end
     % Output dimensions and dependencies of the concatenation, determined before F.C is
-    % assigned, which sets the output space of F to that of the new coefficients, see set.C
+    % assigned, which sets the output space of F to that of the new coefficients
     dims_out = [F.dims.out; B.dims.out];
     depmat_out = [F.depmat.out; B.depmat.out];
     % Concatenate the coefficient operators defining each polynomial

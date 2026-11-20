@@ -37,14 +37,13 @@ function Kop = combine_terms(Kop,degs,dims,depmat)
 %   the next larger variable, the largest over [a,b], and multipliers
 %   [t,t] follow a variable that is not a multiplier. E.g. [0,3,0,3]
 %   becomes [0,2,0,3] + [0,3,0,1], and [2,3,0,3] becomes [0,3,0,1]. The
-%   rows of an 'intop' are ordered (see intop.canonicalize_intmat), so
+%   rows of an 'intop' are ordered, so
 %   that the limits are never reversed where a cell is nonzero, and the
 %   signed integral and the integral of the indicator function agree.
 %   Integrals over more than 8 variables are not expanded (a warning is
 %   issued).
 % - In each term, the copies of the same state are ordered by decreasing
-%   order of integration (the last variable is integrated first, see
-%   'int_order' in 'intop'), along the first spatial variable on which the
+%   order of integration (the last variable is integrated first), along the first spatial variable on which the
 %   state depends, ties by the next variable, remaining ties keeping their
 %   order. Copies of a state are interchangeable, so the terms that
 %   coincide after this relabeling are added: [0,3,0,3] with kernel k
@@ -82,8 +81,8 @@ function Kop = combine_terms(Kop,degs,dims,depmat)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Update comment on reversed limits, which do not occur;
 
 if nargin==1
     % Just combine terms involving the same integral
@@ -432,6 +431,7 @@ for state_num = 1:p
             lin = lin + reshape((tgt{b,i}-1)*stride,shp);
             stride = stride*nt(i);
         end
+        % Add (or set) the parameters of block b in these cells
         for k=1:numel(lin)
             t = lin(k);
             if is_set(t)
@@ -442,6 +442,7 @@ for state_num = 1:p
             end
         end
     end
+    % The functional on the union of the integrals and monomials
     Kop = blk_ops{1};
     Kop.params = params;
     Kop.intmat = intmat_new;
@@ -521,11 +522,14 @@ for i=1:N
             Znew = [Znew;imgs{iq}(used(:,iq),:)];   %#ok<AGROW>
         end
         Znew = unique(Znew,'rows','stable');
+        % Strides of the new tensor basis of monomials
         nmT = nmon;             nmT(i) = size(Znew,1);
         stT = ones(1,N);
         for k=N-1:-1:1
             stT(k) = stT(k+1)*nmT(k+1);
         end
+        % New column of each old monomial: zmap0 if kept, zmaps{iq} for the
+        % rows iq in which monomials are replaced by their images
         base = zeros(nZ,1);
         for k=setdiff(1:N,i)
             base = base + mod(floor((0:nZ-1)'/st(k)),nmon(k))*stT(k);
@@ -538,6 +542,7 @@ for i=1:N
             imap(used(:,iq)) = loc;
             zmaps{iq} = 1 + base + (imap(zi)-1)*stT(i);
         end
+        % Remap the columns of each parameter by the map of its row
         for lin=1:numel(Kop.params)
             iq = find(rows_m==row_cell(lin));
             if ~isempty(iq) && need(iq)
@@ -550,6 +555,7 @@ for i=1:N
         Kop.Z.in{i} = Znew;
         is_chg = true;
     end
+    % Store the rewritten rows of intmat{i}
     if any(any(rows_new~=imat(rows_m,:)))
         imat(rows_m,:) = rows_new;
         Kop.intmat{i} = imat;
@@ -603,6 +609,7 @@ if has_m && any(dims_full>1)
             if numel(pos)<2 || dims_full(pos(1))==1
                 continue
             end
+            % Within each group of equal factors, sort the element indices
             [~,~,grp] = unique(gid(pos,:),'rows');
             for g=1:max(grp)
                 pg = pos(grp==g);
@@ -611,6 +618,7 @@ if has_m && any(dims_full>1)
                 end
             end
         end
+        % Move each nonzero to the column of the representative product
         repcol = 1 + digs2*stc';
         P = Kop.params{lin};
         jcol = find(any(P,1));
@@ -628,7 +636,7 @@ if has_m && any(dims_full>1)
 end
 
 
-%% Step 5: Sort the rows (cells) as in unique_intmat
+%% Step 5: Sort the rows (cells)
 % so that equal functionals have equal intmat.
 for i=1:N
     imat = Kop.intmat{i};
@@ -657,6 +665,12 @@ function is_ok = is_cell(imat)
 % variables.
 % Used both to find the integrals to expand into cells and the cells whose
 % multipliers are rewritten.
+%
+% INPUT
+% - imat:   ntrms x 2*d array, rows of an intmat;
+%
+% OUTPUT
+% - is_ok:  ntrms x 1 logical array, true for a cell in canonical form.
 d = size(imat,2)/2;
 L = imat(:,1:2:end);        U = imat(:,2:2:end);
 is_dlt = L==U;

@@ -13,6 +13,33 @@ function Q = polynomial2quadPoly(P, sNames, tNames)
 %   - Builds Zs/Zt as unique degrees per variable seen in P.degmat.
 %   - Requires that P.varname contains only sNames∪tNames (constants allowed).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - polynomial2quadPoly
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 02/11/2026
+
 if isa(P,'double')
     P = polynomial(P);
 elseif ~isa(P,'polynomial')
@@ -29,13 +56,6 @@ end
     % Map polynomial variables into left/right positions
     [tfS, posS] = ismember(sNames(:), var);
     [tfT, posT] = ismember(tNames(:), var);
-
-    % if any(~tfS)
-    %     error('polynomial_to_quadPoly:missingVar', 'Some sNames not present in P.varname.');
-    % end
-    % if any(~tfT)
-    %     error('polynomial_to_quadPoly:missingVar', 'Some tNames not present in P.varname.');
-    % end
 
     % Build Zs/Zt degree lists (unique degrees seen per variable)
     Zs = cell(1, numel(sNames));
@@ -115,6 +135,15 @@ end
 
 % ---------------- helpers ----------------
 function d = basisSize(Zcell)
+% D = BASISSIZE(ZCELL) returns the number of monomials of the tensor
+% product basis defined by the exponent vectors in ZCELL (an empty
+% element counts as the constant monomial).
+%
+% INPUT
+% - Zcell:  1 x k cell of exponent vectors;
+%
+% OUTPUT
+% - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
     for k = 1:numel(Zcell)
@@ -125,13 +154,16 @@ function d = basisSize(Zcell)
 end
 
 function stride = kronStrides(sizes)
+% STRIDE = KRONSTRIDES(SIZES) returns the strides of the linear index of a
+% tensor-product basis with factor sizes SIZES,
+%   stride(i) = prod(sizes(i+1:end)).
+%
+% INPUT
+% - sizes:  1 x k array of positive integers;
+%
+% OUTPUT
+% - stride: 1 x k array, with stride(k) = 1.
     % last variable varies fastest
     stride = cumprod(sizes,2,"reverse");
     stride = [stride(2:end),1];
-    % k = numel(sizes);
-    % stride = ones(1,k);
-    % for i = 1:k-1
-    %     stride(i) = prod(sizes(i+1:end));
-    % end
-    % stride(k) = 1;
 end

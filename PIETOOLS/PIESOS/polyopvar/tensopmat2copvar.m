@@ -73,9 +73,10 @@ function Pc = tensopmat2copvar(Pt,dims,vars,depmat)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
-% DJ (CC), 11/03/2026: Reuse metadata of zero operator for the output;
 
+% Check the inputs; an omitted DIMS, VARS or DEPMAT is []
 if ~isa(Pt,'tensopmat')
     error("Operator must be of type 'tensopmat'.")
 end
@@ -122,6 +123,7 @@ for j=1:2
         gdims{j} = cdims{j};
         gnames{j} = cnames{j};
     else
+        % Specified spaces: sizes dims, variables from depmat and vars
         gdims{j} = dims.(sd)(:);
         Pvars = Pt.vars.(sd);
         if isgiven(vars,sd)
@@ -132,6 +134,8 @@ for j=1:2
         end
         gnames{j} = arrayfun(@(k) reshape(sort(Pvars(logical(depmat.(sd)(k,:)))),1,[]),1:numel(gdims{j}),'UniformOutput',false);
     end
+    % Assign each component to the first space with its variables and room
+    % left; the components must fill the spaces exactly
     used = zeros(numel(gdims{j}),1);
     crow{j} = zeros(numel(cdims{j}),1);     cstart{j} = zeros(numel(cdims{j}),1);
     for k=1:numel(cdims{j})
@@ -147,6 +151,7 @@ for j=1:2
         error("The components of the "+sd+"put space do not fill the specified spaces.")
     end
 end
+% No spaces on a side: an empty 'copvar'
 if isempty(gdims{1}) || isempty(gdims{2})
     Pc = copvar();
     return
@@ -174,6 +179,8 @@ for r=1:numel(gdims{1})
                     Bcell{a,b} = Zij.C{1,1};
                     continue
                 end
+                % A nonempty block: its 'sopvar' object, or a constant matrix mapping
+                % from R, converted
                 is_zero = false;
                 if isa(Bij,'tensopvar')
                     if ~isequal(size(Bij.ops),[1,1]) || ~isa(Bij.ops{1,1},'sopvar')

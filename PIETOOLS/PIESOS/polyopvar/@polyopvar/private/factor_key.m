@@ -6,9 +6,9 @@ function nkey = factor_key(Z,nops,is_empty)
 % - Z:          nZ x d array, the monomials of a 'polyopvar', or of
 %               several, stacked;
 % - nops:       nZ x 1 array, the number of factors in the operators
-%               acting on each monomial, see num_factors;
+%               acting on each monomial;
 % - is_empty:   nZ x 1 logical array, true if all operators acting on the
-%               monomial are empty (zero), see num_factors;
+%               monomial are empty (zero);
 %
 % OUTPUTS
 % - nkey:       nZ x 1 array of integers. Monomials with the same Z but
@@ -46,6 +46,7 @@ function nkey = factor_key(Z,nops,is_empty)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 nkey = nops;

@@ -1,5 +1,5 @@
 function disp(obj)
-%FORMAT Pretty-print a quadPoly matrix with tensor-decomposed exponent bases.
+%DISP Pretty-print a quadPoly matrix with tensor-decomposed exponent bases.
 %
 % Representation:
 %   F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t))
@@ -10,16 +10,52 @@ function disp(obj)
 % This function formats each matrix entry F(i,j) as a sum of monomials
 % in the left variables (ns) and right variables (nt).
 %
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals
-%                   toSubscriptTrailingDigits, digitsToSub and
-%                   toSuperscriptInt (one caller each) inlined into monomStr;
-%                   the superseded first subscript table of digitsToSub
-%                   (marked NASGU) dropped.
+% INPUT
+% - obj:    'quadPoly' object;
+%
+% OUTPUT
+% - none: the entries of obj are printed in the command window.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - disp
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 01/16/2026
+
+% Print the formatted matrix
 fprintf('%s\n', format(obj));
 end
 
 function s = format(obj)
+% S = FORMAT(OBJ) returns the display of the 'quadPoly' OBJ, each entry a
+% sum of monomials in the left and right variables.
+%
+% INPUT
+% - obj:    'quadPoly' object of dimension [m,n];
+%
+% OUTPUT
+% - s:      string, a title line and one line per row of the matrix.
 m  = obj.dim(1);
 n  = obj.dim(2);
 
@@ -63,6 +99,8 @@ for j = 1:n
     w(j) = max(strlength(E(:,j)));
 end
 
+% Title line, then one line per row: entries padded to the column widths,
+% separated by commas, rows ended by semicolons
 lines = strings(0,1);
 lines(end+1) = sprintf('quadPoly  (%dx%d)', m, n);
 lines(end+1) = "[";
@@ -91,12 +129,13 @@ end
 function e = tensorExpAt(Zcell, idx)
 %TENSOREXPAT Return exponent vector for tensor basis index idx (1-based).
 %
-% Zcell : 1×k cell, each Zcell{q} is an exponent list for variable q.
-% idx   : linear index in the Kronecker basis ordering consistent with MATLAB kron,
-%         i.e., last variable varies fastest.
+% INPUT
+% - Zcell:  1 x k cell, each Zcell{q} is an exponent list for variable q;
+% - idx:    positive integer, linear index in the Kronecker basis ordering
+%           consistent with MATLAB kron, i.e., last variable varies fastest;
 %
-% Output:
-%   e : k×1 exponent vector aligned with Zcell order.
+% OUTPUT
+% - e:      k x 1 exponent vector aligned with Zcell order.
 
 k = numel(Zcell);
 e = zeros(k,1);
@@ -116,14 +155,28 @@ end
 end
 
 % -------------------------------------------------------------------------
-% Monomial string builder (unchanged, now fed exponent vectors from tensorExpAt)
+% Monomial string builder
 % -------------------------------------------------------------------------
 function ms = monomStr(e, names, greekTheta)
+% MS = MONOMSTR(E,NAMES,GREEKTHETA) returns the string of the monomial
+% with exponents E in the variables NAMES (x1, x2, ... if empty), with
+% subscripts and superscripts.
+%
+% INPUT
+% - e:          1 x k array of exponents;
+% - names:      1 x k cellstr of variable names;
+% - greekTheta: logical, true to display a name starting with t (or
+%               theta) with the symbol theta;
+%
+% OUTPUT
+% - ms:         string, "1" for the constant monomial.
 if isempty(names)
     names = arrayfun(@(k) sprintf('x%d',k), 1:numel(e), 'UniformOutput', false);
 end
 if all(e==0), ms = "1"; return; end
 
+% One factor per variable with a nonzero exponent, a name starting with t
+% displayed with theta if greekTheta
 parts = strings(0,1);
 for k = 1:numel(e)
     ek = e(k);
@@ -136,33 +189,40 @@ for k = 1:numel(e)
             v = "θ" + extractAfter(v,5);
         end
     end
-%   v = toSubscriptTrailingDigits(v);                                       % MMP, 11/09/2026 (was)
-    % trailing digits of the variable name as subscripts (the former locals % MMP, 11/09/2026
-    % toSubscriptTrailingDigits and digitsToSub)                            % MMP, 11/09/2026
-    txt = char(v);                                                          % MMP, 11/09/2026
-    dg = regexp(txt, '\d+$', 'match', 'once');                              % MMP, 11/09/2026
-    if isempty(dg)                                                          % MMP, 11/09/2026
-        v = string(txt);                                                    % MMP, 11/09/2026
-    else                                                                    % MMP, 11/09/2026
-        sub = "";   tbl = '₀₁₂₃₄₅₆₇₈₉';                 % MMP, 11/09/2026
-        for ii = 1:numel(dg),  sub = sub + string(tbl(dg(ii)-'0'+1));  end  % MMP, 11/09/2026
-        v = string(txt(1:end-numel(dg))) + sub;                             % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
+    % Trailing digits of the variable name as subscripts
+    txt = char(v);
+    dg = regexp(txt, '\d+$', 'match', 'once');
+    if isempty(dg)
+        v = string(txt);
+    else
+        sub = "";   tbl = '₀₁₂₃₄₅₆₇₈₉';
+        for ii = 1:numel(dg),  sub = sub + string(tbl(dg(ii)-'0'+1));  end
+        v = string(txt(1:end-numel(dg))) + sub;
+    end
 
     if ek == 1
         parts(end+1) = v;
     else
-%       parts(end+1) = v + toSuperscriptInt(ek);                            % MMP, 11/09/2026 (was)
-        % the exponent as superscript digits (the former local toSuperscriptInt) % MMP, 11/09/2026
-        tbl2 = '⁰¹²³⁴⁵⁶⁷⁸⁹';   dgs = char(num2str(ek));   sup = ""; % MMP, 11/09/2026
-        for ii = 1:numel(dgs),  sup = sup + string(tbl2(dgs(ii)-'0'+1));  end % MMP, 11/09/2026
-        parts(end+1) = v + sup;                                             % MMP, 11/09/2026
+        % The exponent as superscript digits
+        tbl2 = '⁰¹²³⁴⁵⁶⁷⁸⁹';   dgs = char(num2str(ek));   sup = "";
+        for ii = 1:numel(dgs),  sup = sup + string(tbl2(dgs(ii)-'0'+1));  end
+        parts(end+1) = v + sup;
     end
 end
 ms = strjoin(parts, "·"); % centered dot
 end
 
 function ts = termStr(a, ms, mt)
+% TS = TERMSTR(A,MS,MT) returns the string of the term a*ms*mt, for the
+% coefficient A and the monomial strings MS (left) and MT (right).
+%
+% INPUT
+% - a:      scalar coefficient;
+% - ms, mt: strings of the left and right monomials;
+%
+% OUTPUT
+% - ts:     string of the term.
+% Product of the nonconstant monomials
 if ms=="1" && mt=="1"
     varPart = "";
 elseif ms=="1"
@@ -173,12 +233,14 @@ else
     varPart = ms + "·" + mt;
 end
 
+% Coefficient with 2 significant digits (real and imaginary part if complex)
 if isreal(a)
     coef = sprintf('%.2g', a);
 else
     coef = sprintf('(%.2g%+.2gi)', real(a), imag(a));
 end
 
+% The coefficient +-1 is shown only as a sign, unless the term is constant
 if varPart==""
     ts = string(coef);
 elseif a==1
@@ -191,6 +253,15 @@ end
 end
 
 function expr = joinTerms(terms)
+% EXPR = JOINTERMS(TERMS) joins the term strings TERMS into a sum, with
+% the signs of negative terms, skipping the terms "0".
+%
+% INPUT
+% - terms:  string array of terms;
+%
+% OUTPUT
+% - expr:   string of the sum.
+% Skip zero terms; append a negative term as a subtraction
 expr = "";
 for t = 1:numel(terms)
     tt = terms(t);

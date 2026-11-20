@@ -56,11 +56,8 @@ function C = otimes(A,B,type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/08/2026: Separately deal with case of functionals without spatial
-%                   variables (acting on ODE states);
-% DJ, 11/19/2026: Name dummy variables of the copies by 'get_tensorvars',
-%                   renaming those of A too if the product changes them;
 
 % By default, perform Kronecker product along columns but pointwise product
 % along rows
@@ -124,7 +121,7 @@ idcs1 = idcs(1:numel(varsA));       idcs2 = idcs(numel(varsA)+1:end);
 % Update parameters to match full variable list
 % The kernels are expressed as polynomial/dpvar objects, to take their product
 paramsA = kernels(A);               paramsB = kernels(B);
-if N==0                                                                     % DJ, 11/08/2026
+if N==0
     % Without spatial variables, the functionals are constants
     C = intop(otimes_params(paramsA{1},paramsB{1},type));
     return

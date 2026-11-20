@@ -4,7 +4,7 @@ function [A_out,B_out] = common_outputs(A_in,B_in)
 % added. The output variables are those of A_in and B_in together, and the
 % degree of each row-block in each variable is the largest of the two. The
 % output of a polynomial is constant along the variables it was not defined
-% in, see 'lift_output'. A scalar-valued polynomial is also lifted to the
+% in. A scalar-valued polynomial is also lifted to the
 % dimension of a vector-valued one, repeating the scalar in each row.
 %
 % INPUTS
@@ -52,6 +52,7 @@ function [A_out,B_out] = common_outputs(A_in,B_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
 
 A_out = A_in;       B_out = B_in;

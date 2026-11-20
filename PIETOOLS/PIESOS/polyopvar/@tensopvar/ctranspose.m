@@ -11,7 +11,7 @@ function B = ctranspose(A)
 %
 % NOTES
 % - The adjoint of a distributed polynomial U, with U'*V = innerprod(U,V),
-%   is supported for 'polyopvar' objects, see 'polyopvar/ctranspose'.
+%   is supported for 'polyopvar' objects.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,6 +38,7 @@ function B = ctranspose(A)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/07/2026: Initial coding;
 
 error("tensopvar:adjoint_not_supported", ...

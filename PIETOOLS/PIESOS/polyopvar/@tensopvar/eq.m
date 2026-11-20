@@ -42,11 +42,14 @@ function logval = eq(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Assume the tensor-PI operators are not equal
 logval = false;
 
+% Two operators: equal if identical, or if the function spaces match
+% and A-B is zero
 if isa(A,'tensopvar') && isa(B,'tensopvar')
     if isequal(A,B)                                                        
         logval = true;                                                     
@@ -59,6 +62,7 @@ if isa(A,'tensopvar') && isa(B,'tensopvar')
     C = A-B;
     logval = eq(C,0);
     return
+% Otherwise the operator is compared with 0
 elseif ~isa(A,'tensopvar')
     logval = eq(B,A);
     return

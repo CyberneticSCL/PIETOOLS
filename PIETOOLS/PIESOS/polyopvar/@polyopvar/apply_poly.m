@@ -15,9 +15,8 @@ function Y = apply_poly(P,xvals)
 %
 % NOTES
 % - The values are substituted for the states by 'subs', which replaces
-%   the states by constants (see subs_const for its restrictions, e.g. a
-%   polynomial value may only depend on the spatial variables of its
-%   state). This gives a degree-0 polyopvar, of which the value is read
+%   the states by constants (a polynomial value may only depend on the
+%   spatial variables of its state). This gives a degree-0 polyopvar, of which the value is read
 %   off by applying the operators to the dummy input 1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,9 +43,8 @@ function Y = apply_poly(P,xvals)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
-% DJ, 11/19/2026: Name copy s_1 and bare s by 'get_tensorvars';
 
 if ~isa(P,'polyopvar')
     error("First argument must be of type 'polyopvar'.")
@@ -66,8 +64,8 @@ xvals = xvals(1:nstates);
 has_val = ~cellfun(@isempty,xvals);
 if any(any(P.depmat.out>1))
     % An output that is a tensor product of its factors, a function of several copies of a
-    % variable (s_1,s_2,...), cannot be represented by the constant polyopvar that subs returns
-    % (see subs_const): apply the operators to the values directly.
+    % variable (s_1,s_2,...), cannot be represented by the constant polyopvar that subs returns:
+    % apply the operators to the values directly.
     Z = full(P.Z);
     nfac = max(num_factors(P),1);
     Xcell = cell(1,size(Z,1));

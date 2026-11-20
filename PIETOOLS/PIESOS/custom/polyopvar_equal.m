@@ -26,8 +26,6 @@ function [logval, max_error, residual] = polyopvar_equal(F1, F2, tol)
     % - For dpvar-valued objects, this function tests algebraic equality as
     %   affine expressions in the decision variables. It does not use any
     %   equality constraints stored separately in a PIESOS program.
-    % - To compare objects after solving a PIESOS program, first substitute
-    %   the solution using piesos_getsol and then call this function.
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PIETOOLS - polyopvar_equal
@@ -53,11 +51,10 @@ function [logval, max_error, residual] = polyopvar_equal(F1, F2, tol)
     % If you modify this code, document all changes carefully and
     % include date authorship, and a brief description of modifications.
     %
+    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
     % CR, 10/07/2026: Initial coding.
-    % DJ, 10/15/2026: Updated to use new polyopvar functions;
-    % DJ, 11/09/2026: Sum the terms (rows of ops) of a 'tensopvar' 
-    %                   coefficient before testing for zero;
 
+    % Check the inputs; objects of different sizes are not equal
     narginchk(2,3);
 
     if nargin < 3
@@ -84,8 +81,9 @@ function [logval, max_error, residual] = polyopvar_equal(F1, F2, tol)
 
     % Canonicalization accounts for equivalent distributed monomials such
     % as x(t1)*x(t2) and x(t2)*x(t1).
-    residual = clean_poly(F1-F2);                                           % DJ, 10/14/2026
+    residual = clean_poly(F1-F2);
 
+    % Largest absolute coefficient of the residual, over all coefficients
     max_error = 0;
     for term_idx = 1:numel(residual.C.ops)
         coefficient = residual.C.ops{term_idx};
@@ -99,7 +97,7 @@ function [logval, max_error, residual] = polyopvar_equal(F1, F2, tol)
 end
 
 
-function m = max_abs_coef(coefficient)                                      % DJ, 10/14/2026
+function m = max_abs_coef(coefficient)
     % m = max_abs_coef(coefficient) returns the maximal absolute value of the
     % coefficients (of the kernels, for an 'intop', of the parameters, for a
     % 'sopvar') of the operator or polynomial 'coefficient'.
@@ -120,8 +118,9 @@ function m = max_abs_coef(coefficient)                                      % DJ
         m = max_abs_coef(kernels(coefficient));
     elseif isa(coefficient,'tensopvar') && ...
             all(cellfun(@(c) isa(c,'sopvar'),coefficient.ops(:)))
-        % Terms of a sum of tensor products must be added, not compared     % DJ, 11/09/2026
+        % Terms of a sum of tensor products must be added, not compared
         m = max_abs_terms(coefficient.ops);
+    % Other containers and cells: the maximum over their elements
     elseif isa(coefficient,'tensopmat') || isa(coefficient,'tensopvar')
         m = max_abs_coef(coefficient.ops);
     elseif isa(coefficient,'sopvar')
@@ -130,6 +129,7 @@ function m = max_abs_coef(coefficient)                                      % DJ
         for k=1:numel(coefficient)
             m = max(m,max_abs_coef(coefficient{k}));
         end
+    % 'dpvar', 'polynomial' and numeric arrays: their coefficients
     elseif isa(coefficient,'dpvar')
         m = max_abs_coef(coefficient.C);
     elseif isa(coefficient,'polynomial')
@@ -146,7 +146,7 @@ end
 
 
 
-function m = max_abs_terms(ops)                                             % DJ), 11/09/2026
+function m = max_abs_terms(ops)
     % m = max_abs_terms(ops) returns the maximal absolute coefficient of the
     % tensor T = sum_i ops{i,1} (x) ... (x) ops{i,d}, with the terms i merged
     % wherever possible so that cancelling terms give 0.
@@ -166,7 +166,7 @@ function m = max_abs_terms(ops)                                             % DJ
     % OUTPUT
     % - m:      nonnegative scalar, the maximal absolute coefficient of T;
 
-    ztol = 1e-12;                       % as in clean_poly
+    ztol = 1e-12;                       % tolerance for a zero coefficient
     [K,d] = size(ops);
 
     % Split each factor into a unit-max factor Rn and its scale s, so that

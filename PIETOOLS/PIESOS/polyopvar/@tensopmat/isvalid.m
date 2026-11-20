@@ -40,6 +40,7 @@ function [logval,errmsg] = isvalid(Cop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Initialize
@@ -150,6 +151,7 @@ for i=1:p
                 return
             end
             continue
+        % Other blocks: 'tensopvar', or an 'intop' that passes its own check
         elseif ~isa(op_ij,'tensopvar') && ~isa(op_ij,'intop')
             errmsg = errmsg + "Blocks in 'tensopmat' structure must be of type 'tensopvar', 'intop', 'double', 'polynomial' or 'dpvar'.";
             logval = false;

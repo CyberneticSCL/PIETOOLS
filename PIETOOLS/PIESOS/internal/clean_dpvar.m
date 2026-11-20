@@ -39,18 +39,22 @@ function [op,is_zero] = clean_dpvar(op,ztol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
+% 'double': set the small entries to zero
 if isa(op,'double')
     op(abs(op)<=ztol) = 0;
     is_zero = ~any(op(:));
     return
 end
+% 'polynomial': remove the small coefficients
 if isa(op,'polynomial')
     op = cleanpoly(op,ztol);
     is_zero = ~any(op.coefficient(:));
     return
 end
+% 'dpvar': keep the nonzero triplets of op.C above the tolerance
 C = op.C;
 [ii,jj,vv] = find(C);
 is_kept = abs(vv)>ztol;

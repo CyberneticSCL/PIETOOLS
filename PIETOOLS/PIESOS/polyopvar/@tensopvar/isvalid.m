@@ -38,6 +38,7 @@ function [logval,errmsg] = isvalid(Cop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Initialize
@@ -119,7 +120,8 @@ if ~logval
     return
 end
 
-% Check that the different factors 
+% Check that the different factors are 'sopvar', 'tensopvar' or 'intop'
+% objects, with variables and domains among those of the operator
 for k=1:numel(Cop.ops)
     op_k = Cop.ops{k};
     if ~isa(op_k,'sopvar') && ~isa(op_k,'tensopvar') && ~isa(op_k,'intop')
@@ -139,6 +141,7 @@ for k=1:numel(Cop.ops)
         logval = false;
         return
     end
+    % Output variables likewise
     [shared_vars_out,ia_out,ib_out] = intersect(vars_k.out,vars.out,'stable');
     if numel(shared_vars_out)~=numel(vars_k.out)
         errmsg = errmsg + "Output variables of tensor-PI operator must include output variables of all factors.";

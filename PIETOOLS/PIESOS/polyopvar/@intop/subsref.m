@@ -45,6 +45,7 @@ function out = subsref(obj,ref)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 if isempty(ref)
@@ -83,6 +84,7 @@ switch ref(1).type
             elseif islogical(subs)
                 subs = find(subs);
             end
+            % Shape of the output, and the row and column of each selected element
             if n==1
                 odim = [numel(subs),1];
             else
@@ -90,9 +92,11 @@ switch ref(1).type
             end
             rsel = mod(subs(:)-1,m) + 1;
             csel = ceil(subs(:)/m);
+        % Row and column indices
         elseif numel(ref(1).subs)==2
             subs1 = ref(1).subs{1};
             subs2 = ref(1).subs{2};
+            % Row indices: logical, or positive integers up to m
             if islogical(subs1)
                 if numel(subs1)>size(obj,1)
                     error("The logical indices in position 1 contain a true value outside of the array bounds.")
@@ -104,6 +108,7 @@ switch ref(1).type
                     error("Index in position 1 exceeds the number of array elements.")
                 end
             end
+            % Column indices: logical, or positive integers up to n
             if islogical(subs2)
                 if numel(subs2)>size(obj,2)
                     error("The logical indices in position 2 contain a true value outside of the array bounds.")

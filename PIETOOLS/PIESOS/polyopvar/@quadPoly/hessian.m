@@ -2,11 +2,13 @@ function H = hessian(F, vars)
 %HESSIAN compute hessian of quadpoly object F.
 % 
 % INPUTS
-% - P1:   1x1 'quadpoly' class object.
-% - vars:  cell array of names of vars
+% - F:    1x1 'quadpoly' class object.
+% - vars:  (optional) cell array of names of vars, k of them; defaults to
+%          all variables of F, left (ns) then right (nt)
 % 
 % OUTPUTS
-% - H:      'quadpoly' object differentiated with respect all vars
+% - H:      'quadpoly' object differentiated with respect all vars: the
+%           k x k matrix H(i,j) = d^2 F/(d vars{i} d vars{j})
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -37,6 +39,7 @@ function H = hessian(F, vars)
 % AT, 02/18/2026: Initial coding;
 
 
+% Only 'quadPoly' objects; by default all variables of F
 if ~isa(F, 'quadPoly')
     error('quadPoly:hessian:badType', 'hessian supports only quadPoly ');
 end
@@ -46,12 +49,14 @@ if nargin < 2 || isempty(vars)
 end
 
 
+% Only scalar F
 dim = F.dim;
 
 if (dim(1) > 1) || (dim(2) > 1)
     error('quadPoly:hessian:dimMismatch', 'hessian supports only 1x1 quadpoly ')
 end
 
+% Variables as a cell array of names
 if isa(vars, 'char')
     vars = string(vars);
 end
@@ -60,6 +65,7 @@ if ~isa(vars, 'cell')
     vars = num2cell(vars);
 end
 
+% Row i of H: the derivatives of dF/d(vars{i}) in each variable
 for var_ind1 = 1:length(vars)
     var_name1 = vars{var_ind1};
     for var_ind2 = 1:length(vars)
@@ -73,6 +79,7 @@ for var_ind1 = 1:length(vars)
         end
     end
 
+    % Stack the rows
     if var_ind1 == 1
         H = Hrow;
     else

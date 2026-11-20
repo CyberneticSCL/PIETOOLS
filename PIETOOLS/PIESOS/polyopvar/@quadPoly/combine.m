@@ -6,6 +6,40 @@ function obj = combine(obj)
 %
 % This preserves the quadPoly tensor-product basis structure:
 %   Z(s) = kron_i s^{Zs{i}},   Z(t) = kron_j t^{Zt{j}}.
+%
+% INPUT
+% - obj:    'quadPoly' object;
+%
+% OUTPUT
+% - obj:    'quadPoly' object representing the same polynomial, with
+%           sorted variable names and unique degrees per variable.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - combine
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 02/11/2026
 
     % ---------- normalize empties ----------
     if isempty(obj.Zs), obj.Zs = {}; end
@@ -13,6 +47,7 @@ function obj = combine(obj)
     if isempty(obj.ns), obj.ns = cell(1, numel(obj.Zs)); end
     if isempty(obj.nt), obj.nt = cell(1, numel(obj.Zt)); end
 
+    % ---------- dimensions and basis sizes before combining ----------
     m = obj.dim(1);
     n = obj.dim(2);
 
@@ -37,21 +72,15 @@ function obj = combine(obj)
 
     % row block (matrix row), and monomial index in s-basis
     rIn  = ceil(r(:) / ds);     % 1..m
-    % rIn    = mod(r-1, m) + 1;
     sMon = mod(r(:) - 1, ds) + 1;           % 1..ds (old full s-monomial)
-    % sMon   = ceil(r / m);
     sMon2  = mapS(sMon);
 
     % col block (matrix col), and monomial index in t-basis
     cIn  = ceil(c(:) / dt);      % 1..n
-    % cIn    = mod(c-1, n) + 1;
     tMon = mod(c(:) - 1, dt) + 1;           % 1..dt (old full t-monomial)
-    % tMon   = ceil(c / n);
     tMon2  = mapT(tMon);
 
     % New global row/col indices in coefficient matrix
-    % r2 = (sMon2 - 1) * m + rIn;
-    % c2 = (tMon2 - 1) * n + cIn;
 
     r2 = sMon2 + (rIn - 1)*ds_new;
     c2 = tMon2 + (cIn - 1)*dt_new;
@@ -70,10 +99,18 @@ end
 % Helper: combine one side (either s or t)
 % ======================================================================
 function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
-% Returns:
-%   Z_new, names_new : sorted-by-name variables, degrees unique/sorted
-%   mapFull          : mapping old full tensor index -> new full tensor index
-%   d_new            : new basis size
+% [Z_NEW,NAMES_NEW,MAPFULL,D_NEW] = COMBINE_ONE_SIDE(Z,NAMES) sorts the
+% variables of one side of a quadPoly by name, makes the degrees of each
+% variable unique and sorted, and drops variables with only degree 0.
+%
+% INPUT
+% - Z:      1 x k cell of exponent vectors, one per variable;
+% - names:  1 x k cellstr of variable names (unnamed variables last);
+%
+% OUTPUT
+% - Z_new, names_new: sorted-by-name variables, degrees unique/sorted;
+% - mapFull:  mapping old full tensor index -> new full tensor index;
+% - d_new:    new basis size.
 
     % No variables => basis size 1
     if isempty(Z)
@@ -184,6 +221,15 @@ end
 % Index helpers (kron order, last dimension varies fastest)
 % ======================================================================
 function subs = lin2subv(idx, dims)
+% SUBS = LIN2SUBV(IDX,DIMS) returns the subscripts of the linear index IDX
+% in an array of size DIMS, the last dimension varying fastest.
+%
+% INPUT
+% - idx:    positive integer;
+% - dims:   1 x k array of positive integers;
+%
+% OUTPUT
+% - subs:   1 x k array of subscripts.
     k = numel(dims);
     subs = zeros(1,k);
     r = idx - 1;
@@ -196,6 +242,15 @@ function subs = lin2subv(idx, dims)
 end
 
 function idx = subv2lin(subs, dims)
+% IDX = SUBV2LIN(SUBS,DIMS) returns the linear index of the subscripts
+% SUBS in an array of size DIMS, the last dimension varying fastest.
+%
+% INPUT
+% - subs:   1 x k array of subscripts;
+% - dims:   1 x k array of positive integers;
+%
+% OUTPUT
+% - idx:    positive integer.
     k = numel(dims);
     idx = 1;
     for i = 1:k-1
@@ -206,6 +261,15 @@ function idx = subv2lin(subs, dims)
 end
 
 function d = basisSize(Zcell)
+% D = BASISSIZE(ZCELL) returns the number of monomials of the tensor
+% product basis defined by the exponent vectors in ZCELL (an empty
+% element counts as the constant monomial).
+%
+% INPUT
+% - Zcell:  1 x k cell of exponent vectors;
+%
+% OUTPUT
+% - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
     for i = 1:numel(Zcell)

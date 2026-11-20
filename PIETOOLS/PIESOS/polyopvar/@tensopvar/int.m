@@ -1,4 +1,4 @@
-function KCop = int(Cop,W,vars,dom)                                         % DJ, 11/19/2026
+function KCop = int(Cop,W,vars,dom)
 % KCOP = INT(COP,W,VARS,DOM) takes the composition of an integral
 % (functional) with a tensor-PI operator COP,
 %   KCop * x = int_{Omega} W*Cop*x dOmega
@@ -13,7 +13,7 @@ function KCop = int(Cop,W,vars,dom)                                         % DJ
 %           the output variables of Cop, it is integrated along with Cop,
 %           and may depend only on the variables
 %             'si_j'  for the jth copy of vars.out{i}, j=1,...,deps.out(i),
-%                     as named by `apply_op` for a tensor product of the
+%                     for a tensor product of the
 %                     outputs (Cop.otype(1)==2, or degree above 1);
 %             'si'    also for the only copy, if the ith output variable
 %                     vars.out{i} has degree 1 (deps.out(i)==1) and
@@ -65,11 +65,8 @@ function KCop = int(Cop,W,vars,dom)                                         % DJ
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/10/2026: Allow a weight in the copies si_j of the outputs, for
-%                   tensor products;
-% DJ, 11/19/2026: Add optional inputs vars, dom, integrating W over the
-%                   variables on which the output of Cop does not depend;
 
 if nargin<2
     W = [];
@@ -79,7 +76,7 @@ if ~Cop.chkval
     Cop = initialize(Cop);
 end
 
-% Variables of integration on which the output of Cop does not depend:      % DJ, 11/19/2026
+% Variables of integration on which the output of Cop does not depend:
 % integrate W over them, so that KCop integrates over all of VARS. The
 % copies of the output variables are all integrated over below, over the
 % domain of Cop

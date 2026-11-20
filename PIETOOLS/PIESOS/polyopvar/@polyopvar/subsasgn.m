@@ -13,7 +13,7 @@ function out = subsasgn(obj,ref,RHS)
 % OUTPUTS
 % - out:    'polyopvar' object with the desired field value, and with
 %           out.chkval=false, indicating that the object has not been
-%           checked (see initialize) since the field was changed.
+%           checked since the field was changed.
 %           Assigning f.chkval itself just sets the value;
 %
 % NOTES
@@ -47,6 +47,7 @@ function out = subsasgn(obj,ref,RHS)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 switch ref(1).type

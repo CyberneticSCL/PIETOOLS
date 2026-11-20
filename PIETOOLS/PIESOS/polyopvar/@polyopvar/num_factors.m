@@ -17,11 +17,11 @@ function [nfac,nops,is_empty] = num_factors(f)
 %           factors of nested 'tensopvar' objects. Zero if no 'tensopvar'
 %           acts on monomial i, i.e. if it is acted on by 'intop' objects
 %           only (a functional), or by blocks of type 'double',
-%           'polynomial' or 'dpvar' (a known function, see 'tensopmat',
+%           'polynomial' or 'dpvar' (a known function,
 %           for which nfac(i)>=1);
 % - is_empty: nZ x 1 logical array, true if all operators acting on
 %           monomial i are empty (zero), so that it has no factors to
-%           count, see factor_key;
+%           count;
 %
 % NOTES
 % - Factor j of the operator acts on state f.Z(i,j), or, if f.Z(i,j)=0
@@ -31,7 +31,6 @@ function [nfac,nops,is_empty] = num_factors(f)
 %   the degree of the monomial; otherwise, zeros in f.Z(i,:) are just
 %   padding, and initialize moves them to the right, so that
 %   nfac(i)=nnz(f.Z(i,:)) unless a factor acts on several states at once.
-%   See 'polyopvar'.
 % - The number of factors is read from the first term of the operator
 %   in the first row of f.C.ops acting on monomial i that is a
 %   'tensopvar'; initialize checks that all operators acting on the
@@ -62,6 +61,7 @@ function [nfac,nops,is_empty] = num_factors(f)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Index of the last nonzero element of each row of Z
@@ -79,9 +79,9 @@ end
 is_empty = reshape(all(cellfun('isempty',ops),1),[],1);
 nfac = max(nfac,nops);
 % A block of type double/polynomial/dpvar acts on R as a single multiplier, the known factor
-% of a degree-0 monomial (see `tensopmat`), when no tensopvar acts on the monomial: it takes up one
-% factor, so that the factors of a state in a product with it follow its own, see times. nops is not
-% changed, as such a monomial is not merged with one acted on by a 'tensopvar' (see factor_key)
+% of a degree-0 monomial, when no tensopvar acts on the monomial: it takes up one
+% factor, so that the factors of a state in a product with it follow its own. nops is not
+% changed, as such a monomial is not merged with one acted on by a 'tensopvar'
 idcs_nat = find(~any(is_tens,1) & ~is_empty');
 if ~isempty(idcs_nat)
     sub = ops(:,idcs_nat);

@@ -52,6 +52,7 @@ function out = subsasgn(obj,ref,RHS)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 switch ref(1).type
@@ -109,7 +110,7 @@ switch ref(1).type
 
         % Recompute dims/vars/dom/depmat from the updated obj.ops, erroring
         % if the new factor(s) are inconsistent (dims, vars, or domains)
-        % with the rest of the tensor-PI operator -- see @tensopvar/initialize.
+        % with the rest of the tensor-PI operator.
         out = obj;
         out.ops = new_ops;
         out = initialize(out);

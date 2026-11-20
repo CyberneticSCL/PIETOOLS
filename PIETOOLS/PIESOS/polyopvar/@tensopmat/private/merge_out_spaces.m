@@ -1,11 +1,11 @@
 function [A,B] = merge_out_spaces(A,B)
 % [A,B] = MERGE_OUT_SPACES(A,B) takes two 'tensopmat' objects A, B
-% expressed in terms of the same variables (see `common_vars`), and sets
+% expressed in terms of the same variables, and sets
 % the output dependency arrays A.depmat.out(i,:), B.depmat.out(i,:) of each
 % row i that consists of blocks of type 'double', 'polynomial' or 'dpvar'
 % (and empty blocks) in A or B, so that A and B can be added or
 % concatenated. Such a row maps to the variables appearing in its blocks,
-% see `tensopmat`, and the same function can be expressed on more variables
+% and the same function can be expressed on more variables
 % than appear in it:
 % - If the row is of this type in both A and B, then the output variables
 %   are the union of those of A and B;
@@ -50,6 +50,7 @@ function [A,B] = merge_out_spaces(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 if size(A.ops,1)~=size(B.ops,1) || isequal(A.depmat.out,B.depmat.out)

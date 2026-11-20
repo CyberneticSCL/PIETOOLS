@@ -16,7 +16,7 @@ function settings = PIESOS_settings(preset)
 % OUTPUT
 % - settings:   'struct' with fields
 %
-%   Lyapunov functional V (see piesos_LF), of degree 2*LF.dist_deg. The
+%   Lyapunov functional V, of degree 2*LF.dist_deg. The
 %   form of V, in the PIE states x or in the PDE states u=T*x, is not set
 %   here, but specified as input LF_form of the executives
 %     LF.dist_deg   positive integer, maximal degree d of the distributed
@@ -24,7 +24,7 @@ function settings = PIESOS_settings(preset)
 %                   If d>1, there is no global upper bound on V;
 %     LF.mon_deg    nonnegative integer, degree of the monomials in the
 %                   spatial variables in the kernels of the basis operators
-%                   Zop in V (opts.degs of piesos_LF);
+%                   Zop in V;
 %     LF.exclude    3 x 1 logical, the terms to exclude from Zop: the
 %                   multiplier (1), the lower integral (2) and the upper
 %                   integral (3) term, or 'auto'. For 'auto', [0;0;0] is
@@ -32,7 +32,7 @@ function settings = PIESOS_settings(preset)
 %                   a multiplier operator, if LF_form is 'pde';
 %     LF.sep        logical, true to enforce separable kernels in Zop;
 %     LF.psatz      nonnegative integer, order of the psatz multipliers in
-%                   the SOS matrix defining V, as in piesos_sosvar;
+%                   the SOS matrix defining V;
 %     LF.eppos      positive scalar, the weight of the lower bound
 %                   V >= eppos*N(u) on V, with N the norm of the test;
 %     LF.C          [], Inf or positive scalar, the constant C in the upper
@@ -46,7 +46,7 @@ function settings = PIESOS_settings(preset)
 %                   leaves out e.g. the history states of delays, whereas
 %                   the upper bound remains in terms of u;
 %
-%   SOS multipliers p1, p2 of the local test (see piesos_sosvar), p1 in
+%   SOS multipliers p1, p2 of the local test, p1 in
 %   the upper bound on V, p2 in the derivative condition on dV. They are
 %   not used by the global test
 %     mult.dist_deg 1 x 2 array of nonnegative integers, the degrees of
@@ -79,7 +79,7 @@ function settings = PIESOS_settings(preset)
 %                   derivative condition, respectively. NaN to let
 %                   piesos_ineq select the degree (use_ineq only);
 %     sos.psatz     1 x 3 array, orders of the psatz multipliers in the
-%                   SOS polynomials, as in piesos_sosvar;
+%                   SOS polynomials;
 %     sos.exclude   3 x 1 logical, the terms to exclude from the operators
 %                   of the SOS polynomials, as LF.exclude (only used if
 %                   use_ineq is false, otherwise they follow from the
@@ -87,7 +87,7 @@ function settings = PIESOS_settings(preset)
 %
 %   Solver
 %     solver        char, the SDP solver (e.g. 'mosek', 'sedumi'), or ''
-%                   to use the default of piesos_solve;
+%                   for the default solver;
 %     simplify      logical, true to simplify the SDP before solving;
 %     tol_feas      scalar, if C is minimized, the program is taken to be
 %                   solved if the feasibility ratio of the solver is within
@@ -128,6 +128,7 @@ function settings = PIESOS_settings(preset)
 %
 % DJ (CC), 11/09/2026: Initial coding;
 
+% Default preset
 if nargin<1 || isempty(preset)
     preset = 'default';
 end

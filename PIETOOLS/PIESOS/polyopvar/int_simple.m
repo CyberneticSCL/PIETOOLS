@@ -1,6 +1,6 @@
 function Eint = int_simple(E,ivar,x1,x2)
-% Eint = int(E,var,L,U) integrates the dpvar or polynomial E in independent 
-% variable var from lower limit L to upper limit U
+% EINT = INT_SIMPLE(E,IVAR,X1,X2) integrates the dpvar or polynomial E in
+% independent variable IVAR from lower limit X1 to upper limit X2
 %
 % NOTE: This function is distinct from the standard "int" functions in that
 % it allows only (scalar) 'pvar' or 'double' expressions for the upper and
@@ -50,6 +50,7 @@ function Eint = int_simple(E,ivar,x1,x2)
 % MMP, 11/08/26 - Moved unchanged from opvar/2D/ to misc/: it acts on
 %   'polynomial' and 'dpvar' only, PIESOS (@intop/apply_op) calls it, and
 %   opvar/ is being retired (opvar removal plan, Phase 6).
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 if nargin<4
     error('At least 4 input arguments are required')

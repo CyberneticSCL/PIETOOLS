@@ -12,7 +12,7 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program in which to declare the
-%           operator variable (see `piesos_program`);
+%           operator variable;
 % - dims:   struct with fields
 %  L/out:   p x 1 array specifying the number of coupled state variables
 %           (mi) on which each of the blocks in ZopL acts;
@@ -89,10 +89,15 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %           the degree in si of the basis monomials of Pmat is reduced by
 %           ceil(qi/2), so that the degree of Pmat in si does not exceed
 %           twice its degree in degs.out;
-% exclude, sep, otype:  options of the operators ZopL and ZopR, see the
-%           `monopmat` function for how these can be specified, used for
+% exclude, sep, otype:  options of the operators ZopL and ZopR, used for
 %           each operator for which the option is not specified in opts.L
-%           or opts.R. The value otype=2 (in otype(1)) declares a
+%           or opts.R: 'exclude' a 3^N3 logical array (or a 3 x 1 array,
+%           or a 1 x q cell, one per block) of the multiplier, lower and
+%           upper integral terms to exclude along the N3 variables of both
+%           input and output; 'sep' a 1 x N3 logical array (or a 1 x q
+%           cell), true to enforce separability along a variable; 'otype'
+%           the type of product of the factors, a scalar or one per block.
+%           The value otype=2 (in otype(1)) declares a
 %           tensor-product output, and otype=3 both a pointwise and a
 %           tensor-product output, see NOTES;
 %    L/R:   (optional) structs with fields 'exclude', 'sep', and 'otype',
@@ -135,7 +140,7 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %   of vars.R not in vars.L; degs.L/R.out and psatz refer to this order.
 % - With otype(1)=2, Zop has a tensor-product (Kronecker) output: a block
 %   acting on a monomial of d factors maps to d copies of each primary
-%   variable si, named si_1,...,si_d (see `int`), and V=<Zop*Z,Pmat*Zop*Z>
+%   variable si, named si_1,...,si_d, and V=<Zop*Z,Pmat*Zop*Z>
 %   integrates over all copies. The field degs.out gives
 %   the degrees of the basis Zs in each copy, as a scalar, a 1 x P array
 %   (for all copies of a variable), or a d x P array (a row per copy, for
@@ -151,7 +156,7 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %   distributed (SOS) functionals.
 % - With otype=3 for a block, Zop has a pointwise and a tensor-product
 %   block row acting on that block (one block row if the block has a single
-%   factor, for which the two coincide, see `monopmat`), so that Pmat also
+%   factor, for which the two coincide), so that Pmat also
 %   has cross terms between the two types of products.
 %   ZopL and ZopR may also have a different otype. 
 
@@ -179,11 +184,8 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/10/2026: Support otype(1)=2 (tensor-product Zop), with Pmat and
-%                   psatz in the copies si_j; collect data in structs;
-% DJ, 11/19/2026: Support different tensor products (different otype) in
-%                   different blocks in ZopL/R; 
 
 % Check that the inputs are appropriate
 % ZopL acts on the space (L.dims,L.vars,L.dom,L.depmat), ZopR on that of R
@@ -265,6 +267,7 @@ elseif isnumeric(opts.psatz)
         error("'opts.psatz' must be specified as 1 x N array of integers or ND logical array.")
     end
     opts = rmfield(opts,'psatz');
+% Logical array: the psatz terms used, one dimension per variable
 elseif islogical(opts.psatz)
     if ~any(opts.psatz,'all')
         error("At least one of the elements of 'opts.psatz' must be true.")
@@ -289,7 +292,7 @@ end
 if any(npsatz>1) && ~is_pos
     error("Psatz multipliers can only be used if Pmat is positive semidefinite (opts.pos=true).")
 end
-% Options of ZopL, ZopR: those in opts.L, opts.R, the same for both if      % DJ, 11/19/2026
+% Options of ZopL, ZopR: those in opts.L, opts.R, the same for both if
 % only one is specified, and those in opts itself (exclude, sep, otype)
 % for each operator for which opts.L or opts.R does not specify them
 if isfield(opts,'L') && ~isfield(opts,'R')
@@ -311,10 +314,10 @@ for fname = {'exclude','sep','otype'}
         R.opts.(fname{1}) = opts.(fname{1});
     end
 end
-% A tensor-product output of Zop (otype(1)=2, or 3 for both) maps to        % DJ, 11/19/2026
+% A tensor-product output of Zop (otype(1)=2, or 3 for both) maps to
 % several copies of the primary variables, which are then the variables of
 % Pmat, Zs and psatz. The type of the output of each block is otype(:,1)
-% for an array with 2 columns, and otype otherwise (see monopmat), and
+% for an array with 2 columns, and otype otherwise, and
 % ZopL and ZopR may have different types
 is_tens = false;
 for k=1:2
@@ -346,7 +349,7 @@ if isstruct(degs) && (isfield(degs,'L') || isfield(degs,'R'))
     end
     L.degs = degs.L;    R.degs = degs.R;
 end
-% Degrees of the operators ZopL, ZopR: those of the input, with degs.out=0.     % DJ, 11/19/2026
+% Degrees of the operators ZopL, ZopR: those of the input, with degs.out=0.
 for k=1:2
     if k==1,    S = L;
     else,       S = R;
@@ -367,15 +370,15 @@ end
 % coincide, ZopR=ZopL
 Zop_of = @(S) monopmat(S.dims,struct('in',{S.vars},'out',{out.vars}),...
                     struct('in',S.dom,'out',out.dom),...
-                    struct('in',S.depmat,'out',S.depmat_out),S.degs_Zop,S.opts);    % DJ, 11/19/2026
+                    struct('in',S.depmat,'out',S.depmat_out),S.degs_Zop,S.opts);
 ZopL = Zop_of(L);
 if isequal({L.dims,L.vars,L.dom,L.depmat,L.degs_Zop,L.opts},...
-            {R.dims,R.vars,R.dom,R.depmat,R.degs_Zop,R.opts})               % DJ, 11/19/2026
+            {R.dims,R.vars,R.dom,R.depmat,R.degs_Zop,R.opts})
     ZopR = ZopL;
 else
     ZopR = Zop_of(R);
 end
-% For each block row of ZopL and ZopR, the block (state) on which           % DJ, 11/19/2026
+% For each block row of ZopL and ZopR, the block (state) on which
 % it acts, and its number of copies of the primary variables (1 for a
 % pointwise output). With otype=3, two block rows act on the same block
 [ridcs,cidcs] = find(~cellfun(@isempty,ZopL.ops));
@@ -387,7 +390,7 @@ R.nfac = max([full(ZopR.depmat.out),ones(numel(ridcs),1)],[],2);
 
 % The primary variables of Pmat: the output variables, or for otype(1)=2
 % their copies, with the degrees of the monomials of Zs in each of them.
-% Declared after ZopL and ZopR, which define the block rows                 % DJ, 11/19/2026
+% Declared after ZopL and ZopR, which define the block rows
 if is_tens
     vars_P = getvars_tensor(out,L,R,npsatz);
 else
@@ -411,7 +414,7 @@ end
 
 % Declare for each block row i of ZopL, ZopR a basis ZsL{i}, ZsR{i} of
 % monomials in the primary variables, with exponents degs_out{i} of
-% vars_P.L, vars_P.R (variable 1 slowest, as for ZL in sopvar). In si,
+% vars_P.L, vars_P.R (variable 1 slowest). In si,
 % exponents above max(degs_out)-ceil(qi/2) are cut, for psatz order qi, so
 % that each term g_k*Zs'*Qk*Zs has degree <= 2*max(degs_out).
 red_deg = ceil((vars_P.npsatz-1)/2);
@@ -487,11 +490,20 @@ function [XL,XR] = split_LR(X,name)
 % struct X, with fields L (or out) and/or R (or in). If X is an array, or
 % if only one of the fields is specified, the same value is used for both.
 % NAME is used in error messages.
+%
+% INPUT
+% - X:      array, or 'struct' with fields L (or out) and/or R (or in);
+% - name:   char, the name of the input, for error messages;
+%
+% OUTPUT
+% - XL, XR: the values for the left and right operator.
 
+% An array is used for both
 if ~isstruct(X)
     XL = X;     XR = X;
     return
 end
+% Each side given at most once, by either name
 isL = isfield(X,{'L','out'});       isR = isfield(X,{'R','in'});
 if ~any(isL) && ~any(isR)
     error("Input '%s' must be specified as an array, or as a struct with fields L/out and/or R/in.",name)
@@ -505,6 +517,7 @@ end
 if any(isR)
     XR = X.(fnamesR{isR});
 end
+% A side not given takes the value of the other
 if ~any(isL)
     XL = XR;
 elseif ~any(isR)
@@ -523,6 +536,18 @@ function Zs = declare_Zs(degs_out,is_dep_out,varnames,red_deg)
 % primary variables, with exponents degs_out{i} as returned by split_degs.
 % The degree in each variable is cut by the entry of RED_DEG for that
 % variable, but to at least the minimal exponent.
+%
+% INPUT
+% - degs_out:   1 x q cell; degs_out{i} is a cell of column vectors of
+%               exponents, one per variable on which block row i depends;
+% - is_dep_out: q x P logical array, the primary variables of each block
+%               row;
+% - varnames:   1 x P cellstr, the names of the primary variables;
+% - red_deg:    1 x P array, the degree reduction in each variable;
+%
+% OUTPUT
+% - Zs:         q x 1 cell; Zs{i} is the nZ_i x 1 'polynomial' basis of
+%               block row i, or 1 if it depends on no variable.
 
 q = numel(degs_out);
 Zs = cell(q,1);
@@ -624,11 +649,11 @@ function vars_P = getvars_tensor(out,L,R,npsatz)
 N = numel(out.vars);
 sides = {L,R};
 % The number of copies of each block row, from ZopL and ZopR
-nfac = {L.nfac,R.nfac};                                                     % DJ, 11/19/2026
+nfac = {L.nfac,R.nfac};
 d = max([nfac{1};nfac{2}]);
 % The copies, ordered by variable and then by copy
 P = N*d;
-names = get_tensorvars(out.vars,d,'full');      dom = zeros(P,2);           % DJ, 11/19/2026
+names = get_tensorvars(out.vars,d,'full');      dom = zeros(P,2);
 copies = struct('var',zeros(1,P),'copy',zeros(1,P));
 for i=1:N
     for j=1:d
@@ -643,8 +668,8 @@ vars_P = struct('names',{names},'dom',dom,'npsatz',npsatz_copies, ...
 for k=1:2
     S = sides{k};
     % A row per block row of Zop, with the dependence of its block
-    dep = S.depmat_out(S.blk_idcs,copies.var) & (copies.copy<=nfac{k});     % DJ, 11/19/2026
-    degs_out = copy_degs(S.degs,S.depmat_out,nfac{k},dep,copies,S.blk_idcs);    % DJ, 11/19/2026
+    dep = S.depmat_out(S.blk_idcs,copies.var) & (copies.copy<=nfac{k});
+    degs_out = copy_degs(S.degs,S.depmat_out,nfac{k},dep,copies,S.blk_idcs);
     side = struct('dep',dep,'degs_out',{degs_out});
     if k==1
         vars_P.L = side;
@@ -659,9 +684,9 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function degs_out = copy_degs(degs,depmat_out,nfac,dep,copies,blk_idcs)     % DJ, 11/19/2026
+function degs_out = copy_degs(degs,depmat_out,nfac,dep,copies,blk_idcs)
 % DEGS_OUT = COPY_DEGS(DEGS,DEPMAT_OUT,NFAC,DEP,COPIES,BLK_IDCS) splits
-% the monomial degrees DEGS, specified as in 'monopmat', into the degrees
+% the monomial degrees DEGS into the degrees
 % of the copies of the output variables for each block row of Zop, for the
 % basis Zs of Pmat (otype(1)=2, see getvars_tensor).
 %
@@ -703,16 +728,18 @@ elseif isscalar(degs_raw)
 elseif numel(degs_raw)~=q
     error("Degrees must be specified as integer array or 1 x q cell for q inputs.")
 end
-% Use the degrees and dependence of the block of each block row             % DJ, 11/19/2026
+% Use the degrees and dependence of the block of each block row
 degs_raw = degs_raw(blk_idcs);      depmat_out = depmat_out(blk_idcs,:);
 r = numel(blk_idcs);
 degs_out = cell(1,r);
 for i=1:r
+    % Degrees in the Mi output variables of block row i (none if Mi = 0)
     Mi = nnz(depmat_out(i,:));
     if Mi==0
         degs_out{i} = cell(1,0);
         continue
     end
+    % A maximal degree a gives the exponents 0..a; a cell lists them
     degval = degs_raw{i};
     if isnumeric(degval)
         if isscalar(degval)
@@ -754,13 +781,12 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function degs_out = split_degs(degs,is_dep_out)                             % DJ, 11/19/2026
+function degs_out = split_degs(degs,is_dep_out)
 % DEGS_OUT = SPLIT_DEGS(DEGS,IS_DEP_OUT) extracts from the monomial
-% degrees DEGS, specified as in 'monopmat', the degrees of the output
-% (primary) variables.
+% degrees DEGS the degrees of the output (primary) variables.
 %
 % INPUTS
-% - degs:       monomial degrees as specified in 'monopmat': numeric, cell,
+% - degs:       monomial degrees: numeric, cell,
 %               or struct with fields 'in' and 'out'. If numeric or cell,
 %               the same degrees are used for the input and output;
 % - is_dep_out: q x M logical array, specifying for each of the q blocks
@@ -769,18 +795,17 @@ function degs_out = split_degs(degs,is_dep_out)                             % DJ
 % OUTPUTS
 % - degs_out:   1 x q cell, with degs_out{i} a 1 x Mi cell of column
 %               vectors specifying the exponents of the monomials in each
-%               of the Mi output variables on which block i depends, as
-%               the field ZL in 'sopvar' (maximal degrees d are expanded
-%               to (0:d)');
+%               of the Mi output variables on which block i depends
+%               (maximal degrees d are expanded to (0:d)');
 %
 % NOTES
-% - Mirrors the processing of degs.out in 'monopmat' (subroutine
-%   process_degs) for a single factor, as the primary monomial appears only
-%   in the first factor of the tensor-PI operator (opts.otype(1)==1);
+% - degs.out is processed for a single factor, as the primary monomial
+%   appears only in the first factor of the tensor-PI operator
+%   (opts.otype(1)==1);
 
 [q,M] = size(is_dep_out);
 if isnumeric(degs) || iscell(degs)
-    % Same degrees for input and output, as in monopmat
+    % Same degrees for input and output
     degs = struct('in',{degs},'out',{degs});
 elseif ~isstruct(degs) || ~isfield(degs,'in') || ~isfield(degs,'out')
     error("Options 'degs' must be specified as a struct with fields 'in' and 'out'.")

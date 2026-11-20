@@ -5,7 +5,7 @@ function Top = native2op(M,X,i)
 % 'tensopvar' object, so that the product with another 'tensopvar' (otimes,
 % mtimes) is taken by the regular product of 'tensopvar' objects. The
 % output space is that of the row, depmat.out(i,:), also if M depends on
-% fewer of its variables (see `tensopmat`).
+% fewer of its variables.
 %
 % INPUTS
 % - M:      m x n matrix of type 'double' or 'polynomial';
@@ -47,6 +47,7 @@ function Top = native2op(M,X,i)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 if isa(M,'dpvar')

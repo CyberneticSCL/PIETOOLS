@@ -15,14 +15,16 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % is enforced for independent y and x, so that dV has the same form.
 %
 % INPUTS
-% - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
+% - prog:   'struct' specifying a PIESOS program;
 % - PIE:    'npie_struct' representing the PIE for which a Lyapunov
-%           functional is sought, as output by `convert_PIETOOLS_PDE`
-%          , with operators T and f, the
+%           functional is sought, with operators T and f, the
 %           function space PIE.space of the PIE, with the names of the
 %           states PIE.space.x.varname, and the names of the PDE states
 %           PIE.space_pde.x.varname, associated to the PIE states by
-%           PIE.pde2pie.x.idx;
+%           PIE.pde2pie.x.idx. A PDE state name shared by several PIE
+%           states (e.g. a delayed state and its history) is made unique
+%           by appending _i, i the index of the PIE state, for every PIE
+%           state after the first;
 % - xvars:  n x 1 'polyopvar' array of individual state variables, or
 %           cellstr with their names, specifying the state variables on
 %           which V depends. These may be PDE state variables, PIE state
@@ -37,9 +39,10 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %           cumulative degrees of the monomials in all of the variables
 %           (then Z may contain more than m rows);
 % - opts:   (optional) struct with fields:
-%           - 'degs': struct or array specifying the degrees of the
-%               monomials to use in the parameterization of the operators
-%               Zop. See `piesos_quadvar` for more details;
+%           - 'degs': struct with fields 'in' and 'out', or an array or
+%               cell used for both, specifying the degrees of the monomials
+%               in the dummy variables (kernels of Zop) and in the primary
+%               variables (basis of Pmat(s)), respectively;
 %           - 'exclude': 3x1 boolean array indicating whether to exclude
 %               the multiplier term (exclude(1)=1), lower integral
 %               (exclude(2)=1), or upper integral (exclude(3)=1) from the
@@ -74,7 +77,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %           opts.derivative). prog, V, Pmat and Zop do not depend on this;
 % - Pmat:   m x m cell, with Pmat{i,j} a 'dpvar' object in the primary
 %           variables, defining the matrix Pmat(s) (a block for each
-%           monomial in Z, see `piesos_quadvar`);
+%           monomial in Z);
 % - Zop:    m x n 'tensopmat' object representing the monomial basis
 %           operator acting on the distributed monomial basis defined by
 %           Z. If xvars has PDE and PIE state variables, Pmat and Zop are
@@ -86,10 +89,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %   the PIE, also for nonlinear terms in f, the pointwise products of
 %   operators acting on the state, which give nested tensor-PI operators.
 % - The derivative is computed in the linear representation of V, as a
-%   polynomial in x with a functional as coefficient. `piesos_LF_alt`
-%   computes it in the quadratic representation, which does not support
-%   nonlinear terms in f, unless Zop only multiplies.
-% - Based on the function `V3_Liediff` by CR (see Examples/LocalStability).
+%   polynomial in x with a functional as coefficient.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,15 +116,8 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding, based on V3_Liediff by CR;
-% DJ, 10/23/2026: Fix for vector-valued states;
-% DJ, 10/29/2026: Use the function spaces and names of the components in
-%                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
-% DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
-%   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
-% DJ, 11/08/2026: Extract term k by C{':',k} and Z(k,:);
-% DJ, 11/09/2026: Give PIE components obtained from the same PDE component
-%                  (e.g. a delayed state and its history) unique PDE names;
 
 % Check the options
 if nargin<=4
@@ -143,16 +136,16 @@ end
 get_dV = ~isfield(opts,'derivative') || logical(opts.derivative);
 
 % Extract the PDE and PIE state variables
-if ~isa(PIE,'npie_struct')                                                  % DJ, 10/29/2026
+if ~isa(PIE,'npie_struct')
     error("The PIE must be specified as 'npie_struct'.")
 end
-if ~PIE.is_initialized                                                      % DJ, 10/29/2026
+if ~PIE.is_initialized
     PIE = initialize(PIE);      
 end
 varname_pie = PIE.space.x.varname;
 varname_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));
 % PIE components from the same PDE component share its name: make unique
-[~,idcs_first] = unique(varname_pde,'stable');                              % DJ, 11/09/2026
+[~,idcs_first] = unique(varname_pde,'stable');
 for i=setdiff(1:numel(varname_pde),idcs_first)
     varname_pde{i} = [varname_pde{i},'_',num2str(i)];
 end
@@ -232,7 +225,7 @@ if size(degmat,2)==numel(varnames) && numel(varnames)>1
 end
 
 % Determine the function space in which the states exist
-pvars = PIE.space.vars;                                     % spatial variables      % DJ, 10/29/2026
+pvars = PIE.space.vars;                                     % spatial variables
 xsize = PIE.space.x.dims(idcs_PIE);                         % state size          
 xdepmat = PIE.space.x.depmat(idcs_PIE,:);                   % dependence on spatial variables  
 dom = PIE.space.dom;                                        % spatial domain     
@@ -257,7 +250,7 @@ if ~isequal(idcs_PIE(:)',1:numel(varname_pie))
     % Indexing is not supported for operators of multiple components, so
     % only index if V depends on a subset of the states
     % A vector-valued state occupies several rows of T and f
-    xrow0 = cumsum([0;PIE.space.x.dims]);                                   % DJ, 10/29/2026
+    xrow0 = cumsum([0;PIE.space.x.dims]);
     rows_PIE = cell2mat(arrayfun(@(i) xrow0(i)+1:xrow0(i+1),idcs_PIE(:)','UniformOutput',false));
     Top = Top(rows_PIE,:);
     fx = fx(rows_PIE,:);                    % d/dt (Tx) = f(x)
@@ -297,7 +290,7 @@ elseif isfield(opts,'pos') && opts.pos
     % enforcing V(x)=W(x)
     error("Enforcing positivity of mixed PDE-PIE state LF is currently not supported.")
 end
-[prog,Vxu,Pmat,ZopL,ZopR] = piesos_quadvar(prog,Zx,Zu,opts);                % <-- is there any advantage using piesos_polyvar instead for non-sym case?
+[prog,Vxu,Pmat,ZopL,ZopR] = piesos_quadvar(prog,Zx,Zu,opts);
 if ~isequal(ZopL,ZopR)
     error("The same operators must be used on the left and right of the Lyapunov functional.")
 end

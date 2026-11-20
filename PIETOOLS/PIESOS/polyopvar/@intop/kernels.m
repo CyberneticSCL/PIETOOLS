@@ -1,8 +1,7 @@
 function K = kernels(Kop)
 % K = KERNELS(KOP) returns the kernels defining the functional KOP, as a
 % cell of the same size as KOP.params, with element K{i1,...,iN} the m x n
-% kernel K_{i1,...,iN} associated with KOP.params{i1,...,iN}, see the
-% documentation of the 'intop' class.
+% kernel K_{i1,...,iN} associated with KOP.params{i1,...,iN}.
 %
 % INPUTS
 % - Kop:    m x n 'intop' object;
@@ -48,8 +47,8 @@ function K = kernels(Kop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/04/2026: Return Kop.kernels, see 'get.kernels' in 'intop';
 
 K = Kop.kernels;
 

@@ -6,8 +6,8 @@ function C = opower(A,d,otype)
 % INPUTS
 % - A:     m x n 'polyopvar' object;
 % - d:     nonnegative integer, the order of the product;
-% - otype: (optional) scalar 1 or 2, specifying the type of product, as in
-%          'otimes'. If otype=2 (default), the tensor product is taken, so
+% - otype: (optional) scalar 1 or 2, specifying the type of product.
+%          If otype=2 (default), the tensor product is taken, so
 %          that C is a function of a copy of the variables for each factor,
 %              C(s1,...,sD) = A(s1) o ... o A(sD).
 %          If otype=1, the elementwise product is taken, so that C is a
@@ -20,9 +20,9 @@ function C = opower(A,d,otype)
 % NOTES
 % - If d=0, C=1 is returned, and if d=1, C=A.
 % - For a polynomial with output variables and without constant terms, the
-%   coefficients of C are the D-th power of those of A, see
-%   @tensopmat/opower.m, acting on the monomials x_{i1} o ... o x_{iD},
-%   for all combinations of D monomials of A, followed by combine_terms.
+%   coefficients of C are the D-th power of those of A
+%   acting on the monomials x_{i1} o ... o x_{iD},
+%   for all combinations of D monomials of A, equal terms then combined.
 %   C has nZ^D monomials, for A with nZ monomials: the products of
 %   monomials in a different order, e.g. x1*x2 and x2*x1, are not combined.
 % - For a functional (no output variables), monomials of the same degree in
@@ -31,8 +31,8 @@ function C = opower(A,d,otype)
 %   squaring, combining terms after each product with otimes. The same
 %   holds if A has constant terms (monomials of degree 0), as otimes
 %   merges their factors with those of other monomials.
-% - A.^D is the elementwise power opower(A,D,1), see @polyopvar/power.m.
-% - An adjoint (see 'ctranspose') is not supported.
+% - A.^D is the elementwise power opower(A,D,1).
+% - An adjoint is not supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,14 +59,16 @@ function C = opower(A,d,otype)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
+% Check the inputs: d a nonnegative integer
 if nargin<2
     error("Not enough inputs")
 elseif ~isscalar(d) || ~isnumeric(d) || d<0 || d~=round(d)
     error("The order of the product, d, must be a nonnegative integer.")
 end
+% otype 1 or 2 (default 2); A a polyopvar that is not an adjoint
 if nargin<3
     otype = 2;
 elseif ~isscalar(otype) || ~any(otype==[1,2])
@@ -78,6 +80,7 @@ end
 if A.is_adjoint
     error("polyopvar:adjoint_not_supported","'opower' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
+% d = 0: the constant 1
 if d==0
     C = 1;
     return
@@ -99,7 +102,7 @@ if ~any(is_const) && any(A.depmat.out(:)) && d>1
     n = size(A.Z,1);
     % Take the tensor power of the coefficients
     C = A;
-    C.C = opower(A.C,d,[otype,2]);      % sets the output space of C, see set.C
+    C.C = opower(A.C,d,[otype,2]);      % sets the output space of C
     C.chkval = true;
     % Take the tensor power of the monomials
     idx0 = (0:n^d-1)';

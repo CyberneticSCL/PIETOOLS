@@ -66,8 +66,10 @@ function Pt = copvar2tensopmat(P,dims,vars,depmat)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
 
+% Check the inputs; an omitted DIMS, VARS or DEPMAT is []
 if ~isa(P,'copvar')
     error("Operator must be of type 'copvar'.")
 end

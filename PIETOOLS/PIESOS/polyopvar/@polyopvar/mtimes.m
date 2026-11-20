@@ -5,7 +5,7 @@ function C = mtimes(A,B)
 %
 % INPUTS
 % - A:     'polyopvar' object, or a constant (e.g. 'double' array) such
-%          that A*B.C is defined, see @tensopmat/mtimes.m;
+%          that A*B.C is defined;
 % - B:     'polyopvar' object, or a numeric scalar;
 %
 % OUTPUTS
@@ -13,7 +13,7 @@ function C = mtimes(A,B)
 %
 % NOTES
 % - The product of two 'polyopvar' objects is only supported if one of
-%   them is scalar, and is computed using times.
+%   them is scalar, and is then the elementwise product A.*B.
 % - Right-multiplication of a 'polyopvar' object A by a constant is only
 %   supported for a numeric scalar B.
 % - Left-multiplication of B by a non-scalar 'double' matrix A returns a
@@ -23,9 +23,8 @@ function C = mtimes(A,B)
 %   to a common output space, e.g. elements of R become elements of L2[s1]
 %   that are constant in s1.
 % - Multiplication of a non-scalar matrix with a monomial on which an
-%   operator with several factors acts (e.g. x0*u) is not supported, see
-%   @tensopvar/mtimes.m.
-% - If A is an adjoint (A=U'*W, see 'ctranspose'), A*B is
+%   operator with several factors acts (e.g. x0*u) is not supported.
+% - If A is an adjoint (A=U'*W), A*B is
 %   - for a 'polyopvar' B, the inner product innerprod(U,W,B), a scalar
 %     'polyopvar', so that U'*B = innerprod(U,B);
 %   - for a 'double', 'polynomial' or 'dpvar' B with as many rows as A has
@@ -60,11 +59,8 @@ function C = mtimes(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/04/2026: Left-multiplication by a matrix lifts rows with different
-%                   output spaces to a common space;
-% DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
-% DJ, 11/07/2026: Support products with an adjoint, see 'ctranspose';
 
 % Make sure the inner dimensions match
 if size(A,2)~=size(B,1) && ~all(size(A)==1) && ~all(size(B)==1)
@@ -105,18 +101,18 @@ if isa(A,'polyopvar') && isa(B,'polyopvar')
 elseif ~isa(A,'polyopvar')
     % Multiplication of constant with polynomial
     % A row of A*B combines the rows of B, so these must map to the same
-    % output space: lift them to a common one if they differ, as in plus.
+    % output space: lift them to a common one if they differ.
     % An operator A acts on the output space of each row as it is: no lift.
     if isa(A,'double') && ~all(size(A)==1)
         if ~B.chkval
             B = initialize(B);
         end
-        if any(any(diff(B.depmat.out,1,1)))                                 % DJ, 11/04/2026
+        if any(any(diff(B.depmat.out,1,1)))
             B = lift_output(B,B.vars,B.dom,[],max(B.depmat.out,[],1));
         end
     end
     C = B;
-    % The output space of C is set by the assignment of C.C, see set.C
+    % The output space of C is set by the assignment of C.C
     C.C = A*B.C;
     return
 elseif ~isa(B,'polyopvar')

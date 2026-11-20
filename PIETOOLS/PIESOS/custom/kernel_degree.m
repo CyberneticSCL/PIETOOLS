@@ -1,6 +1,10 @@
 function opdeg = kernel_degree(F)
-    % OPDEG = KERNEL_DEGREE(F) returns the spatial monomial degree to use
-    % as opdeg in SOS_DP when F must equate to an SOS-FDP. Coefficient
+    % OPDEG = KERNEL_DEGREE(F) returns the smallest spatial monomial degree
+    % opdeg of the basis operators U^i of a degree-2d SOS distributed
+    % polynomial <Z_d(x),P*Z_d(x)> that can equate to F: for the coefficient
+    % K_w of a monomial of distributed degree w, with maximal total kernel
+    % degree D, opdeg = max over w of ceil(max(0,(D-1)/(2*ceil(w/2)))).
+    % Coefficient
     % operators of F that are not 'intop' objects, such as constants or
     % decision variables, do not contribute spatial kernel degree and are
     % assigned degree zero.
@@ -11,8 +15,8 @@ function opdeg = kernel_degree(F)
     %           required;
     %
     % OUTPUTS
-    % - opdeg:  smallest nonnegative integer spatial monomial degree
-    %           suitable for SOS_DP;
+    % - opdeg:  smallest nonnegative integer spatial monomial degree of the
+    %           basis operators;
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PIETOOLS - kernel_degree
@@ -38,18 +42,8 @@ function opdeg = kernel_degree(F)
     % If you modify this code, document all changes carefully and
     % include date authorship, and a brief description of modifications
     %
+    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
     % CR, 09/28/2026: Initial coding.
-    % CR, 09/29/2026: Return the SOS_DP spatial basis degree rather than
-    %                   the expanded FDP kernel degree; add optional
-    %                   distributed degree and fix accumulator/index
-    %                   handling.
-    % CR, 10/07/2026: Calculate the required spatial monomial degree for
-    %                   each FDP coefficient operator before taking the
-    %                   maximum; document each step of the calculation.
-    % DJ, 10/15/2026: Updated to use new polyopvar functions;
-    % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-    %                   max_kernel_degree (DJ, 10/14/2026, one caller)
-    %                   inlined into the coefficient loop;
 
 
     % The current implementation supports FDPs in one distributed state;
@@ -63,7 +57,7 @@ function opdeg = kernel_degree(F)
     % the linear FDP representation F(v)=sum_w K_w*v^(otimes w).
     nz = size(F.degmat,1);
 
-    % Store the SOS_DP spatial monomial degree required by each K_w. The
+    % Store the spatial monomial degree required by each K_w. The
     % entries remain zero for coefficients with no spatial kernel.
     opdeg_opts = zeros(1,nz);
 
@@ -83,32 +77,29 @@ function opdeg = kernel_degree(F)
         % Each monomial of each kernel of the operator has a total spatial
         % degree: the exponents of its monomials, summed over the variables.
         % The raw kernel degree of K_w is the largest total degree among
-        % all spatial monomials appearing in that coefficient operator.
-%       raw_degree = max_kernel_degree(Kop);                                % MMP, 11/09/2026 (was); DJ, 10/14/2026
-        % the maximal total degree of the monomials in the kernels of the   % MMP, 11/09/2026
-        % 'intop' Kop, 0 for constant kernels (the former local             % MMP, 11/09/2026
-        % MAX_KERNEL_DEGREE)                                                % MMP, 11/09/2026
-        m = 0;                                                              % MMP, 11/09/2026
-        Kc = kernels(Kop);                                                  % MMP, 11/09/2026
-        for k=1:numel(Kc)                                                   % MMP, 11/09/2026
-            Kk = Kc{k};                                                     % MMP, 11/09/2026
-            if (isa(Kk,'polynomial') || isa(Kk,'dpvar')) && ~isempty(Kk.degmat) % MMP, 11/09/2026
-                m = max(m,max(sum(full(Kk.degmat),2)));                     % MMP, 11/09/2026
-            end                                                             % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
-        raw_degree = m;                                                     % MMP, 11/09/2026
+        % all spatial monomials appearing in that coefficient operator,
+        % 0 for constant kernels.
+        m = 0;
+        Kc = kernels(Kop);
+        for k=1:numel(Kc)
+            Kk = Kc{k};
+            if (isa(Kk,'polynomial') || isa(Kk,'dpvar')) && ~isempty(Kk.degmat)
+                m = max(m,max(sum(full(Kk.degmat),2)));
+            end
+        end
+        raw_degree = m;
 
         % The row F.degmat(idx,:) contains the exponents of the distributed
         % states in v^w. Their sum is the linear-form distributed degree w.
         distributed_degree = sum(F.degmat(idx,:));
 
-        % SOS_DP represents a degree-2d SOS-FDP as a quadratic form. Thus,
+        % A degree-2d SOS-FDP is a quadratic form. Thus,
         % the basis degree associated with a degree-w linear term is the
         % smallest integer d for which 2d can contain that term.
         quadratic_degree = ceil(distributed_degree/2);
 
-        % Invert the kernel-degree expansion used by the quadratic-to-linear
-        % SOS_DP map: raw_degree = 2*d*opdeg+1. The subtraction by one
+        % Invert the kernel-degree expansion of the quadratic-to-linear
+        % map: raw_degree = 2*d*opdeg+1. The subtraction by one
         % removes the degree introduced by the outer integration, division
         % by 2*d recovers the spatial degree of one U-hat basis factor, and
         % ceil selects an integer degree large enough to contain the kernel.
@@ -119,7 +110,7 @@ function opdeg = kernel_degree(F)
         opdeg_opts(idx) = ceil(max(0,basis_degree));
     end
 
-    % One SOS_DP basis is shared by every distributed-degree block, so its
+    % One basis is shared by every distributed-degree block, so its
     % monomial degree must be the maximum required by any coefficient K_w.
     opdeg = max(opdeg_opts);
 

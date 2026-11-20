@@ -13,7 +13,7 @@ function f = combine_terms(f)
 %
 % NOTES
 % - Monomials with the same Z but a different number of factors (factors
-%   that are multipliers from R, see 'polyopvar') are different monomials.
+%   that are multipliers from R) are different monomials.
 % - If f has no output spatial variables (f.C.depmat.out is zero), the
 %   monomials of the same degree in each state, in any order, are combined
 %   as well, by reordering the integrals in the operators acting on them,
@@ -46,10 +46,8 @@ function f = combine_terms(f)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Set chkval of the coefficients after editing them;
-% DJ, 11/08/2026: Do not combine the monomials of a degree if any of
-%                   their operators is a 'tensopvar';
 
 if ~f.chkval
     f = initialize(f);
@@ -65,7 +63,7 @@ nvars = numel(f.varname);
 Zmat = f.Z;
 % Monomials with the same Z but different numbers of factors are different monomials: e.g.
 % x o c, with c a multiplier from R, Z=[1,0], and x, Z=[1], which are the same row once padded
-% to the same width, see `polyopvar`
+% to the same width
 [~,nopsZ,is_empty] = num_factors(f);
 nopsZ = factor_key(Zmat,nopsZ,is_empty);        % empty monomials merge with those of the same Z
 [Pmat,Zmat_new] = uniquerows_integerTable([sum(Zmat>0,2),nopsZ,Zmat]);
@@ -134,7 +132,7 @@ for j=1:size(degmat2,1)
     Zmat_j = Zmat_new(is_degj,:);        
     ops_j = Cop.ops(:,is_degj);
     degs_j = degmat2(j,:);
-    if any(cellfun(@(c) isa(c,'tensopvar'),ops_j(:)))                       % DJ, 11/08/2026
+    if any(cellfun(@(c) isa(c,'tensopvar'),ops_j(:)))
         old_deg_nums{j} = idcs1(j)*ones(1,nnz(is_degj));
         Zcell{j} = Zmat_j';
         opcell{j} = ops_j;

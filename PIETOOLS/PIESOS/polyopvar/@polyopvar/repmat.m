@@ -16,8 +16,7 @@ function P_out = repmat(P_in,varargin)
 % NOTES
 % - Only column replication factor 1 is supported: tiling along
 %   dimension 2 would produce an object with matdim(2)>1, and
-%   matrix-valued (multi-column) 'polyopvar' objects are not supported
-%   (see horzcat and initialize).
+%   matrix-valued (multi-column) 'polyopvar' objects are not supported.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - repmat
@@ -43,8 +42,10 @@ function P_out = repmat(P_in,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
+% Replication factors [R,C] of positive integers, a scalar used for both
 if nargin==2
     reps = varargin{1};
 elseif nargin==3
@@ -58,10 +59,12 @@ end
 if numel(reps)~=2 || any(reps<1) || any(round(reps)~=reps)
     error("Replication factors must be specified as positive integers.")
 end
+% Only C = 1 is supported
 if reps(2)~=1
     error("repmat of 'polyopvar' objects is currently only supported for column replication factor 1.")
 end
 
+% Stack R copies of P_in vertically
 P_out = P_in;
 for i=2:reps(1)
     P_out = [P_out; P_in];

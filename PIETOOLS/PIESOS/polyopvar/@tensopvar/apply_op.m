@@ -58,11 +58,8 @@ function Y = apply_op(Cop,X)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Number the copies of an output variable in a tensor
-%                   product over the factors by their copies in depmat;
-% DJ, 11/19/2026: Name copies (and the bare name of a single copy) by
-%                   'get_tensorvars';
 
 
 % Check that the tensor-PI operator is properly specified
@@ -194,6 +191,14 @@ function Xs = split_inputs(X,fctrs)
 % those of nested operators, over the 1 x d cell FCTRS of the factors of one term: XS is the 1 x d cell
 % with the input of each factor, and, for a nested factor, the 1 x n cell of the n=num_factors inputs
 % that belong to it, which its own apply_op splits further if it has nested factors.
+%
+% INPUT
+% - X:        cell of inputs, one per (leaf) factor;
+% - fctrs:    1 x d cell of the factors of one term;
+%
+% OUTPUT
+% - Xs:       1 x d cell of the inputs of each factor (a cell for a
+%             nested factor).
 d = numel(fctrs);
 is_nested = cellfun('isclass',fctrs,'tensopvar');
 n = ones(1,d);

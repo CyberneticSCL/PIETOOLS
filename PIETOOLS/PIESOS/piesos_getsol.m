@@ -3,9 +3,8 @@ function dvar_sol = piesos_getsol(prog,dvar)
 % polynomial decision variable DVAR in the solved PIESOS program PROG.
 %
 % INPUTS
-% - prog:       'struct' specifying a solved PIESOS optimization program
-%               (see also `piesos_program`, `piesos_solve`). The format
-%               matches that used by SOSTOOLS;
+% - prog:       'struct' specifying a solved PIESOS optimization program,
+%               in the format of an SOSTOOLS program;
 % - dvar:       object of type 'polyopvar', 'tensopmat', 'tensopvar',
 %               'intop', 'dopvar', 'dopvar2d', or 'dpvar', or a cell of
 %               such objects, specifying a decision variable in the
@@ -48,8 +47,8 @@ function dvar_sol = piesos_getsol(prog,dvar)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Keep chkval of a 'tensopmat' for its solution;
 
 % Check that the program structure is properly specified.
 if ~isa(prog,'struct')

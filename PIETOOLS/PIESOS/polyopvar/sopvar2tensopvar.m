@@ -42,9 +42,8 @@ function Top = sopvar2tensopvar(Pop,type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/09/2026: Sort the variables of a single-operator tensopvar,
-%                   as 'initialize' does for several factors;
 
 % Check the input
 if ~isa(Pop,'sopvar') && ~isa(Pop,'cell')

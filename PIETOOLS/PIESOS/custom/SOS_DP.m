@@ -3,8 +3,7 @@ function [prog, DP, Pcell, Zop] = SOS_DP(prog, d, opdeg, x, dom, opts)
     % declares the degree-2*d SOS distributed polynomial
     %   DP = < Z_d(x), P Z_d(x) >_{L2}
     %      = \sum_i=1^d \sum_j=1^d <U^i x^i, Pmat U^j x^j>_{L_2}
-    % (as in Def. 9 CDC paper) in the PIESOS program PROG, using
-    % `piesos_sosvar`.
+    % in the PIESOS program PROG, using `piesos_sosvar`.
     %
     % INPUTS
     % - prog:   PIESOS program structure;
@@ -18,16 +17,15 @@ function [prog, DP, Pcell, Zop] = SOS_DP(prog, d, opdeg, x, dom, opts)
     % - opts:   (optional) struct with fields
     %               'psatz': order q of the psatz multipliers used to
     %                   enforce positivity only on the interval over
-    %                   which the operator integrates, as in
-    %                   `piesos_sosvar`. If psatz=0, no multiplier is
-    %                   used. If psatz=q>0, P = sum_k g_k*P_k, with
+    %                   which the operator integrates. If psatz=0, no
+    %                   multiplier is used. If psatz=q>0, P = sum_k g_k*P_k, with
     %                   g_k = (s-a)^k*(b-s)^(q-k) for k=0,...,q, and
     %                   P_k >= 0. Defaults to 0;
     %               'degs': degrees of the monomials in the operators
-    %                   U^i, as in `piesos_sosvar`. Defaults to opdeg;
+    %                   U^i. Defaults to opdeg;
     %               'exclude': 3 x 1 boolean array specifying which
-    %                   terms to exclude from the basis operators U^i,
-    %                   as in `piesos_sosvar`. Defaults to [1;0;0], so
+    %                   terms to exclude from the basis operators U^i
+    %                   (multiplier, lower, upper). Defaults to [1;0;0], so
     %                   that U^i has no multiplier term.
     %               Other fields are passed on to `piesos_sosvar`;
     %
@@ -65,15 +63,8 @@ function [prog, DP, Pcell, Zop] = SOS_DP(prog, d, opdeg, x, dom, opts)
     % If you modify this code, document all changes carefully and
     % include date authorship, and a brief description of modifications
     %
+    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
     % CR, 09/01/2026: Initial coding.
-    % CR, 09/07/2026: Re-routed innerprod via innerprod_v2.m.
-    % DJ, 09/21/2026: Removed strict positivity constraint.
-    % DJ, 10/06/2026: Reduce monomial degree of kernels for tensor product
-    %                 of basis operators.
-    % CR, 10/14/2026: Added opts structure as optional input so Pcell can
-    %                 be constructed using a psatz multiplier.
-    % DJ, 10/14/2026: Alternative formulation using `piesos_sosvar`
-    % DJ, 10/15/2026: Updated to use new polyopvar functions;
 
     %% Declare the options for the SOS functional.
     if nargin<6 || isempty(opts)
@@ -95,9 +86,9 @@ function [prog, DP, Pcell, Zop] = SOS_DP(prog, d, opdeg, x, dom, opts)
     %% Declare the SOS functional DP = <Zop*Z_d(x),P*Zop*Z_d(x)>, P>=0.
 
     % The basis of distributed monomials Z_d(x) = [x; x^2; ...; x^d]
-    Z = dmonomials(x,(1:d)');                                               % DJ, 10/14/2026
-    % The Gram operator P >= 0, and the SOS-FDP DP it defines (piesos_quadvar
-    % exploits the symmetry of P: only the upper triangle is evaluated)
-    [prog,DP,Pcell,Zop] = piesos_sosvar(prog,Z,opts);                       % DJ, 10/14/2026
+    Z = dmonomials(x,(1:d)');
+    % The Gram operator P >= 0, and the SOS-FDP DP it defines (the symmetry
+    % of P is exploited: only the upper triangle is evaluated)
+    [prog,DP,Pcell,Zop] = piesos_sosvar(prog,Z,opts);
 
 end

@@ -24,8 +24,8 @@ function logval = is_eye(A,n,ztol)
 % NOTES
 % - An array is the identity if A-eye(m) is zero up to ztol.
 % - A 'polyopvar' object is the identity if it is the vector of all its
-%   states, in the order of A.varname, so that it represents the map x -> x
-%   (see 'ispvar'). An adjoint is never the identity.
+%   states, in the order of A.varname, so that it represents the map x -> x.
+%   An adjoint is never the identity.
 % - For an operator, the size n is checked by this function, and whether it
 %   is the identity by the method 'is_id_op' of its class.
 %
@@ -54,6 +54,7 @@ function logval = is_eye(A,n,ztol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/07/2026: Initial coding;
 
 % Check the expected size

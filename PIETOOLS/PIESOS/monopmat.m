@@ -131,10 +131,8 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/21/2026: Expand a 3 x 1 'exclude' with OR over the variables of
-%                   each block, instead of AND;
-% DJ, 11/19/2026: Allow different 'otype' for each block;
 
 
 %% Process the inputs
@@ -289,6 +287,7 @@ if N3>0
                     new_shape(i) = 1;
                 end
             end
+            % One dimension of size 3 per variable (false without variables)
             if Ni==0
                 exclude_cell{j} = false;
             else
@@ -299,6 +298,7 @@ if N3>0
         error("Option 'exclude' must be specified as cell or logical array.")
     end
 else
+    % Default: exclude no terms
     exclude_cell = repmat({false},1,q);
 end
 
@@ -358,7 +358,7 @@ if ~isfield(opts,'otype')
 else
     otype = opts.otype;
 end
-% The type of product of each block, as q x 2 array: along the              % DJ, 11/19/2026
+% The type of product of each block, as q x 2 array: along the
 % output (1, 2, or 3 for both) and the input (2)
 if isscalar(otype)
     otype = [otype,2];
@@ -379,7 +379,7 @@ if any(otype(:,2)==1)
     error("Pointwise product of the inputs is not supported.")
 end
 
-% Both types of product (otype 3): split each such block into a             % DJ, 11/19/2026
+% Both types of product (otype 3): split each such block into a
 % block of type 1 and one of type 2, by a second call with the augmented
 % inputs, and merge the block columns of the two, so that both block rows
 % act on the same input. A block with one factor is not split, as otype 1
@@ -618,10 +618,24 @@ function degs = process_degs(degs,N_arr,depmat,is_deps,otype)
 % operator is defined. Return the full list of monomial degrees in each of
 % the variables (rather than just the maximal monomial degrees). OTYPE is
 % the type of product of each block (q x 1 array);
+%
+% INPUT
+% - degs:     numeric array, or 1 x q (or scalar) cell, of monomial
+%             degrees, as degs.in or degs.out of MONOPMAT;
+% - N_arr:    q x 1 array, the number of variables of each block;
+% - depmat:   q x N array, the degree of dependence of each block on each
+%             of the N variables;
+% - is_deps:  q x N logical array, logical(depmat);
+% - otype:    q x 1 array, the type of product of each block;
+%
+% OUTPUT
+% - degs:     1 x q cell; degs{j} is a dj x N_arr(j) cell of column
+%             vectors of monomial degrees, for dj = max(depmat(j,:))^(otype(j)-1)
+%             factors (a 1 x 0 cell for a block without variables);
 
 [q,N] = size(depmat);
 % Largest number of rows of the degrees of a block, over the blocks
-nfctrs_max = max(max(depmat,[],2).^(otype(:)-1));                           % DJ, 11/19/2026
+nfctrs_max = max(max(depmat,[],2).^(otype(:)-1));
 
 % If degrees are specified for only one state, repeat for all states
 if isnumeric(degs)

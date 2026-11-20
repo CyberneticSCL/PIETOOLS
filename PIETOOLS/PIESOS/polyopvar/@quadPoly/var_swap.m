@@ -6,6 +6,42 @@ function P = var_swap(P, var1, var2)
 % If var2 is not in P.nt, it is appended as a constant-only variable (degree 0).
 %
 % After swapping, redundant degrees are merged and C is remapped accordingly.
+%
+% INPUT
+% - P:      'quadPoly' object;
+% - var1:   char, the name of a left variable (in P.ns or new);
+% - var2:   char, the name of a right variable (in P.nt or new);
+%
+% OUTPUT
+% - P:      'quadPoly' object with the exponents of var1 and var2
+%           swapped.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - var_swap
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 01/20/2026
 
     ns = P.ns; nt = P.nt;
     Zs = P.Zs; Zt = P.Zt;
@@ -62,10 +98,6 @@ function P = var_swap(P, var1, var2)
     cIn  = ceil(c_idx / dt);      % 1..n
     kOld = mod(r_idx - 1, ds) + 1;           % 1..ds (old full s-monomial)
     lOld = mod(c_idx - 1, dt) + 1;           % 1..dt (old full t-monomial)
-    % rIn  = mod(r_idx - 1, m) + 1;     % 1..m
-    % cIn  = mod(c_idx - 1, n) + 1;     % 1..n
-    % kOld = ceil(r_idx / m);           % 1..ds (old full s-monomial)
-    % lOld = ceil(c_idx / n);           % 1..dt (old full t-monomial)
 
     % Unique (k,l) pairs
     pairKey = kOld + ds*(lOld-1);
@@ -97,7 +129,7 @@ function P = var_swap(P, var1, var2)
     dt_new = basisSize(Zt_new);
 
     % ---- map each unique pair to new full indices ----
-    % old pair u -> new per-var positions from sPosMap/tPosMap applied to degrees
+    % old pair u -> new per-var positions of its degrees in Zs_new/Zt_new
     sSubs_new = degreesToSubs(sDeg, Zs_new);
     tSubs_new = degreesToSubs(tDeg, Zt_new);
 
@@ -109,8 +141,6 @@ function P = var_swap(P, var1, var2)
     lNew_nz = lNew_u(loc);
 
     % ---- rebuild C (sparse sums duplicates automatically) ----
-    % r_new = (kNew_nz - 1) * m + rIn;
-    % c_new = (lNew_nz - 1) * n + cIn;
 
     r_new = kNew_nz + (rIn - 1)*ds_new;
     c_new = lNew_nz + (cIn - 1)*dt_new;
@@ -128,6 +158,15 @@ end
 % ====================== helpers ======================
 
 function d = basisSize(Zcell)
+% D = BASISSIZE(ZCELL) returns the number of monomials of the tensor
+% product basis defined by the exponent vectors in ZCELL (an empty
+% element counts as the constant monomial).
+%
+% INPUT
+% - Zcell:  1 x k cell of exponent vectors;
+%
+% OUTPUT
+% - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
     for i = 1:numel(Zcell)
@@ -138,7 +177,15 @@ function d = basisSize(Zcell)
 end
 
 function subs = tensorDecomp(idx, sizes)
-% idx: vector in 1..prod(sizes); returns length(idx)×k subs (1-based)
+% SUBS = TENSORDECOMP(IDX,SIZES) returns the subscripts of the linear
+% indices IDX in an array of size SIZES, the last dimension varying fastest.
+%
+% INPUT
+% - idx:    vector of linear indices in 1..prod(sizes);
+% - sizes:  1 x k array of positive integers;
+%
+% OUTPUT
+% - subs:   length(idx) x k array of subscripts (1-based).
     idx = idx(:) - 1;
     k = numel(sizes);
     subs = zeros(numel(idx), k);
@@ -150,7 +197,15 @@ function subs = tensorDecomp(idx, sizes)
 end
 
 function deg = subsToDegrees(subs, Zcell)
-% subs: L×k positions; returns L×k degrees
+% DEG = SUBSTODEGREES(SUBS,ZCELL) returns the degrees at the positions SUBS
+% in the exponent lists ZCELL (an empty list counts as the degree 0).
+%
+% INPUT
+% - subs:   L x k array of positions;
+% - Zcell:  1 x k cell of exponent vectors;
+%
+% OUTPUT
+% - deg:    L x k array of degrees.
     L = size(subs,1);
     k = size(subs,2);
     deg = zeros(L,k);
@@ -162,8 +217,16 @@ function deg = subsToDegrees(subs, Zcell)
 end
 
 function [Znew, posMap] = rebuildBasisFromDegrees(Zold, degUsed)
-% For each variable i, set Znew{i} = unique(degUsed(:,i),'sorted')
-% posMap{i}: map from degree value -> position in Znew{i} (via containers.Map avoided)
+% [ZNEW,POSMAP] = REBUILDBASISFROMDEGREES(ZOLD,DEGUSED) sets, for each
+% variable i, Znew{i} = unique(degUsed(:,i),'sorted') (0 if empty).
+%
+% INPUT
+% - Zold:     1 x k cell of exponent vectors (only its length is used);
+% - degUsed:  L x k array of the degrees used;
+%
+% OUTPUT
+% - Znew:     1 x k cell of sorted unique degree vectors;
+% - posMap:   1 x k cell of empty arrays (not filled).
     k = numel(Zold);
     Znew = cell(1,k);
     posMap = cell(1,k); %#ok<NASGU>
@@ -175,7 +238,15 @@ function [Znew, posMap] = rebuildBasisFromDegrees(Zold, degUsed)
 end
 
 function subs = degreesToSubs(deg, Zcell)
-% deg: L×k degrees -> subs: L×k positions in Zcell lists
+% SUBS = DEGREESTOSUBS(DEG,ZCELL) returns the positions of the degrees DEG
+% in the exponent lists ZCELL; a degree missing from its list is an error.
+%
+% INPUT
+% - deg:    L x k array of degrees;
+% - Zcell:  1 x k cell of exponent vectors;
+%
+% OUTPUT
+% - subs:   L x k array of positions in the lists of Zcell.
     L = size(deg,1);
     k = size(deg,2);
     subs = zeros(L,k);
@@ -191,7 +262,16 @@ function subs = degreesToSubs(deg, Zcell)
 end
 
 function idx = subv2lin_rows(subs, sizes)
-% subs: L×k (1-based). sizes: 1×k. return L×1 linear indices (1..prod(sizes))
+% IDX = SUBV2LIN_ROWS(SUBS,SIZES) returns the linear index of each row of
+% subscripts SUBS in an array of size SIZES, the last dimension varying
+% fastest.
+%
+% INPUT
+% - subs:   L x k array of subscripts (1-based);
+% - sizes:  1 x k array of positive integers;
+%
+% OUTPUT
+% - idx:    L x 1 array of linear indices in 1..prod(sizes).
     L = size(subs,1);
     k = numel(sizes);
     idx0 = zeros(L,1);

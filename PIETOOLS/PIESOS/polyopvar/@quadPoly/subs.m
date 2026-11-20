@@ -35,9 +35,6 @@ function [P_subs] = subs(P1, vars, vals)
 % authorship, and a brief description of modifications
 %
 % AT, 02/18/2026: Initial coding;
-% DJ, 06/05/2026: Add support for empty variable case;
-% DJ, 10/04/2026: Combine and sort monomials and associated coefficients,
-%                   as expected by quadPoly structure;
  
 
 if ~isa(P1, 'quadPoly')
@@ -50,6 +47,7 @@ if (isempty(vars) && isempty(vals)) || isequal(vars,vals)
     return
 end
 
+% Variables as a cell array of names
 if isa(vars, 'char')
     vars = string(vars);
 end
@@ -57,6 +55,7 @@ if ~isa(vars, 'cell')
     vars = num2cell(vars);
 end
 
+% Values as a cell array: numbers, or names (string) of variables
 if ~isa(vals, 'cell')
 
     if isa(vals, 'double')
@@ -70,6 +69,7 @@ if ~isa(vals, 'cell')
     end
 end
 
+% One value per variable
 if size(vars) ~= size(vals)
     error('quadPoly:subs:badType', 'number of vars and vals should be the same');
 end
@@ -215,9 +215,9 @@ if sum(isa_symb_var) > 0
         Zs_new{idx_to_merge_monomials + 1} = []; % delete duplicate
         % Establish unique basis of monomials corresponding to all products
         % of Zs_new and Zs_new_idx_p1, using s^a*s^b = s^(a+b):
-        % raw pairwise sums in (i-1)*nB+j order, matching C_new's existing 
-        % block layout (outer var slow/inner var fast, per quadPoly.m's
-        %  Z(s) = Zs1 kron ... kron Zsk convention).
+        % raw pairwise sums in (i-1)*nB+j order, matching C_new's existing
+        % block layout (outer var slow/inner var fast, with
+        %  Z(s) = Zs1 kron ... kron Zsk).
         nA = numel(Zs_new_idx);  nB = numel(Zs_new_idx_p1);
         Zs_pair_raw = kron(Zs_new_idx, ones(nB,1)) + kron(ones(nA,1), Zs_new_idx_p1);
         [Zs_new_merged, ~, old2new] = unique(Zs_pair_raw, 'sorted');
@@ -295,8 +295,6 @@ if sum(isa_symb_var) > 0
 end
 
 % locate var names in ns or nt
-% subs_in_ns = {};
-% subs_in_nt = {};
 
 vals_in_ns = cell(size(ns));
 vals_in_nt = cell(size(nt));
@@ -318,6 +316,9 @@ for vars_ind = 1:length(vars)
     
 end
 
+% Left factor L, with Zs(s) = L*hatZs(s): per left variable the identity if
+% it is kept, or the column value.^Zs{i} if it is substituted; then
+% kron(I_m,L)
 left_multiplier = 1;
 hatZs = {};
 hatns = {};
@@ -337,6 +338,7 @@ end
 left_multiplier = kron(speye(dim(1)), left_multiplier);
 
 
+% Right factor likewise, for the right variables
 hatZt = {};
 hatnt = {};
 right_multiplier = 1;
@@ -355,6 +357,7 @@ for right_index = 1:length(nt)
 end
 right_multiplier = kron(speye(dim(2)), right_multiplier);
 
+% Coefficients in the remaining monomials
 hatC = left_multiplier'*C*right_multiplier;
 
 
@@ -364,6 +367,14 @@ end
 
 
 function [ans] = isa_char_or_string(val)
+% ANS = ISA_CHAR_OR_STRING(VAL) returns true if VAL is a 'char' or a
+% 'string'.
+%
+% INPUT
+% - val:    any value;
+%
+% OUTPUT
+% - ans:    logical.
     if isa(val, 'char') || isa(val, 'string')
         ans = true;
     else

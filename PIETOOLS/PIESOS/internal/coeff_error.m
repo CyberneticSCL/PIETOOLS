@@ -1,11 +1,11 @@
 function max_error  = coeff_error(F)
 % MAX_ERROR = COEFF_ERROR(F) returns the largest absolute value of the
-% coefficients defining the 'polyopvar' object F. If F is the solution of
-% the residual f-g of an equality constraint f==g declared with
-% `piesos_eq`, this is the largest error in the coefficients.
+% coefficients defining the 'polyopvar' object F. If F is the solved
+% residual f-g of an equality constraint f==g, this is the largest error in
+% the coefficients.
 %
 % INPUTS
-% - F:      'polyopvar' object, e.g. the output of `piesos_getsol`;
+% - F:      'polyopvar' object;
 %
 % OUTPUTS
 % - max_error:  nonnegative scalar, the largest absolute value of the
@@ -36,8 +36,8 @@ function max_error  = coeff_error(F)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % CRR, 06/09/2026: Initial coding
-% DJ, 10/15/2026: Updated to use new polyopvar functions;
 
 % Largest absolute coefficient across the coefficient operators of F
 max_error = 0;
@@ -53,6 +53,13 @@ function err = block_coeff_max(op)
 % Largest absolute coefficient of the coefficient operator op of a
 % 'polyopvar' object: an 'intop' object (sparse coefficients in op.params),
 % a constant, or a 'tensopmat' or 'tensopvar' object (nested operators)
+%
+% INPUT
+% - op:   'intop', 'tensopmat', 'tensopvar', 'polynomial', 'dpvar'
+%         or numeric coefficient;
+%
+% OUTPUT
+% - err:  nonnegative scalar, the largest absolute coefficient.
 err = 0;
 if isa(op,'intop')
     for k=1:numel(op.params)
@@ -71,6 +78,12 @@ end
 
 function m = max_abs(A)
 % Largest absolute value among the nonzero elements of A, or 0
+%
+% INPUT
+% - A:  numeric array (sparse or full);
+%
+% OUTPUT
+% - m:  nonnegative scalar.
 v = nonzeros(abs(A));
 m = 0;
 if ~isempty(v)

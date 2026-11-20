@@ -2,11 +2,13 @@ function [P_diff] = diff(P1, vars)
 %DIFF differentiate variables in a quadPoly
 % 
 % INPUTS
-% - P1:   'quadpoly' class object.
-% - vars:  cell array of names of vars
-% 
+% - P1:   'quadpoly' class object, or a 'double' (derivative 0).
+% - vars:  cell array of names of vars, left (ns) or right (nt)
+%          variables of P1; a name not in P1 gives a warning and 0*P1
+%
 % OUTPUTS
-% - P_diff:      'quadpoly' object differentiated with respect all vars
+% - P_diff:      'quadpoly' object differentiated with respect all vars,
+%                once in each
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -37,6 +39,7 @@ function [P_diff] = diff(P1, vars)
 % AT, 02/18/2026: Initial coding;
 
 
+% A constant has derivative 0
 if isa(P1, 'double')
     P_diff = 0;
     return;
@@ -45,6 +48,7 @@ if ~isa(P1, 'quadPoly')
     error('quadPoly:diff:badType', 'diff supports only quadPoly or double');
 end
 
+% Variables as a cell array of names
 if isa(vars, 'char')
     vars = string(vars);
 end
@@ -65,8 +69,6 @@ C = P1.C;
 dim = P1.dim;
 
 % locate var names in ns or nt
-% subs_in_ns = {};
-% subs_in_nt = {};
 
 vals_in_ns = cell(size(ns));
 vals_in_nt = cell(size(nt));
@@ -90,6 +92,9 @@ for vars_ind = 1:length(vars)
 end
 
 
+% Left factor L, with d/ds Zs(s) = L*hatZs(s): per left variable the
+% identity if it is not differentiated, else diag(Zs{i}) without its zero
+% columns, mapping s^a to a*s^(a-1); then kron(I_m,L)
 left_multiplier = 1;
 hatZs = {};
 for left_index = 1:length(ns)
@@ -111,6 +116,7 @@ end
 left_multiplier = kron(speye(dim(1)), left_multiplier);
 
 
+% Right factor likewise, for the right variables
 hatZt = {};
 right_multiplier = 1;
 for right_index = 1:length(nt)
@@ -133,8 +139,8 @@ right_multiplier = kron(speye(dim(2)), right_multiplier);
 
 
 
+% Coefficients in the differentiated monomials
 hatC = left_multiplier'*C*right_multiplier;
 
 P_diff = quadPoly(hatC, hatZs, hatZt, dim, ns, nt);
-% we need to call clean quadpoly after diff
 end

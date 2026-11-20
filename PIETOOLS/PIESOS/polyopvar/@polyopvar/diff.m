@@ -25,17 +25,18 @@ function dP = diff(P,vars,d)
 % NOTES
 % - The derivative is taken of the output of P, by composing the
 %   tensor-PI operators C acting on the monomials Z(x) with the
-%   differential operator, see 'diff' for 'tensopmat': dP(x) = (D C)*Z(x)
+%   differential operator: dP(x) = (D C)*Z(x)
 %   with the same monomials Z. Differentiation with respect to the state
 %   variables of P, that is, the derivative of the polynomial in x, is not
 %   supported;
 % - Derivatives of the tensor-PI operators must again be tensor-PI
-%   operators, see 'diff' for 'tensopvar' and 'sopvar'. For instance,
+%   operators. For instance,
 %   an error is thrown if the output of P involves a multiplier along a
 %   variable in VARS, as then the derivative involves derivatives of the
 %   states;
 % - A variable that is not an output variable of P is allowed, returning
 %   a zero polynomial;
+% - An adjoint object P (P.is_adjoint = true) gives an error;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,8 +63,8 @@ function dP = diff(P,vars,d)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/20/2026: Initial coding;
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % Check that the polynomial is properly specified
 if ~isa(P,'polyopvar')

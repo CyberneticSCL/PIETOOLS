@@ -1,12 +1,40 @@
 function P = quadPoly2polynomial(Q)
 %quadPoly2polynomial Convert quadPoly to polynomial object.
 %
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                   tensorDecompAll (one caller) inlined into fullDegreeTable.
+% INPUT
+% - Q:      m x n 'quadPoly' object;
+%
+% OUTPUT
+% - P:      m x n 'polynomial' object in the variables Q.ns and Q.nt.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - quadPoly2polynomial
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 02/11/2026
 
     [m,n] = size(Q);
-    % m = Q.dim(1);
-    % n = Q.dim(2);
     if isdouble(Q)
         P = polynomial(Q);
         return
@@ -78,6 +106,15 @@ end
 
 % ---------------- helpers ----------------
 function d = basisSize(Zcell)
+% D = BASISSIZE(ZCELL) returns the number of monomials of the tensor
+% product basis defined by the exponent vectors in ZCELL (an empty
+% element counts as the constant monomial).
+%
+% INPUT
+% - Zcell:  1 x k cell of exponent vectors;
+%
+% OUTPUT
+% - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
     for k = 1:numel(Zcell)
@@ -89,7 +126,15 @@ end
 
 function D = fullDegreeTable(Zcell)
 % Return full tensor degree table: (prod_i |Z{i}|) × (#vars)
-% kron order: last variable varies fastest (consistent with quadPoly_eval)
+% kron order: last variable varies fastest
+%
+% INPUT
+% - Zcell:  1 x k cell of exponent vectors (an empty one counts as degree
+%           0);
+%
+% OUTPUT
+% - D:      prod_i |Z{i}| x k array, row j the degrees of monomial j
+%           (1 x 0 for an empty Zcell).
     if isempty(Zcell)
         D = zeros(1,0);
         return;
@@ -98,16 +143,15 @@ function D = fullDegreeTable(Zcell)
     sizes = cellfun(@(z) numel(z(:)), Zcell);
     N = prod(sizes);
 
-%   subs = tensorDecompAll(N, sizes); % N×k positions                      % MMP, 11/09/2026 (was)
-    % subs: the N x k tensor subscripts (1-based) of all positions, the last % MMP, 11/09/2026
-    % variable varying fastest (the former local TENSORDECOMPALL)           % MMP, 11/09/2026
-    subs = zeros(N,k);                                                      % MMP, 11/09/2026
-    idx = (0:N-1).';                                                        % MMP, 11/09/2026
-    for ii = k:-1:1                                                         % MMP, 11/09/2026
-        si = sizes(ii);                                                     % MMP, 11/09/2026
-        subs(:,ii) = mod(idx, si) + 1;                                      % MMP, 11/09/2026
-        idx = floor(idx / si);                                              % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
+    % subs: the N x k tensor subscripts (1-based) of all positions, the last
+    % variable varying fastest
+    subs = zeros(N,k);
+    idx = (0:N-1).';
+    for ii = k:-1:1
+        si = sizes(ii);
+        subs(:,ii) = mod(idx, si) + 1;
+        idx = floor(idx / si);
+    end
     D = zeros(N, k);
     for i = 1:k
         zi = Zcell{i}(:);

@@ -37,6 +37,7 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 06/19/2026: Initial coding
 
 % Extract the variable names

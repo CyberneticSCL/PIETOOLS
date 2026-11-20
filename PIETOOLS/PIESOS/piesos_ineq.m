@@ -4,19 +4,19 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 % PROG.
 %
 % INPUTS
-% - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
+% - prog:   'struct' specifying a PIESOS program;
 % - f:      'polyopvar' object representing a distributed polynomial.
 %           The object must be a scalar-valued functional: its
 %           coefficients must be 'intop' objects (or constants for
 %           degree-0 monomials), with f.matdim=[1,1] and no output
-%           variables, as e.g. obtained using `innerprod`;
+%           variables;
 % - opts:   (optional) struct, passed on to `piesos_sosvar`, with fields
-%               'psatz':  1 x N array of orders, passed on to
-%                         `piesos_poslpivar` (see there);
+%               'psatz':  1 x N array of orders of the psatz multipliers
+%                         along each spatial variable: order q gives the
+%                         multipliers (s-a)^j*(b-s)^(q-j), j=0,...,q;
 %               'degs', 'exclude':  set here, based on the kernels of f
 %                         (see NOTES), only if not specified. A field
-%                         'deg' is renamed to 'degs' by `piesos_quadvar`,
-%                         with a warning;
+%                         'deg' is renamed to 'degs', with a warning;
 %               'tol':    tolerance below which coefficients of f are
 %                         taken to be zero. Defaults to 1e-14;
 %
@@ -29,7 +29,7 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %           for which F==G is enforced to impose positivity of F;
 % - Qmat:   m x m cell of 'dpvar' blocks representing the symmetric
 %           positive semidefinite (SOS in the primary variables)
-%           multiplier operator (Pmat in `piesos_sosvar`) used to
+%           multiplier operator used to
 %           parameterize g in the quadratic form
 %               g = <Zop*Z(x), Qmat*Zop*Z(x)>;
 % - Zop:    n x m 'tensopmat' object representing the monomial basis
@@ -44,8 +44,8 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %   output PROG is returned.
 %
 % - A monomial in the basis for g (Z) cannot mix states that depend on
-%   different spatial variables, e.g. x1(s1)*x2(s1,s2), see
-%   `piesos_quadvar`. Such monomials are discarded with a warning (id
+%   different spatial variables, e.g. x1(s1)*x2(s1,s2). Such monomials
+%   are discarded with a warning (id
 %   PIESOS:ineq:mixedDependence). This makes the constraint F>=0
 %   conservative, in particular for F with terms such as (x1*x2)^2 that
 %   require them. If no monomials remain, F=0 is imposed, with g=0 and
@@ -115,12 +115,8 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/23/2026: Pass the degrees per state to dmonomials;
-% DJ, 11/06/2026: Set chkval of f.C after removing the constant monomial;
-% DJ, 11/07/2026: Assume 'deg' specifies degrees if 'degs' is not
-%                        specified;
-% DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
 
 % % Check the inputs
 % Check the program structure
@@ -200,7 +196,7 @@ for i=1:size(f_degmat,1)
             error("Enforcing positivity of polynomial vector fields is not supported.")
         end
     elseif isa(Cop,'tensopvar') && ~any(f.C.depmat.in(i,:))
-        % Constants are stored as 'tensopvar' (see constant2polyopvar),
+        % Constants are stored as 'tensopvar',
         % with no dependence on spatial variables, so no integration
     elseif isa(Cop,'intop')
         % Exponents of kernels and delta terms per variable (kernel_stats)
@@ -310,7 +306,7 @@ pz = ceil(DP/2);
 pz(qz>0) = ceil(qz(qz>0)/2) + ceil(max(DP(qz>0)-qz(qz>0),0)/2);
 pz = max(pz,dbal);
 % The degrees are set below, unless specified in opts.degs, or in opts.deg
-if ~isfield(opts,'degs') && ~isfield(opts,'deg')                            % DJ, 11/07/2026
+if ~isfield(opts,'degs') && ~isfield(opts,'deg')
     if isempty(zvidx)
         opts.degs = 0;
     else
@@ -336,11 +332,19 @@ end
 function prog = enforce_eq(prog,f,g,tol)
 % PROG = ENFORCE_EQ(PROG,F,G,TOL) adds the constraint F=G to the program, for F
 % and G scalar 'polyopvar' functionals. The constant (degree-0) terms are
-% equated directly, as they are stored as 'tensopvar' in F (see
-% constant2polyopvar) but as 'intop' in G (see piesos_sosvar), and
-% 'tensopvar' + 'intop' is not supported.
+% equated directly, as they are stored as 'tensopvar' in F but as 'intop'
+% in G, and 'tensopvar' + 'intop' is not supported.
 % The remaining terms are equated using piesos_eq.
+%
+% INPUT
+% - prog:   'struct', the PIESOS program;
+% - f, g:   scalar 'polyopvar' functionals;
+% - tol:    scalar, tolerance below which coefficients are taken zero;
+%
+% OUTPUT
+% - prog:   the program with the constraint F=G added.
 
+% Equate the constant terms (degree-0 monomials) as scalars
 [f,cf] = split_constant(f);
 [g,cg] = split_constant(g);
 if ~isempty(cf) || ~isempty(cg)
@@ -353,6 +357,7 @@ if ~isempty(cf) || ~isempty(cg)
     prog = soseq(prog,c);
 end
 
+% Equate the remaining terms
 has_f = size(f.Z,1)>0;
 has_g = size(g.Z,1)>0;
 if has_f && has_g
@@ -372,9 +377,19 @@ end
 function [f,c] = split_constant(f)
 % [F,C] = SPLIT_CONSTANT(F) removes the degree-0 monomial from the scalar
 % 'polyopvar' F, and returns its coefficient C (empty if F has none), a
-% 'double' (for the 'tensopvar' of constant2polyopvar), or a 'dpvar'
-% (for the 'intop' of piesos_sosvar).
+% 'double' (for a 'tensopvar' coefficient), or a 'dpvar' (for an 'intop'
+% coefficient).
+%
+% INPUT
+% - f:  scalar 'polyopvar' functional;
+%
+% OUTPUT
+% - f:  the functional without its degree-0 monomial;
+% - c:  'double' or 'dpvar', the sum of the constant coefficients, or []
+%       if f has no degree-0 monomial.
 
+% Sum the scalar coefficients of the degree-0 monomials: the kernel of an
+% 'intop' without integrals, the parameter of a single 'sopvar' factor
 c = [];
 is_const = ~any(f.Z,2);
 for i=reshape(find(is_const),1,[])
@@ -392,6 +407,7 @@ for i=reshape(find(is_const),1,[])
     else
         error("Constant coefficients must be scalar 'tensopvar' or 'intop' objects without variables.")
     end
+    % Add to the sum
     if isempty(c)
         c = ci;
     else
@@ -440,6 +456,15 @@ function kst = kernel_stats(kst,Cop,varnames)
 %           if f has none), and the integral terms only if hasNL (if all terms
 %           of f are delta terms, the multiplier-only Gram block reproduces f);
 % - hasdvar: (not per variable) whether any kernel has decision variables.
+%
+% INPUT
+% - kst:      'struct' with the fields above, 1 x N arrays (hasdvar
+%             logical scalar);
+% - Cop:      scalar 'intop' functional;
+% - varnames: 1 x N cellstr, the spatial variables of f;
+%
+% OUTPUT
+% - kst:      the statistics updated with the kernels of Cop.
 
 Kc = kernels(Cop);
 Nc = numel(Cop.vars.in);
@@ -531,11 +556,19 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function excl = exclude_types(depmat,allowed)
 % EXCL = EXCLUDE_TYPES(DEPMAT,ALLOWED) returns the option 'exclude' of
-% monopmat for each block (row of DEPMAT): a 3 x ... x 3 logical array over the
+% the operator basis for each block (row of DEPMAT): a 3 x ... x 3 logical array over the
 % variables on which the block depends, true for the combinations of types
 % (multiplier, lower integral, upper integral) in which a type not allowed in
 % that variable (3 x N logical array ALLOWED) appears. A variable without
 % allowed types (no terms in f) allows all, so that no block is empty.
+%
+% INPUT
+% - depmat:   q x N array, the dependence of each block on each variable;
+% - allowed:  3 x N logical array, the term types allowed per variable;
+%
+% OUTPUT
+% - excl:     1 x q cell of logical arrays (false for a block without
+%             variables).
 
 q = size(depmat,1);
 excl = cell(1,q);

@@ -4,7 +4,7 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 % PIESOS program structure PROG.
 %
 % INPUTS
-% - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
+% - prog:   'struct' specifying a PIESOS program;
 % - Zx:     nZ x 1 'polyopvar' object representing a basis of nZ
 %           distributed monomials in terms of which the polynomial
 %           variable "p" is to be defined. A functional acts on each
@@ -15,13 +15,18 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 %           defining the polynomial, p = C*Zx, with fields
 %               'intmat':  OPTION 1: nZ x 1 cell, specifying for each of
 %                            the monomials the intmat of the functional
-%                            acting on this operator in one of the two
-%                            formats specified in `piesos_intopvar`;
+%                            acting on this operator: a 'char' as in
+%                            OPTION 2, or a 1 x N cell, element i an
+%                            ntrms(i) x 2*deps(i) array of the limits of
+%                            integration of the dummy variables of
+%                            variable i, in the 'intop' format;
 %                          OPTION 2: 'char' object, one of 'full',
 %                            'no_mult', 'lower' or 'upper', specifying
 %                            what type of intmat to use for all of the
-%                            distributed monomials. See the
-%                            `piesos_intopvar` function;
+%                            distributed monomials: all admissible
+%                            integrals, no delta terms, or only the
+%                            integral ordering the dummy variables of
+%                            each variable decreasingly (increasingly);
 %                          Here, 'no_mult' is passed on as 'nomult'.
 %                          Defaults to 'full'. A cell intmat for a
 %                          monomial must have an element for each of the
@@ -29,8 +34,7 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 %                          elements for variables on which the monomial
 %                          does not depend are ignored;
 %               'degs':    degrees of the monomials in the kernels of the
-%                          functionals, as `degs` in `piesos_intopvar`:
-%                          a struct with field 'max', the maximal
+%                          functionals: a struct with field 'max', the maximal
 %                          degrees, or 'full', the full arrays of
 %                          monomial degrees. A cell or array is read as
 %                          struct('max',degs). It can be specified as
@@ -89,6 +93,7 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 

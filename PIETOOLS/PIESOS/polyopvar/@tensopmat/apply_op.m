@@ -40,6 +40,7 @@ function Y = apply_op(Cop,X)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 if ~isa(Cop,'tensopmat')
@@ -64,7 +65,7 @@ for i=1:p
         if is_native_op(Cop.ops{i,j}) 
             % Matrix acting on R: the input X{j} is a vector (or matrix) in
             % R, or a 1x1 cell with this, the form of the inputs of the 
-            % factors of an operator (see apply_poly) 
+            % factors of an operator 
             xj = X{j}; 
             if iscell(xj) && isscalar(xj)
                 xj = xj{1};

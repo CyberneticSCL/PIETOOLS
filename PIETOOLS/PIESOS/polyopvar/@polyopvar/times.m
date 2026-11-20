@@ -5,18 +5,17 @@ function C = times(A,B)
 %
 % INPUTS
 % - A:     m x n 'polyopvar' object, or a constant such that A.*B.C is
-%          defined, see @tensopmat/times.m;
+%          defined;
 % - B:     m x n 'polyopvar' object, or a constant such that A.C.*B is
-%          defined, see @tensopmat/times.m;
+%          defined;
 %
 % OUTPUTS
 % - C:     'polyopvar' object representing A.*B;
 %
 % NOTES
 % - The monomials of C are the products of each monomial of A with each
-%   monomial of B, where the factors of B follow those of A, see
-%   'polyopvar'.
-% - A.*B is the elementwise product otimes(A,B,1), see @polyopvar/otimes.m,
+%   monomial of B, where the factors of B follow those of A.
+% - A.*B is the elementwise product otimes(A,B,1),
 %   a function of a single copy of the variables. The tensor product, a
 %   function of a copy of the variables for each factor, is otimes(A,B,2).
 %
@@ -45,10 +44,10 @@ function C = times(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Move the body to otimes, calling it with otype=1 for the
-%                   elementwise product;
 
+% Product with a single copy of the variables (otype 1)
 C = otimes(A,B,1);
 
 end

@@ -2,11 +2,14 @@ function H = jacobian(F, vars)
 %JACOBIAN compute jacobian of quadpoly object F.
 %
 % INPUTS
-% - P1:   nx1 or 1xn 'quadpoly' class object.
-% - vars:  cell array of names of vars
-% 
+% - F:    nx1 or 1xn 'quadpoly' class object.
+% - vars:  (optional) cell array of names of vars, k of them; defaults to
+%          all variables of F, left (ns) then right (nt)
+%
 % OUTPUTS
-% - H:      'quadpoly' object differentiated with respect all vars
+% - H:      'quadpoly' object differentiated with respect all vars: the
+%           derivatives in the k variables, stacked vertically (k x n) for
+%           a row vector F, horizontally (n x k) for a column vector F
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -36,6 +39,7 @@ function H = jacobian(F, vars)
 %
 % AT, 02/18/2026: Initial coding;
 
+% Only 'quadPoly' objects; by default all variables of F
 if ~isa(F, 'quadPoly')
     error('quadPoly:jacobian:badType', 'jacobian supports only quadPoly ');
 end
@@ -45,12 +49,14 @@ if nargin < 2 || isempty(vars)
 end
 
 
+% Only vector-valued F
 dim = F.dim;
 
 if (dim(1) > 1) && (dim(2) > 1)
     error('quadPoly:jacobian:dimMismatch', 'jacobian supports only 1xn o nx1 quadpoly ')
 end
 
+% Variables as a cell array of names
 if isa(vars, 'char')
     vars = string(vars);
 end
@@ -59,6 +65,7 @@ if ~isa(vars, 'cell')
     vars = num2cell(vars);
 end
 
+% Concatenate the derivatives in the variables, in order
 for var_ind = 1:length(vars)
     var_name = vars{var_ind};
 

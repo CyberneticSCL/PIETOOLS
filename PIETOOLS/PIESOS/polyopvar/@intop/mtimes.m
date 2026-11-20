@@ -18,7 +18,7 @@ function C = mtimes(A,B)
 %   multiplier, the kernels of B are multiplied by A and expressed in the
 %   same monomials and decision variables again.
 % - If A is an 'intop' and B a 'tensopvar', C is the composition of A with
-%   B (see 'mtimes_tensopvar'). If B is a 'tensopmat' with one row, C is
+%   B. If B is a 'tensopmat' with one row, C is
 %   the 'tensopmat' of the compositions of A with each element of B. If B
 %   is a scalar, C = B*A. Products of two 'intop' objects are not
 %   supported.
@@ -48,6 +48,7 @@ function C = mtimes(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Check that multiplication is supported

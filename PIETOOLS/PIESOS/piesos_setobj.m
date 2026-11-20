@@ -5,9 +5,8 @@ function prog = piesos_setobj(prog,obj)
 % the objective is set using `sossetobj`.
 %
 % INPUTS
-% - prog:       'struct' specifying a PIESOS optimization program
-%               (see also `piesos_program`). The format largely matches
-%               that used by SOSTOOLS;
+% - prog:       'struct' specifying a PIESOS optimization program, in
+%               the format of an SOSTOOLS program;
 % - obj:        1 x 1 'dpvar' object, specifying the objective function
 %               to minimize in the optimization program. Must be an
 %               affine combination of decision variables, and cannot
@@ -43,6 +42,7 @@ function prog = piesos_setobj(prog,obj)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Check that the inputs make sense.

@@ -78,8 +78,8 @@ classdef (InferiorClasses={?tensopvar,?sopvar,?dpvar,?polynomial})tensopmat
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 properties
     ops = cell(0,0);
@@ -105,8 +105,7 @@ methods
         %
         % OBJ = TENSOPMAT(COP,VARS,DOM) additionally specifies the
         % variables and their domains as structs with fields 'in' and
-        % 'out', see `mat2tensopvar`, for blocks of type 'double',
-        % 'polynomial' or 'dpvar'.
+        % 'out', for blocks of type 'double', 'polynomial' or 'dpvar'.
         %
         % OBJ = TENSOPMAT() returns an empty 'tensopmat' object.
         %
@@ -169,14 +168,18 @@ methods
                 elseif ~iscellstr(vars.in) || ~iscellstr(vars.out) || size(dom.in,1)~=numel(vars.in) || size(dom.out,1)~=numel(vars.out)
                     error("Variables must be specified as 'cellstr' arrays, with a domain (row of an N x 2 array) for each.") 
                 end                                                         
+                % Store them, the variables as rows
                 obj.vars = struct('in',{reshape(vars.in,1,[])},'out',{reshape(vars.out,1,[])});
                 obj.dom = struct('in',reshape(dom.in,[],2),'out',reshape(dom.out,[],2)); 
             end                                                         
+            % Fill in and check the remaining fields
             obj = initialize(obj);
+        % A single operator of another class: converted, then stored as one block
         elseif isa(Cop,'opvar') || isa(Cop,'opvar2d')
             obj = tensopmat(opvar2sopvar(Cop));
         elseif isa(Cop,'sopvar')
             obj = tensopmat(sopvar2tensopvar(Cop));
+        % 'tensopvar' or 'intop': the only block, with its function spaces
         elseif isa(Cop,'tensopvar') || isa(Cop,'intop')
             obj.ops = {Cop};
             obj.dims.in = size(Cop,2);  obj.dims.out = size(Cop,1);
@@ -192,6 +195,12 @@ methods
 
     function matdim = get.matdim(obj)
         % Determine the matrix dimensions of the operator
+        %
+        % INPUT
+        % - obj:      'tensopmat' object;
+        %
+        % OUTPUT
+        % - matdim:   1 x 2 array [sum(dims.out),sum(dims.in)].
         matdim = [sum(obj.dims.out),sum(obj.dims.in)];
     end
 end

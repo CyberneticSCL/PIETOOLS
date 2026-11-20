@@ -62,7 +62,7 @@ else % sequentially creating a block diagonal matrix
     mblkdiag = A.dim(1); % nrows
     nblkdiag = A.dim(2); % ncolumns
 
-    for k = 2:numel(Q) % loop as in vertcat/horzcat
+    for k = 2:numel(Q) % loop over the remaining inputs
         B = Q{k};
         mB = B.dim(1);
         nB = B.dim(2);

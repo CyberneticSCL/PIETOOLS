@@ -14,9 +14,8 @@ function C = times(A,B)
 %
 % NOTES
 % - For two 'quadPoly' objects, the product is computed as
-%   C(:) = diag(A(:))*B(:), so the same restrictions as in 'mtimes' apply:
-%   left variables in A cannot appear as right variables in B, or vice
-%   versa.
+%   C(:) = diag(A(:))*B(:), so left variables in A cannot appear as right
+%   variables in B, or vice versa.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - times
@@ -42,9 +41,11 @@ function C = times(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 01/21/2026: Initial coding;
 
 
+% Only 'quadPoly' and numeric factors
 if ~(isnumeric(A) || isa(A,'quadPoly')) || ~(isnumeric(B) || isa(B,'quadPoly'))
     error("Elementwise multiplication is only supported for 'quadPoly' and numeric objects.")
 end

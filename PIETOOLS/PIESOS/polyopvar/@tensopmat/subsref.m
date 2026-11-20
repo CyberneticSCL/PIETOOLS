@@ -16,7 +16,7 @@ function out = subsref(obj,ref)
 %           block of obj.ops with the indices specified by ref(1).subs. If
 %           ref(1).subs are not both scalar (index vectors, or ':' for all
 %           blocks), the output will be the 'tensopmat' object including
-%           these row- and column-blocks (like subsasgn for C{I,J}=RHS);
+%           these row- and column-blocks;
 %
 % NOTES
 % - The indices of C{i,j} count the row- and column-blocks of obj.ops, not
@@ -49,9 +49,8 @@ function out = subsref(obj,ref)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/23/2026: Support ':' and index vectors in C{I,J}, returning a
-%                   'tensopmat' of the selected blocks;
 
 if isempty(ref)
     out = obj;

@@ -41,8 +41,8 @@ function P_out = lift_output(P,vars,dom,dims,deps)
 %               P_out.depmat.out = deps (sorted accordingly);
 %
 % NOTES
-% - The coefficient operator P.C is lifted by 'lift_output' for 'tensopmat'
-%   objects, see there for the lifting of the different types of blocks.
+% - The coefficient operator P.C is lifted block by block, according to
+%   the type of each block.
 %   The input function spaces, the states, and the monomials are
 %   unchanged.
 %
@@ -71,9 +71,8 @@ function P_out = lift_output(P,vars,dom,dims,deps)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
-% DJ, 11/06/2026: Output space of P_out follows from P_out.C (see set.C);
-% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % Check that the polynomial is properly declared
 if ~isa(P,'polyopvar')
@@ -97,7 +96,7 @@ end
 C = lift_output(P.C,vars,dom,dims,deps);
 
 % Set the output space of the polynomial to that of the new operator, by the
-% assignment of P_out.C, see set.C. The input space, and the monomials, are
+% assignment of P_out.C. The input space, and the monomials, are
 % unchanged
 P_out = P;
 P_out.C = C;

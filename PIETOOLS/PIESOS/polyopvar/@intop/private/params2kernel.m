@@ -53,6 +53,7 @@ function K = params2kernel(P,Zin,Zd,dumnames)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
 
 N = numel(Zin);

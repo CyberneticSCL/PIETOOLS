@@ -9,7 +9,7 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 % problem. The output of the function is the corresponding 'pde_struct'
 % object describing the PDE.
 %
-% Inputs:
+% INPUT
 %     PDE = examples_PDE_library_PIESOS(example,option1,option2,...)
 %       - example - integer (1-13) corresponding to the selected example
 %       - option# - character array 'name=value', which overrides the
@@ -22,6 +22,11 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 %            specifying the settings PIESOS_settings(option#) with which to
 %            run the stability test associated to the example (see below).
 %            In that case, the test is run without asking for permission.
+%            Without inputs, the index is requested from the user;
+%
+% OUTPUT
+%       - PDE - initialized 'pde_struct' object describing the nonlinear
+%            PDE of the selected example (the first output, varargout{1});
 %
 % Nonlinear PDEs can only be declared in the command-line (pde_var) input
 % format; the batch, term and GUI input formats are not supported.
@@ -51,10 +56,30 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 % citation information, if available.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - examples_PDE_library_PIESOS
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/08/2026: Initial coding;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -473,6 +498,8 @@ if isempty(sttngs)
     if any(strcmpi(userinp,{'n','no'}))
         return
     end
+    % Ask for the settings tier; an empty answer keeps the settings of the
+    % example
     fprintf('\n How hard should the solver work? \n');
     msg = ['   Please input ''light'', ''default'', or ''heavy'', or press enter to use the settings specified for this example \n ---> '];
     sttngs = input(msg,'s');
@@ -482,6 +509,7 @@ if isempty(sttngs)
         sttngs = '';
     end
 end
+% Settings of the specified tier
 if ~isempty(sttngs)
     settings = PIESOS_settings(lower(sttngs));
     fprintf("\n Proceeding with '%s' settings.\n",lower(sttngs))
@@ -547,6 +575,7 @@ for j=2:nargin1
     if isstring(arg) && isscalar(arg)
         arg = char(arg);
     end
+    % A settings tier, or the position k of '=' in 'name=value'
     k = [];
     if ischar(arg)
         if any(strcmpi(strtrim(arg),{'light','default','heavy'}))
@@ -559,6 +588,7 @@ for j=2:nargin1
         warning(['Argument ',num2str(j),' is not understood (parameters must be specified as ''name=value'', and settings as ''light'', ''default'' or ''heavy''), and is therefore ignored.']);
         continue
     end
+    % The name must be a valid variable name; the value is evaluated
     name = strtrim(arg(1:k-1));
     if ~isvarname(name)
         warning(['Argument ',num2str(j),' is not understood (''',name,''' is not a valid parameter name), and is therefore ignored.']);

@@ -25,8 +25,7 @@ function display(Rop,name,width_max,expand,call_name)
 %           'Rop.ops{1,1}';
 %
 % OUTPUTS
-% Display of the operator in the command window, with the terms constructed
-% by 'get_display'.
+% Display of the operator in the command window.
 %
 % NOTES
 % - The product of the factors is displayed as the circled times symbol for
@@ -35,13 +34,13 @@ function display(Rop,name,width_max,expand,call_name)
 %   Rop.otype(2).
 % - The output variables are those in Rop.vars.out, with a subscript to
 %   distinguish different copies of the same variable, numbered over the
-%   factors in order, as in 'apply_op'. A number at the end of the name of
+%   factors in order. A number at the end of the name of
 %   a variable is displayed as a subscript, followed by the subscript of
 %   the copy, separated by a comma, e.g. s1 as s_1 and its second copy as
-%   s_1,2, see 'varname2display'.
+%   s_1,2.
 % - The operators R_ij, with i the term and j the factor, are displayed as
 %   the actual operators, acting on x_j, if all of them in the terms that
-%   are displayed are small enough, see 'get_display'. Otherwise, they are
+%   are displayed are small enough. Otherwise, they are
 %   displayed as R_ij, dropping i if there is only one term, and j if
 %   there is only one factor, and can be extracted by calling Rop.ops{i,j}.
 % - Up to three terms are displayed. For more terms, the first and last
@@ -85,8 +84,8 @@ function display(Rop,name,width_max,expand,call_name)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_factors = 4;        % maximal number of factors of x displayed; with more
@@ -106,6 +105,7 @@ if strcmp(name,'ans')
     name = 'Rop';
     fprintf('\n  ans = %s, where\n',name);
 end
+% Default line width and expansion of the operators
 if nargin<3
     width_max = [];
 end
@@ -113,6 +113,8 @@ if nargin<4
     expand = true;
 end
 
+% An empty operator, or one that cannot be initialized, is not displayed
+% term by term
 if isempty(Rop.ops)
     fprintf('\n  %s is an empty tensor-PI operator.\n\n',name);
     return
@@ -142,6 +144,7 @@ if disp_struct.is_id
     return
 end
 
+% Otherwise (NAME x)(s_1,...,s_d) = the terms
 lhs = ['(',name,' ',disp_struct.xsym,')'];
 if ~isempty(disp_struct.out_args)
     lhs = [lhs,'(',strjoin(disp_struct.out_args,','),')'];
@@ -172,6 +175,7 @@ if d>1
     fprintf('  where %s = %s.\n',x_lhs,strjoin(x_fctrs,disp_struct.in_sym));
 end
 
+% Operators displayed by name: print how to extract them
 if ~disp_struct.expanded
     op_name = 'R';
     if K>1

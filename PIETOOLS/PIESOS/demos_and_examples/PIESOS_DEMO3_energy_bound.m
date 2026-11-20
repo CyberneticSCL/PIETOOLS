@@ -12,9 +12,17 @@
 % the minimum is 0. For r > pi^2, the minimum is attained by the positive
 % solution u* of u_{ss} + r*u - u^3 = 0, with minimum 
 %   E(u*) = -||u*||_4^4/2.
-% We compute this exact minimum from the boundary value problem, and 
-% compare it to the bound from the SOS constraint, for which gam is found
-% by bisection.
+% The bound from the SOS constraint, for which gam is found by bisection,
+% is printed with this exact minimum for r = 12.
+%
+% INPUT
+% - none: the reaction rate r and the number of bisection steps are set
+%   in the script;
+%
+% OUTPUT (workspace)
+% - gam_min:    the largest lower bound gam verified, E(u) >= gam_min for
+%               all u;
+% - prog_sol:   'struct', the PIESOS program of the last bisection step.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIESOS_DEMO3
@@ -40,8 +48,8 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/08/2026: Initial coding;
-% DJ, 11/11/2026: Use `convert` to solve the BVP;
 
 clc; clear; clear stateNameGenerator
 echo on

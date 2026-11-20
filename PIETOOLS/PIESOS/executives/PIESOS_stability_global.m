@@ -25,9 +25,8 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 %   ||x_pde(t)|| <= sqrt(C/eppos)*exp(-lambda*t)*||u(0)||.
 %
 % INPUT
-% - PIE:        'npie_struct' object representing the PIE, as output by
-%               `convert` for a nonlinear PDE. A 'pde_struct' object is
-%               converted to a PIE;
+% - PIE:        'npie_struct' object representing the PIE. A 'pde_struct'
+%               object is converted to a PIE;
 % - lambda:     (optional) nonnegative scalar, the decay rate. Defaults
 %               to 0, testing stability;
 % - LF_form:    (optional) 'pie' or 'pde', the form of the Lyapunov
@@ -35,10 +34,10 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 %               lower bound V >= eppos*||u||^2 enforced as an SOS
 %               constraint ('pie'), or V = (SOS polynomial in the PDE
 %               states u=T*x) + eppos*||u||^2 ('pde'). Defaults to 'pie';
-% - settings:   (optional) 'struct' of settings, as output by
-%               `PIESOS_settings` (see there for the fields used). Only
-%               settings.LF, sos, and the solver settings are used.
-%               Defaults to PIESOS_settings();
+% - settings:   (optional) 'struct' of settings, with fields LF
+%               (dist_deg, mon_deg, exclude, sep, psatz, eppos, C, lower),
+%               sos (use_ineq, mon_deg, psatz, exclude), solver, simplify,
+%               tol_feas and verbose. Defaults to PIESOS_settings();
 %
 % OUTPUT
 % - prog_sol:   PIESOS program structure of the solved program;

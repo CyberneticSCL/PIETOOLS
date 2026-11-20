@@ -11,7 +11,7 @@ function C = mpower(A,d)
 %
 % NOTES
 % - Only scalar-valued polynomials are supported for now, for which A^D is
-%   the elementwise power A.^D, see @polyopvar/power.m. The matrix power of
+%   the elementwise power A.^D. The matrix power of
 %   a matrix-valued polynomial is not supported.
 %
 
@@ -39,6 +39,7 @@ function C = mpower(A,d)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
 
 if ~isa(A,'polyopvar')

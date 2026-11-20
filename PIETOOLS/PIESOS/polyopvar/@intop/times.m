@@ -47,10 +47,8 @@ function C = times(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                   times_param (one caller) inlined as a loop over the
-%                   parameters;
 
 % Check that multiplication is supported
 if isa(A,'intop') && isa(B,'intop')
@@ -109,19 +107,18 @@ end
 % Multiply the nonzeros by the entries of A
 A = A.*ones(Cdim);
 [~,~,nZ] = Zdims(B.Z.in);
-% C.params = cellfun(@(a) times_param(a,A,nd,nZ,Cdim(1)),C.params,'UniformOutput',false); % MMP, 11/09/2026 (was)
-% Multiply the nonzeros of every coefficient matrix by the entries of A     % MMP, 11/09/2026
-% (the former local TIMES_PARAM, now a loop over the parameters)            % MMP, 11/09/2026
-Av = A(:);                              % column, also if A is a row vector % MMP, 11/09/2026
-for k = 1:numel(C.params)                                                   % MMP, 11/09/2026
-    Pk = C.params{k};                                                       % MMP, 11/09/2026
-    [i,j,v] = find(Pk);                                                     % MMP, 11/09/2026
-    i = i(:);   j = j(:);   v = v(:);       % row vectors if Pk has one row % MMP, 11/09/2026
-    row = ceil(i/(nd+1));                                                   % MMP, 11/09/2026
-    col = ceil(j/nZ);                                                       % MMP, 11/09/2026
-    v = v.*Av(row + (col-1)*Cdim(1));                                       % MMP, 11/09/2026
-    C.params{k} = sparse(i,j,v,size(Pk,1),size(Pk,2));                      % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
+% Every coefficient matrix: rows m*(nd+1), columns n*nZ, so a nonzero in
+% row i and column j belongs to matrix element (ceil(i/(nd+1)),ceil(j/nZ))
+Av = A(:);                              % column, also if A is a row vector
+for k = 1:numel(C.params)
+    Pk = C.params{k};
+    [i,j,v] = find(Pk);
+    i = i(:);   j = j(:);   v = v(:);       % row vectors if Pk has one row
+    row = ceil(i/(nd+1));
+    col = ceil(j/nZ);
+    v = v.*Av(row + (col-1)*Cdim(1));
+    C.params{k} = sparse(i,j,v,size(Pk,1),size(Pk,2));
+end
 
 end
 

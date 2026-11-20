@@ -12,7 +12,7 @@ function [prog,Pop,Pmat,Zop] = piesos_lpivar(prog,dims,vars,dom,depmat,degs,opts
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program in which to declare the
-%           operator variable (see `piesos_program`);
+%           operator variable;
 % - dims:   struct with fields
 %     in:   q x 1 array specifying the number of state variables (ni) on
 %           which the operator acts;
@@ -106,9 +106,11 @@ function [prog,Pop,Pmat,Zop] = piesos_lpivar(prog,dims,vars,dom,depmat,degs,opts
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 
+% Check that the output dependence is boolean
 if ~islogical(depmat.out)
     if any(any(~ismember(depmat.out,[0;1])))
         error("Distributed monomial degree of the output cannot be set explicitly.")
@@ -123,7 +125,7 @@ if nargin<=6
     opts = struct();
 end
 
-% Declare a basis of operators on this domain
+% Declare a basis of operators on this domain, one block row per output
 Zop = [];
 ndims_out = size(depmat.out,1);
 for i=1:ndims_out

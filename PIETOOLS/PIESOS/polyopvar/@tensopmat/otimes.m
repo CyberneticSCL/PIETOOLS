@@ -51,6 +51,7 @@ function C = otimes(A,B,type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % By default, perform Kronecker product along columns but pointwise product
@@ -205,10 +206,18 @@ end
 function C = otimes_op(A,B,type,XA,iA,XB,iB)
 % Tensor product of two operators, where a scalar constant (a 'tensopvar'
 % consisting of a 'sopvar' without variables, representing a degree-0
-% monomial) multiplies the kernels of the other operator, as a double would
-% (intop/otimes does so too, but checks A.chkval before its double branch)
+% monomial) multiplies the kernels of the other operator, as a double would.
 % A is block iA of the 'tensopmat' XA, B block iB of XB (row indices), for the output space of a
 % block of type double/polynomial/dpvar, which is converted to an operator (native2op)
+%
+% INPUT
+% - A, B:     blocks (operators or matrices acting on R);
+% - type:     1 x 2 array, the product along the rows and the columns;
+% - XA, iA:   the 'tensopmat' of A and the row index of A in it;
+% - XB, iB:   the 'tensopmat' of B and the row index of B in it;
+%
+% OUTPUT
+% - C:        the tensor product block.
 if is_native_op(A) && is_native_op(B)
     C = otimes_native(A,B,type);        % two matrices acting on R
     return
@@ -242,7 +251,14 @@ end
 end
 
 function is_const = is_constant(A)
-% Check whether A is a scalar constant, as declared by `constant2polyopvar`
+% Check whether A is a scalar constant: a 'tensopvar' of a single 'sopvar'
+% without variables (a degree-0 monomial)
+%
+% INPUT
+% - A:        block of a 'tensopmat';
+%
+% OUTPUT
+% - is_const: logical.
 is_const = isa(A,'tensopvar') && isscalar(A.ops) && isa(A.ops{1},'sopvar') && ...
             all(size(A)==1) && isempty(A.ops{1}.vars.in) && isempty(A.ops{1}.vars.out) && ...
             isscalar(A.ops{1}.params);
@@ -257,10 +273,20 @@ function C = otimes_native(A,B,type)
 % row-column order of the Kronecker product, with r1=r2 (c1=c2) for a pointwise
 % product.
 %
+%
+% INPUT
+% - A, B:     'double', 'polynomial' or 'dpvar' matrices;
+% - type:     1 x 2 array, the product along the rows and the columns;
+%
+% OUTPUT
+% - C:        matrix of the products.
 
+% A Kronecker product along the rows requires disjoint variables
 if type(1)==2 && ~isempty(intersect(native_vars(A),native_vars(B)))
     error("The tensor product along the rows of blocks of type 'double', 'polynomial' or 'dpvar' that share a spatial variable is not supported: use a pointwise product.")
 end
+% Row indices of A and B in each product: equal rows (type 1), or all
+% pairs in Kronecker order (type 2)
 [mA,nA] = size(A);      [mB,nB] = size(B);
 if type(1)==1
     if mA~=mB
@@ -270,6 +296,7 @@ if type(1)==1
 else
     ridcsA = repelem(1:mA,mB);      ridcsB = repmat(1:mB,1,mA);
 end
+% Column indices likewise
 if type(2)==1
     if nA~=nB
         error("Column dimensions of operators must match for elementwise multiplication.")
@@ -278,6 +305,7 @@ if type(2)==1
 else
     cidcsA = repelem(1:nA,nB);      cidcsB = repmat(1:nB,1,nA);
 end
+% The products A(r1,c1)*B(r2,c2)
 C = A(ridcsA,cidcsA).*B(ridcsB,cidcsB);
 
 end

@@ -10,9 +10,37 @@ function H = horzcat(varargin)
 %   - All inputs must have the same number of rows (matrix dimension m).
 %   - Left variables (ns/Zs) stay on the left; right variables (nt/Zt) stay on the right.
 %   - Bases are merged (union) across all inputs before concatenation.
-%   - Uses unionBasis convention: Z_old = P * Z_union (row-pick), but we lift via maps.
+%   - Each input basis is a row selection Z_old = P*Z_union of the union
+%     basis; the coefficients are lifted to the union basis by index maps.
 %
 % Supports mixing numeric matrices with quadPoly (numeric treated as constant quadPoly).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - horzcat
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 01/16/2026
 
 
 % ---- Convert all inputs to quadPoly ----

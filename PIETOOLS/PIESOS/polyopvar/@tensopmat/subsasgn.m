@@ -23,14 +23,14 @@ function out = subsasgn(obj,ref,RHS)
 %           been checked since they were changed (chkval itself is just set);
 %
 % NOTES
-% - The indices of C{i,j} count the row- and column-blocks of obj.ops, as
-%   for C{i,j} in 'subsref'. The keyword 'end' cannot be used: it evaluates
+% - The indices of C{i,j} count the row- and column-blocks of obj.ops.
+%   The keyword 'end' cannot be used: it evaluates
 %   to 1 for a 'tensopmat', so C{i,end}=RHS sets C{i,1}.
 % - Only '{}'-type subsasgn (replacing row/column-block(s) in obj.ops) and
 %   '.'-type subsasgn (setting a field) are supported; '()'-type subsasgn
 %   is not supported.
-% - After '{}'-type subsasgn, the object is passed through 'initialize',
-%   which recomputes dims/vars/dom/depmat from obj.ops and errors if the
+% - After '{}'-type subsasgn, dims/vars/dom/depmat are recomputed from
+%   obj.ops, with an error if the
 %   new block(s) are inconsistent in matrix dimension, variables, or
 %   domain with the rest of the row(s)/column(s) they belong to.
 
@@ -58,9 +58,8 @@ function out = subsasgn(obj,ref,RHS)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/23/2026: Support ':' in C{I,J}=RHS, as in 'subsref';
-% DJ, 11/06/2026: Set chkval=false after a '.'-type assignment;
 
 switch ref(1).type
     case '.'

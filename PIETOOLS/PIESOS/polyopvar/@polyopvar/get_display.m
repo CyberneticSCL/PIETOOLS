@@ -17,7 +17,7 @@ function row_disp = get_display(P,expand)
 %       terms:  1 x n cell of char, the terms of the polynomial, without
 %               their sign, in the order of the monomials. These are
 %               C_ij monomial, or the terms of the display of C_ij acting
-%               on the monomial, see 'tensopvar/get_display';
+%               on the monomial;
 %       signs:  1 x n array of 1 and -1, the sign of each term;
 %       expanded:   logical, true if the operators are displayed as the
 %               actual operators, and false if they are displayed as C_ij;
@@ -39,9 +39,9 @@ function row_disp = get_display(P,expand)
 % - A monomial is displayed as the tensor product of its factors, in the
 %   order of P.Z, with the tensor product of d consecutive copies of a
 %   state x displayed as x^{od}. A factor of a monomial that is a known
-%   function (a multiplier from R, see 'polyopvar') is displayed as 1. The
+%   function (a multiplier from R) is displayed as 1. The
 %   tensor product and the tensor power are displayed as o and ^{od}
-%   unless 'use_unicode' is true, see 'varname2display'.
+%   unless 'use_unicode' is true.
 % - The operator that acts on a monomial with d factors is displayed
 %   with the factors of the monomial as the functions on which the d
 %   factors of the operator act, so that the operator is displayed as the
@@ -73,10 +73,8 @@ function row_disp = get_display(P,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
-% DJ, 11/06/2026: Display an identity on several factors as the monomial;
-% DJ, 11/06/2026: Get the tensor product and power from 'varname2display';
 
 % Default settings
 max_terms = 6;          % maximal number of monomials and terms for which the operators
@@ -125,18 +123,21 @@ for j=1:nZ
         end
         k = k+r;
     end
+    % Tensor product of the groups, in brackets if there are several
     mono_strs{j} = strjoin(fctr_groups,otimes_sym);
     if numel(fctr_groups)>1
         mono_strs{j} = ['(',mono_strs{j},')'];
     end
 end
 
+% Per row: the states in its monomials, the output variables, and the terms
 nvars_out = numel(P.vars.out);
 row_disp = repmat(struct('terms',{cell(1,0)},'signs',zeros(1,0),'expanded',false,'states',{cell(1,0)},'out_args',{cell(1,0)}),nr,1);
 for i=1:nr
     mono_idcs = find(~cellfun(@isempty,P.C.ops(i,:)));
     state_idcs = unique([mono_states{mono_idcs}]);
     row_disp(i).states = state_names(state_idcs);
+    % Output variables, numbered by copy if a variable has several copies
     out_args = cell(1,0);
     for k=1:nvars_out
         ncopies = P.depmat.out(i,k);
@@ -200,6 +201,8 @@ for i=1:nr
         terms = [terms,blk_disp.terms];                   %#ok<AGROW>
         signs = [signs,blk_disp.signs];                   %#ok<AGROW>
     end
+    % Too many terms, or a block not displayed explicitly: display the
+    % operators by name, C_ij acting on monomial j
     if expanded && numel(terms)>max_terms
         expanded = false;
     end
@@ -207,6 +210,8 @@ for i=1:nr
         terms = cell(1,numel(mono_idcs));
         for ii=1:numel(mono_idcs)
             j = mono_idcs(ii);
+            % Subscripts i (several rows) and j (several monomials), with a comma
+            % if an index exceeds 9
             op_name = 'C';
             if nr>1
                 op_name = [op_name,sub_str(i)];
@@ -221,6 +226,7 @@ for i=1:nr
         end
         signs = ones(1,numel(terms));
     end
+    % Store the terms of row i
     row_disp(i).terms = terms;
     row_disp(i).signs = signs;
     row_disp(i).expanded = expanded;

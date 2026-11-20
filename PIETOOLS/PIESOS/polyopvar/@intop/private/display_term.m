@@ -1,7 +1,7 @@
 function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 % [TERM_STR,TERM_SIGN,USE_K] = DISPLAY_TERM(KOP,SUB_IDCS,K,XSYM)
 % builds a char representing the term of the functional KOP defined by the
-% kernel KOP.PARAMS{K}, for use in the 'display' method of 'intop'.
+% kernel KOP.PARAMS{K}.
 %
 % INPUTS
 % - Kop:        'intop' object with N spatial variables;
@@ -19,8 +19,7 @@ function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 %                   0_int^1 0_int^s2 K3(s1,s2) x(s1,s2) ds1 ds2
 %               (with the integral sign, subscripts and superscripts as
 %               unicode characters). The integrals are ordered with the
-%               outermost first, using get_int_order, with the limits
-%               following from intmat. The lower limit precedes the
+%               outermost first, with the limits following from intmat. The lower limit precedes the
 %               integral symbol, and the upper limit follows it. The limits
 %               are displayed as subscripts and superscripts if they are
 %               integers or variables, and as {x}_ and ^{x} otherwise,
@@ -72,10 +71,8 @@ function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the names of dummy variables, the limits, and the
-%                   subscripts from 'varname2display';
-% DJ, 11/19/2026: Name dummy variables by 'get_tensorvars';
 
 % Default settings
 max_nnz = 4;            % maximal number of nonzero coefficients of a kernel
@@ -101,9 +98,12 @@ dum_names = cell(1,ndum);
 rep_idx = zeros(1,ndum);       rep_val = zeros(1,ndum);
 lim_lo_idx_all = cell(1,nvars);       lim_hi_idx_all = cell(1,nvars);
 for i=1:nvars
+    % Lower and upper limit indices of the copies along direction i
     intmat_row = Kop.intmat{i}(sub_idcs(i),:);
     lim_lo_idx = intmat_row(1:2:end);   lim_hi_idx = intmat_row(2:2:end);
     lim_lo_idx_all{i} = lim_lo_idx;        lim_hi_idx_all{i} = lim_hi_idx;
+    % From each copy, follow equal limits until an integrated copy
+    % (distinct limits) or a boundary (index 0 or ncopies(i)+1)
     for copy_idx=1:ncopies(i)
         eval_idx = copy_idx;
         for it=1:ncopies(i)+1
@@ -116,6 +116,7 @@ for i=1:nvars
             end
             eval_idx = lim_lo_idx(eval_idx);
         end
+        % Evaluated at an integrated copy, unless at a boundary value
         if eval_idx>0
             rep_idx(dum_pos(i)+copy_idx) = dum_pos(i)+eval_idx;
         end
@@ -145,6 +146,7 @@ for dum_idx=1:ndum
     end
 end
 
+% Integral symbols with their limits, and differentials, per direction
 int_sym = char(8747);
 int_strs = cell(1,nvars);       diff_strs = cell(1,nvars);
 for i=1:nvars
@@ -155,7 +157,7 @@ for i=1:nvars
     end
     lim_names = [{sprintf('%g',dom(i,1))},eff_names(dum_pos(i)+1:dum_pos(i+1)),{sprintf('%g',dom(i,2))}];
     % Integrate over the variables that are not multipliers, ordered
-    % inner to outer by get_int_order, using the index to break ties
+    % inner to outer, using the index to break ties
     int_order = get_int_order(Kop.intmat{i}(sub_idcs(i),:));
     int_copies = find(lim_lo_idx~=lim_hi_idx);
     [~,sort_idcs] = sortrows([int_order(int_copies).',int_copies.']);
@@ -163,9 +165,8 @@ for i=1:nvars
     nint_i = numel(int_copies);
     for j=1:nint_i
         copy_idx = int_copies(j);
-        % The limits as subscript and superscript, or in braces, see
-        % 'varname2display'. The lower limit precedes the integral symbol,
-        % the upper limit follows it
+        % The limits as subscript and superscript, or in braces. The lower
+        % limit precedes the integral symbol, the upper limit follows it
         [~,lim_lo] = varname2display(lim_names{lim_lo_idx(copy_idx)+1});
         [~,~,lim_hi] = varname2display(lim_names{lim_hi_idx(copy_idx)+1});
         int_strs{i}{nint_i+1-j} = [lim_lo,int_sym,lim_hi];
@@ -180,12 +181,14 @@ for i=1:nvars
     diff_strs_all = [diff_strs_all,diff_strs{i}];
 end
 
+% The kernel: explicit for at most max_nnz nonzeros and scalar Kop
 param_k = Kop.params{k};
 kern_args = strjoin(eff_names,',');
 if nnz(param_k)<=max_nnz && m*n==1
     [kern_str,term_sign] = explicit_kernel(Kop,param_k,rep_idx,rep_val,dum_names);
     use_K = false;
 else
+    % By name: K for a single kernel, K_k otherwise
     if isscalar(Kop.params)
         kern_str = 'K';
     else
@@ -198,6 +201,7 @@ else
     use_K = true;
 end
 
+% The function acted on, with the same arguments; join the parts
 if nvars>0
     x_str = [xsym,'(',kern_args,')'];
 else
@@ -259,6 +263,8 @@ for t=1:nt
     for i=1:nvars
         degs = [degs,Kop.Z.in{i}(mono_idcs(i),:)];
     end
+    % Add the degree of a multiplier to the copy it is evaluated at, or
+    % multiply the coefficient by the boundary value to that power
     for g=1:ndum
         if rep_idx(g)>0
             degmat(t,rep_idx(g)) = degmat(t,rep_idx(g)) + degs(g);
@@ -287,12 +293,15 @@ for t=1:numel(coef_sums)
             mono_facs{end} = [dum_names{g},pow_str];
         end
     end
+    % Prepend the decision variable, and the coefficient unless it is +-1
+    % with other factors
     if dvar_t>1
         mono_facs = [Kop.Zd(dvar_t-1).',mono_facs];
     end
     if abs(coef_sums(t))~=1 || isempty(mono_facs)
         mono_facs = [{sprintf('%.4g',abs(coef_sums(t)))},mono_facs];
     end
+    % Append the monomial to its element, the sign of a first term kept apart
     mono_str = strjoin(mono_facs,'*');
     if elem_nterms(row_t,col_t)==0
         elem_strs{row_t,col_t} = mono_str;
@@ -303,6 +312,8 @@ for t=1:numel(coef_sums)
     elem_nterms(row_t,col_t) = elem_nterms(row_t,col_t)+1;
 end
 
+% Scalar kernel: brackets around multiple terms, the sign of a single term
+% returned separately
 if m*n==1
     kern_str = elem_strs{1};
     ksign = elem_signs(1);
@@ -312,6 +323,7 @@ if m*n==1
     elseif strcmp(kern_str,'1')
         kern_str = '';
     end
+% Matrix kernel: [K11, K12; K21, K22], each element with its sign
 else
     ksign = 1;
     row_strs = cell(1,m);

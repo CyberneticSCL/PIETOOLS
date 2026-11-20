@@ -3,7 +3,7 @@ function B = ctranspose(A)
 % L2-adjoint of the distributed polynomial A, so that the product of A'
 % with a distributed polynomial V is the inner product of A and V,
 %   A'*V = innerprod(A,V),
-% and A'*P*V = innerprod(A,P,V) for a weight P, see 'mtimes'.
+% and A'*P*V = innerprod(A,P,V) for a weight P.
 %
 % INPUTS
 % - A:      m x 1 'polyopvar' object, or an adjoint (A=U') with the
@@ -18,7 +18,7 @@ function B = ctranspose(A)
 %   the polynomial U'. Most operations are therefore not supported for an
 %   adjoint, only the products U'*V and U'*P, sums of adjoints with the
 %   same weight, the negative, and the horizontal concatenation of
-%   adjoints, see 'mtimes', 'plus' and 'horzcat'.
+%   adjoints.
 % - The transpose of an object with a weight W other than the identity,
 %   e.g. the transpose (U'*P)' of an adjoint, is not supported: an error
 %   is thrown, whether or not A is an adjoint.
@@ -48,6 +48,7 @@ function B = ctranspose(A)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/07/2026: Initial coding;
 
 if ~A.chkval

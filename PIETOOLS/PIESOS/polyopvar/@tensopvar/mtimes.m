@@ -30,8 +30,11 @@ function C = mtimes(A,B)
 %   (and proper tensor products, A.otype(2)==B.otype(1)==2), the factors
 %   are composed one by one, by the mixed product property
 %       (A1 o ... o Ad)(B1 o ... o Bd) = A1B1 o ... o AdBd.
+%   For different numbers of factors, the factors acting on R are first
+%   merged into their neighbors; if the numbers still differ, an error is
+%   thrown.
 % - If A is nested (a factor of A is a 'tensopvar' acting on several of the
-%   factors of the monomial, see 'plus') and B has a factor for each leaf
+%   factors of the monomial) and B has a factor for each leaf
 %   factor of A (num_factors(A)), the factors of B are distributed over the
 %   nested factors of A, term by term, and composed recursively.
 
@@ -59,10 +62,8 @@ function C = mtimes(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/21/2026: Compare empty variable lists regardless of shape;
-% DJ, 11/08/2026: Add support for multiplication of operators involving
-%                   different numbers of factors if mapping from R;
 
 % Check that multiplication is supported
 if ~isa(B,'tensopvar') && all(size(B)==1)
@@ -103,7 +104,7 @@ end
 
 % Factorwise composition needs matching numbers of factors
 % --> try merging the factors that are operate on R into their neighbors
-if isa(A,'tensopvar') && size(A.ops,2)~=size(B.ops,2)                       % DJ, 11/08/2026
+if isa(A,'tensopvar') && size(A.ops,2)~=size(B.ops,2)
     A = combine_factors(A);
     B = combine_factors(B);
 end
@@ -218,6 +219,13 @@ function C = mtimes_nested(A,B)
 % outputs, as for a mixed product (F1 o ... o Fd)(B1 o ... o Bd) = F1B1 o ... o FdBd): recursively if Fj is
 % itself nested. Composition is bilinear, so each pair of terms of A and B gives a term of C, with the
 % outputs of the factors of A combined as in A (A.otype(1)), and the inputs of the factors of B as in B.
+%
+% INPUT
+% - A:        nested 'tensopvar' object;
+% - B:        'tensopvar' object with a factor per leaf factor of A;
+%
+% OUTPUT
+% - C:        'tensopvar' object, the composition A*B.
 [KA,dA] = size(A.ops);      [KB,dB] = size(B.ops);
 % B can be split between several factors of A only if it has a Kronecker product of its outputs, as for
 % factors that are not nested (see the multiplication above); a single factor of A is composed with all of B

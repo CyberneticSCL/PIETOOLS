@@ -7,10 +7,9 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 % of the PIE state x=PIE.x, in the sense that
 %   V(x) <= c, h_j(x) = 0 for all j     implies     g_i(x) >= 0 for all i.
 % The equality constraints h_j describe the states considered (for example,
-% the ball N(u) <= R^2 of PIESOS_stability_local is g = R^2 - N(u), without
-% h). If V is a Lyapunov functional for which the derivative dV along the
-% PIE is nonpositive on {g >= 0, h = 0}, for example the output V of
-% PIESOS_stability_local with g = R^2 - N(u), then {V <= c} is an invariant
+% the ball N(u) <= R^2 is g = R^2 - N(u), without h). If V is a Lyapunov
+% functional for which the derivative dV along the PIE is nonpositive on
+% {g >= 0, h = 0}, then {V <= c} is an invariant
 % set in this set, and thus a region of attraction.
 % With constants a_i = g_i(0) >= 0, the inclusion for g_i is verified using
 % a multiplier p_i >= 0 on V - c, and free multipliers q_ij on h_j, by
@@ -21,28 +20,26 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 % largest sublevel set has c = min_i c_i.
 %
 % INPUT
-% - PIE:        'npie_struct' object representing the PIE, as output by
-%               `convert` for a nonlinear PDE. A 'pde_struct' object is
-%               converted to a PIE;
-% - V:          'polyopvar' object in the PIE state x=PIE.x with V(0)=0,
-%               e.g. info.V as output by PIESOS_stability_local;
+% - PIE:        'npie_struct' object representing the PIE. A 'pde_struct'
+%               object is converted to a PIE;
+% - V:          'polyopvar' object in the PIE state x=PIE.x with V(0)=0;
 % - g:          scalar 'polyopvar' object in x, or cell of such objects,
 %               defining the inequalities g_i >= 0, with g_i(0) >= 0. The
-%               constant term is allowed, e.g. g = R^2 - weighted_sobolev_
-%               norm(PIE.T*PIE.x,alpha);
+%               constant term is allowed, e.g. g = R^2 - N(u) for a norm N
+%               of u=T*x;
 % - h:          (optional) scalar 'polyopvar' object in x, or cell of such
 %               objects, defining the equalities h_j = 0, with h_j(0)=0.
 %               Defaults to {};
-% - settings:   (optional) 'struct' of settings, as output by
-%               `PIESOS_settings`. Only the following fields are used:
+% - settings:   (optional) 'struct' of settings. Only the following
+%               fields are used:
 %                 LF.mon_deg,           degree of the kernels in V, to be set
 %                                       to the value used to obtain V;
 %                 sos.mon_deg(3),       degree of the kernels in the SOS
 %                 sos.psatz(3)          constraint, the larger of
 %                                       sos.mon_deg(3) and LF.mon_deg+2 (a
 %                                       lower degree, or one chosen
-%                                       automatically, was infeasible for
-%                                       the V of PIESOS_stability_local), and
+%                                       automatically, was observed to be
+%                                       infeasible), and
 %                                       psatz multipliers;
 %                 solver, simplify, tol_feas, verbose
 %               Defaults to PIESOS_settings();
@@ -67,7 +64,7 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 % - The region {V <= c} is only a region of attraction if dV <= 0 on
 %   {g >= 0, h = 0}. This is not checked here.
 % - For radius of the region of attraction in a norm N with V <= C*N on the
-%   ball, e.g. C=info.C of PIESOS_stability_local, use sqrt(c/C).
+%   ball, use sqrt(c/C).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,6 +91,7 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/10/2026: Initial coding;
 
 t_start = tic;
@@ -105,6 +103,7 @@ end
 if nargin<5 || isempty(settings)
     settings = PIESOS_settings();
 end
+% A PDE is converted to a PIE; a single g or h is put in a cell
 if isa(PIE,'pde_struct')
     PIE = convert(PIE,'silent');
 end
@@ -114,6 +113,7 @@ end
 if isa(h,'polyopvar')
     h = {h};
 end
+% Classes of PIE, V, g (nonempty) and h
 if ~isa(PIE,'npie_struct')
     error("The PIE must be specified as 'npie_struct' (or 'pde_struct') object.")
 elseif ~isa(V,'polyopvar')
@@ -137,8 +137,8 @@ elseif abs(double(apply_poly(V,x0)))>0 || any(cellfun(@(f) abs(double(apply_poly
     error("V and the equalities h_j must vanish at x=0.")
 end
 
-% Options of the SOS constraint, as for the derivative condition in
-% PIESOS_stability_local
+% Options of the SOS constraint: entry 3 (the derivative condition) of
+% the SOS settings
 sos_opts = struct();
 if settings.sos.psatz(3)>0
     sos_opts.psatz = settings.sos.psatz(3);
@@ -154,6 +154,7 @@ end
 info = struct('feasible',true,'c',Inf,'c_i',NaN(ng,1));
 prog_sol = [];
 for i=1:ng
+    % Program in p and q: minimize p >= 0 subject to the SOS constraint
     dpvar p
     q = [];
     if nh>0
@@ -168,6 +169,7 @@ for i=1:ng
     end
     prog = piesos_ineq(prog,cons,sos_opts);
     prog_sol = piesos_solve(prog,sol_opts);
+    % If solved: c_i = a_i/p_i, or 0 if g_i(0) = 0
     sinfo = prog_sol.solinfo.info;
     if sinfo.pinf || sinfo.dinf || sinfo.numerr || abs(sinfo.feasratio-1)>settings.tol_feas
         info.feasible = false;

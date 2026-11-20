@@ -23,13 +23,13 @@ function c = apply_op(Kop,v)
 %   'tensopvar' and 'tensopmat'.
 % - For a monomial of degree d>1, v may be the 1 x d cell {v1,...,vd} of
 %   its factors, so that Kop acts on their tensor product v1 o ... o vd,
-%   the Kronecker product with the first factor slowest, see 'polyopvar'.
+%   the Kronecker product with the first factor slowest.
 %   The copies s_1,...,s_d of a variable s of the functional are then the
 %   variable s of the factors in order, e.g. v(s_1,s_2) = v1(s_1)*v2(s_2).
 %   If fewer than d factors depend on s, Kop must have as many copies of s
 %   as there are such factors.
 % - A polynomial v is a function of the copies s_1,...,s_d of each
-%   variable s of which Kop has d copies (see 'get_tensorvars'), or of s
+%   variable s of which Kop has d copies, or of s
 %   itself if d=1. The bare name s is rejected if d>1.
 % - With the kernels expressed in terms of the monomials z(s) defined by
 %   Kop.Z.in, the integral over the region r of the kernel times v is
@@ -67,11 +67,8 @@ function c = apply_op(Kop,v)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/28/2026: Allow v to be the 1 x d cell of the factors of a
-%                   monomial of degree d>1, acting on their tensor product;
-% DJ, 11/19/2026: Name copies by 'get_tensorvars'; reject the bare name s
-%                   of a variable with several copies, read as s_1 before;
 
 % % Process the inputs
 % Check that the functional is properly specified
@@ -237,6 +234,26 @@ function Cres = apply_regions(Cres,T,dimsT,i,jidx,Kop,A,sz_params,nmons,nZ,n,p,n
 % dimension with the integrals A{i}{j} for each term j along direction i,
 % and add the product of the coefficients of each of the regions with the
 % integrals W_r, once all directions are integrated
+%
+% INPUT
+% - Cres:       m*(nd+1) x nF*p array, the sum so far;
+% - T:          array of dimensions dimsT, the coefficients of the
+%               argument still to be integrated;
+% - dimsT:      array, the dimensions of T;
+% - i:          integer, the direction to integrate next;
+% - jidx:       1 x (i-1) cell, the term along each direction done;
+% - Kop:        'intop' object;
+% - A:          1 x N cell; A{i}{j} the integrals along direction i for
+%               term j;
+% - sz_params:  array, the size of Kop.params;
+% - nmons:      1 x N array, the number of monomials per direction;
+% - nZ:         integer, the total number of monomials;
+% - n, p, nF:   integers, the column dimension of Kop, the number of
+%               columns of the argument, and the number of monomials in
+%               the other variables;
+%
+% OUTPUT
+% - Cres:       the sum with the contributions of all regions added.
 N = numel(Kop.vars.in);
 if i>N
     % T has dimensions [nF*n*p,nmons_1,...,nmons_N]. Order the monomials with the first variable
@@ -267,6 +284,17 @@ function F = integrate_term(pE,Kop,int_order,pvars,i,j)
 % Integrate the polynomial vector pE in the dummy variables of direction i
 % over the domain of term j along this direction, returning the vector of
 % values
+%
+% INPUT
+% - pE:         nE x 1 'polynomial' of monomials in the dummy variables
+%               of direction i;
+% - Kop:        'intop' object;
+% - int_order:  1 x N cell, the order of integration (Kop.int_order);
+% - pvars:      'polynomial' variables of Kop;
+% - i, j:       integers, the direction and the term;
+%
+% OUTPUT
+% - F:          nE x 1 array or 'polynomial', the integrals of pE.
 intmat_i = Kop.intmat{i};
 di = size(int_order{i},2);
 A = intmat_i(:,1:2:end);
@@ -307,6 +335,13 @@ function v = kron_factors(vc,Kop)
 % V = KRON_FACTORS(VC,KOP) returns the tensor product of the factors in the 1 x d cell VC, as
 % a function of the copies s_1,...,s_ncp of each variable s of Kop, the k-th factor depending
 % on s taking the copy s_k
+%
+% INPUT
+% - vc:     1 x d cell of 'polynomial' factors;
+% - Kop:    'intop' object, defining the copies of its variables;
+%
+% OUTPUT
+% - v:      'polynomial', the Kronecker product of the factors.
 d = numel(vc);
 for j=1:d
     if isa(vc{j},'double')

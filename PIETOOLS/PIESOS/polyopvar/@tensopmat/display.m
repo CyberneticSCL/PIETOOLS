@@ -9,7 +9,7 @@ function display(Rop,name,width_max,expand)
 % to, e.g. R, L_2[0,1], or L_2^2[[-1,1]x[0,2]^2], with the 2 of L_2 as
 % subscript and the powers as superscripts, followed by the operator
 % written out explicitly, or the definitions of the blocks as the actual
-% operators acting on x_j, if they are small enough, see 'get_display'. If
+% operators acting on x_j, if they are small enough. If
 % the operator consists of a single block, it is displayed as
 %   NAME : X --> Y
 % instead, followed by the operator written out. An empty block matrix is
@@ -32,14 +32,12 @@ function display(Rop,name,width_max,expand)
 %           actual operators. Defaults to true;
 %
 % OUTPUTS
-% Display of the block matrix in the command window, with the lines
-% constructed by 'get_display'.
+% Display of the block matrix in the command window.
 %
 % NOTES
 % - If the operator maps from a single space to a single space, with one
 %   block of type 'tensopvar' or 'intop', that block is displayed after
-%   the line NAME : X --> Y, see 'tensopvar/display' and 'intop/display',
-%   and EXPAND is passed on to the display of a 'tensopvar'.
+%   the line NAME : X --> Y, and EXPAND is passed on to the display of a 'tensopvar'.
 % - An identity operator is displayed as (NAME x)_i(s) = x_i(s) for each
 %   block row i, with the spatial variables of the row, and a block that is
 %   an identity operator is defined as (C_ij x_j)(s) = x_j(s).
@@ -50,8 +48,7 @@ function display(Rop,name,width_max,expand)
 %   blocks can be displayed in turn.
 % - If blocks are not of type 'tensopvar', the blocks of each other type
 %   are listed.
-% - The spaces follow from Rop.dims, Rop.dom and Rop.depmat, see
-%   'get_display'.
+% - The spaces follow from Rop.dims, Rop.dom and Rop.depmat.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display
 %
@@ -76,8 +73,8 @@ function display(Rop,name,width_max,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -128,6 +125,7 @@ if disp_struct.is_id
         fprintf('\n  ans = %s, where\n',name);
     end
     fprintf('\n');
+    % One line per block row, with the output variables of the row
     for i=1:p
         args = '';
         if ~isempty(disp_struct.out_args{i})
@@ -159,6 +157,8 @@ if p==0 || d==0
     return
 end
 
+% The operator written out per block row, the definitions of the blocks,
+% and the notes
 for k=1:numel(disp_struct.rows)
     print_terms(disp_struct.rows(k).lhs,disp_struct.rows(k).terms,disp_struct.rows(k).signs,width_max);
 end
@@ -173,6 +173,8 @@ if ~isempty(disp_struct.defs)
 end
 fprintf('%s\n',disp_struct.notes{:});
 
+% How to extract the blocks C_ij (subscript i, j only if there are several
+% block rows, columns)
 blk_name = 'C';
 if p>1
     [~,sub_i] = varname2display('i');

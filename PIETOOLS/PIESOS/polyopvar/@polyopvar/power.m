@@ -11,8 +11,7 @@ function C = power(A,d)
 %          copy of the variables;
 %
 % NOTES
-% - A.^D is the elementwise power opower(A,D,1), see
-%   @polyopvar/opower.m;
+% - A.^D is the elementwise power opower(A,D,1);
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,6 +38,7 @@ function C = power(A,d)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
 
 if ~isa(A,'polyopvar')

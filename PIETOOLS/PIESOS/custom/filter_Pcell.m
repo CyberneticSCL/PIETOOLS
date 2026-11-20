@@ -10,8 +10,7 @@ function [Pcell_filtered_full, Pcell_filtered_nonzero] = filter_Pcell(Pcell, thr
     %
     % INPUTS
     % - Pcell:      cell array containing solved polynomial Gram-matrix
-    %               blocks, such as the solved Pcell returned by
-    %               V3_Liediff. Numeric blocks are also supported;
+    %               blocks. Numeric blocks are also supported;
     % - threshold:  finite, nonnegative, real scalar specifying the
     %               absolute coefficient threshold. Coefficients with
     %               magnitude equal to threshold are retained;
@@ -27,10 +26,7 @@ function [Pcell_filtered_full, Pcell_filtered_nonzero] = filter_Pcell(Pcell, thr
     %               values of these entries, respectively;
     %
     % NOTES
-    % - Pcell should first be evaluated at the PIESOS solution using
-    %
-    %       Pcell_sol = piesos_getsol(prog_sol,Pcell);
-    %
+    % - Pcell should first be evaluated at the PIESOS solution.
     %   Filtering an unsolved dpvar block is not supported because its
     %   entries still depend on unknown decision variables.
     % - Filtering is intended only to improve readability. A threshold
@@ -60,9 +56,10 @@ function [Pcell_filtered_full, Pcell_filtered_nonzero] = filter_Pcell(Pcell, thr
     % If you modify this code, document all changes carefully and
     % include date authorship, and a brief description of modifications.
     %
+    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
     % CR, 10/07/2026: Initial coding.
-    % DJ, 10/15/2026: Updated to use new polyopvar functions;
 
+    % Check the inputs
     narginchk(2,2);
 
     if ~iscell(Pcell)
@@ -76,6 +73,8 @@ function [Pcell_filtered_full, Pcell_filtered_nonzero] = filter_Pcell(Pcell, thr
             'threshold must be a finite, nonnegative, real scalar.');
     end
 
+    % Filter each block: coefficients of magnitude below threshold are set
+    % to zero
     Pcell_filtered_full = Pcell;
 
     for block_idx = 1:numel(Pcell)

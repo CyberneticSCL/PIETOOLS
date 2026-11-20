@@ -6,14 +6,14 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program in which to declare the
-%           decision variable (see `piesos_program`);
+%           decision variable;
 % - Z:      n x 1 'polyopvar' object representing a basis of distributed
 %           monomials, or a vector of other distributed polynomials, e.g.
-%           T*x for an operator T, see `piesos_quadvar`;
+%           T*x for an operator T;
 % - opts:   (optional) struct with fields:
 %           - 'degs': struct or array specifying the degrees of the
 %               monomials to use in the parameterization of the operators
-%               Zop. See `piesos_poslpivar` for more details;
+%               Zop.
 %               The degrees in degs.in define the monomials in the dummy 
 %               variables, in terms of which the kernels of Zop are   
 %               defined, those in degs.out the monomials in the primary
@@ -24,14 +24,14 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 %               (exclude(2)=1), or upper integral (exclude(3)=1) from the
 %               definition of basis operator Zop. For several spatial
 %               variables, a term is excluded if its type is excluded
-%               along any of the variables (see `monopmat`);
+%               along any of the variables;
 %           - 'psatz': 1 x N array of integers, or logical array,   
 %               specifying psatz multipliers g_k(s)>=0 on the domain,  
 %               with Pmat = sum_k g_k*Pmat_k and Pmat_k an SOS matrix, so  
 %               that V>=0 is enforced only for states on the interval over 
 %               which the operator integrates. If psatz=0, no multiplier
 %               is used. If psatz(i)=qi, the multipliers are (s_i-a_i)^j*
-%               (b_i-s_i)^(qi-j), j=0,..,qi, see `piesos_poslpivar`;
+%               (b_i-s_i)^(qi-j), j=0,..,qi;
 %           - 'sep': scalar boolean specifying whether to enforce
 %               separability of the operator;
 %           Other options of `piesos_quadvar` can be used, but the
@@ -46,7 +46,7 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 % - Pmat:   q x q cell, with Pmat{i,j} an mi x mj 'dpvar' object in the
 %           primary variables, representing the SOS matrix decision
 %           variable Pmat(s) (one block row for each of the q entries
-%           of Z, see `piesos_poslpivar`);
+%           of Z);
 % - Zop:    m x n 'tensopmat' object representing the monomial basis
 %           operator acting on the distributed monomial basis defined by Z;
 %
@@ -75,8 +75,8 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/21/2026: Describe 'exclude' for several spatial variables;
 
 % Verify that the monomials are appropriately specified
 if ~isa(Z,'polyopvar')

@@ -6,7 +6,7 @@ function prog = piesos_solve(prog,opts)
 % INPUTS
 % - prog:       'struct' specifying a PIESOS program (based on the
 %               SOSTOOLS program structure) defining a distributed SOS
-%               program to solve (see also `piesos_program`);
+%               program to solve;
 % - opts:       (optional) 'struct' of options to be passed to SOSTOOLS
 %               for solving the optimization program specified by PROG;
 %
@@ -38,6 +38,7 @@ function prog = piesos_solve(prog,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % The function just acts as a shell for lpisolve, which acts as shell for

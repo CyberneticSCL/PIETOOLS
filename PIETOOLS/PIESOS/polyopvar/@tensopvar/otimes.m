@@ -54,8 +54,8 @@ function C = otimes(A,B,type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Fix construction of the input and output depmats;
 
 % Allow for tensor product with empty array
 if nargin<2
@@ -75,6 +75,7 @@ elseif isscalar(type)
 end
 
 % Check that the inputs are appropriate
+% A product with 1 returns the other operator; 'sopvar' is converted
 if ~isa(A,'tensopvar')
     if isequal(A,1)
         C = B;
@@ -85,6 +86,7 @@ if ~isa(A,'tensopvar')
         error("Inputs must be of type 'tensopvar' or 'sopvar'.")
     end
 end
+% B likewise
 if ~isa(B,'tensopvar')
     if isequal(B,1)
         C = A;
@@ -95,6 +97,7 @@ if ~isa(B,'tensopvar')
         error("Inputs must be of type 'tensopvar' or 'sopvar'.")
     end
 end
+% Initialize the operators
 if ~A.chkval
     A = initialize(A);
 end

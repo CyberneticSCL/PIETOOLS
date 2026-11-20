@@ -107,8 +107,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar})tensopvar
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 properties
     ops = {};
@@ -158,7 +158,7 @@ function [C] = tensopvar(varargin) %constructor
         for i=1:nargin
             if ischar(varargin{i})
                 if nargout==0
-                    assignin('caller', varargin{i}, tensopvar());           % DJ, 10/14/2026
+                    assignin('caller', varargin{i}, tensopvar());
                 end
             else
                 error("Input must be strings");
@@ -186,6 +186,12 @@ end
 
 function matdim = get.matdim(obj)
     % Determine the matrix dimensions of the operator
+    %
+    % INPUT
+    % - obj:      'tensopvar' object;
+    %
+    % OUTPUT
+    % - matdim:   1 x 2 array, the matrix dimensions of the operator.
     if isempty(obj.ops)
         matdim = [0,0];
         return
@@ -214,6 +220,13 @@ end
 function deps = get.deps(obj)
     % Determine the degrees of the monomial in each of the variables
     % in the input and outputs of the tensor-PI operator
+    %
+    % INPUT
+    % - obj:      'tensopvar' object;
+    %
+    % OUTPUT
+    % - deps:     struct with fields 'in' and 'out', the degree of the
+    %             monomial in each variable.
     deps = struct();
     if obj.otype(1)==1
         % Pointwise product along primary variable

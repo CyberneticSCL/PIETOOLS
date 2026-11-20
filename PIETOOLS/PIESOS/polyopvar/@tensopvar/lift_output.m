@@ -42,8 +42,7 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 %   added to the output is introduced in a factor that does not map to that
 %   variable yet (Cop.depmat.out==0), taking the last such factors.
 % - For a Kronecker product (Cop.otype(1)==2), the copies s_1,s_2,... of
-%   an output variable are numbered over the factors in order (see
-%   'apply_op'), so the factors that are lifted determine which copies
+%   an output variable are numbered over the factors in order, so the factors that are lifted determine which copies
 %   are constant. For example, for factors mapping to R and to L2[s],
 %   lifting to deps=2 for s lifts the first factor, so that the output
 %   is Y(s_2), with s_1 the constant copy.
@@ -53,7 +52,7 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % - Factors of type 'intop' (functionals) cannot be lifted. Factors that
 %   are 'tensopvar' objects (nested operators) are lifted recursively.
 % - A new variable with deps.out=0 is only added to the list of
-%   variables (as in 'common_vars'), without changing the operator.
+%   variables, without changing the operator.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -80,6 +79,7 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/03/2026: Initial coding;
 
 % Check that the tensor-PI operator is properly declared

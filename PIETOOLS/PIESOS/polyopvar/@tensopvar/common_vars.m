@@ -41,6 +41,7 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Extract the variables appearing in each tensor-PI operator
@@ -69,6 +70,15 @@ function [vars,dom,depmatA_new,depmatB_new] = combine_vars(varsA,domA,depmatA,va
 % Establish a unique list of variables and associated domains given the
 % variables [varsA;varsB] and domains [domA;domB]. Update the dependency
 % arrays to match this full list of variables.
+%
+% INPUT
+% - varsA, varsB:     cellstr of variable names;
+% - domA, domB:       arrays of the intervals of the variables;
+% - depmatA, depmatB: arrays of the dependence on the variables;
+%
+% OUTPUT
+% - vars, dom:        the unique variables and their intervals;
+% - depmatA_new, depmatB_new: the dependence on vars.
 
 % Combine the variable names into a list of unique variables
 nvarA = numel(varsA);

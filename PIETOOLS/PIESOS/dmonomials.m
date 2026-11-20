@@ -49,9 +49,10 @@ function Z = dmonomials(vartab,degs)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/23/2026: Add support for polynomial expressions in vartab;
 
+% Check that the variables are specified as 'polyopvar'
 if ~isa(vartab,'polyopvar')
     error("Variables to appear in distributed monomials must be specified as object of type 'polyopvar'.")
 end

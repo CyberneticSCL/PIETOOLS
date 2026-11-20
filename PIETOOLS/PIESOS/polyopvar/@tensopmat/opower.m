@@ -9,8 +9,8 @@ function C = opower(A,d,type)
 % - A:      m x n 'tensopmat' object (or 'tensopvar', 'intop', 'sopvar');
 % - d:      nonnegative integer, the order of the product;
 % - type:   (optional) 1 x 2 array of values 1 or 2 indicating what type of
-%           product is taken along the row and column dimensions, as in
-%           'otimes'. Defaults to [1,2]; a scalar specifies type(1), with
+%           product is taken along the row and column dimensions (1:
+%           elementwise, 2: tensor). Defaults to [1,2]; a scalar specifies type(1), with
 %           type(2)=2;
 %
 % OUTPUTS
@@ -52,8 +52,10 @@ function C = opower(A,d,type)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/06/2026: Initial coding;
 
+% Check the inputs: d a nonnegative integer; type [1,2] by default
 if nargin<2
     error("Not enough inputs")
 elseif ~isscalar(d) || d<0 || d~=round(d)
@@ -64,10 +66,12 @@ if nargin<=2
 elseif isscalar(type)
     type = [type,2];
 end
+% d = 0: the constant 1; d = 1: A itself
 if d==0
     C = 1;
     return
 end
+% A as a properly declared 'tensopmat'
 if ~isa(A,'tensopmat')
     if isa(A,'sopvar') || isa(A,'tensopvar') || isa(A,'intop')
         A = tensopmat(A);

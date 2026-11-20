@@ -44,6 +44,7 @@ function [A_out,s_idcs,t_idcs] = set_vars(A_in,ns_new,nt_new)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 06/19/2026: Initial coding
 
 % Extract the variable names and monomials

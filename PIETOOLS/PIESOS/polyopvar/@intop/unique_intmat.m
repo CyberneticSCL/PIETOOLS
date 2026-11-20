@@ -39,6 +39,7 @@ function Kop = unique_intmat(Kop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Make sure the operator is properly specified
@@ -88,6 +89,12 @@ end
 
 function c = add_or_set(a,b)
 % Add b to a, or set c=b if a has not been set
+%
+% INPUT
+% - a, b:   coefficients, a possibly empty;
+%
+% OUTPUT
+% - c:      a+b, or b if a is empty.
 if isempty(a)
     c = b;
 else

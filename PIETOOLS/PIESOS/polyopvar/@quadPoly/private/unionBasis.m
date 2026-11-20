@@ -18,10 +18,33 @@ function [nU, ZU, PA, PB, mapA, mapB, unionIsA, unionIsB, dU] = unionBasis(nA, Z
 %   mapA, mapB    : old tensor index -> union tensor index maps (length dA / dB)
 %   unionIsA/B    : true iff union basis equals operand basis (identity map)
 %   dU            : union tensor basis size
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - unionBasis
 %
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                   lexLessChar (one caller) inlined into the merge loop of
-%                   mergeSortedCellstr, computed before the comparison.
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% Initial coding SS - 01/16/2026
 
 % ---- merge variable names (sorted union) ----
 nU = mergeSortedCellstr(nA, nB);
@@ -99,13 +122,18 @@ PA = sparse(1:dA, mapA, 1, dA, dU);
 PB = sparse(1:dB, mapB, 1, dB, dU);
 
 
-% maybe we do not need PA and PB, ever?
 end
 
 % ---------------- local helpers ----------------
 
 function u = mergeSortedCellstr(a, b)
 % Sorted union of two sorted-unique cellstr arrays.
+%
+% INPUT
+% - a, b:   1 x na and 1 x nb 'cellstr', each sorted and unique;
+%
+% OUTPUT
+% - u:      1 x k 'cellstr', the sorted union (k <= na+nb).
 i = 1; j = 1;
 na = numel(a); nb = numel(b);
 u = cell(1, na+nb);
@@ -113,17 +141,16 @@ k = 0;
 
 while i <= na && j <= nb
     ai = a{i}; bj = b{j};
-    % lexicographic order of ai and bj without string allocations (the      % MMP, 11/09/2026
-    % former local LEXLESSCHAR): the first differing character decides,     % MMP, 11/09/2026
-    % else the shorter string is less                                       % MMP, 11/09/2026
-    c1 = char(ai); c2 = char(bj); L1 = numel(c1); L2 = numel(c2); L = min(L1, L2); % MMP, 11/09/2026
-    dd = c1(1:L) - c2(1:L);                                                 % MMP, 11/09/2026
-    ix = find(dd ~= 0, 1, 'first');                                         % MMP, 11/09/2026
-    if isempty(ix), less = (L1 < L2); else, less = (dd(ix) < 0); end        % MMP, 11/09/2026
-    if strcmp(ai, bj)                                                       % MMP, 11/09/2026
+    % lexicographic order of ai and bj without string allocations: the
+    % first differing character decides,
+    % else the shorter string is less
+    c1 = char(ai); c2 = char(bj); L1 = numel(c1); L2 = numel(c2); L = min(L1, L2);
+    dd = c1(1:L) - c2(1:L);
+    ix = find(dd ~= 0, 1, 'first');
+    if isempty(ix), less = (L1 < L2); else, less = (dd(ix) < 0); end
+    if strcmp(ai, bj)
         k=k+1; u{k} = ai; i=i+1; j=j+1;
-%   elseif lexLessChar(ai, bj)                                              % MMP, 11/09/2026 (was)
-    elseif less                                                             % MMP, 11/09/2026
+    elseif less
         k=k+1; u{k} = ai; i=i+1;
     else
         k=k+1; u{k} = bj; j=j+1;
@@ -138,6 +165,14 @@ end
 function [u, mapA, mapB, unionIsA, unionIsB] = mergeSortedUnique(a, b)
 % Merge two sorted-unique numeric vectors a,b into sorted-unique u.
 % Returns maps old->union: u(mapA(i)) = a(i), u(mapB(j)) = b(j)
+%
+% INPUT
+% - a, b:   numeric vectors of na and nb elements, each sorted and unique;
+%
+% OUTPUT
+% - u:          k x 1 sorted union of a and b;
+% - mapA, mapB: na x 1 and nb x 1 positions of the elements of a, b in u;
+% - unionIsA, unionIsB: logical, true if u equals a (resp. b).
 a = a(:); b = b(:);
 na = numel(a); nb = numel(b);
 
@@ -145,6 +180,7 @@ u = zeros(na+nb,1);
 mapA = zeros(na,1);
 mapB = zeros(nb,1);
 
+% Take the smaller head (both if equal), recording its position in u
 i=1; j=1; k=0;
 while i<=na && j<=nb
     if a(i) == b(j)
@@ -161,6 +197,7 @@ while i<=na && j<=nb
         j=j+1;
     end
 end
+% Append the remaining tail
 while i<=na
     k=k+1; u(k)=a(i);
     mapA(i)=k;
@@ -174,6 +211,7 @@ end
 
 u = u(1:k);
 
+% The union equals an operand if it has the same length, with identity map
 unionIsA = (k==na) && all(mapA == (1:na)');
 unionIsB = (k==nb) && all(mapB == (1:nb)');
 end
@@ -181,6 +219,16 @@ end
 function mapFull = tensorIndexMap(map_cells, nOld_sizes, nU_sizes)
 % Build old->union linear index map for tensor-product ordering.
 % Ordering matches MATLAB kron: last variable varies fastest.
+%
+% INPUT
+% - map_cells:  1 x nv cell, map_cells{r} the positions of the old
+%               exponents of variable r among its union exponents;
+% - nOld_sizes: 1 x nv array, the old number of exponents per variable;
+% - nU_sizes:   1 x nv array, the union number of exponents per variable;
+%
+% OUTPUT
+% - mapFull:    prod(nOld_sizes) x 1 array, the union linear index of each
+%               old linear index.
 
 nv = numel(map_cells);
 

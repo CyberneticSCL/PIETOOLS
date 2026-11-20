@@ -13,13 +13,13 @@ function [f,is_zero] = clean_poly(f,ztol)
 % - f:      'polyopvar' object representing the same polynomial as the
 %           input up to the specified tolerance:
 %             * consecutive factors that are multipliers from R are
-%               combined via combine_factors.m;
-%             * duplicate monomials (rows of f.Z) are merged via
-%               combine_terms.m, summing the operators acting on them --
+%               combined into one;
+%             * duplicate monomials (rows of f.Z) are merged, summing the
+%               operators acting on them --
 %               this can reveal a monomial that is entirely zero
 %               (duplicates that cancel), which the steps below remove;
-%             * every block of f.C is cleaned via @tensopmat/clean_op.m
-%               (coefficients below ztol zeroed, dead spatial variables of
+%             * every block of f.C is cleaned (coefficients below ztol
+%               zeroed, dead spatial variables of
 %               C dropped);
 %             * a monomial (row of f.Z, column of f.C.ops) that does not
 %               contribute -- every block in that column is zero -- is
@@ -37,7 +37,7 @@ function [f,is_zero] = clean_poly(f,ztol)
 %
 % NOTES
 % - Dropping a dead monomial or state does not change the polynomial P
-%   represents: apply_poly.m only reads the state values through the
+%   represents: its evaluation only reads the state values through the
 %   nonzero entries of the surviving rows of Z, so a removed state is
 %   never read by a surviving monomial, and a removed monomial is zero.
 % - Monomial removal precedes state removal: a state may appear to be
@@ -68,8 +68,8 @@ function [f,is_zero] = clean_poly(f,ztol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/06/2026: Set chkval of the coefficients after editing them;
 
 if nargin==1
     ztol = 1e-12;
@@ -94,7 +94,7 @@ for j=1:nZ
             continue
         end
         if isa(op_ij,'polynomial') || isa(op_ij,'dpvar') || isa(op_ij,'double')
-            [ops{i,j},is_zero_ij] = clean_dpvar(op_ij,ztol);   % block acting on R, see tensopmat
+            [ops{i,j},is_zero_ij] = clean_dpvar(op_ij,ztol);   % block acting on R
         else
             [ops{i,j},is_zero_ij] = clean_op(op_ij,ztol);
         end
@@ -126,7 +126,7 @@ end
 % The edits above unset chkval, but C is still consistent: f was checked
 Cop.chkval = true;
 % Get rid of trailing zero columns in Z. Zeros before the last nonzero column may be the
-% positions of factors that are multipliers from R, see `polyopvar`, and removing them
+% positions of factors that are multipliers from R, and removing them
 % would shift the factors that follow.
 f.Z = f.Z(:,1:max([0,find(any(f.Z,1),1,'last')]));
 

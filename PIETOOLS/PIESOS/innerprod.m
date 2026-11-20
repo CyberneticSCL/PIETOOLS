@@ -25,17 +25,18 @@ function V = innerprod(u1,P,u2)
 %   a 'polyopvar', V is computed as (P*u2)'*u1.
 % - If u1 and u2 map to different output function spaces, e.g. R and
 %   L2[s], or L2[s1] and L2[s2], and P is a scalar, they are lifted to
-%   the same space using 'lift_output' (see 'common_outputs'): block i of
+%   the same space: block i of
 %   u1 is constant along the output variables that block i of u2 depends
 %   on, and vice versa, so that block i is integrated over the output
 %   variables of both, e.g. <x,u> = x*int_a^b u(s) ds for x in R and u in
 %   L2[s]. For non-scalar P, this kind of lifting is already performed
 %   inherently.
-% - V = innerprod(u1,P,u2) is also computed by u1'*P*u2, see 'ctranspose'
-%   and 'mtimes'. u1 and u2 themselves cannot be adjoints.
-% - A weight P that depends on spatial variables is passed to `int`: for
-%   outputs with several copies of a variable si (tensor products, e.g.
-%   u1=u2=x1 o x2), P depends on the copies si_j, j=1,...,d, see `int`.
+% - V = innerprod(u1,P,u2) is also computed by u1'*P*u2. u1 and u2
+%   themselves cannot be adjoints.
+% - A weight P that depends on spatial variables is integrated along with
+%   the functions: for outputs with several copies of a variable si
+%   (tensor products, e.g. u1=u2=x1 o x2), P depends on the copies si_j,
+%   j=1,...,d.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - innerprod
@@ -61,12 +62,8 @@ function V = innerprod(u1,P,u2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/04/2026: Lift u1 and u2 to a common output space.
-% DJ, 11/06/2026: Output space of V follows from V.C (see set.C).
-% DJ, 11/07/2026: Swap the arguments of the order innerprod(u1,u2,P),
-%                   with a warning;
-% DJ, 11/07/2026: Reject adjoints as arguments, see 'ctranspose';
 
 % Check that the inputs are appropriate
 is_symmetric = false;
@@ -78,7 +75,7 @@ end
 % Old order innerprod(u1,u2,P): a 'polyopvar' u2 is in the place of the weight,
 % which is never a 'polyopvar', and the weight in the place of u2. As the
 % meaning is the same, <u1,P*u2>, swap them (before u2=[] is handled below)
-if nargin>=3 && isa(P,'polyopvar') && ~isa(u2,'polyopvar')                  % DJ, 11/07/2026
+if nargin>=3 && isa(P,'polyopvar') && ~isa(u2,'polyopvar')
     warning('PIESOS:innerprod:oldOrder', ...
         "innerprod(u1,u2,P) for weight P is not supported; proceeding with innerprod(u1,P,u2). ");
     [P,u2] = deal(u2,P);
@@ -97,16 +94,19 @@ end
 if (isa(u1,'polyopvar') && u1.is_adjoint) || (isa(u2,'polyopvar') && u2.is_adjoint)
     error("The inner product of an adjoint 'polyopvar' object, e.g. u', is not supported: use u'*v.")
 end
-if ~isa(u1,'polyopvar') 
+% One argument not a 'polyopvar': V = (u1'*P)*u2, or (P*u2)'*u1
+if ~isa(u1,'polyopvar')
     V = (u1'*P)*u2;
     return
 elseif ~isa(u2,'polyopvar')
     V = (P*u2)'*u1;
     return
 end
+% Express u1 and u2 in the same state and spatial variables
 if ~is_symmetric
     [u1,u2] = common_vars(u1,u2);
 end
+% Check the class of the weight; a weight P ~= P' voids the symmetry
 if ~isnumeric(P) && ~isa(P,'polynomial') && ~isa(P,'dpvar') && ~isa(P,'cell')
     error("Inner product weight must be specified as object of type 'double', 'polynomial', or 'dpvar'.")
 end
@@ -121,7 +121,7 @@ n_blks2 = numel(u2.dims.out);
 if isscalar(P) && ~isa(P,'cell')
     % Lift u1 and u2 to a common output space, only if their dimensions match:
     % common_outputs would also repeat a scalar to the size of a vector
-    if isequal(u1.dims.out,u2.dims.out)                                     % DJ, 11/04/2026
+    if isequal(u1.dims.out,u2.dims.out)
         [u1,u2] = common_outputs(u1,u2);
     end
     if ~isequal(u1.dims.out,u2.dims.out)
@@ -282,7 +282,7 @@ Kop = tensopmat(Kcell);
 % Declare the polynomial defined by coefficients K and monomials Z
 V = u1;
 V.Z = Z_lin;
-% The output space of V is set by the assignment of V.C, see set.C
+% The output space of V is set by the assignment of V.C
 V.C = Kop;
 V.chkval = true;
 

@@ -43,6 +43,7 @@ function C = plus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Allow for addition with 0
@@ -55,6 +56,7 @@ elseif isequal(B,0)
 end
 
 % Check that the inputs are appropriate
+% Convert 'sopvar', 'tensopvar' and 'intop' operators to 'tensopmat'
 if isa(A,'sopvar')
     A = tensopvar(A);
 end
@@ -67,6 +69,7 @@ end
 if isa(B,'tensopvar') || isa(B,'intop')
     B = tensopmat(B);
 end
+% Both 'tensopmat', and properly declared
 if ~isa(A,'tensopmat') || ~isa(B,'tensopmat')
     error("Addition of 'tensopmat' objects with non-'tensopmat' objects is not supported.")
 end

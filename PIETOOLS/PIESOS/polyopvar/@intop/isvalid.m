@@ -16,6 +16,8 @@ function [logval,errmsg] = isvalid(Kop)
 % NOTES
 % - The names Kop.Zd of the decision variables are not checked for
 %   uniqueness or type.
+% - The intervals of integration in each Kop.intmat{i} must be ordered
+%   (canonical order); unordered intervals give logval = false.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,8 +44,8 @@ function [logval,errmsg] = isvalid(Kop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
-% DJ, 10/22/2026: Check that the intervals of integration are ordered;
 
 % Initialize
 logval = true;  % innocent until proven guilty
@@ -57,6 +59,7 @@ if ~isa(Kop.params,'cell')
 elseif ~isa(Kop.intmat,'cell')
     errmsg = errmsg + "Field 'intmat' must be specified as a 1 x N cell, for N variables.";
     logval = false;
+% vars, dom and Z: structs with fields 'in' and 'out'
 elseif ~isstruct(Kop.vars) || ~isfield(Kop.vars,'in') || ~isfield(Kop.vars,'out')
     errmsg = errmsg + "Field 'vars' must be specified as a struct with fields 'in' and 'out'.";
     logval = false;
@@ -70,6 +73,7 @@ elseif ~isa(Kop.Zd,'cell') || size(Kop.Zd,2)~=1 && ~isempty(Kop.Zd)
     errmsg = errmsg + "Field 'Zd' must be specified as an nd x 1 cellstr.";
     logval = false;
 end
+% Stop at the first failed check
 if ~logval
     return
 end
@@ -81,6 +85,7 @@ if ~iscellstr(vars.in) || ~iscellstr(vars.out)
     logval = false;
     return
 end
+% No output variables; input variables: a sorted row of unique names
 N = numel(vars.in);     M = numel(vars.out);
 if M~=0
     errmsg = errmsg + "Functional should not have output variables.";
@@ -116,12 +121,15 @@ if ~isa(Z.in,'cell') || ~all(size(Z.in)==[1,N]) || ~isa(Z.out,'cell') || ~isempt
     return
 end
 for i=1:N
+    % Degree di of variable i: intmat{i} has 2*di columns
     Zi = Z.in{i};
     di = size(Kop.intmat{i},2)/2;
     if round(di)~=di
         errmsg = errmsg + "Each element of 'intmat' should be a qi x 2*di array, where di is the degree of the ith variable.";
         logval = false;
         return
+    % Z.in{i}: at least one monomial, di columns, distinct nonnegative
+    % integer degrees
     elseif ~isnumeric(Zi) || ~ismatrix(Zi) || size(Zi,2)~=di || size(Zi,1)<1
         errmsg = errmsg + "Z.in{i} must be a nmons x deps(i) array, with at least one monomial.";
         logval = false;
@@ -140,6 +148,7 @@ end
 % Check that the parameters are sparse matrices of the appropriate size
 nd = numel(Kop.Zd);
 [~,~,nZ] = Zdims(Z.in);
+% All parameters: sparse 'double' matrices of one common size
 sz1 = [];
 for k=1:numel(Kop.params)
     param_k = Kop.params{k};
@@ -156,6 +165,7 @@ for k=1:numel(Kop.params)
         return
     end
 end
+% That size is m*(nd+1) x n*nZ
 if ~isempty(sz1) && (mod(sz1(1),nd+1)~=0 || mod(sz1(2),nZ)~=0)
     errmsg = errmsg + "Parameters must have m*(nd+1) rows and n*nZ columns, for nd decision variables, and nZ monomials.";
     logval = false;
@@ -207,7 +217,7 @@ for i=1:N
         logval = false;
         return
     end
-    % Check that the intervals are ordered, see 'intop.canonicalize_intmat'
+    % Check that the intervals are ordered
     [~,~,is_ord] = intop.canonicalize_intmat(intmat_i,[],true);
     if ~all(is_ord)
         errmsg = errmsg + "Intervals of integration are not ordered. ";
@@ -237,6 +247,13 @@ function logval = is_consistent(intmat)
 % LOGVAL = IS_CONSISTENT(INTMAT_I) checks whether any of the domains of
 % integration specified by INTMAT_I is unsuitable, in particular whether
 % the domain of integration of some variable involves the variable itself.
+%
+% INPUT
+% - intmat: ntrms x 2*d array, the intmat along one direction;
+%
+% OUTPUT
+% - logval: logical, false if a variable is integrated over a domain that
+%           involves the variable itself.
 
 logval = true;
 
@@ -249,15 +266,22 @@ end
 [nterms,d] = size(intmat);
 d = d/2;
 for j=1:nterms
+    % Limits [l_k,u_k] of each variable k: 0 and d+1 are the boundaries of
+    % the domain, any other index k' refers to the variable s_k'
     var_list0 = mat2cell(intmat(j,:),1,2*ones(1,d));
     safe_vars = [0,d+1];
     rem_vars = 1:d;
     var_list = var_list0;
+    % A variable cannot be a limit of its own integral
     unsafe_idcs = cellfun(@(a,b) ismember(a,b),num2cell(rem_vars),var_list);
     if any(unsafe_idcs)
         logval = false;
         break
     end
+    % Follow the references one level per pass: drop resolved limits, mark
+    % variables without unresolved limits as resolved, replace each
+    % remaining reference by the limits of the referenced variable, and
+    % stop if a variable appears among the limits it depends on
     for k=1:d
         var_list = cellfun(@(a) setdiff(a,safe_vars),var_list,'UniformOutput',false);
         safe_idcs = cellfun(@(a) isempty(a),var_list);
@@ -273,6 +297,7 @@ for j=1:nterms
             break
         end
     end
+    % Inconsistent if some variable is left unresolved
     if ~logval || ~all(safe_idcs)
         logval = false;
         break

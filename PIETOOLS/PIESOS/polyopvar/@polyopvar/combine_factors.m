@@ -5,8 +5,8 @@ function f = combine_factors(f)
 %   F.Z(i,:) = [1,0,0,2]  -->  F.Z(i,:) = [1,0,2].
 %
 % INPUTS
-% - f:      'polyopvar' object representing a distributed polynomial, see
-%           'polyopvar' for the factors that are multipliers from R;
+% - f:      'polyopvar' object representing a distributed polynomial,
+%           possibly with factors that are multipliers from R;
 %
 % OUTPUTS
 % - f:      'polyopvar' object representing the same distributed
@@ -31,7 +31,7 @@ function f = combine_factors(f)
 % - A monomial of which all factors act on the constant state (no state in
 %   F.Z(i,:), all zeros) is not reduced to a single factor, but to a
 %   single block of type 'polynomial' in each of the rows of F.C, a known
-%   function (see 'tensopmat'), by converting the operators acting on it
+%   function, by converting the operators acting on it
 %   (tensopvar2polynomial), which also supports a Kronecker product of
 %   the factors in different variables. If an operator cannot be
 %   converted, the monomial is reduced as above, or left as it is.
@@ -63,6 +63,7 @@ function f = combine_factors(f)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 if ~f.chkval
@@ -70,7 +71,7 @@ if ~f.chkval
 end
 
 % Determine which factors in each monomial are multipliers from R: the zeros in positions of
-% Z up to the number of factors acting on the monomial, see `polyopvar`
+% Z up to the number of factors acting on the monomial
 [~,nops] = num_factors(f);
 nZ = size(f.Z,1);
 W = max([size(f.Z,2);nops]);
@@ -88,12 +89,12 @@ Zrows = cell(nZ,1);
 for i=cols
     n = nops(i);
     % If all factors act on the constant state (no state in Z(i,:)), the operators are multipliers from R, which
-    % are represented by a single block of type polynomial, a known function (see tensopmat, tensopvar2polynomial)
+    % are represented by a single block of type polynomial, a known function
     if ~any(Zp(i,:))
         [new_col,is_done] = convert_column(ops(:,i));
         if is_done
             ops(:,i) = new_col;
-            nops_new(i) = 1;                % the block takes up one factor, see num_factors
+            nops_new(i) = 1;                % the block takes up one factor
             Zrows{i} = 0;
             continue
         end
@@ -144,6 +145,13 @@ function [col,is_done] = convert_column(col)
 % on a monomial of which all factors act on the constant state, to a polynomial (tensopvar2polynomial).
 % Blocks that are empty, or already of type polynomial/double/dpvar, are kept. IS_DONE is false, and COL
 % empty, if one block cannot be converted (as Z is the same for all blocks): then none is.
+%
+% INPUT
+% - col:      cell of the operators acting on one monomial;
+%
+% OUTPUT
+% - col:      the converted cell ([] if a block cannot be converted);
+% - is_done:  logical, true if all blocks were converted.
 is_done = true;
 for r=1:numel(col)
     op = col{r};
@@ -165,6 +173,14 @@ function [col,is_done] = combine_column(col,grp)
 % other factors with the same value GRP(j), which are consecutive multipliers from R. IS_DONE is
 % false, and COL empty, if this is not supported for one of the operators: with otype(1)=2, with
 % nested factors, or with multipliers that depend on decision variables.
+%
+% INPUT
+% - col:      cell of the tensor-PI operators acting on one monomial;
+% - grp:      array, the group of each factor;
+%
+% OUTPUT
+% - col:      the cell with the factors combined ([] if not supported);
+% - is_done:  logical, true if all operators were combined.
 is_done = true;
 ng = grp(end);
 for r=1:numel(col)
@@ -180,6 +196,7 @@ for r=1:numel(col)
         is_done = false;                    % nested factors
         break
     end
+    % Group g: a single factor is kept, several are multiplied into one multiplier
     new_fctrs = cell(size(fctrs,1),ng);
     for g=1:ng
         js = find(grp==g);
@@ -193,6 +210,7 @@ for r=1:numel(col)
                 end
             end
         end
+        % Stop at the first product that is not supported
         if ~is_done
             break
         end
@@ -200,9 +218,11 @@ for r=1:numel(col)
     if ~is_done
         break
     end
+    % Replace the factors by the combined ones
     op.ops = new_fctrs;
     col{r} = initialize(op);
 end
+% COL is empty if some operator is not supported
 if ~is_done
     col = [];
 end
@@ -214,9 +234,18 @@ function [Pop,is_done] = multiply_multipliers(fctrs)
 % 'sopvar' objects, and returns the multiplier from R to L2 of the elementwise product of the
 % functions that they map the dummy input 1 to, in the variables on which any of them depends.
 % IS_DONE is false if a factor is no multiplier from R, or depends on decision variables.
+%
+% INPUT
+% - fctrs:    1 x L cell of 'sopvar' multipliers from R;
+%
+% OUTPUT
+% - Pop:      'sopvar' multiplier of the product ([] if not supported);
+% - is_done:  logical, true if the product was formed.
 is_done = true;     Pop = [];
 vars_out = cell(1,0);       dom_out = zeros(0,2);
 p = 1;
+% Multiply the functions that the factors map 1 to: each factor must be
+% a multiplier from R, without decision variables
 for l=1:numel(fctrs)
     fl = fctrs{l};
     if ~isa(fl,'sopvar') || size(fl,2)~=1 || ~isempty(fl.vars.in)
@@ -232,6 +261,7 @@ for l=1:numel(fctrs)
     vars_out = [vars_out,reshape(fl.vars.out,1,[])];
     dom_out = [dom_out; fl.dom.out];
 end
+% The product as a multiplier from R, in the union of the output variables
 [vars_out,idcs] = unique(vars_out);
 vars_out = reshape(vars_out,1,[]);
 vars = struct('in',{cell(1,0)},'out',{vars_out});

@@ -14,8 +14,7 @@ function f = remove_unused_states(f)
 %
 % NOTES
 % - Only f.Z, f.varname, f.dims.in and f.depmat.in are modified: the
-%   coefficients are left as is, in particular no tolerance is applied
-%   (see clean_poly for that).
+%   coefficients are left as is, in particular no tolerance is applied.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,6 +41,7 @@ function f = remove_unused_states(f)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
 
 % Determine which state variables appear in a monomial

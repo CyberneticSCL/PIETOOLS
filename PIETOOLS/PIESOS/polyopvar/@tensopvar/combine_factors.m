@@ -67,6 +67,7 @@ function C = combine_factors(C)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/08/2026: Initial coding;
 
 if ~isa(C,'tensopvar')
