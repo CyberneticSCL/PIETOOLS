@@ -78,6 +78,7 @@ function fnew = subs(f,var,val)
 % DJ, 10/28/2026: Substitute constants in functionals of degree d>1;
 % DJ, 11/06/2026: Set chkval of the coefficients after editing them;
 % DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
+% DJ, 11/19/2026: Name copy s_1 and bare s by 'get_tensorvars';
 
 if ~isa(f,'polyopvar')
     error("Input must be of type 'polyopvar'.")
@@ -614,6 +615,9 @@ else
     % Declare the resulting constant (degree-0) term, mapping the dummy input 1
     % to Y, which is a function of the same output variables as f, row by row
     Gcell = cell(nr,1);
+    % The only copy of each variable, and its bare name
+    names_cp = get_tensorvars(f.vars.out,1,'full');
+    names_bare = get_tensorvars(f.vars.out,1,{'bare','full'});
     for i=1:nr
         Y = Yrows{i};
         if isa(Y,'double')
@@ -624,7 +628,7 @@ else
         % Kronecker (otype(1)=2) output; as the output depends at most linearly
         % on each variable (depmat.out<=1), rename them back
         for k=1:numel(f.vars.out)
-            Y.varname(strcmp(Y.varname,[f.vars.out{k},'_1'])) = f.vars.out(k);
+            Y.varname(strcmp(Y.varname,names_cp{k})) = names_bare(k);
         end
         % Output variables on which row i depends
         if isempty(f.vars.out)

@@ -61,6 +61,8 @@ function Y = apply_op(Cop,X)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/22/2026: Number the copies of an output variable in a tensor
 %                   product over the factors by their copies in depmat;
+% DJ, 11/19/2026: Name copies (and the bare name of a single copy) by
+%                   'get_tensorvars';
 
 
 % Check that the tensor-PI operator is properly specified
@@ -151,18 +153,25 @@ for i=1:ntrms
             names_old = Yij.varname;
             names_new = names_old;
             for k=1:numel(vars_ij)
-                is_varij = strcmp(names_old,vars_ij{k});
-                if any(is_varij)
+                % Names of the copies in the output of the factor, the bare
+                % name of a single copy (a leaf or pointwise product), and
+                % their names in the product
+                names_cp = get_tensorvars(vars_ij{k},ncps_ij(k),'full');
+                name_bare = get_tensorvars(vars_ij{k},1,{'bare','full'});
+                names_prod = get_tensorvars(vars_ij{k},degs_ij(k),'full');
+                names_prod = names_prod(degs_ij(k)-ncps_ij(k)+1:end);
+                is_varij = strcmp(names_old,name_bare{1});
+                if any(is_varij) && ~ismember(name_bare{1},names_cp)
                     % Unnumbered copy: must be the only copy
-                    if ncps_ij(k)>1 || any(strcmp(names_old,[vars_ij{k},'_1']))
+                    if ncps_ij(k)>1 || any(ismember(names_old,names_cp))
                         error("Output variable '%s' of a factor in a tensor product has both numbered and unnumbered copies.",vars_ij{k})
                     end
-                    names_new(is_varij) = {sprintf('%s_%d',vars_ij{k},degs_ij(k))};
+                    names_new(is_varij) = names_prod(1);
                 else
-                    for l=1:ncps_ij(k)
-                        is_varij = strcmp(names_old,sprintf('%s_%d',vars_ij{k},l));
-                        names_new(is_varij) = {sprintf('%s_%d',vars_ij{k},degs_ij(k)-ncps_ij(k)+l)};
-                    end
+                    % Copy l of the factor is copy degs-ncps+l of the
+                    % product
+                    [is_cp,loc] = ismember(names_old,names_cp);
+                    names_new(is_cp) = names_prod(loc(is_cp));
                 end
             end
             if ~isequal(names_new,names_old)

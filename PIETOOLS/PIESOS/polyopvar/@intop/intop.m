@@ -57,7 +57,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 %           kernel. If vars.in{i} = 'si', then the associated variable
 %           names in the kernel will be
 %               {'si_dum1',...,'si_dumdi'}
-%           for di the "degree" of v in variable si;
+%           for di the "degree" of v in variable si (see 'get_tensorvars');
 %    out:   1 x M cell specifying the names of the spatial variables
 %           defining the output of the operator. Should be empty (M=0) for
 %           the object to be a functional;
@@ -134,6 +134,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 % DJ, 10/22/2026: Require ordered intmat, see 'intop.canonicalize_intmat';
 % DJ, 11/04/2026: Add dependent property 'kernels';
 % DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
+% DJ, 11/19/2026: Name copies in 'get.varnames', 'get.pvars' by
+%                   'get_tensorvars';
 
 
 properties
@@ -424,14 +426,8 @@ depmats = Kop.depmat;
 pvars = struct();
 pvars.in = cell(1,N);   pvars.out = cell(1,0);
 % Declare the input variables
-for i=1:N
-    d_in = depmats.in(i);
-    pvars_i_in = cell(d_in,1);
-    for j=1:d_in
-        pvars_i_in{j} = [vars_tmp.in{i},'_dum',num2str(j)];
-    end
-    pvars.in{i} = polynomial(pvars_i_in);
-end
+% Dummy variables of the copies, as di x 1 pvar vectors
+pvars.in = get_tensorvars(vars_tmp.in,depmats.in,{'dum','pvar'});
 
 end
 
@@ -450,25 +446,13 @@ function varnames = get.varnames(Kop)
 
 % Extract the variables and degrees
 vars_tmp = Kop.vars;
-N = numel(vars_tmp.in);
 depmats = Kop.depmat;
 
 % Initialize the structure, the functional has no output variables
 varnames = struct();
-varnames.in = repmat(cell(1,0),1,N);
-varnames.in_dum = varnames.in;
-for i=1:N
-    % Declare the input variables
-    d_in = depmats.in(i);
-    varnames_i = cell(1,d_in);
-    varnames_dum_i = cell(1,d_in);
-    for j=1:d_in
-        varnames_i{j} = [vars_tmp.in{i},'_',num2str(j)];
-        varnames_dum_i{j} = [vars_tmp.in{i},'_dum',num2str(j)];
-    end
-    varnames.in{i} = varnames_i;
-    varnames.in_dum{i} = varnames_dum_i;
-end
+% Names of the copies and of their dummy variables
+varnames.in = get_tensorvars(vars_tmp.in,depmats.in);
+varnames.in_dum = get_tensorvars(vars_tmp.in,depmats.in,'dum');
 varnames.out = cell(1,0);
 varnames.out_dum = cell(1,0);
 

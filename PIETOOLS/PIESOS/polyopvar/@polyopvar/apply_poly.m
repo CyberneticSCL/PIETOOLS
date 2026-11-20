@@ -46,6 +46,7 @@ function Y = apply_poly(P,xvals)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
+% DJ, 11/19/2026: Name copy s_1 and bare s by 'get_tensorvars';
 
 if ~isa(P,'polyopvar')
     error("First argument must be of type 'polyopvar'.")
@@ -100,8 +101,11 @@ Y = apply_op(P.C,Xcell);
 % as depmat.out<=1 here, rename them back, as subs_const does, so that the result is in the same
 % variables with or without the substitution
 if isa(Y,'polynomial')
+    % The only copy of each variable, and its bare name
+    names_cp = get_tensorvars(P.vars.out,1,'full');
+    names_bare = get_tensorvars(P.vars.out,1,{'bare','full'});
     for k=1:numel(P.vars.out)
-        Y.varname(strcmp(Y.varname,[P.vars.out{k},'_1'])) = P.vars.out(k);
+        Y.varname(strcmp(Y.varname,names_cp{k})) = names_bare(k);
     end
 end
 
