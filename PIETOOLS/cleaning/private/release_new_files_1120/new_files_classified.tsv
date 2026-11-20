@@ -1,0 +1,594 @@
+class	level	group	path	counterpart_2025	purpose	list
+New	user	E_piesos	PIESOS/Liediff.m		DV = LIEDIFF(V,PIE) returns the Lie derivative of a distributed	census
+New	user	E_piesos	PIESOS/custom/DMB.m		C = DMB(A,B) returns the 'polyopvar' object C representing the	census
+New	user	E_piesos	PIESOS/custom/SOS_DP.m		[PROG,DP,PCELL,ZOP] = SOS_DP(PROG,D,OPDEG,X,DOM,OPTS)	census
+New	user	E_piesos	PIESOS/custom/filter_Pcell.m		[PCELL_FILTERED_FULL,PCELL_FILTERED_NONZERO] = FILTER_PCELL(PCELL,	census
+New	user	E_piesos	PIESOS/custom/kernel_degree.m		OPDEG = KERNEL_DEGREE(F) returns the smallest spatial monomial degree	census
+New	user	E_piesos	PIESOS/custom/polyopvar_equal.m		[LOGVAL,MAX_ERROR,RESIDUAL] = POLYOPVAR_EQUAL(F1,F2,TOL) tests	census
+New	user	E_piesos	PIESOS/custom/weighted_sobolev_norm.m		G = WEIGHTED_SOBOLEV_NORM(U,ALPHA) returns the squared weighted Sobolev	census
+New	user	E_piesos	PIESOS/demos_and_examples/PIESOS_DEMO1_global_stability.m		 This document illustrates how PIESOS can be used to verify global	census
+New	user	E_piesos	PIESOS/demos_and_examples/PIESOS_DEMO2_local_stability.m		 This document illustrates how PIESOS can be used to verify local	census
+New	user	E_piesos	PIESOS/demos_and_examples/PIESOS_DEMO3_energy_bound.m		 This document illustrates how PIESOS can be used to bound a nonconvex	census
+New	user	E_piesos	PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m		examples_PDE_library_PIESOS.m     PIETOOLS 2026 	census
+New	user	E_piesos	PIESOS/dmonomials.m		Z = DMONOMIALS(VARTAB,DEGS) constructs a vector of distributed monomials	census
+New	user	E_piesos	PIESOS/executives/PIESOS_settings.m		SETTINGS = PIESOS_settings(PRESET) returns the settings of the PIESOS	census
+New	user	E_piesos	PIESOS/executives/PIESOS_stability_global.m		[PROG_SOL,INFO] = PIESOS_stability_global(PIE,LAMBDA,LF_FORM,SETTINGS)	census
+New	user	E_piesos	PIESOS/executives/PIESOS_stability_local.m		[PROG_SOL,INFO] = PIESOS_stability_local(PIE,R,ALPHA,LAMBDA,LF_FORM,	census
+New	user	E_piesos	PIESOS/executives/PIESOS_sublevel.m		[PROG_SOL,INFO] = PIESOS_sublevel(PIE,V,G,H,SETTINGS) finds the largest	census
+New	user	E_piesos	PIESOS/innerprod.m		V = INNERPROD(U1,P,U2) returns the weighted inner product of two	census
+New	user	E_piesos	PIESOS/monopmat.m		ZOP = MONOPMAT(DIMS,VARS,DOM,DEPMAT,DEGS,OPTS) constructs a basis of	census
+New	user	E_piesos	PIESOS/piesos_LF.m		[PROG,V,DV,PMAT,ZOP] = PIESOS_LF(PROG,PIE,XVARS,DEGMAT,OPTS) declares a	census
+New	user	E_piesos	PIESOS/piesos_eq.m		PROG = PIESOS_EQ(PROG,F,TOL) adds the equality constraint F=0 to the	census
+New	user	E_piesos	PIESOS/piesos_getsol.m		DVAR_SOL = PIESOS_GETSOL(PROG,DVAR) returns the value of the operator or	census
+New	user	E_piesos	PIESOS/piesos_ineq.m		[PROG,G,QMAT,ZOP,Z] = PIESOS_INEQ(PROG,F,OPTS) adds the distributed SOS	census
+New	user	E_piesos	PIESOS/piesos_intopvar.m		[PROG,KOP] = PIESOS_INTOPVAR(PROG,MATDIM,VARS,DOM,DEPS,INTMAT,DEGS)	census
+New	user	E_piesos	PIESOS/piesos_lpivar.m		[PROG,POP,PMAT,ZOP] = PIESOS_LPIVAR(PROG,DIMS,VARS,DOM,DEPMAT,DEGS,OPTS)	census
+New	user	E_piesos	PIESOS/piesos_polyvar.m		[PROG,P] = PIESOS_POLYVAR(PROG,ZX,OPTS) adds an indefinite distributed	census
+New	user	E_piesos	PIESOS/piesos_poslpivar.m		[PROG,PMAT,ZOP] = PIESOS_POSLPIVAR(PROG,DIMS,VARS,DOM,DEPMAT,DEGS,OPTS)	census
+New	user	E_piesos	PIESOS/piesos_program.m		PROG = PIESOS_PROGRAM(VARTAB,DECVARTAB) declares a PIESOS program	census
+New	user	E_piesos	PIESOS/piesos_quadopvar.m		[PROG,PMAT,ZOPL,ZOPR] = PIESOS_QUADOPVAR(PROG,DIMS,VARS,DOM,DEPMAT,	census
+New	user	E_piesos	PIESOS/piesos_quadvar.m		[PROG,V,PMAT,ZOPL,ZOPR] = PIESOS_QUADVAR(PROG,ZL,ZR,OPTS) computes a	census
+New	user	E_piesos	PIESOS/piesos_setobj.m		PROG = PIESOS_SETOBJ(PROG,OBJ) declares the function OBJ to be the	census
+New	user	E_piesos	PIESOS/piesos_solve.m		PROG = PIESOS_SOLVE(PROG,OPTS) solves the PIESOS program PROG, by passing	census
+New	user	E_piesos	PIESOS/piesos_sosvar.m		[PROG,V,PMAT,ZOP] = PIESOS_SOSVAR(PROG,Z,OPTS) computes a distributed SOS	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/apply_op.m		C = APPLY_OP(KOP,V) applies the functional KOP to the function V,	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/blkdiag.m		POP = BLKDIAG(VARARGIN) returns the diagonal concatenation of the PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/canonicalize_intmat.m		[INTMAT,PARAMS] = INTOP.CANONICALIZE_INTMAT(INTMAT,PARAMS) splits the	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/clean_op.m		[KOP,IS_ZERO_OP] = CLEAN_OP(KOP,ZTOL) sets the coefficients of the	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/combine_terms.m		KOP = COMBINE_TERMS(KOP,DEGS,DIMS,DEPMAT) combines the terms in the	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/common_intmat.m		[A_OUT,B_OUT] = COMMON_INTMAT(A_IN,B_IN) expresses the 'intop' objects	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/ctranspose.m		B = CTRANSPOSE(A) would return the adjoint A' of the 'intop' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/diff.m		DKOP = DIFF(KOP,VARS,D) takes the composition of the functional KOP with	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/display.m		DISPLAY(KOP,NAME,WIDTH_MAX,CALL_NAME) displays the functional KOP in the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/get_display.m		DISP_STRUCT = GET_DISPLAY(KOP,XNAME) constructs the terms of the	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/horzcat.m		POP = HORZCAT(VARARGIN) returns the horizontal concatenation of the PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/intop.m		INTOP is a class used to represent functionals Kop acting on	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/is_id_op.m		LOGVAL = IS_ID_OP(KOP,ZTOL) checks whether the functional KOP is an	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/isvalid.m		[LOGVAL,ERRMSG] = ISVALID(KOP) checks whether the 'intop' object KOP is	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/kernels.m		K = KERNELS(KOP) returns the kernels defining the functional KOP, as a	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/minus.m		C = MINUS(A,B) returns the 'intop' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/mtimes.m		C = MTIMES(A,B) returns the 'intop' object C representing the product of	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/mtimes_tensopvar.m		COP = MTIMES_TENSOPVAR(AOP,BOP) returns the functional COP representing	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/numArgumentsFromSubscript.m		N = NUMARGUMENTSFROMSUBSCRIPT(OBJ,S,INDEXINGCONTEXT) returns the number	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/numel.m		N = NUMEL(A) returns the number of elements of the matrix-valued	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/otimes.m		C = OTIMES(A,B,TYPE) returns the tensor product of the functionals A	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/plus.m		C = PLUS(A,B) returns the 'intop' object C representing the sum of the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/reorder_states.m		KOP_OUT = REORDER_STATES(KOP,STATE_ORDER,DIMS,DEPMAT) reorders the	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/reorder_vars.m		KOP_OUT = REORDER_VARS(KOP,VAR_ORDER) reorders the integrals defining the	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/size.m		VARARGOUT = SIZE(A,DIM) returns the size of the matrix-valued functional	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/subsref.m		OUT = SUBSREF(OBJ,REF) extracts the elements of the 'intop' object OBJ	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/times.m		C = TIMES(A,B) returns the 'intop' object C representing the elementwise	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/transpose.m		B = TRANSPOSE(A) would return the adjoint A.' of the 'intop' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/uminus.m		C_OUT = UMINUS(C_IN) returns the 'intop' object C_OUT representing -C,	newfix
+New	user	E_piesos	PIESOS/polyopvar/@intop/unique_intmat.m		KOP = UNIQUE_INTMAT(KOP) adds the parameters of the functional KOP that	census
+New	user	E_piesos	PIESOS/polyopvar/@intop/vertcat.m		POP = VERTCAT(VARARGIN) returns the vertical concatenation of the PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/apply_poly.m		Y = APPLY_POLY(P,XVALS) evaluates the matrix-valued distributed	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/clean_poly.m		[F,IS_ZERO] = CLEAN_POLY(F,ZTOL) takes a 'polyopvar' object F and removes	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/combine_factors.m		F = COMBINE_FACTORS(F) combines consecutive factors of the operators	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/combine_terms.m		F = COMBINE_TERMS(F) takes a distributed polynomial and adds the	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/common_basis.m		[A_OUT,B_OUT] = COMMON_BASIS(A_IN,B_IN) takes two distributed polynomials	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/common_outputs.m		[A_OUT,B_OUT] = COMMON_OUTPUTS(A_IN,B_IN) takes two distributed	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/common_states.m		[A_OUT,B_OUT] = COMMON_STATES(A_IN,B_IN) takes two distributed	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/common_vars.m		[A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) takes two distributed polynomials	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/ctranspose.m		B = CTRANSPOSE(A) returns the 'polyopvar' object B = A' representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/diff.m		DP = DIFF(P,VARS,D) takes the composition of the differential operator	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/display.m		DISPLAY(P,NAME,WIDTH_MAX,EXPAND,CALL_NAME) displays the distributed	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/get_display.m		ROW_DISP = GET_DISPLAY(P,EXPAND) constructs the terms of the polynomials	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/horzcat.m		F = HORZCAT(VARARGIN) takes the horizontal concatenation of distributed	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/initialize.m		F = INITIALIZE(F) checks whether all fields of the 'polyopvar' object F	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/ispvar.m		[LOGVAL,VARNAME,DIMS,VARS,DOM] = ISPVAR(P) checks whether the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/lift_output.m		P_OUT = LIFT_OUTPUT(P,VARS,DOM,DIMS,DEPS) returns the 'polyopvar' object	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/minus.m		C = MINUS(A,B) returns the 'polyopvar' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/mpower.m		C = MPOWER(A,D) returns the 'polyopvar' object C representing the D-th	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/mtimes.m		C = MTIMES(A,B) returns the 'polyopvar' object C representing the product	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/num_factors.m		[NFAC,NOPS,IS_EMPTY] = NUM_FACTORS(F) returns the number of factors,	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/opower.m		C = OPOWER(A,D,OTYPE) returns the 'polyopvar' object C representing the	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/otimes.m		C = OTIMES(A,B,OTYPE) returns the 'polyopvar' object C representing the	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/plus.m		C = PLUS(A,B) returns the 'polyopvar' object C representing the sum	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/polyopvar.m		This function defines the class of 'polyopvar' objects, representing	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/power.m		C = POWER(A,D) returns the 'polyopvar' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/remove_unused_states.m		F = REMOVE_UNUSED_STATES(F) takes a 'polyopvar' object F and removes the	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/repelem.m		P_OUT = REPELEM(P_IN,R) replicates each row i of 'polyopvar' object	census
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/repmat.m		P_OUT = REPMAT(P_IN,REPS) or REPMAT(P_IN,R,C) tiles the 'polyopvar'	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/size.m		VARARGOUT = SIZE(F,DIM) returns the size of the matrix-valued distributed	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/subs.m		FNEW = SUBS(F,VAR,VAL) takes a distributed polynomial F, and replaces	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/subsasgn.m		OUT = SUBSASGN(OBJ,REF,RHS) assigns values RHS to the field REF of a	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/subsref.m		OUT = SUBSREF(OBJ,REF) extracts the elements of the 'polyopvar' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/times.m		C = TIMES(A,B) returns the 'polyopvar' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/uminus.m		P_OUT = UMINUS(P_IN) takes a 'polyopvar' object P_IN representing a	newfix
+New	user	E_piesos	PIESOS/polyopvar/@polyopvar/vertcat.m		F = VERTCAT(VARARGIN) takes the vertical concatenation of distributed	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/Sym2quadPoly.m		Sym2quadPoly Convert symbolic polynomial/matrix to quadPoly object.	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/blkdiag.m		F = blkdiag(varargin) generates a block diagonal quadpoly objects using	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/combine.m		COMBINE  Canonicalize a quadPoly by:	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/common_vars.m		[A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) takes two 'quadPoly' objects and	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/ctranspose.m		CTRANSPOSE Conjugate-transpose of quadPoly.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/decomposeLR.m		DECOMPOSELR  Decompose F(s,t) into L(s)*R(t) with minimal inner dim.	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/diff.m		DIFF differentiate variables in a quadPoly	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/disp.m		FORMAT Pretty-print a quadPoly matrix with tensor-decomposed exponent bases.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/end.m		A function for indexing quadPoly objects. This will allow operations such	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/eq.m		logval = eq(P1,P2,tol) tests equality of two quadpoly P1 and P2 with tolerance tol	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/hessian.m		HESSIAN compute hessian of quadpoly object F.	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/horzcat.m		horzcat Horizontal concatenation [A B C ...] for quadPoly.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/int.m		int integrate variables in a quadPoly	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/isempty.m		almost trivial function. may have its uses.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/jacobian.m		JACOBIAN compute jacobian of quadpoly object F.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/minus.m		Trivial. Given quadPoly A and B, do A+(-B)	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/mtimes.m		H = MTIMES(F,G) computes the matrix product H of matrix-valued 'quadPoly'	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/numArgumentsFromSubscript.m		This method is automatically called when one of the following statements	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/numel.m		numel  Returns total elements in quadPoly object.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/plus.m		plus Add two quadPoly objects	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/polynomial2quadPoly.m		POLYNOMIAL2QUADPOLY Convert polynomial object to quadPoly.	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/quadPoly.m		This class represents polynomials in a quadratic form described	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/quadPoly2polynomial.m		quadPoly2polynomial Convert quadPoly to polynomial object.	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/randquadPoly.m		RANDQUADPOLY Random quadPoly with tensor-decomposed exponent storage.	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/repmat.m		F = repmat(varargin) generates repmat of quadpoly objects using	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/reshape.m		reshape  reshape of P1 object.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/set_vars.m		A_OUT = SET_VARS(A_IN,NS_NEW,NT_NEW) takes a 'quadPoly' object and	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/size.m		VARARGOUT = SIZE(A,DIM) returns the size of a 'quadpoly' object A along 	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/subs.m		SUBS Substitute variables in a quadPoly with tensor-decomposed exponent bases.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/subsasgn_1.m		P = SUBSASGN(P,S) throws an error: a 'quadPoly' object cannot be	census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/subsref.m		SUBSREF Indexing for quadPoly.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/times.m		C = TIMES(A,B) returns a 'quadPoly' object representing the elementwise	after census
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/trace.m		TRACE  Sum of diagonal elements.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/transpose.m		transpose Transpose of quadPoly.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/uminus.m		Trivial. Just flip signs of coefficients. Returns -A given quadPoly A.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/uplus.m		Trivial. Do nothing. Given A, returns +A	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/var_swap.m		VAR_SWAP Swap one left variable's exponent with one right variable's exponent	newfix
+New	user	E_piesos	PIESOS/polyopvar/@quadPoly/vertcat.m		vertcat Vertical concatenation [A; B; C; ...] for quadPoly.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/apply_op.m		Y = APPLY_OP(COP,X) applies the 'tensopmat' object COP to the 1 x d cell	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/blkdiag.m		POP = BLKDIAG(VARARGIN) takes the diagonal concatenation of tensor-PI 	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/clean_op.m		[COP,IS_ZERO] = CLEAN_OP(COP,ZTOL) takes a 'tensopmat' object COP and	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/common_vars.m		[A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) takes two 'tensopmat' objects and	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/ctranspose.m		B = CTRANSPOSE(A) would return the adjoint A' of the 'tensopmat' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/diff.m		DCOP = DIFF(COP,VARS,D) takes the composition of the block matrix COP of	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/display.m		DISPLAY(ROP,NAME,WIDTH_MAX,EXPAND) displays the block matrix ROP of	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/get_display.m		DISP_STRUCT = GET_DISPLAY(ROP,NAME,EXPAND) constructs the lines of the	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/horzcat.m		POP = HORZCAT(VARARGIN) takes the horizontal concatenation of tensor-PI 	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/initialize.m		COP = INITIALIZE(COP) takes a 'tensopmat' object representing a block	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/is_id_op.m		LOGVAL = IS_ID_OP(COP,ZTOL) checks whether the block matrix COP of	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/isvalid.m		[LOGVAL,ERRMSG] = ISVALID(COP) takes a 'tensopmat' object COP	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/lift_output.m		COP_OUT = LIFT_OUTPUT(COP,VARS,DOM,DIMS,DEPS) returns the 'tensopmat'	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/minus.m		C = MINUS(A,B) returns the 'tensopmat' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/mtimes.m		C = MTIMES(A,B) returns the 'tensopmat' object C representing the product	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/opower.m		C = OPOWER(A,D,TYPE) returns the D-th order tensor power of the block	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/otimes.m		C = OTIMES(A,B,TYPE) returns the tensor product of tensor-PI operators A	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/plus.m		C = PLUS(A,B) returns the 'tensopmat' object C representing the sum of	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/repelem.m		B = REPELEM(A,R1,R2) returns a modified version of the operator A with	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/repmat.m		B = REPMAT(A,R1,R2) returns the concatenation of R1 x R2 copies of A	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/size.m		VARARGOUT = SIZE(A,DIM) returns the size of the matrix-valued tensor-PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/subsasgn.m		OUT = SUBSASGN(OBJ,REF,RHS) assigns the value RHS to the field or the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/subsref.m		OUT = SUBSREF(OBJ,REF) extracts the elements of 'tensopmat' object OBJ	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/tensopmat.m		Class of 'tensopmat' objects, representing a matrix structure wherein	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/times.m		C = TIMES(A,B) returns the 'tensopmat' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/transpose.m		B = TRANSPOSE(A) would return the adjoint A.' of the 'tensopmat' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/uminus.m		C_OUT = UMINUS(C_IN) takes a 'tensopmat' object C_IN representing a	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopmat/vertcat.m		POP = VERTCAT(VARARGIN) takes the vertical concatenation of tensor-PI 	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/apply_op.m		Y = APPLY_OP(COP,X) applies the tensor-PI operator COP to the	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/blkdiag.m		POP = BLKDIAG(VARARGIN) takes the diagonal concatenation of tensor-PI 	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/clean_op.m		[COP,IS_ZERO] = CLEAN_OP(COP,ZTOL) takes a 'tensopvar' object COP and	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/combine_factors.m		C = COMBINE_FACTORS(C) merges the factors of the 'tensopvar' object C	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/common_vars.m		[A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) takes two 'tensopvar' objects and	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/ctranspose.m		B = CTRANSPOSE(A) would return the adjoint A' of the 'tensopvar' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/diff.m		DROP = DIFF(ROP,VARS,D) takes the composition of the tensor-PI operator	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/display.m		DISPLAY(ROP,NAME,WIDTH_MAX,EXPAND,CALL_NAME) displays the tensor-PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/eq.m		LOGVAL = EQ(A,B) tests whether two tensor-PI operators are equal.	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/get_display.m		DISP_STRUCT = GET_DISPLAY(ROP,XNAMES,EXPAND) constructs the terms of the	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/horzcat.m		POP = HORZCAT(VARARGIN) takes the horizontal concatenation of tensor-PI 	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/initialize.m		COP = INITIALIZE(COP) takes a 'tensopvar' object representing a tensor-PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/int.m		KCOP = INT(COP,W,VARS,DOM) takes the composition of an integral	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/is_id_op.m		LOGVAL = IS_ID_OP(ROP,ZTOL) checks whether the tensor-PI operator ROP	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/isvalid.m		[LOGVAL,ERRMSG] = ISVALID(COP) checks whether the 'tensopvar' object COP	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/kron.m		C = KRON(A,B) takes the Kronecker product of two matrix-valued tensor-PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/lift_output.m		COP_OUT = LIFT_OUTPUT(COP,VARS,DOM,DIMS,DEPS) returns the 'tensopvar'	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/minus.m		C = MINUS(A,B) returns the 'tensopvar' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/mtimes.m		C = MTIMES(A,B) returns the 'tensopvar' object C representing the product	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/num_factors.m		N = NUM_FACTORS(COP) returns the number of factors in the 'tensopvar'	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/opower.m		C = OPOWER(A,D,TYPE) returns the D-th order tensor power of the	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/otimes.m		C = OTIMES(A,B,TYPE) returns the tensor product of the tensor-PI	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/plus.m		C = PLUS(A,B) returns the 'tensopvar' object C representing the sum	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/reorder_vars.m		COP_OUT = REORDER_VARS(COP,VAR_ORDER) takes a tensor-PI operator	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/repelem.m		B = REPELEM(A,R1,R2) returns a modified version of the operator A with	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/repmat.m		B = REPMAT(A,R1,R2) returns the concatenation of R1 x R2 copies of A	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/size.m		VARARGOUT = SIZE(A,DIM) returns the size of the matrix-valued tensor-PI	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/subsasgn.m		OUT = SUBSASGN(OBJ,REF,RHS) assigns the value RHS to the field or the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/subsref.m		OUT = SUBSREF(OBJ,REF) extracts the elements of 'tensopvar' object OBJ	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/tensopvar.m		Class of 'tensopvar' objects, representing linear combinations of tensor	census
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/times.m		C = TIMES(A,B) returns the 'tensopvar' object C representing the	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/transpose.m		B = TRANSPOSE(A) would return the adjoint A.' of the 'tensopvar' object	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/uminus.m		C_OUT = UMINUS(C_IN) takes a 'tensopvar' object C_IN representing a	newfix
+New	user	E_piesos	PIESOS/polyopvar/@tensopvar/vertcat.m		POP = VERTCAT(VARARGIN) takes the vertical concatenation of tensor-PI 	newfix
+New	user	E_piesos	PIESOS/polyopvar/constant2polyopvar.m		F = CONSTANT2POLYOPVAR(C) takes a constant or decision variable C and	census
+New	user	E_piesos	PIESOS/polyopvar/copvar2tensopmat.m		PT = COPVAR2TENSOPMAT(P,DIMS,VARS,DEPMAT) converts the 'copvar'	census
+New	user	E_piesos	PIESOS/polyopvar/mat2tensopmat.m		POP = MAT2TENSOPMAT(PMAT,DIMS,VARS,DOM,DEPMAT) takes a matrix PMAT and	census
+New	user	E_piesos	PIESOS/polyopvar/mat2tensopvar.m		POP = MAT2TENSOPVAR(PMAT,VARS,DOM) takes a matrix PMAT and returns a	census
+New	user	E_piesos	PIESOS/polyopvar/pdevar2polyopvar.m		X = PDEVAR2POLYOPVAR(U) takes a pde_var object U representing a state	census
+New	user	E_piesos	PIESOS/polyopvar/sopvar2tensopvar.m		TOP = SOPVAR2TENSOPVAR(POP,TYPE) returns a 'tensopvar' object TOP	census
+New	user	E_piesos	PIESOS/polyopvar/tensopmat2copvar.m		PC = TENSOPMAT2COPVAR(PT,DIMS,VARS,DEPMAT) converts the linear operator	census
+New	user	E_piesos	PIESOS/polyopvar/tensopvar2polynomial.m		[P,IS_OK] = TENSOPVAR2POLYNOMIAL(TOP) converts the tensor-PI operator	census
+New	user	F_demos_examples	PIETOOLS_demos/DEMO10_PBC.m		 This document illustrates how the decay rate of a PDE with periodic	census
+New	user	F_demos_examples	PIETOOLS_demos/DEMO11_poincare_inequality_2D.m		 This document illustrates how the Poincare constant of a 2-D domain can	census
+New	user	F_demos_examples	PIETOOLS_demos/DEMO12_2DControl.m		 This document illustrates how PIETOOLS can be used for state-feedback	census
+New	user	F_demos_examples	PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m		 This document illustrates how PIETOOLS can be used to synthesize an	census
+New	user	F_demos_examples	PIETOOLS_demos/DEMO14_trace_inequality.m		 This document illustrates how a trace (boundary value) inequality can be	census
+New	user	F_demos_examples	PIETOOLS_demos/DEMO15_trace_inequality_2D.m		DEMO15_trace_inequality_2D.m	deferred
+New	user	F_demos_examples	PIETOOLS_demos/sopvar_demos/heatNd_apply.m		Y = HEATND_APPLY(P,F,S,NQ) applies a fixed PI operator P (no decision	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Plate_Eq.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Wave_Eq_Damped.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/3D/PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/3D/PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/3D/PIETOOLS_PDE_Ex_3D_Reaction_Diffusion_Eq.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Road_Field_Berestycki.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Transport_Edge_Diffusion.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Two_Layer_Heat_Rectangles.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m		PIETOOLS PDE Examples	deferred
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/l2gain_23.m		L2GAIN_23 declares the parabolic PDE with spatially varying coefficients	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/l2gain_26.m		L2GAIN_26 declares the 3-component reaction-diffusion PDE	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_13_2.m	(system of stability_13.m)	the 2025 stability_13 beam written as one equation second order in time	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_13_3.m		STABILITY_13_3 declares the Euler-Bernoulli beam with damping in the	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_16_1.m		STABILITY_16_1 declares a beam model, fourth order in time, in the states	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_16_3.m		STABILITY_16_3 declares the beam model, fourth order in time,	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_16_4.m		STABILITY_16_4 declares the beam model, fourth order in time,	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_17.m		STABILITY_17 declares the tip-damped wave equation in the states	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_18.m		STABILITY_18 declares the tip-damped wave equation with reaction term and	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_19.m		STABILITY_19 declares the tip-damped wave equation with reaction term and	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_36.m		STABILITY_36 declares the 2D telegraph equation (below) on [0,1]x[0,1],	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_39.m		STABILITY_39 declares the linearized 2D isentropic compressible	census
+New	user	F_demos_examples	PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_42.m		STABILITY_42 declares an ODE coupled with a heat equation with delays,	census
+New	user	F_demos_examples	PIETOOLS_examples/examples_FI_library_PIETOOLS.m		examples_FI_library_PIETOOLS.m     PIETOOLS 2026 	census
+New	user	D_converters_piesim	converters/convert_PIETOOLS_BVP.m		[Tops,Kops,Dmap,info] = CONVERT_PIETOOLS_BVP(PDE,diffs,opts) computes	census
+New	user	D_converters_piesim	converters/operator_converters/dopvar2sdopvar.m		PSOP = DOPVAR2SDOPVAR(POP) takes a dopvar object POP and returns an	census
+New	user	D_converters_piesim	converters/operator_converters/dpvar2sdvar.m		[P,ZL,ZR] = DPVAR2SDVAR(D,VARS) takes a dpvar object D, and returns a	census
+New	user	D_converters_piesim	converters/operator_converters/dpvars2sdvars.m		[A,B,Z,DVARS] = DPVARS2SDVARS(PARAMS,VARS,Z,CHK_VARS)	census
+New	user	D_converters_piesim	converters/operator_converters/npie2pie_struct.m		PIE_OUT = NPIE2PIE_STRUCT(PIE_IN) takes a nonlinear PIE in 'npie_struct'	census
+New	user	D_converters_piesim	converters/operator_converters/op2copvar_sop.m		PM = OP2COPVAR_SOP(POP) converts a PI operator to a 'copvar' container:	census
+New	user	D_converters_piesim	converters/operator_converters/opvar2copvar.m		PMOP = OPVAR2COPVAR(POP) takes an 'opvar' object POP and returns the	census
+New	user	D_converters_piesim	converters/operator_converters/opvar2d2sopvar.m		PSOP = OPVAR2D2SOPVAR(POP) takes an opvar2d object POP and returns a	census
+New	user	D_converters_piesim	converters/operator_converters/opvar2sopvar.m		PSOP = OPVAR2SOPVAR(POP) takes an opvar object POP and returns a sopvar	census
+New	user	D_converters_piesim	converters/operator_converters/pie2copvar.m		PIEC = PIE2COPVAR(PIE) takes a 'pie_struct' whose operators are 'opvar'	census
+New	user	D_converters_piesim	converters/operator_converters/pie2npie_struct.m		PIE_OUT = PIE2NPIE_STRUCT(PIE_IN) takes a linear PIE in 'pie_struct'	census
+New	user	D_converters_piesim	converters/operator_converters/pie2piesim.m		PIE_OUT = PIE2PIESIM(PIE) returns the linear PIE PIE as a struct with	census
+New	user	D_converters_piesim	converters/operator_converters/sdvar2dpvar.m		D = SDVAR2DPVAR(P,DIMS,VARS,ZL,ZR,ZD) takes an 'sdvar' object P,	census
+New	user	D_converters_piesim	converters/print_convert_summary.m		PRINT_CONVERT_SUMMARY(PIE,obj,aux_idcs,F_aux) prints how the components	census
+New	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_Hinf_OFcontrol_sop.m		[PROG,KC,GAM,INFO] = PIETOOLS_HINF_OFCONTROL_SOP(PIE,SETTINGS)	census
+New	user	B_lpi_exec_settings	lpi_programming_sopvar/lpisetsettings.m		PROG = LPISETSETTINGS(PROG,SETTINGS) sets the field settings of the LPI	census
+New	user	C_parser_gui_root	parser/@npie_struct/display.m		DISPLAY(PIE,NAME,WIDTH_MAX,EXPAND) displays the equations	newfix
+New	user	C_parser_gui_root	parser/@npie_struct/eq.m		logval = eq(objA,objB) or objA==objB tests whether two "npie_struct"	newfix
+New	user	C_parser_gui_root	parser/@npie_struct/expand_tderivatives.m		[PIE,TDIFF_TAB] = EXPAND_TDERIVATIVES(PIE,TDIFF_LIST,SUPPRESS_SUMMARY)	newfix
+New	user	C_parser_gui_root	parser/@npie_struct/horzcat.m		PIE_CAT = HORZCAT(PIE1,PIE2,...) takes a set of 'npie_struct' objects and	newfix
+New	user	C_parser_gui_root	parser/@npie_struct/initialize.m		PIE = initialize(PIE) takes an "npie_struct" object and checks that all	newfix
+New	user	C_parser_gui_root	parser/@npie_struct/npie_struct.m		npie_struct is a class of objects used to describe nonlinear PIE systems	census
+New	user	C_parser_gui_root	parser/@npie_struct/subsasgn.m		SUBSASGN allows properties and elements of the "npie_struct" object PIE	newfix
+New	user	C_parser_gui_root	parser/@npie_struct/vertcat.m		PIE_CAT = VERTCAT(PIE1,PIE2,...) takes a set of 'npie_struct' objects and	newfix
+New	user	C_parser_gui_root	parser/@pde_struct/mpower.m		PDE_OUT = POWER(PDE_IN,DEG) computes the power of a variable or term in 	newfix
+New	user	C_parser_gui_root	parser/@pde_struct/power.m		PDE_OUT = POWER(PDE_IN,DEG) computes the elementwise power of a variable	newfix
+New	user	C_parser_gui_root	parser/@pde_struct/static_constraints.m		PDE = STATIC_CONSTRAINTS(PDE,MODE) returns a copy of the initialized PDE	census
+New	user	C_parser_gui_root	parser/@pde_struct/times.m		PDE_OUT = TIMES(FCTR1,FCTR2) declares a new PDE term corresponding to	newfix
+New	user	C_parser_gui_root	parser/@pde_struct/times_pdes.m		PDE_OUT = TIMES_PDES(PDE1,PDE2) computes the elementwise product of two 	census
+New	user	B_lpi_exec_settings	settings_sopvar/lpisettings_stock_sop.m		[ST,STOCK] = LPISETTINGS_STOCK_SOP(TYPE,...) returns the LPI settings of	census
+New	user	A_sopvar	sopvar/@cdopvar/cat.m		P = CAT(DIM,A,B,...) concatenates containers: DIM = 1 is [A; B; ...]	census
+New	user	A_sopvar	sopvar/@cdopvar/get_display.m		DISP_STRUCT = GET_DISPLAY(POP,NAME,EXPAND) constructs the lines of the	census
+New	user	A_sopvar	sopvar/@cdopvar/getfield_opvar1d.m		val = getfield_opvar1d(P,fname) returns the value that the field fname	census
+New	user	A_sopvar	sopvar/@cdopvar/getfield_opvar2d.m		val = getfield_opvar2d(P,fname) returns the value that the field fname	census
+New	user	A_sopvar	sopvar/@cdopvar/is_opvar1d.m		logval = is_opvar1d(P) checks whether the PI operator P has the structure	census
+New	user	A_sopvar	sopvar/@cdopvar/is_opvar2d.m		[logval,idx_out,idx_in] = is_opvar2d(P) checks whether the PI operator P	census
+New	user	A_sopvar	sopvar/@cdopvar/plus_batch.m		C = PLUS_BATCH(P1,P2,...,PN) sums N containers on one block grid,	census
+New	user	A_sopvar	sopvar/@cdopvar/setfield_opvar1d.m		P = setfield_opvar1d(P,fname,val) sets the field fname of the PI operator	census
+New	user	A_sopvar	sopvar/@cdopvar/setfield_opvar2d.m		P = setfield_opvar2d(P,fname,val) sets the field fname of the PI operator	census
+New	user	A_sopvar	sopvar/@cdopvar/transpose.m		PT = TRANSPOSE(P) or P.' is the adjoint P': all parameters are real, so	newfix
+New	user	A_sopvar	sopvar/@cdopvar/verify.m		INFO = VERIFY(P) checks that the blocks of a 'cdopvar' agree with its	census
+New	user	A_sopvar	sopvar/@copvar/cat.m		P = CAT(DIM,A,B,...) concatenates containers: DIM = 1 is [A; B; ...]	census
+New	user	A_sopvar	sopvar/@copvar/get_display.m		DISP_STRUCT = GET_DISPLAY(POP,NAME,EXPAND) constructs the lines of the	census
+New	user	A_sopvar	sopvar/@copvar/getfield_opvar1d.m		val = getfield_opvar1d(P,fname) returns the value that the field fname	census
+New	user	A_sopvar	sopvar/@copvar/getfield_opvar2d.m		val = getfield_opvar2d(P,fname) returns the value that the field fname	census
+New	user	A_sopvar	sopvar/@copvar/int.m		PINT = INT(POP,VARS,DOM) takes the composition of the PI operator POP	newfix
+New	user	A_sopvar	sopvar/@copvar/is_id_op.m		LOGVAL = IS_ID_OP(POP,ZTOL) checks whether the block matrix POP of PI	census
+New	user	A_sopvar	sopvar/@copvar/is_opvar1d.m		logval = is_opvar1d(P) checks whether the PI operator P has the structure	census
+New	user	A_sopvar	sopvar/@copvar/is_opvar2d.m		[logval,idx_out,idx_in] = is_opvar2d(P) checks whether the PI operator P	census
+New	user	A_sopvar	sopvar/@copvar/plus_batch.m		C = PLUS_BATCH(P1,P2,...,PN) is P1 + P2 + ... + PN for 'copvar'	census
+New	user	A_sopvar	sopvar/@copvar/setfield_opvar1d.m		P = setfield_opvar1d(P,fname,val) sets the field fname of the PI operator	census
+New	user	A_sopvar	sopvar/@copvar/setfield_opvar2d.m		P = setfield_opvar2d(P,fname,val) sets the field fname of the PI operator	census
+New	user	A_sopvar	sopvar/@copvar/transpose.m		PT = TRANSPOSE(P) or P.' is the adjoint P': all parameters are real, so	newfix
+New	user	A_sopvar	sopvar/@copvar/verify.m		INFO = VERIFY(P) checks that the blocks of a 'copvar' agree with its	census
+New	user	A_sopvar	sopvar/@sdopvar/cat.m		P = CAT(DIM,A,B,...) concatenates operators: DIM = 1 is [A; B; ...]	census
+New	user	A_sopvar	sopvar/@sdopvar/get_display.m		DISP_STRUCT = GET_DISPLAY(P,XNAME,OUT_NAMES) constructs the terms of the	census
+New	user	A_sopvar	sopvar/@sdopvar/plus_batch.m		C = plus_batch(P1,P2,...,PN) sums N sdopvar operators, synchronizing all N	census
+New	user	A_sopvar	sopvar/@sdopvar/repelem.m		Pout = repelem(P,p,q) repeats each block of the sdopvar object P, p times	census
+New	user	A_sopvar	sopvar/@sdopvar/repmat.m		Pout = repmat(P,p,q) tiles the sdopvar object P into a p-by-q block	newfix
+New	user	A_sopvar	sopvar/@sdopvar/sdopvar.m		block class: Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]	census
+New	user	A_sopvar	sopvar/@sdopvar/setdvars.m		P = SETDVARS(P,Zd) rewrites the 'sdopvar' P over the decision variable	census
+New	user	A_sopvar	sopvar/@sdopvar/transpose.m		At = TRANSPOSE(A) returns the adjoint of the 'sdopvar' operator A,	newfix
+New	user	A_sopvar	sopvar/@sopvar/cat.m		P = CAT(DIM,A,B,...) concatenates operators: DIM = 1 is [A; B; ...]	census
+New	user	A_sopvar	sopvar/@sopvar/get_display.m		DISP_STRUCT = GET_DISPLAY(P,XNAME,OUT_NAMES) constructs the terms of the	census
+New	user	A_sopvar	sopvar/@sopvar/int.m		PINT = INT(POP,VARS,DOM) takes the composition of the PI operator POP	newfix
+New	user	A_sopvar	sopvar/@sopvar/is_id_op.m		LOGVAL = IS_ID_OP(POP,ZTOL) checks whether the PI operator POP is an	census
+New	user	A_sopvar	sopvar/@sopvar/kron.m		C = KRON(A,B) returns the Kronecker product of a numeric matrix and a	newfix
+New	user	A_sopvar	sopvar/@sopvar/lift_output.m		POP_NEW = LIFT_OUTPUT(POP,VARS,DOM,DIMS) returns the 'sopvar'	census
+New	user	A_sopvar	sopvar/@sopvar/repelem.m		B = REPELEM(A,R1,R2) returns returns a modified version of the operator A	census
+New	user	A_sopvar	sopvar/@sopvar/repmat.m		B = REPMAT(A,R1,R2) returns the concatenation of R1 x R2 copies of A	newfix
+New	user	A_sopvar	sopvar/@sopvar/sopvar.m		block class: Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]	census
+New	user	A_sopvar	sopvar/@sopvar/transpose.m		At = TRANSPOSE(A) returns the adjoint of the 'sopvar' operator A, A.' = A'.	newfix
+New	user	A_sopvar	sopvar/@sopvar/unkron.m		Xs = UNKRON(X,N) extracts the 'sopvar' object Xs such that X is the	census
+New	user	A_sopvar	sopvar/constructors/eye_copvar_sop.m		IOP = EYE_COPVAR_SOP(DIMS,SPACES,DOM) returns the identity operator on	census
+New	user	A_sopvar	sopvar/constructors/int2copvar.m		POP = INT2COPVAR(KMAT,VARS,DOM,INT_DOM) takes a kernel KMAT and returns a	census
+New	user	A_sopvar	sopvar/constructors/int2sopvar.m		POP = INT2SOPVAR(KMAT,VARS,DOM,INT_DOM) takes a kernel KMAT and returns a	census
+New	user	A_sopvar	sopvar/constructors/pi4_copvar_sop.m		POP = PI4_COPVAR_SOP(P,Q1,Q2,R,DIMS,VAR1,VAR2,DOM) returns the container	census
+New	user	A_sopvar	sopvar/constructors/zeros_copvar_sop.m		ZOP = ZEROS_COPVAR_SOP(DIMS,SPACES,DOM) returns the zero operator	census
+New	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Mat_Truncate.m		PIESIM_Mat_Truncate.m     PIETOOLS 2025 	census
+New	internal	D_converters_piesim	PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m		weightPIE.m     PIETOOLS 2025 	census
+New	internal	D_converters_piesim	PIESIM/PIESIM_routines/Third_Party_Supporting_Files/clencurt.m		third-party (Trefethen) Clenshaw-Curtis nodes and weights; new to PIETOOLS 2026	census
+New	internal	E_piesos	PIESOS/internal/clean_dpvar.m		[OP,IS_ZERO] = CLEAN_DPVAR(OP,ZTOL) removes the coefficients of absolute	census
+New	internal	E_piesos	PIESOS/internal/coeff_error.m		MAX_ERROR = COEFF_ERROR(F) returns the largest absolute value of the	census
+New	internal	E_piesos	PIESOS/internal/common_vars_quadPolyCell.m		[A_OUT,B_OUT] = COMMON_VARS_QUADPOLYCELL(A_IN,B_IN) takes two 'quadPoly'	census
+New	internal	E_piesos	PIESOS/internal/find_common_idcs.m		[IDCS1,IDCS2] = FIND_COMMON_IDCS(ARR1,ARR2,NRANGE) determines all indices	census
+New	internal	E_piesos	PIESOS/internal/get_tensorvars.m		VARS_OUT = GET_TENSORVARS(VARS,DEGS,OPTS) returns the names of the copies	after census
+New	internal	E_piesos	PIESOS/internal/is_eye.m		LOGVAL = IS_EYE(A,N,ZTOL) checks whether A is an identity operator: an	census
+New	internal	E_piesos	PIESOS/internal/otimes_params.m		C = OTIMES_PARAMS(A,B,OTYPE) computes the otimes product of type OTYPE	census
+New	internal	E_piesos	PIESOS/internal/quad_expand.m		[COEFFS,Z] = QUAD_EXPAND(PARAMS,VARNAMES,Z,CHK_VARS) takes a cell of	census
+New	internal	E_piesos	PIESOS/internal/set_vars_quadPolyCell.m		[A_OUT,S_IDCS,T_IDCS] = SET_VARS_QUADPOLYCELL(A_IN,NS_NEW,NT_NEW) takes	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/Zdims.m		[NMONS,STRIDES,NZ] = ZDIMS(ZIN) returns, for the Kronecker product basis	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/Zmap.m		ZMAP = ZMAP(ZSRC,ZTGT) returns, for each monomial in the Kronecker	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/Zpermmap.m		ZMAP = ZPERMMAP(ZIN,PERM) returns, for each monomial in the Kronecker	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/display_term.m		[TERM_STR,TERM_SIGN,USE_K] = DISPLAY_TERM(KOP,SUB_IDCS,K,XSYM)	newfix
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/enumerate_valid_orders.m		ORDS = ENUMERATE_VALID_ORDERS(LLIMS,ULIMS,EXPND_VARS,VAR_NUMS,N) returns	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/get_int_order.m		INT_ORDER = GET_INT_ORDER(INTMAT) returns the order in which the	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/kernels2params.m		[PARAMS,Z,ZD] = KERNELS2PARAMS(KERNELS,INTMAT,VARS) expresses the cell	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/lmult_params.m		PNEW = LMULT_PARAMS(M,P,ND) computes the coefficient matrix of the	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/params2kernel.m		K = PARAMS2KERNEL(P,ZIN,ZD,DUMNAMES) returns the kernel defined by the	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/prune_basis.m		KOP = PRUNE_BASIS(KOP) removes from the monomials Kop.Z.in those that are	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/remap_cols.m		P = REMAP_COLS(P,ZMAP,NZT) expresses the sparse coefficient matrix P in	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/remap_dvars.m		P = REMAP_DVARS(P,M,POS,NT) expresses the sparse coefficient matrix P of	census
+New	internal	E_piesos	PIESOS/polyopvar/@intop/private/sync_basis.m		[A,B] = SYNC_BASIS(A,B) expresses the 'intop' objects A and B in terms of	census
+New	internal	E_piesos	PIESOS/polyopvar/@polyopvar/private/factor_key.m		NKEY = FACTOR_KEY(Z,NOPS,IS_EMPTY) returns the numbers of factors to use,	census
+New	internal	E_piesos	PIESOS/polyopvar/@quadPoly/private/liftIndex.m		LIFTINDEX Lift coefficient matrix by reindexing nnz entries using maps.	census
+New	internal	E_piesos	PIESOS/polyopvar/@quadPoly/private/tensExps.m		Given two monomial column vectors Z1, Z2, this	census
+New	internal	E_piesos	PIESOS/polyopvar/@quadPoly/private/unionBasis.m		UNIONBASIS Merge two tensor-product monomial bases (sorted-unique names/exponents).	census
+New	internal	E_piesos	PIESOS/polyopvar/@tensopmat/private/is_native_op.m		LOGVAL = IS_NATIVE_OP(OP) checks whether the block OP of a 'tensopmat'	census
+New	internal	E_piesos	PIESOS/polyopvar/@tensopmat/private/merge_out_spaces.m		[A,B] = MERGE_OUT_SPACES(A,B) takes two 'tensopmat' objects A, B	census
+New	internal	E_piesos	PIESOS/polyopvar/@tensopmat/private/native2op.m		TOP = NATIVE2OP(M,X,I) converts the matrix M of type 'double' or	census
+New	internal	E_piesos	PIESOS/polyopvar/@tensopmat/private/native_mask.m		IS_NAT = NATIVE_MASK(OPS) returns a logical array of the size of the cell	census
+New	internal	E_piesos	PIESOS/polyopvar/@tensopmat/private/native_vars.m		VARS = NATIVE_VARS(OP) returns the spatial variables that appear in the	census
+New	internal	D_converters_piesim	converters/internal/BVP/compose_Tmaps.m		[Tops,Kop,Fop,info] = COMPOSE_TMAPS(maps,vars,dom,sizes,Delta,alphas,	census
+New	internal	D_converters_piesim	converters/internal/BVP/compute_Tmap_1D.m		[Tops,Rops,Kops,Fop,Qops] = COMPUTE_TMAP_1D(n,E,F,dom,vars,orders)	census
+New	internal	D_converters_piesim	converters/internal/BVP/compute_canonical_BCs.m		[G,H,p,J] = COMPUTE_CANONICAL_BCS(n,E,F,dom,vars,opts) writes the	census
+New	internal	D_converters_piesim	converters/internal/BVP/decouple_BVPs.m		[PDEs,info] = DECOUPLE_BVPS(PDE) splits the boundary conditions (BCs)	census
+New	internal	D_converters_piesim	converters/internal/BVP/eliminate_BVP_sources.m		[Rops,info] = ELIMINATE_BVP_SOURCES(PDE,src,Rops,info) eliminates the	census
+New	internal	D_converters_piesim	converters/internal/BVP/fund_inputs.m		[inputs_ops,inputs_info] = FUND_INPUTS(group,dirs) parametrizes	census
+New	internal	D_converters_piesim	converters/internal/BVP/lift_BVP_sources.m		[PDE_out,src] = LIFT_BVP_SOURCES(PDE) replaces the terms in the BCs of	census
+New	internal	D_converters_piesim	converters/internal/BVP/split_BVPs.m		DIRS = SPLIT_BVPS(PDE) splits the boundary conditions (BCs) of a PDE	census
+New	internal	D_converters_piesim	converters/internal/compute_PIETOOLS_PDE_periodic_map.m		[TX,FOP,KOP,INFO] = COMPUTE_PIETOOLS_PDE_PERIODIC_MAP(PDE,POP_F2X,POP_B2X,GOP,HOP)	census
+New	internal	D_converters_piesim	converters/internal/convert_PDE_term.m		[Pblk,Px] = CONVERT_PDE_TERM(term,Tops,PDE,opts) converts a term of a	census
+New	internal	D_converters_piesim	converters/legacy/2D/compute_PIETOOLS_PDE_periodic_map_2D.m		[TOP_X,FOP,KOP,INFO] = COMPUTE_PIETOOLS_PDE_PERIODIC_MAP_2D(PDE)	census
+New	internal	D_converters_piesim	converters/legacy/convert_PIETOOLS_PDE_nonlinear_2D.m	(code from converters/convert_PIETOOLS_PDE.m, git R058)	nonlinear 2-D conversion, built on the 2025 converter	census
+New	internal	D_converters_piesim	converters/legacy/pie_pde_maps_2D.m		PIE = PIE_PDE_MAPS_2D(PIE,PDE0,DEL_TAB,WOP,UOP,FOP) declares the function	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/exec_info_sop.m		INFO = EXEC_INFO_SOP(PROG,AUX,ST,LABEL) returns the summary of a solved	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/exec_kmult_sop.m		[PROG,X] = EXEC_KMULT_SOP(PROG,X,K,T,DOM,LIKE) returns X + K'*Z + Z'*K,	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/exec_pie_sop.m		PIE = EXEC_PIE_SOP(PIE) returns the PIE with every operator a 'copvar'	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/exec_sop_settings.m		ST = EXEC_SOP_SETTINGS(ST) completes the LPI settings ST with the options	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/exec_tools_sop.m		TL = EXEC_TOOLS_SOP(PIE,ST) returns the constructions that the LPI	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/lpi_solve_loop_sop.m		[PROG,AUX,HIST] = LPI_SOLVE_LOOP_SOP(BUILD,ST,LABEL) builds and solves an	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/pie_disc_sop.m		[M,INFO] = PIE_DISC_SOP(POP,N,DOM) returns the Galerkin matrix M of the	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/pie_witness_sop.m		W = PIE_WITNESS_SOP(PIE,MODE,OPTS,Y,WBLK) computes, for the 1-D PIE	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/poslpivar_settings_2d_sop.m		[PROG,P] = POSLPIVAR_SETTINGS_2D_SOP(PROG,X,ST,ROLE,SIDE,PIE) declares	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/poslpivar_settings_sop.m		[PROG,P] = POSLPIVAR_SETTINGS_SOP(PROG,X,SETTINGS,ROLE[,SIDE[,DOM]])	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/qp_copvar.m		[X,INFO] = QP_COPVAR(A,B[,OPTS]) solves the least squares problem	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/settings2possopvar.m		OUT = SETTINGS2POSSOPVAR(SETTINGS) translates the positive operators that	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/settings_2d_sop.m		S = SETTINGS_2D_SOP(ST) returns the 2-D LPI settings held by ST, with	census
+New	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/trace_rn_sop.m		TR = TRACE_RN_SOP(X) returns the trace of the finite-dimensional part of	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/copquadvar.m		[PROG,POP,QCELL,BASIS_LIST] = COPQUADVAR(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/eq_opts_sopvar.m		[OPTS,REPORT] = EQ_OPTS_SOPVAR(DOP,OPTS,ZTOL) sets the options sep (the	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/get_lift_degs.m		[DEG,TERMS,INFO] = GET_LIFT_DEGS(P,OPTS) returns the degrees and the	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lift_copvar.m		[A,INFO] = LIFT_COPVAR(DIMS,SPACES,DOM,DLIFT,OPTIONS) returns the moment	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lpi_classify_sop.m		CL = LPI_CLASSIFY_SOP(PROG,OBJ) names the solver exit of the solved LPI	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lpi_shape_sop.m		S = LPI_SHAPE_SOP(PROG) returns the size of the SDP posed to the solver	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lpi_soseq.m		PROG = LPI_SOSEQ(PROG,C,ZD,POS) adds to the program PROG the n equations	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lpigetdual_sop.m		[Y,INFO] = LPIGETDUAL_SOP(PROG,TAG) assembles the dual multipliers of the	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/poscopvar_direct.m		[PROG,POP,QCELL,INFO] = POSCOPVAR_DIRECT(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/poscopvar_lift.m		[PROG,POP,M,A,INFO] = POSCOPVAR_LIFT(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/posmult_cdopvar.m		[PROG,M,INFO] = POSMULT_CDOPVAR(PROG,DIMS,SPACES,DOM,W,OPTIONS) declares	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/build_exponent_grid.m		E = BUILD_EXPONENT_GRID(CAPS,JOINTCAP,SUBSETCAPS) returns the matrix of	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/collect_eq_rows.m		EQ = COLLECT_EQ_ROWS(PROG,P,OPTS,DVARS_CHECKED) returns, without adding	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/dvar_rows.m		LOC = DVAR_ROWS(DVARS_OLD,DMAP) returns the row of the global decision	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/expand_full.m		A = EXPAND_FULL(a) returns the 2^nf multi-indices obtained from the	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/impose_eq_rows.m		PROG = IMPOSE_EQ_ROWS(PROG,EQ) appends to the LPI program PROG, for every	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/merge_monomial_product.m		[Z,M] = MERGE_MONOMIAL_PRODUCT(Z1,Z2) returns, for two monomial bases Z1,	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/process_degrees_one.m		D = PROCESS_DEGREES_ONE(DEG,N3) completes the degree specification DEG of	census
+New	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/private/unpack_sheets.m		[A,B] = UNPACK_SHEETS(C,MROW,NCOL,NSHEET,L,R,RLOC,NROW) returns the	census
+New	internal	C_parser_gui_root	parser/@npie_struct/private/pie_compat_tab.m		OUT = PIE_COMPAT_TAB(PIE,TYPE,VAL) returns the table describing the	census
+New	internal	C_parser_gui_root	parser/@npie_struct/private/pie_compat_vars.m		OUT = PIE_COMPAT_VARS(PIE,VAL) returns the spatial variables of a PIE in	census
+New	internal	C_parser_gui_root	parser/@npie_struct/private/pie_space_canon.m		C = PIE_SPACE_CANON(DEPMAT,DIMS) returns a canonical description of a	census
+New	internal	C_parser_gui_root	parser/@pie_struct/private/pie_compat_tab.m		OUT = PIE_COMPAT_TAB(PIE,TYPE,VAL) returns the table describing the	census
+New	internal	C_parser_gui_root	parser/@pie_struct/private/pie_compat_vars.m		OUT = PIE_COMPAT_VARS(PIE,VAL) returns the spatial variables of a PIE in	census
+New	internal	C_parser_gui_root	parser/@pie_struct/private/pie_rename_dummy.m		POP = PIE_RENAME_DUMMY(POP) renames the dummy variables of an 'opvar' or	census
+New	internal	C_parser_gui_root	parser/@pie_struct/private/pie_space_canon.m		C = PIE_SPACE_CANON(DEPMAT,DIMS) returns a canonical description of a	census
+New	internal	C_parser_gui_root	parser/internal/print_terms.m		PRINT_TERMS(LHS,TERMS,SIGNS,WIDTH_MAX) prints the equation	census
+New	internal	C_parser_gui_root	parser/internal/use_unicode.m		OUT = USE_UNICODE(VAL) sets, or returns, the setting that determines	census
+New	internal	C_parser_gui_root	parser/internal/varname2display.m		[STR,LO,HI] = VARNAME2DISPLAY(NAME,COPY) returns the name NAME of a	census
+New	internal	A_sopvar	sopvar/@cdopvar/private/merge_dvar_lists.m		[C,ZD] = MERGE_DVAR_LISTS(C,ZDS,SRC) puts every block of the grid C onto	census
+New	internal	A_sopvar	sopvar/@cdopvar/private/merge_dvar_pair.m		[CA,CB,ZD] = MERGE_DVAR_PAIR(CA,CB,ZDA,ZDB) puts the blocks of two	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/ChangeDecVar.m		P = CHANGEDECVAR(P,ZD) rewrites the 'sdopvar' P over the decision variable	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/apply_basis_map.m		[Aout,Bout] = apply_basis_map(T,Ain,Bin) re-expresses one affine	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/decode_params.m		[I,J,L,V,DEGMAT] = DECODE_PARAMS(P,K) decodes the nonzero coefficients of	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/display_term.m		[TERM_STR,TERM_SIGN,USE_K] = DISPLAY_TERM(P,K,XSYM,OUT_NAMES,ENTRY_IDCS)	newfix
+New	internal	A_sopvar	sopvar/@sdopvar/private/leftShiftMonomials_SD.m		[VARSC,ZC,CC,TMAP] = LEFTSHIFTMONOMIALS_SD(VARSA,ZA,CA,VARSB,ZB,CB)	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/leftShiftMonomials_SS.m		[VARSC,ZC,CC,TMAP] = LEFTSHIFTMONOMIALS_SS(VARSA,ZA,CA,VARSB,ZB,CB)	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/lrmultiply.m		COUT = LRMULTIPLY(L,C,R) left- and right-multiplies a vectorized	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/params2kernel.m		K = PARAMS2KERNEL(P,K) returns the kernel defined by the parameter	census
+New	internal	A_sopvar	sopvar/@sdopvar/private/sync_basis.m		[objs,T,Zd,ZL,ZR] = sync_basis(objs) puts N sdopvar objects on a common	census
+New	internal	A_sopvar	sopvar/@sopvar/private/UnionBasisMonomials.m		[Z,C1,C2] = UNIONBASISMONOMIALS(Z1,Z2) combines the monomial bases Z1 and	census
+New	internal	A_sopvar	sopvar/@sopvar/private/decode_params.m		[I,J,V,E,NAMES] = DECODE_PARAMS(P,K) decodes the nonzero coefficients of	census
+New	internal	A_sopvar	sopvar/@sopvar/private/display_term.m		[TERM_STR,TERM_SIGN,USE_K] = DISPLAY_TERM(P,K,XSYM,OUT_NAMES,	newfix
+New	internal	A_sopvar	sopvar/@sopvar/private/leftShiftMonomials_SS.m		leftShiftMonomials_SS	census
+New	internal	A_sopvar	sopvar/@sopvar/private/params2kernel.m		K = PARAMS2KERNEL(P,K) returns the kernel defined by the parameter	census
+New	internal	A_sopvar	sopvar/misc/canonical_form/canonical_adjoint_map.m		[TCELL,ZLNEW,ZRNEW] = CANONICAL_ADJOINT_MAP(VARS,ZL,ZR,DIMS) returns the	census
+New	internal	A_sopvar	sopvar/misc/canonical_form/canonical_var_order.m		[vars,dom,ZL,ZR,rowIdx,colIdx,changed] = ...	census
+New	internal	A_sopvar	sopvar/misc/canonical_form/canonicalize_multiplier.m		[PARAMS,ZL,ZR,CHANGED] = CANONICALIZE_MULTIPLIER(PARAMS,VARS,ZL,ZR,DIMS)	census
+New	internal	A_sopvar	sopvar/misc/canonical_form/is_canonical_multiplier.m		[TF,INFO] = IS_CANONICAL_MULTIPLIER(PARAMS,VARS,ZL,ZR,DIMS) tests whether	census
+New	internal	A_sopvar	sopvar/misc/canonical_form/monomial_gather.m		p = monomial_gather(Z,ord) gives the permutation of a tensor monomial index	census
+New	internal	A_sopvar	sopvar/misc/canonical_form/prune_zero_monomials.m		[ZLN,ZRN,KEEPL,KEEPR] = PRUNE_ZERO_MONOMIALS(ZL,ZR,OCCL,OCCR) drops the	census
+New	internal	A_sopvar	sopvar/misc/cat_copvar_grid.m		[C,META,ZDS,SRC] = CAT_COPVAR_GRID(DIR,ARGS,CLS) assembles the block grid and	census
+New	internal	A_sopvar	sopvar/misc/chebfit_mono.m		[CMONO,RELRMS,D] = CHEBFIT_MONO(X,Y,AB,DEG0,DEGMAX,TOL[,X2]) least-squares	census
+New	internal	A_sopvar	sopvar/misc/compose_sopvar.m		YOP = COMPOSE_SOPVAR(XOPS,VARS_IN,VARS_TOT,DOM,DIM_IN) composes operators	census
+New	internal	A_sopvar	sopvar/misc/conventions/cell_of_gamma.m		K = CELL_OF_GAMMA(G) returns the linear parameter cell index of each	census
+New	internal	A_sopvar	sopvar/misc/conventions/check_reserved_names.m		CHECK_RESERVED_NAMES(VARS) raises an error if a spatial variable name in	census
+New	internal	A_sopvar	sopvar/misc/conventions/copvar_space_list.m		[SP,DM] = COPVAR_SPACE_LIST(P,SIDE) lists the output (SIDE = 'out') or	census
+New	internal	A_sopvar	sopvar/misc/conventions/gamma_of_cell.m		G = GAMMA_OF_CELL(K,N3) returns the multi-index gamma of each linear	census
+New	internal	A_sopvar	sopvar/misc/conventions/kron_split.m		A = KRON_SPLIT(IDX,STRIDE) splits 0-based positions in the monomial basis	census
+New	internal	A_sopvar	sopvar/misc/conventions/kron_strides.m		S = KRON_STRIDES(NVEC) returns the stride of each variable in the	census
+New	internal	A_sopvar	sopvar/misc/conventions/monomial_position.m		OUT = MONOMIAL_POSITION(MAP,DEG) returns the 0-based position of each	census
+New	internal	A_sopvar	sopvar/misc/conventions/monomial_position_map.m		MAP = MONOMIAL_POSITION_MAP(ZVEC) returns a lookup table from degree to	census
+New	internal	A_sopvar	sopvar/misc/conventions/multiindex_grid.m		A = MULTIINDEX_GRID(VALS) returns every tuple obtained by picking one	census
+New	internal	A_sopvar	sopvar/misc/conventions/parse_copvar_spaces.m		[META,SP_OUT,SP_IN] = PARSE_COPVAR_SPACES(DIMS,SPACES,DOM) reads the	census
+New	internal	A_sopvar	sopvar/misc/derive_copvar_meta.m		META = DERIVE_COPVAR_META(C,CLS,OKCLASSES) derives and validates the	census
+New	internal	A_sopvar	sopvar/misc/dpvar_op_copvar.m		R = DPVAR_OP_COPVAR(OP,...) evaluates the arithmetic OP with a 'dpvar'	census
+New	internal	A_sopvar	sopvar/misc/gk_grid.m		G = GK_GRID(R,OPTS[,LF,RF]) the Gohberg-Krein data of a square 1-D	census
+New	internal	A_sopvar	sopvar/misc/int_semisep.m		[C_GAM_ALP_BETA,ZL,ZR] = INT_SEMISEP(G,IDXBETA,IDXALPHA,LIMS,CSIZE,LAYOUT)	census
+New	internal	A_sopvar	sopvar/misc/mat2copvar_grid.m		P = MAT2COPVAR_GRID(MAT,META,MULT_ONLY) returns the container of the	census
+New	internal	A_sopvar	sopvar/misc/merge_copvar_registry.m		[A,B,...] = MERGE_COPVAR_REGISTRY(CLS,OPNAME,A,B,...) restates containers	census
+New	internal	A_sopvar	sopvar/misc/on_registry_sop.m		X = ON_REGISTRY_SOP(X,R) restates the container X on the variable	census
+New	internal	A_sopvar	sopvar/misc/parse_diff_inputs.m		[VARS,D] = PARSE_DIFF_INPUTS(VARS,D) checks and normalizes the variables	census
+New	internal	A_sopvar	sopvar/misc/parse_int_inputs.m		[VARS,LIMS,IS_VAR] = PARSE_INT_INPUTS(VARS,DOM,VARS_REG,DOM_REG) checks	census
+New	internal	A_sopvar	sopvar/misc/pvar2varname.m		VARNAME = PVAR2VARNAME(VAR) Takes a pvar object VAR, and returns a cell	census
+New	internal	A_sopvar	sopvar/misc/spIkron.m		IC = SPIKRON(Q,C) takes the Kronecker product of the identity matrix of	census
+New	internal	A_sopvar	sopvar/misc/split_copvar.m		Q = SPLIT_COPVAR(P,RSPLIT,CSPLIT,OPTS) splits the components of each row	census
+New	internal	A_sopvar	sopvar/misc/verify_copvar_meta.m		INFO = VERIFY_COPVAR_META(P,CLS,OKCLASSES) checks that the blocks of a	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize_1to1_line.m	git R061	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto2D2Mat_cheb_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto2D2Mat_cheb.m	git R047	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize_2to0.m	git R069	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto1D2Mat_cheb_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto1D2Mat_cheb.m	git R049	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_3PI_op_discretize_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opmixed_discretize_1to2.m	git R043	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_3PI_op_line_int_discretize_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opmixed_discretize_2to1.m	git R041	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_area.m	git R064	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_line.m	git R058	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opmult_discretize_2D.m	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opmult_discretize_2D.m	git R057	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m	git R088	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opmult_discretize.m	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opmult_discretize.m	git R057	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_opint_cheb.m	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize.m	git R091	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI_discretize.m	PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PIop_discretize.m	git R083	census
+Rename	internal	D_converters_piesim	PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m	PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_input_check.m	split out: the disturbance check and split of the 2025 input check, which now calls it	census
+Rename	internal	D_converters_piesim	converters/legacy/convert_PIETOOLS_PDE_2D.m	converters/convert_PIETOOLS_PDE.m	the 2025 converter (git C074), kept as the 2-D path; convert_PIETOOLS_PDE.m is now the N-D converter	census
+Replacement	user	D_converters_piesim	converters/operator_converters/mat2sopvar.m	opvar/mat2opvar.m	matrix to (block) multiplier operator	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_H2_control_sop.m	executives/PIETOOLS_H2_control.m	H2-optimal state feedback; same executive for container PIEs	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_H2_estimator_sop.m	executives/PIETOOLS_H2_estimator.m	H2-optimal estimator; same executive for container PIEs	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_H2_norm_sop.m	executives/PIETOOLS_H2_norm_c.m; PIETOOLS_H2_norm_c_coercive.m; PIETOOLS_H2_norm_o.m; PIETOOLS_H2_norm_o_coercive.m; 2D/PIETOOLS_H2_norm_2D_c.m; 2D/PIETOOLS_H2_norm_2D_c_non_coercive.m; 2D/PIETOOLS_H2_norm_2D_o.m; 2D/PIETOOLS_H2_norm_2D_o_non_coercive.m	one executive in place of eight (form argument; any dimension)	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_Hinf_control_sop.m	executives/PIETOOLS_Hinf_control.m	H-infinity state feedback; same executive for container PIEs	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_Hinf_estimator_sop.m	executives/PIETOOLS_Hinf_estimator.m; 2D/PIETOOLS_Hinf_estimator_2D.m	one executive in place of the 1-D and 2-D estimators	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_Hinf_gain_sop.m	executives/PIETOOLS_Hinf_gain.m; PIETOOLS_Hinf_gain_coercive.m; PIETOOLS_Hinf_gain_dual.m; PIETOOLS_Hinf_gain_dual_coercive.m; 2D/PIETOOLS_Hinf_gain_2D.m; 2D/PIETOOLS_Hinf_gain_2D_non_coercive.m; 2D/PIETOOLS_Hinf_gain_dual_2D.m	one executive in place of seven (form argument; any dimension)	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_auto_execute_sop.m	executives/PIETOOLS_auto_execute.m	runs the executives that workspace flags select (GUI/script path)	deferred
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_stability_sop.m	executives/PIETOOLS_PDEstability.m; PIETOOLS_PDEstability_dual.m; PIETOOLS_PIE2PDEstability.m; PIETOOLS_PIE2PDEstability_dual.m; 2D/PIETOOLS_stability_2D.m; 2D/PIETOOLS_stability_dual_2D.m	one executive in place of six (form argument; any dimension)	census
+Replacement	user	B_lpi_exec_settings	executives_sopvar/PIETOOLS_well_posedness_sop.m	executives/PIETOOLS_well_posedness.m	well-posedness test; same executive for container PIEs	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/getsol_lpivar_sop.m	lpi_programming/getsol_lpivar.m; 2D/getsol_lpivar_2d.m	solved value of a decision operator	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/lpi_eq_sop.m	lpi_programming/lpi_eq.m; 2D/lpi_eq_2d.m	operator equality constraint	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/lpi_ineq_sop.m	lpi_programming/lpi_ineq.m; 2D/lpi_ineq_2d.m	operator inequality constraint	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/lpigetsol_sop.m	lpi_programming/lpigetsol.m	solved value of a decision variable	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/lpiscript_sop.m	lpi_programming/lpiscript.m	predefined LPIs by name	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/lpivar_cdopvar.m	lpi_programming/lpivar.m; 2D/lpivar_2d.m	free decision operator	census
+Replacement	user	B_lpi_exec_settings	lpi_programming_sopvar/poscopvar.m	lpi_programming/poslpivar.m; 2D/poslpivar_2d.m	positive decision operator	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/lpisettings_sop.m	settings/lpisettings.m	settings by tier name	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_2d_stock.m	settings/2D/settings_PIETOOLS_*_2D.m	the 2-D settings of the stock tiers, by level	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_sopvar_custom.m	settings/settings_PIETOOLS_custom.m; 2D/settings_PIETOOLS_custom_2D.m	tier file (1-D and 2-D files merged)	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_sopvar_extreme.m	settings/settings_PIETOOLS_extreme.m; 2D/settings_PIETOOLS_extreme_2D.m	tier file (1-D and 2-D files merged)	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_sopvar_heavy.m	settings/settings_PIETOOLS_heavy.m; 2D/settings_PIETOOLS_heavy_2D.m	tier file (1-D and 2-D files merged)	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_sopvar_light.m	settings/settings_PIETOOLS_light.m; 2D/settings_PIETOOLS_light_2D.m	tier file (1-D and 2-D files merged)	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_sopvar_stripped.m	settings/settings_PIETOOLS_stripped.m; 2D/settings_PIETOOLS_stripped_2D.m	tier file (1-D and 2-D files merged)	census
+Replacement	user	B_lpi_exec_settings	settings_sopvar/settings_sopvar_veryheavy.m	settings/settings_PIETOOLS_veryheavy.m; 2D/settings_PIETOOLS_veryheavy_2D.m	tier file (1-D and 2-D files merged)	census
+Replacement	user	A_sopvar	sopvar/@cdopvar/blkdiag.m	opvar/@dopvar/blkdiag.m; opvar/2D/@dopvar2d/blkdiag.m	P = BLKDIAG(A,B,...) places containers on the block diagonal, with	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/cdopvar.m	opvar/@dopvar/dopvar.m; opvar/2D/@dopvar2d/dopvar2d.m	class of decision PI operators; extended as copvar	census
+Replacement	user	A_sopvar	sopvar/@cdopvar/ctranspose.m	opvar/@dopvar/ctranspose.m; opvar/2D/@dopvar2d/ctranspose.m	At = CTRANSPOSE(A) returns the adjoint of a 'cdopvar' object,	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/display.m	opvar/@dopvar/display.m; opvar/2D/@dopvar2d/display.m	DISPLAY(POP,NAME,WIDTH_MAX,EXPAND) displays the block matrix POP of PI	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/end.m	opvar/@dopvar/end.m; opvar/2D/@dopvar2d/end.m	out = end(P,k,n) is used to establish the size of cdopvar object P	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/eq.m	opvar/@dopvar/eq.m; opvar/2D/@dopvar2d/eq.m	TF = EQ(A,B,TOL) or A==B tests whether two containers represent the same	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/horzcat.m	opvar/@dopvar/horzcat.m; opvar/2D/@dopvar2d/horzcat.m	P = HORZCAT(A,B,...) or [A, B, ...] concatenates containers side by side:	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/minus.m	opvar/@dopvar/minus.m; opvar/2D/@dopvar2d/minus.m	P = MINUS(A,B) or A-B subtracts containers blockwise.	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/mtimes.m	opvar/@dopvar/mtimes.m; opvar/2D/@dopvar2d/mtimes.m	C = MTIMES(A,B) composes a decision container with a FIXED one,	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/numArgumentsFromSubscript.m	opvar/@dopvar/numArgumentsFromSubscript.m	n = numArgumentsFromSubscript(P,s,ctx) returns the number of outputs of	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/op_slice.m	opvar/@dopvar/op_slice.m; opvar/2D/@dopvar2d/op_slice.m	Psop = op_slice(P,indr,indc) extracts a slice from a decision PI operator	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/plus.m	opvar/@dopvar/plus.m; opvar/2D/@dopvar2d/plus.m	C = PLUS(A,B) adds two containers blockwise, (A+B)_{ij} = A_{ij} + B_{ij}.	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/size.m	opvar/@dopvar/size.m; opvar/2D/@dopvar2d/size.m	[m,n] = SIZE(P) returns the row and column dimensions of the operator	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/subsasgn.m	opvar/2D/@dopvar2d/subsasgn.m	P = SUBSASGN(P,S,VAL) assigns into a 'cdopvar': dot assignment is the	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/subsref.m	opvar/@dopvar/subsref.m; opvar/2D/@dopvar2d/subsref.m	varargout = subsref(P,s) indexes a cdopvar object: dot and brace indexing	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/uminus.m	opvar/@dopvar/uminus.m; opvar/2D/@dopvar2d/uminus.m	P = UMINUS(A) or -A negates a 'cdopvar' blockwise, (-A)_{ij} = -A_{ij}.	newfix
+Replacement	user	A_sopvar	sopvar/@cdopvar/vertcat.m	opvar/@dopvar/vertcat.m; opvar/2D/@dopvar2d/vertcat.m	P = VERTCAT(A,B,...) or [A; B; ...] stacks containers: the block rows of A,	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/blkdiag.m	opvar/@opvar/blkdiag.m; opvar/2D/@opvar2d/blkdiag.m	P = BLKDIAG(A,B,...) places containers on the block diagonal, with	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/copvar.m	opvar/@opvar/opvar.m; opvar/2D/@opvar2d/opvar2d.m	class of fixed PI operators; extended to any number of variables and to concatenated spaces of mixed dimension	census
+Replacement	user	A_sopvar	sopvar/@copvar/ctranspose.m	opvar/@opvar/ctranspose.m; opvar/2D/@opvar2d/ctranspose.m	At = CTRANSPOSE(A) returns the adjoint of a 'copvar' object,	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/diff.m	opvar/@opvar/diff.m; opvar/2D/@opvar2d/diff.m	[DP,IS_ZERO] = DIFF(P,VARS,D) takes the composition of the PI operator P	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/display.m	opvar/@opvar/display.m; opvar/2D/@opvar2d/display.m	DISPLAY(POP,NAME,WIDTH_MAX,EXPAND) displays the block matrix POP of PI	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/end.m	opvar/@opvar/end.m; opvar/2D/@opvar2d/end.m	out = end(P,k,n) is used to establish the size of copvar object P	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/eq.m	opvar/@opvar/eq.m; opvar/2D/@opvar2d/eq.m	TF = EQ(A,B,TOL) or A==B tests whether two containers represent the same	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/horzcat.m	opvar/@opvar/horzcat.m; opvar/2D/@opvar2d/horzcat.m	P = HORZCAT(A,B,...) or [A, B, ...] concatenates containers side by side:	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/inv.m	opvar/@opvar/inv.m; opvar/2D/@opvar2d/inv.m	[PINV,INFO] = INV(P[,OPTS]) the inverse of a square 'copvar'.	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/minus.m	opvar/@opvar/minus.m; opvar/2D/@opvar2d/minus.m	P = MINUS(A,B) or A-B subtracts two 'copvar' objects blockwise.	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/mtimes.m	opvar/@opvar/mtimes.m; opvar/2D/@opvar2d/mtimes.m	C = MTIMES(A,B) composes two 'copvar' objects,	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/numArgumentsFromSubscript.m	opvar/@opvar/numArgumentsFromSubscript.m	n = numArgumentsFromSubscript(P,s,ctx) returns the number of outputs of	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/op_slice.m	opvar/@opvar/op_slice.m; opvar/2D/@opvar2d/op_slice.m	Psop = op_slice(P,indr,indc) extracts a slice from a PI operator	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/plus.m	opvar/@opvar/plus.m; opvar/2D/@opvar2d/plus.m	C = PLUS(A,B) adds two 'copvar' objects blockwise, (A+B)_{ij} = A_{ij} +	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/size.m	opvar/@opvar/size.m; opvar/2D/@opvar2d/size.m	[m,n] = SIZE(P) returns the row and column dimensions of the operator	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/subs.m	opvar/@opvar/subs.m; opvar/2D/@opvar2d/subs.m	Q = SUBS(P,INVAR,INVAL,OPTS) evaluates the output of the PI operator P (a	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/subsasgn.m	opvar/@opvar/subsasgn.m; opvar/2D/@opvar2d/subsasgn.m	P = SUBSASGN(P,S,VAL) assigns into a 'copvar': dot assignment is the	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/subsref.m	opvar/@opvar/subsref.m; opvar/2D/@opvar2d/subsref.m	varargout = subsref(P,s) indexes a copvar object: dot and brace indexing	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/uminus.m	opvar/@opvar/uminus.m; opvar/2D/@opvar2d/uminus.m	P = UMINUS(A) or -A negates a 'copvar' blockwise, (-A)_{ij} = -A_{ij}.	newfix
+Replacement	user	A_sopvar	sopvar/@copvar/vertcat.m	opvar/@opvar/vertcat.m; opvar/2D/@opvar2d/vertcat.m	P = VERTCAT(A,B,...) or [A; B; ...] stacks containers: the block rows of A,	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/blkdiag.m	opvar/@dopvar/blkdiag.m; opvar/2D/@dopvar2d/blkdiag.m	Pblkdiag = blkdiag(A,B,...) places sdopvar operators on the block diagonal,	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/ctranspose.m	opvar/@dopvar/ctranspose.m; opvar/2D/@dopvar2d/ctranspose.m	AT = CTRANSPOSE(A) returns the adjoint A' of the 'sdopvar' object A with	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/degbalance.m	opvar/@dopvar/degbalance.m; opvar/2D/@dopvar2d/degbalance.m	[DEG,REPORT] = DEGBALANCE(P,OPTS) picks the degrees of the basis of a	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/display.m	opvar/@dopvar/display.m; opvar/2D/@dopvar2d/display.m	DISPLAY(P,NAME,WIDTH_MAX,CALL_NAME) displays the PI operator P with	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/end.m	opvar/@dopvar/end.m; opvar/2D/@dopvar2d/end.m	out = end(a,k,n) is used to establish the size of sdopvar object a	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/eq.m	opvar/@dopvar/eq.m; opvar/2D/@dopvar2d/eq.m	LOGVAL = EQ(P1,P2,TOL) tests whether two 'sdopvar' objects represent the	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/horzcat.m	opvar/@dopvar/horzcat.m; opvar/2D/@dopvar2d/horzcat.m	Pcat = horzcat(A,B,...) or [A,B,...] concatenates sdopvar operators	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/minus.m	opvar/@dopvar/minus.m; opvar/2D/@dopvar2d/minus.m	Cop = minus(Aop,Bop) or Aop-Bop subtracts two sdopvar operators.	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/mtimes.m	opvar/@dopvar/mtimes.m; opvar/2D/@dopvar2d/mtimes.m	C = MTIMES(A,B) returns the product A*B of an 'sdopvar' object and a	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/numArgumentsFromSubscript.m	opvar/@dopvar/numArgumentsFromSubscript.m	N = NUMARGUMENTSFROMSUBSCRIPT(OBJ,S,CTX) returns the number of values an	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/op_slice.m	opvar/@dopvar/op_slice.m; opvar/2D/@dopvar2d/op_slice.m	Psop = op_slice(P,indr,indc) extracts a slice from a decision PI operator	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/plus.m	opvar/@dopvar/plus.m; opvar/2D/@dopvar2d/plus.m	C = PLUS(A,B) returns the sum A + B of two 'sdopvar' objects (or of an	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/size.m	opvar/@dopvar/size.m; opvar/2D/@dopvar2d/size.m	[m,n] = size(P) returns the dimensions of the operator represented by the	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/subsasgn.m	opvar/2D/@dopvar2d/subsasgn.m	OBJ = SUBSASGN(OBJ,S,VAL) assigns into a 'sdopvar': dot assignment is the	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/subsref.m	opvar/@dopvar/subsref.m; opvar/2D/@dopvar2d/subsref.m	[out,varargout] = subsref(obj,s) overloads indexing for sdopvar objects,	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/uminus.m	opvar/@dopvar/uminus.m; opvar/2D/@dopvar2d/uminus.m	Pop_out = uminus(Pop_in) or -Pop_in negates an sdopvar operator.	newfix
+Replacement	user	A_sopvar	sopvar/@sdopvar/vertcat.m	opvar/@dopvar/vertcat.m; opvar/2D/@dopvar2d/vertcat.m	Pcat = vertcat(A,B,...) or [A;B;...] concatenates sdopvar operators	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/blkdiag.m	opvar/@opvar/blkdiag.m; opvar/2D/@opvar2d/blkdiag.m	PBLKDIAG = BLKDIAG(A_1,...,A_n) returns the block-diagonal operator	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/clean_op.m	opvar/@opvar/clean.m; opvar/clean_opvar.m	zeros coefficients below a tolerance	census
+Replacement	user	A_sopvar	sopvar/@sopvar/ctranspose.m	opvar/@opvar/ctranspose.m; opvar/2D/@opvar2d/ctranspose.m	AT = CTRANSPOSE(A) returns the adjoint A' of the 'sopvar' object A with	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/degbalance.m	opvar/@opvar/degbalance.m	[DEG,REPORT] = DEGBALANCE(P,OPTS) picks the degrees of the basis of a	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/diff.m	opvar/@opvar/diff.m; opvar/2D/@opvar2d/diff.m	[DPOP,IS_ZERO] = DIFF(POP,VARS,D) takes the composition of the PI	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/display.m	opvar/@opvar/display.m; opvar/2D/@opvar2d/display.m	DISPLAY(P,NAME,WIDTH_MAX,CALL_NAME) displays the PI operator P in the	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/end.m	opvar/@opvar/end.m; opvar/2D/@opvar2d/end.m	out = end(a,k,n) is used to establish the size of sopvar object a	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/eq.m	opvar/@opvar/eq.m; opvar/2D/@opvar2d/eq.m	LOGVAL = EQ(P1,P2,TOL) tests whether two 'sopvar' objects represent the	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/horzcat.m	opvar/@opvar/horzcat.m; opvar/2D/@opvar2d/horzcat.m	PCAT = HORZCAT(A_1,...,A_n) returns the horizontal concatenation	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/inv.m	opvar/@opvar/inv.m; opvar/2D/@opvar2d/inv.m	[RINV,INFO] = INV(R[,OPTS]) the inverse of a square 1-D 'sopvar' block	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/inv_1D.m	opvar/inv_opvar.m	inverse of a 1-D PI operator (the core of inv)	census
+Replacement	user	A_sopvar	sopvar/@sopvar/minus.m	opvar/@opvar/minus.m; opvar/2D/@opvar2d/minus.m	COP = MINUS(AOP,BOP) returns the sopvar object representing the	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/mtimes.m	opvar/@opvar/mtimes.m; opvar/2D/@opvar2d/mtimes.m	C = MTIMES(A,B) returns the composition C = A*B of two 'sopvar' objects,	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/numArgumentsFromSubscript.m	opvar/@opvar/numArgumentsFromSubscript.m	N = NUMARGUMENTSFROMSUBSCRIPT(OBJ,S,CTX) returns the number of values an	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/op_slice.m	opvar/@opvar/op_slice.m; opvar/2D/@opvar2d/op_slice.m	Psop = op_slice(P,indr,indc) extracts a slice from a PI operator	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/plus.m	opvar/@opvar/plus.m; opvar/2D/@opvar2d/plus.m	C = PLUS(A,B) returns the sum A + B of two 'sopvar' objects that map	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/size.m	opvar/@opvar/size.m; opvar/2D/@opvar2d/size.m	VARARGOUT = SIZE(P,DIM) returns the matrix dimensions of the 'sopvar'	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/sopvar2sdopvar.m	opvar/opvar2dopvar.m	fixed operator to decision operator	census
+Replacement	user	A_sopvar	sopvar/@sopvar/subs.m	opvar/@opvar/subs.m; opvar/2D/@opvar2d/subs.m	Q = SUBS(P,INVAR,INVAL,OPTS) evaluates the output of the PI operator P (a	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/subsasgn.m	opvar/@opvar/subsasgn.m; opvar/2D/@opvar2d/subsasgn.m	OBJ = SUBSASGN(OBJ,S,VAL) assigns into a 'sopvar': dot assignment is the	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/subsref.m	opvar/@opvar/subsref.m; opvar/2D/@opvar2d/subsref.m	[out,varargout] = subsref(obj,s) indexes a sopvar object: P.name reads	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/uminus.m	opvar/@opvar/uminus.m; opvar/2D/@opvar2d/uminus.m	POP_OUT = UMINUS(POP_IN) returns the 'sopvar' object representing the	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/uplus.m	opvar/@opvar/uplus.m; opvar/2D/@opvar2d/uplus.m	POP_IN = UPLUS(POP_IN) returns the 'sopvar' object POP_IN itself, so that	newfix
+Replacement	user	A_sopvar	sopvar/@sopvar/vertcat.m	opvar/@opvar/vertcat.m; opvar/2D/@opvar2d/vertcat.m	PCAT = VERTCAT(A_1,...,A_n) returns the vertical concatenation	newfix
+Replacement	user	A_sopvar	sopvar/constructors/mat2copvar_sop.m	opvar/mat2opvar.m	matrix to (container) multiplier operator	census
+Replacement	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/getController_sop.m	executives/utility_functions/getController.m	controller K from P, Z	census
+Replacement	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/getObserver_sop.m	executives/utility_functions/getObserver.m; getObserver_2D.m	observer gain L from P, Z	census
+Replacement	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/get_lpivar_degs_sop.m	executives/utility_functions/get_lpivar_degs.m	degrees of the free operators	census
+Replacement	internal	B_lpi_exec_settings	executives_sopvar/utility_functions/poslpivar_sop.m	lpi_programming/poslpivar.m	positive operator Z'(gQ)Z as the executives declare it	census
+Replacement	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lpi_eq_cdopvar.m	lpi_programming/lpi_eq.m	container part of lpi_eq_sop	census
+Replacement	internal	B_lpi_exec_settings	lpi_programming_sopvar/misc/lpi_eq_sdopvar.m	lpi_programming/lpi_eq.m	block part of lpi_eq_sop	census
+Replacement	internal	A_sopvar	sopvar/misc/apply_sopvar.m	opvar/2D/apply_opvar.m	applies an operator to a function	census
+Replacement	internal	A_sopvar	sopvar/misc/degree_sizing/degbalance_core.m	opvar/@opvar/degbalance.m; opvar/2D/@opvar2d/degbalance.m	shared core of the degbalance methods	census
+Replacement	internal	A_sopvar	sopvar/misc/eq_copvar.m	opvar/@opvar/eq.m; opvar/2D/@opvar2d/eq.m	shared core of the eq methods of the containers	census

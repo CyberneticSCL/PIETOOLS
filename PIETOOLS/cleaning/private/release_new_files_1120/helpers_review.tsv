@@ -1,0 +1,108 @@
+category	path	reached	reached_callers	caller_names	test_files	other_files	code_lines	verdict	note	added_by
+A1 index and space conventions	sopvar/misc/conventions/cell_of_gamma.m	1	6	eq_opts_sopvar;int2sopvar;degbalance_core;collect_eq_rows;poscopvar_direct;lift_copvar	0	1	6	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/check_reserved_names.m	1	1	parse_copvar_spaces	0	2	7	Fold into its caller		Declan
+A1 index and space conventions	sopvar/misc/conventions/copvar_space_list.m	1	19	poslpivar_settings_2d_sop;PIETOOLS_Hinf_control_sop;PIETOOLS_Code_Illustrations_Ch7_LPI_Programming;PIETOOLS_Hinf_gain_sop;PIETOOLS_H2_estimator_sop;PIETOOLS_H2_control_sop;poslpivar_sop;PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_H2_norm_sop;exec_tools_sop;poscopvar;lpi_ineq_sop;PIETOOLS_stability_sop;eye_copvar_sop;lpivar_cdopvar;DEMO13_Hinf_OFcontrol;exec_kmult_sop;DEMO11_poincare_inequality_2D;PIETOOLS_Hinf_estimator_sop	9	22	10	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/gamma_of_cell.m	1	12	lpivar_cdopvar;get_lift_degs;display_term;eq_opts_sopvar;diff;canonical_adjoint_map;display_term;canonicalize_multiplier;is_canonical_multiplier;decode_params;collect_eq_rows;decode_params	4	3	8	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/kron_split.m	1	5	decode_params;decode_params;diff;canonicalize_multiplier;canonical_adjoint_map	0	1	9	Keep: shared		Declan
+A1 index and space conventions	sopvar/misc/conventions/kron_strides.m	1	6	canonicalize_multiplier;diff;decode_params;lpivar_cdopvar;canonical_adjoint_map;decode_params	0	1	7	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/monomial_position.m	1	3	canonicalize_multiplier;canonical_adjoint_map;diff	0	1	14	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/monomial_position_map.m	1	3	canonicalize_multiplier;diff;canonical_adjoint_map	0	1	12	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/multiindex_grid.m	1	8	lpivar_cdopvar;lift_copvar;monomial_gather;poscopvar;eq_opts_sopvar;poscopvar_direct;get_lift_degs;degbalance_core	0	6	25	Keep: shared		MATTHEW M PEET
+A1 index and space conventions	sopvar/misc/conventions/parse_copvar_spaces.m	1	7	poscopvar;zeros_copvar_sop;mat2copvar_sop;lpivar_cdopvar;poscopvar_direct;lift_copvar;eye_copvar_sop	0	1	111	Keep: shared		MATTHEW M PEET
+A2 canonical form of multipliers	sopvar/misc/canonical_form/canonical_adjoint_map.m	1	2	ctranspose;ctranspose	0	1	107	Keep: shared		MATTHEW M PEET
+A2 canonical form of multipliers	sopvar/misc/canonical_form/canonical_var_order.m	1	2	sopvar;sdopvar	0	0	51	Keep: shared		MATTHEW M PEET
+A2 canonical form of multipliers	sopvar/misc/canonical_form/canonicalize_multiplier.m	1	2	sdopvar;sopvar	0	1	266	Keep: shared		MATTHEW M PEET
+A2 canonical form of multipliers	sopvar/misc/canonical_form/is_canonical_multiplier.m	1	1	collect_eq_rows	1	2	128	Keep: tests call it		MATTHEW M PEET
+A2 canonical form of multipliers	sopvar/misc/canonical_form/monomial_gather.m	1	3	mtimes;mtimes;canonical_var_order	0	2	13	Keep: shared		MATTHEW M PEET
+A2 canonical form of multipliers	sopvar/misc/canonical_form/prune_zero_monomials.m	1	2	mtimes;mtimes	0	0	33	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/@cdopvar/private/merge_dvar_lists.m	1	7	setfield_opvar2d;plus_batch;merge_dvar_pair;horzcat;vertcat;blkdiag;cdopvar	0	1	48	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/@cdopvar/private/merge_dvar_pair.m	1	2	plus;mtimes	0	1	11	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/misc/cat_copvar_grid.m	1	6	blkdiag;horzcat;vertcat;vertcat;blkdiag;horzcat	0	1	139	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/misc/derive_copvar_meta.m	1	2	cdopvar;copvar	0	0	97	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/misc/mat2copvar_grid.m	1	6	eye_copvar_sop;dpvar_op_copvar;mat2copvar_sop;zeros_copvar_sop;op_slice;op_slice	1	0	85	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/misc/merge_copvar_registry.m	1	6	plus_batch;plus;mtimes;cat_copvar_grid;mtimes;plus	0	0	43	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/misc/on_registry_sop.m	1	7	PIETOOLS_Hinf_control_sop;PIETOOLS_Hinf_gain_sop;PIETOOLS_Hinf_estimator_sop;PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_H2_control_sop;PIETOOLS_Code_Illustrations_Ch7_LPI_Programming;PIETOOLS_H2_estimator_sop	0	0	15	Keep: shared		MATTHEW M PEET
+A3 container assembly and metadata	sopvar/misc/split_copvar.m	1	1	convert_PIETOOLS_BVP	0	0	46	Optional fold		Declan
+A3 container assembly and metadata	sopvar/misc/verify_copvar_meta.m	1	2	verify;verify	0	1	97	Keep: shared		MATTHEW M PEET
+A4 block algebra	sopvar/@sdopvar/private/ChangeDecVar.m	1	2	sync_basis;setdvars	0	3	44	Keep: shared		DanBraghini
+A4 block algebra	sopvar/@sdopvar/private/apply_basis_map.m	1	4	horzcat;plus_batch;eq;vertcat	0	0	8	Keep: shared		Declan
+A4 block algebra	sopvar/@sdopvar/private/leftShiftMonomials_SD.m	1	1	mtimes	0	1	48	Optional fold		Sachin Shivakumar
+A4 block algebra	sopvar/@sdopvar/private/leftShiftMonomials_SS.m	1	2	leftShiftMonomials_SD;mtimes	0	4	114	Keep: shared	partial copy of sopvar/@sopvar/private/leftShiftMonomials_SS.m (0.65)	Sachin Shivakumar
+A4 block algebra	sopvar/@sdopvar/private/lrmultiply.m	1	1	mtimes	0	2	11	Fold into its caller		Sachin Shivakumar
+A4 block algebra	sopvar/@sdopvar/private/sync_basis.m	1	4	vertcat;horzcat;eq;plus_batch	0	0	70	Keep: shared		MATTHEW M PEET
+A4 block algebra	sopvar/@sopvar/private/UnionBasisMonomials.m	1	4	vertcat;blkdiag;horzcat;plus	0	0	23	Keep: shared		Declan
+A4 block algebra	sopvar/@sopvar/private/leftShiftMonomials_SS.m	1	1	mtimes	0	4	99	Optional fold	partial copy of sopvar/@sdopvar/private/leftShiftMonomials_SS.m (0.65)	Sachin Shivakumar
+A4 block algebra	sopvar/misc/compose_sopvar.m	1	2	compose_Tmaps;fund_inputs	1	0	151	Keep: shared		Declan
+A4 block algebra	sopvar/misc/dpvar_op_copvar.m	1	16	horzcat;mtimes;plus;plus;horzcat;horzcat;plus;vertcat;mtimes;plus;horzcat;vertcat;mtimes;vertcat;vertcat;mtimes	0	0	158	Keep: shared		MATTHEW M PEET
+A4 block algebra	sopvar/misc/int_semisep.m	1	2	mtimes;mtimes	1	5	377	Keep: shared		Talitsky
+A4 block algebra	sopvar/misc/spIkron.m	1	3	opvar2d2sopvar;pi4_copvar_sop;opvar2sopvar	0	5	51	Keep: shared		Declan
+A5 kernel evaluation and display	sopvar/@sdopvar/private/decode_params.m	1	2	get_display;display_term	0	0	41	Keep: shared	partial copy of sopvar/@sopvar/private/decode_params.m (0.68)	Declan
+A5 kernel evaluation and display	sopvar/@sdopvar/private/display_term.m	1	1	get_display	0	0	146	Merge: copy of sopvar/@sopvar/private/display_term.m (0.82)		Declan
+A5 kernel evaluation and display	sopvar/@sdopvar/private/params2kernel.m	1	1	sdopvar	0	0	26	Fold into its caller		Declan
+A5 kernel evaluation and display	sopvar/@sopvar/private/decode_params.m	1	3	params2kernel;get_display;display_term	0	0	36	Keep: shared	partial copy of sopvar/@sdopvar/private/decode_params.m (0.68)	Declan
+A5 kernel evaluation and display	sopvar/@sopvar/private/display_term.m	1	1	get_display	0	0	142	Merge: copy of sopvar/@sdopvar/private/display_term.m (0.82)		Declan
+A5 kernel evaluation and display	sopvar/@sopvar/private/params2kernel.m	1	1	sopvar	0	0	13	Fold into its caller		Declan
+A6 argument parsing	sopvar/misc/parse_diff_inputs.m	1	6	diff;diff;diff;diff;diff;diff	0	0	31	Keep: shared		Declan
+A6 argument parsing	sopvar/misc/parse_int_inputs.m	1	4	int2sopvar;int;int;int	0	0	67	Keep: shared		Declan
+A6 argument parsing	sopvar/misc/pvar2varname.m	1	9	convert_PIETOOLS_DDF;monopmat;polyopvar;get_tensorvars;parse_int_inputs;convert_PIETOOLS_DDE2PIE_legacy;intop;parse_diff_inputs;opvar2d2sopvar	6	10	16	Keep: shared		Declan
+A7 operator inverse	sopvar/misc/chebfit_mono.m	1	1	inv	0	1	57	Optional fold		MATTHEW M PEET
+A7 operator inverse	sopvar/misc/gk_grid.m	1	1	inv	0	1	115	Keep: one caller, large		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/copquadvar.m	0	0		2	7	425	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/get_lift_degs.m	1	2	exec_tools_sop;lpi_ineq_sop	5	7	194	Keep: shared		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/lift_copvar.m	1	2	poscopvar_direct;lpi_ineq_sop	0	2	220	Keep: shared		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/poscopvar_direct.m	1	2	poscopvar;lpi_ineq_sop	5	7	641	Keep: shared		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/poscopvar_lift.m	0	0		0	1	131	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/posmult_cdopvar.m	0	0		0	1	100	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/private/build_exponent_grid.m	1	1	poscopvar_direct	0	1	40	Fold into its caller		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/private/dvar_rows.m	0	0		0	0	11	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/private/expand_full.m	0	0		0	0	13	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/private/merge_monomial_product.m	0	0		0	1	38	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/private/process_degrees_one.m	1	1	poscopvar_direct	0	1	39	Fold into its caller		MATTHEW M PEET
+B1 positive-operator construction	lpi_programming_sopvar/misc/private/unpack_sheets.m	0	0		0	0	40	Not needed in the release: reached only by tests and benchmarks		MATTHEW M PEET
+B2 equality constraints	lpi_programming_sopvar/misc/eq_opts_sopvar.m	1	1	lpi_ineq_sop	6	1	118	Keep: tests call it		MATTHEW M PEET
+B2 equality constraints	lpi_programming_sopvar/misc/lpi_soseq.m	1	1	impose_eq_rows	0	1	57	Optional fold		MATTHEW M PEET
+B2 equality constraints	lpi_programming_sopvar/misc/private/collect_eq_rows.m	1	2	lpi_eq_sdopvar;lpi_eq_cdopvar	0	0	220	Keep: shared		MATTHEW M PEET
+B2 equality constraints	lpi_programming_sopvar/misc/private/impose_eq_rows.m	1	2	lpi_eq_sdopvar;lpi_eq_cdopvar	0	0	25	Keep: shared		MATTHEW M PEET
+B3 solve diagnostics	lpi_programming_sopvar/misc/lpi_classify_sop.m	1	1	lpi_solve_loop_sop	0	7	39	Fold into its caller		MATTHEW M PEET
+B3 solve diagnostics	lpi_programming_sopvar/misc/lpi_shape_sop.m	1	1	exec_info_sop	1	0	21	Keep: tests call it		MATTHEW M PEET
+B3 solve diagnostics	lpi_programming_sopvar/misc/lpigetdual_sop.m	1	1	exec_info_sop	0	0	39	Fold into its caller		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/exec_pie_sop.m	1	9	PIETOOLS_stability_sop;PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_well_posedness_sop;PIETOOLS_Hinf_gain_sop;PIETOOLS_Hinf_estimator_sop;PIETOOLS_H2_estimator_sop;PIETOOLS_Hinf_control_sop;PIETOOLS_H2_control_sop;PIETOOLS_H2_norm_sop	1	16	18	Keep: shared		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/exec_sop_settings.m	1	10	PIETOOLS_Hinf_control_sop;PIETOOLS_stability_sop;PIETOOLS_H2_norm_sop;PIETOOLS_well_posedness_sop;PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_H2_control_sop;PIETOOLS_Hinf_gain_sop;PIETOOLS_Hinf_estimator_sop;lpi_solve_loop_sop;PIETOOLS_H2_estimator_sop	5	7	65	Keep: shared		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/exec_tools_sop.m	1	9	PIETOOLS_H2_norm_sop;PIETOOLS_Hinf_estimator_sop;PIETOOLS_well_posedness_sop;PIETOOLS_H2_estimator_sop;PIETOOLS_stability_sop;PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_Hinf_control_sop;PIETOOLS_H2_control_sop;PIETOOLS_Hinf_gain_sop	4	15	158	Keep: shared		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/poslpivar_settings_2d_sop.m	1	1	exec_tools_sop	3	1	198	Keep: tests call it		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/poslpivar_settings_sop.m	1	1	exec_tools_sop	5	18	23	Keep: tests call it		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/settings2possopvar.m	1	1	poslpivar_settings_2d_sop	1	3	245	Keep: tests call it		MATTHEW M PEET
+C1 executive setup	executives_sopvar/utility_functions/settings_2d_sop.m	1	2	exec_tools_sop;poslpivar_settings_2d_sop	0	1	31	Keep: shared		MATTHEW M PEET
+C2 LPI assembly and solve loop	executives_sopvar/utility_functions/exec_kmult_sop.m	1	4	PIETOOLS_Hinf_gain_sop;PIETOOLS_H2_norm_sop;PIETOOLS_Hinf_estimator_sop;PIETOOLS_H2_estimator_sop	0	0	5	Keep: shared		MATTHEW M PEET
+C2 LPI assembly and solve loop	executives_sopvar/utility_functions/lpi_solve_loop_sop.m	1	9	PIETOOLS_stability_sop;PIETOOLS_Hinf_estimator_sop;PIETOOLS_well_posedness_sop;PIETOOLS_Hinf_control_sop;PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_Hinf_gain_sop;PIETOOLS_H2_control_sop;PIETOOLS_H2_norm_sop;PIETOOLS_H2_estimator_sop	0	0	30	Keep: shared		MATTHEW M PEET
+C2 LPI assembly and solve loop	executives_sopvar/utility_functions/trace_rn_sop.m	1	4	PIETOOLS_H2_estimator_sop;PIETOOLS_H2_control_sop;PIETOOLS_H2_norm_sop;DEMO8_H2norm	1	6	35	Keep: shared		MATTHEW M PEET
+C3 results	executives_sopvar/utility_functions/exec_info_sop.m	1	9	PIETOOLS_Hinf_OFcontrol_sop;PIETOOLS_H2_estimator_sop;PIETOOLS_H2_norm_sop;PIETOOLS_Hinf_control_sop;PIETOOLS_Hinf_gain_sop;PIETOOLS_Hinf_estimator_sop;PIETOOLS_H2_control_sop;PIETOOLS_well_posedness_sop;PIETOOLS_stability_sop	0	0	20	Keep: shared		MATTHEW M PEET
+C3 results	executives_sopvar/utility_functions/qp_copvar.m	1	3	examples_FI_library_PIETOOLS;getObserver_sop;getController_sop	1	0	215	Keep: shared		Talitsky
+C4 failure witness (1-D Galerkin)	executives_sopvar/utility_functions/pie_disc_sop.m	1	1	pie_witness_sop	0	0	140	Keep: one caller, large		MATTHEW M PEET
+C4 failure witness (1-D Galerkin)	executives_sopvar/utility_functions/pie_witness_sop.m	1	4	PIETOOLS_Hinf_gain_sop;PIETOOLS_stability_sop;PIETOOLS_well_posedness_sop;PIETOOLS_H2_norm_sop	1	1	156	Keep: shared		MATTHEW M PEET
+D1 BVP converter pipeline	converters/internal/BVP/compose_Tmaps.m	1	2	fund_inputs;convert_PIETOOLS_BVP	0	0	383	Keep: shared		Declan
+D1 BVP converter pipeline	converters/internal/BVP/compute_Tmap_1D.m	1	1	convert_PIETOOLS_BVP	0	0	210	Keep: one caller, large		Declan
+D1 BVP converter pipeline	converters/internal/BVP/compute_canonical_BCs.m	1	1	compute_Tmap_1D	0	0	87	Optional fold		Declan
+D1 BVP converter pipeline	converters/internal/BVP/decouple_BVPs.m	1	1	convert_PIETOOLS_BVP	0	0	88	Optional fold		Declan
+D1 BVP converter pipeline	converters/internal/BVP/eliminate_BVP_sources.m	1	1	convert_PIETOOLS_BVP	0	0	243	Keep: one caller, large		Declan
+D1 BVP converter pipeline	converters/internal/BVP/fund_inputs.m	1	1	compose_Tmaps	0	0	313	Keep: one caller, large		Declan
+D1 BVP converter pipeline	converters/internal/BVP/lift_BVP_sources.m	1	1	convert_PIETOOLS_BVP	0	0	138	Keep: one caller, large		Declan
+D1 BVP converter pipeline	converters/internal/BVP/split_BVPs.m	1	1	convert_PIETOOLS_BVP	0	0	173	Keep: one caller, large		Declan
+D1 BVP converter pipeline	converters/internal/convert_PDE_term.m	1	3	eliminate_BVP_sources;convert_PIETOOLS_BVP;convert_PIETOOLS_PDE	0	0	200	Keep: shared		Declan
+D2 legacy 2-D conversion	converters/internal/compute_PIETOOLS_PDE_periodic_map.m	0	0		0	1	108	Not needed: reached only from the legacy 2-D converter, which no release file calls		DanBraghini
+D2 legacy 2-D conversion	converters/legacy/2D/compute_PIETOOLS_PDE_periodic_map_2D.m	0	0		0	0	351	Not needed: reached only from the legacy 2-D converter, which no release file calls		DanBraghini
+D2 legacy 2-D conversion	converters/legacy/convert_PIETOOLS_PDE_nonlinear_2D.m	0	0		1	2	989	Not needed: reached only from the legacy 2-D converter, which no release file calls		Declan
+D2 legacy 2-D conversion	converters/legacy/pie_pde_maps_2D.m	0	0		0	0	153	Not needed: reached only from the legacy 2-D converter, which no release file calls		Declan
+E1 PIE structure compatibility	parser/@npie_struct/private/pie_compat_tab.m	1	1	npie_struct	0	0	66	Merge: copy of parser/@pie_struct/private/pie_compat_tab.m (0.92)		Declan
+E1 PIE structure compatibility	parser/@npie_struct/private/pie_compat_vars.m	1	1	npie_struct	0	0	30	Merge: copy of parser/@pie_struct/private/pie_compat_vars.m (1.00)		Declan
+E1 PIE structure compatibility	parser/@npie_struct/private/pie_space_canon.m	1	3	vertcat;initialize;horzcat	0	0	16	Merge: copy of parser/@pie_struct/private/pie_space_canon.m (1.00)		Declan
+E1 PIE structure compatibility	parser/@pie_struct/private/pie_compat_tab.m	1	1	pie_struct	0	0	63	Merge: copy of parser/@npie_struct/private/pie_compat_tab.m (0.92)		Declan
+E1 PIE structure compatibility	parser/@pie_struct/private/pie_compat_vars.m	1	1	pie_struct	0	0	30	Merge: copy of parser/@npie_struct/private/pie_compat_vars.m (1.00)		Declan
+E1 PIE structure compatibility	parser/@pie_struct/private/pie_rename_dummy.m	1	1	initialize	0	0	37	Fold into its caller		Declan
+E1 PIE structure compatibility	parser/@pie_struct/private/pie_space_canon.m	1	3	vertcat;horzcat;initialize	0	0	16	Merge: copy of parser/@npie_struct/private/pie_space_canon.m (1.00)		Declan
+E2 equation display	parser/internal/print_terms.m	1	10	display;display;display;display;display;display;display;display;display;display	0	0	32	Keep: shared		Declan
+E2 equation display	parser/internal/use_unicode.m	1	6	display;display;display_PDE_crude;display_term;display_PDE;varname2display	0	0	30	Keep: shared		Declan
+E2 equation display	parser/internal/varname2display.m	1	24	display_PDE;display;display_term;display;print_convert_summary;display_term;display;display;display;display;display_term;get_display;display;get_display;get_display;display;display_term;display;display;get_display;get_display;get_display;display_PDE_crude;get_display	0	0	70	Keep: shared		Declan
+F1 PIESIM setup and discretization	PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Mat_Truncate.m	1	4	PIESIM_1Dto2D2Mat_cheb_2D;PIESIM_2Dto1D2Mat_cheb_2D;PIESIM_9PI2Mat_cheb_2D;PIESIM_Poly2Mat_cheb_2D	0	0	14	Keep: shared		Yulia
+F1 PIESIM setup and discretization	PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m	1	1	PIESIM	0	0	18	Fold into its caller		Yulia
+F2 third-party	PIESIM/PIESIM_routines/Third_Party_Supporting_Files/clencurt.m	0	0		0	0	13	Not needed: no reference anywhere		Yulia

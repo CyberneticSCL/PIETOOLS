@@ -1,0 +1,116 @@
+PIETOOLS 2026 Release Notes
+
+NOTE: [availability line, as in the 2024 and 2025 notes; to be added at release]
+
+PIETOOLS 2026 represents PI operators in any number of spatial variables, including operators between
+spaces of different dimension, and adds SOS programming for nonlinear PIEs (PIESOS). New classes replace
+the PI operator classes of PIETOOLS 2025 (opvar, dopvar, opvar2d, dopvar2d); the functions that used
+those classes have new names, listed under Minor Updates.
+
+Major Updates:
+
+1. Classes for PI operators in any number of spatial variables (folder sopvar).
+-- copvar (fixed operators) and cdopvar (operators that depend on decision variables) replace opvar,
+   dopvar, opvar2d and dopvar2d. One copvar or cdopvar object maps a concatenation of spaces R^n and
+   L2[s], with s any set of spatial variables, to another such concatenation; one operator can
+   therefore couple states of different dimension, e.g. on R^n x L2[s1] x L2[s1,s2].
+-- Each block of a copvar (cdopvar) object is a sopvar (sdopvar) object: a PI operator from
+   L2[S1,S3] to L2[S2,S3], for sets S1, S2, S3 of spatial variables.
+-- Operations: +, -, * (composition), ' (adjoint), .', concatenation, blkdiag, diff, int, subs, ==,
+   and inv (operators in one spatial variable; in several variables, separable operators).
+-- Constructors: mat2copvar_sop (multiplication by a matrix), eye_copvar_sop (identity),
+   zeros_copvar_sop (zero operator), pi4_copvar_sop (4-PI operator from its parameters P, Q1, Q2, R),
+   int2copvar (integral operator from its kernel).
+-- opvar2copvar and pie2copvar convert opvar objects, and PIEs whose operators are opvar objects,
+   to the new classes.
+-- The folders opvar, lpi_programming, executives and settings of PIETOOLS 2025 are removed.
+
+2. LPI programming with the new classes (folder lpi_programming_sopvar).
+-- poscopvar declares positive operators and lpivar_cdopvar free operators; lpi_ineq_sop and
+   lpi_eq_sop impose operator inequalities and equalities; getsol_lpivar_sop and lpigetsol_sop
+   return the solved values.
+-- An operator can stand for the dimensions, spaces and domain of a declaration:
+   poscopvar(prog,T,deg) declares P on the output spaces of T (T' for its input spaces),
+   lpivar_cdopvar(prog,B',deg) declares Z with the spaces of B', and eye_copvar_sop(P) is the
+   identity on the spaces of P. The forms with dimensions, spaces and domain remain.
+-- The LPI program carries its settings: lpiprogram(vars,dom,tier), or lpisetsettings(prog,settings)
+   after declaration. With DEG omitted, poscopvar and lpivar_cdopvar take their degrees from these
+   settings; lpi_ineq_sop takes from them the options a call does not give.
+
+3. One executive per problem, for PIEs with copvar operators (folder executives_sopvar).
+-- PIETOOLS_stability_sop(PIE,settings,form) replaces PIETOOLS_PDEstability, PIETOOLS_PIE2PDEstability,
+   their dual versions, PIETOOLS_stability_2D and PIETOOLS_stability_dual_2D.
+-- PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain) replaces PIETOOLS_Hinf_gain and its coercive, dual
+   and 2D versions (7 files).
+-- PIETOOLS_H2_norm_sop(PIE,settings,form) replaces PIETOOLS_H2_norm_c, PIETOOLS_H2_norm_o and their
+   coercive and 2D versions (8 files).
+-- PIETOOLS_Hinf_estimator_sop (also replacing PIETOOLS_Hinf_estimator_2D), PIETOOLS_Hinf_control_sop,
+   PIETOOLS_H2_estimator_sop, PIETOOLS_H2_control_sop, PIETOOLS_well_posedness_sop,
+   PIETOOLS_auto_execute_sop and lpiscript_sop replace the PIETOOLS 2025 functions of the same name
+   without the suffix _sop. getController_sop and getObserver_sop replace getController, getObserver
+   and getObserver_2D.
+-- Stability, H-infinity gain and H2 norm accept PIEs in any number of spatial variables. The
+   H-infinity estimator returns its gain for PIEs in one or two spatial variables. The H-infinity
+   and H2 controllers, the H2 estimator and the well-posedness test accept PIEs in one spatial
+   variable.
+-- New: PIETOOLS_Hinf_OFcontrol_sop computes a dynamic output-feedback controller, itself a PIE, and a
+   bound on the L2 gain from w to z of the closed loop. It requires D22 = 0, no inputs at the
+   boundary and no algebraic constraint K. DEMO13 illustrates it.
+
+4. Settings (folder settings_sopvar).
+-- settings_sopvar_stripped, _light, _heavy, _veryheavy, _extreme and _custom replace
+   settings_PIETOOLS_<tier> and settings_PIETOOLS_<tier>_2D: one file per tier, with entries for each
+   number of spatial variables. lpisettings_sop(tier) replaces lpisettings.
+
+5. Conversion of PDEs.
+-- The converter accepts PDEs in any number of spatial variables, periodic boundary conditions
+   (represented by the constraint K x = 0 on the PIE state, PIE.K), and PDEs that couple states on
+   domains of different dimension. The converter of PIETOOLS 2025 remains, as
+   converters/legacy/convert_PIETOOLS_PDE_2D.
+
+6. Nonlinear PDEs and PIEs (folder PIESOS).
+-- Terms of a PDE can be multiplied and raised to powers (times, power, mpower), which declares
+   polynomial nonlinear PDEs. A nonlinear PIE is an npie_struct object; pie2npie_struct and
+   npie2pie_struct convert between the linear and nonlinear PIE structures.
+-- PIESOS poses SOS programs for nonlinear PIEs: the distributed polynomial classes polyopvar,
+   tensopvar, tensopmat, intop and quadPoly; the program functions piesos_program, piesos_sosvar,
+   piesos_polyvar, piesos_LF, piesos_ineq, piesos_eq, piesos_setobj, piesos_solve and piesos_getsol;
+   Liediff, the Lie derivative of a distributed functional along solutions of a PIE; and the
+   executives PIESOS_stability_global, PIESOS_stability_local and PIESOS_sublevel.
+-- Demos PIESOS_DEMO1_global_stability, PIESOS_DEMO2_local_stability and PIESOS_DEMO3_energy_bound,
+   and the library examples_PDE_library_PIESOS.
+
+7. Demos and examples.
+-- DEMO10: decay rate of a PDE with periodic boundary conditions. DEMO11: Poincare constant of a 2D
+   domain. DEMO12: state-feedback stabilization of a 2D reaction-diffusion PDE. DEMO13: H-infinity
+   optimal dynamic output feedback. DEMO14 and DEMO15: trace inequalities on [0,1] and on the unit
+   square.
+-- DEMO1 to DEMO9 use the new classes and the _sop functions.
+-- New examples: examples_FI_library_PIETOOLS, a library of functional inequalities whose constants
+   are computed by LPIs; a 2D plate and a damped 2D wave equation; three 3D examples; 16 examples that
+   couple states on domains of different dimension; and 13 command-line examples (l2gain_23,
+   l2gain_26, stability_13_2, stability_13_3, stability_16_1, stability_16_3, stability_16_4,
+   stability_17, stability_18, stability_19, stability_36, stability_39, stability_42).
+
+Minor Updates:
+
+1. Functions replaced or renamed (PIETOOLS 2025 -> PIETOOLS 2026).
+-- opvar, opvar2d -> copvar;  dopvar, dopvar2d -> cdopvar
+-- poslpivar, poslpivar_2d -> poscopvar
+-- lpivar, lpivar_2d -> lpivar_cdopvar
+-- lpi_ineq, lpi_ineq_2d -> lpi_ineq_sop
+-- lpi_eq, lpi_eq_2d -> lpi_eq_sop
+-- lpigetsol -> lpigetsol_sop;  getsol_lpivar, getsol_lpivar_2d -> getsol_lpivar_sop
+-- lpiscript -> lpiscript_sop
+-- lpisettings -> lpisettings_sop;  settings_PIETOOLS_<tier>, settings_PIETOOLS_<tier>_2D ->
+   settings_sopvar_<tier>
+-- mat2opvar -> mat2copvar_sop
+-- getController -> getController_sop;  getObserver, getObserver_2D -> getObserver_sop
+-- the executives -> one executive per problem with the suffix _sop (Major Update 3)
+-- lpiprogram, lpidecvar, lpisetobj and lpisolve keep their names.
+
+2. PIESIM: 13 operator discretization routines have new names, e.g. PIESIM_PIop_discretize ->
+   PIESIM_PI_discretize, PIESIM_3PI2Mat_cheb_opint_discretize -> PIESIM_3PI_opint_discretize and, in
+   2D, PIESIM_9PI2Mat_cheb_opint_discretize_area -> PIESIM_9PI_opint_area_discretize_2D;
+   PIESIM_disturbance_check holds the disturbance check formerly in PIESIM_input_check. These
+   routines are internal to PIESIM.

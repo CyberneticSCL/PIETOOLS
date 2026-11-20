@@ -1485,3 +1485,42 @@ else
 end
 end
 
+function Cout = lrmultiply(L, C, R)
+% COUT = LRMULTIPLY(L,C,R) left- and right-multiplies a vectorized
+% decision-variable-dependent coefficient by constant matrices, computing
+%
+%   Cout = vec(L*C*R),    C = A + B'*d,
+%
+% without forming kron(R',L) explicitly for the constant part.
+%
+% INPUTS
+% - L:  sparse matrix, left factor;
+% - C:  struct with fields 'A' (vec of the constant part) and 'B' (rows
+%       indexed by decision variables, columns by vec of the matrix);
+% - R:  sparse matrix, right factor;
+%
+% OUTPUTS
+% - Cout:   struct with fields 'A' and 'B', representing vec(L*C*R);
+%
+% Initial coding SS; vectorization AT, 09/08/2026
+
+% Constant and decision parts
+A = C.A;
+B = C.B;
+
+% Constant part: vec(L*X*R) = (R' kron L)*vec(X) with X = reshape(A),
+% without forming the Kronecker product
+X = reshape(A,size(L,2),size(R,1));
+Y = L*X*R;  % (R^T\otimes L)*A = vec(L*X*R), X = reshape(A)
+Aout = Y(:);
+
+Bout = sparse(size(B,1),size(L,1)*size(R,2));
+
+% Decision part, one row vec(X_i)' of B per variable: the rows map by the
+% transpose, B*(R kron L')
+LRkron = kron(R, L');
+Bout = B*LRkron;
+
+Cout = struct('A',Aout,'B', Bout);
+end
+
