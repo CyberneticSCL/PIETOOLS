@@ -28,6 +28,9 @@ function c = apply_op(Kop,v)
 %   variable s of the factors in order, e.g. v(s_1,s_2) = v1(s_1)*v2(s_2).
 %   If fewer than d factors depend on s, Kop must have as many copies of s
 %   as there are such factors.
+% - A polynomial v is a function of the copies s_1,...,s_d of each
+%   variable s of which Kop has d copies (see 'get_tensorvars'), or of s
+%   itself if d=1. The bare name s is rejected if d>1.
 % - With the kernels expressed in terms of the monomials z(s) defined by
 %   Kop.Z.in, the integral over the region r of the kernel times v is
 %       P_r * W_r,     W_r = int_r kron(I_n,z(s))*v(s) ds,
@@ -67,6 +70,8 @@ function c = apply_op(Kop,v)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/28/2026: Allow v to be the 1 x d cell of the factors of a
 %                   monomial of degree d>1, acting on their tensor product;
+% DJ, 11/19/2026: Name copies by 'get_tensorvars'; reject the bare name s
+%                   of a variable with several copies, read as s_1 before;
 
 % % Process the inputs
 % Check that the functional is properly specified
@@ -113,7 +118,17 @@ for i=1:N
 end
 % Also account for degree 1 case, e.g. s1 instead of s1_1
 varnames_in1 = cellfun(@(a) a{1},varnames_in,'UniformOutput',false);
-[~,ia,ib] = intersect(v_varname,Kop.vars.in,'stable');
+% Bare names s, valid for a variable with a single copy only
+names_bare = get_tensorvars(Kop.vars.in,1,{'bare','full'});
+[~,ia,ib] = intersect(v_varname,names_bare,'stable');
+% The bare s of a variable with several copies does not say which copy
+is_multi = Kop.depmat.in(ib)>1;
+if any(is_multi)
+    idx = ib(find(is_multi,1));
+    vnames_i = varnames_out{idx};
+    error(['The function depends on ''%s'', but the functional has several ',...
+        'copies of it: use %s instead.'],names_bare{idx},strjoin(vnames_i,', '));
+end
 v_varname(ia) = varnames_in1(ib);
 v.varname = v_varname;
 
@@ -313,8 +328,9 @@ for i=1:numel(Kop.vars.in)
     else
         error("The number of factors depending on variable "+Kop.vars.in{i}+" does not match the number of its copies in the functional.")
     end
+    names_cp = get_tensorvars(Kop.vars.in{i},ncp,'full');
     for j=find(has_var(:))'
-        vc{j}.varname(strcmp(vc{j}.varname,Kop.vars.in{i})) = {[Kop.vars.in{i},'_',num2str(copies(j))]};
+        vc{j}.varname(strcmp(vc{j}.varname,Kop.vars.in{i})) = names_cp(copies(j));
     end
 end
 v = vc{1};

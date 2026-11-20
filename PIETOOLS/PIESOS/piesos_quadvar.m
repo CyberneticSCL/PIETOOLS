@@ -17,7 +17,8 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % - ZL:     nL x 1 'polyopvar' object representing a vector of distributed
 %           polynomials, e.g. a basis of distributed monomials, acted on by
 %           the operators ZopL: block i of ZopL acts on entry i of ZL, see
-%           NOTES;
+%           NOTES (for an entry of otype 3, both output types, two block
+%           rows of ZopL act on it, see `piesos_quadopvar`);
 % - ZR:     (optional) nR x 1 'polyopvar' object representing a vector of
 %           distributed polynomials, acted on by the operators ZopR. If
 %           omitted or empty, the same basis is used on the left and the
@@ -51,9 +52,9 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           opts.L.degs and opts.R.degs, instead of opts.degs.L and
 %           opts.degs.R (specifying them for the same basis in both
 %           places is an error). If only one of L and R is specified, it
-%           is used for both. If neither is specified, or only to
-%           specify degrees, the fields 'exclude', 'sep', and 'otype' of
-%           opts are used for both operators;
+%           is used for both. The fields 'exclude', 'sep', and 'otype' of
+%           opts are used for each operator for which L or R does not
+%           specify them (see `piesos_quadopvar`);
 %
 % OUTPUTS
 % - prog:   PIESOS program structure with the decision variables defining
@@ -115,6 +116,8 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % DJ, 11/06/2026: Output space of V follows from V.C (see set.C);
 % DJ, 11/07/2026: Rename field 'deg' to 'degs', with a warning;
 % DJ, 11/08/2026: Support products of states without spatial variables;
+% DJ, 11/19/2026: Support two block rows of Zop for an entry (otype=3);
+%                   integrate each term over all copies of the output vars;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -242,7 +245,12 @@ end
 % left and right, in which case only the upper triangle is computed
 is_sym = (isfield(opts,'pos') && opts.pos) || (isfield(opts,'sym') && opts.sym);
 is_sym = is_sym && is_eqZLR && isequal(ZopL,ZopR);
-nZL = numel(dimsL);     nZR = numel(dimsR);
+% The block rows of ZopL, ZopR (of Pmat), and the entry of ZL, ZR on        % DJ, 11/19/2026
+% which each acts (its only nonempty block): entry i for block row i, or
+% two block rows for an entry of otype 3 (see piesos_quadopvar)
+[nZL,nZR] = size(Pmat);
+[~,blk_idcsL] = max(~cellfun(@isempty,ZopL.ops),[],2);
+[~,blk_idcsR] = max(~cellfun(@isempty,ZopR.ops),[],2);
 if is_sym
     [ridcs,cidcs] = find(triu(true(nZL,nZR)));
 else
@@ -271,7 +279,7 @@ end
 % of terms are ridx, cidx, a, b
 terms = zeros(0,4);
 for k=1:numel(ridcs)
-    [a,b] = ndgrid(colsL{ridcs(k)},colsR{cidcs(k)});
+    [a,b] = ndgrid(colsL{blk_idcsL(ridcs(k))},colsR{blk_idcsR(cidcs(k))});  % DJ, 11/19/2026
     terms = [terms; repmat([ridcs(k),cidcs(k)],numel(a),1),a(:),b(:)];
 end
 
@@ -289,6 +297,15 @@ nZ_lin = size(Z_lin,1);
 % Initialize an empty coefficient operator acting on the new basis
 Kcell = num2cell(zeros(1,nZ_lin));
 
+% The copies si_j, j=1,...,ncop(i), of the output variables si and their    % DJ, 11/19/2026
+% domains. V integrates over all of them.
+ncop = full(max([ZopL.depmat.out;ZopR.depmat.out],[],1));
+vars_int = cell(1,0);       dom_int = zeros(0,2);
+for i=1:numel(ncop)
+    vars_int = [vars_int,get_tensorvars(ZopL.vars.out{i},ncop(i),'full')];
+    dom_int = [dom_int;repmat(ZopL.dom.out(i,:),ncop(i),1)];
+end
+
 % Determine the operator acting on each of the distributed monomials
 % One iteration for each term (ridx,cidx,a,b), with the weight Wij of a row pair
 % computed once for its terms
@@ -299,13 +316,15 @@ for t=1:size(terms,1)
         % (pointwise) product along the output dim, proper tensor product along
         % the input dim. The factors are ordered as the monomial [ZL(a),ZR(b)] in
         % Z_full. For symmetric Pmat, (cidx,ridx) and (ridx,cidx) give the same term
-        m = size(ZopL.ops{ridx,ridx},1);    n = size(ZopR.ops{cidx,cidx},1);    % row counts of ZopL_i, ZopR_j
+        % m, n: row counts of the block rows ridx of ZopL and cidx of ZopR
+        m = size(ZopL.ops{ridx,blk_idcsL(ridx)},1);                         % DJ, 11/19/2026
+        n = size(ZopR.ops{cidx,blk_idcsR(cidx)},1);                         % DJ, 11/19/2026
         Wij = vec_dpvar(Pmat{ridx,cidx});       % Pij(1:end) as a row
         if is_sym && cidx>ridx
             Wij = 2*Wij;
         end
     end
-    Kij = int(otimes(repmat(PL.ops{ridx,terms(t,3)},n,1),repelem(PR.ops{cidx,terms(t,4)},m,1),[1,2]),Wij);
+    Kij = int(otimes(repmat(PL.ops{ridx,terms(t,3)},n,1),repelem(PR.ops{cidx,terms(t,4)},m,1),[1,2]),Wij,vars_int,dom_int);    % DJ, 11/19/2026
 
     % Match the obtained kernel with the correct distributed monomial
     mon_idx = old2new_idcs(t);
@@ -330,7 +349,7 @@ end
 
 
 
-%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function W = vec_dpvar(P)
 % W = VEC_DPVAR(P) returns the 1 x numel(P) 'dpvar' W such that W = P(:).'
 % in the order of the linear index (column-major), computed from the
@@ -421,13 +440,14 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function T = fill_empty_params(T)
 % T = FILL_EMPTY_PARAMS(T) replaces the empty parameters params{k}=[] of
-% the 'sopvar' objects in the tensor-PI operator or the diagonal 
-% 'tensopmat' T, left by monopmat for the excluded multiplier, lower and 
-% upper terms, by zero matrices of the right size.
+% the 'sopvar' objects in the tensor-PI operator or the 'tensopmat' T
+% (block diagonal, or with the blocks of both output types stacked, see
+% piesos_quadopvar), left by monopmat for the excluded multiplier, lower
+% and upper terms, by zero matrices of the right size.
 
 if isa(T,'tensopmat')
-    for i=1:size(T.ops,1)
-        T.ops{i,i} = fill_empty_params(T.ops{i,i});
+    for k=find(~cellfun(@isempty,T.ops(:)))'                                % DJ, 11/19/2026
+        T.ops{k} = fill_empty_params(T.ops{k});
     end
     T.chkval = true;
 elseif isa(T,'tensopvar')

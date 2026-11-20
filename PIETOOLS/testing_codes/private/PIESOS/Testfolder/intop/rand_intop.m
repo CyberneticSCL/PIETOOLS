@@ -35,6 +35,7 @@ function Kop = rand_intop(dims,vars,dom,degs,pdegs,q)
 %   intop.canonicalize_intmat before declaring the functional, as the
 %   'intop' constructor rejects them. split_ints follows the signed
 %   convention for reversed limits, canonicalize_intmat the indicator;
+% DJ (CC), 11/19/2026: Name the dummy variables by 'get_tensorvars';
 
 % Check that the dimensions are appropriately specified
 if isscalar(dims)
@@ -104,10 +105,13 @@ pvars = polynomial(zeros(0,1));
 for i=1:N
     % Declare the input variables
     di = degs(i);
-    pvars_i = cell(di,1);
-    for j=1:di
-        pvars_i{j} = [vars{i},'_dum',num2str(j)];
-    end
+%     pvars_i = cell(di,1);                                                 % DJ (CC), 11/19/2026 (was)
+%     for j=1:di                                                            % DJ (CC), 11/19/2026 (was)
+%         pvars_i{j} = [vars{i},'_dum',num2str(j)];                         % DJ (CC), 11/19/2026 (was)
+%     end                                                                   % DJ (CC), 11/19/2026 (was)
+    % The dummy variables of the copies, named as in 'intop'                % DJ (CC), 11/19/2026
+    pvars_i = get_tensorvars(vars{i},di,{'dum','full'});                    % DJ (CC), 11/19/2026
+    pvars_i = pvars_i(:);                                                   % DJ (CC), 11/19/2026
     pvars = [pvars; polynomial(pvars_i)];
 end
 

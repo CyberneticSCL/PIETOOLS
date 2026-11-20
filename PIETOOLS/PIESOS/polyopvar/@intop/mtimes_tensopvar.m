@@ -61,6 +61,8 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the locals
 %                   sparse2struct (one caller, the coefficient loop) and
 %                   IkronZ (one caller, the right basis) inlined.
+% DJ, 11/19/2026: Name copies of the placeholder variables t1,...,tN by
+%                   'get_tensorvars';
 
 % Check that the functional is properly specified.
 if ~isa(Aop,'intop')
@@ -139,22 +141,12 @@ end
 % Set the names of the variables as they appear in the parameters defining
 % Bop, and in the monomials of the integrated variables
 varnames_B = struct();
-varnames_B.out = cell(1,M);
-for i=1:M
-    outvars_Bi = cell(1,deps1(i));
-    for k=1:deps1(i)
-        outvars_Bi{k} = ['t',num2str(i),'_',num2str(k)];
-    end
-    varnames_B.out{i} = outvars_Bi;
-end
-varnames_B.in = cell(1,N);
-for i=1:N
-    invars_Bi = cell(1,deps2(i));
-    for k=1:deps2(i)
-        invars_Bi{k} = ['t',num2str(i),'_dum',num2str(k)];
-    end
-    varnames_B.in{i} = invars_Bi;
-end
+% The copies of placeholder variables t1,...,tM (output) and the dummy
+% variables of the copies of t1,...,tN (input)
+tvars_out = arrayfun(@(i) ['t',num2str(i)],1:M,'UniformOutput',false);
+tvars_in = arrayfun(@(i) ['t',num2str(i)],1:N,'UniformOutput',false);
+varnames_B.out = get_tensorvars(tvars_out,deps1);
+varnames_B.in = get_tensorvars(tvars_in,deps2,'dum');
 varnames_B_full = struct('in',{hcat_cellstr(varnames_B.in)},'out',{hcat_cellstr(varnames_B.out)});
 varnames_Z =struct('in',{varnames_B.out([idcs_S2,idcs_S3_out(:)'])},'out',{cell(1,0)});
 varnames_Z_full = struct('in',{hcat_cellstr(varnames_B.out)},'out',{cell(1,0)});

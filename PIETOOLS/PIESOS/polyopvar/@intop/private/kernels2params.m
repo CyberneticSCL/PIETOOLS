@@ -20,7 +20,7 @@ function [params,Z,Zd] = kernels2params(kernels,intmat,vars)
 %               'intop' object), with vars.in a 1 x N cellstr specifying
 %               the names of the spatial variables. The dummy variables of
 %               variable vars.in{i} are named
-%               vars.in{i}_dum1,...,vars.in{i}_dumdi;
+%               vars.in{i}_dum1,...,vars.in{i}_dumdi (see 'get_tensorvars');
 %
 % OUTPUTS
 % - params:     cell of the same size as kernels, with element {i1,...,iN}
@@ -44,16 +44,15 @@ function [params,Z,Zd] = kernels2params(kernels,intmat,vars)
 %
 
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/19/2026: Name dummy variables by 'get_tensorvars';
 
 N = numel(vars.in);
 deps = zeros(1,N);
-dumnames = cell(1,0);
 for i=1:N
     deps(i) = size(intmat{i},2)/2;
-    for j=1:deps(i)
-        dumnames{end+1} = [vars.in{i},'_dum',num2str(j)]; %#ok<AGROW>
-    end
 end
+% Dummy variables of the copies, by variable and then by copy
+dumnames = get_tensorvars(vars.in,deps,{'dum','full'});
 dir_of_var = repelem(1:N,deps);                 % direction of each dummy variable
 K = numel(kernels);
 

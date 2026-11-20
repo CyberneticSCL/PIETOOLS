@@ -57,8 +57,10 @@ function C = otimes(A,B,type)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
-% DJ, 11/08/2026: Separately deal with case of functionals without spatial 
+% DJ, 11/08/2026: Separately deal with case of functionals without spatial
 %                   variables (acting on ODE states);
+% DJ, 11/19/2026: Name dummy variables of the copies by 'get_tensorvars',
+%                   renaming those of A too if the product changes them;
 
 % By default, perform Kronecker product along columns but pointwise product
 % along rows
@@ -137,6 +139,8 @@ intmatA = repmat({zeros(1,0)},1,N+1);      intmatA(idcs1) = A.intmat;
 intmatB = repmat({zeros(1,0)},1,N+1);      intmatB(idcs2) = B.intmat;
 varnames_B_old = cell(0,1);
 varnames_B_new = cell(0,1);
+varnames_A_old = cell(0,1);
+varnames_A_new = cell(0,1);
 % Tensor product in the dummy variables
 for i=1:N
     % Update intmats to match full list of variables
@@ -149,9 +153,25 @@ for i=1:N
     intmatB{i} = intmatB_i;
 
     % Determine new variable names for the kernels of B
-    for j=1:dB
-        varnames_B_old = [varnames_B_old; {[vars{i},'_dum',num2str(j)]}];
-        varnames_B_new = [varnames_B_new; {[vars{i},'_dum',num2str(dA+j)]}];
+    % Copy j of A is copy j of the product, and copy j of B is copy dA+j
+    names_C_i = get_tensorvars(vars{i},dA+dB,{'dum','full'});
+    names_B_i = get_tensorvars(vars{i},dB,{'dum','full'});
+    names_A_i = get_tensorvars(vars{i},dA,{'dum','full'});
+    varnames_B_old = [varnames_B_old; names_B_i(:)];
+    varnames_B_new = [varnames_B_new; reshape(names_C_i(dA+1:end),[],1)];
+    varnames_A_old = [varnames_A_old; names_A_i(:)];
+    varnames_A_new = [varnames_A_new; reshape(names_C_i(1:dA),[],1)];
+end
+
+% The copies of A keep their names in the product, unless the naming
+% convention of get_tensorvars changes that
+if ~isequal(varnames_A_old,varnames_A_new)
+    for k=1:numel(paramsA)
+        if isa(paramsA{k},'double')
+            continue
+        end
+        [~,sub_idcs1,sub_idcs2] = intersect(varnames_A_old,paramsA{k}.varname,'stable');
+        paramsA{k}.varname(sub_idcs2) = varnames_A_new(sub_idcs1);
     end
 end
 

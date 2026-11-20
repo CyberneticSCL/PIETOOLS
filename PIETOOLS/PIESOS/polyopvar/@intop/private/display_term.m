@@ -75,6 +75,7 @@ function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 % DJ, 11/06/2026: Initial coding;
 % DJ, 11/06/2026: Get the names of dummy variables, the limits, and the
 %                   subscripts from 'varname2display';
+% DJ, 11/19/2026: Name dummy variables by 'get_tensorvars';
 
 % Default settings
 max_nnz = 4;            % maximal number of nonzero coefficients of a kernel
@@ -126,10 +127,14 @@ dum_vars = repelem(reshape(Kop.vars.in,1,[]),reshape(ncopies,1,[]));      % vari
 is_int = rep_idx==(1:ndum);
 nint = sum(is_int);
 for dum_idx=find(is_int)
-    dum_names{dum_idx} = varname2display([dum_vars{dum_idx},'_dum']);
+    % Dummy variable of the kth integrated copy, bare if it is the only one
+    k_int = sum(is_int(1:dum_idx));
     if nint>1
-        dum_names{dum_idx} = varname2display(sprintf('%s_dum%d',dum_vars{dum_idx},sum(is_int(1:dum_idx))));
+        names_k = get_tensorvars(dum_vars{dum_idx},k_int,{'dum','full'});
+    else
+        names_k = get_tensorvars(dum_vars{dum_idx},1,{'dum','full','bare'});
     end
+    dum_names{dum_idx} = varname2display(names_k{end});
 end
 eff_names = dum_names;           % name or value that each copy is displayed as
 for dum_idx=1:ndum

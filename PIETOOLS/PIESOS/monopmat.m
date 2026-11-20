@@ -75,25 +75,37 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 %               same. A single logical array (or scalar) may also be
 %               specified, to be used for all blocks. By default, no
 %               separability is enforced;
-%       'otype':  integer in {1,2} specifying whether to take the proper
-%               tensor product (otype = 2) or the pointwise product
-%               (otype = 1) of the 3-PI operators in constructing the
-%               tensor-PI operator basis. If otype==1, then d_out =
-%               depmat.out. If otype==2, then d_out = d*depmat.out, where
-%               d = max(depmat.in(i,:)). Defaults to 1;
+%       'otype':  q x 1 array specifying for each block i the type of
+%               product of the 3-PI operators in the tensor-PI operator:
+%               1 for the pointwise product, with d_out(i,:) =
+%               depmat.out(i,:), 2 for the proper tensor product, with
+%               d_out(i,:) = d*depmat.out(i,:) for d = max(depmat.in(i,:)),
+%               or 3 for both, splitting block i into a block row of type
+%               1 followed by one of type 2, acting on the same input (a
+%               single block row of type 1 if d = 1, as the types then
+%               coincide). A scalar otype is used for all blocks. Defaults
+%               to 1. A 1 x 2 array [otype,2], or a q x 2 array, also
+%               specifies the product along the input, which must be 2;
 %
 % OUTPUTS
 % - Zop:    m x n 'tensopmat' object representing a basis of operators of
 %           specified degrees on the declared function space, where n =
 %           sum(dims) and where m depends on the selected monomial
 %           degrees, if every block has a single factor, i.e.
-%           max(depmat.in(i,:))==1 for all i;
+%           max(depmat.in(i,:))==1 for all i. Block column i acts on input
+%           i, in block row i, or, if blocks are split (otype = 3), in
+%           the one or two block rows of block i, in the order of the
+%           blocks;
 %
 % NOTES
 % - A block i with dj>1 factors (dj = max(depmat.in(i,:))) is a tensor
 %   product of dj operators acting on L2^{dims(i)}, and acts on
 %   L2^{dims(i)^dj}. Its column dimension is dims(i)^dj, instead of
 %   dims(i), and its row dimension is a product over the dj factors.
+% - Using otype=3 for any of the output blocks, this block will be split
+%   into one block of otype 1 (pointwise product), and one of otype 2
+%   (proper tensor product). As such, the number of rows of blocks may not
+%   match the number of rows q of e.g. depmat in this case;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - monopmat
@@ -122,6 +134,7 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/21/2026: Expand a 3 x 1 'exclude' with OR over the variables of
 %                   each block, instead of AND;
+% DJ, 11/19/2026: Allow different 'otype' for each block;
 
 
 %% Process the inputs
@@ -206,7 +219,7 @@ end
 %% Process the options
 % Extract exclude options
 % opts is the 6th input: use the defaults if it is omitted
-if nargin<=5  
+if nargin<=5
     opts = struct();
 end
 if ~isfield(opts,'exclude')
@@ -345,21 +358,73 @@ if ~isfield(opts,'otype')
 else
     otype = opts.otype;
 end
-if isscalar(otype) && ismember(otype,[1;2])
+% The type of product of each block, as q x 2 array: along the              % DJ, 11/19/2026
+% output (1, 2, or 3 for both) and the input (2)
+if isscalar(otype)
     otype = [otype,2];
-elseif numel(otype)~=2 || any(~ismember(otype,[1;2]))
-    error("Type of product used in declaring the operator must be specified as either 1 or 2.")
 end
-if otype(2)==1
+if isequal(size(otype),[1,2])
+    % The same type for all blocks
+    otype = repmat(otype,q,1);
+elseif isequal(size(otype),[q,1])
+    % The type along the output of each block
+    otype = [otype,2*ones(q,1)];
+elseif ~isequal(size(otype),[q,2])
+    error("Type of product must be specified as a scalar or 1 x 2 array, or as a q x 1 or q x 2 array for q blocks.")
+end
+if any(~ismember(otype(:,1),[1;2;3])) || any(~ismember(otype(:,2),[1;2]))
+    error("Type of product used in declaring the operator must be specified as either 1 or 2, or 3 for both along the output.")
+end
+if any(otype(:,2)==1)
     error("Pointwise product of the inputs is not supported.")
+end
+
+% Both types of product (otype 3): split each such block into a             % DJ, 11/19/2026
+% block of type 1 and one of type 2, by a second call with the augmented
+% inputs, and merge the block columns of the two, so that both block rows
+% act on the same input. A block with one factor is not split, as otype 1
+% and otype 2 are the same for linear operators
+nfctrs_arr = max([depmat_in,ones(q,1)],[],2);   % number of factors per block
+is_both = otype(:,1)==3;
+otype(is_both & nfctrs_arr==1,1) = 1;
+is_split = is_both & nfctrs_arr>1;
+if any(is_split)
+    % The original block of each new block, with otype 1 and 2 for a split
+    new2old_idcs = repelem((1:q)',1+is_split);
+    otype_new = otype(new2old_idcs,:);
+    otype_new(otype_new(:,1)==3,1) = repmat([1;2],nnz(is_split),1);
+    dims_new = dims(new2old_idcs);
+    depmat_new = struct('in',depmat_in(new2old_idcs,:),'out',depmat_out(new2old_idcs,:));
+    % Options given per block (a 1 x q cell) are repeated for the new blocks
+    degs_new = degs;
+    for fname = {'in','out'}
+        if iscell(degs.(fname{1})) && numel(degs.(fname{1}))==q
+            degs_new.(fname{1}) = degs.(fname{1})(new2old_idcs);
+        end
+    end
+    opts_new = opts;
+    for fname = {'exclude','sep'}
+        if isfield(opts,fname{1}) && iscell(opts.(fname{1})) && numel(opts.(fname{1}))==q
+            opts_new.(fname{1}) = opts.(fname{1})(new2old_idcs);
+        end
+    end
+    opts_new.otype = otype_new;
+    Zop_new = monopmat(dims_new,vars,dom,depmat_new,degs_new,opts_new);
+    % Block (i,i) of Zop_new acts on input new2old_idcs(i)
+    ops = cell(numel(new2old_idcs),q);
+    for i=1:numel(new2old_idcs)
+        ops{i,new2old_idcs(i)} = Zop_new.ops{i,i};
+    end
+    Zop = tensopmat(ops);
+    return
 end
 
 
 %% Declare the actual operator
 
 % Extract the full list of monomials to use in defining the operator
-degs.in = process_degs(degs.in,N_arr,depmat_in,is_dep_in,otype(2));
-degs.out = process_degs(degs.out,M_arr,depmat_out,is_dep_out,otype(1));
+degs.in = process_degs(degs.in,N_arr,depmat_in,is_dep_in,otype(:,2));
+degs.out = process_degs(degs.out,M_arr,depmat_out,is_dep_out,otype(:,1));
 
 % Declare a tensor-PI operator acting on each input
 Zop = tensopmat();
@@ -444,7 +509,7 @@ for j=1:q
         nr_op_list(k) = nj*sum(nr_term_arr(k,:));
     end
     nr_op_tot = prod(nr_op_list);
-    if otype(1)==1 && dj>1
+    if otype(j,1)==1 && dj>1
         nr_sopvar_rows = repmat(nr_op_tot,dj,1);
     else
         nr_sopvar_rows = nr_op_list;
@@ -473,7 +538,7 @@ for j=1:q
             rtn_idcs_ZR = {1,1};
         end
 
-        % Declare all the parameters to include        
+        % Declare all the parameters to include
         r_strt = 0;
         for ll=1:numel(params_rtn)
             % Set row and column indices to include all monomials that
@@ -497,7 +562,7 @@ for j=1:q
             r_idcs0 = repmat(r_idcs_ll,nj,1) + repelem((0:nj-1)'*nr_term_arr(k,ll)*nZL_k,numel(r_idcs_ll),1);
             
             % Account for elementwise product of operators
-            if otype(1)==1 && dj>1
+            if otype(j,1)==1 && dj>1
                 % Keep track of row index and left monomial associated with
                 % each coefficient
                 rr_idcs0 = ceil(r_idcs0(:)./nZL_k);       
@@ -530,9 +595,9 @@ for j=1:q
         if k==1
             % Cell route, so that the variables are stored sorted
             Zop_j = tensopvar({Zop_k});
-            Zop_j.otype = otype;
+            Zop_j.otype = otype(j,:);
         else
-            Zop_j = otimes(Zop_j,Zop_k,otype);
+            Zop_j = otimes(Zop_j,Zop_k,otype(j,:));
         end
     end
     % Take block-diagonal cocatenation to obtain the full operator
@@ -548,12 +613,15 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
 function degs = process_degs(degs,N_arr,depmat,is_deps,otype)
 % Check the specified monomial degrees and augment to account for the
-% number of coupled state variables, number of factors in the tensor-PI 
+% number of coupled state variables, number of factors in the tensor-PI
 % operators, and the number of spatial variables in terms of which each
 % operator is defined. Return the full list of monomial degrees in each of
-% the variables (rather than just the maximal monomial degrees);
+% the variables (rather than just the maximal monomial degrees). OTYPE is
+% the type of product of each block (q x 1 array);
 
 [q,N] = size(depmat);
+% Largest number of rows of the degrees of a block, over the blocks
+nfctrs_max = max(max(depmat,[],2).^(otype(:)-1));                           % DJ, 11/19/2026
 
 % If degrees are specified for only one state, repeat for all states
 if isnumeric(degs)
@@ -573,7 +641,7 @@ for j=1:q
         degs{j} = cell(1,0);
         continue
     else
-        nfctrs = max(depmat(j,:))^(otype-1);
+        nfctrs = max(depmat(j,:))^(otype(j)-1);
     end
     if isnumeric(degval)
         % The maximal monomial degrees are specified
@@ -595,7 +663,7 @@ for j=1:q
                 degval(k,:) = ceil(deg_max./(nfctrs-(k-1)));
                 deg_max = deg_max - degval(k,:);
             end
-        elseif size(degval,1)==max(depmat(:).^(otype-1))
+        elseif size(degval,1)==nfctrs_max
             % Discard rows exceeding the degree of this monomial
             degval = degval(1:nfctrs,:);
         elseif size(degval,1)~=nfctrs
@@ -616,7 +684,7 @@ for j=1:q
         if size(degval,1)==1
             % Same monomials for each of the factors
             degval = repmat(degval,nfctrs,1);
-        elseif size(degval,1)==max(depmat(:).^(otype-1)) 
+        elseif size(degval,1)==nfctrs_max
             % Discard monomials exceeding degree of the factor
             degval = degval(1:nfctrs,:);
         elseif size(degval,1)~=nfctrs

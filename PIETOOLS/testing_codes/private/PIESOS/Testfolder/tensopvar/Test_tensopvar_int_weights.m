@@ -44,6 +44,7 @@ function Test_tensopvar_int_weights()
 % DJ (CC), 11/10/2026: Initial coding;
 % DJ (CC), 11/10/2026: The only copy of a pointwise output is also named
 %                        si_1: case_names;
+% DJ (CC), 11/19/2026: The inputs vars, dom of int: case_vars_dom;
 
 % NOTES
 % - The test needs eval_polyopvar (Testfolder/polyopvar);
@@ -51,7 +52,7 @@ function Test_tensopvar_int_weights()
 %   1, otype(1)=1) is also named 'si', as before. A single-factor tensopvar
 %   has otype [2,2] by default, so its copy is named 'si_1' only.
 
-tests = {@case_values_1D, @case_values_2D, @case_names, @case_no_weight_unchanged};
+tests = {@case_values_1D, @case_values_2D, @case_names, @case_no_weight_unchanged, @case_vars_dom};
 nfail = 0;
 for i=1:numel(tests)
     tstart = tic;
@@ -166,6 +167,67 @@ V = innerprod(x1,s,x1);
 check(eval_at(V,X),double(int(s*X.x1^2,s,0,1)),'pointwise weight s');
 V = innerprod(x1,s_1^2+s_1,x1);
 check(eval_at(V,X),double(int((s^2+s)*X.x1^2,s,0,1)),'pointwise weight s_1');
+end
+
+function case_vars_dom()
+% int(Cop,W,vars,dom): W is integrated over the variables of vars on which
+% the output of Cop does not depend; each copy of the output must be in
+% vars once, over its full domain. KCop is evaluated as the coefficient of
+% V = innerprod(.,.) (a single term), against the polynomial integral of
+% the integrand. Domain [0,2], so that a missing length is detected, and
+% x1 not symmetric on it, so that a dropped weight s_1 is detected
+pvar s s_1 s_2 s_3 t
+x1 = polyopvar('x1',s,[0,2]);       x2 = polyopvar('x2',s,[0,2]);
+X = struct('x1',1+s+2*s^2,'x2',s+3*s^3);
+x1c = subs(X.x1,s,s_1);
+% one copy of a pointwise output (x1^2), with the variables s_2, s_3, t
+% on which it does not depend
+Cop1 = x1.C.ops{1,1};               Cop1p = otimes(Cop1,Cop1,[1,2]);
+V = innerprod(x1,x1);
+assert(numel(V.C.ops)==1,'innerprod(x1,x1) must have a single term');
+W = 1+s_1*s_2^2+s_3*t;
+vars = {'s_1','s_2','s_3','t'};     dom = [0,2;0,2;0,2;-1,2];
+F = W*x1c^2;
+for k=1:4
+    F = int(F,polynomial(vars(k)),dom(k,1),dom(k,2));
+end
+V.C.ops{1} = int(Cop1p,W,vars,dom);
+check(eval_at(V,X),double(F),'pointwise output, weight in other variables');
+% the same with pvar input, and the name s of the only copy
+V.C.ops{1} = int(Cop1p,subs(W,s_1,s),[s;s_2;s_3;t],dom);
+check(eval_at(V,X),double(F),'pvar input, copy named s');
+% no weight, or a constant: multiplied by the length 3 of the domain of t
+orc = double(int(X.x1^2,s,0,2));
+V.C.ops{1} = int(Cop1p,[],{'s','t'},[0,2;-1,2]);
+check(eval_at(V,X),3*orc,'no weight, other variable t');
+V.C.ops{1} = int(Cop1p,2,{'t','s_1'},[-1,2;0,2]);
+check(eval_at(V,X),6*orc,'constant weight, other variable t');
+% default domain of the copies of the output
+V.C.ops{1} = int(Cop1p,s_1,'s_1');
+check(eval_at(V,X),double(int(s*X.x1^2,s,0,2)),'default domain');
+% tensor product of two copies (x1 o x2)^2, with the copy s_3: the same as
+% the weight integrated over s_3 first, without vars (see case_values_1D).
+% V.C of innerprod(u,u) orders the factors x1,x1,x2,x2, not as Cop3, so V
+% is not compared with the integral of the integrand
+u = otimes(x1,x2,2);
+Cop3 = otimes(u.C.ops{1,1},u.C.ops{1,1},[1,2]);
+V = innerprod(u,u);
+assert(numel(V.C.ops)==1,'innerprod(u,u) must have a single term');
+W = s_1+s_2*s_3^2;
+V.C.ops{1} = int(Cop3,W,{'s_1','s_2','s_3'},[0,2;0,2;0,2]);
+val = eval_at(V,X);
+V.C.ops{1} = int(Cop3,int(W,s_3,0,2));
+check(val,eval_at(V,X),'tensor product, other copy s_3');
+% W in s_3 is rejected if s_3 is not in vars
+assert_err(@() int(Cop3,W,{'s_1','s_2'},[0,2;0,2]),'si_j');
+% errors
+assert_err(@() int(Cop1p,[],{'s_2','t'},[0,2;-1,2]),'each copy');
+assert_err(@() int(Cop1p,[],{'s','s_1'},[0,2;0,2]),'each copy');
+assert_err(@() int(Cop3,[],{'s_1'},[0,2]),'each copy');
+assert_err(@() int(Cop1p,[],{'s'},[0,1]),'full domain');
+assert_err(@() int(Cop1p,[],{'s','t'},{0,2;0,'t'}),'Variable limits');
+assert_err(@() int(Cop1p,[],{'s','t'}),'domain of variable');
+assert_err(@() int(Cop1p,t,{'s'},[0,2]),'si_j');
 end
 
 

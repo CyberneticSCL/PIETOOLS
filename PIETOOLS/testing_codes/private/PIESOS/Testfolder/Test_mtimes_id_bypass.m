@@ -16,6 +16,8 @@
 % Requires PIESOS_2D (not polyopvar) and PIETOOLS on the MATLAB path.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 11/19/2026: intop mtimes: X in the copies of the variables, as
+%   apply_op of 'intop' rejects a bare variable with several copies;
 %
 % NOTES:
 % - A non-identity multiplier that only scales zero rows of the 'intop'
@@ -50,7 +52,11 @@ for trial=1:6
     vars = arrayfun(@(k) ['x',num2str(k)],1:N,'UniformOutput',false);
     domN = repmat([0 1],N,1);
     Bop = rand_intop([m,n],vars,domN,randi(2,[1,N]),2);
-    X = rand_poly([n,1],polynomial(vars(:)),2,50);
+%     X = rand_poly([n,1],polynomial(vars(:)),2,50);                        % DJ (CC), 11/19/2026 (was)
+    % A function of the copies of the variables: the bare name is rejected  % DJ (CC), 11/19/2026
+    % for a variable with two copies (it was read as copy 1)                % DJ (CC), 11/19/2026
+    names_X = [Bop.varnames.in{:}];                                         % DJ (CC), 11/19/2026
+    X = rand_poly([n,1],polynomial(names_X(:)),2,50);                       % DJ (CC), 11/19/2026
     BX = apply_op(Bop,X);
     ids = {eye(m),polynomial(eye(m)),dpvar(eye(m))};
     if m==1,  ids = [ids,{1}];  end

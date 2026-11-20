@@ -57,6 +57,9 @@ function Test_piesos_quadopvar()
 % DJ (CC), 10/15/2026: Initial coding;
 % DJ (CC), 11/10/2026: case_errors: otype(1)=2 is accepted, also with numeric
 %                        psatz, not with logical psatz or for one operator only;
+% DJ (CC), 11/19/2026: case_errors: otype(1)=2 for one operator only is
+%                        accepted (mixed otype); case_degs_opts_forms: a
+%                        top-level exclude fills in for opts.L, opts.R;
 
 % NOTES
 % - piesos_poslpivar wraps piesos_quadopvar, so case_equals_poslpivar only
@@ -590,6 +593,14 @@ assert(isequal(rows_LR(prog0,1,struct('L',exc([1 0 0]),'R',exc([0 1 0]))),[4,3])
 assert(isequal(rows_LR(prog0,1,struct('L',struct(),'R',exc([0 1 0]))),[5,3]),'An empty opts.L gives the defaults.');
 assert(isequal(rows_LR(prog0,1,struct('R',exc([0 1 0]),'L',exc([0 0 1]),'pos',false,'sym',false)),[3,3]),...
     'opts.L and opts.R with flags.');
+% a top-level exclude is used for an operator whose options (opts.L or
+% opts.R, the same for both if only one is given) do not specify one
+assert(isequal(rows_LR(prog0,1,struct('exclude',logical([1;0;0]),'R',exc([0 1 0]))),[3,3]),...      % DJ (CC), 11/19/2026
+    'Only opts.R specifies exclude: used for both, not the top-level one.');
+assert(isequal(rows_LR(prog0,1,struct('exclude',logical([1;0;0]),'L',struct())),[4,4]),...         % DJ (CC), 11/19/2026
+    'Top-level exclude with an empty opts.L.');
+assert(isequal(rows_LR(prog0,1,struct('exclude',logical([1;0;0]),'L',struct(),'R',exc([0 1 0]))),[4,3]),...  % DJ (CC), 11/19/2026
+    'Top-level exclude for ZopL, opts.R for ZopR.');
 % opts.sep, on one side
 dg = struct('in',2,'out',0);
 assert(isequal(rows_LR(prog0,dg,struct('L',struct('sep',true))),[4,4]),'opts.L.sep applies to both.');
@@ -848,7 +859,10 @@ q1(1,dg,struct('otype',[2 2]));                                             % DJ
 q1(1,dg,struct('L',struct('otype',[2 2])));                                 % DJ (CC), 11/10/2026
 q1(1,dg,struct('otype',[2 2],'pos',true,'psatz',1));                        % DJ (CC), 11/10/2026
 assert_err(@() q1(1,dg,struct('otype',[2 2],'pos',true,'psatz',true(2,1))),'currently not supported');  % DJ (CC), 11/10/2026
-assert_err(@() q1(1,dg,struct('L',struct(),'R',struct('otype',[2 2]))),'currently not supported');
+%assert_err(@() q1(1,dg,struct('L',struct(),'R',struct('otype',[2 2]))),'currently not supported');    % DJ (CC), 11/19/2026 (was)
+% ZopL and ZopR of different type (mixed otype, see Test_piesos_tensor_gram):
+% accepted, for a general Pmat
+q1(1,dg,struct('L',struct(),'R',struct('otype',[2 2])));                    % DJ (CC), 11/19/2026
 % invalid degrees and psatz, as for piesos_poslpivar
 assert_err(@() q1(1,struct('in',1,'out',-1),struct()),'nonnegative integers');
 assert_err(@() q1(1,struct('in',1,'out',1.5),struct()),'nonnegative integers');
