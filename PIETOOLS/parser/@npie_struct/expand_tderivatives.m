@@ -41,10 +41,11 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 %   with T_{i,c} of an equation of order p_i acting on x_{c,p_i-1}. For
 %   l<L_j, the equation (d/dt) x_{j,l} = x_{j,l+1} is added: the identity in
 %   T, and the linear monomial x_{j,l+1} in f.
-% - T*x need no longer be the PDE state, so pie2pde.x is adjusted for
+% - T*x need no longer be the PDE state, so pie2pde.X is adjusted for
 %   x_pde=X_pde*(T*x+Tw*w+Tu*u) to hold: x_pde=sum_i X_old(:,i)*(T_old*x)_i,
 %   with (T_old*x)_i the new row of T*x+Tw*w+Tu*u if p_i=1, and
-%   sum_c T_old(i,c)*x_{c,0} otherwise.
+%   sum_c T_old(i,c)*x_{c,0} otherwise. The map pie2pde.T acts on
+%   x_{c,0} as it did on x_c.
 % - The new components are named x<k>_pie for their index k (zero-padded),
 %   which does not show what they derive from: see
 %   tdiff_tab, pde2pie.x.idx and pde2pie.x.tdiff. If the names would not be
@@ -85,6 +86,7 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % Initial coding DJ (CC), 11/09/2026
+% DJ, 11/20/2026: Use pie2pde.X (was x), and adjust pie2pde.T;
 
 % % % Check the inputs
 if nargin<2
@@ -323,7 +325,7 @@ if size(Cmap.ops,1)==nb
 end
 % The PDE state from the new T*x_pie+Tw*w+Tu*u, see NOTES
 pie2pde_s = PIE.pie2pde;
-X_old = pie2pde_s.x;
+X_old = pie2pde_s.X;
 if size(X_old.ops,2)==nb
     nX = size(X_old.ops,1);
     X_nz = nz_blocks(X_old);
@@ -361,7 +363,16 @@ if size(X_old.ops,2)==nb
     Xn.vars = X_old.vars;       Xn.dom = X_old.dom;
     Xn.depmat = struct('in',X_old.depmat.in(parent_idx,:),'out',X_old.depmat.out);
     Xn.chkval = true;
-    pie2pde_s.x = Xn;
+    pie2pde_s.X = Xn;
+end
+% The map T_pde: the components x_{c,0} keep their columns 1:nb, the
+% derivatives get zero columns
+P = pie2pde_s.T;
+if size(P.ops,2)==nb                                                        % DJ, 11/20/2026
+    Pn = zero_op(P,1:size(P.ops,1),parent_idx);
+    ops = Pn.ops;       ops(:,1:nb) = P.ops;
+    Pn.ops = ops;       Pn.chkval = true;
+    pie2pde_s.T = Pn;
 end
 % Store the new spaces and maps, and initialize the PIE
 PIE.space = space;

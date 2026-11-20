@@ -72,7 +72,7 @@ display(PDE);
 PIE = convert(PDE,'pie');
 %% Extract operators defining the PIE
 % Extract the PIE dynamics of the original PDE state
-T = PIE.pie2pde.x*PIE.T;    A = PIE.pie2pde.x*PIE.A;
+T = PIE.T(2,:);    A = PIE.A(2,:);
 % The PIE state must also satisfy K*x=0
 K = PIE.K;
 %% Take the deviation of the PDE state from the mean

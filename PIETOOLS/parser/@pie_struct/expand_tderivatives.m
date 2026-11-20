@@ -38,11 +38,12 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 %   operators T_{i,c} of an equation of order p_i acting on x_{c,p_i-1}, so
 %   that it is first order. For l<L_j, the new equations are
 %   (d/dt) x_{j,l} = x_{j,l+1}.
-%   As a result, T*x need no longer be the PDE state, and pie2pde.x is
+%   As a result, T*x need no longer be the PDE state, and pie2pde.X is
 %   adjusted, so that x_pde=X_pde*(T*x+Tw*w+Tu*u) still holds: with the old
 %   operators X_old and T_old, the PDE state is x_pde=sum_i X_old(:,i)*
 %   (T_old*x)_i, where (T_old*x)_i is the i-th row of the new
 %   T*x+Tw*w+Tu*u if p_i=1, and sum_c T_old(i,c)*x_{c,0} otherwise.
+%   The map pie2pde.T acts on x_{c,0} as it did on x_c.
 % - The derivatives satisfy the constraint of x. For each constraint of K,
 %   a constraint is added for each of the derivatives of the components in
 %   it, acting on x_{c,l} for the same l. An error is thrown if a
@@ -86,6 +87,7 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % DJ, 11/02/2026: Major overhaul to support ND PIEs and algebraic
 %                   constraints;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Use pie2pde.X (was x), and adjust pie2pde.T;
 
 % % % Check the inputs
 if nargin<2
@@ -252,7 +254,7 @@ if isa(pde2pie_s.x.C,'copvar') && size(pde2pie_s.x.C.C,1)==nb
 end
 % The PDE state from the new T*x_pie+Tw*w+Tu*u, see NOTES
 pie2pde_s = PIE.pie2pde;
-X_old = pie2pde_s.x;
+X_old = pie2pde_s.X;
 if isa(X_old,'copvar') && size(X_old.C,2)==nb
     X_nz = nz_blocks(X_old);
     X_new = cell(size(X_old.C,1),nnew);
@@ -279,7 +281,14 @@ if isa(X_old,'copvar') && size(X_old.C,2)==nb
             end
         end
     end
-    pie2pde_s.x = copvar(X_new,meta_subset(X_old,1:size(X_old.C,1),parent_idx));
+    pie2pde_s.X = copvar(X_new,meta_subset(X_old,1:size(X_old.C,1),parent_idx));
+end
+% The map T_pde acts on the components x_{c,0} = first(c), as Cz and Cy
+P = pie2pde_s.T;
+if isa(P,'copvar') && size(P.C,2)==nb                                       % DJ, 11/20/2026
+    blocks_new = cell(size(P.C,1),nnew);
+    blocks_new(:,first) = P.C;
+    pie2pde_s.T = copvar(blocks_new,meta_subset(P,1:size(P.C,1),parent_idx));
 end
 % Store the new spaces and maps, and initialize the PIE
 PIE.space = space;

@@ -49,8 +49,9 @@ function PIE = initialize(PIE)
 %   spaces of the state x, the inputs w, and the actuators u, respectively.
 %   If one of them has rows, any of the others without rows is treated as
 %   unspecified, and initialized as a zero operator.
-% - If specified, the 'tensopmat' objects in PIE.pie2pde must map from the
-%   components of the PIE, and PIE.pde2pie.(type).C to the components of
+% - If specified, the 'tensopmat' objects in PIE.pie2pde (X, T, Tw, Tu, W,
+%   U, Y, Z) must map from the components of the PIE to those of the PDE
+%   (PIE.space_pde), and PIE.pde2pie.(type).C to the components of
 %   the PIE, and the fields of PIE.pde2pie must have a row for each of the
 %   components in the associated function space.
 
@@ -81,6 +82,8 @@ function PIE = initialize(PIE)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % DJ, 10/29/2026: Initial coding;
+% DJ, 11/20/2026: Check the spaces of the pie2pde fields X, T, Tw, Tu, W,
+%                   U, Y, Z;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -341,18 +344,23 @@ end
 
 % % % Check that the maps between the PDE and PIE match the PIE components,
 % % % and refer to components in the PDE.
+% Each map from PIE to PDE (field of pie2pde, type of its columns in
+% PIE.space, type of its rows in PIE.space_pde), if specified; the columns
+% of X are the rows of T, those of x for an 'npie_struct'
+p2p_maps = {'X','x','x'; 'T','x','x'; 'Tw','w','x'; 'Tu','u','x';           % DJ, 11/20/2026
+            'W','w','w'; 'U','u','u'; 'Y','y','y'; 'Z','z','z'};
+for m = 1:size(p2p_maps,1)
+    [fname,col_ty,row_ty] = p2p_maps{m,:};
+    P_pde = PIE.pie2pde.(fname);
+    if ~isempty(P_pde.ops) && ~isequal(P_pde.dims.in(:),PIE.space.(col_ty).dims(:))
+        error(['The input space of PIE.pie2pde.',fname,' does not match the components in PIE.space.',col_ty,'.'])
+    elseif ~isempty(P_pde.ops) && ~isempty(PIE.space_pde.(row_ty).dims) && ~isequal(P_pde.dims.out(:),PIE.space_pde.(row_ty).dims(:))
+        error(['The output space of PIE.pie2pde.',fname,' does not match the components in PIE.space_pde.',row_ty,'.'])
+    end
+end
 for obj_type = {'x','w','u','z','y'}
     obj = obj_type{1};
     dims_pie = PIE.space.(obj).dims(:);
-    dims_pde = PIE.space_pde.(obj).dims(:);
-    % The map from PIE to PDE has the PIE components as input, and the PDE
-    % components as output, if specified.
-    X_pde = PIE.pie2pde.(obj);
-    if ~isempty(X_pde.ops) && ~isequal(X_pde.dims.in(:),dims_pie)
-        error(['The input space of PIE.pie2pde.',obj,' does not match the components in PIE.space.',obj,'.'])
-    elseif ~isempty(X_pde.ops) && ~isempty(dims_pde) && ~isequal(X_pde.dims.out(:),dims_pde)
-        error(['The output space of PIE.pie2pde.',obj,' does not match the components in PIE.space_pde.',obj,'.'])
-    end
     % The map from PDE to PIE has the PIE components as output.
     for field = fieldnames(PIE.pde2pie.(obj))'
         val = PIE.pde2pie.(obj).(field{1});

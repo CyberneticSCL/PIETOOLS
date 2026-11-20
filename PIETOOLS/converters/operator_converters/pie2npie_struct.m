@@ -119,8 +119,15 @@ for obj = obj_types
     if isfield(p2p,'C') && isa(p2p.C,'copvar')
         PIE_out.pde2pie.(obj{1}).C = cop_convert(p2p.C,space_pie.(obj{1}),vnames,space_pie.k,[]);
     end
-    if isfield(PIE_in.pie2pde,obj{1}) && isa(PIE_in.pie2pde.(obj{1}),'copvar')
-        PIE_out.pie2pde.(obj{1}) = cop_convert(PIE_in.pie2pde.(obj{1}),space_pde.(obj{1}),space_pde.vars,space_pie.(obj{1}),vnames);
+end
+% The maps from PIE to PDE: field of pie2pde, type of its rows (in
+% space_pde) and of its columns (in space_pie; for X the rows of T, as x)
+p2p_maps = {'X','x','x'; 'T','x','x'; 'Tw','x','w'; 'Tu','x','u';
+            'W','w','w'; 'U','u','u'; 'Y','y','y'; 'Z','z','z'};
+for m = 1:size(p2p_maps,1)
+    [fname,row_ty,col_ty] = p2p_maps{m,:};
+    if isfield(PIE_in.pie2pde,fname) && isa(PIE_in.pie2pde.(fname),'copvar')
+        PIE_out.pie2pde.(fname) = cop_convert(PIE_in.pie2pde.(fname),space_pde.(row_ty),space_pde.vars,space_pie.(col_ty),vnames);
     end
 end
 PIE_out.misc = PIE_in.misc;

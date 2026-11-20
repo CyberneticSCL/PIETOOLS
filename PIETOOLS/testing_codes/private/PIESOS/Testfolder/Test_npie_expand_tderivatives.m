@@ -13,6 +13,7 @@
 % PIE, without using the converters between the PIE structures.
 %
 % DJ (CC), 11/09/2026: Initial coding;
+% DJ, 11/20/2026: Use pie2pde.X, W, Z (were x, w, z); check pie2pde.T;
 
 clear stateNameGenerator
 rng(1);
@@ -318,23 +319,27 @@ for fname = {'gz','gy'}
     end
 end
 % The PDE state, X_pde*(T*x), with the values of x
-if size(PIE0.pie2pde.x.ops,1)>0
+if size(PIE0.pie2pde.X.ops,1)>0
     split = @(Y,off) arrayfun(@(i) rows(Y,off,i),1:numel(off)-1,'UniformOutput',false);
-    xpde0 = apply_op(PIE0.pie2pde.x,split(apply_op(PIE0.T,X{1}),off0));
-    xpde1 = apply_op(PIE1.pie2pde.x,split(apply_op(PIE1.T,Xn),off1));
+    xpde0 = apply_op(PIE0.pie2pde.X,split(apply_op(PIE0.T,X{1}),off0));
+    xpde1 = apply_op(PIE1.pie2pde.X,split(apply_op(PIE1.T,Xn),off1));
     if ~is_zero_poly(xpde0-xpde1,tol)
         err("the PDE state X_pde*(T*x) differs."),                                                      end
+    % The map T_pde = pie2pde.T gives the same PDE state, before and after
+    % the expansion
+    if ~is_zero_poly(apply_op(PIE0.pie2pde.T,X{1})-xpde0,tol) || ~is_zero_poly(apply_op(PIE1.pie2pde.T,Xn)-xpde0,tol)
+        err("the PDE state T_pde*x differs from X_pde*(T*x)."),                                         end
     % The dependent properties x_pde = X_pde*T*x and f_pde = X_pde*f of the new
     % PIE. For the original PIE, d/dt x_pde = X_pde*(T*x^{(1)}), which equals
     % f_pde(x) up to X_pde times the residual of the equations of order 1
     Rcell = R0all;
     for i=find(tdiff_list'>1),   Rcell{i} = 0*R0all{i};     end
-    dxpde0 = apply_op(PIE0.pie2pde.x,split(apply_op(PIE0.T,X{2}),off0)) - apply_op(PIE0.pie2pde.x,Rcell);
+    dxpde0 = apply_op(PIE0.pie2pde.X,split(apply_op(PIE0.T,X{2}),off0)) - apply_op(PIE0.pie2pde.X,Rcell);
     % X_pde applied to the values f(x), as the operator product X_pde*f of the
     % property f_pde is not supported for X_pde other than the identity if f has
     % monomials of degree>1 (composition of a single-factor operator with a
     % two-factor operator), also for the original PIE if X_pde is not the identity
-    fpde1 = apply_op(PIE1.pie2pde.x,split(Yf1,off1));
+    fpde1 = apply_op(PIE1.pie2pde.X,split(Yf1,off1));
     if ~is_zero_poly(fpde1-dxpde0,tol)
         err("the dynamics X_pde*f(x) of the PDE state differ."),                                        end
     try
@@ -394,7 +399,7 @@ for fname = {'Dzw','Dzu','Dyw','Dyu'}
     if ~isequal(PIE1.(fname{1}),PIE0.(fname{1}))
         err(['the operator ',fname{1},' changed.']),                                                   end
 end
-if ~isequal(PIE1.pie2pde.w,PIE0.pie2pde.w) || ~isequal(PIE1.pie2pde.z,PIE0.pie2pde.z)
+if ~isequal(PIE1.pie2pde.W,PIE0.pie2pde.W) || ~isequal(PIE1.pie2pde.Z,PIE0.pie2pde.Z)
     err("the maps for the inputs and outputs changed."),                                               end
 fprintf('  %s: ok (%d -> %d components, %.2f s)\n',label,nb,nnew,t_exp);
 ok = 1;
@@ -429,7 +434,7 @@ if size(E2.K.ops,1)>0
     if size(E1.K.ops,1)~=size(E2.K.ops,1) || ~is_zero_poly(apply_op(E2.K,V)-apply_op(E1.K,V1),tol)
         err("K*x differs from that of the pie_struct expansion."),                                  end
 end
-if ~is_zero_poly(apply_op(E2.pie2pde.x,split(Y2,off2))-apply_op(E1.pie2pde.x,split(Y1,off1)),tol)
+if ~is_zero_poly(apply_op(E2.pie2pde.X,split(Y2,off2))-apply_op(E1.pie2pde.X,split(Y1,off1)),tol)
     err("the PDE state differs from that of the pie_struct expansion."),                            end
 for fname = {'idx','diff','tdiff','loc','delay'}
     f2 = E2.pde2pie.x.(fname{1});       f1 = E1.pde2pie.x.(fname{1});

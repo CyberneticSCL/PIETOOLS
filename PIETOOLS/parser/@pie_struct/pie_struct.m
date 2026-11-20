@@ -62,13 +62,16 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %       x(t) = Dx*x_pde(t) + Dxw*w_pde(t) + Dxu*u_pde(t);
 %       w(t) = Dw*w_pde(t);         w_pde(t) = W_pde*w(t);
 %       u(t) = Du*u_pde(t);         u_pde(t) = U_pde*u(t);
-%       x_pde(t) = X_pde*(T*x(t) + Tw*w(t) + Tu*u(t));
+%       x_pde(t) = T_pde*x(t) + Tw_pde*w(t) + Tu_pde*u(t);
 %       y_pde(t) = Y_pde*(Cy*x(t) + Dyw*w(t) + Dyu*u(t));
 %       z_pde(t) = Z_pde*(Cz*x(t) + Dzw*w(t) + Dzu*u(t))
 %
 % where Dx, Dw, and Du are differential/trace operators, possibly composed
-% with integral operators and delay maps, and X_pde, Y_pde, Z_pde, W_pde,
-% and U_pde are PI operators, using the fields
+% with integral operators and delay maps, and T_pde, Tw_pde, Tu_pde, Y_pde,
+% Z_pde, W_pde, and U_pde are PI operators. For the PDE states with
+% dynamics, also x_pde = X_pde*(T*x+Tw*w+Tu*u) and
+% d/dt x_pde = X_pde*(A*x+Bw*w+Bu*u), with X_pde acting on the rows of T.
+% These use the fields
 %
 % - PIE.space_pde:
 %               struct of the same form as PIE.space for the PDE, whose
@@ -77,14 +80,16 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %               identifying the PDE components as in PDE.x{i}.ID, so that
 %               row i of ID, dims, and depmat describes the same component;
 % - PIE.pie2pde:
-%               struct with fields x, y, z, u, w, with copvar objects
-%               representing X_pde, Y_pde, Z_pde, U_pde and W_pde, with a
-%               column for each PIE component and a row for each PDE
-%               component. For the state, the columns correspond to the
-%               components of T*x+Tw*w+Tu*u. Y_pde and Z_pde are
+%               struct with fields X, T, Tw, Tu, W, U, Y, Z, with copvar
+%               objects representing X_pde, T_pde, Tw_pde, Tu_pde, W_pde,
+%               U_pde, Y_pde and Z_pde, with a row for each PDE component
+%               and a column for each PIE component (unset if zero). The
+%               columns of X are the rows of T; its rows for PDE states
+%               without dynamics are zero. Y_pde and Z_pde are
 %               permutation matrices, accounting for a reordering of the
 %               outputs, and U_pde and W_pde are often identity or
-%               permutation matrices;
+%               permutation matrices (zero rows for inputs decomposed in
+%               the BCs);
 % - PIE.pde2pie:
 %               struct with fields x, u, w, y, z, describing for each PIE
 %               component how it is obtained from a PDE component. Each
@@ -119,15 +124,16 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %       pde2pie.x:  idx=[1,0,0],  diff=2,  tdiff=0,  loc=0,  delay=0,  C=1,
 % i.e. v is PDE state 1, differentiated twice in s, evaluated in the
 % interior, and left unchanged by C. Conversely, T is the integral operator
-% with kernel -min(s,theta), and pie2pde.x = X_pde = 1, so that
-%    u(t,s) = X_pde*(T*v)(t,s) = -int_0^1 min(s,theta) v(t,theta) dtheta.
+% with kernel -min(s,theta), pie2pde.X = X_pde = 1, and pie2pde.T = T, so
+% that
+%    u(t,s) = (T_pde*v)(t,s) = -int_0^1 min(s,theta) v(t,theta) dtheta.
 % A component d/dt u would instead have tdiff=1, and the boundary value
 % u(t,1) would have diff=0 and loc=1.
 %
 % The relation is a bijection only between admissible trajectories: x_pde
-% must satisfy the BCs, i.e. be of the form X_pde*(T*x+Tw*w+Tu*u), and, if
-% K is nontrivial, Ku*u + Kw*w + K*x = 0. For the components with tdiff=0
-% and delay=0 this implies Dx*X_pde*T = I. If the PIE is not constructed
+% must satisfy the BCs, i.e. be of the form T_pde*x+Tw_pde*w+Tu_pde*u, and,
+% if K is nontrivial, Ku*u + Kw*w + K*x = 0. For the components with
+% tdiff=0 and delay=0 this implies Dx*T_pde = I. If the PIE is not constructed
 % from a PDE, the fields space_pde, pie2pde and pde2pie have no components.
 %
 %
@@ -183,6 +189,8 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %                   (pie2pde, pde2pie), and the operators;
 % DJ, 11/03/2026: Convert an npie_struct, using npie2pie_struct;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: pie2pde fields X, T, Tw, Tu, W, U, Y, Z (were x, w, u,
+%                   y, z), with T, Tw, Tu the maps to the PDE state;
 
 properties
     % The dynamics
@@ -410,11 +418,11 @@ end
 function m = empty_pie2pde()
 % M = EMPTY_PIE2PDE() returns the struct describing the map from PIE to PDE
 % states, inputs and outputs, without any components, with a cell of
-% operators for each of the fields x, y, z, u, w (see the header of
-% pie_struct).
+% operators for each of the fields X, T, Tw, Tu, W, U, Y, Z (see the
+% header of pie_struct).
 % INPUT: none. OUTPUT: m, 'struct' with empty 0 x 1 cell fields.
-m = struct('x',{cell(0,1)},'y',{cell(0,1)},'z',{cell(0,1)},...
-           'u',{cell(0,1)},'w',{cell(0,1)});
+m = struct('X',{cell(0,1)},'T',{cell(0,1)},'Tw',{cell(0,1)},'Tu',{cell(0,1)},...
+           'W',{cell(0,1)},'U',{cell(0,1)},'Y',{cell(0,1)},'Z',{cell(0,1)});   % DJ, 11/20/2026
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 

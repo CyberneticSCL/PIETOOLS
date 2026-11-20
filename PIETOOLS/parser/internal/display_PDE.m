@@ -57,6 +57,7 @@ function [] = display_PDE(PDE,name)
 %                   of phi), display the time derivative as d_t unless
 %                   'use_unicode', and call coefficients C_ij, C_ijk;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Do not display d/dt x = 0 for states without an equation;
 
 % Initialize the system
 if isa(PDE,'sys')
@@ -173,6 +174,10 @@ for kk=1:numel(eq_types)
         continue
     end
     for eq_num=1:numel(PDE.(eq_type_kk))
+        % A state without an equation (tdiff=nan) has no dynamics to display
+        if kk==1 && isfield(PDE.x{eq_num},'tdiff') && isnan(PDE.x{eq_num}.tdiff)   % DJ, 11/20/2026
+            continue
+        end
         fprintf("\n  ");
            
         % % First construct the LHS of the PDE

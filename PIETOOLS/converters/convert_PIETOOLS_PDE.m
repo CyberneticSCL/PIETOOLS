@@ -30,9 +30,9 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           their number of variables, and those of wf and uf the
 %           fundamental inputs of that solution. The fields space,
 %           space_pde, pde2pie and pie2pde describe the function spaces of
-%           the PIE and PDE, and how xf, wf and uf are derived from the
-%           PDE. With 'Top', PIE only has the fields space, T, Tw, Tu and
-%           K;
+%           the PIE and PDE, how xf, wf and uf are derived from the PDE,
+%           and how the PDE components are obtained from the PIE. With
+%           'Top', PIE only has the fields space, T, Tw, Tu and K;
 %
 % NOTES
 % - Each PDE state has one main block of xf, its highest derivative in
@@ -44,8 +44,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % - The inputs in the BCs are decomposed into fundamental inputs
 %   (derivatives of the PDE inputs); the other inputs are their own
 %   fundamental inputs. An input in a BC and elsewhere in the PDE is not supported,
-%   and pie2pde.w, pie2pde.u only map the inputs not in the BCs. Inputs
-%   can only appear linearly.
+%   and pie2pde.W, pie2pde.U only map the inputs that are not decomposed.
+%   Inputs can only appear linearly.
 % - Delays are modeled by transport states, and higher-order temporal
 %   derivatives by additional states, described by pde2pie.x.delay and
 %   pde2pie.x.tdiff. This is not supported for states with inputs in
@@ -53,6 +53,14 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % - Static constraints 0=E(s) (outputs listed in PDE.constraint_ID),
 %   linear in the state, are added to K. ODE states and states of lower
 %   dimension may enter the BCs of other states.
+% - Conditions that are not a BC along a single direction (e.g.
+%   0=x2(s)-x1(1), or 0=x1-2*x2+0.5*w for ODE states) are algebraic
+%   constraints K*xf + Kw*wf + Ku*uf = 0; inputs in them are supported for
+%   a linear PIE only.
+% - A state without a differential equation is algebraic: it gets no rows
+%   in T, A (which are then rectangular), nor in pie2pde.X; pie2pde.T
+%   gives it from xf. At least one state needs dynamics. Not supported for
+%   a nonlinear PIE, nor with higher-order temporal derivatives.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
@@ -91,6 +99,9 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 11/15/2026: Bugfix in case row of f, gz or gy has no terms;
 % DB, 11/18/2026: Move print_convert_summary to its own file;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Support states without dynamics (rectangular T, A); take
+%                   all constraints (K, Kw, Ku) from convert_PIETOOLS_BVP;
+%                   new pie2pde fields;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, and
 % % % convert other structures to pde_struct
@@ -126,12 +137,8 @@ if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
 % DB 11/07/2026: outputs flagged as static constraints 0=E(s)
-% are not outputs of the PIE; their operator is added to K:
-% the PDE is converted without them, and with only them, which have the
-% same fundamental state, and their rows Cz are the rows of K that are
-% added. For an 'npie_struct', these rows are the polynomial gz, which is
-% linear in the state.
-if ~isempty(PDE.constraint_ID) && ~return_Top
+% are not outputs of the PIE; their operator is added to K.
+if ~isempty(PDE.constraint_ID)                                              % DJ, 11/20/2026
     z_IDs = cellfun(@(zi) zi.ID,PDE.z);
     is_con = ismember(z_IDs(:),PDE.constraint_ID(:));
     if any(cellfun(@(zi) any(cellfun(@numel,zi.term)>1),PDE.z(is_con)))    % DJ (CC), 11/13/2026
@@ -139,43 +146,11 @@ if ~isempty(PDE.constraint_ID) && ~return_Top
     elseif any(cellfun(@(zi) any(cellfun(@(tm) any(isfield(tm,{'w','u'})),zi.term)),PDE.z(is_con)))
         error("Constraints 0=F(s) cannot involve the inputs w or u.")
     end
-    PDE_con = PDE;      PDE_con.constraint_ID = [];
-    PDE_con.z = PDE.z(is_con);          PDE_con.z_tab = PDE.z_tab(is_con,:);
-    PDE_con.z_tab(:,1) = (1:nnz(is_con))';
-    PDE_main = PDE;     PDE_main.constraint_ID = [];
-    PDE_main.z = PDE.z(~is_con);        PDE_main.z_tab = PDE.z_tab(~is_con,:);
-    PDE_main.z_tab(:,1) = (1:nnz(~is_con))';
-    PIE = convert_PIETOOLS_PDE(PDE_main,flag);
-    PIE_con = convert_PIETOOLS_PDE(PDE_con,[flag(:)',{'silent'}]);
-    if isa(PIE_con,'npie_struct')
-        % gz = K_con*xf: the coefficient of each monomial (a block of xf)
-        % is the block of K_con acting on it
-        gz = combine_terms(PIE_con.gz);     sp = PIE_con.space;
-        is_lin = sum(gz.Z>0,2)==1;
-        [~,kcol] = ismember(gz.varname(sum(gz.Z(is_lin,:),2)),sp.x.varname);
-        K_con = gz.C;
-        K_con.ops = cell(size(gz.C.ops,1),numel(sp.x.dims));
-        K_con.ops(:,kcol) = gz.C.ops(:,is_lin);
-        % Input space of K_con: the space of xf, variables sorted by name
-        [vars_srt,ord] = sort(sp.vars);
-        K_con.dims.in = sp.x.dims;          K_con.vars.in = vars_srt;
-        K_con.dom.in = sp.dom(ord,:);       K_con.depmat.in = double(sp.x.depmat(:,ord));
-        no_K = size(PIE.K,1)==0;
-    else
-        K_con = PIE_con.Cz;
-        no_K = isempty(PIE.K) || isempty(PIE.K.C);
-    end
-    % Append the constraint K_con to PIE.K
-    if no_K
-        PIE.K = K_con;
-    else
-        PIE.K = [PIE.K; K_con];
-    end
-    return
 end
-% Every state component needs a differential equation
+% States without a differential equation (tdiff=nan) are algebraic; at
+% least one state needs dynamics
 x_noeq = find(cellfun(@(xi) isfield(xi,'tdiff') && isnan(xi.tdiff),PDE.x));
-if ~isempty(x_noeq)
+if numel(x_noeq)==numel(PDE.x)                                              % DJ, 11/20/2026
     error(['Conversion to PIE is not supported: no differential equation has been specified for state component(s) x{',strjoin(arrayfun(@num2str,x_noeq(:)','UniformOutput',false),'}, x{'),'}.',...
             ' A PDE without dynamics describes a boundary value problem, which cannot be converted to a PIE.'])
 end
@@ -200,6 +175,11 @@ for i=1:numel(PDE.x)
 end
 has_hotd = any(tdiff_pde>1);
 is_nonlinear = PDE.is_nonlinear || force_nonlinear;
+% Algebraic states are not supported in a nonlinear PIE, nor with higher-
+% order temporal derivatives
+if ~isempty(x_noeq) && ~return_Top && (has_hotd || is_nonlinear)
+    error("convert_PIETOOLS_PDE:algebraicStates","States without dynamics are not yet supported in a nonlinear PIE, nor with higher-order temporal derivatives.")
+end
 N = size(PDE.vars,1);
 nx = numel(PDE.x);
 vars_pde = arrayfun(@(i) PDE.vars(i,1).varname{1},1:N,'UniformOutput',false);
@@ -241,6 +221,9 @@ if return_Top
     diffs = [];
 end
 [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts);               % DJ, 11/11/2026
+% The static constraints are rows of Kops.x, not outputs of the PIE
+PDE = static_constraints(PDE,'drop');                                       % DJ, 11/20/2026
+PDE0 = static_constraints(PDE0,'drop');
 if info.surplus && ~suppress_summary
     fprintf('\n Warning: There are more boundary conditions than the orders of the states require; the PDE may be overdetermined.\n')
 end
@@ -299,6 +282,8 @@ for k=1:nx
     main_idcs(k) = cand_idcs;
 end
 is_aux = true(nblocks,1);     is_aux(main_idcs) = false;
+% The rows of T and A: the blocks of the states with dynamics
+dyn_rows = find(~isnan(tdiff_pde(x_idcs(:))))';                             % DJ, 11/20/2026
 F_blocks = get_blocks(Dmap.x.C);
 F_blocks = F_blocks(perm,:);
 F_cell =arrayfun(@(b) F_blocks{b,x_idcs(b)},1:nblocks,'UniformOutput',false);
@@ -395,6 +380,8 @@ if is_nonlinear
     op_names.x{1} = '';
 end   % f is set below
 xwu_cell = {'x','w','u'};
+% Top_pde.(x/w/u): maps from xf, wf, uf to all PDE states (pie2pde.T, Tw, Tu)
+Top_pde = struct('x',[],'w',[],'u',[]);
 % Declare the operators of the PIE, block by block
 for obj={'T','x','z','y'}
     is_state_obj = any(strcmp(obj{1},{'T','x'}));
@@ -425,8 +412,17 @@ for obj={'T','x','z','y'}
                 blocks_new{ridx,cidx} = block_op;
             end
         end
+        % T, A: only the rows of the states with dynamics; the main rows of
+        % all PDE states of T, Tw, Tu give Top_pde
+        rows_kept = 1:size(blocks_new,1);
+        if is_state_obj
+            rows_kept = dyn_rows;
+            if strcmp(obj{1},'T')
+                Top_pde.(xwu_cell{xwu_idx}) = cell2op(blocks_new(main_idcs(1:numel(PDE0.x)),:));
+            end
+        end
         try
-            PIE.(op_names.(obj{1}){xwu_idx}) = cell2op(blocks_new);
+            PIE.(op_names.(obj{1}){xwu_idx}) = cell2op(blocks_new(rows_kept,:));   % DJ, 11/20/2026
         catch ME
             error("convert_PIETOOLS_PDE:operator","Could not construct the operator %s: %s",op_names.(obj{1}){xwu_idx},ME.message)
         end
@@ -435,6 +431,10 @@ end
 % Constraints K*xf=0 on the fundamental state, for the blocks of xf
 if size(Kops.x,1)>0
     PIE.K = Kops.x;
+    % Constraints involving inputs: K*xf + Kw*wf + Ku*uf = 0
+    if info.K_inputs
+        PIE.Kw = Kops.w;    PIE.Ku = Kops.u;
+    end
 end
 if return_Top
     return
@@ -567,7 +567,16 @@ PIE.pde2pie = pde2pie_s;
 % % % the PIE state (the other blocks are tied to it by the dynamics), the
 % % % outputs are the same, and the inputs not in the BCs are PIE inputs
 pie2pde_s = PIE.pie2pde;
-pie2pde_s.x = op_matrix(spaces_pde(1:nx0),blocks,(1:nblocks)==main_idcs(1:nx0),@(k,b) identity_op(spaces_pde(k)));
+% X: from the rows of T to the PDE states (zero rows for algebraic states)
+pie2pde_s.X = op_matrix(spaces_pde(1:nx0),blocks(dyn_rows),dyn_rows==main_idcs(1:nx0),@(k,b) identity_op(spaces_pde(k)));   % DJ, 11/20/2026
+% T, Tw, Tu: from xf, wf, uf to all PDE states; the empty default is kept
+% where zero
+Tnames = struct('x','T','w','Tw','u','Tu');
+for fn = {'x','w','u'}
+    if ~isempty(Top_pde.(fn{1}))
+        pie2pde_s.(Tnames.(fn{1})) = Top_pde.(fn{1});
+    end
+end
 % Maps of the inputs and outputs: the same components, or direct inputs
 for obj_type={'w','u','y','z'}
     obj_tab = PDE.([obj_type{1},'_tab']);      nr = size(obj_tab,1);
@@ -583,9 +592,10 @@ for obj_type={'w','u','y','z'}
     end
     hit = eye(nr)==1;
     if is_input
-        hit = ([col_spaces.pde]==(1:nr)') & ([col_spaces.group]==0);
+        % The inputs that are their own fundamental input (not decomposed)
+        hit = ([col_spaces.pde]==(1:nr)') & ~cellfun(@isempty,info.(['I',obj_type{1}])(:));
     end
-    pie2pde_s.(obj_type{1}) = op_matrix(row_spaces_pde,col_spaces,hit,@(r,j) identity_op(row_spaces_pde(r)));
+    pie2pde_s.(upper(obj_type{1})) = op_matrix(row_spaces_pde,col_spaces,hit,@(r,j) identity_op(row_spaces_pde(r)));
 end
 PIE.pie2pde = pie2pde_s;
 
