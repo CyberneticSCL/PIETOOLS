@@ -118,6 +118,7 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % DJ, 11/08/2026: Support products of states without spatial variables;
 % DJ, 11/19/2026: Support two block rows of Zop for an entry (otype=3);
 %                   integrate each term over all copies of the output vars;
+% DJ, 11/19/2026: Use P(:).' instead of local function vec_dpvar;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -319,7 +320,7 @@ for t=1:size(terms,1)
         % m, n: row counts of the block rows ridx of ZopL and cidx of ZopR
         m = size(ZopL.ops{ridx,blk_idcsL(ridx)},1);                         % DJ, 11/19/2026
         n = size(ZopR.ops{cidx,blk_idcsR(cidx)},1);                         % DJ, 11/19/2026
-        Wij = vec_dpvar(Pmat{ridx,cidx});       % Pij(1:end) as a row
+        Wij = Pmat{ridx,cidx}(:).';             % Pij(1:end) as a row
         if is_sym && cidx>ridx
             Wij = 2*Wij;
         end
@@ -344,30 +345,6 @@ V.chkval = true;
 % Get rid of duplicate terms in the functional
 V = combine_terms(V);
 
-end
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-
-
-%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function W = vec_dpvar(P)
-% W = VEC_DPVAR(P) returns the 1 x numel(P) 'dpvar' W such that W = P(:).'
-% in the order of the linear index (column-major), computed from the
-% coefficients of P. For P of dimension m x n with q decision variables, 
-% nZ monomials, P.C is m*(q+1) x n*nZ, and W.C is (q+1) x m*n*nZ, 
-% entry (i,j) of P moving to block k = i+(j-1)*m of columns.
-if ~isa(P,'dpvar')
-    W = P(1:end);
-    if size(W,1)>1,     W = W.';    end
-    return
-end
-[m,n] = size(P);
-nd = numel(P.dvarname)+1;       nZ = size(P.degmat,1);
-[r,c,v] = find(P.C);
-i = ceil(r/nd);                 d = r-(i-1)*nd;
-j = ceil(c/nZ);                 z = c-(j-1)*nZ;
-k = i+(j-1)*m;
-W = compress(dpvar(sparse(d,(k-1)*nZ+z,v,nd,m*n*nZ),P.degmat,P.varname,P.dvarname,[1,m*n]));   % as dpvar/subsref
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
