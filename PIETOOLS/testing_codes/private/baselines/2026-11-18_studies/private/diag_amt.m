@@ -31,6 +31,9 @@ function diag_amt(jobs, tag, ndvcap)
 %   - Size gate 2e6 variables, m 45,000 (gate/lpisolve.m). No job starts
 %     after ST_STOPMIN minutes; the queue runner reruns the tag to resume.
 % MMP, 11/19/2026.
+% MMP, 11/20/2026: each row also records the executive status and the residual
+%                   eta of lb_exec (exst, eta): the verdict of the executive
+%                   flags beside the harness gate on the optimality measure.
 here = fileparts(mfilename('fullpath'));    cd(here);
 addpath(fullfile(here,'gate'));
 if nargin < 3,  ndvcap = 2e6;  end     % optional: a larger variable cap for a known size
@@ -48,7 +51,8 @@ if exist(of,'file')
     for i = 2:numel(L),  x = strsplit(L{i},',');  done{end+1} = strjoin(x([1 2 3 5]),','); end %#ok<AGROW>
 else
     fid = fopen(of,'w');
-    fprintf(fid,'key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note\n');  fclose(fid);
+    % fprintf(fid,'key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note\n');  fclose(fid);  % MMP, 11/20/2026 (was)
+    fprintf(fid,'key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta\n');  fclose(fid);  % MMP, 11/20/2026
 end
 Cat = load(fullfile(here,'catalog.mat'));  Cat = Cat.C;
 for i = 1:numel(jobs)
@@ -85,9 +89,12 @@ for i = 1:numel(jobs)
         note = strrep(strrep(ME.message,',',';'),newline,' ');  r.status = 'error';
     end
     fid = fopen(of,'a');
-    fprintf(fid,'%s,%s,%s,%s,"%s",%s,%.4g,%g,%g,%g,%.0f,%.0f,%.1f,"%s"\n',key,form,[variant,sprintf(stt,v)],tier, ...
+    % fprintf(fid,'%s,%s,%s,%s,"%s",%s,%.4g,%g,%g,%g,%.0f,%.0f,%.1f,"%s"\n',key,form,[variant,sprintf(stt,v)],tier, ...
+        % mods,f(r,'status'),g(r,'fr'),g(r,'pinf'),g(r,'dinf'),g(r,'numerr'),g(r,'ndec'),g(r,'m'), ...
+        % g(r,'sec'),note);                                                 % MMP, 11/20/2026 (was)
+    fprintf(fid,'%s,%s,%s,%s,"%s",%s,%.4g,%g,%g,%g,%.0f,%.0f,%.1f,"%s",%s,%.3g\n',key,form,[variant,sprintf(stt,v)],tier, ...
         mods,f(r,'status'),g(r,'fr'),g(r,'pinf'),g(r,'dinf'),g(r,'numerr'),g(r,'ndec'),g(r,'m'), ...
-        g(r,'sec'),note);
+        g(r,'sec'),note,f(r,'exst'),g(r,'eta'));                            % MMP, 11/20/2026
     fclose(fid);
     fprintf('##### %s %s %s: %s fr %.3g ndec %g\n',key,form,variant,f(r,'status'),g(r,'fr'),g(r,'ndec'));
 end

@@ -47,6 +47,10 @@ function ex_search(startsfile, tag, opts)
 %     len_cross 2) combined with each reduction refused or failed alone.
 %   - The search is greedy: a kept change restarts the list of moves.
 % MMP, 11/19/2026.
+% MMP, 11/20/2026: apply_mods splits the statements of a start at a ';'
+%                   outside brackets only: the split at every ';' cut a
+%                   column vector (len_sos{1} = [2;1;2]), and the trade
+%                   pass TRADE1 stopped at the start of 80 of 115 rows.
 if nargin<3,  opts = struct();  end
 here = fileparts(mfilename('fullpath'));
 addpath(fullfile(here,'gate'));     % the size gate first on the path, as in lb_run
@@ -439,7 +443,9 @@ function S = apply_mods(S,mods,key)
 % The changes of a start: MATLAB statements on st, or keywords.
 if ~ischar(mods) || isempty(mods),  return,  end
 st = S; %#ok<NASGU>
-parts = strtrim(strsplit(mods,';'));
+% parts = strtrim(strsplit(mods,';'));                                      % MMP, 11/20/2026 (was)
+% A ';' inside [], {} or () separates entries, not statements               % MMP, 11/20/2026
+parts = strtrim(regexp(mods,';(?![^\[\{\(]*[\]\}\)])','split'));            % MMP, 11/20/2026
 for p = parts
     s = p{1};  if isempty(s),  continue,  end
     switch s
