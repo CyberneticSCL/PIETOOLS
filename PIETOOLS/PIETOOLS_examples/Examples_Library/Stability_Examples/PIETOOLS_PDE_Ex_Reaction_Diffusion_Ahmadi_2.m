@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Adapted Example B (Diffusion-Reaction equation) from Ahmadi:
@@ -22,6 +24,12 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)
 % % Parameters Cm and R can be set.
 % % Stable for R<21.
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -32,6 +40,7 @@ pvar s
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
 evalin('base','stability_dual = 0;')
 
 % Specify the parameters
@@ -88,6 +97,10 @@ if GUI
         disp("Failed to load data object. Incorrect structure");
     end
 end
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 
 end
 % @article{valmorbida2015stability,

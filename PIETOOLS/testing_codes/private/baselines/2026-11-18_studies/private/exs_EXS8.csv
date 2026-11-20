@@ -1,0 +1,39 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+18:53:02,PDE:8,0,start1 Q stripped ,start,certified,optimal,3.65e-11,1,1,3928,636,NaN,1.9,
+18:53:03,PDE:8,1,dD0,not smaller,error,,NaN,NaN,NaN,5672,634,NaN,NaN,LB_SIZE ndv=5672 m=634 above the gate (ndv 3927; m 45000): not solved
+18:53:04,PDE:8,2,degQ1.1,not smaller,error,,NaN,NaN,NaN,9092,770,NaN,NaN,LB_SIZE ndv=9092 m=770 above the gate (ndv 3927; m 45000): not solved
+18:53:04,PDE:8,3,degQ1.2,kept,certified,optimal,2.77e-13,1,1,2512,488,NaN,0.4,
+18:53:04,PDE:8,4,dD0,not smaller,error,,NaN,NaN,NaN,3040,470,NaN,NaN,LB_SIZE ndv=3040 m=470 above the gate (ndv 2511; m 45000): not solved
+18:53:05,PDE:8,5,degQ1.1,not smaller,error,,NaN,NaN,NaN,5628,590,NaN,NaN,LB_SIZE ndv=5628 m=590 above the gate (ndv 2511; m 45000): not solved
+18:53:05,PDE:8,6,degQ1.2,not smaller,error,,NaN,NaN,NaN,5624,598,NaN,NaN,LB_SIZE ndv=5624 m=598 above the gate (ndv 2511; m 45000): not solved
+18:53:06,PDE:8,7,degQ1.3,kept,certified,optimal,6.11e-12,1.01,1,2496,472,NaN,0.3,
+18:53:06,PDE:8,8,dD0,not smaller,error,,NaN,NaN,NaN,3024,454,NaN,NaN,LB_SIZE ndv=3024 m=454 above the gate (ndv 2495; m 45000): not solved
+18:53:06,PDE:8,9,degQ1.1,not smaller,error,,NaN,NaN,NaN,5612,574,NaN,NaN,LB_SIZE ndv=5612 m=574 above the gate (ndv 2495; m 45000): not solved
+18:53:07,PDE:8,10,degQ1.2,not smaller,error,,NaN,NaN,NaN,5616,582,NaN,NaN,LB_SIZE ndv=5616 m=582 above the gate (ndv 2495; m 45000): not solved
+18:53:07,PDE:8,11,degQ1.3,not smaller,error,,NaN,NaN,NaN,5616,570,NaN,NaN,LB_SIZE ndv=5616 m=570 above the gate (ndv 2495; m 45000): not solved
+18:53:08,PDE:8,12,psatz1,not smaller,error,,NaN,NaN,NaN,2496,472,NaN,NaN,LB_SIZE ndv=2496 m=472 above the gate (ndv 2495; m 45000): not solved
+18:53:08,PDE:8,13,raiseQ1,not smaller,error,,NaN,NaN,NaN,2496,472,NaN,NaN,LB_SIZE ndv=2496 m=472 above the gate (ndv 2495; m 45000): not solved
+18:53:08,PDE:8,14,capinc,not smaller,error,,NaN,NaN,NaN,2496,472,NaN,NaN,LB_SIZE ndv=2496 m=472 above the gate (ndv 2495; m 45000): not solved
+18:53:08,PDE:8,15,t:degQ+1.1+dD0,not smaller,error,,NaN,NaN,NaN,5300,556,NaN,NaN,LB_SIZE ndv=5300 m=556 above the gate (ndv 2495; m 45000): not solved
+18:53:09,PDE:8,16,t:degQ+1.2+dD0,not smaller,error,,NaN,NaN,NaN,2512,492,NaN,NaN,LB_SIZE ndv=2512 m=492 above the gate (ndv 2495; m 45000): not solved
+18:53:09,PDE:8,17,t:degQ+1.3+dD0,not smaller,error,,NaN,NaN,NaN,3040,470,NaN,NaN,LB_SIZE ndv=3040 m=470 above the gate (ndv 2495; m 45000): not solved
+18:53:09,PDE:8,18,t:dD++degQ1.1,not smaller,error,,NaN,NaN,NaN,2972,576,NaN,NaN,LB_SIZE ndv=2972 m=576 above the gate (ndv 2495; m 45000): not solved
+18:53:09,PDE:8,19,t:dD++degQ1.2,not smaller,error,,NaN,NaN,NaN,2976,584,NaN,NaN,LB_SIZE ndv=2976 m=584 above the gate (ndv 2495; m 45000): not solved
+18:53:09,PDE:8,20,t:dD++degQ1.3,not smaller,error,,NaN,NaN,NaN,2976,572,NaN,NaN,LB_SIZE ndv=2976 m=572 above the gate (ndv 2495; m 45000): not solved
+18:53:10,PDE:8,21,t:wmin+1+degQ1.1,not smaller,error,,NaN,NaN,NaN,5612,574,NaN,NaN,LB_SIZE ndv=5612 m=574 above the gate (ndv 2495; m 45000): not solved
+18:53:10,PDE:8,22,t:wmin+1+degQ1.2,not smaller,error,,NaN,NaN,NaN,5616,582,NaN,NaN,LB_SIZE ndv=5616 m=582 above the gate (ndv 2495; m 45000): not solved
+18:53:11,PDE:8,23,t:wmin+1+degQ1.3,not smaller,error,,NaN,NaN,NaN,5616,570,NaN,NaN,LB_SIZE ndv=5616 m=570 above the gate (ndv 2495; m 45000): not solved
+18:53:11,PDE:8,24,t:raiseQ+1+degQ1.1,not smaller,error,,NaN,NaN,NaN,5612,574,NaN,NaN,LB_SIZE ndv=5612 m=574 above the gate (ndv 2495; m 45000): not solved
+18:53:12,PDE:8,25,t:raiseQ+1+degQ1.2,not smaller,error,,NaN,NaN,NaN,5616,582,NaN,NaN,LB_SIZE ndv=5616 m=582 above the gate (ndv 2495; m 45000): not solved
+18:53:12,PDE:8,26,t:raiseQ+1+degQ1.3,not smaller,error,,NaN,NaN,NaN,5616,570,NaN,NaN,LB_SIZE ndv=5616 m=570 above the gate (ndv 2495; m 45000): not solved
+18:53:13,PDE:8/stability_dual,0,start1 Qd stripped ,start,certified,optimal,1.14e-11,0.984,1,2180,631,NaN,0.3,
+18:53:13,PDE:8/stability_dual,1,dD0,fails,unknown,optimal,7.61e-11,1.7,1,1604,631,NaN,0.2,
+18:53:14,PDE:8/stability_dual,2,degQ1.1,not smaller,error,,NaN,NaN,NaN,2180,631,NaN,NaN,LB_SIZE ndv=2180 m=631 above the gate (ndv 2179; m 45000): not solved
+18:53:14,PDE:8/stability_dual,3,degQ1.2,not smaller,error,,NaN,NaN,NaN,2180,631,NaN,NaN,LB_SIZE ndv=2180 m=631 above the gate (ndv 2179; m 45000): not solved
+18:53:14,PDE:8/stability_dual,4,degQ1.3,not smaller,error,,NaN,NaN,NaN,2180,631,NaN,NaN,LB_SIZE ndv=2180 m=631 above the gate (ndv 2179; m 45000): not solved
+18:53:14,PDE:8/stability_dual,5,psatz1,not smaller,error,,NaN,NaN,NaN,2180,631,NaN,NaN,LB_SIZE ndv=2180 m=631 above the gate (ndv 2179; m 45000): not solved
+18:53:14,PDE:8/stability_dual,6,raiseQ1,not smaller,error,,NaN,NaN,NaN,2180,631,NaN,NaN,LB_SIZE ndv=2180 m=631 above the gate (ndv 2179; m 45000): not solved
+18:53:14,PDE:8/stability_dual,7,capinc,not smaller,error,,NaN,NaN,NaN,2180,631,NaN,NaN,LB_SIZE ndv=2180 m=631 above the gate (ndv 2179; m 45000): not solved
+18:53:15,PDE:8/stability_dual,8,t:degQ+1.1+dD0,fails,unknown,optimal,7.61e-11,1.7,1,1604,631,NaN,0.2,
+18:53:15,PDE:8/stability_dual,9,t:degQ+1.2+dD0,fails,unknown,optimal,7.61e-11,1.7,1,1604,631,NaN,0.2,
+18:53:15,PDE:8/stability_dual,10,t:degQ+1.3+dD0,fails,unknown,optimal,7.61e-11,1.7,1,1604,631,NaN,0.2,

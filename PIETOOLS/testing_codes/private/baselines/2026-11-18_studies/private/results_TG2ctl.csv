@@ -1,0 +1,5 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,45,light,certified,0.111982,exact=0.11101,1,13.48,200986,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/P fr=0.996 pinf=0 dinf=0 numerr=0 iter=18 cpu=9.1s m=3981 nx=200987 exst=optimal eta=2.1e-09 passes=1
+PDE,46,light,certified,0.17173673,exact=0.17110,1,11.52,200986,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/P fr=1 pinf=0 dinf=0 numerr=0 iter=20 cpu=9.8s m=3983 nx=200987 exst=optimal eta=3.1e-10 passes=1
+PDE,47,light,certified,0.20853507,exact=0.20668,1,8.10,200986,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/P fr=0.891 pinf=0 dinf=0 numerr=0 iter=15 cpu=7.0s m=3977 nx=200987 exst=optimal eta=1.5e-09 passes=1
+PDE,71,light,certified,0.045944081,exact gain,1,10.08,203522,sop:PIETOOLS_Hinf_gain | PIETOOLS_Hinf_gain_sop/P fr=1 pinf=0 dinf=0 numerr=0 iter=17 cpu=8.4s m=4108 nx=203523 exst=optimal eta=1.5e-10 passes=1

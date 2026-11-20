@@ -1,0 +1,33 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+## EX_SEARCH EXU3D2 start 19-Nov-2026 04:52:49: 1 rows, stop 19-Nov-2026 05:52:49
+
+##### PDE:55  [stripped P ]  19-Nov-2026 04:52:49
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 7340032 decision variables in the certificate (Gram blocks [1024 1024 1024 1024 1024 1024 1024], sized from opts.like); 7340048 in the program.
+     0 start1 P stripped        start fails  error/ ndv 7.34005e+06 m 105717 gam NaN (NaN s)
+ - lpi_ineq_sop: 7340032 decision variables in the certificate (Gram blocks [1024 1024 1024 1024 1024 1024 1024], sized from opts.like); 7356932 in the program.
+     0 start2 P light st.lpi.ineq.dD = 0 start fails  error/ ndv 7.35693e+06 m 355133 gam NaN (NaN s)
+ - lpi_ineq_sop: 28000000 decision variables in the certificate (Gram blocks [2000 2000 2000 2000 2000 2000 2000], sized from opts.like); 28016900 in the program.
+     0 start3 P light           start fails  error/ ndv 2.80169e+07 m 409791 gam NaN (NaN s)
+##### PDE:55  done: NaN -> NaN variables  ()
+## EX_SEARCH EXU3D2 DONE 19-Nov-2026 05:12:18

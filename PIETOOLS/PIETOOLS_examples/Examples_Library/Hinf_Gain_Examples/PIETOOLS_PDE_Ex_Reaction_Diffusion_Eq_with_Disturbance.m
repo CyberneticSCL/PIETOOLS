@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Diffusion-Reaction equation from Shivakumar (Example 3):
@@ -23,6 +25,12 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(
 % % Parameter lam can be set.
 % % gamma = 8.1069 for lam = (1-1e-2)*pi^2.
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -33,6 +41,7 @@ pvar s
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;')
+evalin('base','Hinf_gain_form = ''Q'';');  % form of the gain test          % MMP, 11/19/2026
 %%% evalin('base','Hinf_gain_dual = 1;')
 
 lam = (1-1e-2)*pi^2;    ne = 1;
@@ -101,6 +110,11 @@ if GUI
     end
 end
 disp('Warning: With sedumi solver, this example requires at least settings veryheavy.')
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
+
 end
 % @inproceedings{shivakumar2019computing,
 %   title={Computing input-ouput properties of coupled linear pde systems},

@@ -48,6 +48,15 @@
 %                   whose st certifies tauN 3.9144 ('P' at light: 1.42229).
 %                   Measured in cleaning/private/settings_1116/studies_1118
 %                   (D1_formP.md; DECISIONS.md D115).
+% MMP, 11/19/2026: The example names the form of its H-infinity gain test,
+%                   Hinf_gain_form ('Q' here; a library block may set 'P';
+%                   the dual appends 'd'), as it names stability_form: each
+%                   library example now carries its own settings and forms
+%                   (maintainer, 11/19/2026). The rule of the entry of
+%                   11/18/2026, 'P' wherever it certifies, is replaced by 'P'
+%                   where it is cheaper at the same accuracy (maintainer,
+%                   11/19/2026; DECISIONS.md D141); the default 'P' of that
+%                   entry stands, the cheaper form on the delay rows measured.
 %
 close all; clear; %path(pathdef); 
 clc;
@@ -55,6 +64,7 @@ stability=0; stability_dual=0;
 Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
 Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
 stability_form='P';     % storage form; a library block may set 'Q'         % MMP, 11/18/2026
+Hinf_gain_form='Q';     % gain form; a library block may set 'P'            % MMP, 11/19/2026
 
 % DDE_minimal_rep=0;                                                        % MMP, 11/04/2026 (was)
 DDE_minimal_rep=1;                                                          % MMP, 11/04/2026
@@ -285,11 +295,13 @@ if stability_dual==1
 end
 if Hinf_gain==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/04/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/04/2026
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/19/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,Hinf_gain_form); % MMP, 11/19/2026
 end
 if Hinf_gain_dual==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);               % MMP, 11/04/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/19/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,[Hinf_gain_form 'd']); % MMP, 11/19/2026
 end
 if Hinf_control==1
 %   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/04/2026 (was)

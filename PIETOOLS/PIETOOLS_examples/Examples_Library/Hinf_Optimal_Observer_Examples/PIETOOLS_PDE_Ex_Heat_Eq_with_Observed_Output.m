@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Example Heat Equation:
@@ -23,6 +25,12 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params
 % %
 % % Answer: 1.0045.
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -106,5 +114,12 @@ if GUI
         disp("Failed to load data object. Incorrect structure");
     end
 end
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [2;1;1];                                            % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/19/2026
+st.sop.dw_P = [0 2 1];                                                      % MMP, 11/19/2026
 
 end

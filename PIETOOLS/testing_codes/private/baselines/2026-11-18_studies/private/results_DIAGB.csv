@@ -1,0 +1,11 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:15,Q,Ac=0.1;,light,"",certified,0.9992,0,0,0,21413,2121,4.7,""
+PDE:15,Q,Ac=1;,light,"",certified,0.9965,0,0,0,21413,2121,2.7,""
+PDE:15,Qd,Ac=0.1;,light,"",infeasible,-1,1,0,0,20513,1933,6.2,""
+PDE:15,Qd,Ac=1;,light,"",infeasible,-1.003,0,0,2,20513,1933,5.7,""
+PDE:15,P,Ac=0.1;,light,"",infeasible,-1,1,0,0,16000,841,5.4,""
+PDE:15,P,Ac=1;,light,"",infeasible,-1,1,0,0,16000,841,5.4,""
+PDE:15,Pd,Ac=0.1;,light,"",certified,1.013,0,0,0,4480,574,1.5,""
+PDE:15,Pd,Ac=1;,light,"",certified,0.9918,0,0,0,4480,574,1.5,""
+PDE:15,Q,A,light,"",certified,1,0,0,0,21413,2121,2.5,""
+PDE:15,P,A,light,"",infeasible,-1,1,0,0,16000,841,5.0,""

@@ -1,0 +1,1 @@
+tree.tgz sha256 26195f0a7fb6b08383c81bdc0a8ff365d47a4cfe39fe4253b74925a460d48d1d (working tree 11/19 16:28, HEAD 01f29210 plus uncommitted edits; heatNd_path MOSEK path set to the Sol toolbox on the Sol copy only)

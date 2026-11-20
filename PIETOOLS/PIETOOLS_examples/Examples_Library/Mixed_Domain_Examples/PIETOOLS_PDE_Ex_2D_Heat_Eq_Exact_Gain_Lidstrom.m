@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % 2D heat equation with a 1D distributed disturbance and a 2D output,
@@ -29,22 +31,23 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
 % %   gamma* = 0.04571818.
 % % Finite differences (5-point Laplacian, N interior nodes per direction):
 % % 0.04571809 (N = 40), 0.04571814 (N = 60).
-% %
-% % Certified upper bounds (PIETOOLS_Hinf_gain_sop, 'P' form, MOSEK,
-% % 11/17/2026), optimal exits:
-% %   - stock light:  0.0459440156 (+0.494 %, 209,445 decision variables);
-% %   - proposed light row of the settings proposal of 11/15/2026:
-% %                   0.0459459178 (+0.498 %, 210,006);
-% %   - stock heavy:  0.0459431727 (+0.492 %, 837,690).
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: the light tier gives the bounds above, within      % MMP, 11/17/2026
-% % 0.5 % of the exact gain; the light tier of 11/17/2026 (wcross 0, 2-D    % MMP, 11/17/2026
-% % faces at offset 1) was not rerun.                                       % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier bounds the gain within 0.5 %,
 %                   so no second output st (application-specific settings);
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+%                   the entry of 11/17/2026 (no second output st) no longer
+%                   holds;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -55,6 +58,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;');
+evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/19/2026
 
 npars = length(params);
 if npars~=0
@@ -76,6 +80,13 @@ PDE_t = [diff(x,'t')==diff(x,s1,2)+diff(x,s2,2)+w;
          subs(x,s1,0)==0;           subs(x,s1,1)==0;
          subs(x,s2,0)==0;           subs(x,s2,1)==0];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.pos.len_com{2} = [2 1];                                              % MMP, 11/19/2026
+st.lpi.pos.len_sos{2} = [1 1;1 1;0 0];                                      % MMP, 11/19/2026
+st.lpi.pos.patterns{2} = 'uniform';                                         % MMP, 11/19/2026
+st.lpi.ineq.wcross = 1;                                                     % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

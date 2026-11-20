@@ -36,36 +36,6 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridma
 % % Threshold [derived from the modes]: stable iff tau < tau* = 2.881401,
 % % the delay margin of mode k = 1 (see
 % % PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman).
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026): infeasible at tau = 0.1, 0.5, 0.9 and 1.1 times
-% % tau*, with the stock light settings (840,208 decision variables) and
-% % at 0.5, 0.9, 1.1 times tau* with the proposed light row of the
-% % settings proposal of 11/15/2026 (844,033); no certificate in this
-% % form at this tier.
-% %                                                                         % MMP, 11/17/2026
-% % Application-specific settings (output st): lpisettings_sop('light')     % MMP, 11/17/2026
-% % with the free operator Q of the direct form at degree 2 in two          % MMP, 11/17/2026
-% % variables, st.lpi.var.deg{2} = 2, for                                   % MMP, 11/17/2026
-% % PIETOOLS_stability_sop(PIE,st,'Q'). Measured (gap study 11/17/2026,     % MMP, 11/17/2026
-% % gap_results.md G4, MOSEK): tau = 0.9*tau* certified at 281,497          % MMP, 11/17/2026
-% % decision variables without weighted slack terms and at 302,957 with     % MMP, 11/17/2026
-% % the faces at offset 1 and wcross 0 (the light slack); 1.1*tau*: no      % MMP, 11/17/2026
-% % certificate. The storage form 'P' certifies this example only at        % MMP, 11/17/2026
-% % 0.1*tau* (2-D storage at the heavy lengths, st.sop.dw_feas(2) = 0:      % MMP, 11/17/2026
-% % 532,276); infeasible at 0.1, 0.5, 0.9 and 1.1 times tau* with the       % MMP, 11/17/2026
-% % light storage.                                                          % MMP, 11/17/2026
-% % Through the executive with this st (MOSEK, 11/17/2026): certified at    % MMP, 11/17/2026
-% % the default 0.9*tau*, 302,957 variables, no raise.                      % MMP, 11/17/2026
-% %                                                                         % MMP, 11/18/2026
-% % Example-specific settings of 11/18/2026 (output st), form 'Q',          % MMP, 11/18/2026
-% % library default tau = 0.9*2.881401: lpisettings_sop('light') with       % MMP, 11/18/2026
-% % the slack lift degree at its minimum, st.lpi.ineq.dD = 0, and Q of      % MMP, 11/18/2026
-% % degree 2 in two variables, st.sop.deg_Q{2} = 2. MOSEK, 11/18/2026:      % MMP, 11/18/2026
-% % certified at 225,705 decision variables, 6,608 rows, no raise           % MMP, 11/18/2026
-% % (OPT_STATUS 1.00, eta 2.4e-11); the 11/17 st (deg 2) and heavy:         % MMP, 11/18/2026
-% % 302,957; light: infeasible (563,813 after one raise); light in form     % MMP, 11/18/2026
-% % 'P': infeasible (638,505).                                              % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
@@ -77,6 +47,16 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridma
 % MMP, 11/18/2026: st: slack lift degree at its minimum and Q of degree
 %                   2 set through deg_Q, which the direct form reads in
 %                   place of lpi.var.deg: 25% fewer variables (header);
+% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
+%                   (maintainer: no default settings): see the block;
+%                   the form of its tests named in the workspace.
+% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
+%                   recorded tests and files the user does not have, not the problem;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -87,6 +67,7 @@ pvar s1 s2 r1
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 tau = 0.9*2.881401;
 npars = length(params);
@@ -114,13 +95,15 @@ PDE_t = [diff(e,'t')==diff(v,s1);
 
 % Application-specific settings (header): the light tier with Q of the      % MMP, 11/18/2026 (was); MMP, 11/17/2026
 % direct form at degree 2 in two variables; built only when requested       % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
-% minimum (dD = 0), Q of degree 2 in two variables (st.sop.deg_Q)           % MMP, 11/18/2026
+% Example-specific settings                                                 % MMP, 11/19/2026
 if nargout>1                                                                % MMP, 11/17/2026
     st = lpisettings_sop('light');                                          % MMP, 11/17/2026
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-    st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
+%   st.sop.deg_Q{2} = 2;                                                    % MMP, 11/19/2026 (was); MMP, 11/18/2026
+    st.sop.deg_Q{2} = [1 2 2];                                              % MMP, 11/19/2026
 %    st.lpi.var.deg{2} = 2;                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
+    st.lpi.ineq.psatz{2} = 'none';                                          % MMP, 11/19/2026
+    st.lpi.ineq.cap_inc = 'auto';                                           % MMP, 11/19/2026
 end                                                                         % MMP, 11/17/2026
 
 if GUI~=0

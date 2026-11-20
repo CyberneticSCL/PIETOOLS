@@ -1,0 +1,3 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+DDE:DDE19,,stripped,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [1;2;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2];",1252,134,265,76,30,"build budget"
+NDSDDF:DDF03,,heavy,"st.lpi.pos.len_sos{1} = [4;2;2]; st.lpi.ineq.cap_inc = 'auto'; st.lpi.var.deg{1} = [1 2 2];",8465,432,4673,332,30,"build budget"

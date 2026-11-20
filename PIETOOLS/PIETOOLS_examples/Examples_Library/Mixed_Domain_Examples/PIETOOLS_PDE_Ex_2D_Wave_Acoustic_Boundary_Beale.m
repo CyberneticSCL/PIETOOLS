@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % 2D wave equation with an acoustic boundary condition on the edge
@@ -36,15 +38,17 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params)
 % % system is not uniformly (exponentially) stable (Beale 1976); the
 % % energy decays polynomially on smooth domains (Munoz Rivera, Qin
 % % 2003). No parameter threshold.
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), epneg = 0: infeasible with the stock light
-% % settings (2,032,912 decision variables after one raise, 737 s); the
-% % run with the proposed light row of the settings proposal of
-% % 11/15/2026 was not completed.
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
+% MMP, 11/19/2026: Output st, the recommended settings of the example, and
+%                   the form of its stability test ('Q');
+%                   no measured setting certifies it;
+%                   (maintainer: every example names its settings);
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params) % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -55,6 +59,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 npars = length(params);
 if npars~=0
@@ -81,6 +86,9 @@ PDE_t = [diff(ph,'t')==ps;
          subs(ph,s2,1)==0;          subs(ps,s2,1)==0;
          subs([de;et],s1,0)==0;     subs([de;et],s1,1)==0];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

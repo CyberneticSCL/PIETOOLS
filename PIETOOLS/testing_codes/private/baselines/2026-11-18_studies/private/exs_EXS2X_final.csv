@@ -1,0 +1,7 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+PDE:64,Q,extreme,"st.sop.deg_Q{2} = [0 1 1];",288400,13915,288324,13915,41,"converged"
+PDE:63,Q,light,"st.lpi.ineq.cap_inc = 'auto';",165182,4910,149054,4490,55,"converged"
+PDE:61,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto';",197415,6969,132999,5264,46,"converged"
+PDE:62,P,light,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{2} = [1 1;1 2;0 0];",84205,2739,83269,2496,70,"build budget"
+PDE:58,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'none'; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [1 2 2];",225705,6608,81604,4772,42,"converged"
+PDE:57,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1];",23121,2344,23121,2344,49,"converged"

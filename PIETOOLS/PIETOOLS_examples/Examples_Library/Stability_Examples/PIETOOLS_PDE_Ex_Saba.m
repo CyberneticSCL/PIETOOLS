@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)          % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the test this file names, by case                       % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Saba 2019 examples (see reference below): 
@@ -20,6 +22,16 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)
 % % with BCs   x1(s=0) = qb*x2(s=0)
 % %            x2(s=1) = pb*x1(s=1)
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings of each case,
+%                   and the form of its test named in the workspace
+%                   (stability_form), from the per-example search of
+%                   11/19/2026 (maintainer: no default settings);
+% MMP, 11/19/2026: case 4.5 takes sig2 = 1.048, the value of its source (Peet,
+%                   Automatica 2021, Sec. 10, Ex. 5: stability for sig2 <=
+%                   1.048 at pb = -0.4); 2.048, a typo, was unstable (real
+%                   eigenvalue 1.682); maintainer: "Apply all four";
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)           % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -31,6 +43,7 @@ pvar s
 %%% Executive Function:
 evalin('base','stability = 1;');
 % evalin('base','stability_dual = 1;');
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
 
 
 %%%% There are several examples included here. Add a decimal to
@@ -52,7 +65,8 @@ elseif index==4.4
  dir = fullfile(root,'PIETOOLS_PDE_Ex_Saba_4_GUI.mat');
  
 elseif index==4.5
- r1=.5;   r2=1.1;   sig1=1;     sig2=2.048;   qb=1.2;   pb=-.4; % max sig2=1.049 
+% r1=.5;   r2=1.1;   sig1=1;     sig2=2.048;   qb=1.2;   pb=-.4; % max sig2=1.049 % MMP, 11/19/2026 (was)
+ r1=.5;   r2=1.1;   sig1=1;     sig2=1.048;   qb=1.2;   pb=-.4; % max sig2=1.049 % MMP, 11/19/2026
  dir = fullfile(root,'PIETOOLS_PDE_Ex_Saba_5_GUI.mat');
  
 else
@@ -96,6 +110,23 @@ end
  PDE_t.BC{1}.term{2}.loc = 1;
  PDE_t.BC{1}.term{2}.C = [0 0; -pb 1];
 
+% Example-specific settings, by case                                        % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+if index==4 || index==4.1                                                   % MMP, 11/19/2026
+    st.lpi.pos.len_inc{1} = 1;                                              % MMP, 11/19/2026
+    st.lpi.pos.len_com{1} = 1;                                              % MMP, 11/19/2026
+elseif index==4.2                                                           % MMP, 11/19/2026
+    st.lpi.pos.len_inc{1} = 0;                                              % MMP, 11/19/2026
+    st.lpi.pos.len_com{1} = 0;                                              % MMP, 11/19/2026
+    st.lpi.pos.len_sos{1} = [1;2;2];                                        % MMP, 11/19/2026
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/19/2026
+elseif index==4.3 || index==4.5                                             % MMP, 11/19/2026
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/19/2026
+elseif index==4.4                                                           % MMP, 11/19/2026
+    st.lpi.pos.len_com{1} = 1;                                              % MMP, 11/19/2026
+    st.lpi.pos.len_sos{1} = [2;1;1];                                        % MMP, 11/19/2026
+    st.lpi.ineq.dD = 0;                                                     % MMP, 11/19/2026
+end                                                                         % MMP, 11/19/2026
  
 if GUI
     %%% Associated GUI save file

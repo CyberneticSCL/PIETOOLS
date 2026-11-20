@@ -29,6 +29,7 @@ function ex_search(startsfile, tag, opts)
 %       .stopmin   minutes after which no build starts (default ST_STOPMIN)
 %       .maxbuild  builds per row, solved or refused (default 40)
 %       .rowmin    minutes per row (default 20)
+%       .ndvcap    decision-variable cap of a start (default 2e6)
 %
 % OUTPUT (files in this folder)
 %   exs_<TAG>.csv        one line per build: time, key, step, move, outcome,
@@ -55,11 +56,20 @@ if exist(fullfile(here,'ST_STOPMIN'),'file')
 end
 if isfield(opts,'stopmin'),  stopmin = opts.stopmin;  end
 maxbuild = 40;  if isfield(opts,'maxbuild'),  maxbuild = opts.maxbuild;  end
+mcap = 45000;   if isfield(opts,'mcap'),      mcap = opts.mcap;          end
+setappdata(0,'EXS_MCAP',mcap);      % m cap of every build (session length)
 rowmin = 20;    if isfield(opts,'rowmin'),    rowmin = opts.rowmin;      end
+ndvcap = 2e6;   if isfield(opts,'ndvcap'),    ndvcap = opts.ndvcap;      end
+setappdata(0,'EXS_NDVCAP',ndvcap);
 tstop = datetime('now') + minutes(stopmin);
 logf = fullfile(here,['exs_',tag,'.csv']);
 finf = fullfile(here,['exs_',tag,'_final.csv']);
-sdir = fullfile(here,'exs_state');  if ~exist(sdir,'dir'),  mkdir(sdir);  end
+sfx = '';       if isfield(opts,'statedir'),  sfx = opts.statedir;  end   % a pass of its own
+sdir = fullfile(here,['exs_state',sfx]);  if ~exist(sdir,'dir'),  mkdir(sdir);  end
+% A flag file EXS_YIELD_<tag> ends the run at once, without the stop-time
+% line, so the queue runner takes its next tag; the rows keep their state
+yieldf = fullfile(here,['EXS_YIELD_',tag]);
+if exist(yieldf,'file'),  fprintf('## EX_SEARCH %s yields (flag file)\n',tag);  return,  end
 if ~exist(logf,'file')
     fid = fopen(logf,'w');
     fprintf(fid,'time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note\n');
@@ -83,6 +93,7 @@ for i = 1:numel(keys)
     if datetime('now') >= tstop
         fprintf('\nlb_run: stop time %s reached; rerun to resume.\n',char(tstop));  return
     end
+    if exist(yieldf,'file'),  fprintf('## EX_SEARCH %s yields (flag file)\n',tag);  return,  end
     k = find(strcmp({Cat.key},key),1);
     c = Cat(k);  c.exec = ['sop:',c.exec];
     row = table2struct(T(j,:));
@@ -119,8 +130,10 @@ setappdata(0,'LB_ROW_KEY',c.key);
 t0 = tic;
 if isempty(st)                      % the start: tier, changes, form
     st = struct('S',[],'S0',[],'cost0',[NaN NaN],'cost',[NaN NaN],'tried',{{}}, ...
-                'blocked',{{}},'nbuild',0,'step',0,'done',false,'reason','','alt',0);
+                'blocked',{{}},'nbuild',0,'step',0,'done',false,'reason','','alt',0, ...
+                'inert',{{}});
 end
+if ~isfield(st,'inert'),  st.inert = {};  end   % moves that leave the size unchanged
 if st.alt == 0
     for a = 1:numel(alts)
         if datetime('now') >= tstop,  save(sf,'st');  return,  end
@@ -128,13 +141,14 @@ if st.alt == 0
         [PIE,~] = row_pie(c,row);
         S = lpisettings_sop(row.tier,0,'','mosek');
         S = apply_mods(S,row.mods,c.key);
-        setappdata(0,'LB_NDV_CAP',2e6);   setappdata(0,'LB_M_CAP',45000);
+        setappdata(0,'LB_NDV_CAP',getappdata(0,'EXS_NDVCAP'));   setappdata(0,'LB_M_CAP',getappdata(0,'EXS_MCAP'));
         [ok,r,note] = try_solve(c,PIE,S,row);
         st.nbuild = st.nbuild + 1;
-        lg(logf,c.key,0,sprintf('start%d %s %s',a,row.tier,strrep(row.mods,',',';')), ...
+        lg(logf,c.key,0,sprintf('start%d %s %s %s',a,row.form,row.tier,strrep(row.mods,',',';')), ...
            ternary(ok,'start','start fails'),r,note);
         if ok
             st.S = S;  st.S0 = S;  st.cost0 = [r.ndec r.m];  st.cost = st.cost0;  st.alt = a;
+            st.ref = r.gam;         % value rows: reductions keep the start value
             save(sf,'st');  break
         end
         save(sf,'st');
@@ -144,21 +158,29 @@ if st.alt == 0
     end
 end
 row = alts(st.alt);  row.exec = c.exec;
+if strcmp(row.kind,'value') && isfield(st,'ref') && isfinite(st.ref)
+    row.best = min(num(row.best),st.ref);    % a loose start target: keep its value
+end
 PIE = row_pie(c,row);
-nv = c.dim;
+nv = c.dim;                         % a delayed PDE has a space in nv+1 variables
+try,  nv = max(nv,double(PIE.dim));  catch,  end
 while true
     if st.nbuild >= maxbuild,  st.reason = 'build budget';  break,  end
     if toc(t0) > 60*rowmin,  st.reason = 'row time';  break,  end
     if datetime('now') >= tstop,  save(sf,'st');  return,  end      % resume later
     M = moves(st.S,row,nv);
-    M = M(~ismember({M.name},st.tried));
+    M = M(~ismember({M.name},[st.tried,st.inert]));
     if isempty(M)                   % reductions exhausted: cross terms
         M = cross_moves(st.S,row,nv,st.blocked);
-        M = M(~ismember({M.name},st.tried));
+        M = M(~ismember({M.name},[st.tried,st.inert]));
+    end
+    if isempty(M)                   % then trades between storage and slack
+        M = trade_moves(st.S,row,nv,st.blocked);
+        M = M(~ismember({M.name},[st.tried,st.inert]));
         if isempty(M),  st.reason = 'converged';  break,  end
     end
     mv = M(1);
-    setappdata(0,'LB_NDV_CAP',st.cost(1)-1);  setappdata(0,'LB_M_CAP',45000);
+    setappdata(0,'LB_NDV_CAP',st.cost(1)-1);  setappdata(0,'LB_M_CAP',getappdata(0,'EXS_MCAP'));
     [ok,r,note] = try_solve(c,PIE,mv.S,row);
     st.nbuild = st.nbuild + 1;  st.step = st.step + 1;
     if ok && ~(r.ndec < st.cost(1))     % kept only when strictly smaller
@@ -169,7 +191,11 @@ while true
         lg(logf,c.key,st.step,mv.name,'kept',r,note);
     else
         st.tried{end+1} = mv.name;
-        if ~startsWith(mv.name,'x:'),  st.blocked{end+1} = mv.name;  end
+        if contains(note,'LB_SIZE') && r.ndec == st.cost(1)
+            st.inert{end+1} = mv.name;      % the knob does not act on this PIE
+        elseif ~startsWith(mv.name,'x:')
+            st.blocked{end+1} = mv.name;
+        end
         lg(logf,c.key,st.step,mv.name,ternary(contains(note,'LB_SIZE'),'not smaller','fails'),r,note);
     end
     save(sf,'st');
@@ -187,6 +213,9 @@ if any(strcmp(row.form,{'P','Pd'}))
         'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
 elseif any(strcmp(row.form,{'oco','cco'}))
     setappdata(0,'LB_FORM_MAP',struct('o','oco','c','cco','only','PIETOOLS_H2_norm_sop'));
+elseif contains(row.form,'>')       % the executive of the row in another form, e.g.
+    ab = strsplit(row.form,'>');    % 'Qd>Q': a dual row tested in the primal form
+    setappdata(0,'LB_FORM_MAP',struct(ab{1},ab{2}));
 end
 v = [];                             % the library parameter
 if strcmp(row.kind,'bisect')        % the best threshold less 1e-3 of it
@@ -225,7 +254,8 @@ function M = moves(S,row,nv)
 % Reductions of the knobs the executive of the row reads, as a struct
 % array with fields name, S (most promising first).
 M = struct('name',{},'S',{});
-famQ = any(strcmp(row.form,{'Q','Qd'}));
+fform = row.form;  if contains(fform,'>'),  fform = extractAfter(fform,'>');  end
+famQ = any(strcmp(fform,{'Q','Qd'}));   % the form the executive runs in
 famP = ~famQ;                      % 'P' forms, H2, synthesis: the storage
 syn  = contains(row.exec,{'control','estimator'});
 stab = contains(row.exec,'stability');
@@ -283,6 +313,76 @@ end
 end
 
 % ------------------------------------------------------------------------
+function M = trade_moves(S,row,nv,blocked)
+% Trades: raise one knob of one family (storage or slack), then lower a
+% knob of the other family that failed alone; names 't:<raise>+<reduction>'.
+% A trade is kept, like any move, only when the program shrinks and the row
+% keeps its accuracy.
+M = struct('name',{},'S',{});
+U = raises(S,row,nv);
+for u = 1:numel(U)
+    R = moves(U(u).S,row,nv);
+    R = R(ismember({R.name},blocked));
+    for q = 1:numel(R)
+        if strcmp(famof(R(q).name),U(u).fam),  continue,  end     % the other family
+        M(end+1) = struct('name',['t:',U(u).name,'+',R(q).name],'S',R(q).S); %#ok<AGROW>
+    end
+end
+end
+
+function U = raises(S,row,nv)
+% One-step raises: storage (lengths of the storage row, deg_Q, var.deg) and
+% slack (dD, psatz, wmin, raises, dw), with the family of each.
+U = struct('name',{},'S',{},'fam',{});
+fform = row.form;  if contains(fform,'>'),  fform = extractAfter(fform,'>');  end
+famQ = any(strcmp(fform,{'Q','Qd'}));  syn = contains(row.exec,{'control','estimator'});
+stab = contains(row.exec,'stability');
+K = 1:min(nv,3);
+for k = K
+    if famQ,  U = vecup(U,S,'sop.deg_Q',k,'degQ+');
+    else
+        U = vecup(U,S,'lpi.pos.len_com',k,'d2+');  U = vecup(U,S,'lpi.pos.len_sos',k,'d3+');
+        U = vecup(U,S,'lpi.pos.len_inc',k,'d1+');
+    end
+    if syn,  U = vecup(U,S,'lpi.var.deg',k,'vdeg+');  end
+end
+d = getf(S,'lpi.ineq.dD');
+if isnumeric(d) && d < 3,  U(end+1) = struct('name','dD+','S',setf(S,'lpi.ineq.dD',d+1),'fam','slack');  end
+P = getf(S,'lpi.ineq.psatz');  if ischar(P),  P = {P,P,P};  end
+up = struct('none','faces1','faces1','auto');
+for k = K
+    p = P{min(k,end)};
+    if ischar(p) && isfield(up,p)
+        U(end+1) = struct('name',sprintf('psatz+%d',k),'S',setc(S,'lpi.ineq.psatz',k,up.(p)),'fam','slack'); %#ok<AGROW>
+    end
+    U = rowup(U,S,'lpi.ineq.wmin',k,'wmin+');
+    if famQ,       U = rowup(U,S,'sop.max_raise_Q',k,'raiseQ+');
+    elseif stab,   U = rowup(U,S,'sop.dw_feas',k,'dwfeas+');
+    else,          U = rowup(U,S,'sop.dw_P',k,'dwP+');
+    end
+end
+end
+
+function U = vecup(U,S,path,k,tag)
+C = getf(S,path);  if ~iscell(C) || isempty(C),  return,  end
+x = C{min(k,end)};  if any(strcmp(tag,{'degQ+','vdeg+'})) && isscalar(x),  x = x*[1 1 1];  end
+for e = 1:numel(x)
+    y = x;  y(e) = y(e)+1;
+    U(end+1) = struct('name',sprintf('%s%d.%d',tag,k,e),'S',setc(S,path,k,y),'fam','storage'); %#ok<AGROW>
+end
+end
+
+function U = rowup(U,S,path,k,tag)
+x = getf(S,path);  if isempty(x) || ~isnumeric(x),  return,  end
+kk = min(k,numel(x));  y = x;  y(kk) = y(kk)+1;
+U(end+1) = struct('name',sprintf('%s%d',tag,k),'S',setf(S,path,y),'fam','slack');
+end
+
+function f = famof(name)
+% the knob family of a reduction move
+if ~isempty(regexp(name,'^(d[123]|pat|degQ|vdeg)','once')),  f = 'storage';  else,  f = 'slack';  end
+end
+
 function M = add(M,name,S,path,val,k)
 if isempty(k),  S1 = setf(S,path,val);  else,  S1 = setc(S,path,k,val);  end
 if ~isequaln(S1,S),  M(end+1) = struct('name',name,'S',S1);  end   % NaN fields (cap_delta)

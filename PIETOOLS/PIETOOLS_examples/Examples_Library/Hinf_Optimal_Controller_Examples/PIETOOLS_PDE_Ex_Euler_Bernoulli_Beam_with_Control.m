@@ -1,4 +1,4 @@
-function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Euler-Bernoulli Beam Equation with in-domain control
@@ -21,6 +23,12 @@ function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)
 % % Parameter c can be set, defaults to 0.1;
 % % Adapted from Example 21 from Shivakumar, 2022 (see bottom of file).
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -58,6 +66,15 @@ PDE_t = [diff(v1,'t')==-c*diff(v2,s,2)+u+s^2*w;
 if GUI
     disp('No GUI representation available for this system.')
 end
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
+st.lpi.pos.len_inc{1} = 2;                                                  % MMP, 11/19/2026
+st.lpi.pos.len_com{1} = 3;                                                  % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [4;4;3];                                            % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st.lpi.var.deg{1} = [1 2 6];                                                % MMP, 11/19/2026
+st.sop.dw_P = 0;                                                            % MMP, 11/19/2026
 
 end
 % @article{shivakumar2022h_,

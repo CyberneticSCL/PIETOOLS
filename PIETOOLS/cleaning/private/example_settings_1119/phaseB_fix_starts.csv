@@ -1,0 +1,18 @@
+key,kind,form,tier,mods,best
+PDE:15,stab,Qd,stripped,"",
+PDE:15,stab,Qd,light,"",
+PDE:15,stab,Pd,light,"",
+PDE:15,stab,Qd,heavy,"",
+PDE:15,stab,Pd,heavy,"",
+PDE:15,stab,Qd,veryheavy,"",
+PDE:4.5,stab,P,stripped,"",
+PDE:4.5,stab,P,light,"",
+PDE:4.5,stab,Q,light,"",
+PDE:4.5,stab,P,heavy,"",
+PDE:4.5,stab,Q,heavy,"",
+PDE:4.5,stab,P,veryheavy,"",
+PDE:4.5,stab,P,extreme,"",
+PDE:4.5,stab,P,light,"st.lpi.ineq.dD = 2",
+NDSDDF:DDF03,value,,stripped,"",0.42133672
+NDSDDF:DDF03,value,,light,"",0.42133672
+NDSDDF:DDF03,value,,heavy,"",0.42133672

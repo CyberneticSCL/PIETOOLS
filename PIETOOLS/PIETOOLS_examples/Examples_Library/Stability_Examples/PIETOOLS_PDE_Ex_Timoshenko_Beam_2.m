@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the dual stability test                                 % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Timoschenko Beam equation Example (hyperbolic/diffusive) from Peet:
@@ -26,12 +28,27 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)
 % % We also assume all coefficients are 1. Then, our system becomes:
 % % PDE        x1_{t} = x2_{s} - x4_{s}
 % %            x2_{t} = x1_{s}
-% %            x3_{t} = x2 - x4-c x_3
+% %            x3_{t} = x2 - x4-c x_3                                       % MMP, 11/19/2026 (was)
+% %            x3_{t} = x2 - x4 + x4_{ss} - c x_3                           % MMP, 11/19/2026
 % %            x4_{t} = x3
 % % with BCs   x4(0) = 0, x4_{s}(1) = 0, x3(0) = 0, x1(0) = 0, x2(1)-x4(1) = 0
 % %
-% % Unstable.
+% % Unstable.                                                               % MMP, 11/19/2026 (was)
+% % With x4_{ss}: at c = 0 the conservative beam, stable, not               % MMP, 11/19/2026
+% % exponentially stable (Peet, Automatica 2021, Sec. 11.1); stable         % MMP, 11/19/2026
+% % for c > 0 (Peet et al. 2019, Sec. 8.1).                                 % MMP, 11/19/2026
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: the bending term x4_{ss} (E*II*phi_{ss} above) restored
+%                   in x3_t, in both formats: the term-based format never
+%                   had it and 72de7c6b (12/07/2022) set the batch A2 to
+%                   zero, so the coded system grew linearly at c = 0.
+%                   Source: Peet et al. 2019 (below), Sec. 8.1, A2 =
+%                   [0;0;1;0] (maintainer, 11/19/2026: "Apply all four");
+% MMP, 11/19/2026: output st, the example-specific settings of the dual
+%                   stability test, and its form ('Q'), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)    % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -42,6 +59,7 @@ pvar s
 
 %%% Executive Function:
 evalin('base','stability_dual= 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 
 % Specify the parameters
@@ -67,7 +85,8 @@ PDE_b.A1 = [0 1 0 -1;
     1 0 0 0;
     0 0 0 0;
     0 0 0 0];
-PDE_b.A2 = [0;0;0;0];
+% PDE_b.A2 = [0;0;0;0];                                                     % MMP, 11/19/2026 (was)
+PDE_b.A2 = [0;0;1;0];   % x4_{ss} in x3_t, the bending term                 % MMP, 11/19/2026
 
 PDE_b.B = [1 0 0 0 0 0 0 0 0 0;
            0 0 1 0 0 0 0 0 0 0;
@@ -88,9 +107,12 @@ PDE_t.x{1}.term{1}.C = [1,-1];
 PDE_t.x{2}.term{1}.x = 1;
 PDE_t.x{2}.term{1}.D = 1;
 
-% PDE 3: x3_{t} = x2 - x4-c x_3
+% PDE 3: x3_{t} = x2 - x4-c x_3                                             % MMP, 11/19/2026 (was)
+% PDE 3: x3_{t} = x2 - x4 + x4_{ss} - c x_3                                 % MMP, 11/19/2026
 PDE_t.x{3}.term{1}.x = [2;4;3];
 PDE_t.x{3}.term{1}.C = [1,-1,-c];
+PDE_t.x{3}.term{2}.x = 4;                                                   % MMP, 11/19/2026
+PDE_t.x{3}.term{2}.D = 2;                                                   % MMP, 11/19/2026
 
 % PDE 4: x4_{t} = x3
 PDE_t.x{4}.term{1}.x = 3;
@@ -172,6 +194,10 @@ PDE_t.BC{5}.term{1}.C = [1,-1];
 %  PDE_t.BC{4}.term{2}.loc = 1;
 %  PDE_t.BC{4}.term{2}.C = -1;
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 
 if GUI
     %%% Associated GUI save file

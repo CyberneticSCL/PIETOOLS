@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,p
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Example reaction-diffusion equation with boundary control through ODE
@@ -22,6 +24,12 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,p
 % % Optimal state feedback can achieve L2 gain bound of 4.99
 % % Adapted from Example 22 from Shivakumar, 2022 (see bottom of file).
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -59,6 +67,13 @@ PDE_t = [diff(x,'t')==u;
 if GUI
     disp('No GUI representation available for this system.')
 end
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/19/2026
+st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
+st.lpi.var.deg{1} = [0 2 2];                                                % MMP, 11/19/2026
 
 end
 % @article{shivakumar2022h_,

@@ -1,0 +1,13 @@
+updated 11
+  PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE: settings unchanged
+  PIETOOLS_PDE_Ex_2D_Parabolic_Eq: st.lpi.ineq.cap_inc = 'auto'
+  PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq: tier 'stripped', st.lpi.pos.len_sos{2} = [0 1;1 1;0 0], st.lpi.ineq.psatz{2} = 'none', st.sop.deg_Q{2} back to the tier value
+  PIETOOLS_PDE_Ex_2D_Transport_Eq: st.lpi.ineq.psatz{2} = 'none'
+  PIETOOLS_PDE_Ex_2D_Wave_Eq: st.sop.deg_Q{2} = [0 1 1], st.lpi.ineq.dD = 0, st.lpi.ineq.psatz{2} back to the tier value, st.sop.max_raise_Q(2) back to the tier value
+  PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang: st.sop.deg_Q{2} = [0 1 1]
+  PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman: settings unchanged
+  PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman: st.sop.deg_Q{2} = [1 2 2], st.lpi.ineq.psatz{2} = 'none', st.lpi.ineq.cap_inc = 'auto'
+  PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay: st.sop.deg_Q{2} = [1 2 2], st.lpi.ineq.cap_inc = 'auto'
+  PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge: st.lpi.ineq.cap_inc = 'auto'
+  PIETOOLS_PDE_Ex_Transport_Edge_Diffusion: st.lpi.ineq.wcross = 1
+skipped 0

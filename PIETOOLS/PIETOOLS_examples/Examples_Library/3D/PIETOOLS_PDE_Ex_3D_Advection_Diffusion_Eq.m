@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % 3D advection-diffusion-reaction equation (3D version of the equation of
@@ -32,6 +34,11 @@ function [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params)
 % %---------------------------------------------------------------------% %
 %
 % DJ, 11/02/2026: Initial coding;
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -42,6 +49,7 @@ pvar s1 s2 s3
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
 C = 1;  b1 = 0.5;  b2 = 1;  b3 = 1.5;  lam = 1;
@@ -64,6 +72,9 @@ PDE_t = [diff(x,'t')==C*(diff(x,s1,2)+diff(x,s2,2)+diff(x,s3,2)) ...
          subs(x,s2,0)==0;   subs(x,s2,1)==0;
          subs(x,s3,0)==0;   subs(x,s3,1)==0];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

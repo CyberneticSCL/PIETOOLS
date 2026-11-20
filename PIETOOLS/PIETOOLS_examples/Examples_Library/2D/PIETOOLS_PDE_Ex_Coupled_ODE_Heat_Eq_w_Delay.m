@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % ODE coupled to heat equation with delay (Kang, 2017):
@@ -39,6 +41,12 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
 % %
 % % Parameters tau, A, A1, B, a and a2 can be set.
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -49,6 +57,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
 ne = 1; tau = 1; A = -1; A1 = 0.5; B = -1; a = 1; a2 = 0.5;
@@ -145,6 +154,11 @@ PDE_t = [diff(x1,'t')==A*x1 +B*subs(x2,s1,0)+A1*subs(x3,s2,1);
 % PDE_t.BC{6}.term{1}.D = [0,0];              
                                         
                                         
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st.sop.deg_Q{2} = [0 0 1];                                                  % MMP, 11/19/2026
+
 if GUI~=0
     disp('No GUI representation available for this system.')
 end

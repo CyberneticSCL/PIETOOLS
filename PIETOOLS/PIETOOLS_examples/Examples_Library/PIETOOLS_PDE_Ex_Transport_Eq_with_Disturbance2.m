@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -9,6 +9,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system using the pde_var
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %structure
 %   
 %
@@ -17,6 +19,12 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %  With BC     x(s=1) = 0
 %  And output  z(t) = int(x(t,s),s,0,1)
 % H2 norm computed by numerical integration of the definition: 0.1016
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)  % MMP, 11/19/2026 (was)
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
 root = fileparts(loc);
@@ -28,6 +36,7 @@ pvar s1 s2
 %%% Executive Function:
 evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
+evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test         % MMP, 11/19/2026
 
 npars = length(params);
 if npars~=0
@@ -49,6 +58,9 @@ pde = [diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;    % dynamics
                 subs(x,s,1)==0];                            % boundary condition
 PDE_t=initialize(pde);
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

@@ -1,0 +1,4 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+PDE:15,Qd,veryheavy,"st.lpi.ineq.dD = 0;",100177,6965,74593,6765,14,"converged"
+PDE:4.5,P,stripped,"st.lpi.ineq.dD = 0;",1120,116,720,112,29,"converged"
+NDSDDF:DDF03,,heavy,"st.lpi.pos.len_sos{1} = [4;2;2]; st.lpi.ineq.cap_inc = 'auto'; st.lpi.var.deg{1} = [1 2 2];",8465,433,4673,333,30,"build budget"

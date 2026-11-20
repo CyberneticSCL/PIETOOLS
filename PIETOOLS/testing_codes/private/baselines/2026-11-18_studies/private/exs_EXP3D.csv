@@ -1,0 +1,3 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:16:06,PDE:55,0,start1 Q stripped st.lpi.ineq.dD = 0; st.sop.deg_Q{3} = 0,start fails,error,,NaN,NaN,NaN,1.29599e+07,189509,NaN,NaN,LB_SIZE ndv=12959852 m=189509 above the gate (ndv 3e+06; m 45000): not solved
+05:18:06,PDE:53,0,start1 P stripped ,start,certified,optimal,9.73e-10,0.986,1,580612,11753,NaN,119.4,

@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Reaction-Diffusion Equation with Robin Boundary Conditions:
@@ -23,6 +25,12 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)
 % % When c1=c2=1, unstable for lam > 1.7071.
 % % Default parameters lam=1.705, c1=c2=1, ne=1.
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -34,6 +42,7 @@ pvar s
 %%% Executive Function:
 evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
 
 % Specify the parameters
 ne = 1;   lam = 1.705; %1.705
@@ -91,6 +100,11 @@ PDE_t = [diff(x,'t')==lam*x+diff(x,s,2);
 if GUI
     disp('No GUI representation available for this system.')
 end
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [0;1;1];                                            % MMP, 11/19/2026
 
 end
 

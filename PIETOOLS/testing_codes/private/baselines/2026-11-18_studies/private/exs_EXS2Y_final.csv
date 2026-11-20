@@ -1,0 +1,5 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+PDE:46,P,heavy,"st.lpi.pos.len_sos{2} = [2 2;1 1;0 0]; st.lpi.pos.patterns{2} = 'uniform'; st.sop.dw_P = 1;",799170,7203,200425,3967,70,"build budget"
+PDE:45,P,heavy,"st.lpi.pos.len_sos{2} = [2 2;1 0;0 0]; st.sop.dw_P = 1;",799170,7201,91945,2488,70,"build budget"
+PDE:71,P,light,"st.lpi.pos.len_com{2} = [2 1]; st.lpi.pos.len_sos{2} = [1 1;1 1;0 0]; st.lpi.pos.patterns{2} = 'uniform'; st.lpi.ineq.wcross = 1;",203522,4108,94987,2648,70,"build budget"
+PDE:47,P,heavy,"st.lpi.pos.len_sos{2} = [2 2;1 1;0 0]; st.lpi.pos.patterns{2} = 'uniform'; st.lpi.ineq.dD = 0;",170690,3267,169458,2922,70,"build budget"

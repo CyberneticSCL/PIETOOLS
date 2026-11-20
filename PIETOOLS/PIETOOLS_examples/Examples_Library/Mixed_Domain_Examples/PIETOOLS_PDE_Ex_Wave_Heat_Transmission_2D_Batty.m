@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Wave-heat transmission on two rectangles (Batty, Paunonen, Seifert
@@ -31,15 +33,17 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params)
 % % o(t^{-2/3}) for classical solutions, a sharp rate; the semigroup is
 % % not exponentially stable (rays parallel to the interface). No
 % % parameter threshold.
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), epneg = 0: infeasible with the stock light
-% % settings (1,691,856 decision variables after one raise, 989 s); the
-% % run with the proposed light row of the settings proposal of
-% % 11/15/2026 was not completed.
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
+% MMP, 11/19/2026: Output st, the recommended settings of the example, and
+%                   the form of its stability test ('Q');
+%                   no measured setting certifies it;
+%                   (maintainer: every example names its settings);
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params) % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -50,6 +54,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 npars = length(params);
 if npars~=0
@@ -74,6 +79,9 @@ PDE_t = [diff(u,'t')==v;
          subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);
          subs([u;v;w],s2,0)==0;     subs([u;v;w],s2,1)==0];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

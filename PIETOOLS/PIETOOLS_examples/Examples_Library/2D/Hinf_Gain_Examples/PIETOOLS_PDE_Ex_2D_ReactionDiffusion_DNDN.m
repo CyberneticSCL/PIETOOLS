@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Reaction-diffusion input-output-PDE with 
@@ -29,6 +31,12 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params)
 % % For nu = 1, r = 1, [a,b]=[c,d]=[0,1], we have gam = 0.20668;
 % %
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -40,6 +48,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;');
+evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/19/2026
 %evalin('base','Hinf_gain_dual = 1;');
 
 nu = 1;     r = 1;   ne = 1;
@@ -89,6 +98,12 @@ PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+w;
 % PDE_t.BC{2}.term{1}.loc = [a,s2];      PDE_t.BC{4}.term{1}.loc = [b,s2];
 %                                        PDE_t.BC{4}.term{1}.D = [1,0];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
+st.lpi.pos.len_sos{2} = [2 2;1 1;0 0];                                      % MMP, 11/19/2026
+st.lpi.pos.patterns{2} = 'uniform';                                         % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

@@ -1,0 +1,3 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+PDE:X1,P,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [0;1;1];",280,45,189,31,40,"build budget"
+PDE:X1/stability_dual,Pd,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [0;1;1];",280,45,189,31,40,"build budget"

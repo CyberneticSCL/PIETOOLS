@@ -31,34 +31,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 % % k >= 1:
 % %   exponentially stable iff r2 < r2* = pi^2.
 % %
-% % Storage form 'P' (P >= eppos*I, PIETOOLS_stability_sop(PIE,st,'P')):
-% % no coercive PI operator P certifies this system, for any r2
-% % (argument of 11/16/2026, S17_obstruction.md, not checked by a second
-% % reader; corroborated by MOSEK infeasibility certificates). The light
-% % tier returns UNKNOWN (663,748 decision variables after one raise,
-% % r2 = 0.9*r2*; gap_results.md G1).
-% %
-% % Direct form 'Q' (PIETOOLS_stability_sop(PIE,st,'Q')), r2 = 0.9*r2*:
-% % with the light tier (Q at degree 1 in two variables) no certificate
-% % (UNKNOWN, MOSEK numerical problems); with the free operator Q at
-% % degree 2 in two variables, the faces at offset 1 and wcross 0 (the
-% % light slack): certified at 267,968 decision variables (gap study
-% % 11/17/2026, gap_results.md G1); r2 = 1.1*r2*: no certificate.
-% % Application-specific settings (output st): lpisettings_sop('light')
-% % with st.lpi.var.deg{2} = 2.
-% % Through the executive (MOSEK, 11/17/2026), r2 = 0.9*r2*: this st
-% % certifies at 267,968 variables, no raise; the light tier returns
-% % UNKNOWN after one raise (676,410).
-% %                                                                         % MMP, 11/18/2026
-% % Example-specific settings of 11/18/2026 (output st):                    % MMP, 11/18/2026
-% % lpisettings_sop('light') with the slack lift degree at its minimum,     % MMP, 11/18/2026
-% % st.lpi.ineq.dD = 0, and Q of degree 2 in two variables set through      % MMP, 11/18/2026
-% % st.sop.deg_Q{2} = 2 (since 11/18/2026 the direct form reads deg_Q,      % MMP, 11/18/2026
-% % not lpi.var.deg, so the 11/17 st no longer raised Q). MOSEK,            % MMP, 11/18/2026
-% % 11/18/2026, r2 = 0.9*r2*: OPTIMAL at 241,648 decision variables,        % MMP, 11/18/2026
-% % 6,257 rows, no raise, eta 2.0e-9, OPT_STATUS 0.675 (outside the         % MMP, 11/18/2026
-% % library-harness gate |OPT_STATUS-1| <= 0.3); the 11/17 st (heavy):      % MMP, 11/18/2026
-% % 267,968, OPT_STATUS 1.78. No setting measured passes that gate.         % MMP, 11/18/2026
+% % Storage form 'P' (P >= eppos*I): no coercive PI operator P certifies    % MMP, 11/19/2026
+% % this system, for any r2 [argued, not checked by a second reader].       % MMP, 11/19/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding; the system and the measurements of the
@@ -68,6 +42,16 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 % MMP, 11/18/2026: st: Q degree through st.sop.deg_Q (the direct form no
 %                   longer reads lpi.var.deg) and the slack lift degree
 %                   at its minimum, 10% fewer variables (header);
+% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
+%                   (maintainer: no default settings): st.lpi.ineq.wcross = 1;
+%                   the form of its tests named in the workspace.
+% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
+%                   recorded tests and files the user does not have, not the problem;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem; the 'P' obstruction kept, reworded;
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -78,6 +62,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 r2 = 0.9*pi^2;
 npars = length(params);
@@ -102,13 +87,13 @@ PDE_t = [diff(x1,'t')==-diff(x1,s1);
 
 % Application-specific settings (header): the light tier with Q of the      % MMP, 11/18/2026 (was)
 % direct form at degree 2 in two variables; built only when requested       % MMP, 11/18/2026 (was)
-% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
-% minimum (dD = 0), Q of degree 2 in two variables (st.sop.deg_Q)           % MMP, 11/18/2026
+% Example-specific settings                                                 % MMP, 11/19/2026
 if nargout>1
     st = lpisettings_sop('light');
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
     st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
 %    st.lpi.var.deg{2} = 2;                                                 % MMP, 11/18/2026 (was)
+    st.lpi.ineq.wcross = 1;                                                 % MMP, 11/19/2026
 end
 
 if GUI~=0

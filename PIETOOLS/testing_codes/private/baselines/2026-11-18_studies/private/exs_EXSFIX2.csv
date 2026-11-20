@@ -1,0 +1,23 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+18:07:17,DDE:DDE19,0,start1  stripped ,start,certified,optimal,1.9e-09,1.08,1,1252,133,1.963867,3.1,
+18:07:18,DDE:DDE19,1,dD0,kept,certified,optimal,1.45e-09,1.1,1,832,116,1.963867,0.9,
+18:07:18,DDE:DDE19,2,vdeg1.1,kept,certified,optimal,1.5e-09,1.1,1,831,116,1.963867,0.5,
+18:07:19,DDE:DDE19,3,vdeg1.1,kept,certified,optimal,1.52e-09,1.1,1,830,116,1.963867,0.4,
+18:07:19,DDE:DDE19,4,vdeg1.2,not smaller,error,,NaN,NaN,NaN,830,115,NaN,NaN,LB_SIZE ndv=830 m=115 above the gate (ndv 829; m 45000): not solved
+18:07:20,DDE:DDE19,5,vdeg1.3,not smaller,error,,NaN,NaN,NaN,830,115,NaN,NaN,LB_SIZE ndv=830 m=115 above the gate (ndv 829; m 45000): not solved
+18:07:20,DDE:DDE19,6,d21.1,kept,certified,optimal,1.81e-09,1.07,1,782,114,1.9638671,0.5,
+18:07:20,DDE:DDE19,7,d21.1,kept,certified,optimal,1.84e-09,1.09,1,742,114,1.9638671,0.3,
+18:07:21,DDE:DDE19,8,d11.1,kept,certified,optimal,1.59e-09,1.07,1,394,92,1.963867,0.3,
+18:07:21,DDE:DDE19,9,d11.1,kept,certified,optimal,6.35e-10,1.16,1,370,88,1.963867,0.4,
+18:07:22,DDE:DDE19,10,d31.1,fails,unknown,optimal,1.21e-09,0.594,1,265,76,1.9638707,0.6,
+18:07:22,DDE:DDE19,11,d31.2,not smaller,error,,NaN,NaN,NaN,370,87,NaN,NaN,LB_SIZE ndv=370 m=87 above the gate (ndv 369; m 45000): not solved
+18:07:22,DDE:DDE19,12,d31.3,not smaller,error,,NaN,NaN,NaN,370,87,NaN,NaN,LB_SIZE ndv=370 m=87 above the gate (ndv 369; m 45000): not solved
+18:07:22,DDE:DDE19,13,pat1,not smaller,error,,NaN,NaN,NaN,370,87,NaN,NaN,LB_SIZE ndv=370 m=87 above the gate (ndv 369; m 45000): not solved
+18:07:23,DDE:DDE19,14,psatz1,not smaller,error,,NaN,NaN,NaN,370,87,NaN,NaN,LB_SIZE ndv=370 m=87 above the gate (ndv 369; m 45000): not solved
+18:07:23,DDE:DDE19,15,dwP1,kept,certified,optimal,2.33e-09,1.22,1,274,76,1.9638673,0.3,
+18:07:23,DDE:DDE19,16,d31.1,kept,certified,optimal,1.89e-09,0.751,1,221,66,1.9638696,0.3,
+18:07:23,DDE:DDE19,17,d31.1,fails,error,,NaN,NaN,NaN,NaN,NaN,NaN,NaN,A cell degree specification for space 2 should have one entry per basis operator of that space.
+18:07:24,DDE:DDE19,18,capinc,not smaller,error,,NaN,NaN,NaN,221,65,NaN,NaN,LB_SIZE ndv=221 m=65 above the gate (ndv 220; m 45000): not solved
+18:07:24,DDE:DDE19,19,t:dD++d31.1,fails,error,,NaN,NaN,NaN,NaN,NaN,NaN,NaN,A cell degree specification for space 2 should have one entry per basis operator of that space.
+18:07:24,DDE:DDE19,20,t:wmin+1+d31.1,fails,error,,NaN,NaN,NaN,NaN,NaN,NaN,NaN,A cell degree specification for space 2 should have one entry per basis operator of that space.
+18:07:24,DDE:DDE19,21,t:dwP+1+d31.1,fails,error,,NaN,NaN,NaN,NaN,NaN,NaN,NaN,A cell degree specification for space 2 should have one entry per basis operator of that space.

@@ -1,0 +1,4 @@
+key,kind,form,tier,mods,best
+PDE:X1,bisect,P,stripped,"",1.7054329
+PDE:X1/stability_dual,stab,Pd,stripped,"",
+PDE:X1/stability_dual,stab,Qd,stripped,"st.lpi.ineq.dD = 0",

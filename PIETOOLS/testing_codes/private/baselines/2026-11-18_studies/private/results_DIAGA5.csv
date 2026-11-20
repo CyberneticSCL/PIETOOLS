@@ -1,0 +1,3 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:69,Q,A0,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wcross = 1",certified,0.9982,0,0,0,47025,8400,9.5,""
+PDE:69,Q,AmT,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wcross = 1",certified,1.015,0,0,0,93060,12766,13.2,""

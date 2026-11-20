@@ -1,0 +1,143 @@
+key,result,ndv,m,ndv0,tier0,verified
+DDE:DDE01,"certified up to tau(1) = 2.04",2316,178,6196,light,1
+DDE:DDE01/stability_dual,"certified",2316,186,5996,light,1
+DDE:DDE02,"certified up to tauN = 2.08398",2380,387,23540,light,1
+DDE:DDE02/stability_dual,"certified",2380,387,6800,light,1
+DDE:DDE03,"certified up to tau(1) = 1.71617",440,45,1712,light,1
+DDE:DDE03/stability_dual,"certified",280,40,545,light,1
+DDE:DDE04,"certified up to tau(1) = 6.16655",1324,141,6196,light,1
+DDE:DDE04/stability_dual,"certified",748,121,1852,light,1
+DDE:DDE05,"certified up to tau(1) = 1.5707",331,36,5233,light,1
+DDE:DDE05/stability_dual,"certified",187,31,463,light,1
+DDE:DDE06,"certified up to b (Ai{1}) = 3",331,59,20349,light,1
+DDE:DDE06/stability_dual,"certified",187,41,1700,light,1
+DDE:DDE07,"certified up to tauN = 1.37218",1324,140,6196,light,1
+DDE:DDE07/stability_dual,"certified",748,116,1852,light,1
+DDE:DDE08,"certified up to tau(1) = 3.93315",7088,188,6160,light,1
+DDE:DDE08/stability_dual,"certified",2864,137,733,light,1
+DDE:DDE09,"gamma 25.9228",651,63,1040,light,1
+DDE:DDE09/Hinf_gain_dual,"gamma 25.9169",651,64,1040,light,1
+DDE:DDE10,"gamma 0.236443",1669,178,3837,light,1
+DDE:DDE10/Hinf_gain_dual,"gamma 0.236539",1669,182,3837,light,1
+DDE:DDE11,"gamma 2.86672",732,95,1246,light,1
+DDE:DDE11/Hinf_gain_dual,"gamma 2.86706",732,96,1246,light,1
+DDE:DDE12,"gamma 4.97845",1669,177,3837,light,1
+DDE:DDE12/Hinf_gain_dual,"gamma 4.9785",1669,179,3837,light,1
+DDE:DDE13,"closed-loop gain 1.34225",11759,443,4983,light,1
+DDE:DDE14,"closed-loop gain 0.395305",811,133,4983,light,1
+DDE:DDE15,"closed-loop gain 0.610589",1425,212,5173,light,1
+DDE:DDE16,"closed-loop gain 0.963509",23449,2542,86188,light,1
+DDE:DDE17,"certified up to h = 0.14834",9608,939,132300,light,1
+DDE:DDE17/Hinf_control,"closed-loop gain 9.35134",10086,1030,29146,light,1
+DDE:DDE18,"closed-loop gain 0.333523",51580,1699,13672,light,1
+DDE:DDE20,"closed-loop gain 0.235702",217,58,1626,light,1
+DDE:DDE21,"closed-loop gain 2.32816",1543,186,4983,light,1
+DDE:DDE22,"closed-loop gain 1.35012",2717,460,17909,light,1
+DDE:DDE23,"closed-loop gain 1.8081",3057,352,10446,light,1
+DDE:DDE24,"closed-loop gain 1.04437",5953,606,17909,light,1
+DDE:DDE25,"H2 norm 3.67514",865,161,1746,light,1
+DDE:DDE25/H2_norm_dual,"H2 norm 3.6724",865,160,1746,light,1
+DDE:DDE26,"H2 norm 3.83098",24672,4620,54996,light,1
+DDE:DDE26/H2_norm_dual,"H2 norm 3.83136",24672,4585,54996,light,1
+NDSDDF:DDF01,"certified",48,28,5584,light,1
+NDSDDF:DDF01/stability_dual,"certified",48,28,1552,light,1
+NDSDDF:NDS01,"certified up to tau(1) = 2.22333",680,121,6196,light,1
+NDSDDF:NDS01/stability_dual,"certified",680,125,1852,light,1
+NDSDDF:NDS02,"certified",88,34,6196,light,1
+NDSDDF:NDS02/stability_dual,"certified",88,34,1852,light,1
+NDSDDF:NDS03,"certified",236,105,23540,light,1
+NDSDDF:NDS03/stability_dual,"certified",236,105,6800,light,1
+NDSDDF:NDS04,"certified up to tau(2) = 0.69",236,105,23540,light,1
+NDSDDF:NDS04/stability_dual,"certified",236,105,6800,light,1
+NDSDDF:NDS05,"certified up to h = 1.57978",4812,483,23540,light,1
+NDSDDF:NDS05/stability_dual,"certified",2636,411,6800,light,1
+NDSDDF:NDS07,"certified up to h = 0.444536",1139,122,20349,light,1
+NDSDDF:NDS07/stability_dual,"certified",595,102,1700,light,1
+NDSDDF:NDS08,"certified up to tau(1) = 0.0275231",3632,516,24784,light,1
+NDSDDF:NDS08/stability_dual,"certified",3632,532,7408,light,1
+NDSDDF:NDS09,"certified up to tau(1) = 0.599467",8275,870,130825,light,1
+NDSDDF:NDS09/stability_dual,"certified",4675,795,11575,light,1
+NDSDDF:NDS10,"certified",88,34,6196,light,1
+NDSDDF:NDS10/stability_dual,"certified",88,34,1852,light,1
+NDSDDF:NDS11,"certified",68,18,1712,light,1
+NDSDDF:NDS11/stability_dual,"certified",68,18,545,light,1
+NDSDDF:NDS12,"certified up to h = 0.444366",1139,122,5885,light,1
+NDSDDF:NDS12/stability_dual,"certified",595,102,1700,light,1
+PDE:1,"certified",134,34,1396,light,1
+PDE:1/stability_dual,"certified",36,20,388,light,1
+PDE:10,"certified",385,77,2093,light,1
+PDE:11,"certified up to R = 2.92969",1972,178,5584,light,1
+PDE:11/stability_dual,"certified",1972,178,1552,light,1
+PDE:12,"certified up to R = 37.5",2772,457,12564,light,1
+PDE:13,"certified",36,19,5584,light,1
+PDE:13.2,"certified",3841,284,10037,light,1
+PDE:13.2/stability_dual,"certified",5072,933,3280,light,1
+PDE:13/stability_dual,"certified",36,19,1552,light,1
+PDE:14,"certified",144,80,22336,light,1
+PDE:17,"certified",36,20,5584,light,1
+PDE:18,"certified",356,98,1417,light,1
+PDE:19,"certified",81,45,11875,light,1
+PDE:2,"certified",96,28,5584,light,1
+PDE:2.2,"certified",36,20,5584,light,1
+PDE:2.3,"certified",96,28,5584,light,1
+PDE:2.4,"certified",36,20,5584,light,1
+PDE:20,"gamma 0.500037",633,57,929,light,1
+PDE:20/Hinf_gain_dual,"gamma 0.500195",633,57,929,light,1
+PDE:21,"gamma 0.841902",1401,148,3409,light,1
+PDE:21/Hinf_gain_dual,"gamma 0.842084",1401,150,3409,light,1
+PDE:22,"gamma 0.208434",313,44,929,light,1
+PDE:23,"gamma 23.7285",633,65,929,light,1
+PDE:24,"gamma 8.2156",833,146,929,light,1
+PDE:25,"gamma 0.81037",2081,508,3409,light,1
+PDE:26,"gamma 2.14742",4845,1223,7893,light,1
+PDE:27,"closed-loop gain 1.00007",75,30,1180,light,1
+PDE:28,"closed-loop gain 1.00041",175,36,1180,light,1
+PDE:29,"closed-loop gain 1.00002",604,77,1274,light,1
+PDE:3,"certified",801,171,12564,light,1
+PDE:30,"closed-loop gain 0.626125",579,73,1394,light,1
+PDE:31,"closed-loop gain 0.000169037",8369,389,4387,light,1
+PDE:32,"closed-loop gain 0.518052",29227,672,7249,light,1
+PDE:33,"certified",89,57,52660,light,1
+PDE:34,"certified",72081,3281,72100,light,1
+PDE:35,"certified",4112,545,72100,light,1
+PDE:37,"certified",11040,837,72100,light,1
+PDE:38,"certified",380804,10791,245200,light,1
+PDE:4,"certified",464,68,5584,light,1
+PDE:4.2,"certified",36,20,5584,light,1
+PDE:4.3,"certified",720,112,5584,light,1
+PDE:4.4,"certified",420,72,5584,light,1
+PDE:40,"certified",8518,844,73463,light,1
+PDE:42,"certified",6197,945,69915,light,1
+PDE:43,"certified",132609,5086,374827,light,1
+PDE:45,"gamma 0.111119",91945,2488,351307,light,1
+PDE:46,"gamma 0.171259",200425,3967,351307,light,1
+PDE:47,"gamma 0.206727",169458,2922,351307,light,1
+PDE:48,"closed-loop gain 0.00397265",768159,5493,195866,light,1
+PDE:49,"H2 norm 0.101576",11847,579,1563,light,1
+PDE:49/H2_norm_dual,"H2 norm 0.101576",11847,579,1563,light,1
+PDE:5,"certified up to lam = 9.85997",484,45,4944,light,1
+PDE:50,"",1585445,35884,,light,0
+PDE:50/H2_norm_dual,"",1585445,34947,,light,0
+PDE:51,"closed-loop gain 1.26957",1293,103,2416,light,1
+PDE:52,"closed-loop gain 1.0908",2471,142,2523,light,1
+PDE:57,"certified",23121,2344,433725,light,1
+PDE:58,"certified",81604,4772,563813,light,1
+PDE:59,"certified",136,80,5214,light,1
+PDE:6,"certified up to lam = 2.46499",416,42,4944,light,1
+PDE:6/stability_dual,"certified",416,42,388,light,1
+PDE:60,"certified",552,142,2496,light,1
+PDE:61,"certified",132999,5264,,light,1
+PDE:62,"certified",83269,2496,86078,light,1
+PDE:63,"certified",149054,4490,165182,light,1
+PDE:64,"certified",288324,13915,288400,light,1
+PDE:66,"certified",16721,1301,56548,light,1
+PDE:67,"certified",900,436,34900,light,1
+PDE:68,"certified",324,156,12564,light,1
+PDE:7,"certified up to lam = 4.6509",8136,226,8508,light,1
+PDE:7/stability_dual,"certified",988,143,1368,light,1
+PDE:71,"gamma 0.0459442",202922,4106,354659,light,1
+PDE:72,"certified",256948,6314,676410,light,1
+PDE:9,"certified up to k = -0.000244141",227,41,2093,light,1
+PDE:9/stability_dual,"certified",227,39,463,light,1
+PDE:X1,"certified up to lam = 1.70543",189,31,,light,1
+PDE:X1/stability_dual,"certified",189,31,,light,1

@@ -47,6 +47,22 @@
 %                   and NDS08 (+0.08%, +0.49%). Measured in
 %                   cleaning/private/settings_1116/studies_1118
 %                   (D1_formP.md; DECISIONS.md D115).
+% MMP, 11/19/2026: The settings st of a library block replace the settings
+%                   (as in PIETOOLS_DDE.m), and the example names the form
+%                   of its H-infinity gain test, Hinf_gain_form ('Q' here;
+%                   a block may set 'P'; the dual appends 'd'): each library
+%                   example now carries its own settings and forms
+%                   (maintainer, 11/19/2026). The rule of the entry of
+%                   11/18/2026, 'P' wherever it certifies, is replaced by 'P'
+%                   where it is cheaper at the same accuracy (maintainer,
+%                   11/19/2026; DECISIONS.md D141); its default 'P' stands.
+% MMP, 11/19/2026: The controller and estimator branches set lpi.pos.sep
+%                   only for a stock-format lpi.pos. A storage row (len_com,
+%                   every tier since 11/17/2026) takes no sep and
+%                   exec_sop_settings rejects it, so both syntheses errored
+%                   for any settings; PIETOOLS_DDE.m sets none. The entry
+%                   of 11/12/2026 (sep = 1) holds for a stock-format lpi.pos
+%                   only.
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -57,6 +73,7 @@ stability=0; stability_dual=0;
 Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
 Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
 stability_form='P';     % storage form; a library block may set 'Q'         % MMP, 11/18/2026
+Hinf_gain_form='Q';     % gain form; a library block may set 'P'            % MMP, 11/19/2026
 DDE2DDF=0;      DDF_min=1;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,6 +246,9 @@ settings = lpisettings_sop('light');  % tiers of the container executives   % MM
 settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function %%% Default Setttings: %%%%%%
+% The example settings st, if the library block sets them, replace the      % MMP, 11/19/2026
+% settings above (they start from a tier; the block names why)              % MMP, 11/19/2026
+if exist('st','var'),   settings = st;  end                                 % MMP, 11/19/2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % END: Linear PI Inequality (LPI) solver settings:
@@ -288,16 +308,20 @@ if stability_dual==1
 end
 if Hinf_gain==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/04/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/04/2026
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/19/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,Hinf_gain_form); % MMP, 11/19/2026
 end
 if Hinf_gain_dual==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);               % MMP, 11/04/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/19/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,[Hinf_gain_form 'd']); % MMP, 11/19/2026
 end
 if Hinf_control==1
 %   settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP % MMP, 11/12/2026 (was)
 %   settings.options12.sep = 1;                                             % MMP, 11/12/2026 (was)
-    settings.lpi.pos.sep = 1;   % P separable, to construct the controller  % MMP, 11/12/2026
+%   settings.lpi.pos.sep = 1;   % P separable, to construct the controller  % MMP, 11/19/2026 (was)
+    % a storage row (len_com) takes no sep: exec_sop_settings rejects it    % MMP, 11/19/2026
+    if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/19/2026
 
 %   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/04/2026 (was)
     [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/04/2026
@@ -305,7 +329,9 @@ end
 if Hinf_estimator==1
 %   settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP % MMP, 11/12/2026 (was)
 %   settings.options12.sep = 1;                                             % MMP, 11/12/2026 (was)
-    settings.lpi.pos.sep = 1;   % P separable, to construct the estimator   % MMP, 11/12/2026
+%   settings.lpi.pos.sep = 1;   % P separable, to construct the estimator   % MMP, 11/19/2026 (was)
+    % a storage row (len_com) takes no sep: exec_sop_settings rejects it    % MMP, 11/19/2026
+    if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/19/2026
 %   [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % MMP, 11/04/2026 (was)
     [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/04/2026
 end

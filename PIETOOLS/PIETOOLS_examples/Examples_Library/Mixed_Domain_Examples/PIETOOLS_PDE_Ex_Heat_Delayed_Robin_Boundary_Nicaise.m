@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,param
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Heat equation with a delayed Robin boundary term (Nicaise, Valein,
@@ -33,22 +35,23 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,param
 % % N heat nodes, M transport nodes) [finite differences]:
 % %   mu1 = 0.5: -0.762312 (N = 100, M = 200), -0.762261 (N = 200, M = 400);
 % %   mu1 = 2:   -0.206656 (N = 100, M = 200), -0.198679 (N = 200, M = 400).
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), mu0 = 1, tau = 1: certified at mu1 = 0.5 and
-% % mu1 = 2 with the stock light settings (21,024 decision variables) and
-% % with the proposed light row of the settings proposal of 11/15/2026
-% % (22,480).
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: the light tier certifies this example              % MMP, 11/17/2026
-% % (record above). Its storage is the proposed light row since             % MMP, 11/17/2026
-% % 11/17/2026; its slack of 11/17/2026 (wcross 0, 2-D faces at offset      % MMP, 11/17/2026
-% % 1) was not rerun.                                                       % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier certifies the example, so
 %                   no second output st (application-specific settings);
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+%                   the entry of 11/17/2026 (no second output st) no longer
+%                   holds;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -59,6 +62,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 mu0 = 1;    mu1 = 0.5;  tau = 1;
 npars = length(params);
@@ -81,6 +85,13 @@ PDE_t = [diff(u,'t')==diff(u,s1,2);
          subs(diff(u,s1),s1,pi)==-mu0*subs(u,s1,pi)-mu1*subs(y,s2,1);
          subs(y,s2,0)==subs(u,s1,pi)];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st.lpi.ineq.psatz{2} = 'none';                                              % MMP, 11/19/2026
+st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
+st.sop.deg_Q{2} = [2 1 1];                                                  % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

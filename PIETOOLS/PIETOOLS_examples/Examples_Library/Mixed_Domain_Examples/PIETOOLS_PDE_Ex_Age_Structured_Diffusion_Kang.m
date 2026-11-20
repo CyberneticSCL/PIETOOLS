@@ -30,33 +30,6 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params)
 % % Threshold [derived from the modes, exact]: in the sine modes in s2 the
 % % first mode decays iff R_eff = b*(1-exp(-c))/c < 1, c = mu + d*pi^2:
 % %   stable iff b < b* = c/(1-exp(-c)) = 2.302685   (c = 1.986960).
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, MOSEK, 11/17/2026):
-% %   - stock light settings: certified at b = 0.1*b*, 0.5*b* (103,744
-% %     decision variables); infeasible at 0.9*b* and 1.1*b* (187,984,
-% %     after one raise).
-% %   - proposed light row of the settings proposal of 11/15/2026:
-% %     infeasible at 0.9*b* and 1.1*b* (188,545).
-% %   - stock heavy settings: certified at 0.9*b* (751,849).
-% %                                                                         % MMP, 11/17/2026
-% % Light tier, direct form (PIETOOLS_stability_sop(PIE,                    % MMP, 11/17/2026
-% % lpisettings_sop('light'),'Q')): certified at 0.9*b*, 56,548 decision    % MMP, 11/17/2026
-% % variables, no raise (MOSEK, 11/17/2026).                                % MMP, 11/17/2026
-% % Application-specific settings (output st), for the storage form 'P':    % MMP, 11/17/2026
-% % lpisettings_sop('heavy') (2-D storage d3 row 1 = [2 2]) with no slack   % MMP, 11/17/2026
-% % weight raise in two variables, st.sop.dw_feas(2) = 0. Through the       % MMP, 11/17/2026
-% % executive (MOSEK, 11/17/2026), 0.9*b*: infeasible at dw 0 (27,216),     % MMP, 11/17/2026
-% % certified after one raise (189,216 variables); the heavy tier alone     % MMP, 11/17/2026
-% % certifies at 752,976. In 'Q' this st certifies at 210,361.              % MMP, 11/17/2026
-% %                                                                         % MMP, 11/18/2026
-% % Example-specific settings of 11/18/2026 (output st), for the form       % MMP, 11/18/2026
-% % 'Q' that the library runs: lpisettings_sop('light') with the slack      % MMP, 11/18/2026
-% % lift degree at its minimum, st.lpi.ineq.dD = 0. MOSEK, 11/18/2026,      % MMP, 11/18/2026
-% % 0.9*b*: certified at 16,740 decision variables, 1,301 rows, no raise    % MMP, 11/18/2026
-% % (OPT_STATUS 1.00, eta 9.4e-11); light: 56,548; the 11/17 st (heavy,     % MMP, 11/18/2026
-% % dw_feas(2) = 0): 210,361 in 'Q'. For the form 'P' keep the 11/17 st     % MMP, 11/18/2026
-% % (189,216 after one raise, OPT_STATUS 1.00): with dD = 0 'P' is          % MMP, 11/18/2026
-% % infeasible (149,776 after two raises).                                  % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
@@ -68,6 +41,16 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params)
 % MMP, 11/18/2026: st for the form 'Q' of the library: light with the
 %                   slack lift degree at its minimum, 12.6 times fewer
 %                   variables than the 11/17 st in 'Q' (header);
+% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
+%                   (maintainer: no default settings): st.sop.deg_Q{2} = [0 1 1];
+%                   the form of its tests named in the workspace.
+% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
+%                   recorded tests and files the user does not have, not the problem;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -78,6 +61,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 d = 0.1;    mu = 1;     b = 0.9*2.302685;
 npars = length(params);
@@ -100,13 +84,13 @@ PDE_t = [diff(q,'t')==-diff(q,s1)+d*diff(q,s2,2)-mu*q;
 
 % Application-specific settings (header): the heavy tier, for the           % MMP, 11/18/2026 (was); MMP, 11/17/2026
 % storage form 'P', without the slack weight raise in two variables         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
-% minimum (dD = 0), for the form 'Q'                                        % MMP, 11/18/2026
+% Example-specific settings                                                 % MMP, 11/19/2026
 if nargout>1                                                                % MMP, 11/17/2026
 %    st = lpisettings_sop('heavy');                                         % MMP, 11/18/2026 (was); MMP, 11/17/2026
     st = lpisettings_sop('light');                                          % MMP, 11/18/2026
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
 %    st.sop.dw_feas(2) = 0;                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
+    st.sop.deg_Q{2} = [0 1 1];                                              % MMP, 11/19/2026
 end                                                                         % MMP, 11/17/2026
 
 if GUI~=0

@@ -1,0 +1,3 @@
+key,kind,form,tier,mods,best
+PDE:39,stab,Q,light,"st.lpi.ineq.wcross = 1; st.sop.max_raise_Q(2) = 0",
+PDE:65,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 0 0]; st.lpi.ineq.wcross = 1",

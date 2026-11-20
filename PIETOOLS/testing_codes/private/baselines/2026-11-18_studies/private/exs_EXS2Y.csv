@@ -1,0 +1,121 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:05:19,PDE:46,40,psatz2,not smaller,error,,NaN,NaN,NaN,351714,7010,NaN,NaN,LB_SIZE ndv=351714 m=7010 above the gate (ndv 200424; m 45000): not solved
+05:05:20,PDE:46,41,wmin2,not smaller,error,,NaN,NaN,NaN,200425,3966,NaN,NaN,LB_SIZE ndv=200425 m=3966 above the gate (ndv 200424; m 45000): not solved
+05:05:25,PDE:46,42,dwP2,not smaller,error,,NaN,NaN,NaN,200425,3966,NaN,NaN,LB_SIZE ndv=200425 m=3966 above the gate (ndv 200424; m 45000): not solved
+05:05:25,PDE:46,43,raise2,not smaller,error,,NaN,NaN,NaN,200425,3966,NaN,NaN,LB_SIZE ndv=200425 m=3966 above the gate (ndv 200424; m 45000): not solved
+05:05:26,PDE:46,44,capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.5,
+05:05:39,PDE:46,45,x:wcross1+dD0,fails,infeasible,unknown,1.18e-15,-1,2,169458,2938,35981912,13.4,
+05:05:47,PDE:46,46,x:wcross1+d22.1,not smaller,error,,NaN,NaN,NaN,365142,4502,NaN,NaN,LB_SIZE ndv=365142 m=4502 above the gate (ndv 200424; m 45000): not solved
+05:05:55,PDE:46,47,x:wcross1+d22.2,not smaller,error,,NaN,NaN,NaN,365142,4502,NaN,NaN,LB_SIZE ndv=365142 m=4502 above the gate (ndv 200424; m 45000): not solved
+05:06:03,PDE:46,48,x:wcross1+d32.1,not smaller,error,,NaN,NaN,NaN,396978,5269,NaN,NaN,LB_SIZE ndv=396978 m=5269 above the gate (ndv 200424; m 45000): not solved
+05:06:16,PDE:46,49,x:wcross1+d32.2,fails,infeasible,unknown,3.56e-15,-1.01,2,169410,2872,13803123,12.9,
+05:06:25,PDE:46,50,x:wcross1+d32.4,not smaller,error,,NaN,NaN,NaN,396978,5269,NaN,NaN,LB_SIZE ndv=396978 m=5269 above the gate (ndv 200424; m 45000): not solved
+05:06:37,PDE:46,51,x:wcross1+d32.5,fails,infeasible,unknown,3.56e-15,-1.01,2,169410,2872,13803123,12.5,
+05:06:52,PDE:46,52,x:wcross1+psatz2,not smaller,error,,NaN,NaN,NaN,351714,7010,NaN,NaN,LB_SIZE ndv=351714 m=7010 above the gate (ndv 200424; m 45000): not solved
+05:06:53,PDE:46,53,x:wcross1+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.4,
+05:07:06,PDE:46,54,x:lencross2+dD0,fails,infeasible,unknown,1.18e-15,-1,2,169458,2938,35981912,13.1,
+05:07:13,PDE:46,55,x:lencross2+d22.1,not smaller,error,,NaN,NaN,NaN,365142,4502,NaN,NaN,LB_SIZE ndv=365142 m=4502 above the gate (ndv 200424; m 45000): not solved
+05:07:20,PDE:46,56,x:lencross2+d22.2,not smaller,error,,NaN,NaN,NaN,365142,4502,NaN,NaN,LB_SIZE ndv=365142 m=4502 above the gate (ndv 200424; m 45000): not solved
+05:07:28,PDE:46,57,x:lencross2+d32.1,not smaller,error,,NaN,NaN,NaN,396978,5269,NaN,NaN,LB_SIZE ndv=396978 m=5269 above the gate (ndv 200424; m 45000): not solved
+05:07:40,PDE:46,58,x:lencross2+d32.2,fails,infeasible,unknown,3.56e-15,-1.01,2,169410,2872,13803123,12.5,
+05:07:49,PDE:46,59,x:lencross2+d32.4,not smaller,error,,NaN,NaN,NaN,396978,5269,NaN,NaN,LB_SIZE ndv=396978 m=5269 above the gate (ndv 200424; m 45000): not solved
+05:08:01,PDE:46,60,x:lencross2+d32.5,fails,infeasible,unknown,3.56e-15,-1.01,2,169410,2872,13803123,12.5,
+05:08:16,PDE:46,61,x:lencross2+psatz2,not smaller,error,,NaN,NaN,NaN,351714,7010,NaN,NaN,LB_SIZE ndv=351714 m=7010 above the gate (ndv 200424; m 45000): not solved
+05:08:16,PDE:46,62,x:lencross2+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:08:29,PDE:46,63,t:d2+1.1+dD0,fails,infeasible,unknown,1.18e-15,-1,2,169458,2938,35981912,13.1,
+05:08:44,PDE:46,64,t:d2+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,351714,7010,NaN,NaN,LB_SIZE ndv=351714 m=7010 above the gate (ndv 200424; m 45000): not solved
+05:08:45,PDE:46,65,t:d2+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:08:58,PDE:46,66,t:d3+1.1+dD0,fails,infeasible,unknown,1.18e-15,-1,2,169458,2938,35981912,13.3,
+05:09:13,PDE:46,67,t:d3+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,351714,7010,NaN,NaN,LB_SIZE ndv=351714 m=7010 above the gate (ndv 200424; m 45000): not solved
+05:09:13,PDE:46,68,t:d3+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.4,
+05:09:26,PDE:46,69,t:d3+1.2+dD0,fails,infeasible,unknown,1.18e-15,-1,2,169458,2938,35981912,13.0,
+05:09:28,PDE:45,40,wmin2,not smaller,error,,NaN,NaN,NaN,91945,2487,NaN,NaN,LB_SIZE ndv=91945 m=2487 above the gate (ndv 91944; m 45000): not solved
+05:09:29,PDE:45,41,dwP2,not smaller,error,,NaN,NaN,NaN,91945,2487,NaN,NaN,LB_SIZE ndv=91945 m=2487 above the gate (ndv 91944; m 45000): not solved
+05:09:30,PDE:45,42,raise2,not smaller,error,,NaN,NaN,NaN,91945,2487,NaN,NaN,LB_SIZE ndv=91945 m=2487 above the gate (ndv 91944; m 45000): not solved
+05:09:30,PDE:45,43,capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:09:33,PDE:45,44,x:wcross1+dD0,fails,infeasible,infeasible,0.258,-1.47,2,47986,1504,0.0011958385,2.9,
+05:09:35,PDE:45,45,x:wcross1+d22.1,fails,certified,optimal,1.72e-08,0.833,1,42797,1584,1.7797693,1.7,
+05:09:38,PDE:45,46,x:wcross1+d32.1,not smaller,error,,NaN,NaN,NaN,181842,3362,NaN,NaN,LB_SIZE ndv=181842 m=3362 above the gate (ndv 91944; m 45000): not solved
+05:09:40,PDE:45,47,x:wcross1+d32.2,fails,certified,optimal,2e-08,0.999,1,42777,1566,1.7796351,2.2,
+05:09:44,PDE:45,48,x:wcross1+d32.4,not smaller,error,,NaN,NaN,NaN,181822,3300,NaN,NaN,LB_SIZE ndv=181822 m=3300 above the gate (ndv 91944; m 45000): not solved
+05:09:46,PDE:45,49,x:wcross1+pat2,fails,certified,optimal,2e-08,0.999,1,42777,1566,1.7796351,2.3,
+05:09:53,PDE:45,50,x:wcross1+psatz2,not smaller,error,,NaN,NaN,NaN,160866,4478,NaN,NaN,LB_SIZE ndv=160866 m=4478 above the gate (ndv 91944; m 45000): not solved
+05:09:54,PDE:45,51,x:wcross1+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:09:56,PDE:45,52,x:lencross2+dD0,fails,infeasible,infeasible,0.258,-1.47,2,47986,1504,0.0011958385,2.6,
+05:09:58,PDE:45,53,x:lencross2+d22.1,fails,certified,optimal,1.72e-08,0.833,1,42797,1584,1.7797693,1.6,
+05:10:00,PDE:45,54,x:lencross2+d32.1,not smaller,error,,NaN,NaN,NaN,181842,3362,NaN,NaN,LB_SIZE ndv=181842 m=3362 above the gate (ndv 91944; m 45000): not solved
+05:10:03,PDE:45,55,x:lencross2+d32.2,fails,certified,optimal,2e-08,0.999,1,42777,1566,1.7796351,2.2,
+05:10:05,PDE:45,56,x:lencross2+d32.4,not smaller,error,,NaN,NaN,NaN,181822,3300,NaN,NaN,LB_SIZE ndv=181822 m=3300 above the gate (ndv 91944; m 45000): not solved
+05:10:07,PDE:45,57,x:lencross2+pat2,fails,certified,optimal,2e-08,0.999,1,42777,1566,1.7796351,2.1,
+05:10:15,PDE:45,58,x:lencross2+psatz2,not smaller,error,,NaN,NaN,NaN,160866,4478,NaN,NaN,LB_SIZE ndv=160866 m=4478 above the gate (ndv 91944; m 45000): not solved
+05:10:15,PDE:45,59,x:lencross2+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:10:18,PDE:45,60,t:d2+1.1+dD0,fails,infeasible,infeasible,0.258,-1.47,2,47986,1504,0.0011958385,2.7,
+05:10:25,PDE:45,61,t:d2+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,160866,4478,NaN,NaN,LB_SIZE ndv=160866 m=4478 above the gate (ndv 91944; m 45000): not solved
+05:10:25,PDE:45,62,t:d2+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:10:28,PDE:45,63,t:d3+1.1+dD0,fails,infeasible,infeasible,0.258,-1.47,2,47986,1504,0.0011958385,2.6,
+05:10:35,PDE:45,64,t:d3+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,160866,4478,NaN,NaN,LB_SIZE ndv=160866 m=4478 above the gate (ndv 91944; m 45000): not solved
+05:10:36,PDE:45,65,t:d3+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:10:39,PDE:45,66,t:d3+1.2+dD0,fails,infeasible,infeasible,0.258,-1.47,2,47986,1504,0.0011958385,2.9,
+05:10:48,PDE:45,67,t:d3+1.2+psatz2,not smaller,error,,NaN,NaN,NaN,160866,4478,NaN,NaN,LB_SIZE ndv=160866 m=4478 above the gate (ndv 91944; m 45000): not solved
+05:10:48,PDE:45,68,t:d3+1.2+capinc,fails,infeasible,infeasible,NaN,-1,2,1290,0,NaN,0.3,
+05:10:51,PDE:45,69,t:d3+1.3+dD0,fails,infeasible,infeasible,0.258,-1.47,2,47986,1504,0.0011958385,3.3,
+05:10:57,PDE:71,40,dwP2,not smaller,error,,NaN,NaN,NaN,202922,4105,NaN,NaN,LB_SIZE ndv=202922 m=4105 above the gate (ndv 202921; m 45000): not solved
+05:10:57,PDE:71,41,raise2,not smaller,error,,NaN,NaN,NaN,202922,4105,NaN,NaN,LB_SIZE ndv=202922 m=4105 above the gate (ndv 202921; m 45000): not solved
+05:10:58,PDE:71,42,capinc,fails,infeasible,infeasible,NaN,-1,2,1626,0,NaN,0.4,
+05:11:00,PDE:71,43,x:wcross1+dD0,fails,certified,optimal,2.84e-10,1,1,44907,1712,0.079415807,2.6,
+05:11:06,PDE:71,44,x:wcross1+d22.1,fails,certified,optimal,2.19e-09,1,1,94987,2609,0.070334982,5.3,
+05:11:13,PDE:71,45,x:wcross1+d22.2,kept,certified,optimal,8.67e-10,0.987,1,94987,2648,0.045980398,7.0,
+05:11:14,PDE:71,46,dD0,fails,infeasible,infeasible,NaN,-1,2,51338,0,NaN,1.0,
+05:11:16,PDE:71,47,d22.1,fails,certified,optimal,1.52e-09,0.874,1,44886,1678,0.079539701,2.5,
+05:11:19,PDE:71,48,d22.2,fails,certified,optimal,2.81e-10,1,1,44883,1676,0.079415663,2.7,
+05:11:26,PDE:71,49,d32.1,not smaller,error,,NaN,NaN,NaN,374405,4750,NaN,NaN,LB_SIZE ndv=374405 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:11:29,PDE:71,50,d32.2,fails,certified,optimal,2.81e-10,1,1,44883,1676,0.079415663,2.4,
+05:11:35,PDE:71,51,d32.4,not smaller,error,,NaN,NaN,NaN,374405,4750,NaN,NaN,LB_SIZE ndv=374405 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:11:38,PDE:71,52,d32.5,fails,certified,optimal,2.81e-10,1,1,44883,1676,0.079415663,2.5,
+05:11:42,PDE:71,53,psatz2,not smaller,error,,NaN,NaN,NaN,166474,4750,NaN,NaN,LB_SIZE ndv=166474 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:11:43,PDE:71,54,capinc,fails,infeasible,infeasible,NaN,-1,2,1818,0,NaN,0.3,
+05:11:43,PDE:71,55,x:lencross2+dD0,fails,infeasible,infeasible,NaN,-1,2,51338,0,NaN,0.4,
+05:11:45,PDE:71,56,x:lencross2+d22.1,fails,certified,optimal,1.52e-09,0.874,1,44886,1678,0.079539701,2.2,
+05:11:48,PDE:71,57,x:lencross2+d22.2,fails,certified,optimal,2.81e-10,1,1,44883,1676,0.079415663,2.2,
+05:11:54,PDE:71,58,x:lencross2+d32.1,not smaller,error,,NaN,NaN,NaN,374405,4750,NaN,NaN,LB_SIZE ndv=374405 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:11:56,PDE:71,59,x:lencross2+d32.2,fails,certified,optimal,2.81e-10,1,1,44883,1676,0.079415663,2.2,
+05:12:02,PDE:71,60,x:lencross2+d32.4,not smaller,error,,NaN,NaN,NaN,374405,4750,NaN,NaN,LB_SIZE ndv=374405 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:12:05,PDE:71,61,x:lencross2+d32.5,fails,certified,optimal,2.81e-10,1,1,44883,1676,0.079415663,2.3,
+05:12:09,PDE:71,62,x:lencross2+psatz2,not smaller,error,,NaN,NaN,NaN,166474,4750,NaN,NaN,LB_SIZE ndv=166474 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:12:09,PDE:71,63,x:lencross2+capinc,fails,infeasible,infeasible,NaN,-1,2,1818,0,NaN,0.2,
+05:12:09,PDE:71,64,t:d2+1.1+dD0,fails,infeasible,infeasible,NaN,-1,2,51338,0,NaN,0.4,
+05:12:13,PDE:71,65,t:d2+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,166474,4750,NaN,NaN,LB_SIZE ndv=166474 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:12:14,PDE:71,66,t:d2+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,1818,0,NaN,0.2,
+05:12:14,PDE:71,67,t:d3+1.1+dD0,fails,infeasible,infeasible,NaN,-1,2,51338,0,NaN,0.3,
+05:12:18,PDE:71,68,t:d3+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,166474,4750,NaN,NaN,LB_SIZE ndv=166474 m=4750 above the gate (ndv 94986; m 45000): not solved
+05:12:18,PDE:71,69,t:d3+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,1818,0,NaN,0.2,
+05:12:19,PDE:47,40,raise2,not smaller,error,,NaN,NaN,NaN,169458,2921,NaN,NaN,LB_SIZE ndv=169458 m=2921 above the gate (ndv 169457; m 45000): not solved
+05:12:20,PDE:47,41,capinc,fails,infeasible,infeasible,NaN,-1,2,2729,0,NaN,0.4,
+05:12:22,PDE:47,42,x:wcross1+dwP1,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.0,
+05:12:30,PDE:47,43,x:wcross1+d22.1,fails,infeasible,infeasible,0.238,-0.995,2,135213,2355,0.00020387401,8.4,
+05:12:38,PDE:47,44,x:wcross1+d22.2,fails,infeasible,infeasible,0.241,-1.01,2,135213,2355,0.00020430812,8.4,
+05:12:42,PDE:47,45,x:wcross1+d32.1,fails,certified,optimal,1.56e-09,1,1,84498,2170,0.20774165,3.9,
+05:12:45,PDE:47,46,x:wcross1+d32.2,fails,infeasible,unknown,7.93e-16,-0.989,2,42137,1195,39397964,2.3,
+05:12:48,PDE:47,47,x:wcross1+d32.4,fails,certified,optimal,1.35e-09,0.999,1,84498,2170,0.20774398,3.6,
+05:12:50,PDE:47,48,x:wcross1+d32.5,fails,infeasible,unknown,7.93e-16,-0.989,2,42137,1195,39397964,2.1,
+05:12:58,PDE:47,49,x:wcross1+psatz2,not smaller,error,,NaN,NaN,NaN,181541,4623,NaN,NaN,LB_SIZE ndv=181541 m=4623 above the gate (ndv 169457; m 45000): not solved
+05:13:00,PDE:47,50,x:wcross1+dwP2,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.1,
+05:13:00,PDE:47,51,x:wcross1+capinc,fails,infeasible,infeasible,NaN,-1,2,2729,0,NaN,0.3,
+05:13:02,PDE:47,52,x:lencross2+dwP1,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.0,
+05:13:11,PDE:47,53,x:lencross2+d22.1,fails,infeasible,infeasible,0.238,-0.995,2,135213,2355,0.00020387401,8.1,
+05:13:20,PDE:47,54,x:lencross2+d22.2,fails,infeasible,infeasible,0.241,-1.01,2,135213,2355,0.00020430812,9.1,
+05:13:23,PDE:47,55,x:lencross2+d32.1,fails,certified,optimal,1.56e-09,1,1,84498,2170,0.20774165,3.3,
+05:13:25,PDE:47,56,x:lencross2+d32.2,fails,infeasible,unknown,7.93e-16,-0.989,2,42137,1195,39397964,2.0,
+05:13:29,PDE:47,57,x:lencross2+d32.4,fails,certified,optimal,1.35e-09,0.999,1,84498,2170,0.20774398,3.9,
+05:13:31,PDE:47,58,x:lencross2+d32.5,fails,infeasible,unknown,7.93e-16,-0.989,2,42137,1195,39397964,2.2,
+05:13:39,PDE:47,59,x:lencross2+psatz2,not smaller,error,,NaN,NaN,NaN,181541,4623,NaN,NaN,LB_SIZE ndv=181541 m=4623 above the gate (ndv 169457; m 45000): not solved
+05:13:41,PDE:47,60,x:lencross2+dwP2,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.3,
+05:13:41,PDE:47,61,x:lencross2+capinc,fails,infeasible,infeasible,NaN,-1,2,2729,0,NaN,0.3,
+05:13:44,PDE:47,62,t:d2+1.1+dwP1,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.4,
+05:13:52,PDE:47,63,t:d2+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,181541,4623,NaN,NaN,LB_SIZE ndv=181541 m=4623 above the gate (ndv 169457; m 45000): not solved
+05:13:54,PDE:47,64,t:d2+1.1+dwP2,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.0,
+05:13:54,PDE:47,65,t:d2+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,2729,0,NaN,0.3,
+05:13:56,PDE:47,66,t:d3+1.1+dwP1,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.0,
+05:14:04,PDE:47,67,t:d3+1.1+psatz2,not smaller,error,,NaN,NaN,NaN,181541,4623,NaN,NaN,LB_SIZE ndv=181541 m=4623 above the gate (ndv 169457; m 45000): not solved
+05:14:06,PDE:47,68,t:d3+1.1+dwP2,fails,certified,optimal,3.16e-09,1,1,42825,1616,0.20920342,2.3,
+05:14:07,PDE:47,69,t:d3+1.1+capinc,fails,infeasible,infeasible,NaN,-1,2,2729,0,NaN,0.3,

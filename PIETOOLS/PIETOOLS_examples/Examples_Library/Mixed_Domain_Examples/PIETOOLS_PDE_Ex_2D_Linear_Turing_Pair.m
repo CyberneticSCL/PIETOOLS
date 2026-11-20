@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)     % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Linear Turing system: two 2D states coupled in-domain (Turing 1952;
@@ -28,21 +30,21 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)
 % %   stable iff d < d* = 4.461640   (same d* for bc = 'D').
 % % Maximum real part over the modes m,n <= 20: -0.759 (0.9*d*),
 % % -0.070 (0.99*d*), +0.069 (1.01*d*).
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), bc = 'N', d = 0.9*d*: certified with the stock
-% % light settings (2,102,410 decision variables, 740 s); the run with
-% % the proposed light row of the settings proposal of 11/15/2026
-% % (2,120,516 variables) was not completed.
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: the light tier certified this example with the     % MMP, 11/17/2026
-% % stock storage (record above); the light tier of 11/17/2026 (the         % MMP, 11/17/2026
-% % proposed row, wcross 0, 2-D faces at offset 1) was not rerun.           % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier certifies the example, so
 %                   no second output st (application-specific settings);
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: Output st, the recommended settings of the example, and
+%                   the form of its stability test ('P');
+%                   certified with the stock 2-D storage;
+%                   (maintainer: every example names its settings);
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)      % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -53,6 +55,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
 
 d = 0.9*4.461640;   bc = 'N';
 npars = length(params);
@@ -79,6 +82,10 @@ else
              subs(x,s2,0)==[0;0];   subs(x,s2,1)==[0;0]];
 end
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.settings_2d = settings_2d_stock('light');                                % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

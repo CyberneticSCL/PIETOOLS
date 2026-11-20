@@ -1,0 +1,14 @@
+PDE|33|stripped
+PDE|34|stripped
+PDE|35|stripped
+PDE|37|stripped
+PDE|42|stripped
+PDE|59|stripped
+PDE|60|stripped
+PDE|61|stripped
+PDE|62|stripped
+PDE|63|stripped
+PDE|64|stripped
+PDE|67|stripped
+PDE|68|stripped
+PDE|71|stripped

@@ -1,0 +1,134 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+02:05:52,PDE:4.5,0,start1 P veryheavy ,start fails,infeasible,infeasible,0.0152,-1,4,50384,700,NaN,5.3,
+02:06:02,PDE:4.5,0,start2 Q veryheavy ,start fails,infeasible,infeasible,0.0322,-1,4,185720,2491,NaN,9.9,
+02:06:05,PDE:41,0,start1 P heavy st.lpi.ineq.wcross = 1,start fails,unknown,optimal,0.00274,0.012,1,4084,217,NaN,1.2,
+02:06:08,PDE:41,0,start2 Q heavy st.lpi.ineq.wcross = 1,start fails,unknown,unknown,5.14e-10,0.0775,3,19776,797,NaN,2.3,
+02:06:09,PDE:41,0,start3 P light st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1,start fails,unknown,unknown,6.05e-15,-0.0969,3,4000,217,NaN,1.2,
+02:06:15,PDE:41,0,start4 P veryheavy ,start fails,unknown,unknown,6.33e-12,0.00379,4,50384,729,NaN,6.5,
+02:06:26,PDE:41,0,start5 Q veryheavy ,start fails,unknown,unknown,8.03e-08,-0.8,4,185720,2705,NaN,11.1,
+02:07:34,PDE:72,0,start1 Q light st.lpi.ineq.wcross = 1,start fails,inaccurate,unknown,8.01e-09,1.15,2,710835,8150,NaN,65.6,
+02:07:44,PDE:72,0,start2 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2; st.lpi.ineq.wcross = 1,start,certified,optimal,2.23e-09,0.761,1,256948,6314,NaN,10.9,
+02:07:45,PDE:72,1,degQ1.1,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:07:47,PDE:72,2,degQ1.2,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:07:48,PDE:72,3,degQ1.3,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:07:49,PDE:72,4,psatz1,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:07:50,PDE:72,5,wmin1,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:07:51,PDE:72,6,raiseQ1,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:08:12,PDE:72,7,degQ2.1,not smaller,error,,NaN,NaN,NaN,1.34724e+06,10977,NaN,NaN,LB_SIZE ndv=1347240 m=10977 above the gate (ndv 256947; m 30000): not solved
+02:08:16,PDE:72,8,degQ2.2,not smaller,error,,NaN,NaN,NaN,346862,4901,NaN,NaN,LB_SIZE ndv=346862 m=4901 above the gate (ndv 256947; m 30000): not solved
+02:08:23,PDE:72,9,degQ2.3,not smaller,error,,NaN,NaN,NaN,711015,8435,NaN,NaN,LB_SIZE ndv=711015 m=8435 above the gate (ndv 256947; m 30000): not solved
+02:08:36,PDE:72,10,psatz2,not smaller,error,,NaN,NaN,NaN,689088,11017,NaN,NaN,LB_SIZE ndv=689088 m=11017 above the gate (ndv 256947; m 30000): not solved
+02:08:37,PDE:72,11,wmin2,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:08:37,PDE:72,12,raiseQ2,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:08:38,PDE:72,13,capinc,not smaller,error,,NaN,NaN,NaN,256948,6314,NaN,NaN,LB_SIZE ndv=256948 m=6314 above the gate (ndv 256947; m 30000): not solved
+02:08:44,PDE:36,0,start1 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1,start fails,unknown,optimal,1.82e-08,0.375,1,52880,5643,NaN,4.7,
+02:08:47,PDE:36,0,start2 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1,start fails,unknown,optimal,2.87e-08,2.39,1,52964,5679,NaN,3.8,
+02:11:37,PDE:36,0,start3 P light st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,1,-1,2,754180,12115,NaN,169.8,
+02:19:59,PDE:36,0,start4 P heavy st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,3.89229e+06,19368,NaN,NaN,LB_SIZE ndv=3892288 m=19368 above the gate (ndv 2e+06; m 30000): not solved
+02:20:07,PDE:39,0,start1 Q light st.lpi.ineq.wcross = 1; st.sop.max_raise_Q(2) = 0,start fails,error,,NaN,NaN,NaN,648900,30721,NaN,NaN,LB_SIZE ndv=648900 m=30721 above the gate (ndv 2e+06; m 30000): not solved
+02:20:56,PDE:39,0,start2 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1,start fails,unknown,optimal,1.32e-08,2.64,1,316737,16103,NaN,48.5,
+03:12:49,PDE:50,16,d32.5,fails,certified,optimal,4.75e-07,1,1,501633,7477,0.88316512,64.8,
+03:13:46,PDE:50,17,pat2,fails,certified,optimal,5.29e-07,1,1,501969,7449,0.90380513,57.2,
+03:14:51,PDE:50,18,psatz2,not smaller,error,,NaN,NaN,NaN,676001,12344,NaN,NaN,LB_SIZE ndv=676001 m=12344 above the gate (ndv 503632; m 30000): not solved
+03:14:53,PDE:50,19,wmin2,not smaller,error,,NaN,NaN,NaN,503633,7475,NaN,NaN,LB_SIZE ndv=503633 m=7475 above the gate (ndv 503632; m 30000): not solved
+03:15:08,PDE:50,20,dwP2,not smaller,error,,NaN,NaN,NaN,503633,7475,NaN,NaN,LB_SIZE ndv=503633 m=7475 above the gate (ndv 503632; m 30000): not solved
+03:15:11,PDE:50,21,raise2,not smaller,error,,NaN,NaN,NaN,503633,7475,NaN,NaN,LB_SIZE ndv=503633 m=7475 above the gate (ndv 503632; m 30000): not solved
+03:15:18,PDE:50,22,capinc,fails,inaccurate,unknown,7.96e-09,0.866,2,41285,1757,1.8852714,7.0,
+03:15:21,PDE:50,23,x:wcross1+d21.1,not smaller,error,,NaN,NaN,NaN,519525,7597,NaN,NaN,LB_SIZE ndv=519525 m=7597 above the gate (ndv 503632; m 30000): not solved
+03:15:23,PDE:50,24,x:wcross1+d11.1,not smaller,error,,NaN,NaN,NaN,519525,7581,NaN,NaN,LB_SIZE ndv=519525 m=7581 above the gate (ndv 503632; m 30000): not solved
+03:15:25,PDE:50,25,x:wcross1+d31.1,not smaller,error,,NaN,NaN,NaN,519642,7597,NaN,NaN,LB_SIZE ndv=519642 m=7597 above the gate (ndv 503632; m 30000): not solved
+03:15:28,PDE:50,26,x:wcross1+d31.2,not smaller,error,,NaN,NaN,NaN,519525,7599,NaN,NaN,LB_SIZE ndv=519525 m=7599 above the gate (ndv 503632; m 30000): not solved
+03:15:30,PDE:50,27,x:wcross1+d31.3,not smaller,error,,NaN,NaN,NaN,519525,7588,NaN,NaN,LB_SIZE ndv=519525 m=7588 above the gate (ndv 503632; m 30000): not solved
+03:15:33,PDE:50,28,x:wcross1+pat1,not smaller,error,,NaN,NaN,NaN,519297,7511,NaN,NaN,LB_SIZE ndv=519297 m=7511 above the gate (ndv 503632; m 30000): not solved
+03:15:39,PDE:50/H2_norm_dual,0,start1 cco stripped st.lpi.ineq.dD = 0,start fails,infeasible,infeasible,0.000497,-1,1,96417,3929,3.3660002,5.0,
+03:22:32,PDE:50/H2_norm_dual,0,start2 cco light st.lpi.ineq.dD = 0,start fails,infeasible,infeasible,0.000356,-1,2,1.66006e+06,12446,3.976318,412.2,
+03:22:44,PDE:56,0,start1 Q light st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,840156,33352,NaN,NaN,LB_SIZE ndv=840156 m=33352 above the gate (ndv 2e+06; m 30000): not solved
+03:22:49,PDE:56,0,start2 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.sop.raise_Q = 'deg'; st.sop.max_raise_Q(2) = 2,start fails,error,,NaN,NaN,NaN,840156,33352,NaN,NaN,LB_SIZE ndv=840156 m=33352 above the gate (ndv 2e+06; m 30000): not solved
+03:23:01,PDE:56,0,start3 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1,start fails,error,,NaN,NaN,NaN,1.49244e+06,36021,NaN,NaN,LB_SIZE ndv=1492444 m=36021 above the gate (ndv 2e+06; m 30000): not solved
+03:24:00,PDE:56,0,start4 P light st.lpi.ineq.dD = 0,start fails,infeasible,infeasible,1,-1,1,266148,19989,NaN,58.4,
+03:24:04,PDE:56,0,start5 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto',start fails,error,,NaN,NaN,NaN,840156,33352,NaN,NaN,LB_SIZE ndv=840156 m=33352 above the gate (ndv 2e+06; m 30000): not solved
+03:26:01,PDE:65,0,start1 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,0.0597,-1,2,499640,18709,NaN,114.5,
+03:28:11,PDE:65,0,start2 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 0 0]; st.lpi.ineq.wcross = 1,start fails,error,,NaN,NaN,NaN,2.03947e+06,28303,NaN,NaN,LB_SIZE ndv=2039468 m=28303 above the gate (ndv 2e+06; m 30000): not solved
+03:30:59,PDE:65,0,start1 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,0.0597,-1,2,499640,18709,NaN,146.9,
+03:33:18,PDE:65,0,start2 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 0 0]; st.lpi.ineq.wcross = 1,start fails,error,,NaN,NaN,NaN,2.03947e+06,28303,NaN,NaN,LB_SIZE ndv=2039468 m=28303 above the gate (ndv 2e+06; m 30000): not solved
+03:36:41,PDE:65,0,start3 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto',start fails,error,,NaN,NaN,NaN,2.99646e+06,31820,NaN,NaN,LB_SIZE ndv=2996460 m=31820 above the gate (ndv 2e+06; m 30000): not solved
+03:57:25,PDE:65,0,start4 P light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,0.000607,-1,2,1.74664e+06,28181,NaN,1243.8,
+03:58:31,PDE:69,0,start1 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,1,-1,2,426641,15848,NaN,48.8,
+03:59:26,PDE:69,0,start2 P stripped st.lpi.ineq.dD = 0; st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,1,-1,2,336681,10585,NaN,55.2,
+04:02:06,PDE:69,0,start3 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,1,-1,2,1.00546e+06,25968,NaN,160.3,
+04:02:52,PDE:70,0,start1 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,1,-1,2,494572,13944,NaN,43.4,
+04:03:31,PDE:70,0,start2 P light st.lpi.ineq.dD = 0; st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,1,-1,2,392228,9052,NaN,39.1,
+04:03:42,PDE:70,0,start3 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2; st.lpi.ineq.wcross = 1,start fails,error,,NaN,NaN,NaN,2.12986e+06,35909,NaN,NaN,LB_SIZE ndv=2129860 m=35909 above the gate (ndv 2e+06; m 30000): not solved
+04:03:44,PDE:4.5,0,start1 Q light st.sop.max_raise_Q = [4 4 0]; st.sop.raise_Q = 'slack',start fails,infeasible,infeasible,0.21,-1,5,43248,1003,NaN,2.5,
+04:03:46,PDE:4.5,0,start2 Q light st.lpi.ineq.dD = 2,start fails,infeasible,infeasible,0.239,-1,3,25136,855,NaN,1.1,
+04:03:47,PDE:4.5,0,start3 Q light st.lpi.ineq.Dmax = true,start fails,infeasible,infeasible,0.195,-1,3,42208,1151,NaN,1.5,
+04:03:48,PDE:4.5,0,start4 Q light st.lpi.ineq.wmin = [4 4 0],start fails,infeasible,infeasible,1,-1,3,19776,735,NaN,0.8,
+04:03:48,PDE:4.5,0,start5 Q light st.lpi.ineq.psatz = {'none';'none';'none'},start fails,infeasible,infeasible,1,-1,3,12288,735,NaN,0.6,
+04:03:49,PDE:4.5,0,start6 P light st.sop.dw_feas = [2 2 1]; st.sop.max_raise_feas = [3 3 0],start fails,infeasible,infeasible,0.0157,-1,4,12640,348,NaN,0.8,
+04:03:50,PDE:4.5,0,start7 P light st.lpi.ineq.dD = 2,start fails,infeasible,infeasible,0.0152,-1,3,6800,288,NaN,0.4,
+04:03:54,PDE:41,0,start1 Q light st.sop.max_raise_Q = [4 4 0]; st.sop.raise_Q = 'slack',start fails,unknown,unknown,1.1e-09,0.426,5,43248,1065,NaN,3.3,
+04:03:56,PDE:41,0,start2 Q light st.lpi.ineq.dD = 2,start fails,unknown,unknown,9.52e-10,0.0444,3,29936,997,NaN,1.9,
+04:03:59,PDE:41,0,start3 Q light st.lpi.ineq.Dmax = true,start fails,unknown,unknown,8.55e-10,0.0884,3,56592,1445,NaN,2.9,
+04:04:00,PDE:41,0,start4 Q light st.lpi.ineq.wmin = [4 4 0],start fails,unknown,unknown,5.14e-10,0.0775,3,19776,797,NaN,1.5,
+04:04:02,PDE:41,0,start5 Q light st.lpi.ineq.psatz = {'none';'none';'none'},start fails,unknown,unknown,6.19e-10,0.136,3,12288,797,NaN,1.4,
+04:04:03,PDE:41,0,start6 P light st.sop.dw_feas = [2 2 1]; st.sop.max_raise_feas = [3 3 0],start fails,unknown,unknown,1.09e-13,-0.0537,4,12640,361,NaN,1.6,
+04:04:04,PDE:41,0,start7 P light st.lpi.ineq.dD = 2,start fails,unknown,unknown,1.68e-14,-0.0405,3,6800,288,NaN,0.8,
+04:04:35,PDE:44,0,start1 Q light st.sop.max_raise_Q = [4 4 0]; st.sop.raise_Q = 'slack',start fails,infeasible,infeasible,0.108,-1,5,193320,4712,NaN,29.9,
+04:04:58,PDE:44,0,start2 Q light st.lpi.ineq.dD = 2,start fails,infeasible,unknown,3.4e-09,-1,3,117556,4196,NaN,22.9,
+04:05:43,PDE:44,0,start3 Q light st.lpi.ineq.Dmax = true,start fails,infeasible,unknown,3.59e-09,-1,3,273780,6456,NaN,45.2,
+04:06:02,PDE:44,0,start4 Q light st.lpi.ineq.wmin = [4 4 0],start fails,infeasible,unknown,2.69e-09,-1,3,93828,3648,NaN,18.5,
+04:06:19,PDE:44,0,start5 Q light st.lpi.ineq.psatz = {'none';'none';'none'},start fails,infeasible,unknown,7.94e-09,-0.989,3,57306,3640,NaN,17.1,
+04:06:33,PDE:44,0,start6 P light st.sop.dw_feas = [2 2 1]; st.sop.max_raise_feas = [3 3 0],start fails,infeasible,unknown,1.31e-09,-1,4,51267,1473,NaN,14.4,
+04:06:43,PDE:44,0,start7 P light st.lpi.ineq.dD = 2,start fails,infeasible,unknown,1.08e-09,-1,3,27731,1187,NaN,9.4,
+04:07:09,PDE:15,0,start1 Qd>Q light st.sop.max_raise_Q = [4 4 0]; st.sop.raise_Q = 'slack',start fails,infeasible,infeasible,0.0458,-1,5,161092,4183,NaN,25.8,
+04:07:26,PDE:15,0,start2 Qd>Q light st.lpi.ineq.dD = 2,start fails,infeasible,unknown,4.97e-09,-1,3,112692,3947,NaN,16.7,
+04:07:54,PDE:15,0,start3 Qd>Q light st.lpi.ineq.Dmax = true,start fails,infeasible,infeasible,0.0471,-1,3,216692,5739,NaN,28.0,
+04:08:06,PDE:15,0,start4 Qd>Q light st.lpi.ineq.wmin = [4 4 0],start fails,infeasible,infeasible,0.0505,-1,3,73364,3147,NaN,11.7,
+04:08:16,PDE:15,0,start5 Qd>Q light st.lpi.ineq.psatz = {'none';'none';'none'},start fails,infeasible,unknown,3.84e-09,-0.977,3,45652,3147,NaN,10.5,
+04:08:25,PDE:15,0,start6 Qd>P light st.sop.dw_feas = [2 2 1]; st.sop.max_raise_feas = [3 3 0],start fails,unknown,unknown,1.76e-10,-0.546,4,50560,1414,NaN,9.3,
+04:08:30,PDE:15,0,start7 Qd>P light st.lpi.ineq.dD = 2,start fails,unknown,unknown,1.16e-10,-0.312,3,27200,1149,NaN,4.4,
+04:08:34,PDE:15,0,start8 Qd light st.sop.max_raise_Q = [4 4 0]; st.sop.raise_Q = 'slack',start fails,infeasible,unknown,8.55e-10,-1,3,19188,1915,NaN,4.6,
+04:08:41,PDE:15,0,start9 Qd light st.lpi.ineq.dD = 2,start fails,infeasible,unknown,4.78e-10,-1,3,31188,2195,NaN,6.8,
+04:08:49,PDE:15,0,start10 Qd light st.lpi.ineq.Dmax = true,start fails,infeasible,unknown,2.09e-09,-1,3,46388,2540,NaN,7.6,
+04:08:54,PDE:15,0,start11 Qd light st.lpi.ineq.wmin = [4 4 0],start fails,infeasible,unknown,8.55e-10,-1,3,19188,1915,NaN,5.5,
+04:08:59,PDE:15,0,start12 Qd light st.lpi.ineq.psatz = {'none';'none';'none'},start fails,infeasible,unknown,1.48e-09,-0.998,3,13104,1915,NaN,4.7,
+04:09:11,PDE:15,0,start13 Pd light st.sop.dw_feas = [2 2 1]; st.sop.max_raise_feas = [3 3 0],start fails,infeasible,infeasible,0.0129,-1,4,50560,1433,NaN,11.9,
+04:09:18,PDE:15,0,start14 Pd light st.lpi.ineq.dD = 2,start fails,infeasible,infeasible,0.0115,-1,3,27200,1149,NaN,6.5,
+04:09:52,PDE:16,0,start1 Q light st.sop.max_raise_Q = [4 4 0]; st.sop.raise_Q = 'slack',start fails,infeasible,infeasible,0.309,-1,5,247378,5319,NaN,33.8,
+04:10:06,PDE:16,0,start2 Q light st.lpi.ineq.dD = 2,start fails,infeasible,infeasible,0.303,-1,3,174618,5035,NaN,14.5,
+04:10:45,PDE:16,0,start3 Q light st.lpi.ineq.Dmax = true,start fails,infeasible,infeasible,0.267,-1,3,412090,8171,NaN,38.3,
+04:10:55,PDE:16,0,start4 Q light st.lpi.ineq.wmin = [4 4 0],start fails,infeasible,infeasible,0.517,-1,3,119514,4139,NaN,10.7,
+04:11:05,PDE:16,0,start5 Q light st.lpi.ineq.psatz = {'none';'none';'none'},start fails,infeasible,infeasible,0.496,-1,3,73018,4139,NaN,9.3,
+04:11:13,PDE:16,0,start6 P light st.sop.dw_feas = [2 2 1]; st.sop.max_raise_feas = [3 3 0],start fails,infeasible,infeasible,0.367,-1,4,54725,1543,NaN,8.3,
+04:11:18,PDE:16,0,start7 P light st.lpi.ineq.dD = 2,start fails,infeasible,infeasible,1,-1,3,28825,1195,NaN,4.5,
+04:13:28,PDE:53,0,start1 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{3} = 0,start,certified,optimal,1.04e-09,1.3,1,668443,18102,NaN,130.0,
+04:13:31,PDE:53,1,degQ1.1,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:34,PDE:53,2,degQ1.2,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:36,PDE:53,3,degQ1.3,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:39,PDE:53,4,psatz1,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:42,PDE:53,5,wmin1,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:45,PDE:53,6,raiseQ1,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:47,PDE:53,7,degQ2.1,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:50,PDE:53,8,degQ2.2,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:53,PDE:53,9,degQ2.3,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:56,PDE:53,10,psatz2,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:13:58,PDE:53,11,wmin2,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:14:01,PDE:53,12,raiseQ2,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:14:12,PDE:53,13,psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,11.2,
+04:14:15,PDE:53,14,capinc,not smaller,error,,NaN,NaN,NaN,668443,18102,NaN,NaN,LB_SIZE ndv=668443 m=18102 above the gate (ndv 668442; m 30000): not solved
+04:14:26,PDE:53,15,x:wcross1+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.8,
+04:14:37,PDE:53,16,t:degQ+1.1+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.6,
+04:14:47,PDE:53,17,t:degQ+1.2+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.6,
+04:14:58,PDE:53,18,t:degQ+1.3+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.7,
+04:15:09,PDE:53,19,t:degQ+2.1+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.6,
+04:15:19,PDE:53,20,t:degQ+2.2+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.4,
+04:15:30,PDE:53,21,t:degQ+2.3+psatz3,fails,infeasible,infeasible,1,-1,1,110203,8214,NaN,10.5,
+04:16:49,PDE:53,22,t:degQ+3.1+psatz3,fails,infeasible,unknown,8.67e-11,-1,1,441472,14541,NaN,78.9,
+04:18:07,PDE:53,23,t:degQ+3.2+psatz3,fails,infeasible,unknown,7.05e-11,-1,1,441533,15380,NaN,78.2,
+04:19:23,PDE:53,24,t:degQ+3.3+psatz3,fails,infeasible,unknown,7.05e-11,-1,1,441533,15375,NaN,76.7,
+04:19:40,PDE:54,0,start1 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{3} = 0,start fails,error,,NaN,NaN,NaN,1.92284e+06,32846,NaN,NaN,LB_SIZE ndv=1922843 m=32846 above the gate (ndv 2e+06; m 30000): not solved
+04:20:17,PDE:54,0,start2 Q stripped st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,7.45572e+06,68240,NaN,NaN,LB_SIZE ndv=7455720 m=68240 above the gate (ndv 2e+06; m 30000): not solved
+04:20:19,PDE:54,0,start3 P stripped st.lpi.ineq.dD = 0,start fails,infeasible,infeasible,1,-1,1,28676,2411,NaN,1.8,
+04:22:05,PDE:55,0,start1 Q light st.lpi.ineq.dD = 0; st.sop.deg_Q{3} = 0,start fails,error,,NaN,NaN,NaN,1.29599e+07,189509,NaN,NaN,LB_SIZE ndv=12959852 m=189509 above the gate (ndv 2e+06; m 30000): not solved
+04:25:15,PDE:55,0,start2 Q stripped st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,2.98229e+07,283303,NaN,NaN,LB_SIZE ndv=29822880 m=283303 above the gate (ndv 2e+06; m 30000): not solved
+04:25:37,PDE:55,0,start3 P stripped st.lpi.ineq.dD = 0,start fails,infeasible,infeasible,1,-1,1,114704,8596,NaN,21.9,

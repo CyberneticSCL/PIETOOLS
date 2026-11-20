@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Cascade of a 1D and a 2D heat equation with variable coefficients:
@@ -30,25 +32,23 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params)
 % %   r2* = 22.199946 (N = 40), 22.205980 (N = 60).
 % % The cascade is triangular, hence stable iff r1 < r1* and r2 < r2*
 % % [inferred, not computed for the coupled system].
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, MOSEK, 11/16/2026), at
-% % (r1,r2) = f*(r1*,r2*), N = 60 values:
-% %   - f = 0.9: UNKNOWN with the stock light settings (508,228 decision
-% %     variables, after one raise); certified with the proposed light row
-% %     of the settings proposal of 11/15/2026 (510,057) and with the
-% %     stock heavy settings (1,023,444).
-% %   - bisection of f on [0.5,1], 8 steps, light: stock certifies
-% %     f = 0.73633, the proposed light row f = 0.97656.
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: the storage of the light tier is the proposed      % MMP, 11/17/2026
-% % light row since 11/17/2026, which certifies this example at f = 0.9     % MMP, 11/17/2026
-% % (record above); the slack of 11/17/2026 (wcross 0, 2-D faces at         % MMP, 11/17/2026
-% % offset 1) was not rerun.                                                % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier certifies the example, so
 %                   no second output st (application-specific settings);
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+%                   the entry of 11/17/2026 (no second output st) no longer
+%                   holds;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -59,6 +59,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 r1 = 0.9*14.507976;     r2 = 0.9*22.205980;
 npars = length(params);
@@ -81,6 +82,10 @@ PDE_t = [diff(x1,'t')==(1+s1)*diff(x1,s1,2)+r1*x1;
          subs(x2,s1,0)==0;          subs(x2,s1,1)==0;
          subs(x2,s2,0)==x1;         subs(x2,s2,1)==0];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

@@ -1,0 +1,13 @@
+key,label,tier,exec,status,gam,ndec,m,fr,sec,note
+DDE:DDE19,Adi,stripped,PIETOOLS_Hinf_control,certified,1.9639854,1252,134,0.9388,2.4,""
+DDE:DDE19,Ai,stripped,PIETOOLS_Hinf_control,certified,1.963867,1252,133,1.084,0.7,""
+NDSDDF:DDF03,tau_n,stripped,PIETOOLS_Hinf_control,certified,0.44753155,3557,308,0.8961,0.8,""
+NDSDDF:DDF03,tau_i,stripped,PIETOOLS_Hinf_control,certified,0.42583378,3557,309,1,0.6,""
+DDE:DDE19,Adi,light,PIETOOLS_Hinf_control,certified,1.9639856,1876,153,1.163,0.5,""
+DDE:DDE19,Ai,light,PIETOOLS_Hinf_control,certified,1.963867,1876,152,1.098,0.3,""
+NDSDDF:DDF03,tau_n,light,PIETOOLS_Hinf_control,certified,0.44263511,5669,368,0.9259,0.5,""
+NDSDDF:DDF03,tau_i,light,PIETOOLS_Hinf_control,certified,0.42364255,5669,369,1,0.6,""
+DDE:DDE19,Adi,heavy,PIETOOLS_Hinf_control,certified,1.9639855,2673,172,1.041,0.3,""
+DDE:DDE19,Ai,heavy,PIETOOLS_Hinf_control,certified,1.9638671,2673,172,1.113,0.2,""
+NDSDDF:DDF03,tau_n,heavy,PIETOOLS_Hinf_control,certified,0.44063344,8465,432,1,0.7,""
+NDSDDF:DDF03,tau_i,heavy,PIETOOLS_Hinf_control,certified,0.42133672,8465,433,0.9163,0.5,""

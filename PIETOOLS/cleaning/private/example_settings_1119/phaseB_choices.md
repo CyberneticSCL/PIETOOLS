@@ -116,21 +116,21 @@
 | PDE:30 | value | – | light | 0.6499404 | 0.6499404 (M1L) | 1394 | 104 | 14 |  |
 | PDE:31 | value | – | veryheavy | 0.00021688438 | 0.00021688438 (XVH) | 30683 | 662 | 14 |  |
 | PDE:32 | value | – | veryheavy | 0.51759587 | 0.51759587 (XVH) | 31537 | 685 | 14 |  |
-| PDE:33 | stab | Q | light, dD 0, deg_Q{2} 0 (example file) | certified |  | 409 | 111 | 12 | 'P' reaches it at 26545 variables |
-| PDE:34 | stab | Q | stripped | certified |  | 72100 | 3281 | 11 | 'P' reaches it at 188545 variables |
-| PDE:35 | stab | Q | light, dD 0, deg_Q{2} 0 (example file) | certified |  | 8009 | 815 | 12 | 'P' reaches it at 26545 variables |
+| PDE:33 | stab | Q | light, dD 0, deg_Q{2} 0 (example file) | certified |  | 409 | 111 | 16 | 'P' reaches it at 5409 variables |
+| PDE:34 | stab | Q | stripped | certified |  | 72100 | 3281 | 15 | 'P' reaches it at 188209 variables |
+| PDE:35 | stab | P | stripped, dD 0 | certified |  | 5409 | 580 | 16 |  |
 | PDE:36 | stab | – | nothing certified (8 runs) | | | | | | gates disagree on 6; nothing certified |
-| PDE:37 | stab | Q | light, dD 0, deg_Q{2} [1 0 0] (example file) | certified |  | 16656 | 1117 | 12 | 'P' reaches it at 188545 variables |
-| PDE:38 | stab | Q | light, 2-D dD 0 | certified |  | 380880 | 10827 | 11 | gates disagree on 6 |
+| PDE:37 | stab | Q | light, dD 0, deg_Q{2} [1 0 0] (example file) | certified |  | 16656 | 1117 | 16 | 'P' reaches it at 37409 variables |
+| PDE:38 | stab | Q | light, 2-D dD 0 | certified |  | 380880 | 10827 | 12 | gates disagree on 6 |
 | PDE:39 | stab | – | nothing certified (8 runs) | | | | | | gates disagree on 7; nothing certified |
-| PDE:40 | stab | Q | light, dD 0, deg_Q{2} 0 (example file) | certified |  | 8518 | 844 | 12 | gates disagree on 1 |
+| PDE:40 | stab | Q | light, dD 0, deg_Q{2} 0 (example file) | certified |  | 8518 | 844 | 13 | gates disagree on 1 |
 | PDE:41 | stab | – | nothing certified (16 runs) | | | | | | gates disagree on 1; nothing certified |
-| PDE:42 | stab | Q | light, 2-D dD 0 | certified |  | 23331 | 2304 | 11 | 'P' reaches it at 246681 variables |
-| PDE:43 | stab | Q | light, dD 0, deg_Q{2} 2 (example file) | certified |  | 196513 | 6376 | 12 |  |
+| PDE:42 | stab | Q | stripped, dD 0 | certified |  | 23331 | 2304 | 15 | gates disagree on 1; 'P' reaches it at 56249 variables |
+| PDE:43 | stab | Q | light, dD 0, deg_Q{2} 2 (example file) | certified |  | 196513 | 6376 | 13 |  |
 | PDE:44 | bisect | – | nothing certified (16 runs) | | | | | | nothing certified |
-| PDE:45 | value | P | heavy | 0.11102274 | 0.11102274 (GallPh) | 799170 | 7201 | 13 |  |
-| PDE:46 | value | P | heavy | 0.17110568 | 0.17110568 (GallPh) | 799170 | 7203 | 13 |  |
-| PDE:47 | value | P | heavy | 0.20669904 | 0.20669904 (GallPh) | 799170 | 7195 | 13 |  |
+| PDE:45 | value | P | heavy | 0.11102274 | 0.11102274 (GallPh) | 799170 | 7201 | 14 |  |
+| PDE:46 | value | P | heavy | 0.17110568 | 0.17110568 (GallPh) | 799170 | 7203 | 14 |  |
+| PDE:47 | value | P | heavy, dD 0 | 0.20672329 | 0.20669904 (GallPh) | 170690 | 3267 | 14 |  |
 | PDE:48 | value | – | heavy | 0.0039726464 | 0.0039726464 (H2T3) | 768159 | 5493 | 9 | gates disagree on 2 |
 | PDE:49 | value | o | stripped | 0.1016557 | 0.10157583 (P1117) | 1563 | 169 | 14 | gates disagree on 5 |
 | PDE:49/H2_norm_dual | value | c | veryheavy | 0.10157588 | 0.10157588 (XVH) | 11847 | 579 | 14 | gates disagree on 9 |
@@ -142,19 +142,19 @@
 | PDE:54 | stab | – | nothing certified (8 runs) | | | | | | nothing certified |
 | PDE:55 | stab | – | nothing certified (8 runs) | | | | | | nothing certified |
 | PDE:56 | stab | – | nothing certified (10 runs) | | | | | | nothing certified |
-| PDE:57 | stab | Q | light, dD 0, deg_Q{2} [2 1 1] (example file) | certified |  | 23121 | 2344 | 16 |  |
-| PDE:58 | stab | Q | light, dD 0, deg_Q{2} 2 (example file) | certified |  | 225705 | 6608 | 16 |  |
-| PDE:59 | stab | Q | light, 2-D dD 0, deg_Q{2} 0 raised by degree (T2) | certified |  | 604 | 120 | 15 | 'P' reaches it at 9000 variables |
-| PDE:60 | stab | Q | light, 2-D dD 0 | certified |  | 1340 | 147 | 15 | 'P' reaches it at 4000 variables |
-| PDE:61 | stab | Q | light, dD 0 (example file) | certified |  | 197415 | 6969 | 15 | 'P' reaches it at 323647 variables |
-| PDE:62 | stab | P | light | certified |  | 84205 | 2739 | 15 |  |
-| PDE:63 | stab | Q | light | certified |  | 165182 | 4910 | 14 | gates disagree on 2; 'P' reaches it at 428185 variables |
-| PDE:64 | stab | Q | stripped | certified |  | 288400 | 13915 | 14 | 'P' reaches it at 754180 variables |
+| PDE:57 | stab | Q | light, dD 0, deg_Q{2} [2 1 1] (example file) | certified |  | 23121 | 2344 | 17 |  |
+| PDE:58 | stab | Q | light, dD 0, deg_Q{2} 2 (example file) | certified |  | 225705 | 6608 | 17 |  |
+| PDE:59 | stab | Q | light, 2-D dD 0, deg_Q{2} 0 raised by degree (T2) | certified |  | 604 | 120 | 19 | 'P' reaches it at 4500 variables |
+| PDE:60 | stab | Q | stripped, dD 0 | certified |  | 1340 | 147 | 19 | 'P' reaches it at 2000 variables |
+| PDE:61 | stab | Q | light, dD 0 (example file) | certified |  | 197415 | 6969 | 19 | 'P' reaches it at 322975 variables |
+| PDE:62 | stab | P | light | certified |  | 84205 | 2739 | 19 |  |
+| PDE:63 | stab | Q | light | certified |  | 165182 | 4910 | 18 | gates disagree on 3; 'P' reaches it at 428185 variables |
+| PDE:64 | stab | Q | stripped | certified |  | 288400 | 13915 | 18 | 'P' reaches it at 752836 variables |
 | PDE:65 | stab | – | nothing certified (11 runs) | | | | | | nothing certified |
-| PDE:66 | stab | Q | light, dD 0 (example file) | certified |  | 16740 | 1301 | 16 |  |
-| PDE:67 | stab | P | stripped, dD 0 | certified |  | 4500 | 723 | 21 |  |
-| PDE:68 | stab | P | stripped, dD 0 | certified |  | 1620 | 262 | 21 | gates disagree on 3 |
+| PDE:66 | stab | Q | light, dD 0 (example file) | certified |  | 16740 | 1301 | 17 |  |
+| PDE:67 | stab | P | stripped, dD 0 | certified |  | 4500 | 723 | 25 |  |
+| PDE:68 | stab | P | stripped, dD 0 | certified |  | 1620 | 262 | 25 | gates disagree on 3 |
 | PDE:69 | stab | – | nothing certified (15 runs) | | | | | | nothing certified |
 | PDE:70 | stab | – | nothing certified (14 runs) | | | | | | nothing certified |
-| PDE:71 | value | P | light | 0.045944081 | 0.045943467 (GallPh) | 203522 | 4108 | 17 |  |
+| PDE:71 | value | P | light | 0.045944081 | 0.045943467 (GallPh) | 203522 | 4108 | 21 |  |
 | PDE:72 | stab | – | nothing certified (15 runs) | | | | | | gates disagree on 6; nothing certified |

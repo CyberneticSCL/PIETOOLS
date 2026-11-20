@@ -13,8 +13,10 @@
 %                               form stability_form;
 %               stability_dual  PIETOOLS_stability_sop, form 'Qd', or the
 %                               form stability_form followed by 'd';
-%               Hinf_gain       PIETOOLS_Hinf_gain_sop, form 'Q';
-%               Hinf_gain_dual  PIETOOLS_Hinf_gain_sop, form 'Qd';
+%               Hinf_gain       PIETOOLS_Hinf_gain_sop, form 'Q', or the    % MMP, 11/19/2026
+%                               form Hinf_gain_form;                        % MMP, 11/19/2026
+%               Hinf_gain_dual  PIETOOLS_Hinf_gain_sop, form 'Qd', or the   % MMP, 11/19/2026
+%                               form Hinf_gain_form followed by 'd';        % MMP, 11/19/2026
 %               Hinf_estimator, Hinf_control, H2_estimator, H2_control,
 %               well_posedness  the executive of that name;
 %               H2_norm         PIETOOLS_H2_norm_sop, form 'o';
@@ -26,6 +28,12 @@
 % - stability_form: (optional) char, the form of the stability test that
 %             an example names, 'P' (storage) or 'Q' (direct); absent or
 %             empty, 'Q'.
+% - Hinf_gain_form: (optional) char, the form of the H-infinity gain      % MMP, 11/19/2026
+%             test that an example names, 'P' or 'Q'; absent or empty,    % MMP, 11/19/2026
+%             'Q'.                                                        % MMP, 11/19/2026
+% - H2_norm_form: (optional) char, the form of the H2 norm test that an   % MMP, 11/19/2026
+%             example names, 'o' or the coercive 'oco' (the dual takes    % MMP, 11/19/2026
+%             'c' or 'cco'); absent or empty, 'o'.                        % MMP, 11/19/2026
 %
 % OUTPUT (variables in the base workspace), per executive run:
 %   stability:       prog_stability, P_stability, info_stability;
@@ -92,6 +100,15 @@
 %                approval of 11/18: the example names the form, the forms
 %                proving different notions of stability); the dual form
 %                appends 'd'. Default path unchanged.
+% MMP, 11/19/2026: The H-infinity gain form from the workspace variable
+%                Hinf_gain_form, 'Q' when absent: each library example now
+%                names its settings and forms (maintainer, 11/19/2026: "all
+%                examples should have optimized settings files"), and 'P'
+%                is cheaper at the same gain on most gain examples (D141).
+%                The dual form appends 'd'. Default path unchanged. The H2
+%                norm form from H2_norm_form, 'o' when absent ('oco', the
+%                coercive form, certifies PDE 50 of the library at 0.87797,
+%                where 'o' certifies nothing measured); the dual maps o to c.
 
 % The PIE: from the workspace, the GUI, or a PDE
 if ~exist('PIE','var')
@@ -177,6 +194,13 @@ end
 % The form of the stability test: the one the example names, else 'Q'       % MMP, 11/18/2026
 sform = 'Q';                                                                % MMP, 11/18/2026
 if exist('stability_form','var') && ~isempty(stability_form),  sform = stability_form;  end % MMP, 11/18/2026
+% The form of the H-infinity gain test: the one the example names, else 'Q'  % MMP, 11/19/2026
+gform = 'Q';                                                                % MMP, 11/19/2026
+if exist('Hinf_gain_form','var') && ~isempty(Hinf_gain_form),  gform = Hinf_gain_form;  end % MMP, 11/19/2026
+% The form of the H2 norm test: 'o' (default) or the coercive 'oco'; the     % MMP, 11/19/2026
+% dual takes 'c' or 'cco' (the first letter o -> c)                         % MMP, 11/19/2026
+hform = 'o';                                                                % MMP, 11/19/2026
+if exist('H2_norm_form','var') && ~isempty(H2_norm_form),  hform = H2_norm_form;  end % MMP, 11/19/2026
 
 % Run each executive, assigning its outputs in the base workspace
 for j=1:length(exec)
@@ -192,11 +216,13 @@ elseif strcmpi(exec{j},'PIE2PDEstability_dual')
     msg_out = '';
 elseif strcmp(exec{j},'Hinf_gain')
     outval = '[prog_Hinf_gain, P_Hinf_gain, Hinf_gain, info_Hinf_gain]';
-    infun = 'PIETOOLS_Hinf_gain_sop(PIE,settings,''Q'')';
+%   infun = 'PIETOOLS_Hinf_gain_sop(PIE,settings,''Q'')';                   % MMP, 11/19/2026 (was)
+    infun = ['PIETOOLS_Hinf_gain_sop(PIE,settings,''',gform,''')'];         % MMP, 11/19/2026
     msg_out = 'The upper bound on the H-infty norm has been saved as "Hinf_gain" (certificate and witness in "info_Hinf_gain").';
 elseif strcmp(exec{j},'Hinf_gain_dual')
     outval = '[prog_Hinf_gain_d, P_Hinf_gain_d, Hinf_gain_dual, info_Hinf_gain_d]';
-    infun = 'PIETOOLS_Hinf_gain_sop(PIE,settings,''Qd'')';
+%   infun = 'PIETOOLS_Hinf_gain_sop(PIE,settings,''Qd'')';                  % MMP, 11/19/2026 (was)
+    infun = ['PIETOOLS_Hinf_gain_sop(PIE,settings,''',gform,'d'')'];        % MMP, 11/19/2026
     msg_out = 'The upper bound on the (dual) H-infty norm has been saved as "Hinf_gain_dual".';
 elseif contains(exec{j},'Hinf_control')
     outval = '[prog_control, K_control, Hinf_gain_control, P_control, Z_control, info_control]';
@@ -208,11 +234,13 @@ elseif contains(exec{j},'Hinf_estimator')
     msg_out = 'The (optimal) estimator operator has been saved as "L_estimator".';
 elseif contains(exec{j},'H2_norm_o')  ||  strcmp(exec{j},'H2_norm')
     outval = '[prog_H2_norm, W_H2_norm, H2_norm, R_H2_norm, Q_H2_norm, info_H2_norm]';
-    infun = 'PIETOOLS_H2_norm_sop(PIE,settings,''o'')';
+%   infun = 'PIETOOLS_H2_norm_sop(PIE,settings,''o'')';                     % MMP, 11/19/2026 (was)
+    infun = ['PIETOOLS_H2_norm_sop(PIE,settings,''',hform,''')'];           % MMP, 11/19/2026
     msg_out = 'The upper bound on the H-2 norm has been saved as "H2_norm".';
 elseif contains(exec{j},'H2_norm_c') || strcmp(exec{j},'H2_norm_dual')
     outval = '[prog_H2_norm_d, W_H2_norm_d, H2_norm_dual, R_H2_norm_d, Q_H2_norm_d, info_H2_norm_d]';
-    infun = 'PIETOOLS_H2_norm_sop(PIE,settings,''c'')';
+%   infun = 'PIETOOLS_H2_norm_sop(PIE,settings,''c'')';                     % MMP, 11/19/2026 (was)
+    infun = ['PIETOOLS_H2_norm_sop(PIE,settings,''c',hform(2:end),''')'];   % MMP, 11/19/2026
     msg_out = 'The upper bound on the (dual) H-2 norm has been saved as "H2_norm_dual".';
 elseif contains(exec{j},'H2_control')
     outval = '[prog_control, K_control, H2_norm_control, P_control, Z_control, W_control, info_control]';

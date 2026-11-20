@@ -1,0 +1,11 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:69,Q,A0,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,334341,10679,43.9,""
+PDE:69,Q,AmT,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,380241,14978,47.4,""
+PDE:70,Q,A0,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",certified,1,0,0,0,32700,4756,5.1,""
+PDE:70,Q,AmT,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",certified,0.9997,0,0,0,64600,7371,5.1,""
+PDE:36,Q,A0,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",certified,1,0,0,0,20900,3468,1.7,""
+PDE:36,Q,AmT,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",certified,1,0,0,0,41360,5382,2.1,""
+PDE:39,Q,A0,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1",certified,0.9994,0,0,0,47214,7853,5.0,""
+PDE:39,Q,AmT,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1",certified,0.9984,0,0,0,93249,12232,8.1,""
+PDE:65,Q,A0,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,479992,18553,86.9,""
+PDE:65,Q,AmT,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,479992,18553,92.5,""

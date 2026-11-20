@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % Original 1D PDE: x1_{t}(t,s1) = x1_{s1s1}(t,s1) - 20 x1(t,s1) - 4 x4(t,s1,-1) - 0.1x5(t,s1,-1) + s1(s1-\pi)w(t);
@@ -22,6 +24,12 @@ function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)
 % BC4  0 = x5(t,s1,0) - x1(t,s1);
 % H2 norm upper-bounds computed bwith custom settings and
 % settings.settings_2d.ineq_opts.psatz=1: 0.8502(primal) and 0.8398(dual)
+%
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (H2_norm_form),
+%                   from the per-example search of 11/19/2026 (maintainer:
+%                   no default settings);
+% function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)                           % MMP, 11/19/2026 (was)
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
 root = fileparts(loc);
@@ -33,6 +41,7 @@ pvar s1 s2
 %%% Executive Function:
 evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
+evalin('base','H2_norm_form = ''oco'';');  % form of the H2 norm test       % MMP, 11/19/2026
 
 npars = length(params);
 if npars~=0
@@ -59,6 +68,10 @@ BC3=subs(x2,s2,0)==x1;
 BC4=subs(x3,s2,0)==x1;
 output=y==int(x1,s1,[0,pi]);
 PDE_t=[PDE1;PDE2;PDE3;BC1;BC2;BC3;BC4;output];
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 
 
 if GUI~=0

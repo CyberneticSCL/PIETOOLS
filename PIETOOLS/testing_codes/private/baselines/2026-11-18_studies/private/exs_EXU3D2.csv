@@ -1,0 +1,4 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+04:54:09,PDE:55,0,start1 P stripped ,start fails,error,,NaN,NaN,NaN,7.34005e+06,105717,NaN,NaN,LB_SIZE ndv=7340048 m=105717 above the gate (ndv 2e+06; m 45000): not solved
+05:00:32,PDE:55,0,start2 P light st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,7.35693e+06,355133,NaN,NaN,LB_SIZE ndv=7356932 m=355133 above the gate (ndv 2e+06; m 45000): not solved
+05:12:18,PDE:55,0,start3 P light ,start fails,error,,NaN,NaN,NaN,2.80169e+07,409791,NaN,NaN,LB_SIZE ndv=28016900 m=409791 above the gate (ndv 2e+06; m 45000): not solved

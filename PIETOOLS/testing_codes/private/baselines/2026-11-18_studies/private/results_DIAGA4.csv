@@ -1,0 +1,4 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:70,Q,AsT,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,494572,13944,51.0,""
+PDE:36,Q,AsT,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",unknown,3.23,0,0,0,52880,5643,4.4,""
+PDE:39,Q,AsT,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1",unknown,3.165,0,0,0,316737,16103,38.5,""

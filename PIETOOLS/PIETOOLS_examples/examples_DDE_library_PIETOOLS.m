@@ -58,6 +58,21 @@
 %                   certifies tauN 3.9144 there, 'P' at light 1.42229.
 %                   Measurements: cleaning/private/settings_1116/
 %                   studies_1118 (D1_formP.md; DECISIONS.md D115).
+% MMP, 11/19/2026: Example-specific settings st and the forms of the tests
+%                   (stability_form, Hinf_gain_form) in every block with a
+%                   certified setting, from the per-example search of
+%                   11/19/2026 (maintainer: no default settings);
+%                   the st lines of 11/18/2026 are kept as (was) lines with
+%                   two comment levels, so they stay comments when a block
+%                   is uncommented;
+%                   the block active in this file (Example 2b, H2 norm)
+%                   carries its st uncommented;
+% MMP, 11/19/2026: the wind tunnel block (H-infinity control) sets its
+%                   regulated output z = [x1; x2; .1u] with DDE.C1, C1i,
+%                   D11, D12 in place of C0, C{1}, D1, D2, which
+%                   initialize_PIETOOLS_DDE does not read (z was 0);
+%                   the block carries its st;
+%                   its delay is the discrete delay of [5] (Ai{1}, was Adi{1});
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,6 +83,9 @@
 % stability_dual=1
 % DDE.A0=[0.2 0;0.2 0.1]; DDE.Ai{1}=[0 0;0 0]; DDE.Adi{1}=[-1 0;-1 -1];
 % DDE.tau(1)=2.0;%    h=1/DDE.tau(1);
+% st = lpisettings_sop('light');                                            % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % the analytical range is [0.2, 2.04]
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%% Distributed delay from [1], page 270
@@ -77,6 +95,11 @@
 % DDE.A0=[-1.5 0;0.5 -1];  DDE.Adi{1}=Ap1-Ap2; DDE.Adi{2}=Ap2;
 % tauN=1.8;
 % DDE.tau(1)=tauN/2;DDE.tau(2)=tauN;%
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % [1] says the stable range is tauNmax<2
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -86,9 +109,12 @@
 % DDE.A0=[0 1;-2 .1];
 % DDE.Ai{1}=[0 0;1 0];
 % DDE.tau(1)=1.5;
-% % st: Q degree [5 2 2] reaches taumax 1.71785; no raise passes            % MMP, 11/18/2026
-% st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;                % MMP, 11/18/2026
-% st.sop.deg_Q{1} = [5 2 2];                                                % MMP, 11/18/2026
+% % % st: Q degree [5 2 2] reaches taumax 1.71785; no raise passes          % MMP, 11/19/2026 (was)
+% % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;              % MMP, 11/19/2026 (was)
+% % st.sop.deg_Q{1} = [5 2 2];                                              % MMP, 11/19/2026 (was)
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % %%%% answer - taumin=.100174
 % % %%%% answer - taumax=1.71785
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,9 +125,13 @@
 %    DDE.A0=[-2 0;0 -.9];%
 %    DDE.Ai{1}=[-1 0; -1 -1];%
 %    DDE.tau(1) = 6;
-% % st: Q degree [3 2 2] reaches the heavy threshold; no raise passes       % MMP, 11/18/2026
-% st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;                % MMP, 11/18/2026
-% st.sop.deg_Q{1} = [3 2 2];                                                % MMP, 11/18/2026
+% % % st: Q degree [3 2 2] reaches the heavy threshold; no raise passes     % MMP, 11/19/2026 (was)
+% % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;              % MMP, 11/19/2026 (was)
+% % st.sop.deg_Q{1} = [3 2 2];                                              % MMP, 11/19/2026 (was)
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % %%%% [1] says stable range is tau < 6.17258
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example A from [2]
@@ -112,9 +142,13 @@
 %  DDE.A0=[0];
 %  DDE.Ai{1}=[-1];
 %  DDE.tau(1)=1.56;
-% % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes       % MMP, 11/18/2026
-% st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;                % MMP, 11/18/2026
-% st.sop.deg_Q{1} = [4 2 2];                                                % MMP, 11/18/2026
+% % % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes     % MMP, 11/19/2026 (was)
+% % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;              % MMP, 11/19/2026 (was)
+% % st.sop.deg_Q{1} = [4 2 2];                                              % MMP, 11/19/2026 (was)
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % %%%% answer - taumax=1.5707
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example C from [2] and from [3]
@@ -124,6 +158,12 @@
 % DDE.Ai{1}=[2.99];
 % DDE.Ai{2}=[-1]
 % DDE.tau(1)=1;DDE.tau(2)=2;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;1];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % %%%% answer - bmax=3
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % Example D from [2]
@@ -134,9 +174,13 @@
  %  DDE.Ai{1}=[0 0; -1 0];
  %  DDE.Ai{2}=[0 0;1 0];
  %  DDE.tau(1)=tauN/2;DDE.tau(2)=tauN;
- % % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes      % MMP, 11/18/2026
- % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;               % MMP, 11/18/2026
- % st.sop.deg_Q{1} = [4 2 2];                                               % MMP, 11/18/2026
+ % % % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes    % MMP, 11/19/2026 (was)
+ % % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;             % MMP, 11/19/2026 (was)
+ % % st.sop.deg_Q{1} = [4 2 2];                                             % MMP, 11/19/2026 (was)
+ % st = lpisettings_sop('stripped');                                        % MMP, 11/19/2026
+ % st.lpi.pos.len_sos{1} = [2;2;1];                                         % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                      % MMP, 11/19/2026
+ % stability_form = 'P';                                                    % MMP, 11/19/2026
 % % % %%%% answer - tauNmax=1.3722
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Example E from [2], taken from [9]
@@ -148,8 +192,14 @@
  %  DDE.A0=A-B*K*C;
  %  DDE.Ai{1}=B*K*C;
  %  DDE.tau(1)=1.1;
- % % st: Q degree [8 6 6] certifies tauN 3.9144 (veryheavy 3.8957)          % MMP, 11/18/2026
- % st = lpisettings_sop('light');  st.sop.deg_Q{1} = [8 6 6];               % MMP, 11/18/2026
+ % % % st: Q degree [8 6 6] certifies tauN 3.9144 (veryheavy 3.8957)        % MMP, 11/19/2026 (was)
+ % % st = lpisettings_sop('light');  st.sop.deg_Q{1} = [8 6 6];             % MMP, 11/19/2026 (was)
+ % st = lpisettings_sop('veryheavy');                                       % MMP, 11/19/2026
+ % st.lpi.pos.len_com{1} = 2;                                               % MMP, 11/19/2026
+ % st.lpi.pos.len_sos{1} = [2;3;4];                                         % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                      % MMP, 11/19/2026
+ % st.sop.dw_feas = [0 2 2];                                                % MMP, 11/19/2026
+ % stability_form = 'P';                                                    % MMP, 11/19/2026
  % stability_form='Q';     % the st acts in 'Q'; 'P' at light: 1.42229      % MMP, 11/18/2026
 % % % %%%% answer - tauNmax\in [3.9,3.95] (Note:requires veryheavy settings)
 %
@@ -169,6 +219,11 @@
 %  DDE.C1=[1];
 %  DDE.D11=[1];
 %  DDE.tau(1)=1.5;
+% st = lpisettings_sop('light');                                            % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
 % %%%% answer - 2 @ tau=.5
 % %%%% answer - 25.907 @ tau=1.5
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,6 +236,9 @@
 %     DDE.C1=[1 0];
 % % %   DDE.D12=[0;.1];
 %     DDE.tau(1) = .846;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
 % % %%%% answer - .2364 (tau=.846)
 % %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,6 +250,12 @@
    %  DDE.B1=[1 0;0 1];
    %  DDE.C1=[0 1];
    %  DDE.tau(1) = .846;%.846; %1.5707
+   % st = lpisettings_sop('stripped');                                      % MMP, 11/19/2026
+   % st.lpi.pos.len_inc{1} = 1;                                             % MMP, 11/19/2026
+   % st.lpi.pos.len_com{1} = 3;                                             % MMP, 11/19/2026
+   % st.lpi.pos.len_sos{1} = [2;2;1];                                       % MMP, 11/19/2026
+   % st.sop.dw_P = 0;                                                       % MMP, 11/19/2026
+   % Hinf_gain_form = 'P';                                                  % MMP, 11/19/2026
 % % %%%% answer - 2.87 (tau=.846)
 % %
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -205,6 +269,9 @@
 %     DDE.B1=[-.5;1];
 %     DDE.C1=[1 0]; %DDE.C1i{1}=[0 0;0 0];
 %  DDE.tau(1)=tauN/2;DDE.tau(2)=tauN;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
 % % % %%%% answer - gamma=4.9784
 
 
@@ -222,6 +289,12 @@
 %   %D11=[0;0];
 %   DDE.D12=[0;.1];
 %    DDE.tau(1) = 2;
+% st = lpisettings_sop('veryheavy');                                        % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 2;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 3;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 6 6];                                              % MMP, 11/19/2026
 % %
 % % % % %%%% answer - .1000 (tau=.99)
 % % % % %%%% answer - 1.339 (tau=2)
@@ -237,6 +310,11 @@
 %     DDE.C1=[1 -.5;0 0];
 %     DDE.D12=[0;1];
 %     DDE.tau(1) = .3;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
 % %%% answer - .3953
 
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,6 +327,10 @@
 %    DDE.C1=[1 0;0 1;0 0];
 %    DDE.D12=[0;0;.1];
 %    DDE.tau(1) = 1;DDE.tau(2)=2;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
 % %%% answer - .6104
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Scalability Example from [4]
@@ -272,6 +354,11 @@
 % %  DDE.C1i{j}=zeros(2,nndim);
 %   DDE.tau(j) = j/nndelay;
 % end
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
 % Answer [3,3] - .9630
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % %%% Spring-Mass Network delay problem
@@ -303,6 +390,9 @@
 % %Hinf_gain=1;
 % %Hinf_estimator=1;
 % Hinf_control=1;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % stable at h=.08, unstable at h=1
 % % for n=3: full size: d=24, reduced size: d=5 
 % % for n=5: full size: d=60, reduced size: d=9 % minimal comp: 154.95s
@@ -343,6 +433,11 @@
 % DDE.B2=[zn;eye(n)];
 % DDE.C1=[eye(n) zn;zn zn];
 % DDE.D12=[zn;.1*eye(n)];
+% st = lpisettings_sop('veryheavy');                                        % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 2;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [2 6 6];                                              % MMP, 11/19/2026
+% st.sop.dw_P = 1;                                                          % MMP, 11/19/2026
 % % % %gam_guess; % min in [.32 .38]
 % % % n=3 -> .4092
 % % % n=10 -> .5964
@@ -356,13 +451,32 @@
 % Hinf_control=1
 % aM=1/1.964; kM=-.0117;zM=.8;wM=6;
 % DDE.A0=[-aM 0 0; 0 0 1; 0 -wM^2 -2*zM*wM];
-%  DDE.Adi{1}=[0 kM*aM 0; 0 0 0; 0 0 0];
-%  DDE.C0=[1 0 0; 0 1 0;0 0 0]; DDE.C{1}=[0 0 0;0 0 0;0 0 0];
+% %  DDE.Adi{1}=[0 kM*aM 0; 0 0 0; 0 0 0];                                  % MMP, 11/19/2026 (was)
+%  DDE.Ai{1}=[0 kM*aM 0; 0 0 0; 0 0 0];                                     % MMP, 11/19/2026
+% % [5] has the discrete delay x2(t-tau): kappa m' + m = k theta(t-tau0),   % MMP, 11/19/2026
+% % eq. (6.7) of Mazanti, Boussaada, Niculescu, arXiv 2002.06128: Ai{1},    % MMP, 11/19/2026
+% % the discrete delay, in place of Adi{1}, a distributed delay (since      % MMP, 11/19/2026
+% % 63831988, 12/2022; Ad{1} before, outside the struct).                   % MMP, 11/19/2026
+% % z = [x1; x2; .1u]: the output of this block since PIETOOLS 2021b, in    % MMP, 11/19/2026
+% % field names initialize_PIETOOLS_DDE no longer reads (C0, C{1}, D1,      % MMP, 11/19/2026
+% % D2: z was 0). Neither [5] nor arXiv 1806.08071 ([4]) defines z for      % MMP, 11/19/2026
+% % this model; the choice follows the examples of [4], z = [x; .1u].       % MMP, 11/19/2026
+% %  DDE.C0=[1 0 0; 0 1 0;0 0 0]; DDE.C{1}=[0 0 0;0 0 0;0 0 0];             % MMP, 11/19/2026 (was)
+%  DDE.C1=[1 0 0; 0 1 0;0 0 0]; DDE.C1i{1}=[0 0 0;0 0 0;0 0 0];             % MMP, 11/19/2026
 %  DDE.B2=[0;0;wM^2]; %B in paper
 %  DDE.B1=[1 0;0 0;0 10]; % D in paper
 %  DDE.tau(1)=.33;
-%  DDE.D1=[0 0;0 0;0 0];
-%  DDE.D2=[0;0;.1];
+% %  DDE.D1=[0 0;0 0;0 0];                                                  % MMP, 11/19/2026 (was)
+%  DDE.D11=[0 0;0 0;0 0];                                                   % MMP, 11/19/2026
+% %  DDE.D2=[0;0;.1];                                                       % MMP, 11/19/2026 (was)
+%  DDE.D12=[0;0;.1];                                                        % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
 % % %  gam=1.9369   @6,12, eps1=eps2=.000001, tau=.33 IPM=6.61
 % % %  gam=1.964   @4,8, eps1=eps2=.000001, tau=.33 IPM=1.98
 % % %  gam=1.964   @2,4, eps1=eps2=.000001, tau=.33 IPM=.743
@@ -381,6 +495,13 @@
 %    DDE.C2=[0 7];
 % 
 %    DDE.tau(1) = .3;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
 % % % %%%% answer - .2357
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -393,6 +514,11 @@
    % DDE.C2=[0 1];
    % 
    % DDE.tau(1) = 1;
+   % st = lpisettings_sop('stripped');                                      % MMP, 11/19/2026
+   % st.lpi.pos.len_com{1} = 1;                                             % MMP, 11/19/2026
+   % st.lpi.pos.len_sos{1} = [2;1;2];                                       % MMP, 11/19/2026
+   % st.lpi.ineq.dD = 0;                                                    % MMP, 11/19/2026
+   % st.lpi.var.deg{1} = [0 2 2];                                           % MMP, 11/19/2026
 % %%%% answer - 2.327
 
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -406,6 +532,12 @@
 %    DDE.C2=[0 1];
 % 
 %    DDE.tau(1)=.5; DDE.tau(2) = 1;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
 % %%%% answer - 1.3501
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example 1 from [10]
@@ -417,6 +549,11 @@
 %     DDE.C2i{1}=[1 10];
 %     DDE.D21i{1}=[0 5];
 %     DDE.tau(1)=1;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
 
 % % %%%% answer - 1.808
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -432,6 +569,9 @@
 %    DDE.C2i{2}=[0 2];
 %    DDE.D21=[1 1];
 %    DDE.tau(1)=.3; DDE.tau(2)=.5;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.var.deg{1} = [1 2 2];                                              % MMP, 11/19/2026
 % %
 
 
@@ -449,6 +589,9 @@
 % DDE.B1=b;
 % DDE.C1=c;
 % DDE.tau = tau;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [0;2;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
 % % %%%% answer - 3.6724
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example 2b from [13]
@@ -469,6 +612,9 @@ DDE.B1=[1
                 1];
 DDE.C1=[1 1 1];
 DDE.tau=[pi/10 1];
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 % % % %%%% answer - 3.8307
 
 

@@ -1,0 +1,10 @@
+key,kind,form,tier,mods,best
+PDE:41,stab,Q,light,"st.sos_opts.solver = 'sedumi'",
+PDE:41,stab,P,stripped,"st.sos_opts.solver = 'sedumi'",
+PDE:15,stab,Qd,light,"st.sos_opts.solver = 'sedumi'",
+PDE:15,stab,Pd,stripped,"st.sos_opts.solver = 'sedumi'",
+PDE:16,stab,Q,light,"st.sos_opts.solver = 'sedumi'",
+PDE:16,stab,P,stripped,"st.sos_opts.solver = 'sedumi'",
+PDE:44,bisect,Q,light,"st.sos_opts.solver = 'sedumi'",0.375
+PDE:44,bisect,P,stripped,"st.sos_opts.solver = 'sedumi'",0.375
+PDE:36,stab,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.sos_opts.solver = 'sedumi'",

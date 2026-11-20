@@ -1,0 +1,1062 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+## EX_SEARCH EXSED start 19-Nov-2026 05:47:32: 5 rows, stop 19-Nov-2026 06:47:32
+
+##### PDE:41  [light Q st.sos_opts.solver = 'sedumi']  19-Nov-2026 05:47:32
+
+Delayed states or inputs were encountered:
+ --- Running "expand_delays" to remove the delays --- 
+
+Added 1 state components: 
+   x(t,ntau_2)  := u(t+ntau_2);
+
+Variable s1 has been merged with variable ntau_2.
+
+All spatial variables have been rescaled to exist on the interval [-1,1].
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--         (/s)ýx(t,s)
+   xf(t,s)   <--           (/t)u(t+s)
+
+ --- Conversion to PIE was successful --- 
+[Warning: A copvar has no field 'dim'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future versions.] 
+[> In indexing (line 121)
+In indexing (line 59)
+In lb_build_system (line 70)
+In ex_search>row_pie (line 228)
+In ex_search>search_row (line 141)
+In ex_search (line 103)
+In st_run (line 326)] 
+ - lpi_ineq_sop: 1280 decision variables in the certificate (Gram blocks [32 16], sized from the operator); 1372 in the program.
+ - lpi_ineq_sop: 4212 decision variables in the certificate (Gram blocks [54 36], sized from the operator); 5584 in the program.
+Size: 5584   529
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 92 free variables in a quadratic cone
+eqs m = 529, order n = 141, dim = 5586, blocks = 6
+nnz(A) = 11476 + 0, nnz(ADA) = 177645, nnz(L) = 89087
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            7.69E-01 0.000
+  1 :   3.38E-01 3.35E-01 0.000 0.4351 0.9000 0.9000   0.30  1  1  7.2E+00
+  2 :   2.61E-01 1.14E-01 0.000 0.3402 0.9000 0.9000   0.54  1  1  3.0E+00
+  3 :   1.81E-01 3.21E-02 0.000 0.2818 0.9000 0.9000   0.49  1  1  1.1E+00
+  4 :   1.02E-01 7.46E-03 0.000 0.2323 0.9000 0.9000   0.55  1  1  3.3E-01
+  5 :   6.19E-02 1.87E-03 0.000 0.2504 0.9000 0.9000   0.47  1  1  1.1E-01
+  6 :   3.60E-02 4.64E-04 0.000 0.2485 0.9000 0.9000   0.44  1  1  4.0E-02
+  7 :   2.08E-02 1.25E-04 0.000 0.2698 0.9000 0.9000   0.43  1  1  1.5E-02
+  8 :   1.21E-02 3.49E-05 0.000 0.2788 0.9000 0.9000   0.42  1  2  5.9E-03
+  9 :   7.18E-03 9.70E-06 0.000 0.2780 0.9000 0.9000   0.42  1  2  2.4E-03
+ 10 :   4.31E-03 2.84E-06 0.000 0.2928 0.9000 0.9000   0.42  2  3  9.8E-04
+ 11 :   2.80E-03 7.48E-07 0.000 0.2631 0.9051 0.9000   0.40  8 12  4.0E-04
+ 12 :   2.07E-03 2.33E-07 0.000 0.3118 0.9000 0.6930   0.42 14 20  2.0E-04
+ 13 :   1.40E-03 6.48E-08 0.000 0.2782 0.9065 0.9000   0.46 32 24  8.4E-05
+ 14 :   9.02E-04 2.19E-08 0.000 0.3371 0.9000 0.9070   0.41 28 35  3.9E-05
+ 15 :   8.48E-04 1.24E-08 0.000 0.5680 0.9000 0.2994   0.32 62 92  3.0E-05
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      3.0   7.6  0.0000000000e+00  8.4814643685e-04
+|Ax-b| =   7.4e-05, [Ay-c]_+ =   3.4E-06, |x|=  4.4e+03, |y|=  4.3e+04
+
+Detailed timing (sec)
+   Pre          IPM          Post
+2.600E-01    9.750E-01    3.700E-02    
+Max-norms: ||b||=7.955573e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 79, ||L.L|| = 50589.9.
+ 
+Residual norm: 7.4414e-05
+ 
+         iter: 15
+    feasratio: 0.3184
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.2600 0.9750 0.0370]
+      wallsec: 1.2720
+       cpusec: 3.1406
+       relres: 7.4414e-05
+          eta: 3.5406e-09
+
+  [stability_sop Q] dw 0: inaccurate, residual 7.4e-05, eta 3.5e-09, objective NaN, 5584 decision variables, 529 rows, build 1.3 s, solve 1.4 s
+  [stability_sop Q] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re -8.8521
+     0 start1 Q light st.sos_opts.solver = 'sedumi' start fails  unknown/inaccurate ndv 5584 m 529 gam NaN (3.1 s)
+ - lpi_ineq_sop: 720 decision variables in the certificate (Gram blocks [24 12], sized from opts.like); 1120 in the program.
+Size: 1120   152
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 152, order n = 57, dim = 1121, blocks = 4
+nnz(A) = 7834 + 0, nnz(ADA) = 22928, nnz(L) = 11540
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            4.48E+00 0.000
+  1 :   5.87E-02 1.40E+00 0.000 0.3123 0.9000 0.9000   0.89  1  1  6.1E+00
+  2 :   7.35E-02 5.05E-01 0.000 0.3606 0.9000 0.9000   0.73  1  1  2.6E+00
+  3 :   5.85E-02 1.34E-01 0.000 0.2655 0.9000 0.9000   0.64  1  1  8.6E-01
+  4 :   5.55E-02 3.92E-02 0.000 0.2921 0.9000 0.9000   0.41  1  1  3.7E-01
+  5 :   4.82E-02 1.30E-02 0.000 0.3307 0.9000 0.9000   0.30  1  1  1.8E-01
+  6 :   4.92E-02 4.14E-03 0.000 0.3198 0.9000 0.9000   0.18  1  1  9.6E-02
+  7 :   5.41E-02 1.50E-03 0.000 0.3626 0.9000 0.9000   0.04  1  1  5.9E-02
+  8 :   5.93E-02 5.05E-04 0.000 0.3362 0.9000 0.9000   0.00  1  1  3.5E-02
+  9 :   6.22E-02 1.92E-04 0.000 0.3812 0.9000 0.9000  -0.02  1  1  2.3E-02
+ 10 :   7.36E-02 7.22E-05 0.000 0.3752 0.9000 0.9000  -0.06  1  1  1.5E-02
+ 11 :   7.53E-02 3.09E-05 0.000 0.4273 0.9000 0.9000  -0.09  1  1  1.0E-02
+ 12 :   9.27E-02 1.18E-05 0.000 0.3831 0.9000 0.9000  -0.10  1  2  7.1E-03
+ 13 :   8.96E-02 4.92E-06 0.000 0.4163 0.9000 0.9000  -0.08  1  2  4.6E-03
+ 14 :   1.04E-01 1.77E-06 0.000 0.3605 0.9000 0.9000  -0.07  2  2  2.9E-03
+ 15 :   1.04E-01 6.48E-07 0.000 0.3653 0.9000 0.0000  -0.05  2  2  1.9E-03
+ 16 :   1.33E-01 3.75E-07 0.000 0.5788 0.9000 0.9393   0.21  2  3  1.5E-03
+ 17 :   1.33E-01 1.26E-07 0.000 0.3359 0.9000 0.0000  -0.03  3  4  9.2E-04
+ 18 :   1.53E-01 6.49E-08 0.000 0.5156 0.9000 0.9313   0.26  6 10  6.5E-04
+ 19 :   1.51E-01 2.14E-08 0.000 0.3302 0.9000 0.1427   0.03  9 12  3.9E-04
+ 20 :   1.51E-01 8.37E-09 0.296 0.3903 0.9000 0.0000   0.24 13 15  3.2E-04
+ 21 :   1.51E-01 4.88E-09 0.454 0.5829 0.9000 0.0000   0.42 19 18  2.7E-04
+ 22 :   1.86E-01 3.33E-09 0.097 0.6830 0.9000 0.4384   0.37 18 16  2.4E-04
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 22      0.2   6.5  0.0000000000e+00  1.8583033729e-01
+|Ax-b| =   3.3e-04, [Ay-c]_+ =   3.5E-05, |x|=  1.4e+05, |y|=  1.3e+06
+
+Detailed timing (sec)
+   Pre          IPM          Post
+9.002E-03    1.480E-01    0.000E+00    
+Max-norms: ||b||=4.920573e-01, ||c|| = 0,
+Cholesky |add|=22, |skip| = 8, ||L.L|| = 1.07992e+07.
+ 
+Residual norm: 0.00032897
+ 
+         iter: 22
+    feasratio: 0.3693
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0090 0.1480 0]
+      wallsec: 0.1570
+       cpusec: 0.2188
+       relres: 3.2897e-04
+          eta: 1.2627e-10
+
+  [stability_sop P] dw 0: inaccurate, residual 3.3e-04, eta 1.3e-10, objective NaN, 1120 decision variables, 152 rows, build 0.4 s, solve 0.2 s
+  [stability_sop P] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re NaN
+     0 start2 P stripped st.sos_opts.solver = 'sedumi' start fails  unknown/inaccurate ndv 1120 m 152 gam NaN (0.6 s)
+##### PDE:41  done: NaN -> NaN variables  ()
+
+##### PDE:15  [light Qd st.sos_opts.solver = 'sedumi']  19-Nov-2026 05:47:38
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 3380 decision variables in the certificate (Gram blocks [52 26], sized from opts.like); 5668 in the program.
+Size: 5668  1567
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 688 free variables in a quadratic cone
+eqs m = 1567, order n = 121, dim = 5670, blocks = 5
+nnz(A) = 12270 + 0, nnz(ADA) = 2107883, nnz(L) = 1054725
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            3.31E-01 0.000
+  1 :   3.40E-01 1.24E-01 0.000 0.3744 0.9000 0.9000   0.39  1  1  3.2E+00
+  2 :   7.73E-01 4.46E-02 0.000 0.3602 0.9000 0.9000   0.09  1  1  2.1E+00
+  3 :   2.22E+00 1.29E-02 0.000 0.2881 0.9000 0.9000  -0.36  1  1  1.6E+00
+  4 :   7.55E+00 3.48E-03 0.000 0.2706 0.9000 0.9000  -0.71  1  1  1.5E+00
+  5 :   2.35E+01 1.10E-03 0.000 0.3173 0.9000 0.9000  -0.92  1  1  1.5E+00
+  6 :   6.84E+01 3.74E-04 0.000 0.3389 0.9000 0.9000  -0.97  1  1  1.5E+00
+  7 :   1.68E+02 1.43E-04 0.000 0.3818 0.9000 0.9000  -0.97  1  1  1.4E+00
+  8 :   4.40E+02 5.23E-05 0.000 0.3660 0.9000 0.9000  -0.97  1  2  1.4E+00
+  9 :   9.39E+02 2.23E-05 0.000 0.4272 0.9000 0.9000  -0.94  1  2  1.3E+00
+ 10 :   2.58E+03 7.81E-06 0.000 0.3495 0.9000 0.9000  -0.95  2  2  1.3E+00
+ 11 :   8.26E+03 2.31E-06 0.000 0.2957 0.9000 0.9144  -0.95  1  2  1.2E+00
+ 12 :   2.53E+04 7.26E-07 0.000 0.3144 0.9000 0.9175  -0.96  2  4  1.2E+00
+ 13 :   7.74E+04 2.33E-07 0.000 0.3208 0.9000 0.9200  -0.97 10 21  1.1E+00
+ 14 :   2.49E+05 8.70E-08 0.087 0.3735 0.9000 0.9240  -0.98 47 99  1.1E+00
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 14      5.1   2.8e-06   6.4e-07   4.3e+00   3.8e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+4.700E-02    2.647E+00    4.999E-03    
+Max-norms: ||b||=3.666794e-01, ||c|| = 0,
+Cholesky |add|=2, |skip| = 310, ||L.L|| = 3.91101e+06.
+ 
+Residual norm: 1
+ 
+         iter: 14
+    feasratio: -0.9796
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0470 2.6470 0.0050]
+      wallsec: 2.6990
+       cpusec: 5.3125
+       relres: 1.0000
+          eta: 0.1284
+
+  [stability_sop Qd] dw 0: infeasible, residual 1.0e+00, eta 1.3e-01, objective NaN, 5668 decision variables, 1567 rows, build 1.1 s, solve 2.7 s
+ - lpi_ineq_sop: 8788 decision variables in the certificate (Gram blocks [78 52], sized from opts.like); 11076 in the program.
+Size: 11076   1733
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 688 free variables in a quadratic cone
+eqs m = 1733, order n = 173, dim = 11078, blocks = 5
+nnz(A) = 20179 + 0, nnz(ADA) = 2296379, nnz(L) = 1149056
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            2.50E-01 0.000
+  1 :   3.20E-01 9.84E-02 0.000 0.3929 0.9000 0.9000   0.39  1  1  3.5E+00
+  2 :   7.08E-01 3.60E-02 0.000 0.3657 0.9000 0.9000   0.13  1  1  2.2E+00
+  3 :   1.98E+00 1.10E-02 0.000 0.3046 0.9000 0.9000  -0.34  1  1  1.8E+00
+  4 :   6.22E+00 3.23E-03 0.000 0.2942 0.9000 0.9000  -0.68  1  1  1.6E+00
+  5 :   1.97E+01 1.02E-03 0.000 0.3165 0.9000 0.9000  -0.92  1  1  1.6E+00
+  6 :   5.71E+01 3.44E-04 0.000 0.3373 0.9000 0.9000  -0.97  1  1  1.6E+00
+  7 :   1.38E+02 1.33E-04 0.000 0.3873 0.9000 0.9000  -0.97  1  1  1.5E+00
+  8 :   3.53E+02 5.01E-05 0.000 0.3754 0.9000 0.9000  -0.97  1  1  1.5E+00
+  9 :   7.12E+02 2.26E-05 0.000 0.4520 0.9000 0.9000  -0.94  1  2  1.4E+00
+ 10 :   1.92E+03 8.16E-06 0.000 0.3606 0.9000 0.9000  -0.96  1  2  1.4E+00
+ 11 :   4.25E+03 3.40E-06 0.000 0.4171 0.9000 0.9000  -0.95  2  2  1.3E+00
+ 12 :   1.13E+04 1.17E-06 0.000 0.3452 0.9109 0.9000  -0.96  2  3  1.3E+00
+ 13 :   2.92E+04 4.47E-07 0.000 0.3808 0.9000 0.9053  -0.97  3  4  1.2E+00
+ 14 :   9.50E+04 1.38E-07 0.000 0.3080 0.9000 0.9266  -0.97 24 26  1.2E+00
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 14      7.1   6.6e-06   1.8e-06   6.9e+00   2.7e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+4.600E-02    3.207E+00    0.000E+00    
+Max-norms: ||b||=3.666794e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 243, ||L.L|| = 2.37022e+06.
+ 
+Residual norm: 1
+ 
+         iter: 14
+    feasratio: -0.9708
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0460 3.2070 0]
+      wallsec: 3.2530
+       cpusec: 7.2188
+       relres: 1.0000
+          eta: 0.0944
+
+  [stability_sop Qd] dw 1: infeasible, residual 1.0e+00, eta 9.4e-02, objective NaN, 11076 decision variables, 1733 rows, build 0.9 s, solve 3.3 s
+ - lpi_ineq_sop: 16900 decision variables in the certificate (Gram blocks [104 78], sized from opts.like); 19188 in the program.
+Size: 19188   1915
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 688 free variables in a quadratic cone
+eqs m = 1915, order n = 225, dim = 19190, blocks = 5
+nnz(A) = 32332 + 0, nnz(ADA) = 2582923, nnz(L) = 1292419
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            2.10E-01 0.000
+  1 :   3.13E-01 8.36E-02 0.000 0.3988 0.9000 0.9000   0.40  1  1  3.7E+00
+  2 :   6.73E-01 3.14E-02 0.000 0.3760 0.9000 0.9000   0.15  1  1  2.4E+00
+  3 :   1.86E+00 9.81E-03 0.000 0.3122 0.9000 0.9000  -0.32  1  1  1.9E+00
+  4 :   5.88E+00 2.84E-03 0.000 0.2895 0.9000 0.9000  -0.67  1  1  1.7E+00
+  5 :   1.80E+01 9.24E-04 0.000 0.3253 0.9000 0.9000  -0.91  1  1  1.7E+00
+  6 :   5.21E+01 3.15E-04 0.000 0.3413 0.9000 0.9000  -0.98  1  1  1.7E+00
+  7 :   1.24E+02 1.26E-04 0.000 0.3995 0.9000 0.9000  -0.98  1  1  1.6E+00
+  8 :   3.17E+02 4.83E-05 0.000 0.3830 0.9000 0.9000  -1.00  1  1  1.6E+00
+  9 :   6.31E+02 2.22E-05 0.000 0.4599 0.9000 0.9000  -0.95  1  1  1.5E+00
+ 10 :   1.71E+03 7.98E-06 0.000 0.3597 0.9000 0.9000  -0.97  2  2  1.5E+00
+ 11 :   5.26E+03 2.53E-06 0.000 0.3169 0.9000 0.9171  -0.95  2  2  1.4E+00
+ 12 :   1.52E+04 8.44E-07 0.000 0.3336 0.9000 0.9209  -0.96  2  3  1.3E+00
+ 13 :   4.41E+04 2.81E-07 0.000 0.3329 0.9000 0.9237  -0.97  3  4  1.3E+00
+ 14 :   1.31E+05 8.87E-08 0.121 0.3158 0.9000 0.9279  -0.97 20 26  1.2E+00
+ 15 :   2.77E+05 2.99E-08 0.033 0.3369 0.9000 0.9081  -0.95 50 99  1.2E+00
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 15     11.5   2.7e-06   5.8e-07   6.3e+00   3.6e+02
+
+Detailed timing (sec)
+   Pre          IPM          Post
+6.901E-02    4.807E+00    1.100E-02    
+Max-norms: ||b||=3.666794e-01, ||c|| = 0,
+Cholesky |add|=3, |skip| = 247, ||L.L|| = 4.9058e+06.
+ 
+Residual norm: 1
+ 
+         iter: 15
+    feasratio: -0.9526
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0690 4.8070 0.0110]
+      wallsec: 4.8870
+       cpusec: 11.6562
+       relres: 1.0000
+          eta: 0.0950
+
+  [stability_sop Qd] dw 2: infeasible, residual 1.0e+00, eta 9.5e-02, objective NaN, 19188 decision variables, 1915 rows, build 0.9 s, solve 4.9 s
+  [stability_sop Qd] infeasible: certificate at epneg 0: 0; numerical spectrum max Re 1.10946e-06
+     0 start1 Qd light st.sos_opts.solver = 'sedumi' start fails  infeasible/infeasible ndv 19188 m 1915 gam NaN (13.9 s)
+ - lpi_ineq_sop: 2880 decision variables in the certificate (Gram blocks [48 24], sized from opts.like); 4480 in the program.
+Size: 4480   571
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 571, order n = 113, dim = 4481, blocks = 4
+nnz(A) = 20132 + 0, nnz(ADA) = 317521, nnz(L) = 159046
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            7.24E-01 0.000
+  1 :   5.77E-01 2.37E-01 0.000 0.3272 0.9000 0.9000   0.40  1  1  5.0E+00
+  2 :   3.55E+00 8.15E-02 0.000 0.3441 0.9000 0.9000  -0.59  1  1  6.1E+00
+  3 :   1.38E+01 2.72E-02 0.000 0.3343 0.9000 0.9000  -1.00  1  1  6.5E+00
+  4 :   5.07E+01 8.39E-03 0.000 0.3081 0.9000 0.9000  -1.08  1  1  6.7E+00
+  5 :   2.20E+02 2.25E-03 0.000 0.2680 0.9000 0.9000  -1.12  1  1  7.2E+00
+  6 :   7.43E+02 6.86E-04 0.000 0.3050 0.9000 0.9000  -1.12  1  1  7.0E+00
+  7 :   2.24E+03 2.19E-04 0.000 0.3193 0.9000 0.9000  -1.03  1  1  6.7E+00
+  8 :   6.21E+03 7.62E-05 0.000 0.3477 0.9000 0.9000  -1.00  1  1  6.5E+00
+  9 :   1.63E+04 2.80E-05 0.000 0.3676 0.9000 0.9000  -0.99  1  1  6.3E+00
+ 10 :   4.46E+04 1.00E-05 0.000 0.3574 0.9000 0.9000  -1.00  1  1  6.2E+00
+ 11 :   1.02E+05 4.25E-06 0.000 0.4243 0.9000 0.9000  -0.99  1  1  6.1E+00
+ 12 :   2.81E+05 1.57E-06 0.000 0.3696 0.9000 0.9000  -1.01  1  2  6.1E+00
+ 13 :   5.95E+05 7.12E-07 0.000 0.4541 0.9000 0.9000  -0.99  2  2  6.0E+00
+ 14 :   1.90E+06 1.71E-07 0.000 0.2396 0.8684 0.9000  -1.02  2  3  6.2E+00
+ 15 :   5.12E+06 6.28E-08 0.000 0.3678 0.9000 0.8532  -1.01  3  4  6.1E+00
+ 16 :   1.54E+07 2.10E-08 0.000 0.3346 0.9022 0.9000  -1.01  4  7  6.1E+00
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 16      1.9   4.6e-07   4.0e-08   6.9e+00   6.1e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.600E-02    6.390E-01    4.003E-03    
+Max-norms: ||b||=3.568732e-01, ||c|| = 0,
+Cholesky |add|=1, |skip| = 317, ||L.L|| = 1.0161e+06.
+ 
+Residual norm: 1
+ 
+         iter: 16
+    feasratio: -1.0141
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0160 0.6390 0.0040]
+      wallsec: 0.6590
+       cpusec: 1.9062
+       relres: 1.0000
+          eta: 0.0387
+
+  [stability_sop Pd] dw 0: infeasible, residual 1.0e+00, eta 3.9e-02, objective NaN, 4480 decision variables, 571 rows, build 1.0 s, solve 0.7 s
+ - lpi_ineq_sop: 7488 decision variables in the certificate (Gram blocks [72 48], sized from opts.like); 9088 in the program.
+Size: 9088   678
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 678, order n = 161, dim = 9089, blocks = 4
+nnz(A) = 27499 + 0, nnz(ADA) = 445206, nnz(L) = 222942
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            5.08E-01 0.000
+  1 :   5.33E-01 1.73E-01 0.000 0.3402 0.9000 0.9000   0.43  1  1  5.0E+00
+  2 :   2.69E+00 6.73E-02 0.000 0.3896 0.9000 0.9000  -0.55  1  1  5.8E+00
+  3 :   1.14E+01 2.27E-02 0.000 0.3366 0.9000 0.9000  -0.98  1  1  6.5E+00
+  4 :   4.22E+01 7.27E-03 0.000 0.3207 0.9000 0.9000  -1.13  1  1  6.8E+00
+  5 :   1.72E+02 2.07E-03 0.000 0.2842 0.9000 0.9000  -1.14  1  1  7.2E+00
+  6 :   5.66E+02 6.58E-04 0.000 0.3187 0.9000 0.9000  -1.13  1  1  7.1E+00
+  7 :   1.74E+03 2.16E-04 0.000 0.3288 0.9000 0.9000  -1.07  1  1  7.0E+00
+  8 :   4.38E+03 8.59E-05 0.000 0.3968 0.9000 0.9000  -1.04  1  1  6.9E+00
+  9 :   1.18E+04 3.24E-05 0.000 0.3775 0.9000 0.9000  -1.04  1  1  6.9E+00
+ 10 :   2.43E+04 1.54E-05 0.000 0.4741 0.9000 0.9000  -1.02  1  1  6.7E+00
+ 11 :   6.60E+04 5.79E-06 0.000 0.3771 0.9000 0.9000  -1.03  1  1  6.8E+00
+ 12 :   1.35E+05 2.73E-06 0.000 0.4707 0.9000 0.9000  -1.00  1  2  6.7E+00
+ 13 :   3.83E+05 9.91E-07 0.000 0.3632 0.9000 0.9000  -1.02  1  2  6.8E+00
+ 14 :   8.36E+05 4.42E-07 0.000 0.4458 0.9000 0.9000  -1.00  2  2  6.7E+00
+ 15 :   2.31E+06 1.24E-07 0.000 0.2818 0.8134 0.9000  -1.02  2  3  6.8E+00
+ 16 :   5.08E+06 5.55E-08 0.000 0.4462 0.9000 0.7458  -1.01  3  5  6.7E+00
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 16      3.3   2.4e-06   1.3e-07   1.3e+01   4.0e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.500E-02    1.130E+00    2.997E-03    
+Max-norms: ||b||=3.568732e-01, ||c|| = 0,
+Cholesky |add|=1, |skip| = 92, ||L.L|| = 1.62312e+06.
+ 
+Residual norm: 1
+ 
+         iter: 16
+    feasratio: -1.0053
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0150 1.1300 0.0030]
+      wallsec: 1.1480
+       cpusec: 3.3438
+       relres: 1.0000
+          eta: 0.0222
+
+  [stability_sop Pd] dw 1: infeasible, residual 1.0e+00, eta 2.2e-02, objective NaN, 9088 decision variables, 678 rows, build 1.1 s, solve 1.1 s
+  [stability_sop Pd] infeasible: certificate at epneg 0: 0; numerical spectrum max Re NaN
+     0 start2 Pd stripped st.sos_opts.solver = 'sedumi' start fails  infeasible/infeasible ndv 9088 m 678 gam NaN (3.8 s)
+##### PDE:15  done: NaN -> NaN variables  ()
+
+##### PDE:16  [light Q st.sos_opts.solver = 'sedumi']  19-Nov-2026 05:47:57
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--          x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 21853 decision variables in the certificate (Gram blocks [123 82], sized from the operator); 22221 in the program.
+ - lpi_ineq_sop: 15925 decision variables in the certificate (Gram blocks [105 70], sized from the operator); 38146 in the program.
+Size: 38146   2959
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 368 free variables in a quadratic cone
+eqs m = 2959, order n = 383, dim = 38148, blocks = 6
+nnz(A) = 62938 + 0, nnz(ADA) = 4617113, nnz(L) = 2310036
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.27E-01 0.000
+  1 :   1.42E+00 4.46E-02 0.000 0.3519 0.9000 0.9000  -0.28  1  1  5.7E+00
+  2 :   6.46E+00 1.84E-02 0.000 0.4124 0.9000 0.9000  -0.82  1  1  6.9E+00
+  3 :   3.00E+01 6.64E-03 0.000 0.3608 0.9000 0.9000  -1.22  1  1  8.6E+00
+  4 :   1.35E+02 2.27E-03 0.000 0.3420 0.9000 0.9000  -1.41  1  1  1.0E+01
+  5 :   5.29E+02 7.76E-04 0.000 0.3416 0.9000 0.9000  -1.42  1  1  1.1E+01
+  6 :   1.97E+03 2.73E-04 0.000 0.3520 0.9000 0.9000  -1.36  1  1  1.2E+01
+  7 :   8.07E+03 8.55E-05 0.000 0.3130 0.9000 0.9000  -1.30  1  1  1.4E+01
+  8 :   3.17E+04 2.67E-05 0.000 0.3122 0.9000 0.9000  -1.24  1  2  1.5E+01
+  9 :   1.42E+05 7.20E-06 0.000 0.2699 0.9000 0.9000  -1.19  1  2  1.7E+01
+ 10 :   6.78E+05 1.83E-06 0.000 0.2537 0.9000 0.9000  -1.16  2  2  1.8E+01
+ 11 :   3.54E+06 4.35E-07 0.000 0.2380 0.9000 0.9037  -1.15  3  3  2.0E+01
+ 12 :   1.56E+07 1.34E-07 0.000 0.3092 0.9000 0.9076  -1.12  9  9  2.1E+01
+ 13 :   5.19E+07 2.54E-08 0.000 0.1892 0.9000 0.8018  -1.09 31 70  2.2E+01
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 13     11.6   5.9e-06   4.8e-08   8.5e+00   8.1e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+8.000E-02    7.278E+00    1.001E-02    
+Max-norms: ||b||=4.568330e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 898, ||L.L|| = 552134.
+ 
+Residual norm: 1
+ 
+         iter: 13
+    feasratio: -1.0888
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0800 7.2780 0.0100]
+      wallsec: 7.3680
+       cpusec: 11.8594
+       relres: 1.0000
+          eta: 0.2336
+
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 2.3e-01, objective NaN, 38146 decision variables, 2959 rows, build 1.6 s, solve 7.4 s
+ - lpi_ineq_sop: 42025 decision variables in the certificate (Gram blocks [164 123], sized from the operator); 42393 in the program.
+ - lpi_ineq_sop: 30625 decision variables in the certificate (Gram blocks [140 105], sized from the operator); 73018 in the program.
+Size: 73018   3549
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 368 free variables in a quadratic cone
+eqs m = 3549, order n = 535, dim = 73020, blocks = 6
+nnz(A) = 117101 + 0, nnz(ADA) = 6063045, nnz(L) = 3033297
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            9.81E-02 0.000
+  1 :   1.43E+00 3.56E-02 0.000 0.3623 0.9000 0.9000  -0.29  1  1  6.1E+00
+  2 :   5.95E+00 1.49E-02 0.000 0.4179 0.9000 0.9000  -0.78  1  1  7.1E+00
+  3 :   2.86E+01 5.39E-03 0.000 0.3628 0.9000 0.9000  -1.21  1  1  9.0E+00
+  4 :   1.33E+02 1.79E-03 0.000 0.3327 0.9000 0.9000  -1.44  1  1  1.1E+01
+  5 :   5.28E+02 6.06E-04 0.000 0.3378 0.9000 0.9000  -1.40  1  1  1.2E+01
+  6 :   1.83E+03 2.25E-04 0.000 0.3710 0.9000 0.9000  -1.35  1  1  1.3E+01
+  7 :   7.57E+03 7.07E-05 0.000 0.3147 0.9000 0.9000  -1.31  1  1  1.4E+01
+  8 :   2.95E+04 2.31E-05 0.000 0.3269 0.9000 0.9000  -1.27  1  1  1.6E+01
+  9 :   1.24E+05 7.04E-06 0.000 0.3044 0.9000 0.9000  -1.24  1  2  1.8E+01
+ 10 :   6.54E+05 1.73E-06 0.000 0.2460 0.9000 0.9000  -1.22  3  3  2.1E+01
+ 11 :   3.57E+06 4.12E-07 0.000 0.2378 0.9000 0.9033  -1.19  3  3  2.3E+01
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 11     15.6   9.1e-05   6.9e-07   1.7e+01   1.2e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+8.900E-02    1.095E+01    0.000E+00    
+Max-norms: ||b||=4.568330e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 701, ||L.L|| = 82867.9.
+ 
+Residual norm: 1
+ 
+         iter: 11
+    feasratio: -1.1941
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0890 10.9520 0]
+      wallsec: 11.0410
+       cpusec: 15.7344
+       relres: 1.0000
+          eta: 0.2135
+
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 2.1e-01, objective NaN, 73018 decision variables, 3549 rows, build 1.6 s, solve 11.1 s
+ - lpi_ineq_sop: 68921 decision variables in the certificate (Gram blocks [205 164], sized from the operator); 69289 in the program.
+ - lpi_ineq_sop: 50225 decision variables in the certificate (Gram blocks [175 140], sized from the operator); 119514 in the program.
+Size: 119514    4139
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 368 free variables in a quadratic cone
+eqs m = 4139, order n = 687, dim = 119516, blocks = 6
+nnz(A) = 190178 + 0, nnz(ADA) = 7859993, nnz(L) = 3932066
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            8.09E-02 0.000
+  1 :   1.44E+00 2.97E-02 0.000 0.3679 0.9000 0.9000  -0.30  1  1  6.4E+00
+  2 :   5.71E+00 1.25E-02 0.000 0.4199 0.9000 0.9000  -0.75  1  1  7.2E+00
+  3 :   2.81E+01 4.54E-03 0.000 0.3634 0.9000 0.9000  -1.21  1  1  9.4E+00
+  4 :   1.26E+02 1.52E-03 0.000 0.3357 0.9000 0.9000  -1.43  1  1  1.1E+01
+  5 :   5.14E+02 5.15E-04 0.000 0.3377 0.9000 0.9000  -1.39  1  1  1.2E+01
+  6 :   1.82E+03 1.88E-04 0.000 0.3662 0.9000 0.9000  -1.37  1  1  1.3E+01
+  7 :   6.89E+03 6.36E-05 0.000 0.3373 0.9000 0.9000  -1.31  1  1  1.5E+01
+  8 :   2.75E+04 2.05E-05 0.000 0.3231 0.9000 0.9000  -1.27  1  2  1.7E+01
+  9 :   1.17E+05 6.21E-06 0.000 0.3026 0.9000 0.9000  -1.25  2  2  1.9E+01
+ 10 :   8.92E+05 1.35E-06 0.000 0.2179 0.9000 0.9078  -1.23  2  2  2.3E+01
+ 11 :   4.30E+06 3.54E-07 0.000 0.2616 0.9000 0.9038  -1.18  2  3  2.5E+01
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 11     21.0   7.9e-05   6.4e-07   1.5e+01   9.4e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.320E-01    1.740E+01    2.201E-02    
+Max-norms: ||b||=4.568330e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 2305, ||L.L|| = 1.19427e+14.
+ 
+Residual norm: 1
+ 
+         iter: 11
+    feasratio: -1.1793
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.1320 17.3960 0.0220]
+      wallsec: 17.5500
+       cpusec: 21.3438
+       relres: 1.0000
+          eta: 0.2952
+
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 3.0e-01, objective NaN, 119514 decision variables, 4139 rows, build 1.6 s, solve 17.6 s
+  [stability_sop Q] infeasible: certificate at epneg 0: 0; numerical spectrum max Re 365.257
+     0 start1 Q light st.sos_opts.solver = 'sedumi' start fails  infeasible/infeasible ndv 119514 m 4139 gam NaN (40.9 s)
+ - lpi_ineq_sop: 3125 decision variables in the certificate (Gram blocks [50 25], sized from opts.like); 4725 in the program.
+Size: 4725   749
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 749, order n = 116, dim = 4726, blocks = 4
+nnz(A) = 34115 + 0, nnz(ADA) = 542615, nnz(L) = 271682
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            4.20E-01 0.000
+  1 :   1.77E+00 1.31E-01 0.000 0.3112 0.9000 0.9000  -0.10  1  1  5.7E+00
+  2 :   1.16E+01 4.31E-02 0.000 0.3303 0.9000 0.9000  -0.96  1  1  7.6E+00
+  3 :   5.42E+01 1.40E-02 0.000 0.3246 0.9000 0.9000  -1.28  1  1  8.9E+00
+  4 :   2.49E+02 4.13E-03 0.000 0.2949 0.9000 0.9000  -1.32  1  1  9.9E+00
+  5 :   1.21E+03 1.14E-03 0.000 0.2756 0.9000 0.9000  -1.31  1  1  1.1E+01
+  6 :   6.92E+03 2.65E-04 0.000 0.2325 0.9000 0.9000  -1.27  1  1  1.3E+01
+  7 :   3.64E+04 5.68E-05 0.000 0.2146 0.9000 0.9000  -1.18  1  1  1.3E+01
+  8 :   1.84E+05 1.16E-05 0.000 0.2040 0.9000 0.9000  -1.06  1  1  1.4E+01
+  9 :   6.70E+06 3.24E-07 0.000 0.0280 0.9900 0.9900  -1.02  1  1  
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+  9      0.6   0.0e+00   0.0e+00   0.0e+00   6.6e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.600E-02    4.370E-01    0.000E+00    
+Max-norms: ||b||=6.681879e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 185, ||L.L|| = 17158.8.
+ 
+Residual norm: 1
+ 
+         iter: 9
+    feasratio: -1.0176
+         pinf: 1
+         dinf: 0
+       numerr: 0
+       timing: [0.0160 0.4370 0]
+      wallsec: 0.4530
+       cpusec: 0.6406
+       relres: 1
+          eta: 1
+
+  [stability_sop P] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 4725 decision variables, 749 rows, build 0.9 s, solve 0.5 s
+ - lpi_ineq_sop: 8125 decision variables in the certificate (Gram blocks [75 50], sized from opts.like); 9725 in the program.
+Size: 9725   828
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 828, order n = 166, dim = 9726, blocks = 4
+nnz(A) = 41786 + 0, nnz(ADA) = 644780, nnz(L) = 322804
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            2.93E-01 0.000
+  1 :   1.70E+00 9.49E-02 0.000 0.3235 0.9000 0.9000  -0.09  1  1  5.8E+00
+  2 :   1.05E+01 3.37E-02 0.000 0.3551 0.9000 0.9000  -0.97  1  1  7.7E+00
+  3 :   5.13E+01 1.08E-02 0.000 0.3194 0.9000 0.9000  -1.28  1  1  9.1E+00
+  4 :   2.24E+02 3.35E-03 0.000 0.3110 0.9000 0.9000  -1.34  1  1  1.0E+01
+  5 :   9.89E+02 1.00E-03 0.000 0.2997 0.9000 0.9000  -1.32  1  1  1.1E+01
+  6 :   4.48E+03 2.84E-04 0.000 0.2833 0.9000 0.9000  -1.27  1  1  1.3E+01
+  7 :   1.78E+04 8.32E-05 0.000 0.2929 0.9000 0.9000  -1.21  1  1  1.3E+01
+  8 :   8.00E+04 1.98E-05 0.000 0.2379 0.9000 0.9000  -1.11  1  1  1.4E+01
+  9 :   3.81E+05 4.33E-06 0.000 0.2188 0.9000 0.9000  -1.05  1  1  1.4E+01
+ 10 :   1.68E+06 1.00E-06 0.000 0.2313 0.9000 0.9000  -1.02  1  1  1.4E+01
+ 11 :   1.79E+07 9.62E-08 0.000 0.0960 0.9900 0.9900  -1.01  1  1  
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 11      1.8   0.0e+00   0.0e+00   0.0e+00   4.4e+04
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.200E-02    8.520E-01    7.001E-03    
+Max-norms: ||b||=6.681879e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 116, ||L.L|| = 55212.2.
+ 
+Residual norm: 1
+ 
+         iter: 11
+    feasratio: -1.0137
+         pinf: 1
+         dinf: 0
+       numerr: 0
+       timing: [0.0120 0.8520 0.0070]
+      wallsec: 0.8710
+       cpusec: 1.8125
+       relres: 1
+          eta: 1
+
+  [stability_sop P] dw 1: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 9725 decision variables, 828 rows, build 0.9 s, solve 0.9 s
+  [stability_sop P] infeasible: certificate at epneg 0: 0; numerical spectrum max Re NaN
+     0 start2 P stripped st.sos_opts.solver = 'sedumi' start fails  infeasible/infeasible ndv 9725 m 828 gam NaN (3.1 s)
+##### PDE:16  done: NaN -> NaN variables  ()
+
+##### PDE:44  [light Q st.sos_opts.solver = 'sedumi']  19-Nov-2026 05:48:41
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--          x(t)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 13634 decision variables in the certificate (Gram blocks [97 65], sized from the operator); 14043 in the program.
+ - lpi_ineq_sop: 16277 decision variables in the certificate (Gram blocks [106 71], sized from the operator); 30320 in the program.
+Size: 30320   2584
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 409 free variables in a quadratic cone
+eqs m = 2584, order n = 342, dim = 30322, blocks = 6
+nnz(A) = 55497 + 0, nnz(ADA) = 3677068, nnz(L) = 1839826
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.21E-01 0.000
+  1 :   2.27E-01 4.86E-02 0.000 0.4025 0.9000 0.9000   0.37  1  1  3.5E+00
+  2 :   1.32E-01 1.86E-02 0.000 0.3835 0.9000 0.9000   0.65  1  1  1.5E+00
+  3 :   1.20E-01 6.21E-03 0.000 0.3336 0.9000 0.9000   0.54  1  1  6.3E-01
+  4 :   8.52E-02 2.29E-03 0.000 0.3689 0.9000 0.9000   0.55  1  1  2.9E-01
+  5 :   8.09E-02 9.22E-04 0.000 0.4020 0.9000 0.9000   0.42  1  1  1.6E-01
+  6 :   9.53E-02 4.14E-04 0.000 0.4496 0.9000 0.9000   0.17  1  1  1.1E-01
+  7 :   1.62E-01 1.73E-04 0.000 0.4171 0.9000 0.9000  -0.19  1  1  8.5E-02
+  8 :   2.70E-01 7.98E-05 0.000 0.4618 0.9000 0.9000  -0.44  1  1  7.4E-02
+  9 :   6.43E-01 3.10E-05 0.000 0.3885 0.9000 0.9000  -0.68  2  2  7.1E-02
+ 10 :   2.18E+00 9.95E-06 0.000 0.3210 0.9000 0.9039  -0.90  1  2  7.3E-02
+ 11 :   8.31E+00 3.15E-06 0.000 0.3169 0.9000 0.9125  -1.03  2  2  7.5E-02
+ 12 :   2.50E+01 1.05E-06 0.000 0.3338 0.9000 0.9085  -1.03  2  3  7.2E-02
+ 13 :   8.24E+01 3.30E-07 0.000 0.3135 0.9000 0.9054  -1.02  3  4  7.2E-02
+ 14 :   2.55E+02 1.08E-07 0.000 0.3265 0.9000 0.9032  -1.02  8 10  7.3E-02
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 14      9.5   6.2e-05   3.7e-05   1.2e+01   2.4e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+6.700E-02    5.855E+00    1.992E-03    
+Max-norms: ||b||=7.229353e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 818, ||L.L|| = 1.46698e+08.
+ 
+Residual norm: 0.99994
+ 
+         iter: 14
+    feasratio: -1.0189
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0670 5.8550 0.0020]
+      wallsec: 5.9240
+       cpusec: 9.5781
+       relres: 0.9999
+          eta: 0.1786
+
+  [stability_sop Q] dw 0: infeasible, residual 1.0e+00, eta 1.8e-01, objective NaN, 30320 decision variables, 2584 rows, build 3.2 s, solve 5.9 s
+ - lpi_ineq_sop: 26050 decision variables in the certificate (Gram blocks [129 97], sized from the operator); 26459 in the program.
+ - lpi_ineq_sop: 31117 decision variables in the certificate (Gram blocks [141 106], sized from the operator); 57576 in the program.
+Size: 57576   3116
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 409 free variables in a quadratic cone
+eqs m = 3116, order n = 476, dim = 57578, blocks = 6
+nnz(A) = 97815 + 0, nnz(ADA) = 4822908, nnz(L) = 2413012
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            9.37E-02 0.000
+  1 :   2.27E-01 3.84E-02 0.000 0.4099 0.9000 0.9000   0.37  1  1  3.7E+00
+  2 :   1.29E-01 1.49E-02 0.000 0.3870 0.9000 0.9000   0.65  1  1  1.6E+00
+  3 :   1.18E-01 5.04E-03 0.000 0.3393 0.9000 0.9000   0.55  1  1  6.9E-01
+  4 :   7.87E-02 1.89E-03 0.000 0.3749 0.9000 0.9000   0.57  1  1  3.1E-01
+  5 :   6.60E-02 6.91E-04 0.000 0.3657 0.9000 0.9000   0.50  1  1  1.5E-01
+  6 :   7.61E-02 3.04E-04 0.000 0.4393 0.9000 0.9000   0.23  1  1  9.8E-02
+  7 :   1.18E-01 1.31E-04 0.000 0.4326 0.9000 0.9000  -0.12  1  1  7.5E-02
+  8 :   1.81E-01 6.44E-05 0.000 0.4901 0.9000 0.9000  -0.36  1  1  6.5E-02
+  9 :   3.92E-01 2.66E-05 0.000 0.4131 0.9000 0.9000  -0.59  1  1  6.0E-02
+ 10 :   1.10E+00 9.79E-06 0.000 0.3679 0.9000 0.9000  -0.85  1  1  6.3E-02
+ 11 :   3.35E+00 3.57E-06 0.000 0.3652 0.9000 0.9000  -1.02  2  2  6.6E-02
+ 12 :   1.22E+01 1.18E-06 0.000 0.3299 0.9000 0.9058  -1.10  3  3  6.9E-02
+ 13 :   3.83E+01 4.09E-07 0.000 0.3467 0.9000 0.9042  -1.10  4  4  6.9E-02
+ 14 :   1.19E+02 1.38E-07 0.000 0.3373 0.9016 0.9000  -1.08  4  5  7.1E-02
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 14     13.7   1.3e-04   7.4e-05   2.1e+01   9.7e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+7.900E-02    1.012E+01    2.002E-03    
+Max-norms: ||b||=7.229353e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 953, ||L.L|| = 2.62187e+09.
+ 
+Residual norm: 0.99988
+ 
+         iter: 14
+    feasratio: -1.0847
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0790 10.1160 0.0020]
+      wallsec: 10.1970
+       cpusec: 13.7656
+       relres: 0.9999
+          eta: 0.1335
+
+  [stability_sop Q] dw 1: infeasible, residual 1.0e+00, eta 1.3e-01, objective NaN, 57576 decision variables, 3116 rows, build 2.7 s, solve 10.2 s
+ - lpi_ineq_sop: 42562 decision variables in the certificate (Gram blocks [161 129], sized from the operator); 42971 in the program.
+ - lpi_ineq_sop: 50857 decision variables in the certificate (Gram blocks [176 141], sized from the operator); 93828 in the program.
+Size: 93828   3648
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 409 free variables in a quadratic cone
+eqs m = 3648, order n = 610, dim = 93830, blocks = 6
+nnz(A) = 154812 + 0, nnz(ADA) = 6251916, nnz(L) = 3127782
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            7.73E-02 0.000
+  1 :   2.27E-01 3.21E-02 0.000 0.4152 0.9000 0.9000   0.37  1  1  3.9E+00
+  2 :   1.28E-01 1.25E-02 0.000 0.3892 0.9000 0.9000   0.65  1  1  1.7E+00
+  3 :   1.19E-01 4.29E-03 0.000 0.3432 0.9000 0.9000   0.55  1  1  7.3E-01
+  4 :   7.59E-02 1.60E-03 0.000 0.3726 0.9000 0.9000   0.59  1  1  3.2E-01
+  5 :   5.93E-02 5.74E-04 0.000 0.3593 0.9000 0.9000   0.54  1  1  1.5E-01
+  6 :   6.57E-02 2.43E-04 0.000 0.4232 0.9000 0.9000   0.28  1  1  9.3E-02
+  7 :   9.50E-02 1.09E-04 0.000 0.4485 0.9000 0.9000  -0.06  1  1  7.1E-02
+  8 :   1.47E-01 5.07E-05 0.000 0.4649 0.9000 0.9000  -0.31  1  1  5.9E-02
+  9 :   3.20E-01 2.03E-05 0.000 0.4007 0.9000 0.9000  -0.54  1  2  5.5E-02
+ 10 :   8.96E-01 7.72E-06 0.000 0.3802 0.9000 0.9000  -0.86  1  2  5.7E-02
+ 11 :   2.59E+00 2.97E-06 0.000 0.3845 0.9000 0.9000  -1.03  2  2  6.0E-02
+ 12 :   9.27E+00 9.99E-07 0.000 0.3367 0.9000 0.9051  -1.11  3  3  6.3E-02
+ 13 :   2.95E+01 3.55E-07 0.000 0.3550 0.9000 0.9051  -1.11  3  3  6.4E-02
+ 14 :   9.09E+01 1.22E-07 0.000 0.3441 0.9003 0.9000  -1.10  3  4  6.6E-02
+ 15 :   2.79E+02 2.72E-08 0.000 0.2232 0.8857 0.9000  -1.10 43 59  6.9E-02
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 15     26.0   4.6e-05   3.0e-05   2.5e+01   1.5e+06
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.070E-01    1.826E+01    1.400E-02    
+Max-norms: ||b||=7.229353e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 1319, ||L.L|| = 9.98864e+06.
+ 
+Residual norm: 0.99996
+ 
+         iter: 15
+    feasratio: -1.0953
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.1070 18.2600 0.0140]
+      wallsec: 18.3810
+       cpusec: 26.0938
+       relres: 1.0000
+          eta: 0.1238
+
+  [stability_sop Q] dw 2: infeasible, residual 1.0e+00, eta 1.2e-01, objective NaN, 93828 decision variables, 3648 rows, build 2.7 s, solve 18.4 s
+  [stability_sop Q] infeasible: certificate at epneg 0: 0; numerical spectrum max Re -0.32247
+     0 start1 Q light st.sos_opts.solver = 'sedumi' start fails  infeasible/infeasible ndv 93828 m 3648 gam NaN (43.2 s)
+ - lpi_ineq_sop: 3026 decision variables in the certificate (Gram blocks [49 25], sized from opts.like); 4707 in the program.
+Size: 4707   617
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 617, order n = 116, dim = 4708, blocks = 4
+nnz(A) = 34999 + 0, nnz(ADA) = 365601, nnz(L) = 183109
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            5.82E-01 0.000
+  1 :   1.74E-01 1.85E-01 0.000 0.3184 0.9000 0.9000   0.67  1  1  3.4E+00
+  2 :   3.26E-01 6.80E-02 0.000 0.3669 0.9000 0.9000   0.36  1  1  1.9E+00
+  3 :   5.96E-01 2.53E-02 0.000 0.3714 0.9000 0.9000   0.00  1  1  1.3E+00
+  4 :   1.22E+00 8.16E-03 0.000 0.3227 0.9000 0.9000  -0.33  1  1  9.6E-01
+  5 :   2.50E+00 2.85E-03 0.000 0.3492 0.9000 0.9000  -0.53  1  1  7.8E-01
+  6 :   5.37E+00 1.05E-03 0.000 0.3700 0.9000 0.9000  -0.68  1  1  7.0E-01
+  7 :   1.36E+01 3.76E-04 0.000 0.3567 0.9000 0.9000  -0.81  1  1  6.6E-01
+  8 :   4.04E+01 1.34E-04 0.000 0.3575 0.9000 0.9000  -1.00  1  1  6.9E-01
+  9 :   1.48E+02 3.79E-05 0.000 0.2824 0.9000 0.9000  -1.09  1  1  6.9E-01
+ 10 :   5.07E+02 1.07E-05 0.000 0.2809 0.9000 0.9000  -1.02  1  1  6.6E-01
+ 11 :   2.06E+03 2.58E-06 0.000 0.2422 0.9000 0.9000  -1.01  1  2  6.5E-01
+ 12 :   7.49E+03 6.72E-07 0.000 0.2604 0.9000 0.9000  -0.98  2  2  6.3E-01
+ 13 :   2.45E+04 1.99E-07 0.000 0.2962 0.9013 0.9000  -0.98  3  4  6.3E-01
+ 14 :   7.44E+04 4.70E-08 0.000 0.2362 0.9043 0.9000  -1.01  5  6  6.5E-01
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 14      1.8   1.6e-06   9.6e-07   1.8e+01   1.5e+04
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.700E-02    6.690E-01    0.000E+00    
+Max-norms: ||b||=5.500949e-01, ||c|| = 0,
+Cholesky |add|=45, |skip| = 168, ||L.L|| = 1.00587e+07.
+ 
+Residual norm: 1
+ 
+         iter: 14
+    feasratio: -1.0138
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0170 0.6690 0]
+      wallsec: 0.6860
+       cpusec: 1.8594
+       relres: 1.0000
+          eta: 0.0158
+
+  [stability_sop P] dw 0: infeasible, residual 1.0e+00, eta 1.6e-02, objective NaN, 4707 decision variables, 617 rows, build 1.7 s, solve 0.7 s
+ - lpi_ineq_sop: 7730 decision variables in the certificate (Gram blocks [73 49], sized from opts.like); 9411 in the program.
+Size: 9411   728
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 728, order n = 164, dim = 9412, blocks = 4
+nnz(A) = 42807 + 0, nnz(ADA) = 508180, nnz(L) = 254454
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            4.12E-01 0.000
+  1 :   1.62E-01 1.36E-01 0.000 0.3290 0.9000 0.9000   0.68  1  1  3.5E+00
+  2 :   2.99E-01 5.13E-02 0.000 0.3782 0.9000 0.9000   0.39  1  1  1.9E+00
+  3 :   5.24E-01 1.94E-02 0.000 0.3785 0.9000 0.9000   0.06  1  1  1.3E+00
+  4 :   1.09E+00 6.54E-03 0.000 0.3369 0.9000 0.9000  -0.31  1  1  9.8E-01
+  5 :   2.03E+00 2.31E-03 0.000 0.3529 0.9000 0.9000  -0.48  1  1  7.6E-01
+  6 :   3.49E+00 8.70E-04 0.000 0.3773 0.9000 0.9000  -0.53  1  1  6.0E-01
+  7 :   5.74E+00 3.27E-04 0.000 0.3756 0.9000 0.9000  -0.51  1  1  4.7E-01
+  8 :   1.20E+01 1.20E-04 0.000 0.3660 0.9000 0.9000  -0.58  1  1  4.2E-01
+  9 :   1.89E+01 5.13E-05 0.000 0.4284 0.9000 0.9000  -0.58  1  1  3.4E-01
+ 10 :   3.25E+01 2.00E-05 0.000 0.3908 0.9000 0.9000  -0.55  1  1  2.8E-01
+ 11 :   4.88E+01 8.95E-06 0.000 0.4467 0.9000 0.9000  -0.55  1  1  2.3E-01
+ 12 :   8.99E+01 3.39E-06 0.000 0.3788 0.9000 0.9000  -0.55  1  2  1.9E-01
+ 13 :   1.35E+02 1.42E-06 0.000 0.4186 0.9000 0.9000  -0.51  1  2  1.5E-01
+ 14 :   2.46E+02 5.16E-07 0.000 0.3639 0.9000 0.9000  -0.52  1  3  1.2E-01
+ 15 :   2.46E+02 2.04E-07 0.000 0.3951 0.9000 0.0000  -0.50  2  3  1.0E-01
+ 16 :   4.21E+02 8.49E-08 0.000 0.4164 0.9000 0.7390  -0.32  3  3  9.0E-02
+ 17 :   8.06E+02 2.71E-08 0.000 0.3188 0.9000 0.9000  -0.48  5  6  6.9E-02
+ 18 :   1.59E+03 9.13E-09 0.000 0.3373 0.9000 0.9000  -0.54 12 35  5.5E-02
+Run into numerical problems.
+
+Primal infeasible, dual improving direction found.
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 18      3.6   8.1e-06   4.2e-06   4.8e+01   1.1e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.200E-02    1.461E+00    0.000E+00    
+Max-norms: ||b||=5.500949e-01, ||c|| = 0,
+Cholesky |add|=16, |skip| = 67, ||L.L|| = 4.14084e+06.
+ 
+Residual norm: 0.99999
+ 
+         iter: 18
+    feasratio: -0.5438
+         pinf: 1
+         dinf: 0
+       numerr: 1
+       timing: [0.0120 1.4610 0]
+      wallsec: 1.4730
+       cpusec: 3.5938
+       relres: 1.0000
+          eta: 0.0055
+
+  [stability_sop P] dw 1: infeasible, residual 1.0e+00, eta 5.5e-03, objective NaN, 9411 decision variables, 728 rows, build 1.6 s, solve 1.5 s
+  [stability_sop P] infeasible: certificate at epneg 0: 0; numerical spectrum max Re NaN
+     0 start2 P stripped st.sos_opts.solver = 'sedumi' start fails  infeasible/infeasible ndv 9411 m 728 gam NaN (5.5 s)
+##### PDE:44  done: NaN -> NaN variables  ()
+
+##### PDE:36  [light Q st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.sos_opts.solver = 'sedumi']  19-Nov-2026 05:49:31
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 20480 decision variables in the certificate (Gram blocks [128 32 32 32 32], sized from the operator); 20880 in the program.
+ - lpi_ineq_sop: 32000 decision variables in the certificate (Gram blocks [160 40 40 40 40], sized from the operator); 52880 in the program.
+Size: 52880   5643
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 400 free variables in a quadratic cone
+eqs m = 5643, order n = 579, dim = 52882, blocks = 12
+nnz(A) = 189786 + 0, nnz(ADA) = 23111553, nnz(L) = 11558598
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.90E-01 0.000
+  1 :   1.71E-01 6.28E-02 0.000 0.3311 0.9000 0.9000   0.57  1  1  4.5E+00
+  2 :   2.18E-01 2.43E-02 0.000 0.3864 0.9000 0.9000   0.42  1  1  2.3E+00
+  3 :   2.52E-01 8.71E-03 0.000 0.3592 0.9000 0.9000   0.27  1  1  1.2E+00
+  4 :   2.20E-01 2.56E-03 0.000 0.2937 0.9000 0.9000   0.24  1  1  5.6E-01
+  5 :   1.91E-01 9.41E-04 0.000 0.3678 0.9000 0.9000   0.22  1  1  3.0E-01
+  6 :   1.54E-01 4.43E-04 0.000 0.4712 0.9000 0.9000   0.31  1  1  1.9E-01
+  7 :   2.29E-01 1.57E-04 0.000 0.3541 0.9000 0.9000  -0.03  1  1  1.3E-01
+  8 :   2.17E-01 6.00E-05 0.000 0.3818 0.9000 0.9000  -0.11  1  1  7.9E-02
+  9 :   1.44E-01 2.59E-05 0.000 0.4326 0.9000 0.9000   0.28  1  1  4.3E-02
+ 10 :   8.77E-02 1.09E-05 0.000 0.4189 0.9000 0.9000   0.50  2  3  2.2E-02
+ 11 :   5.18E-02 4.89E-06 0.000 0.4502 0.9071 0.9000   0.56  1  2  1.1E-02
+Run into numerical problems.
+
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 11     40.8   2.4e-02   2.3e-05   2.0e+01   7.6e+04
+Failed: no sensible solution/direction found.
+
+Detailed timing (sec)
+   Pre          IPM          Post
+3.550E-01    3.542E+01    1.400E-02    
+Max-norms: ||b||=2.812500e-01, ||c|| = 0,
+Cholesky |add|=3, |skip| = 3713, ||L.L|| = 1.44714e+09.
+ 
+Residual norm: 0.9765
+ 
+         iter: 11
+    feasratio: 0.5641
+         pinf: 0
+         dinf: 0
+       numerr: 2
+       timing: [0.3550 35.4240 0.0140]
+      wallsec: 35.7930
+       cpusec: 41.8438
+       relres: 0.9765
+          eta: 0.0471
+
+  [stability_sop Q] dw 0: unknown (divergent), residual 9.8e-01, eta 4.7e-02, objective NaN, 52880 decision variables, 5643 rows, build 1.2 s, solve 35.8 s
+ - lpi_ineq_sop: 148480 decision variables in the certificate (Gram blocks [288 128 128 128 128], sized from the operator); 148880 in the program.
+ - lpi_ineq_sop: 232000 decision variables in the certificate (Gram blocks [360 160 160 160 160], sized from the operator); 380880 in the program.
+Size: 380880   10827
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 400 free variables in a quadratic cone
+eqs m = 10827, order n = 1803, dim = 380882, blocks = 12
+nnz(A) = 1205628 + 0, nnz(ADA) = 57526017, nnz(L) = 28768422
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.12E-01 0.000
+  1 :   7.79E-02 4.45E-02 0.000 0.3956 0.9000 0.9000   0.78  1  1  6.6E+00
+  2 :   9.46E-02 1.71E-02 0.000 0.3842 0.9000 0.9000   0.67  1  1  3.0E+00
+  3 :   1.03E-01 6.91E-03 0.000 0.4040 0.9000 0.9000   0.53  1  1  1.6E+00
+  4 :   9.91E-02 2.35E-03 0.000 0.3398 0.9000 0.9000   0.37  1  1  7.5E-01
+  5 :   8.84E-02 7.59E-04 0.000 0.3236 0.9000 0.9000   0.30  1  1  3.6E-01
+  6 :   7.84E-02 2.98E-04 0.000 0.3930 0.9000 0.9000   0.20  1  1  2.0E-01
+  7 :   6.49E-02 1.40E-04 0.000 0.4703 0.9000 0.9000   0.22  1  1  1.3E-01
+  8 :   4.51E-02 5.87E-05 0.000 0.4182 0.9000 0.9000   0.37  1  2  6.8E-02
+  9 :   2.26E-02 2.40E-05 0.000 0.4087 0.9000 0.9000   0.65  2  2  3.1E-02
+ 10 :   1.14E-02 1.02E-05 0.000 0.4233 0.9000 0.9066   0.76  2  2  1.5E-02
+ 11 :   6.50E-03 5.04E-06 0.000 0.4968 0.9000 0.9193   0.70  2  3  8.6E-03
+ 12 :   3.84E-03 2.95E-06 0.000 0.5845 0.9000 0.9267   0.64  2  4  5.5E-03
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 12    277.3   9.1  0.0000000000e+00  3.8391567856e-03
+|Ax-b| =   3.5e-02, [Ay-c]_+ =   2.2E-04, |x|=  7.5e+02, |y|=  1.7e+07
+No sensible solution found.
+
+Detailed timing (sec)
+   Pre          IPM          Post
+8.310E-01    2.265E+02    2.900E-02    
+Max-norms: ||b||=2.812500e-01, ||c|| = 0,
+Cholesky |add|=18, |skip| = 3987, ||L.L|| = 1.26639e+07.
+ 
+Residual norm: 0.035178
+ 
+         iter: 12
+    feasratio: 0.6388
+         pinf: 0
+         dinf: 0
+       numerr: 2
+       timing: [0.8310 226.4690 0.0290]
+      wallsec: 227.3290
+       cpusec: 278.8125
+       relres: 0.0352
+          eta: 1.0082e-05
+
+  [stability_sop Q] dw 1: unknown (divergent), residual 3.5e-02, eta 1.0e-05, objective NaN, 380880 decision variables, 10827 rows, build 1.8 s, solve 227.4 s
+  [stability_sop Q] unknown: certificate at epneg 0: 0; numerical spectrum max Re NaN
+     0 start1 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.sos_opts.solver = 'sedumi' start fails  unknown/unknown ndv 380880 m 10827 gam NaN (266.2 s)
+##### PDE:36  done: NaN -> NaN variables  ()
+## EX_SEARCH EXSED DONE 19-Nov-2026 05:53:58

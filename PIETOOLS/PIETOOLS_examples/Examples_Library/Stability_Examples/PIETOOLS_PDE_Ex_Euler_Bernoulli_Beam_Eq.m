@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -12,6 +12,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,param
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names, by case                      % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Euler-Bernoulli beam equation from Peet (Example 8.1.0.1)
@@ -23,6 +25,12 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,param
 % % 
 % % Parameter c can be set.
 % %---------------------------------------------------------------------% %
+%
+% MMP, 11/19/2026: Output st, the example-specific settings of each case,
+%                   and the form of its tests named in the workspace
+%                   (stability_form), from the per-example search of
+%                   11/19/2026 (maintainer: no default settings);
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -139,6 +147,20 @@ elseif index==13.2
     else
      error(['Example ',num2str(indx),'does not exist, please choose from 13.1 and 13.2']);
     end
+
+% Example-specific settings and the form of the stability tests,            % MMP, 11/19/2026
+% by case                                                                   % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+if index==13.2                                                              % MMP, 11/19/2026
+    st.sop.deg_Q{1} = [0 0 0];                                              % MMP, 11/19/2026
+    evalin('base','stability_form = ''Q'';');                               % MMP, 11/19/2026
+else                                                                        % MMP, 11/19/2026
+    st.lpi.pos.len_inc{1} = 0;                                              % MMP, 11/19/2026
+    st.lpi.pos.len_com{1} = 0;                                              % MMP, 11/19/2026
+    st.lpi.pos.len_sos{1} = [1;2;2];                                        % MMP, 11/19/2026
+    evalin('base','stability_form = ''P'';');                               % MMP, 11/19/2026
+end                                                                         % MMP, 11/19/2026
 
 end
 % @article{peet2019discussion,

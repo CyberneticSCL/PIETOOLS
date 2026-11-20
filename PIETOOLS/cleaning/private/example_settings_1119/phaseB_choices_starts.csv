@@ -110,15 +110,15 @@ PDE:31,value,,veryheavy,"",0.00021688438
 PDE:32,value,,veryheavy,"",0.51759587
 PDE:33,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",
 PDE:34,stab,Q,stripped,"",
-PDE:35,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",
+PDE:35,stab,P,stripped,"st.lpi.ineq.dD = 0",
 PDE:37,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 0 0]",
 PDE:38,stab,Q,light,"st.lpi.ineq.dD = 0",
 PDE:40,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",
-PDE:42,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:42,stab,Q,stripped,"st.lpi.ineq.dD = 0",
 PDE:43,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2",
 PDE:45,value,P,heavy,"",0.11102274
 PDE:46,value,P,heavy,"",0.17110568
-PDE:47,value,P,heavy,"",0.20669904
+PDE:47,value,P,heavy,"st.lpi.ineq.dD = 0",0.20669904
 PDE:48,value,,heavy,"",0.0039726464
 PDE:49,value,o,stripped,"",0.10157583
 PDE:49/H2_norm_dual,value,c,veryheavy,"",0.10157588
@@ -127,7 +127,7 @@ PDE:52,value,,heavy,"st.sop.deg_Q{1} = [6 2 2]",1.0899562
 PDE:57,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]",
 PDE:58,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2",
 PDE:59,stab,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.sop.raise_Q = 'deg'; st.sop.max_raise_Q(2) = 2",
-PDE:60,stab,Q,light,"st.lpi.ineq.dD = 0",
+PDE:60,stab,Q,stripped,"st.lpi.ineq.dD = 0",
 PDE:61,stab,Q,light,"st.lpi.ineq.dD = 0",
 PDE:62,stab,P,light,"",
 PDE:63,stab,Q,light,"",

@@ -1,0 +1,13 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:20:57,PDE:53,0,start1 P stripped NaN,start,certified,optimal,9.73e-10,0.986,1,580612,11753,NaN,112.3,
+05:20:59,PDE:53,1,dD0,fails,infeasible,infeasible,1,-1,1,28676,2125,NaN,2.1,
+05:21:01,PDE:53,2,d21.1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:04,PDE:53,3,d11.1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:06,PDE:53,4,d31.1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:08,PDE:53,5,d31.2,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:10,PDE:53,6,d31.3,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:12,PDE:53,7,pat1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:14,PDE:53,8,psatz1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:17,PDE:53,9,raisefeas1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:19,PDE:53,10,d22.1,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved
+05:21:21,PDE:53,11,d22.2,not smaller,error,,NaN,NaN,NaN,580612,11753,NaN,NaN,LB_SIZE ndv=580612 m=11753 above the gate (ndv 580611; m 45000): not solved

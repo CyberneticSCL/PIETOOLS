@@ -120,6 +120,11 @@ pde = {
  '70',  [P,'2D_Wave_Acoustic_Boundary_Beale'],0,'','','not uniformly stable','',NaN,NaN,NaN,0,'mixed'
  '71',  [P,'2D_Heat_Eq_Exact_Gain_Lidstrom'],0,'','','exact gain','',NaN,NaN,NaN,0,'mixed (Hinf_gain)'
  '72',  [P,'Transport_Edge_Diffusion'],0,'','','default r2 = 0.9 r2*','',NaN,NaN,NaN,0,'mixed (S17); [PDE,st] application settings'
+ % MMP, 11/19/2026: example files outside examples_PDE_library_PIETOOLS (maintainer: "Add all 7",
+ % "Don't add duplicates"); ids X1-X3 outside the switch numbering
+ 'X1',  [P,'Reaction_Diffusion_Robin'],0,'lam','lam=%.10g;','unstable for lam > 1.7071 (c1=c2=1; default 1.705)','',1.7071,0.75*1.7071,1.25*1.7071,1,'outside the library (11/19)'
+ 'X2',  'PIETOOLS_PDE_Example_Diagne',0,'','','','',NaN,NaN,NaN,0,'outside the library (11/19): case 3 with gains k1 = 1, k2 = 2'
+ 'X3',  [P,'Wave_Eq_w_Boundary_Delay_2D'],0,'mu','mu=%.10g;','0.5 (stable for mu<0.5)','',0.5,0.75*0.5,1.25*0.5,1,'outside the library (11/19): case 44, delay states on a second variable'
 };
 
 % {id, name, lines, prose, param, setter, doc, docdual, docnum, lo, hi, bisect, run, note}

@@ -1,0 +1,6 @@
+PDE|8|stripped
+PDE|8/stability_dual|stripped
+PDE|8|light
+PDE|8/stability_dual|light
+PDE|8|heavy
+PDE|8/stability_dual|heavy

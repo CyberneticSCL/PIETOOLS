@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params) % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % 2D heat equation with an interior delay (2D extension of Fridman,
@@ -34,21 +36,21 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params)
 % %   stable iff tau < tau* = 1.034726,
 % % the threshold of the 1D version (r = 1.9, library example 43), which
 % % Fridman, Orlov 2009, Remark 4, show to be tight [read].
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), tau = 0.5*tau*: infeasible with the stock light
-% % settings (1,668,608 decision variables) and with the proposed light
-% % row of the settings proposal of 11/15/2026 (1,680,004); no
-% % certificate at this tier.
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: no settings measured certify this example (gap     % MMP, 11/17/2026
-% % study 11/17/2026, gap_results.md G6: infeasible at 2,514,256            % MMP, 11/17/2026
-% % variables; the direct form exceeds 3,000,000 variables).                % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: no settings measured certify the example, so
 %                   no second output st (application-specific settings);
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: Output st, the recommended settings of the example, and
+%                   the form of its stability test ('Q');
+%                   no measured setting certifies it;
+%                   (maintainer: every example names its settings);
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params) % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -59,6 +61,7 @@ pvar s1 s2 s3
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 r = 2.9;    tau = 0.9*1.034726;
 npars = length(params);
@@ -81,6 +84,9 @@ PDE_t = [diff(x1,'t')==diff(x1,s1,2)+diff(x1,s2,2)+r*x1-subs(x2,s3,tau);
          subs([x1;x2],s2,0)==0;     subs([x1;x2],s2,pi)==0;
          subs(x2,s3,0)==x1];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

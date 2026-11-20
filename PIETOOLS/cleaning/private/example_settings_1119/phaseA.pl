@@ -47,6 +47,9 @@ my %TAG = (
   X2SQ   => ['stripped', ''],  X2SQd0 => ['stripped, dD 0', 'st.lpi.ineq.dD = 0'],
   X2HPd0 => ['heavy, dD 0', 'st.lpi.ineq.dD = 0'],
   XVP8   => ['veryheavy', ''], XVH => ['veryheavy', ''],
+  # 11/19: the example files outside the library (X1-X3), several tiers per pass ('%t': the tier)
+  NEWT   => ['%t', ''], NEWTP => ['%t', ''],
+  NEWTd0 => ['%t, dD 0', 'st.lpi.ineq.dD = 0'], NEWTPd0 => ['%t, dD 0', 'st.lpi.ineq.dD = 0'],
   D1P    => ['light', ''],  D1Ph => ['heavy', ''],
   D1Ppde => ['light', ''],  D1Ppdeh => ['heavy', ''],  D2Pl => ['light', ''],
   D2st   => ['light, DDE block st (eec4f07d)', 'blockst'],
@@ -68,7 +71,7 @@ sub rd { my ($file, $tag, $lab, $desc, $only_tiers) = @_;
     my ($lib, $id, $tier, $st, $res, $doc, $n, $sec, $ndv, $note) = @x;
     next if $only_tiers && !$only_tiers->{$tier};
     next if $st eq 'skipped';
-    my $c = { tag=>$tag, tier=>$tier, lab=>$lab, desc=>$desc, st=>$st, res=>$res, doc=>$doc, n=>$n, sec=>$sec,
+    my $c = { tag=>$tag, tier=>$tier, lab=>($lab =~ s/%t/$tier/r), desc=>$desc, st=>$st, res=>$res, doc=>$doc, n=>$n, sec=>$sec,
       ndv=>$ndv, form=>note_f($note, qr{_sop/(\w+)}), m=>note_f($note, qr{\bm=(\d+)}),
       exst=>note_f($note, qr{exst=(\w+)}), eta=>note_f($note, qr{eta=([-0-9.eE+]+)}),
       fr=>note_f($note, qr{\bfr=([-0-9.eE+]+)}), exec=>note_f($note, qr{^sop:(\w+)}),

@@ -1,0 +1,5 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+PDE:1,P,stripped,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [1;2;2]; st.lpi.ineq.dD = 0;",180,24,9,5,13,"converged"
+DDE:DDE03,P,stripped,"st.lpi.ineq.dD = 0;",440,45,440,45,10,"converged"
+DDE:DDE10,P,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;1]; st.lpi.ineq.dD = 0;",1669,178,1329,157,20,"converged"
+PDE:33,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'none'; st.sop.deg_Q{2} = 0;",409,111,89,57,26,"converged"

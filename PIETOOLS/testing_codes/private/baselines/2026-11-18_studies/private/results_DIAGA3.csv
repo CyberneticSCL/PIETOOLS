@@ -1,0 +1,13 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:15,Q,AsT,light,"",certified,1.039,0,0,0,20516,2111,3.6,""
+PDE:15,P,AsT,light,"",certified,0.9876,0,0,0,4480,523,1.4,""
+PDE:16,Q,AsT,light,"",infeasible,-1,1,0,0,145098,4571,12.4,""
+PDE:16,P,AsT,light,"",infeasible,-1,1,0,0,17225,1010,3.8,""
+PDE:41,Q,AsT,light,"",unknown,-0.6773,0,0,2,19776,797,1.7,""
+PDE:41,P,AsT,light,"",unknown,0.01136,0,0,2,4000,213,0.8,""
+PDE:44,Q,AsT,light,"",certified,0.8717,0,0,0,30320,2584,4.4,""
+PDE:44,P,AsT,light,"",infeasible,-1,0,0,2,16419,903,6.8,""
+PDE:X3,Q,AsT,light,"",infeasible,-1,1,0,0,28150,1172,7.2,""
+PDE:X3,P,AsT,light,"",infeasible,-1,0,0,2,32406,681,5.0,""
+PDE:16,P,AmT,light,"st.lpi.ineq.dD = 2",certified,1.113,0,0,0,28825,1213,4.5,""
+PDE:16,P,AmT,light,"st.lpi.ineq.Dmax = true",certified,0.7813,0,0,0,23453,1247,3.0,""

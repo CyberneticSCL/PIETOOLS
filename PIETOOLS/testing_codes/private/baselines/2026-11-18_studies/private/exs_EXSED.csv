@@ -1,0 +1,10 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:47:37,PDE:41,0,start1 Q light st.sos_opts.solver = 'sedumi',start fails,unknown,inaccurate,3.54e-09,0.318,1,5584,529,NaN,3.1,
+05:47:38,PDE:41,0,start2 P stripped st.sos_opts.solver = 'sedumi',start fails,unknown,inaccurate,1.26e-10,0.369,1,1120,152,NaN,0.6,
+05:47:53,PDE:15,0,start1 Qd light st.sos_opts.solver = 'sedumi',start fails,infeasible,infeasible,0.095,-0.953,3,19188,1915,NaN,13.9,
+05:47:57,PDE:15,0,start2 Pd stripped st.sos_opts.solver = 'sedumi',start fails,infeasible,infeasible,0.0222,-1.01,2,9088,678,NaN,3.8,
+05:48:38,PDE:16,0,start1 Q light st.sos_opts.solver = 'sedumi',start fails,infeasible,infeasible,0.295,-1.18,3,119514,4139,NaN,40.9,
+05:48:41,PDE:16,0,start2 P stripped st.sos_opts.solver = 'sedumi',start fails,infeasible,infeasible,1,-1.01,2,9725,828,NaN,3.1,
+05:49:26,PDE:44,0,start1 Q light st.sos_opts.solver = 'sedumi',start fails,infeasible,infeasible,0.124,-1.1,3,93828,3648,NaN,43.2,
+05:49:31,PDE:44,0,start2 P stripped st.sos_opts.solver = 'sedumi',start fails,infeasible,infeasible,0.00551,-0.544,2,9411,728,NaN,5.5,
+05:53:58,PDE:36,0,start1 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.sos_opts.solver = 'sedumi',start fails,unknown,unknown,1.01e-05,0.639,2,380880,10827,NaN,266.2,

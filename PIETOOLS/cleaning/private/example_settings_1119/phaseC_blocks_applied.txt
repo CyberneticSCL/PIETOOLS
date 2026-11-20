@@ -1,0 +1,40 @@
+examples_DDE_library_PIETOOLS.m: 25 blocks
+  DDE26: 5 lines
+  DDE25: 5 lines
+  DDE24: 5 lines
+  DDE23: 7 lines
+  DDE22: 8 lines
+  DDE21: 7 lines
+  DDE20: 9 lines
+  DDE18: 7 lines
+  DDE17: 6 lines
+  DDE16: 7 lines
+  DDE15: 6 lines
+  DDE14: 7 lines
+  DDE13: 8 lines
+  DDE12: 5 lines
+  DDE11: 9 lines
+  DDE10: 6 lines
+  DDE09: 7 lines
+  DDE08: 9 lines, 2 (was)
+  DDE07: 7 lines, 3 (was)
+  DDE06: 9 lines
+  DDE05: 7 lines, 3 (was)
+  DDE04: 7 lines, 3 (was)
+  DDE03: 6 lines, 3 (was)
+  DDE02: 8 lines
+  DDE01: 6 lines
+examples_NDSDDF_library_PIETOOLS.m: 13 blocks
+  DDF01 (copy at line 249): 6 lines
+  DDF01 (copy at line 240): 6 lines
+  NDS12: 8 lines
+  NDS11: 7 lines
+  NDS10: 8 lines
+  NDS09: 7 lines
+  NDS08: 6 lines
+  NDS07: 8 lines
+  NDS05: 7 lines
+  NDS04: 9 lines
+  NDS03: 8 lines
+  NDS02: 8 lines
+  NDS01: 8 lines

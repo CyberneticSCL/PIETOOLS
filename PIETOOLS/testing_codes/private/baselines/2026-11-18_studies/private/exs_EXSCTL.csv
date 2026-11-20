@@ -1,0 +1,61 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+17:34:26,DDE:DDE19,0,start1  stripped ,start,certified,optimal,1.84e-09,0.939,1,1252,134,1.9639854,3.1,
+17:34:27,DDE:DDE19,1,dD0,kept,certified,optimal,4.24e-10,1.07,1,832,117,1.9639855,1.0,
+17:34:28,DDE:DDE19,2,vdeg1.1,kept,certified,optimal,3.75e-10,1.15,1,831,117,1.9639856,0.5,
+17:34:29,DDE:DDE19,3,vdeg1.1,kept,certified,optimal,3.96e-10,1.06,1,830,117,1.9639855,0.6,
+17:34:29,DDE:DDE19,4,vdeg1.2,not smaller,error,,NaN,NaN,NaN,830,116,NaN,NaN,LB_SIZE ndv=830 m=116 above the gate (ndv 829; m 45000): not solved
+17:34:29,DDE:DDE19,5,vdeg1.3,not smaller,error,,NaN,NaN,NaN,830,116,NaN,NaN,LB_SIZE ndv=830 m=116 above the gate (ndv 829; m 45000): not solved
+17:34:30,DDE:DDE19,6,d21.1,kept,certified,optimal,2.94e-09,1.09,1,782,115,1.9639855,0.4,
+17:34:30,DDE:DDE19,7,d21.1,kept,certified,optimal,8.95e-10,1.09,1,742,115,1.9639855,0.3,
+17:34:30,DDE:DDE19,8,d11.1,kept,certified,optimal,1.14e-09,1.17,1,394,93,1.9639856,0.3,
+17:34:31,DDE:DDE19,9,d11.1,kept,certified,optimal,2.45e-09,1.16,1,370,88,1.9639857,0.4,
+17:34:31,DDE:DDE19,10,d31.1,kept,certified,optimal,1.54e-09,0.996,1,265,76,1.9639856,0.6,
+17:34:31,DDE:DDE19,11,d31.1,fails,error,,NaN,NaN,NaN,NaN,NaN,NaN,NaN,A cell degree specification for space 2 should have one entry per basis operator of that space.
+17:34:32,DDE:DDE19,12,d31.2,not smaller,error,,NaN,NaN,NaN,265,75,NaN,NaN,LB_SIZE ndv=265 m=75 above the gate (ndv 264; m 45000): not solved
+17:34:32,DDE:DDE19,13,d31.3,not smaller,error,,NaN,NaN,NaN,265,75,NaN,NaN,LB_SIZE ndv=265 m=75 above the gate (ndv 264; m 45000): not solved
+17:34:32,DDE:DDE19,14,pat1,not smaller,error,,NaN,NaN,NaN,265,75,NaN,NaN,LB_SIZE ndv=265 m=75 above the gate (ndv 264; m 45000): not solved
+17:34:32,DDE:DDE19,15,psatz1,not smaller,error,,NaN,NaN,NaN,265,75,NaN,NaN,LB_SIZE ndv=265 m=75 above the gate (ndv 264; m 45000): not solved
+17:34:33,DDE:DDE19,16,dwP1,fails,infeasible,unknown,1.78e-12,-0.992,1,221,67,37388.557,0.4,
+17:34:33,DDE:DDE19,17,capinc,fails,infeasible,unknown,1.78e-12,-0.992,1,221,67,37388.557,0.4,
+17:34:34,DDE:DDE19,18,t:d2+1.1+dwP1,fails,infeasible,unknown,1.62e-12,-0.916,1,241,70,5248.6354,0.4,
+17:34:34,DDE:DDE19,19,t:d2+1.1+capinc,fails,infeasible,unknown,1.62e-12,-0.916,1,241,70,5248.6354,0.3,
+17:34:34,DDE:DDE19,20,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,274,76,NaN,NaN,LB_SIZE ndv=274 m=76 above the gate (ndv 264; m 45000): not solved
+17:34:35,DDE:DDE19,21,t:d3+1.1+capinc,fails,infeasible,unknown,3.47e-12,-0.944,1,230,73,1813.2118,0.3,
+17:34:35,DDE:DDE19,22,t:d3+1.2+dwP1,fails,infeasible,unknown,1.78e-12,-0.992,1,221,67,37388.557,0.5,
+17:34:35,DDE:DDE19,23,t:d3+1.2+capinc,fails,infeasible,unknown,1.78e-12,-0.992,1,221,67,37388.557,0.3,
+17:34:36,DDE:DDE19,24,t:d3+1.3+dwP1,fails,infeasible,unknown,1.78e-12,-0.992,1,221,67,37388.557,0.4,
+17:34:36,DDE:DDE19,25,t:d3+1.3+capinc,fails,infeasible,unknown,1.78e-12,-0.992,1,221,67,37388.557,0.4,
+17:34:37,DDE:DDE19,26,t:d1+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,285,81,NaN,NaN,LB_SIZE ndv=285 m=81 above the gate (ndv 264; m 45000): not solved
+17:34:37,DDE:DDE19,27,t:d1+1.1+capinc,not smaller,error,,NaN,NaN,NaN,381,92,NaN,NaN,LB_SIZE ndv=381 m=92 above the gate (ndv 264; m 45000): not solved
+17:34:37,DDE:DDE19,28,t:vdeg+1.1+dwP1,fails,infeasible,unknown,2.08e-10,-0.925,1,222,69,223.26907,0.3,
+17:34:37,DDE:DDE19,29,t:vdeg+1.1+capinc,fails,infeasible,unknown,2.08e-10,-0.925,1,222,69,223.26907,0.3,
+17:34:39,NDSDDF:DDF03,0,start1  stripped ,start fails,certified,optimal,1.2e-10,0.896,1,3557,308,0.44753155,1.1,
+17:34:40,NDSDDF:DDF03,0,start2  light ,start fails,certified,optimal,1.2e-12,0.926,1,5669,368,0.44263511,1.0,
+17:34:41,NDSDDF:DDF03,0,start3  heavy ,start,certified,optimal,1.21e-12,1,1,8465,432,0.44063344,1.0,
+17:34:41,NDSDDF:DDF03,1,dD0,fails,certified,optimal,1.54e-11,1,1,4609,344,0.44865074,0.7,
+17:34:42,NDSDDF:DDF03,2,vdeg1.1,kept,certified,optimal,8.94e-13,0.998,1,8461,432,0.44055415,0.9,
+17:34:43,NDSDDF:DDF03,3,dD0,fails,certified,optimal,9.46e-12,0.971,1,4605,344,0.44875054,0.8,
+17:34:44,NDSDDF:DDF03,4,vdeg1.1,fails,certified,optimal,3.1e-12,0.89,1,8457,432,0.44243335,0.8,
+17:34:44,NDSDDF:DDF03,5,vdeg1.2,not smaller,error,,NaN,NaN,NaN,8461,431,NaN,NaN,LB_SIZE ndv=8461 m=431 above the gate (ndv 8460; m 45000): not solved
+17:34:45,NDSDDF:DDF03,6,vdeg1.3,not smaller,error,,NaN,NaN,NaN,8461,431,NaN,NaN,LB_SIZE ndv=8461 m=431 above the gate (ndv 8460; m 45000): not solved
+17:34:46,NDSDDF:DDF03,7,d21.1,fails,certified,optimal,4.01e-12,0.96,1,8269,432,0.44306972,0.9,
+17:34:46,NDSDDF:DDF03,8,d11.1,fails,certified,optimal,4.55e-12,1,1,8269,432,0.44585163,0.8,
+17:34:47,NDSDDF:DDF03,9,d31.1,fails,certified,optimal,1.81e-12,1,1,5673,368,0.442707,0.5,
+17:34:48,NDSDDF:DDF03,10,d31.2,fails,certified,optimal,4.69e-12,0.963,1,8269,432,0.44516346,0.7,
+17:34:48,NDSDDF:DDF03,11,d31.3,fails,certified,optimal,3.2e-12,1,1,8269,432,0.44420939,0.7,
+17:34:49,NDSDDF:DDF03,12,pat1,fails,certified,optimal,2.49e-12,1,1,8109,432,0.44905493,1.0,
+17:34:50,NDSDDF:DDF03,13,psatz1,not smaller,error,,NaN,NaN,NaN,8461,431,NaN,NaN,LB_SIZE ndv=8461 m=431 above the gate (ndv 8460; m 45000): not solved
+17:34:50,NDSDDF:DDF03,14,wmin1,not smaller,error,,NaN,NaN,NaN,8461,431,NaN,NaN,LB_SIZE ndv=8461 m=431 above the gate (ndv 8460; m 45000): not solved
+17:34:51,NDSDDF:DDF03,15,dwP1,fails,certified,optimal,1.72e-12,1,1,5773,368,0.44116841,0.6,
+17:34:51,NDSDDF:DDF03,16,raise1,not smaller,error,,NaN,NaN,NaN,8461,431,NaN,NaN,LB_SIZE ndv=8461 m=431 above the gate (ndv 8460; m 45000): not solved
+17:34:52,NDSDDF:DDF03,17,capinc,fails,certified,optimal,7.5e-12,1,1,4573,332,0.44493285,0.6,
+17:34:52,NDSDDF:DDF03,18,t:d2+1.1+dD0,not smaller,error,,NaN,NaN,NaN,8685,446,NaN,NaN,LB_SIZE ndv=8685 m=446 above the gate (ndv 8460; m 45000): not solved
+17:34:52,NDSDDF:DDF03,19,t:d2+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,9245,471,NaN,NaN,LB_SIZE ndv=9245 m=471 above the gate (ndv 8460; m 45000): not solved
+17:34:53,NDSDDF:DDF03,20,t:d2+1.1+capinc,not smaller,error,,NaN,NaN,NaN,8621,435,NaN,NaN,LB_SIZE ndv=8621 m=435 above the gate (ndv 8460; m 45000): not solved
+17:34:53,NDSDDF:DDF03,21,t:d3+1.1+dD0,fails,certified,optimal,2.71e-12,1,1,6249,392,0.4462628,0.8,
+17:34:54,NDSDDF:DDF03,22,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,8569,431,NaN,NaN,LB_SIZE ndv=8569 m=431 above the gate (ndv 8460; m 45000): not solved
+17:34:54,NDSDDF:DDF03,23,t:d3+1.1+capinc,kept,certified,optimal,1.61e-12,0.99,1,4681,332,0.43957806,0.5,
+17:34:55,NDSDDF:DDF03,24,dD0,fails,certified,optimal,4.42e-12,1,1,3401,308,0.44853923,0.6,
+17:34:55,NDSDDF:DDF03,25,vdeg1.1,kept,certified,optimal,2.13e-12,0.991,1,4677,332,0.43955684,0.6,
+17:34:56,NDSDDF:DDF03,26,dD0,fails,certified,optimal,5.48e-12,0.997,1,3397,308,0.44852662,0.5,
+17:34:56,NDSDDF:DDF03,27,vdeg1.1,kept,certified,optimal,2.18e-12,1,1,4673,332,0.43963563,0.6,

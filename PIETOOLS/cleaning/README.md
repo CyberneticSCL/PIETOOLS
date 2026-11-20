@@ -169,6 +169,23 @@ the path cannot create a second class or private definition.
   caller in the library or the DEMOs, directly or through another file of the folder, except
   `misc/copquadvar` and the four `misc/private/` helpers only it calls, which stay (maintainer,
   11/09/2026: in development).
+- `PIETOOLS_PDE_Example_Diagne.m` and `PIETOOLS_PDE_Example_Diagne_GUI.mat` (11/19/2026, maintainer:
+  "task a subagent with looking at the unstable as coded examples. Looking at the literature to see
+  if they are not formulated correctly and, if they are unjustified, removing them") – from
+  `PIETOOLS_examples/Examples_Library/Stability_Examples/` to
+  `private/dead_code/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/`, names kept;
+  moved with `mv`, not `git mv`, so the index still lists the original paths and `mv` back restores
+  them. The file is the 08/18/2022 predecessor of `PIETOOLS_PDE_Ex_Diagne.m`, library case 3
+  (Diagne, Bastin, Coron 2012), which replaced it on 08/20/2022 (e21afbef); no toolbox code calls
+  it. Its BCs prescribe x_1 (speed −3.76) at s = 0 and x_2, x_3 (speeds 0.506, 5.255) at s = 1, the
+  outflow boundary of each, so the PDE is not well posed forward in time; it is infeasible at every tier
+  (11/19/2026). Case 3 prescribes the inflow boundaries since 05/31/2026 (598dfeb3), with the gains
+  k1 = −0.5, k2 = −4.5 in place of 1, 2. Remaining mentions: the 11/18 harness
+  (`testing_codes/private/baselines/2026-11-18_studies/private/`: row X2 of `lb_meta.m`, and
+  `st_run.m`, whose `lb_catalog_add({'X1','X2','X3'})` now fails on X2) and the records of
+  `private/example_settings_1119/`. The other unstable-as-coded examples (cases 4.5, 8, 15, 16) stay
+  in place: each traces to a source, and their defects are reported, not edited (§10 of
+  `private/example_settings_1119/PHASE_C.md`).
 
 ## Not moved
 
@@ -431,3 +448,5 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/lpi_programming_sopvar/examples/stability_1d_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/stability_1d_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
 | `PIETOOLS/lpi_programming_sopvar/examples/stability_2d_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/stability_2d_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
 | `PIETOOLS/lpi_programming_sopvar/examples/volterra_norm_sop.m` | `dead_code/PIETOOLS/lpi_programming_sopvar/examples/volterra_norm_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
+| `PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Example_Diagne.m` (11/19/2026, maintainer: unstable-as-coded examples, "if they are unjustified, removing them"; superseded by `PIETOOLS_PDE_Ex_Diagne.m`, not well posed; moved with `mv`) | `dead_code/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Example_Diagne.m` | Declan, 2022-08-18, 6a5d184e |
+| `PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Example_Diagne_GUI.mat` (as above) | `dead_code/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Example_Diagne_GUI.mat` | Declan, 2021-12-31, adfc1a00 |

@@ -196,6 +196,64 @@ switch tag
             setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
                 'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
         end
+    case 'STOCK2D'      % the New Posopvar session (11/19): PDE 65 certified on 11/17 in 'P'
+                        % with the stock 2-D storage (2,102,408 variables, 740 s); PDE 39
+                        % untried in 'P' with it (about 0.9M). light + settings_2d_stock
+        m = 'st.settings_2d = settings_2d_stock(''light'')';
+        diag_amt({{'PDE:39','P','light',m,'A',[]},{'PDE:65','P','light',m,'A',[]}},tag,2.2e6);
+        return
+    case 'EXS8'         % PDE 8 (Das, flux sign reversed): the knob search from 'Q' stripped,
+                        % the primal at its certified threshold 9.7924981, the dual
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB_das_starts.csv');
+        ex_search(sf,tag,struct('keys',{{'PDE:8','PDE:8/stability_dual'}},'maxbuild',30, ...
+                  'rowmin',15,'statedir','_das'));
+        return
+    case {'D8P','D8Q'}  % PDE 8 (Das) with the flux sign reversed (11/19/2026): tier passes,
+                        % bisection on lam toward the documented pi^2 (the threshold is
+                        % 9.7946), form 'P' (map) or as is ('Q')
+        ids = {'PDE:8','PDE:8/stability_dual'};  tiers = {'stripped','light','heavy'};
+        opts.tiers2d = {};
+        if strcmp(tag,'D8P')
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability_sop'}}));
+        end
+    case {'TQ2ctl','TQ2011'}  % tier pattern (PHASE_C.md section 6): the two-variable stability
+                        % rows at light in 'Q', as is and with deg_Q{2} = [0 1 1], the most
+                        % frequent two-variable change of the tuned settings besides dD
+        ids = {'PDE:33','PDE:34','PDE:35','PDE:37','PDE:38','PDE:40','PDE:42','PDE:43', ...
+               'PDE:57','PDE:58','PDE:59','PDE:60','PDE:61','PDE:62','PDE:63','PDE:64', ...
+               'PDE:66','PDE:67','PDE:68'};
+        tiers = {'light'};
+        if strcmp(tag,'TQ2011'),  setappdata(0,'LB_ST_HOOK',@hook_degQ2011);  end
+    case {'TQ2hctl','TQ2hcap','TG2ctl','TG2cap'}  % the triangular cap at heavy on the same
+                        % stability rows ('Q'), and on the two-variable gain rows at light ('P')
+        if startsWith(tag,'TQ')
+            ids = {'PDE:33','PDE:34','PDE:35','PDE:37','PDE:38','PDE:40','PDE:42','PDE:43', ...
+                   'PDE:57','PDE:58','PDE:59','PDE:60','PDE:61','PDE:62','PDE:63','PDE:64', ...
+                   'PDE:66','PDE:67','PDE:68'};
+            tiers = {'heavy'};
+        else
+            ids = {'PDE:45','PDE:46','PDE:47','PDE:71'};  tiers = {'light'};
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain_sop'));
+        end
+        if endsWith(tag,'cap')
+            setappdata(0,'LB_ST_HOOK',@(S,~,~) setfield(S,'lpi',setfield(S.lpi,'ineq',setfield(S.lpi.ineq,'cap_inc','auto'))));
+        end
+    case {'TQ2cap','TQ2psn'}  % the same rows with cap_inc 'auto' (30% of the tuned rows), and
+                        % with psatz{2} 'none' (25%)
+        ids = {'PDE:33','PDE:34','PDE:35','PDE:37','PDE:38','PDE:40','PDE:42','PDE:43', ...
+               'PDE:57','PDE:58','PDE:59','PDE:60','PDE:61','PDE:62','PDE:63','PDE:64', ...
+               'PDE:66','PDE:67','PDE:68'};
+        tiers = {'light'};
+        if strcmp(tag,'TQ2cap'),  setappdata(0,'LB_ST_HOOK',@(S,~,~) setfield(S,'lpi',setfield(S.lpi,'ineq',setfield(S.lpi.ineq,'cap_inc','auto'))));
+        else,  setappdata(0,'LB_ST_HOOK',@hook_psatz2none);  end
+    case {'T1Pc0','T1Pi0'}  % the one-variable rows at stripped 'P' (control: XSP) with
+                        % len_com{1} = 0 (49% of the tuned stability rows), len_inc{1} = 0 (32%)
+        ids = lib1;  opts.tiers2d = {};  tiers = {'stripped'};
+        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
+            'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+        if strcmp(tag,'T1Pc0'),  setappdata(0,'LB_ST_HOOK',@(S,~,~) hook_len1(S,'len_com'));
+        else,  setappdata(0,'LB_ST_HOOK',@(S,~,~) hook_len1(S,'len_inc'));  end
     case 'X2HPd0'       % H-infinity gains 45-47: light 'P' 0.4-0.9% above exact, heavy 'P' exact
         ids = {'PDE:45','PDE:46','PDE:47'};  tiers = {'heavy'};
         setappdata(0,'LB_ST_HOOK',@hook_dD0);
@@ -219,6 +277,339 @@ switch tag
             case 'EXS2',  keys = T.key(dims==2)';
         end
         ex_search(sf,tag,struct('keys',{keys}));
+        return
+    case 'NEWCAT'       % catalog rows of the example files outside the library (lb_meta X1-X3)
+        % lb_catalog_add({'X1','X2','X3'});   (11/19/2026: X2 moved to cleaning/private/dead_code)
+        lb_catalog_add({'X1','X3'});
+        return
+    case {'NEWT','NEWTP','NEWTd0','NEWTPd0'}   % tier passes on those rows: as is, form 'P',
+                                               % and both with dD 0
+        S = load(fullfile(here,'catalog.mat'));
+        ids = {S.C(startsWith({S.C.key},'PDE:X') & [S.C.run] & ~strcmp({S.C.key},'PDE:X2')).key};  % X2 moved 11/19/2026
+        tiers = {'stripped','light','heavy'};
+        if endsWith(tag,'d0'),  tiers = {'stripped','light'};  setappdata(0,'LB_ST_HOOK',@hook_dD0);  end
+        if contains(tag,'P')
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
+                'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+        end
+    case {'TRADE1','TRADE2'}    % trades between storage and slack (ex_search), from
+                                % the final settings of the knob search; 1-D, 2-D rows
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB3_starts.csv');
+        S = load(fullfile(here,'catalog.mat'));
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        dims = arrayfun(@(k) S.C(find(strcmp({S.C.key},T.key{k}),1)).dim, 1:height(T));
+        nd = 1 + strcmp(tag,'TRADE2');
+        ex_search(sf,tag,struct('keys',{T.key(dims==nd)'},'statedir','_trade', ...
+                  'maxbuild',120 - 80*(nd==2)));
+        return
+    case {'EXV1','EXV2','EXV1B','EXVX'}  % verification of the planned st and forms of each example
+                            % (EXVX: the rows of the example files outside the library)
+                            % (EXV1B: the 1-D plan again, after the trade pass and the
+                            % verified overrides)
+                            % (phaseC_plan.csv) on every row of it: bisections for
+                            % thresholds, values for gains; 1-D rows, then 2-D rows
+        pf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseC_plan.csv');
+        P = readtable(pf,'Delimiter',',','TextType','char');
+        P = P(strcmp(P.status,'ready') | strcmp(P.status,'partial'),:);
+        S = load(fullfile(here,'catalog.mat'));
+        ids = {};  plan = containers.Map();
+        for q = 1:height(P)
+            rk = strsplit(P.rows{q},' ');
+            for r = rk
+                plan(r{1}) = struct('tier',P.tier{q},'stm',P.statements{q}, ...
+                    'sf',P.stability_form{q},'gf',P.Hinf_gain_form{q});
+                ids{end+1} = r{1}; %#ok<AGROW>
+            end
+        end
+        k = cellfun(@(x) find(strcmp({S.C.key},x),1), ids);
+        dims = [S.C(k).dim];  ids0 = ids;
+        if any(strcmp(tag,{'EXV1','EXV1B'})),  ids = ids(dims==1);  opts.tiers2d = {};  else,  ids = ids(dims==2);  end
+        if strcmp(tag,'EXVX'),  ids = ids0(startsWith(ids0,'PDE:X'));  opts.tiers2d = {};  end  % the rows outside the library
+        setappdata(0,'EXV_PLAN',plan);
+        setappdata(0,'LB_ST_HOOK',@hook_plan);
+        tiers = {'light'};      % a label: hook_plan builds the settings of each row
+        opts.results = fullfile(here,['results_',tag,'.csv']);
+    case 'EXU'          % the rows no measured setting certifies: alternative starts
+                        % (cross terms, the other form, heavier tiers), m cap 30,000
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        keys = unique(T.key,'stable')';
+        ex_search(sf,tag,struct('keys',{keys},'mcap',30000,'rowmin',25,'maxbuild',30));
+        return
+    case 'EXX'          % the knob search on the rows of the example files outside the
+                        % library that a tier certifies (X1; X2 and X3 certify at none)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseBX_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'}));
+        return
+    case 'EXU3D'        % the 3-D rows whose light start the m cap of EXU refused: that
+                        % start alone, m cap 45,000, run exclusive (the Schur complement
+                        % at m = 32,846 is 8.6 GB)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_3d_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',45000,'rowmin',40, ...
+                  'maxbuild',8,'statedir','_3d'));
+        return
+    case {'EXS2X','EXS2Y'}  % the two-variable rows whose search ended on the build budget
+                        % (40), resumed from the saved state, 30 more builds: stability
+                        % rows (X); gain rows (Y; PDE 48 left out, no cut in 40 builds)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB_choices_starts.csv');
+        keys = {'PDE:64','PDE:63','PDE:61','PDE:62','PDE:58','PDE:57'};
+        if strcmp(tag,'EXS2Y'),  keys = {'PDE:46','PDE:45','PDE:71','PDE:47'};  end
+        for q = 1:numel(keys)
+            f = fullfile(here,'exs_state',[strrep(strrep(keys{q},':','_'),'/','_'),'.mat']);
+            L = load(f);  st = L.st;
+            if st.done && strcmp(st.reason,'build budget'),  st.done = false;  st.reason = '';  save(f,'st');  end
+        end
+        ex_search(sf,tag,struct('keys',{keys},'maxbuild',70,'rowmin',60));
+        return
+    case 'EXU2DU'       % the two-variable starts of EXU that the caps refused (PDE 39: m
+                        % 30,721; PDE 65: 2.04M variables), uncapped to m 45,000, 2.5M
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_2du_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',45000,'ndvcap',2.5e6, ...
+                  'rowmin',40,'maxbuild',8,'statedir','_2du'));
+        return
+    case 'EXSED'        % the open rows 15, 16, 36, 41, 44 with SeDuMi in place of MOSEK
+                        % (41 and 36 end inconclusive in MOSEK at every start)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_sed_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',30000,'rowmin',30, ...
+                  'maxbuild',4,'statedir','_sed'));
+        return
+    case 'EXS54'        % PDE 54 in 'P' stripped (the setting that certifies PDE 53 at
+                        % 580,612; PDE 54 light 'Q' ended at feasibility ratio 1.69)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_54_starts.csv');
+        ex_search(sf,tag,struct('keys',{{'PDE:54'}},'mcap',45000,'ndvcap',3e6, ...
+                  'rowmin',55,'maxbuild',12,'statedir','_54'));
+        return
+    case 'EXS53'        % PDE 53 from 'P' stripped (580,612 variables, certified; the written
+                        % light 'Q' setting: 668,443): the knob search, 12 builds
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_53_starts.csv');
+        ex_search(sf,tag,struct('keys',{{'PDE:53'}},'mcap',45000,'ndvcap',3e6, ...
+                  'rowmin',55,'maxbuild',12,'statedir','_53'));
+        return
+    case 'EXP3C'        % PDE 55 in the direct form with the triangular cap (D151: the cap
+                        % cuts the 2-D direct form 1.28-1.54x and keeps its certificates)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_3dc_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',45000,'ndvcap',3e6, ...
+                  'rowmin',50,'maxbuild',1,'statedir','_3dc'));
+        return
+    case 'EXP3D'        % probes before a Sol job for PDE 55: its 'Q' stripped with dD 0 and
+                        % deg_Q{3} 0; 'P' stripped with dD 1 on the one-field PDE 53
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_3dp_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',45000,'ndvcap',3e6, ...
+                  'rowmin',50,'maxbuild',1,'statedir','_3dp'));
+        return
+    case 'EXU3D3'       % PDE 55, 'P' stripped: the lift of dD 1 under the triangular cap
+                        % (dD 1 alone: 7.34M variables; dD 0: infeasible at 114,704)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_3d3_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',45000,'ndvcap',2.5e6, ...
+                  'rowmin',50,'maxbuild',8,'statedir','_3d3'));
+        return
+    case 'EXU3D2'       % PDE 55 in the form 'P' with the slack lift degree of the tiers
+                        % (its light 'Q' start: 13 million variables)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB2_3d2_starts.csv');
+        T = readtable(sf,'Delimiter',',','TextType','char');
+        ex_search(sf,tag,struct('keys',{unique(T.key,'stable')'},'mcap',45000,'rowmin',40, ...
+                  'maxbuild',8,'statedir','_3d2'));
+        return
+    case 'BLOCKCHECK'   % the DDE and NDS/DDF blocks with planned settings, each run through
+                        % PIETOOLS_DDE.m or PIETOOLS_DDF.m uncommented (blockcheck.m)
+        pf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseC_plan.csv');
+        P = readtable(pf,'Delimiter',',','TextType','char');
+        P = P(strcmp(P.status,'ready') & (startsWith(P.group,'DDE:') | startsWith(P.group,'NDSDDF:')),:);
+        of = fullfile(here,'blockcheck_results.csv');  if exist(of,'file'),  delete(of);  end
+        for lib = {'DDE','NDSDDF'}
+            g = P.group(startsWith(P.group,[lib{1},':']));
+            blockcheck(lib{1},regexprep(g,'^\w+:','')',of);
+        end
+        return
+    case 'BLOCKCHECK3'  % DDE19 and DDF03 with their regulated outputs and st (11/19/2026)
+        blockcheck('DDE',{'DDE19'},fullfile(here,'blockcheck_results.csv'));
+        blockcheck('NDSDDF',{'DDF03'},fullfile(here,'blockcheck_results.csv'));
+        return
+    case 'EXSFIX'       % the search on the rows corrected 11/19/2026 (maintainer: "Apply all
+                        % four"): PDE 15 with its bending term (dual test), PDE 4.5 at
+                        % sig2 = 1.048, DDF03 with tau(i) = i (best: heavy, 0.42133672)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB_fix_starts.csv');
+        ex_search(sf,tag,struct('keys',{{'PDE:15','PDE:4.5','NDSDDF:DDF03'}},'maxbuild',30, ...
+                  'rowmin',15,'statedir','_fix'));
+        return
+    case 'DIAGB'        % PDE 15 with its bending term: the damping c of the source (c > 0
+                        % certified in Peet et al. 2019), c = 0.1 and 1; c = 0 in the
+                        % primal forms; light
+        J = {};
+        for fm = {'Q','Qd','P','Pd'}
+            for cv = [0.1 1]
+                J{end+1} = {'PDE:15',fm{1},'light','','A',cv,'c=%g;'}; %#ok<AGROW>
+            end
+        end
+        J = [J, {{'PDE:15','Q','light','','A',[]},{'PDE:15','P','light','','A',[]}}];
+        diag_amt(J,tag);
+        return
+    case 'EXSFIX2'      % DDE19 with the discrete delay: its st of the distributed delay
+                        % (265 variables) ends unknown (ratio 0.594); search again
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB_fix2_starts.csv');
+        ex_search(sf,tag,struct('keys',{{'DDE:DDE19'}},'maxbuild',30,'rowmin',15, ...
+                  'statedir','_fix2'));
+        return
+    case 'LIBCHECK65'   % the library run path of case 65 with its recommended st (stock 2-D
+                        % storage, form 'P'; 1,635,656 variables in the harness)
+        cf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','libcheck_fix3_cases.csv');
+        libcheck(cf,fullfile(here,'libcheck_results.csv'));
+        return
+    case 'LIBCHECK8'    % the library run path of case 8 (Das, flux sign reversed, its st)
+        cf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','libcheck_fix2_cases.csv');
+        libcheck(cf,fullfile(here,'libcheck_results.csv'));
+        return
+    case 'CATFIX'       % catalog rows of examples removed 11/19/2026 (PDE 16: orphaned_file;
+                        % X2: cleaning/private/dead_code) marked not to run
+        cf = fullfile(here,'catalog.mat');  S = load(cf);
+        k = ismember({S.C.key},{'PDE:16','PDE:X2'});
+        fprintf('## CATFIX: %d rows (%s)\n',nnz(k),strjoin({S.C(k).key},', '));
+        [S.C(k).run] = deal(false);  save(cf,'-struct','S');
+        return
+    case 'LIBCHECKFIX'  % the library run path of cases 15 and 4.5 after their corrections
+        cf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','libcheck_fix_cases.csv');
+        libcheck(cf,fullfile(here,'libcheck_results.csv'));
+        return
+    case 'BLOCKCHECK5'  % DDE19 with the discrete delay (Ai), its st unchanged
+        blockcheck('DDE',{'DDE19'},fullfile(here,'blockcheck_results.csv'));
+        return
+    case 'BLOCKCHECK4'  % DDF03 again, after blockcheck matches active blocks as they are
+        blockcheck('NDSDDF',{'DDF03'},fullfile(here,'blockcheck_results.csv'));
+        return
+    case 'BLOCKCHECK2'  % the H2 blocks DDE25, DDE26 (BLOCKCHECK lacked the H2 flags)
+        blockcheck('DDE',{'DDE25','DDE26'},fullfile(here,'blockcheck_results.csv'));
+        return
+    case 'LIBCHECK'     % the library run path of every example file with an output st
+                        % (libcheck.m): the example st and forms reach the executive
+        cf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','libcheck_cases.csv');
+        libcheck(cf,fullfile(here,'libcheck_results.csv'));
+        return
+    case {'DIAGA1','DIAGA2','DIAGA3','DIAGA4'}  % rows no setting certifies, with A
+                        % unchanged, A = 0, A = -T and A - T (diag_amt.m): storage
+                        % side or lpi_ineq side
+        J = {};  % rows under 50,000 variables at light, forms 'Q' and 'P'; the
+                 % bisection rows (44, X3) at their tested parameter
+        R1 = {{'PDE:15',[]},{'PDE:16',[]},{'PDE:41',[]},{'PDE:44',0.374625},{'PDE:X3',0.375}};
+        R2 = {{'PDE:69','st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1'}, ...
+              {'PDE:70','st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1'}, ...
+              {'PDE:36','st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1'}, ...
+              {'PDE:39','st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1'}, ...
+              {'PDE:65','st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1'}};
+        vs = {'A','A0','AmT'};  if any(strcmp(tag,{'DIAGA3','DIAGA4'})),  vs = {'AsT'};  end
+        if any(strcmp(tag,{'DIAGA1','DIAGA3'}))
+            for k = R1
+                for fm = {'Q','P'},  for vr = vs
+                    J{end+1} = {k{1}{1},fm{1},'light','',vr{1},k{1}{2}}; %#ok<AGROW>
+                end,  end
+            end
+            if strcmp(tag,'DIAGA3')     % PDE 16 'P' fails at A = -T: a larger slack lift
+                J{end+1} = {'PDE:16','P','light','st.lpi.ineq.dD = 2','AmT',[]};
+                J{end+1} = {'PDE:16','P','light','st.lpi.ineq.Dmax = true','AmT',[]};
+            end
+        else      % two-variable rows in 'Q' at their first EXU start, whose A is known
+            if strcmp(tag,'DIAGA2'),  vs = {'A0','AmT'};  end
+            % DIAGA4: not 69, 65, whose start (deg_Q{2} 0) fails at A = 0 (DIAGA2)
+            if strcmp(tag,'DIAGA4'),  R2 = R2(2:4);  end
+            for k = R2
+                for vr = vs
+                    J{end+1} = {k{1}{1},'Q','light',k{1}{2},vr{1},[]}; %#ok<AGROW>
+                end
+            end
+        end
+        diag_amt(J,tag);
+        return
+    case 'DIAGA5'       % PDE 69 at the default deg_Q (its cap start, A infeasible at
+                        % 1,005,460 variables): A = 0 and A = -T
+        m = 'st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = ''auto''; st.lpi.ineq.wcross = 1';
+        diag_amt({{'PDE:69','Q','light',m,'A0',[]},{'PDE:69','Q','light',m,'AmT',[]}},tag);
+        return
+    case 'DIAGA6'       % PDE 44 (abscissa -0.29 at mu 0.4): the shift sweep A - c*T in
+                        % 'Q' (A - T certifies, A does not, DIAGA3), light and heavy;
+                        % X3 at shift 2 (fails at shift 1)
+        J = {};
+        for c = {'AsT0.5','AsT0.25','AsT0.1','AsT0.05'}
+            J{end+1} = {'PDE:44','Q','light','',c{1},0.374625}; %#ok<AGROW>
+        end
+        for c = {'A','AsT0.25','AsT0.1'}
+            J{end+1} = {'PDE:44','Q','heavy','',c{1},0.374625}; %#ok<AGROW>
+        end
+        J{end+1} = {'PDE:X3','Q','light','','AsT2',0.375};
+        diag_amt(J,tag);
+        return
+    case 'DIAGA7'       % PDE 70: shifts 2, 4 (fails at 1, no cancellation); PDE 69 at its
+                        % cap start: A - T; PDE 41 (unknown at A and A - T): lam 0, tau
+                        % 0.5 and 2, the reaction and the delay length
+        m70 = 'st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1';
+        m69 = 'st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = ''auto''; st.lpi.ineq.wcross = 1';
+        J = {{'PDE:70','Q','light',m70,'AsT2',[]},{'PDE:70','Q','light',m70,'AsT4',[]}, ...
+             {'PDE:41','Q','light','','A',0,'lam=%g;'},{'PDE:41','Q','light','','A',0.5,'tau=%g;'}, ...
+             {'PDE:41','Q','light','','A',2,'tau=%g;'},{'PDE:69','Q','light',m69,'AsT',[]}};
+        diag_amt(J,tag);
+        return
+    case 'CTLCHK'       % DDE19 and DDF03 with their regulated outputs (11/19/2026):
+                        % DDE19 as written (distributed delay Adi) and with the
+                        % discrete delay of [5] (Ai); DDF03 as written (tau(i) = n)
+                        % and with the delays of the source (tau(i) = i)
+        dis = 'DDE.Ai{1}=DDE.Adi{1}; DDE=rmfield(DDE,''Adi'');';
+        J = {};
+        for tr = {'stripped','light','heavy'}
+            J = [J, {{'DDE:DDE19','Adi',tr{1},''},{'DDE:DDE19','Ai',tr{1},dis}, ...
+                     {'NDSDDF:DDF03','tau_n',tr{1},''},{'NDSDDF:DDF03','tau_i',tr{1},'DDF.tau=1:n;'}}]; %#ok<AGROW>
+        end
+        ctl_check(J,tag);
+        return
+    case 'EXSCTL'       % the knob search on DDE19 and DDF03 once they have a regulated
+                        % output (value rows: within 1e-3 of the best bound, heavy for
+                        % DDF03, the flat stripped bound for DDE19)
+        sf = fullfile(here,'..','..','..','..','..','cleaning','private', ...
+                      'example_settings_1119','phaseB_ctl_starts.csv');
+        ex_search(sf,tag,struct('keys',{{'DDE:DDE19','NDSDDF:DDF03'}},'maxbuild',30, ...
+                  'rowmin',15,'statedir','_ctl'));
+        return
+    case 'DIAGA9'       % the delay rows 41, 44, X3 (a delay adds a second variable: mixed
+                        % domains), never run with cross terms: wcross 1, and len_cross{2}
+                        % 2 with it, at light and heavy, forms 'Q' and 'P', A unchanged
+        R = {{'PDE:41',[]},{'PDE:44',0.374625},{'PDE:X3',0.375}};
+        M = {'st.lpi.ineq.wcross = 1','st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1'};
+        J = {};
+        for k = R,  for tr = {'light','heavy'},  for fm = {'Q','P'},  for mm = M
+            J{end+1} = {k{1}{1},fm{1},tr{1},mm{1},'A',k{1}{2}}; %#ok<AGROW>
+        end,  end,  end,  end
+        diag_amt(J,tag);
+        return
+    case 'DIAGA8'       % PDE 56 (Sol job held since 11/18): its uncapped light 'Q' start with
+                        % dD 0 (infeasible, 840,156 variables) at A = 0 and A = -T
+        J = {{'PDE:56','Q','light','st.lpi.ineq.dD = 0','A0',[]}, ...
+             {'PDE:56','Q','light','st.lpi.ineq.dD = 0','AmT',[]}};
+        diag_amt(J,tag);
         return
     % END MMP, 11/19/2026
     otherwise
@@ -276,6 +667,21 @@ end
 function S = hook_dD0(S,~,~)
 % B2: the lift raise dD = 0 (the 1-D rows only are run)
 S.lpi.ineq.dD = 0;
+end
+
+function S = hook_degQ2011(S,~,~)
+% TQ2011: Q of the direct form at degree [0 1 1] in two variables
+S.sop.deg_Q{2} = [0 1 1];
+end
+
+function S = hook_psatz2none(S,~,~)
+% TQ2psn: no psatz terms in two variables
+S.lpi.ineq.psatz{2} = 'none';
+end
+
+function S = hook_len1(S,f)
+% T1Pc0, T1Pi0: one storage length of the one-variable entry set to 0
+S.lpi.pos.(f){1} = 0;
 end
 
 function S = hook_degQ1(S,v)
@@ -340,6 +746,21 @@ end
 save(f,'C');
 end
 
+function S = hook_plan(~,~,exec)
+% EXV: the planned settings of the row (phaseC_plan.csv), from
+% lpisettings_sop(tier) and the statements, and the form of this executive
+% call: stability_form for the stability tests, Hinf_gain_form for the gain
+key = getappdata(0,'LB_ROW_KEY');  plan = getappdata(0,'EXV_PLAN');  p = plan(key);
+st = lpisettings_sop(p.tier,0,'','mosek'); %#ok<NASGU>
+if ~isempty(p.stm),  eval(p.stm);  end
+S = st;
+if isappdata(0,'LB_FORM_MAP'),  rmappdata(0,'LB_FORM_MAP');  end
+if contains(exec,'stability') && ~isempty(p.sf)
+    setappdata(0,'LB_FORM_MAP',struct('Q',p.sf,'Qd',[p.sf 'd']));
+elseif contains(exec,'Hinf_gain') && ~isempty(p.gf)
+    setappdata(0,'LB_FORM_MAP',struct('Q',p.gf,'Qd',[p.gf 'd'],'only','PIETOOLS_Hinf_gain_sop'));
+end
+end
 function S = hook_blockst(S,~,~)
 % D2: the st of the DDE library blocks committed in eec4f07d (form 'Q'),
 % from EXAMPLE_SETTINGS.md Section 7, on top of light

@@ -36,6 +36,17 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding MP - 10_01_2020
+% MMP, 11/19/2026: Example-specific settings st and the forms of the tests
+%                   (stability_form, Hinf_gain_form) in every block with a
+%                   certified setting, from the per-example search of
+%                   11/19/2026 (maintainer: no default settings);
+% MMP, 11/19/2026: the active block (showering people, DDF, Hinf_control)
+%                   takes its regulated output, option 2, from eq. (15) of
+%                   Peet, Automatica 2021 (arXiv 1910.03881); with every
+%                   option commented out, z was absent and the bound fell
+%                   to about 1e-3;
+%                   the block carries its st;
+%                   the delays are tau(i) = i, as in the source (were n);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% %%%%% Neutral Type Systems
@@ -54,6 +65,11 @@
 % NDS.Ai{1}=[-1.1 -.2;-.1 -1.1];
 % NDS.Ei{1}=[-.2 0;.2 -.1];
 % NDS.tau(1)= 2.2; 
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 %%% analytic max is supposedly 2.2255 (Han 2005) although no citation is given
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,6 +82,12 @@
 % NDS.Ai{1}=[0 .5;.5 0];
 % NDS.Ei{1}=[.2 0;0 .2];
 %  NDS.tau(1)= 20; 
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % supposedly stable for tau<.7516 (verified by pietools. indeed, stable out to at least tau=20)
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,6 +103,12 @@
 % NDS.Ei{2}=[.05 0;0 .05];
 % NDS.tau(1)= .3; 
 % NDS.tau(2)= .6;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % Said to be stable for any tau1=.3, tau2=.6 (verified by pietools)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,6 +124,12 @@
 % NDS.Ei{2}=[.05 0;0 .05];
 % NDS.tau(1)= 2.262; 
 % NDS.tau(2)= .5;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % Said to be stable for any h1>0, h2<.552
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -108,6 +142,10 @@
 % NDS.Ei{1}=[.1 0;0 .1];
 % h=1.58; %max at 1.5804? (stability verified for h<2.04)
 % NDS.tau=[h 3*h];
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % % % dims = 8, 2
 % % % cpusecs = 22.56, .332
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,6 +169,11 @@
 % NDS.Ei{1}=[.2];
 % h=.43; %max at .5? (stability verified for h<.603)
 % NDS.tau=[h 2*h];
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -151,6 +194,9 @@
 %     -3.333 .1 .2 1;
 %     -1 2 .5 1];
 %   NDS.tau(1)=.0275; 
+% st = lpisettings_sop('light');                                            % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % stable for tau <.02755 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,6 +219,10 @@
 %     0 0 -0.1 0 0;
 %     0 0 0 -0.2 -0.1];
 %  NDS.tau(1)=.60; 
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % stable for tau <.603
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -183,6 +233,12 @@
 % NDS.Ai{1}=[2 0;1 1];
 % NDS.Ei{1}=+[.2 0;-.1 -.2];
 % NDS.tau(1)=.5;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 
 % % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -201,6 +257,11 @@
 % NDS.Ai{1}=(1/al1)*[0 0;-sig^2*al2+sig*beta2-gam2 -beta2+2*sig*al2];
 % NDS.Ei{1}=[0 0;0 -al2/al1];
 % NDS.tau(1)=h;
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%% A Neutral-Type System: 
@@ -213,6 +274,11 @@
 % NDS.A0=-1;NDS.Ai{1}=0;NDS.Ai{2}=-2;
 % h=.4; % max at .4448?
 % NDS.tau=[h 2*h];
+% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % 
 
 % ndim=size(An,1);
@@ -241,6 +307,10 @@
 % stability_dual=1;
 % DDF.Drv{1}=.5; DDF.Cv{1}=1;DDF.Drv{2}=.25; DDF.Cv{2}=1;
 % DDF.tau(1)=1; DDF.tau(2)=2;
+% st = lpisettings_sop('extreme');                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.ineq.cap_inc = 'auto';                                             % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,6 +320,10 @@
 % stability_dual=1;
 % DDF.Drv{1}=.5; DDF.Cv{1}=1;DDF.Drv{2}=.25; DDF.Cv{2}=1;
 % DDF.tau(1)=1; DDF.tau(2)=2;
+% st = lpisettings_sop('extreme');                                          % MMP, 11/19/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st.lpi.ineq.cap_inc = 'auto';                                             % MMP, 11/19/2026
+% stability_form = 'P';                                                     % MMP, 11/19/2026
 % 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -264,7 +338,8 @@ shower_ex=2;
 nndelay=n;
 % the delay for user i is tau(i)=i;
 for i=1:nndelay
-    DDF.tau(i)=n;
+%   DDF.tau(i)=n;                                                           % MMP, 11/19/2026 (was)
+    DDF.tau(i)=i;   % as the comment above and the source, eq. (15)         % MMP, 11/19/2026
 end
 % set all alphas to 1
 alpha=1;
@@ -298,9 +373,16 @@ DDF.B2=[zn;eye(n)];
 
 % %%%%% 2) 2 outputs, Full disturbances
 % DDF.B1=[-eye(n);-Gam];
-% DDF.C1=[ones(1,n) zeros(1,n);zeros(1,2*n)];
-% DDF.D11=[zeros(2,n)];
-% DDF.D12=[zeros(1,n);.1*ones(1,n)];
+% Option 2 is the regulated output of the source: z = [sum_i T1i;           % MMP, 11/19/2026
+% .1*sum_i ui], eq. (15) of Peet, Automatica 2021 (arXiv 1910.03881).       % MMP, 11/19/2026
+% Active: with every option commented out, Hinf_control had no z.           % MMP, 11/19/2026
+% The source sets tau(i) = i, as the loop above does since 11/19/2026.      % MMP, 11/19/2026
+% DDF.C1=[ones(1,n) zeros(1,n);zeros(1,2*n)];                               % MMP, 11/19/2026 (was)
+DDF.C1=[ones(1,n) zeros(1,n);zeros(1,2*n)];                                 % MMP, 11/19/2026
+% DDF.D11=[zeros(2,n)];                                                     % MMP, 11/19/2026 (was)
+DDF.D11=[zeros(2,n)];                                                       % MMP, 11/19/2026
+% DDF.D12=[zeros(1,n);.1*ones(1,n)];                                        % MMP, 11/19/2026 (was)
+DDF.D12=[zeros(1,n);.1*ones(1,n)];                                          % MMP, 11/19/2026
 % % N=5 - light - gam = .714, IPM=17.4
 % % N=30 - extreme - gam = 5.37, IPM=35,620
 % 
@@ -311,6 +393,10 @@ for i=1:nndelay
     DDF.Cr{i}=[zeros(1,n+i-1) 1 zeros(1,n-i)];
 DDF.Cv{i}=zeros(n,1);DDF.Cv{i}(i,1)=1;
 end
+st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [4;2;2];                                            % MMP, 11/19/2026
+st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
+st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/19/2026
 %%%gam_guess; % min in [.32 .38]
 
 

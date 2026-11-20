@@ -1,0 +1,10 @@
+group,tier,statements,stability_form,Hinf_gain_form,note
+DDE:DDE01,light,"st.lpi.ineq.dD = 0;",P,,"common pass XLPd0 (both rows at their best); the tuned st of the primal fails its bisection (UNKNOWN at 1.9125) and the dual (EXV1)"
+DDE:DDE10,stripped,"st.lpi.ineq.dD = 0;",,P,"common pass XSPd0; the merged st gave the primal gain 0.23860 against 0.23644 (EXV1)"
+DDE:DDE17,stripped,"st.lpi.ineq.dD = 0;",P,,"common pass XSPd0; the st of the control row lowered the stability threshold to 0.1437 against 0.1483 (EXV1)"
+NDSDDF:NDS08,light,"st.lpi.ineq.dD = 0;",P,,"common pass XLPd0; the st of the dual lowered the primal threshold to 0.0210 against 0.0275 (EXV1)"
+PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC,light,"st.lpi.ineq.dD = 0;",P,,"common pass XLPd0; the st of the primal left the dual UNKNOWN (EXV1)"
+PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2,light,"st.lpi.ineq.dD = 0;",P,,"common pass XLPd0; the tuned st is UNKNOWN at the bracket end 15.75 (EXV1)"
+PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped,stripped,"st.lpi.ineq.dD = 0;",,P,"common pass XSPd0; the st of the dual failed the harness gate on the primal (EXV1)"
+PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2,veryheavy,"",,,"veryheavy certifies both H2 forms at the documented 0.1016 (11/17 pass; dual rerun XVH); no cheaper common measurement"
+NDSDDF:DDF01,extreme,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto';",P,,"EXV1B verified P at 48 for both rows (the dual searched in Q at 144); the block names P"

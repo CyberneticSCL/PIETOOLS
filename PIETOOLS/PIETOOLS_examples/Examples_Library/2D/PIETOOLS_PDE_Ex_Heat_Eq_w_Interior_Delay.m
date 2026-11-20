@@ -36,31 +36,6 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % MM
 % %
 % % Parameters tau, c, a0 and a1 can be set.
 % % For c = 1, a0 = 1.9, and a1 = 1, stable for tau<1.0347.
-% %                                                                         % MMP, 11/17/2026
-% % Light tier (lpisettings_sop('light')), tau = 0.9*tau*: no certificate   % MMP, 11/17/2026
-% % in the storage form 'P' (infeasible, 508,228 decision variables after   % MMP, 11/17/2026
-% % one raise) or the direct form 'Q' (UNKNOWN, 227,510; gap_results.md     % MMP, 11/17/2026
-% % G2, perspace_results.md, before the tier change of 11/17/2026).         % MMP, 11/17/2026
-% % Application-specific settings (output st): lpisettings_sop('light')     % MMP, 11/17/2026
-% % with the slack weight of the space of x1 (L2[s1]) raised by one,        % MMP, 11/17/2026
-% % st.lpi.ineq.dw_space = [1 0], for PIETOOLS_stability_sop(PIE,st,'Q').   % MMP, 11/17/2026
-% % Certified through the executive (MOSEK, 11/17/2026): tau = 0.9*tau*,    % MMP, 11/17/2026
-% % 65,731 variables, no raise; default tau = 1 (0.966*tau*), 397,870       % MMP, 11/17/2026
-% % after one raise. Alternative in 'Q': st.lpi.var.deg{2} = 2 (215,188     % MMP, 11/17/2026
-% % at 0.9*tau*, gap study). In 'P': the 2-D storage at the veryheavy       % MMP, 11/17/2026
-% % lengths, st.lpi.pos.len_com{2} = [3 3], st.lpi.pos.len_sos{2} =         % MMP, 11/17/2026
-% % [2 2;3 3;0 0], with st.sop.dw_feas(2) = 0 (953,001 at 0.9*tau*, gap     % MMP, 11/17/2026
-% % study, before the tier change of 11/17/2026).                           % MMP, 11/17/2026
-% %                                                                         % MMP, 11/18/2026
-% % Example-specific settings of 11/18/2026 (output st, replaces the        % MMP, 11/18/2026
-% % dw_space setting above), form 'Q', library default tau = 1:             % MMP, 11/18/2026
-% % lpisettings_sop('light') with the slack lift degree at its minimum,     % MMP, 11/18/2026
-% % st.lpi.ineq.dD = 0, and Q of degree 2 in two variables,                 % MMP, 11/18/2026
-% % st.sop.deg_Q{2} = 2. MOSEK, 11/18/2026: certified at 196,513            % MMP, 11/18/2026
-% % decision variables, 6,376 rows, no raise (OPT_STATUS 0.998, eta         % MMP, 11/18/2026
-% % 6.3e-10); the 11/17 st (dw_space = [1 0]): 397,870 after one raise      % MMP, 11/18/2026
-% % (OPT_STATUS 1.16); heavy: 215,188, no raise; light: 374,827 after       % MMP, 11/18/2026
-% % one raise. Light in form 'P': infeasible (428,185 after one raise).     % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Second output st, the settings that certify the
@@ -71,6 +46,16 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % MM
 % MMP, 11/18/2026: st: the slack lift degree at its minimum and Q of
 %                   degree 2 in two variables (deg_Q), in place of the
 %                   dw_space raise of 11/17: half the variables (header);
+% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
+%                   (maintainer: no default settings): see the block;
+%                   the form of its tests named in the workspace.
+% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
+%                   recorded tests and files the user does not have, not the problem;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -81,6 +66,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
 c = 1;      a0 = 1.9;       a1 = 1;
@@ -148,13 +134,14 @@ PDE_t = [diff(x1,'t')==c*diff(x1,s1,2)+a0*x1-a1*subs(x2,s2,tau);
 
 % Application-specific settings (header): the light tier, the slack         % MMP, 11/18/2026 (was); MMP, 11/17/2026
 % weight of the space of x1 (L2[s1], the first space) raised by one         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
-% minimum (dD = 0), Q of degree 2 in two variables (st.sop.deg_Q)           % MMP, 11/18/2026
+% Example-specific settings                                                 % MMP, 11/19/2026
 if nargout>1                                                                % MMP, 11/17/2026
     st = lpisettings_sop('light');                                          % MMP, 11/17/2026
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-    st.sop.deg_Q{2} = 2;                                                    % MMP, 11/18/2026
+%   st.sop.deg_Q{2} = 2;                                                    % MMP, 11/19/2026 (was); MMP, 11/18/2026
+    st.sop.deg_Q{2} = [1 2 2];                                              % MMP, 11/19/2026
 %    st.lpi.ineq.dw_space = [1 0];                                          % MMP, 11/18/2026 (was); MMP, 11/17/2026
+    st.lpi.ineq.cap_inc = 'auto';                                           % MMP, 11/19/2026
 end                                                                         % MMP, 11/17/2026
 
 if GUI~=0

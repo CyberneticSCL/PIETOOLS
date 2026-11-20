@@ -1,0 +1,7 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:70,Q,AsT2,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,494572,13944,45.9,""
+PDE:70,Q,AsT4,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,494572,13944,43.1,""
+PDE:41,Q,Alam=0;,light,"",unknown,0.3884,0,0,2,19776,797,1.9,""
+PDE:41,Q,Atau=0.5;,light,"",unknown,-0.1534,0,0,2,19776,797,1.6,""
+PDE:41,Q,Atau=2;,light,"",unknown,0.3395,0,0,2,19776,797,1.4,""
+PDE:69,Q,AsT,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,1005460,25968,186.2,""

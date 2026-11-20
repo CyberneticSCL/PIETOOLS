@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Wave equation with partially delayed boundary damping (Xu, Yung, Li
@@ -36,26 +38,24 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)
 % % abscissa is 0.0957 (mu = 0.4), 0 (mu = 0.5), -0.105968 (mu = 0.6),
 % % -0.301728 (mu = 0.75): exponentially stable iff mu > mu* = 1/2.
 % %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), k = 1, tau = 2:
-% %   - non-increase of a weighted norm of Tx (epneg = 0): certified at
-% %     mu = 0.5, 0.500391, 0.6, 0.75 (stock light, 47,304 decision
-% %     variables); infeasible at mu = 0.40, 0.45, 0.49. The proposed light
-% %     row of the settings proposal of 11/15/2026 gives the same verdicts
-% %     (50,580 variables at mu = 0.6).
-% %   - decay rate (epneg > 0), mu = 0.6, stock light: certified for
-% %     epneg = 0.10, infeasible for epneg = 0.11 (exact rate 0.105968).
 % % Library example 44 treats the same paper in second-order form.
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: the light tier certifies this example              % MMP, 11/17/2026
-% % (record above). Its storage is the proposed light row since             % MMP, 11/17/2026
-% % 11/17/2026; its slack of 11/17/2026 (wcross 0, 2-D faces at offset      % MMP, 11/17/2026
-% % 1) was not rerun.                                                       % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier certifies the example, so
 %                   no second output st (application-specific settings);
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+%                   the entry of 11/17/2026 (no second output st) no longer
+%                   holds;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -66,6 +66,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 
 mu = 0.6;   k = 1;  tau = 2;
 npars = length(params);
@@ -90,6 +91,14 @@ PDE_t = [diff(e,'t')==diff(v,s1);
          subs(e,s1,1)==-k*mu*subs(v,s1,1)-k*(1-mu)*subs(y,s2,1);
          subs(y,s2,0)==subs(v,s1,1)];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st.lpi.ineq.psatz{2} = 'none';                                              % MMP, 11/19/2026
+st.sop.deg_Q{2} = 0;                                                        % MMP, 11/19/2026
+st.sop.max_raise_Q = [2 2 0];                                               % MMP, 11/19/2026
+st.sop.raise_Q = 'deg';                                                     % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

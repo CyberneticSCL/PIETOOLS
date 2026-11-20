@@ -1,0 +1,8 @@
+PDE|X1|stripped
+PDE|X1/stability_dual|stripped
+PDE|X2|stripped
+PDE|X3|stripped
+PDE|X1|light
+PDE|X1/stability_dual|light
+PDE|X2|light
+PDE|X3|light

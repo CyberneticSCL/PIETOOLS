@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)               % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               (this file flags no test)                                   % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % % Clamped Kirchhoff plate with structural damping (Jagt & Peet, 2025,
@@ -35,6 +37,10 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)
 % %---------------------------------------------------------------------% %
 %
 % CC, 09/28/2026: new example, recreating the clamped damped plate of
+% MMP, 11/19/2026: Output st, the recommended settings of the example: the
+%                   default tier, as the file flags no test (maintainer: every
+%                   example names its settings);
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)                % MMP, 11/19/2026 (was)
 % D. S. Jagt and M. M. Peet, "A State-Space Representation of Coupled Linear
 % Multivariate PDEs and Stability Analysis using SDP", arXiv:2508.14840 (v4).
 % It is the first 2D fourth-order PDE in the example library. No executive
@@ -61,6 +67,9 @@ PDE_t = [diff(u,'t')==[0,1;0,0]*u - [0,0;1,0]*(diff(u,s1,4)+2*diff(u,[s1;s2],[2;
          subs(u,s1,1)==0;     subs(diff(u,s1),s1,1)==0;
          subs(u,s2,0)==0;     subs(diff(u,s2),s2,0)==0;
          subs(u,s2,1)==0;     subs(diff(u,s2),s2,1)==0];
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')

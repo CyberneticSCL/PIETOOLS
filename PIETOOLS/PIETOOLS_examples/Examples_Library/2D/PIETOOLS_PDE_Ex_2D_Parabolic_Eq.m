@@ -22,20 +22,18 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params)          % MM
 % %
 % % Parameters c1, c2, b1, b2, and a can be set.
 % % Stable when a <= 0.5*pi^2 for c1=c2=1, b1=b2=0 (Demetriou, 2019).
-% %                                                                         % MMP, 11/18/2026
-% % Example-specific settings (output st), for                              % MMP, 11/18/2026
-% % PIETOOLS_stability_sop(PIE,st,'Q'): lpisettings_sop('light') with       % MMP, 11/18/2026
-% % the slack lift degree at its minimum, st.lpi.ineq.dD = 0, and Q of      % MMP, 11/18/2026
-% % degree [1 0 0] in two variables, st.sop.deg_Q{2} = [1 0 0]. MOSEK,      % MMP, 11/18/2026
-% % 11/18/2026, library defaults: 16,656 decision variables, 1,117 rows,    % MMP, 11/18/2026
-% % OPT_STATUS 1.01, eta 9.1e-11; light tier: 72,100 variables, 3,265       % MMP, 11/18/2026
-% % rows (OPT_STATUS 1.00, eta 3.6e-10). Verified at the default            % MMP, 11/18/2026
-% % parameters only.                                                        % MMP, 11/18/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/18/2026: Second output st, example-specific settings that
 %                   certify the library default at fewer decision
 %                   variables than the light tier (header);
+% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
+%                   (maintainer: no default settings): st.lpi.ineq.cap_inc = 'auto';
+%                   the form of its tests named in the workspace.
+% MMP, 11/19/2026: the settings notes of the header removed: they recorded
+%                   tests and files the user does not have, not the problem;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params)            % MMP, 11/18/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -47,6 +45,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
 %evalin('base','stability_dual = 1;');
 
 a = 4.0;  b1 = 0;  b2 = 0;  c1 = 1;  c2 = 1;
@@ -95,12 +94,12 @@ PDE_t = [diff(x,'t')==a*x +b1*diff(x,s1) +b2*diff(x,s2) +c1*diff(x,s1,2) +c2*dif
 % PDE_t.BC{4}.term{1}.loc = [1,s2];
 
 
-% Example-specific settings (header): light, slack lift degree at its       % MMP, 11/18/2026
-% minimum (dD = 0), Q of degree [1 0 0] in two variables (st.sop.deg_Q)     % MMP, 11/18/2026
+% Example-specific settings                                                 % MMP, 11/19/2026
 if nargout>1                                                                % MMP, 11/18/2026
     st = lpisettings_sop('light');                                          % MMP, 11/18/2026
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
     st.sop.deg_Q{2} = [1 0 0];                                              % MMP, 11/18/2026
+    st.lpi.ineq.cap_inc = 'auto';                                           % MMP, 11/19/2026
 end                                                                         % MMP, 11/18/2026
 
 if GUI~=0

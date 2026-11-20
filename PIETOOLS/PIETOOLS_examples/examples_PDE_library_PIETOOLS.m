@@ -115,6 +115,29 @@
 %                   against the tiers in cleaning/private/settings_1116/
 %                   psatz_faces_results/example_settings);
 % MMP, 11/18/2026: Case 61 notes the output st of its example file;
+% MMP, 11/19/2026: Every example file with a certified setting returns st,
+%                   its example-specific settings, and names the form of
+%                   its tests (maintainer: no default settings); the call
+%                   sites collect st and the run path passes it to
+%                   PIETOOLS_auto_execute_sop as 'settings' (an example
+%                   without st clears 'settings', so the executive asks for
+%                   a tier rather than reuse the st of an earlier example);
+%                   process_inputs resets the forms; the 2-D message no
+%                   longer advises 'stripped';
+% MMP, 11/19/2026: case 15 documents the bending term x4_{ss}, restored in
+%                   PIETOOLS_PDE_Ex_Timoshenko_Beam_2.m (Peet et al. 2019),
+%                   and its call site collects st (certified 11/19/2026);
+% MMP, 11/19/2026: case 16 (Timoshenko beam, 4th order) removed from the
+%                   stability examples (maintainer): its BCs, those of a
+%                   simulation in Shivakumar et al., TAC 2025, give an
+%                   unstable system; it now stops with an error naming the
+%                   removal. The 4th order implementation added by the entry
+%                   of 05/24/2021 (DJ) is no longer called; the file is in
+%                   orphaned_file/private;
+% MMP, 11/19/2026: case 8 (Das) with the flux input -Bxr (maintainer: a
+%                   typo in the paper); its call site collects st;
+% MMP, 11/19/2026: the call sites of cases 36, 39, 41, 44, 55, 56, 65, 69 and 70
+%                   collect st, the recommended settings their files now return;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -139,7 +162,8 @@ switch index
     case 1
 % 	PDE: x_{t} = v*x_{s}                            | v=-1;   (Exponentially PDE stable ) 
 %   BCs: x(s=0) = 0                                 |                (Finite Energy PDE stable ) 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params);              % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params);            % MMP, 11/19/2026
 %-----|-------------------------------------------------------------------
     case {2.0,2.1,2.2,2.3,2.4}
 %	PDE: x_{t} = Fm*x - Lm*x_{s}                    | Different parameters          Lamare 2016 [1] 
@@ -148,7 +172,8 @@ switch index
 %                                                                            | 2.3, and 2.4.    
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable )   
-	[PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params);
+%	[PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params);              % MMP, 11/19/2026 (was)
+	[PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params);            % MMP, 11/19/2026
 %-------------------------------------------------------------------------
     case 3
 %   PDE: x_{t} = Mm*x - Lm*x_{s}                	| Mm, Lm, K00, K01,             Diagne 2012 [2] 
@@ -159,7 +184,8 @@ switch index
 %   parameters  k1 = -.5;       k2 = -4.5;                                      
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable )
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params);                    % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diagne(GUI,params);                  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case {4.0,4.1,4.2,4.4,4.3,4.5}
 % 	PDE: x1_{t} = sig1*x2 - (1/r1)*x1_{s}           | Different parameters          Saba 2019 [3] 
@@ -168,7 +194,8 @@ switch index
 %        x2(s=1) = pb*x1(s=1)                       | 4.3, 4.4, and 4.5.  
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable ) 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params);                % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params);              % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %        Diffusion and Heat-Equation Type Systems
 %--------------------------------------------------------------------------
@@ -178,14 +205,16 @@ switch index
 %   BCs: x(s=0) = 0,      x(s=1) = 0                |                               Ahmadi 2015 [5] 
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy FEPIE2PDE stable ) 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params);     % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params);   % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 6
 %   | PDE: x_{t} = lam*x + x_{ss}                   | lam = 2.466           (unstable for lam > pi^2/4 \approx 2.467,  
 %                                                                                                     exponentially stable and FE PDE stable for lam < pi^2/4)
 %   | BCs: x(s=0) = 0,      x_{s}(s=1) = 0          |                               Gahlawat 2017 [4]
 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 7
 %   PDE:  x_{t} = a(s)*x_{ss}                    | a = s^3 - s^2 + 2     (unstable for lam > 4.66)                                                                                                      
@@ -193,13 +222,15 @@ switch index
 %                 + c(s,lam)*x                          | c =-0.5*s^3 + 1.3*s^2            Gahlawat 2017 [4]
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0     |    - 1.5*s + 0.7 +lam
 %                                                              | lam = 4.65                 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params);     % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params);   % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 8
 % 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        (stable for lam < pi^2 = 9.8696)
 %   PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo      | lam = pi^2-1                  Das 2018 [7] (Example 2)
 %   BCs:  x(s=a) = 0,     x(s=b) = 0                | A, Bxr, and Bpv fixed
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params);      % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params);    % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 9
 % 	ODE:  xo_{t} = k*xo                             | k = -1                (stable for k<0)
@@ -207,20 +238,23 @@ switch index
 %   BCs:  x(s=0) = 0,     x(s=1) = xo               |
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable ) 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params);    % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 10
 %   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = -2                (stable for k=-2)            
 %   PDE: x_{t} = x_{ss}                             |                               Tang 2011 [13]
 %   BCs: x(s=0) = xo,    x(s=1) = k*xo              |                           (PDE stable )
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);     % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);   % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 11
 % 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 2.9               (stable for R<2.7 (not tight))
 %   BCs:  x(s=0) = 0,     x(s=1) = 0                | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6] Example D
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable ) 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params); % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 12
 %   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 30            (stable for R<21 (not tight))
@@ -229,7 +263,8 @@ switch index
 %                                                   |       -s^2 0 0]
 %                                                                         (Exponentially PDE stable )
 %                                                                         (Finite Energy PDE stable ) 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params);  % MMP, 11/19/2026
 %
 %--------------------------------------------------------------------------
 %        Beam Type Equations 
@@ -246,7 +281,8 @@ switch index
 %        x1_{s}(s=0) = 0,   x2_{s}(s=1) = 0         |
 % 13.2  use PDE states x1= u and x_2=u_{t} |                (PIE to PDE stable)
 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %
 %   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                             Peet 2019 [8] (Example 8.1.0.2)
@@ -268,7 +304,8 @@ switch index
 %   BCs: x1(0) = 0,         x2(1) = 0               |
 %        x3(0) = 0,         x4(1) = 0               |
 %                                                   |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params);         % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params);       % MMP, 11/19/2026
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 15 
 %   Assume all parameters are 1, and use states:    | Hyperbolic/diffusive implementation (unstable)
@@ -277,12 +314,14 @@ switch index
 %       =>                                          |
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
-%        x3_{t} = x2 - x4 -c x3                         |
+%        x3_{t} = x2 - x4 -c x3                         |                   % MMP, 11/19/2026 (was)
+%        x3_{t} = x2 - x4 + x4_{ss} - c x3              |                   % MMP, 11/19/2026
 %        x4_{t} = x3                                |
 %   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
 %        x3(0) = 0,     x1(0) = 0,                  |
 %        x2(1) - x4(1) = 0                          |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params);         % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params);       % MMP, 11/19/2026
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 16
 %   We rewrite the system as a single equation:     |                       4th order implementation 
@@ -300,13 +339,18 @@ switch index
 %        w_{sss}(s=1) - w_{s}(s=1) = 0              |
 %        w_{t}(s=0) = 0     w_{ts}(s=0) = 0         |
 %        w_{tt}(s=0) = 0    w_{tts}(s=0) = 0        |
-    if BATCH~=0
-        % NOTE: Derivatives of order greater than 2 cannot be represented
-        % using the batch format. They can be specified using the GUI.
-        disp('Warning: No batch input formulation for this problem exists; reverting to term-based input format')
-        BATCH = 0;         TERM = 1;
-    end
-    PDE_t = PIETOOLS_PDE_Ex_Timoshenko_Beam_3(GUI,params);
+%    if BATCH~=0                                                            % MMP, 11/19/2026 (was)
+%        % NOTE: Derivatives of order greater than 2 cannot be represented  % MMP, 11/19/2026 (was)
+%        % using the batch format. They can be specified using the GUI.     % MMP, 11/19/2026 (was)
+%        disp('Warning: No batch input formulation for this problem exists; reverting to term-based input format') % MMP, 11/19/2026 (was)
+%        BATCH = 0;         TERM = 1;                                       % MMP, 11/19/2026 (was)
+%    end                                                                    % MMP, 11/19/2026 (was)
+%    PDE_t = PIETOOLS_PDE_Ex_Timoshenko_Beam_3(GUI,params);                 % MMP, 11/19/2026 (was)
+    % Removed from the stability examples (maintainer, 11/19/2026): its BCs, % MMP, 11/19/2026
+    % those of a published simulation (Shivakumar et al., TAC 2025, Sec.    % MMP, 11/19/2026
+    % VII-B), give an unstable system (real parts 1.52, 2.27, 2.75, ...);   % MMP, 11/19/2026
+    % the file is in orphaned_file/private.                                 % MMP, 11/19/2026
+    error('Example 16 was removed from the stability examples on 11/19/2026.'); % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %       Wave Equations
 %--------------------------------------------------------------------------
@@ -318,7 +362,8 @@ switch index
 %       =>                                          |                      (Finite Energy PDE stable  for k>0) 
 %   PDE: x1_{t} = x2_{s},   x2_{t} = x1_{s}         |
 %   BCs: x2(0) = 0,         x1(1) + k*x2(1) = 0     |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped(GUI,params);   % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped(GUI,params); % MMP, 11/19/2026
 %-----|---------------------------------------------|----------------------
 %     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1     Datko 1986 [9] (Test 7.5c)
 %     | BCs: u(s=0) = 0                             |
@@ -330,7 +375,8 @@ switch index
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x2_{ss}      |
 %   BCs: x1(0) = 0,     x2(0) = 0,                  |
 %        k*x1(1) + x2_{s}(1) = 0                    |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params);  % MMP, 11/19/2026
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 19
 %   Use states x1 = u_{t}, x2 = u, x3 = u_{s}.      | k = 1  ( PDE exponentially stable)
@@ -338,7 +384,8 @@ switch index
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x3_{s}       |
 %   BCs: x1(0) = 0,     x2(0) = 0,                  |
 %        k*x1(1) + x3(1) = 0                        |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_2(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_2(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_2(GUI,params);  % MMP, 11/19/2026
 %
 %==========================================================================
 %       Hinf-gain analysis
@@ -350,7 +397,8 @@ switch index
 %   PDE: x_{t} = -x_{s} + w(t)                      |                       (gamma = 0.5000 (0.5000) using 'veryheavy', 
 %   BCs: x(s=0) = 0                                 |                           gamma = 0.5011 (0.5058) using 'heavy',     
 %   Out: z(t) = int(x(t,s),s,0,1)                   |                              gamma = 0.5162 (0.5204) using 'light' settings)  
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params);  
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 21
 %   PDE: phi_{tt} = phi_{ss} + w(t)                 | k = 0.5               (for k=0.5: gamma = 0.8419 (0.8419) using 'veryheavy',  
@@ -362,7 +410,8 @@ switch index
 %   PDE: x1_{t} = x2_{s}                            |
 %        x2_{t} = x1_{s} + w(t)                     |
 %   BCs: x2(0) = 0,     x1(1) + k*x2(1) = 0         |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params);        % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params);      % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
@@ -370,7 +419,8 @@ switch index
 %   PDE: x_{t} = x_{ss} + s*w(t)                    |                       (gamma = 0.2083 using 'veryheavy', 
 %   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |                           gamma = 0.2083 using 'heavy',  
 %   Out: z(t) = int(x(t,s),s,0,1)                   |                              gamma = 0.2085 using 'light' settings)  
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 23
 %   PDE: x_{t} = A2(s)*x_{ss}                       | A2 = s^3 - s^2 + 2;   (for lamb = 4.6: gamma = 25.249 using 'light',       
@@ -378,27 +428,31 @@ switch index
 %                + A0(s)*x + w(t)                   | A0 =-0.5*s^3 +1.3*s^2                  gamma = 23.622 using 'veryheavy' settings)                
 %   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |     -1.5*s +0.7 +lam          Shivakumar 2019 [12] (Example 1)
 %   Out: z(t) = x(t,1)                              | lam = 4.6;  
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 24
 %   PDE: xi_{t} = w(t) + lamb*xi        i=1:ne      | lam = (1-1e-2)*pi^2   (gamma = 8.2136 for lamb = (1-1e-2)*pi^2)         
 %                 + sum(xk_{ss},k=1,i)              | ne = 1 (state size)           Shivakumar 2019 [12] (Example 3)
 %   BCs: x(s=0) = 0,        x(s=1) = 0              |   
 %   Out: z(t) = int(x(t,s),s,0,1)                   |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 25
 %   PDE: x_{t} = Cm*x + (1/R)*x_{ss} + s*w(t)       | R = 2.6               (gamma = 0.8102 for R = 2.6)
 %   BCs: x(s=0) = 0,        x(s=1) = 0              | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6]
 %   Out: z(t) = int(x1(t,s),s,0,1)                  | 
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 26
 %   PDE: x_{t} = Cm(s)*x + (1/R)*x_{ss} + s*w(t)    | R = (21-1e-3)         (gamma =  2.1457, for R = 21-1e-3)
 %   BCs: x(s=0) = 0,        x(s=1) = 0              | Cm = [0,0,0;                  Shivakumar 2019 [12] (Example 2)
 %   Out: z(t) = int(x(t,s),s,0,1)                   |       s,0,0;
 %                                                   |       s^2,-s^3,0]
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance_2(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance_2(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance_2(GUI,params);  % MMP, 11/19/2026
 %
 %==========================================================================
 %       Hinf-optimal observer
@@ -411,7 +465,8 @@ switch index
 %   BCs: x(s=1) = 0                                 |
 %   Out: z(t) = int(x(t,s),s,0,1) + w(t)            |
 %        y(t) = int(x(t,s),s,0,1)                   |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
@@ -420,7 +475,8 @@ switch index
 %   BCs: x(s=0) = 0,        x(s=1) = 0              |
 %   Out: z(t) = int(x(t,s),s,0,1) + w(t)            |
 %        y(t) = x_{s}(s=1)                          |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params);  % MMP, 11/19/2026
 %
 %==========================================================================
 %       Hinf-optimal controller
@@ -433,7 +489,8 @@ switch index
 % % BCs: x(s=0) = 0,        x(s=1) = 0
 % % Out: z1(t) = int(x(s,t),s,0,1)
 % %      z2(t) = u(t)
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);
+%    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 30
 % % ODE: x_{t}(t) = u(t);                                   | lam = 5;      (gain 0.6594 using Mosek with heavy settings, though numerr=2...)
@@ -447,7 +504,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    PDE_t = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params);
+%    PDE_t = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %        Beam Type Equations 
 %--------------------------------------------------------------------------
@@ -462,7 +520,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params);
+%    PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params); % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %       Wave Equations
 %--------------------------------------------------------------------------
@@ -479,7 +538,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    PDE_t = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params);
+%    PDE_t = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params);      % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params);  % MMP, 11/19/2026
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %       2D Examples
@@ -499,7 +559,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params);                 % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params);               % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
@@ -513,7 +574,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params);                   % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params);                 % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 35
 %   PDE: x_{t} = C*(x_{(2,0} + x_{(0,2)})           | C = 1;
@@ -526,7 +588,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq(GUI,params);        % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq(GUI,params);      % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 36
 %   PDE: x_{t} = -1/(2*lam) * x_{tt}                | lam = 1;
@@ -548,7 +611,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);                 % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);               % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 37
 %   PDE: x_{t} = a*x                                | a = 4.0;              (stable for a <= 0.5*pi^2) 
@@ -562,7 +626,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);                 % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);               % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 38
 %   PDE: x_{tt} = c1*x_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
@@ -582,7 +647,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params);                      % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params);                    % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 39
 %   PDE: p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}    | M = 0.1;
@@ -600,7 +666,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params);                 % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params);               % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 40
 %   ODE: x1_{t} = (A+BK)*x1 + B*x2(s1=0,s2=0)       | A = I; B = I;
@@ -613,7 +680,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params);             % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params);           % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 41
 %   PDE: x_{t} = x_{s1s1} + lam * x;    s1 in [0,1] | tau = 1;
@@ -633,7 +701,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params); % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params); % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 42
 %   ODE: X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0) | tau = 1;
@@ -664,7 +733,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end    
-    [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);     % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);   % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 43
 %   PDE:    x_{t}  = c*x_{s1s1}(t,s1) + a0*x(t,s1)  | tau = 1;
@@ -690,7 +760,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end    
-    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);        % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);      % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 44
 %   PDE:    x_{tt}  = x_{ss}(t,s);   s in [0,1]     | tau = 1;  
@@ -723,7 +794,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end    
-    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params);        % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params);      % MMP, 11/19/2026
 %
 %==========================================================================
 %       Hinf-gain analysis
@@ -742,7 +814,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params);       % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params);     % MMP, 11/19/2026
 %
 %--------------------------------------------------------------------------
     case 46
@@ -756,7 +829,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDD(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDD(GUI,params);       % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDD(GUI,params);     % MMP, 11/19/2026
 %
 %--------------------------------------------------------------------------
     case 47
@@ -770,7 +844,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params);       % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params);     % MMP, 11/19/2026
 %
 %==========================================================================
 %       Hinf-optimal observer
@@ -792,7 +867,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params);  % MMP, 11/19/2026
 % 
 %==========================================================================
 %       H2 gain
@@ -810,7 +886,8 @@ switch index
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params);  % MMP, 11/19/2026
     %%
     case 50
 % Original 1D PDE: x1_{t}(t,s1) = x1_{s1s1}(t,s1) - 20 x1(t,s1) - 4 x4(t,s1,-1) - 0.1x5(t,s1,-1) + s1(s1-\pi)w(t);
@@ -828,7 +905,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] =  PIETOOLS_PDDE_Ex(GUI,params);
+%    [PDE_t] =  PIETOOLS_PDDE_Ex(GUI,params);                               % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params);                              % MMP, 11/19/2026
 % 
 %==========================================================================
 %       H2 estimator
@@ -847,7 +925,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params);      % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params);    % MMP, 11/19/2026
 % 
 %==========================================================================
 %       H2 controller
@@ -865,7 +944,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params);  % MMP, 11/19/2026
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %       3D Examples 
@@ -888,7 +968,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_3D_Reaction_Diffusion_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_3D_Reaction_Diffusion_Eq(GUI,params);        % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Reaction_Diffusion_Eq(GUI,params);      % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 54
 %   PDE: x_{t} = lam*x + C*(x_{(2,0,0)}             | lam = 1;  C = 1;          (stable iff lam < 3*pi^2*C + |b|^2/(4*C) = 30.4838
@@ -903,7 +984,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params);       % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params);     % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 55
 %   PDE: x1_{t} = C1*(x1_{(2,0,0)} + x1_{(0,2,0)}   | lam = 1;  C1 = 1;  
@@ -917,7 +999,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq(GUI,params);              % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq(GUI,params);            % MMP, 11/19/2026
 %
 %                                                                           % MMP, 11/17/2026 (start)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -946,7 +1029,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params);      % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params);    % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 57
 %   PDE: z_{tt} = 0.1*z_{s1s1} - 2*z_{t}            | tau = 0.9*2.881401;       (stable iff tau < 2.881401 [derived])
@@ -960,7 +1044,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 58
 %   Example 57 in Riemann form on [0,pi/2]:         | tau = 0.9*2.881401;       (stable iff tau < 2.881401 [derived])
@@ -976,7 +1061,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridman(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 59
 %   PDE: e_{t} = v_{s1};  v_{t} = e_{s1};  s1 in [0,1] | mu = 0.6;  k = 1;      (exponentially stable iff mu > 0.5 for k = 1,
@@ -990,7 +1076,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 60
 %   PDE: u_{t} = u_{s1s1};           s1 in [0,pi]   | mu0 = 1;  mu1 = 0.5;      (spectral abscissa -0.762 for the defaults
@@ -1003,7 +1090,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
 %       Edge and interface couplings
 %--------------------------------------------------------------------------
@@ -1019,7 +1107,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params);      % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params);    % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 62
 %   PDE: r_{t} = Dr*r_{s1s1} + nu*f(t,s1,0) - mu*r; | Dr = 2;  d = 1;           (stable iff lam < 13.9198 [derived, finite
@@ -1032,7 +1121,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params);           % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params);         % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 63
 %   PDE: x1_{t} = (1+s1)*x1_{s1s1} + r1*x1;         | r1 = 0.9*14.507976;       (block thresholds r1* = 14.5080, r2* = 22.2060
@@ -1045,7 +1135,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 64
 %   PDE: ui_{t} = ki*(ui_{s1s1} + ui_{s2s2})        | k1 = 1;  k2 = 2;  H = 1;  (stable iff lam < 13.6869 [derived, finite
@@ -1058,7 +1149,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Two_Layer_Heat_Rectangles(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Two_Layer_Heat_Rectangles(GUI,params);       % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Two_Layer_Heat_Rectangles(GUI,params);     % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 65
 %   PDE: x_{t} = diag(1,d)*(x_{s1s1} + x_{s2s2})    | d = 0.9*4.461640;         (stable iff d < 4.461640 [derived])
@@ -1071,7 +1163,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params);           % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params);         % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 66
 %   PDE: q_{t} = -q_{s1} + d*q_{s2s2} - mu*q;       | d = 0.1;  mu = 1;         (stable iff b < 2.302685 [derived])
@@ -1084,7 +1177,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params);   % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Age_Structured_Diffusion_Kang(GUI,params); % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 67
 %   PDE: e1_{t} = p_{s1};  p_{t} = e1_{s1};         | L = 0.5;                  (exponentially stable for the clamped
@@ -1098,7 +1192,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 68
 %   PDE: e_{t} = v_{s1};  v_{t} = e_{s1};           |                           (not exponentially stable; energy
@@ -1110,7 +1205,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params); % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty(GUI,params);  % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 69
 %   PDE: u_{t} = v;  v_{t} = u_{s1s1} + u_{s2s2};   |                           (not exponentially stable; energy
@@ -1123,7 +1219,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params); % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params); % MMP, 11/19/2026
 %--------------------------------------------------------------------------
     case 70
 %   PDE: ph_{t} = ps;  ps_{t} = ph_{s1s1}+ph_{s2s2};|                           (not uniformly stable [abstract])
@@ -1137,7 +1234,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params); % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale(GUI,params); % MMP, 11/19/2026
 %                                                                           % MMP, 11/17/2026 (start, example 72)
 %--------------------------------------------------------------------------
     case 72
@@ -1152,7 +1250,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params);        % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params);      % MMP, 11/19/2026
 %                                                                           % MMP, 11/17/2026 (end, example 72)
 %
 %==========================================================================
@@ -1170,7 +1269,8 @@ if BATCH~=0
         TERM = 1;
         BATCH = 0;
     end
-    [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params);
+%    [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params);  % MMP, 11/19/2026 (was)
+    [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params);  % MMP, 11/19/2026
 %                                                                           % MMP, 11/17/2026 (end)
 %
 
@@ -1324,7 +1424,8 @@ end
 
 % Warn user that executives for 2D examples may take a lot of time.
 if index>=33 && index<=48
-    fprintf('\n Examples 33 through 48 correspond to 2D PDEs, that take significant computational time and memory (use ''stripped'' settings).\n');
+%   fprintf('\n Examples 33 through 48 correspond to 2D PDEs, that take significant computational time and memory (use ''stripped'' settings).\n');  % MMP, 11/19/2026 (was)
+    fprintf('\n Examples 33 through 48 correspond to 2D PDEs, that take significant computational time and memory (the example file sets its settings, st).\n');  % MMP, 11/19/2026
 end
 
 % Check if the user wants to run the executive
@@ -1333,6 +1434,8 @@ userinp = strrep(userinp,'''','');    % Get rid of potential apostrophes
 if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
     PIE = convert_PIETOOLS_PDE(varargout{1});
     assignin('base','PIE',PIE);
+    if exist('st','var'),  assignin('base','settings',st);                   % MMP, 11/19/2026
+    else,  evalin('base','clear settings');  end  % header                  % MMP, 11/19/2026
 %   evalin('base','PIETOOLS_auto_execute');                                 % MMP, 11/08/2026 (was)
     evalin('base','PIETOOLS_auto_execute_sop');                             % MMP, 11/08/2026
 elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
@@ -1343,6 +1446,8 @@ else
     if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
         PIE = convert_PIETOOLS_PDE(varargout{1});
         assignin('base','PIE',PIE);
+        if exist('st','var'),  assignin('base','settings',st);               % MMP, 11/19/2026
+        else,  evalin('base','clear settings');  end                        % MMP, 11/19/2026
 %       evalin('base','PIETOOLS_auto_execute');                             % MMP, 11/08/2026 (was)
         evalin('base','PIETOOLS_auto_execute_sop');                         % MMP, 11/08/2026
     elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
@@ -1754,6 +1859,10 @@ evalin('base','H2_norm = 0;')
 evalin('base','H2_norm_dual = 0;')
 evalin('base','H2_estimator = 0;')
 evalin('base','H2_control = 0;')
+% and the forms each example names beside its executives (empty: 'Q')       % MMP, 11/19/2026
+evalin('base','stability_form = '''';');                                    % MMP, 11/19/2026
+evalin('base','Hinf_gain_form = '''';');                                    % MMP, 11/19/2026
+evalin('base','H2_norm_form = '''';');                                      % MMP, 11/19/2026
 
 params = {};
 

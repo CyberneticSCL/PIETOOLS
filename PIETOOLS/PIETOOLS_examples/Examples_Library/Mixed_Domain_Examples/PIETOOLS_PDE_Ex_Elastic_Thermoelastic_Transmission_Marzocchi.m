@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params)
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params)  % MMP, 11/19/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -10,6 +10,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
+%               for the tests this file names                               % MMP, 11/19/2026
 %
 % %---------------------------------------------------------------------% %
 % % Elastic-thermoelastic transmission problem, 1D (Marzocchi, Munoz
@@ -36,21 +38,23 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(
 % % The paper shows exponential decay of the energy for the clamped
 % % problem [secondary citations and abstract]. Exponential stability of
 % % the modified system is not established here; no threshold.
-% %
-% % Certified (PIETOOLS_stability_sop, 'P' form, lpisettings_sop('light'),
-% % MOSEK, 11/17/2026), epneg = 0: certified with the stock light
-% % settings and with the proposed light row of the settings proposal of
-% % 11/15/2026 (7,000 decision variables each).
-% %                                                                         % MMP, 11/17/2026
-% % No second output st: the light tier certifies this example              % MMP, 11/17/2026
-% % (record above). Its storage is the proposed light row since             % MMP, 11/17/2026
-% % 11/17/2026; its slack of 11/17/2026 (wcross 0, 2-D faces at offset      % MMP, 11/17/2026
-% % 1) was not rerun.                                                       % MMP, 11/17/2026
 % %---------------------------------------------------------------------% %
 %
 % MMP, 11/17/2026: Initial coding;
 % MMP, 11/17/2026: Header: the light tier certifies the example, so
 %                   no second output st (application-specific settings);
+% MMP, 11/19/2026: Output st, the example-specific settings, and the form
+%                   of its tests named in the workspace (stability_form,
+%                   Hinf_gain_form, H2_norm_form), from the search of
+%                   11/19/2026 (maintainer: no default settings);
+%                   the entry of 11/17/2026 (no second output st) no longer
+%                   holds;
+% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
+%                   not the problem;
+% MMP, 11/19/2026: the dated test records of the header removed: they
+%                   recorded tests and files the user does not have, not
+%                   the problem;
+% function [PDE_t] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi(GUI,params)  % MMP, 11/19/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -61,6 +65,7 @@ pvar s1
 
 %%% Executive Function:
 evalin('base','stability = 1;');
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
 
 L = 0.5;
 npars = length(params);
@@ -88,6 +93,12 @@ PDE_t = [diff(e1,'t')==diff(pp,s1);
          subs(pp,s1,L)==subs(q,s1,0);
          subs(e1,s1,L)==subs(e2,s1,0)];
 
+
+% Example-specific settings                                                 % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/19/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
 
 if GUI~=0
     disp('No GUI representation available for this system.')
