@@ -70,6 +70,8 @@ function Test_piesos_quadvar()
 % DJ (CC), 11/08/2026: Products of ODE states in the basis are now supported
 %                        (combine_factors): case_ode_state checks that the
 %                        polynomial is returned, instead of the error;
+% DJ (CC), 11/19/2026: case_operator_options: a top-level exclude applies
+%                        when opts.L specifies sep only (piesos_quadopvar);
 
 % NOTES
 % - piesos_sosvar wraps piesos_quadvar, so the comparison with it only
@@ -664,8 +666,8 @@ evalc('[out{:}] = piesos_quadvar(prog0,Z,[],opts);');
 end
 
 function case_operator_options()
-% The other options of the operators: opts.exclude etc. apply to both if opts.L
-% and opts.R are absent, or only specify degrees; opts.L, opts.R override
+% The other options of the operators: opts.exclude etc. apply to each operator
+% whose options opts.L, opts.R do not specify them; opts.L, opts.R override
 S = make_states();
 prog0 = piesos_program(S.all);
 rows = @(opts) deal_rows(prog0,S.x1,opts);
@@ -682,8 +684,12 @@ assert(isequal(rows(struct('L',struct('degs',dg,'exclude',ex),'R',struct('degs',
     'opts.L with an option, opts.R only degrees: the defaults for ZopR.');
 assert(isequal(rows(struct('L',struct('degs',dg,'exclude',ex),'R',struct('degs',dg,'exclude',[false;true;false]))),[4,3]),...
     'opts.L and opts.R.');
-assert(isequal(rows(struct('exclude',ex,'L',struct('degs',dg,'sep',true))),[3,3]),...
-    'opts.L with an option (sep: 3 rows) is used for both, and the top-level exclude is ignored.');
+%assert(isequal(rows(struct('exclude',ex,'L',struct('degs',dg,'sep',true))),[3,3]),...                    % DJ (CC), 11/19/2026 (was)
+%    'opts.L with an option (sep: 3 rows) is used for both, and the top-level exclude is ignored.');
+% opts.L (used for both) specifies sep but not exclude: the top-level exclude
+% applies as well (no multiplier, upper integral merged with the lower: 2 rows)
+assert(isequal(rows(struct('exclude',ex,'L',struct('degs',dg,'sep',true))),[2,2]),...                     % DJ (CC), 11/19/2026
+    'opts.L with sep (used for both), and the top-level exclude.');
 end
 
 function r = deal_rows(prog0,Z,opts)

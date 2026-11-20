@@ -33,7 +33,22 @@ function Test_piesos_tensor_gram()
 %    weights that are not squares, such as s and s(1-s), only with psatz
 %    multipliers, Pmat being positive semidefinite on the box
 %    (case_certification_pmat);
-%  - the guards of piesos_quadopvar for otype(1)=2.
+%  - the guards of piesos_quadopvar for otype(1)=2;
+%  - otype per block in monopmat (case_monopmat_otype): the block rows of a
+%    q x 1 otype equal those of separate calls with each type, and otype=3
+%    gives the rows of type 1 and 2 of a block acting on its input, one
+%    row for a single factor;
+%  - mixed otype (case_values_mixed_otype): a block row of each type for
+%    otype=3, with block counts (no second row for a single factor:
+%    [x; x o x] gives 3 x 3 blocks, x alone 1 x 1), and ZopL, ZopR of
+%    different type (general Pmat): V at random decision variable values
+%    against the direct evaluation over all copies, also on [0,2] and with
+%    psatz, where the otype-2 basis [x; x o x] was off by the domain length
+%    in the (x,x) term and failed with psatz before 11/19/2026
+%    (int_other_copies in piesos_quadvar); and certification
+%    (case_certification_mixed): (int x^2)^2 + 0.1 int x^4 is certified by
+%    piesos_ineq with otype=3 alone, negative functionals and
+%    int x^4 - (int x^2)^2 are not.
 % The programs of case_certification are solved by SeDuMi: for exact squares
 % (boundary of the PSD cone) it may report numerr=1, with pinf=dinf=0, so
 % only pinf, dinf are used.
@@ -65,6 +80,12 @@ function Test_piesos_tensor_gram()
 % DJ (CC), 11/10/2026: Initial coding;
 % DJ (CC), 11/10/2026: Add Pmat in the copies s_1, s_2 with psatz:
 %                        case_values_pmat, case_certification_pmat;
+% DJ (CC), 11/19/2026: Mixed otype: case_monopmat_otype,
+%                        case_values_mixed_otype,
+%                        case_certification_mixed; check_V_random with
+%                        optional ZopR and domain, integrating over all
+%                        copies; case_guards: ZopL, ZopR of different type
+%                        are accepted, an SOS Pmat then fails on degrees;
 
 % NOTES
 % - A scalar degs.in applies to the first factor of a monomial only: the
@@ -82,7 +103,8 @@ function Test_piesos_tensor_gram()
 tests = {@case_values_scalar, @case_values_pointwise, @case_values_N2, ...
          @case_values_two_states, @case_values_vector, @case_values_mixed, ...
          @case_values_pmat, @case_certification, @case_certification_pmat, ...
-         @case_guards};
+         @case_guards, @case_monopmat_otype, @case_values_mixed_otype, ...      % DJ (CC), 11/19/2026
+         @case_certification_mixed};                                        % DJ (CC), 11/19/2026
 nfail = 0;
 for i=1:numel(tests)
     tstart = tic;
@@ -360,7 +382,13 @@ d0 = struct('in',[0;0],'out',0);
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',[2,2],'psatz',true(2,1))),'psatz must be specified as numeric');
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',struct('in',[0;0],'out',[1 2]),'otype',[2,2])),'Degrees of the output variables');
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',struct('in',[0;0],'out',-1),'otype',[2,2])),'nonnegative integers');
-assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'L',struct('otype',[2,2]),'R',struct())),'both ZopL and ZopR');
+%assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'L',struct('otype',[2,2]),'R',struct())),'both ZopL and ZopR');   % DJ (CC), 11/19/2026 (was)
+% ZopL, ZopR of different type are accepted (mixed otype), but an SOS Pmat
+% needs the same basis on both sides: rows in two copies on the left, one
+% on the right
+assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'L',struct('otype',[2,2]),'R',struct())),'Degrees of the primary variables');    % DJ (CC), 11/19/2026
+assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',[2,2;2,2])),'q x 1 or q x 2 array');    % DJ (CC), 11/19/2026
+assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',4)),'or 3 for both');    % DJ (CC), 11/19/2026
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',[1,1])),'Pointwise product of the input');
 % otype(1)=1, and otype(1)=2 with psatz (numeric), with degs.out a scalar or a row
 % per copy, are accepted
@@ -370,6 +398,104 @@ piesos_sosvar(prog,Z2,struct('degs',d0,'otype',[2,2],'psatz',2));
 piesos_sosvar(prog,Z2,struct('degs',struct('in',[0;0],'out',[1;2]),'otype',[2,2]));
 piesos_sosvar(prog,Z2,struct('degs',struct('in',[0;0],'out',[1;2;3]),'otype',[2,2]));
 piesos_sosvar(prog,Z2,struct('degs',1,'otype',[2,2]));
+end
+
+function case_monopmat_otype()                                              % DJ (CC), 11/19/2026
+% otype per block in monopmat, for the blocks x (one factor) and x o x (two):
+% the block rows of a q x 1 otype are those of separate calls with a single
+% type, and otype=3 gives the rows of type 1 and 2 of a block, both acting on
+% its input (block column), one row for the single factor
+vars = struct('in',{{'s'}},'out',{{'s'}});
+dom = struct('in',[0,1],'out',[0,1]);
+depmat = struct('in',[1;2],'out',[true;true]);
+degs = struct('in',[1;1],'out',0);
+mono = @(otype) monopmat([1;1],vars,dom,depmat,degs,struct('otype',otype));
+Zop1 = mono(1);     Zop2 = mono(2);
+% a type per block
+Zop = mono([1;2]);
+assert(isequal(size(Zop.ops),[2,2]),'otype [1;2]: %s blocks, expected [2 2]',mat2str(size(Zop.ops)));
+assert(isequal(Zop.ops{1,1},Zop1.ops{1,1}) && isequal(Zop.ops{2,2},Zop2.ops{2,2}),'otype [1;2]: blocks differ from those of a single type');
+% both types: rows (x, type 1), (x o x, type 1), (x o x, type 2)
+for otype = {3,[1;3],[3;3]}
+    Zop = mono(otype{1});
+    label = sprintf('otype %s',mat2str(otype{1}));
+    assert(isequal(~cellfun(@isempty,Zop.ops),logical([1 0;0 1;0 1])),'%s: block pattern %s',label,mat2str(~cellfun(@isempty,Zop.ops)));
+    assert(isequal(full(Zop.depmat.out(:)),[1;1;2]),'%s: copies per block row %s, expected [1;1;2]',label,mat2str(full(Zop.depmat.out(:))));
+    assert(isequal(Zop.ops{2,2},Zop1.ops{2,2}) && isequal(Zop.ops{3,2},Zop2.ops{2,2}),'%s: blocks differ from those of a single type',label);
+end
+% otype 3 for the single factor only: no second row
+Zop = mono([3;2]);
+assert(isequal(size(Zop.ops),[2,2]),'otype [3;2]: %s blocks, expected [2 2]',mat2str(size(Zop.ops)));
+assert(isequal(Zop.ops{2,2},Zop2.ops{2,2}),'otype [3;2]: block 2 differs from that of type 2');
+end
+
+function case_values_mixed_otype()                                          % DJ (CC), 11/19/2026
+% Mixed otype: a pointwise and a tensor-product block row for otype=3, the
+% pointwise rows in copy s_1 only. Block counts: a second (otype-2) row only
+% for the monomials with several copies. V at random decision variable
+% values against the direct evaluation of <ZopL*z,Pmat*ZopR*z>, integrated
+% over all copies
+pvar s
+mixed = 3;
+x = polyopvar('x',s,[0,1]);
+X = struct('x',1+2*s-s^2);
+% Z, degs.in, degs.out, exclude, psatz, expected blocks of Pmat
+specs = {dmonomials(x,2),[0;0],1,[],0,[2,2]; dmonomials(x,2),[0;0],1,[],1,[2,2]; ...
+         dmonomials(x,[1;2]),[0;0],1,[],0,[3,3]; dmonomials(x,1),0,1,[],0,[1,1]; ...
+         dmonomials(x,[1;2]),[1;1],1,[1;0;0],0,[3,3]};
+for c=1:size(specs,1)
+    opts = struct('degs',struct('in',specs{c,2},'out',specs{c,3}),'otype',mixed);
+    if ~isempty(specs{c,4}),    opts.exclude = specs{c,4};  end
+    if specs{c,5}>0,            opts.psatz = specs{c,5};    end
+    label = sprintf('mixed otype, case %d',c);
+    [~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x),specs{c,1},opts);
+    assert(isequal(size(Pmat),specs{c,6}),'%s: Pmat has %s blocks, expected %s',label,mat2str(size(Pmat)),mat2str(specs{c,6}));
+    check_V_random(V,Pmat,Zop,specs{c,1},X,label,20+c);
+end
+% two states, degrees 1 and 2: 2 + 3 pointwise rows, 3 tensor-product rows
+xs = polyopvar({'x1','x2'},[1;1],{'s'},[0,1],true(2,1));
+Xs = struct('x1',1+2*s-s^2,'x2',s+3*s^3);
+Zs12 = dmonomials(xs,[1 0;0 1;2 0;1 1;0 2]);
+[~,V,Pmat,Zop] = piesos_sosvar(piesos_program(xs),Zs12,struct('degs',struct('in',[0;0],'out',0),'otype',mixed));
+assert(isequal(size(Pmat),[8,8]),'two states: Pmat has %s blocks, expected [8 8]',mat2str(size(Pmat)));
+check_V_random(V,Pmat,Zop,Zs12,Xs,'mixed otype, two states',30);
+% the domain [0,2] (V over both copies), mixed and otype [2,2], with psatz:
+% the (x,x) term of [x; x o x] depends on copy 1 only
+x2 = polyopvar('x',s,[0,2]);
+Zm2 = dmonomials(x2,[1;2]);
+for ot = {mixed,[2,2]}
+    for ps = [0,1]
+        opts = struct('degs',struct('in',[0;0],'out',1),'otype',ot{1});
+        if ps>0,    opts.psatz = ps;    end
+        label = sprintf('[x; x o x] on [0,2], otype %s, psatz %d',mat2str(ot{1}),ps);
+        [~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x2),Zm2,opts);
+        check_V_random(V,Pmat,Zop,Zm2,X,label,40+ps,Zop,[0,2]);
+    end
+end
+% ZopL and ZopR of different type (general Pmat, piesos_quadvar)
+for LR = {{[1,2],[2,2],dmonomials(x,2)},{mixed,[2,2],dmonomials(x,[1;2])}}
+    opts = struct('degs',struct('in',[0;0],'out',1),'L',struct('otype',LR{1}{1}),'R',struct('otype',LR{1}{2}));
+    [~,V,Pmat,ZopL,ZopR] = piesos_quadvar(piesos_program(x),LR{1}{3},[],opts);
+    check_V_random(V,Pmat,ZopL,LR{1}{3},X,sprintf('ZopL otype %s, ZopR otype %s',mat2str(LR{1}{1}),mat2str(LR{1}{2})),50,ZopR);
+end
+end
+
+function case_certification_mixed()                                         % DJ (CC), 11/19/2026
+% One Gram matrix of mixed otype in piesos_ineq contains both cones:
+% (int x^2)^2 + 0.1 int x^4 is certified without a separate gt (not with
+% otype 1 alone); negative functionals, and int x^4 - (int x^2)^2 >= 0
+% (Cauchy-Schwarz), are not
+pvar s
+x = polyopvar('x',s,[0,1]);
+q = innerprod(x,x);     x2 = x.*x;      x4 = innerprod(x2,x2);
+d0 = struct('in',[0;0],'out',0);
+% f, otype, expected feasibility
+specs = {q*q+0.1*x4,1,false; q*q+0.1*x4,3,true; ...
+         -1*(q*q)+0.1*x4,3,false; x4-q*q,3,false; q*q-x4,3,false};
+for c=1:size(specs,1)
+    ok = is_feasible(piesos_ineq(piesos_program(x),specs{c,1},struct('otype',specs{c,2},'degs',d0)));
+    assert(ok==specs{c,3},'mixed certification case %d (otype %s): feasible=%d, expected %d',c,mat2str(specs{c,2}),ok,specs{c,3});
+end
 end
 
 
@@ -436,12 +562,16 @@ assert(norm(A*v-rhs)<1e-9,'the target Gram matrix is not in the span of the deci
 d0map = containers.Map(names,num2cell(v));
 end
 
-function check_V_random(V,Pmat,Zop,Z,X,label,seed)
+function check_V_random(V,Pmat,Zop,Z,X,label,seed,ZopR,dom)                 % DJ (CC), 11/19/2026
 % V at the states X (struct: state name -> polynomial) and random values of the
-% decision variables of Pmat, against the direct evaluation of <Zop*z,Pmat*Zop*z>:
+% decision variables of Pmat, against the direct evaluation of <Zop*z,Pmat*ZopR*z>:
 % z the monomials of Z, Zop applied by apply_op, Pmat evaluated at the decision
-% variables, and the integral over all variables of the product (the copies
-% si_j, on [0,1]) by polynomial integration
+% variables, and the integral over all copies si_j of the output variables (on
+% DOM, default [0,1]; the output si of a pointwise block row being copy si_1),
+% also those on which the product does not depend, by polynomial integration.
+% ZopR defaults to Zop
+if nargin<8 || isempty(ZopR),   ZopR = Zop;     end                         % DJ (CC), 11/19/2026
+if nargin<9,    dom = [0,1];    end                                         % DJ (CC), 11/19/2026
 rng(seed);
 names = cell(0,1);
 for k=1:numel(Pmat)
@@ -463,6 +593,7 @@ for k=1:numel(xv),  xv{k} = X.(Vn.varname{k});     end
 val = double(eval_polyopvar(Vn,xv));
 % direct evaluation
 Y = apply_side(Zop,Z,X);
+YR = apply_side(ZopR,Z,X);                                                  % DJ (CC), 11/19/2026
 [q1,q2] = size(Pmat);
 rows = cell(q1,1);
 for i=1:q1
@@ -472,12 +603,28 @@ for i=1:q1
     end
     rows{i} = horzcat(blks{:});
 end
-F = Y.'*vertcat(rows{:})*Y;
-vn = F.varname;
-for k=1:numel(vn)
-    sk = polynomial(vn(k));
-    F = int(F,sk(1),0,1);
+%F = Y.'*vertcat(rows{:})*Y;                                                % DJ (CC), 11/19/2026 (was)
+%vn = F.varname;                                                            % DJ (CC), 11/19/2026 (was)
+%for k=1:numel(vn)                                                          % DJ (CC), 11/19/2026 (was)
+%    sk = polynomial(vn(k));                                                % DJ (CC), 11/19/2026 (was)
+%    F = int(F,sk(1),0,1);                                                  % DJ (CC), 11/19/2026 (was)
+%end                                                                        % DJ (CC), 11/19/2026 (was)
+F = Y.'*vertcat(rows{:})*YR;                                                % DJ (CC), 11/19/2026
+% DJ (CC), 11/19/2026: start. All copies, also those absent from F (a factor
+% of the domain length): the number of copies of each output variable is the
+% maximum over the block rows of Zop, ZopR
+vars = Zop.vars.out;
+ncop = max([Zop.depmat.out;ZopR.depmat.out],[],1);
+for i=1:numel(vars)
+    if ismember(vars{i},F.varname)
+        F = subs(F,polynomial(vars(i)),polynomial({[vars{i},'_1']}));
+    end
+    for j=1:ncop(i)
+        F = int(F,polynomial({sprintf('%s_%d',vars{i},j)}),dom(1),dom(2));
+    end
 end
+assert(isempty(F.varname),'%s: the direct evaluation depends on %s',label,strjoin(F.varname,','));
+% DJ (CC), 11/19/2026: end.
 orc = double(F);
 assert(abs(orc)>1e-6,'%s: the value %g is too small to test.',label,orc);
 assert(abs(val-orc)<=1e-8*abs(orc),'%s: V=%.10g, direct evaluation=%.10g (relative error %.2e)',label,val,orc,abs(val-orc)/abs(orc));
