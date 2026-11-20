@@ -17,20 +17,22 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % (its 1-D entry; or max_raise) times.
 %
 % INPUT
-% - PIE:      'pie_struct' object of a 1-D PIE, with T and A 'opvar' objects,
-%             or 'copvar' objects (a 1-D container PIE, EXEC_PIE_SOP); its
-%             other operators are not used; K empty (a constraint K x = 0
-%             on the state, e.g. periodic BCs, is an error); a PIE in two
-%             or more variables is an error;
-% - settings: (optional) 'struct' of LPI settings, as returned by
-%             lpisettings_sop:
-%               dd1, dd12, options1, options12, override1   degrees of P, R;
-%               eppos, eppos2   margins of P;
-%               epneg   minus omega;
+% - PIE:      'pie_struct' object of a PIE in one spatial variable,
+%             initialized when its T is not yet a 'copvar' object; T and A
+%             'copvar' objects; its other operators are not used; K empty
+%             (a constraint K x = 0 on the state, e.g. periodic BCs, is an
+%             error); a PIE in two or more variables is an error;
+% - settings: (optional) 'struct' of LPI settings:
+%               lpi.pos   the storage row of P and R;
+%               eppos     the margin of P and of the surjectivity condition
+%                         (eppos2, when set, the margin on L2);
+%               epneg     minus omega;
 %               sos_opts  solver options;
-%               sop     container options (EXEC_SOP_SETTINGS), among them
-%                       dw_feas, max_raise_feas and eppos_stab.
-%             Default lpisettings_sop('heavy') with sos_opts.simplify 1,
+%               sop       the options of the executives, among them dw_feas
+%                         (the degree raise of the slacks; else dw_P),
+%                         max_raise_feas and eppos_stab (the margin of P,
+%                         in place of eppos and eppos2).
+%             Default: the 'heavy' tier with sos_opts.simplify 1,
 %             eppos = eppos2 = 1e-2, epneg 0.
 %
 % OUTPUT
@@ -51,7 +53,11 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %                          discretization of (A,T), else NaN;
 %               witness    'struct' of that discretization ([] if none);
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
-%                          as returned by EXEC_INFO_SOP.
+%                          the last raise and the loop history, the slack
+%                          mode, the degrees and terms of the slack of the
+%                          dissipativity constraint, the size of the SDP,
+%                          and the dual kernel of that constraint with its
+%                          1-norm.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -80,97 +86,49 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: settings.sop.dw_feas (its 1-D entry), max_raise_feas and
-%                eppos_stab replace dw_P, max_raise and eppos when set (the
-%                1-D feasibility LPIs certify at dw 0 with fewer variables);
-%                unset, nothing changes. Header to the header protocol, step
-%                comments in the body; code unchanged.
-% MMP, 10/29/2026: max_raise_feas read at its 1-D entry (one entry per
-%                dimension, as dw_feas). The PIE goes through EXEC_PIE_SOP (a
-%                1-D container PIE accepted), and every PIE in two or more
-%                variables is rejected, not only a 2-D one. Each slack takes
-%                opts.cap = capfor(target) of EXEC_TOOLS_SOP (the
-%                per-direction bounds of settings.sop.cap_delta; empty by
-%                default, every program unchanged), and st.sop takes tl.sop,
-%                each per-dimension vector of the settings tiers reduced to
-%                its 1-D entry.
-% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
-%                returns 'copvar' objects), and P, R are returned as 'copvar'
-%                objects, not converted to opvar (maintainer: the executives
-%                return containers). Programs unchanged.
-% MMP, 11/07/2026: A PIE with a constraint K x = 0 on the state (PIE.K, set
-%                by convert_PIETOOLS_PDE for rank-deficient boundary
-%                conditions, e.g. periodic, with auxiliary states) is an
-%                error: the row of each auxiliary state is F times the PDE
-%                row, so on ker K the range of T - A is a proper subspace of
-%                the output space of T, and the surjectivity condition
-%                (T - A)*R*(T - A)' - eppos I >= 0 is infeasible with or
-%                without K imposed (x_t = x_ss + lam*x, periodic or Neumann
-%                BCs, well posed: infeasible). Help: status 'residual'
-%                (LPI_CLASSIFY_SOP, a cuADMM exit since 11/04/2026).
-% MMP, 11/08/2026: Default settings lpisettings_sop('heavy') (was the stock
-%                lpisettings('heavy'), retired with its folder): the same 1-D
-%                storage degrees, with the container options of that tier
-%                (maintainer, 11/08/2026).
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
-%                default named after lpisettings_sop; code unchanged.
-% MMP, 11/12/2026: The program takes the settings of the run (the last
-%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
-%                defaults from them instead of the light tier (maintainer,
-%                11/12/2026: "Settings on the program"). Programs unchanged:
-%                every tier sets lpi.ineq.dD = 1, and with dw and like
-%                given wmin does not apply.
 
-% Default settings, as the stock executive; check the PIE
+% Default settings; complete the options of the executives; check the PIE
 if nargin<2 || isempty(settings)
-%   settings = lpisettings('heavy');                                        % MMP, 11/08/2026 (was)
-    settings = lpisettings_sop('heavy');                                    % MMP, 11/08/2026
+    settings = lpisettings_sop('heavy');
     settings.sos_opts.simplify = 1;
     settings.eppos = 1e-2;  settings.eppos2 = 1e-2;   settings.epneg = 0;
 end
 label = 'well_posedness_sop';
 st = exec_sop_settings(settings);
 if ~isa(PIE,'pie_struct'),  error('PIETOOLS_well_posedness_sop:pie','The PIE should be a ''pie_struct''.');  end
-% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
-% if PIE.dim==2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of 2D PDEs is currently not supported.');   end % MMP, 10/29/2026 (was)
-PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
-if PIE.dim>=2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of PDEs in two or more variables is currently not supported.');   end % MMP, 10/29/2026
-% With a constraint K x = 0 (auxiliary states) the range of T - A is a      % MMP, 11/07/2026
-% proper subspace: the surjectivity condition below cannot hold             % MMP, 11/07/2026
-if isa(PIE.K,'copvar') && size(PIE.K,1)>0                                   % MMP, 11/07/2026
-    error('PIETOOLS_well_posedness_sop:K','PIEs with an algebraic constraint K are not supported.');  % MMP, 11/07/2026
-end                                                                         % MMP, 11/07/2026
+PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+if PIE.dim>=2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of PDEs in two or more variables is currently not supported.');   end
+% With a constraint K x = 0 (auxiliary states) the range of T - A is a
+% proper subspace: the surjectivity condition below cannot hold
+if isa(PIE.K,'copvar') && size(PIE.K,1)>0
+    error('PIETOOLS_well_posedness_sop:K','PIEs with an algebraic constraint K are not supported.');
+end
 
-% Tools of the PIE's dimension (storage, stock slack, margins); omega, and
-% the degree raise and raise count of a feasibility LPI
+% Tools of the dimension of the PIE (storage, 'stock' slack, margins);
+% omega, and the degree raise and raise count of a feasibility LPI
 tl = exec_tools_sop(PIE,st);
-st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
+st.sop = tl.sop;    % the options of this dimension
 eppos = tl.eppos;   omega = -tl.epneg;
-if ~isempty(st.sop.eppos_stab),     eppos(:) = st.sop.eppos_stab;   end     % MMP, 10/28/2026
-dwbase = st.sop.dw_P;                                                       % MMP, 10/28/2026
-if ~isempty(st.sop.dw_feas),    dwbase = st.sop.dw_feas(1);     end         % MMP, 10/28/2026
-if ~isempty(st.sop.max_raise_feas)                                          % MMP, 10/28/2026
-%   st.sop.max_raise = st.sop.max_raise_feas;                               % MMP, 10/29/2026 (was)
-    st.sop.max_raise = st.sop.max_raise_feas(1);    % the 1-D entry         % MMP, 10/29/2026
-end                                                                         % MMP, 10/28/2026
+if ~isempty(st.sop.eppos_stab),     eppos(:) = st.sop.eppos_stab;   end
+dwbase = st.sop.dw_P;
+if ~isempty(st.sop.dw_feas),    dwbase = st.sop.dw_feas(1);     end
+if ~isempty(st.sop.max_raise_feas)
+    st.sop.max_raise = st.sop.max_raise_feas(1);    % the 1-D entry
+end
 
-% The PIE operators as containers
-% EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
-% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
-Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
+% The PIE operators, 'copvar' objects
+Tm = PIE.T;     Am = PIE.A;
 
 % Build and solve, raising the slack degrees while the solver returns
 % UNKNOWN or INFEASIBLE
 [prog,aux] = lpi_solve_loop_sop(@assemble,st,label);
 cl = aux.classify;
 
-% The solved P and R, as 'copvar' objects                                   % MMP, 11/04/2026
+% The solved P and R, as 'copvar' objects
 P = [];     R = [];
 try
-%   P = tl.toop(getsol_lpivar_sop(prog,aux.Pm));                            % MMP, 11/04/2026 (was)
-%   R = tl.toop(getsol_lpivar_sop(prog,aux.Rm));                            % MMP, 11/04/2026 (was)
-    P = getsol_lpivar_sop(prog,aux.Pm);                                     % MMP, 11/04/2026
-    R = getsol_lpivar_sop(prog,aux.Rm);                                     % MMP, 11/04/2026
+    P = getsol_lpivar_sop(prog,aux.Pm);
+    R = getsol_lpivar_sop(prog,aux.Rm);
 catch ME
     if st.sop.verbose,  fprintf('  [%s] solution extraction: %s\n',label,ME.message);  end
 end
@@ -199,11 +157,10 @@ end
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj ([]: a feasibility LPI), Pm,
         %               Rm ('cdopvar' P and R), Dm1, Dm2 (the two
-        %               constrained operators), li (slack info of
-        %               LPI_INEQ_SOP for Dm1, with degrees2 those for Dm2).
+        %               constrained operators), li (the info of the slack of
+        %               Dm1, with degrees2 the degrees of the slack of Dm2).
         % New program; record the equality rows when the dual is kept
-%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);
         if st.sop.keepdual,     prog.sopeq = {};    end
         % P >= eppos I on the output space of T, R >= I on its input space
         [prog,Pm] = tl.storage(prog,Tm,'out');
@@ -216,7 +173,7 @@ end
         if omega~=0,    Dm1 = Dm1 - 2*omega*(Tm'*Pm*Tm);    end
         TA = Tm - Am;
         Dm2 = TA*Rm*TA' - I1;
-        % The stock slacks and equalities, or the slacks sized from P and R
+        % The 'stock' slacks and equalities, or the slacks sized from P and R
         if strcmp(st.sop.slack,'stock')
             [prog,N1] = tl.slack(prog,Dm1);
             [prog,tag] = lpi_eq_sop(prog,Dm1+N1,'symmetric');
@@ -224,13 +181,10 @@ end
             prog = lpi_eq_sop(prog,Dm2-N2,'symmetric');
             li = struct('tag',tag,'degrees',[],'terms',[]);
         else
-%           o1 = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/28/2026 (was)
-%           o1 = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin);   % MMP, 10/29/2026 (was)
-            o1 = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm1)); % MMP, 10/29/2026
+            % The slack of Dm1 sized from P, that of Dm2 from R
+            o1 = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm1));
             [prog,~,li] = lpi_ineq_sop(prog,-Dm1,o1);
-%           o2 = struct('like',Rm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/28/2026 (was)
-%           o2 = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin);   % MMP, 10/29/2026 (was)
-            o2 = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm2)); % MMP, 10/29/2026
+            o2 = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm2));
             [prog,~,li2] = lpi_ineq_sop(prog,Dm2,o2);
             li.degrees2 = li2.degrees;
         end

@@ -1,9 +1,8 @@
 function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PROG_SOL,VARARGOUT] = LPISCRIPT_SOP(PIE,LPI,OPTS) solves the predefined
-% LPI named LPI for the system PIE with the container executives
-% (executives_sopvar), and returns the solved program and the outputs of
-% the executive. It is LPISCRIPT on the container path:
+% LPI named LPI for the system PIE and returns the solved program and the
+% outputs of the executive that poses it:
 %   LPI                 executive, form
 %   'stability'         PIETOOLS_stability_sop, 'Q'
 %   'stability-dual'    PIETOOLS_stability_sop, 'Qd'
@@ -16,7 +15,6 @@ function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 %   'hinf-controller'   PIETOOLS_Hinf_control_sop
 %   'h2-observer'       PIETOOLS_H2_estimator_sop
 %   'h2-controller'     PIETOOLS_H2_control_sop
-% the executive and form of each stock executive that LPISCRIPT calls.
 %
 % INPUT
 % - PIE:   'pie_struct' object of a 1-D or 2-D PIE; or a 'pde_struct'
@@ -25,21 +23,19 @@ function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 % - lpi:   'char' or 'string', one of the names above; or a function handle
 %          f, called as [prog_sol, vout] = f(PIE,OPTS), with vout a 'cell'
 %          of further outputs;
-% - opts:  'struct' of LPI settings (lpisettings_sop); or a 'char' or
-%          'string' naming a tier: 'stripped', 'light', 'heavy',
-%          'veryheavy', 'custom' or 'extreme'; or [] for
-%          lpisettings_sop('light').
+% - opts:  'struct' of LPI settings; or a 'char' or 'string' naming a tier:
+%          'stripped', 'light', 'heavy', 'veryheavy', 'custom' or
+%          'extreme'; or [] for the 'light' tier.
 %
 % OUTPUT
 % - prog_sol:   'struct', the solved LPI program;
 % - varargout:  the outputs of the executive after the program, in its
-%               order: those LPISCRIPT returns (P for 'stability'; P, R,
-%               omega for 'well-posedness'; R, gam for 'l2gain', R the
-%               solved positive operator; W, gam, R, Q for 'h2norm'; L or
-%               K, gam, P, Z for the H-infinity observer and controller; L
-%               or K, gam, P, Z, W for the H2 observer and controller),
-%               then the 'struct' info; for a function handle, the entries
-%               of vout.
+%               order: P for 'stability'; P, R, omega for
+%               'well-posedness'; R, gam for 'l2gain', R the solved
+%               positive operator; W, gam, R, Q for 'h2norm'; L or K, gam,
+%               P, Z for the H-infinity observer and controller; L or K,
+%               gam, P, Z, W for the H2 observer and controller; then the
+%               'struct' info; for a function handle, the entries of vout.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -67,23 +63,9 @@ function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/28/2026: the container counterpart of LPISCRIPT
-%                (DJ, 11/01/2024), which had none (maintainer: create
-%                one); the same names, inputs and error messages, the
-%                executives and forms of PIETOOLS_auto_execute_sop.
-%                'custom', which LPISCRIPT accepts but has no case for
-%                (it then indexes the char), is rejected; an unknown
-%                settings name raises an error listing the accepted ones
-%                (LPISCRIPT passes it to lpisettings, whose list lacks the
-%                container tiers).
-% MMP, 11/08/2026: 'extreme' goes to the new tier of lpisettings_sop (was
-%                the stock lpisettings, whose folder leaves the path), so
-%                every settings name is a container tier.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): help of OPTS to
-%                the settings change above; (was) comment lines removed;
-%                code unchanged.
+% Initial coding MMP, 10/28/2026
 
-% Three inputs, as LPISCRIPT
+% Three inputs
 if nargin<3
     error('Insufficient number of arguments. Correct syntax: lpiscript_sop(PIE,lpi,settings)');
 end
@@ -103,17 +85,13 @@ if ~isa(lpi,'function_handle')
     end
 end
 
-% The settings: a struct as given, a tier by name (lpisettings_sop,
-% 'extreme' included), or the light tier                                    % MMP, 11/08/2026
+% The settings: a struct as given, a tier by name, or the light tier
 if isempty(opts)
     opts = lpisettings_sop('light');
 elseif isa(opts,'string') || isa(opts,'char')
     opts = char(opts);
-%   if ismember(opts,{'stripped','light','heavy','veryheavy','custom'})     % MMP, 11/08/2026 (was)
-    if ismember(opts,{'extreme','stripped','light','heavy','veryheavy','custom'}) % MMP, 11/08/2026
+    if ismember(opts,{'extreme','stripped','light','heavy','veryheavy','custom'})
         opts = lpisettings_sop(opts);
-%   elseif strcmp(opts,'extreme')                                           % MMP, 11/08/2026 (was)
-%       opts = lpisettings(opts);                                           % MMP, 11/08/2026 (was)
     else
         error("Settings should be one of 'stripped', 'light', 'heavy', 'veryheavy', 'custom' or 'extreme'.")
     end
@@ -131,7 +109,7 @@ elseif ~isa(PIE,'pie_struct')
 end
 
 % The executive and form of the LPI; the outputs after the program are
-% passed on in the executive's order
+% passed on in the order of the executive
 if isa(lpi,'function_handle')
     [prog_sol, vout] = lpi(PIE,opts);
     varargout = reshape(vout,1,[]);
@@ -150,6 +128,7 @@ switch lpi
     case 'h2-observer',     f = @() PIETOOLS_H2_estimator_sop(PIE,opts);            nout = 7;
     case 'h2-controller',   f = @() PIETOOLS_H2_control_sop(PIE,opts);              nout = 7;
 end
+% Run the executive; the program first, then its other outputs
 out = cell(1,nout);
 [out{:}] = f();
 prog_sol = out{1};

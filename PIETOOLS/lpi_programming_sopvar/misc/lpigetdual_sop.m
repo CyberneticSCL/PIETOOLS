@@ -12,9 +12,9 @@ function [Y,info] = lpigetdual_sop(prog,tag)
 %
 % INPUT
 % - prog:   'struct', an LPI program, solved, with the fields
-%             sopeq    cell, one row record per container equality that
-%                      LPI_EQ_CDOPVAR wrote on a program carrying this
-%                      field; record TAG a 'struct' with fields rows (1 x 2
+%             sopeq    cell, one row record per container equality
+%                      written on a program carrying this field; record
+%                      TAG a 'struct' with fields rows (1 x 2
 %                      double, the first and last row of the equality),
 %                      entries (struct array, one entry per block with
 %                      rows, in row order, with fields i, j (double, the
@@ -27,8 +27,7 @@ function [Y,info] = lpigetdual_sop(prog,tag)
 %             solinfo  'struct' with the field y, double, the dual
 %                      multipliers of the rows of the program, in the order
 %                      the rows were written;
-% - tag:    'double', the index of the record in prog.sopeq (the second
-%           output of LPI_EQ_SOP).
+% - tag:    'double', the index of the record in prog.sopeq.
 %
 % OUTPUT
 % - Y:      'copvar' object with M x N blocks: for each record entry, block
@@ -83,15 +82,6 @@ function [Y,info] = lpigetdual_sop(prog,tag)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol, the licence block, step
-%                comments in the body; code unchanged. Deleted: a memo
-%                reference, the invariance of the dual under the b
-%                normalization, the requirement sos_opts.simplify = 0
-%                (sossolve returns y in the rows of the unsimplified
-%                program), a pointer to a caller, and a wrong claim on the
-%                blocks 'symmetric' writes (INFO.symmetric states it).
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
-%                code unchanged.
 
 % The record TAG and the multipliers must exist
 if ~isfield(prog,'sopeq') || tag<1 || tag>numel(prog.sopeq)

@@ -1,9 +1,10 @@
 function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [OPTS,REPORT] = EQ_OPTS_SOPVAR(DOP,OPTS,ZTOL) sets the options sep and
-% include of POSSOPVAR for a positive operator Deop declared to satisfy
-% DOP + Deop = 0, from the support of DOP. With n3 the number of variables
-% common to the input and output of DOP, gamma over its 3^n3 parameter
+% [OPTS,REPORT] = EQ_OPTS_SOPVAR(DOP,OPTS,ZTOL) sets the options sep (the
+% separable directions) and include (the kept basis operators) of a
+% positive operator Deop declared to satisfy DOP + Deop = 0, from the
+% support of DOP. With n3 the number of variables common to the input and
+% output of DOP, gamma over its 3^n3 parameter
 % cells (gamma_k = 1 multiplier, 2 lower integral, 3 upper integral), and
 % a cell nonzero when an entry of its coefficients (for an 'sdopvar', of A
 % or of a row of B) exceeds ZTOL in magnitude:
@@ -23,8 +24,9 @@ function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 %
 % INPUT
 % - Dop:     'sopvar' or 'sdopvar' object with 3^n3 parameter cells;
-% - opts:    (optional) 'struct' of POSSOPVAR options (default struct());
-%            read are sep ('logical', scalar or 1 x n3) and include (a
+% - opts:    (optional) 'struct' of options of the positive operator
+%            (default struct()); read are sep ('logical', scalar or 1 x n3)
+%            and include (a
 %            'double' array of rows alpha with n3 columns; an include of
 %            another form is replaced);
 % - ztol:    (optional) 'double', the largest magnitude counted as zero
@@ -69,36 +71,7 @@ function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/21/2026: at two spatial variables the Gram of the
-%                  negativity operator is most of the program, and a basis
-%                  operator whose diagonal reaches no nonzero cell of the
-%                  target adds decision variables and identically zero
-%                  equality rows only; this reads the support and drops them.
-% MMP, 09/30/2026: The cell <-> gamma map (Sec. 1 and 4 of
-%                  sopvar_implementation_notes.pdf; direction 1 fastest) and
-%                  the multi-index enumerations call the shared
-%                  'gamma_of_cell', 'cell_of_gamma' and 'multiindex_grid'
-%                  (sopvar/misc/conventions); the locals gamma_of and lin_of
-%                  and the kron loops of reach and enum_alpha are gone. The
-%                  'include' rows emitted here are read by 'copquadvar' and
-%                  'sopquadvar', so all three enumerate alike. Same output as
-%                  before; at n3 = 0 reach and enum_alpha return cell 1 and
-%                  the empty multi-index where they errored.
-% MMP, 10/28/2026: Header to the header protocol, the name line of the
-%                  licence block, step comments in the body and headers of
-%                  the local functions; code unchanged. Deleted: the
-%                  argument that a dropped block contributes nothing, how
-%                  the reach sets were found and a comparison with
-%                  'get_eq_opts_2D'.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed,
-%                  references to the retired get_eq_opts_2D removed, what
-%                  lines for four local functions; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                  very short and called once go into the body): NUMCELLS at
-%                  the cell count, CELLDIFF in the separability test (the
-%                  difference computed before the if), ENUM_ALPHA at the
-%                  candidate blocks, each with its header as the comment of
-%                  the block; their 09/30/2026 lines keep their markers.
+% Initial coding MMP, 09/21/2026
 
 % Defaults: OPTS struct(), ZTOL 1e-12; DOP an 'sopvar' or 'sdopvar'
 if nargin<2 || isempty(opts)
@@ -118,10 +91,9 @@ report = struct('lines',{{}},'nkept',0,'ndropped',0,'support',[]);
 % as zero only when neither the constant part nor any row of the decision
 % part has an entry above the tolerance, i.e. when the coefficient vanishes
 % for EVERY value of the decision variables.
-% n3 from the cell count 3^n3; then the support, cell by cell
-% ncell = numcells(Dop);                                                    % MMP, 11/09/2026 (was)
-% The number of parameter cells of Dop (the former local NUMCELLS)          % MMP, 11/09/2026
-if isa(Dop,'sdopvar'), ncell = numel(Dop.params.A); else, ncell = numel(Dop.params); end % MMP, 11/09/2026
+% The number of parameter cells of Dop, n3 from the cell count 3^n3; then
+% the support, cell by cell
+if isa(Dop,'sdopvar'), ncell = numel(Dop.params.A); else, ncell = numel(Dop.params); end
 n3 = round(log(ncell)/log(3));
 if 3^n3 ~= ncell
     error("The parameter cell count %d is not a power of 3.",ncell)
@@ -152,23 +124,20 @@ for kdir = 1:n3
     if sepv(kdir), continue, end
     ok = true;
     for k = 1:ncell
-%       g = gamma_of(k,n3);                                                 % MMP, 09/30/2026 (was)
-        g = gamma_of_cell(k,n3);                                            % MMP, 09/30/2026
+        g = gamma_of_cell(k,n3);
         if g(kdir)~=2, continue, end
         g3 = g;  g3(kdir) = 3;
-%       if celldiff(Dop,k,lin_of(g3,n3)) > ztol                             % MMP, 09/30/2026 (was)
-%       if celldiff(Dop,k,cell_of_gamma(g3)) > ztol                         % MMP, 11/09/2026 (was); MMP, 09/30/2026
-        % The largest magnitude of the difference between cell k and the    % MMP, 11/09/2026
-        % cell of g3 (the former local CELLDIFF): cells of an 'sopvar' share % MMP, 11/09/2026
-        % one ZL/ZR, so they are directly comparable; for an 'sdopvar' the  % MMP, 11/09/2026
-        % larger of the A and B differences                                 % MMP, 11/09/2026
-        k2 = cell_of_gamma(g3);                                             % MMP, 11/09/2026
-        if isa(Dop,'sdopvar')                                               % MMP, 11/09/2026
-            dk = max(absmax(getA(Dop,k)-getA(Dop,k2)), absmax(getB(Dop,k)-getB(Dop,k2))); % MMP, 11/09/2026
-        else                                                                % MMP, 11/09/2026
-            dk = absmax(getP(Dop,k)-getP(Dop,k2));                          % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
-        if dk > ztol                                                        % MMP, 11/09/2026
+        % The largest magnitude of the difference between cell k and the
+        % cell of g3: cells of an 'sopvar' share one ZL/ZR, so they are
+        % directly comparable; for an 'sdopvar' the larger of the A and B
+        % differences
+        k2 = cell_of_gamma(g3);
+        if isa(Dop,'sdopvar')
+            dk = max(absmax(getA(Dop,k)-getA(Dop,k2)), absmax(getB(Dop,k)-getB(Dop,k2)));
+        else
+            dk = absmax(getP(Dop,k)-getP(Dop,k2));
+        end
+        if dk > ztol
             ok = false;  break
         end
     end
@@ -181,20 +150,13 @@ for kdir = 1:n3
 end
 
 % % % Candidate blocks, and the cells each diagonal can reach.
-% alpha_all = enum_alpha(n3,sepv);                                          % MMP, 11/09/2026 (was)
-% The admissible multi-indices alpha_all (the former local ENUM_ALPHA):     % MMP, 11/09/2026
-% {1,2,3} in an ordinary direction and {1,4} in a separable one, direction  % MMP, 11/09/2026
-% 1 varying fastest, matching 'possopvar'                                   % MMP, 11/09/2026
-vals = cell(1,n3);                                                          % MMP, 11/09/2026
-for k = 1:n3                                                                % MMP, 11/09/2026
-    if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end               % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
-% A = vals{1}(:);                                                           % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-% for k = 2:n3                                                              % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-%     A = [kron(ones(numel(vals{k}),1),A), ...
-%          kron(vals{k}(:),ones(size(A,1),1))];                             % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-alpha_all = multiindex_grid(vals);                                          % MMP, 11/09/2026; MMP, 09/30/2026
+% The admissible multi-indices alpha_all: {1,2,3} in an ordinary direction
+% and {1,4} in a separable one, direction 1 varying fastest
+vals = cell(1,n3);
+for k = 1:n3
+    if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
+end
+alpha_all = multiindex_grid(vals);
 keep = false(size(alpha_all,1),1);
 for r = 1:size(alpha_all,1)
     cells = reach(alpha_all(r,:),n3);
@@ -247,17 +209,8 @@ for k = 1:n3
         sets{k} = [2 3];
     end
 end
-% G = sets{1}(:);                                                           % MMP, 09/30/2026 (was)
-% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
-%     G = [kron(ones(numel(sets{k}),1),G), ...
-%          kron(sets{k}(:),ones(size(G,1),1))];                             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-% C = zeros(size(G,1),1);                                                   % MMP, 09/30/2026 (was)
-% for r = 1:size(G,1)                                                       % MMP, 09/30/2026 (was)
-%     C(r) = lin_of(G(r,:),n3);                                             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-% The product set, direction 1 fastest, as linear cell indices (column).    % MMP, 09/30/2026
-C = cell_of_gamma(multiindex_grid(sets));                                   % MMP, 09/30/2026
+% The product set, direction 1 fastest, as linear cell indices (column).
+C = cell_of_gamma(multiindex_grid(sets));
 end
 
 
@@ -309,8 +262,3 @@ function m = absmax(X)
 % OUTPUT m: 'double', full.
 if isempty(X), m = 0; else, m = full(max(abs([nonzeros(X);0]))); end
 end
-
-
-% MMP, 09/30/2026: local functions gamma_of and lin_of (Initial coding
-% 09/21/2026, no line stamps) deleted: 'gamma_of_cell' and 'cell_of_gamma'
-% (sopvar/misc/conventions) compute the same map.

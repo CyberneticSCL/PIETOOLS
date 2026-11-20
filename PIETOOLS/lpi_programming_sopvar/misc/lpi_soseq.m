@@ -19,8 +19,8 @@ function prog = lpi_soseq(prog,C,Zd,pos)
 % PROG, are the equations of the kept columns.
 %
 % INPUT
-% - prog:  'struct', an SOS or LPI program (sosprogram, lpiprogram) with
-%          the fields expr, decvartable, vartable and varmat.vartable;
+% - prog:  'struct', an SOS or LPI program with the fields expr,
+%          decvartable, vartable and varmat.vartable;
 % - C:     'double', (q+1) x n, sparse or full: row 1 the constant terms,
 %          row 1+i the coefficients of ZD{i}, column l equation l;
 % - Zd:    'cellstr', the q names of decision variables of PROG;
@@ -68,18 +68,7 @@ function prog = lpi_soseq(prog,C,Zd,pos)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/02/2026: replaces the soseq call of
-%                  'impose_eq_rows', whose getequation matched every program
-%                  name against the expression's on each call (most of the
-%                  3-D heatNd build time at 2.7e6 names).
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body
-%                  and the INPUT and OUTPUT lines of the local function;
-%                  code unchanged. Deleted: the trace of what soseq writes
-%                  for this input, the reason for each case passed to soseq,
-%                  the case of names that differ in trailing blanks, and
-%                  cost figures against soseq.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
-%                  what line of table_rows; code unchanged.
+% Initial coding MMP, 10/02/2026
 
 % Three inputs at least; ZD a column of q names; C with q+1 rows
 if nargin<3
@@ -90,7 +79,7 @@ n = size(C,2);
 if size(C,1)~=q+1
     error("C must have numel(Zd)+1 rows: the constant term, then one row per name.")
 end
-% The cases where soseq writes something else (see NOTES): soseq itself.
+% The cases listed in NOTES: soseq itself
 if isfield(prog,'symvartable') || nnz(C)==0 || ~isa(C,'double') || ~isreal(C)
     prog = soseq(prog,dpvar(C,zeros(1,0),{},Zd,[1,n]));
     return
@@ -109,9 +98,9 @@ end
 pos = pos(:);
 
 % The entry, from the triplets of C. find lists nonzeros only, so the kept
-% columns are exactly getequation's any(C,1), and no zero is stored.
+% columns are exactly the nonzero columns any(C,1), and no zero is stored.
 [r,c,v] = find(C);
-if any(isnan(v))        % soseq's any() ignores NaN: see NOTES
+if any(isnan(v))        % NaN entries: soseq (NOTES)
     prog = soseq(prog,dpvar(C,zeros(1,0),{},Zd,[1,n]));
     return
 end
@@ -126,7 +115,7 @@ prog.expr.num = e;
 prog.expr.type{e} = 'eq';
 prog.expr.At{e} = sparse(pos(r(~isc)-1),c(~isc),-v(~isc),numel(prog.decvartable),nk);
 prog.expr.b{e} = sparse(c(isc),1,v(isc),nk,1);
-if ~issparse(C)                             % soseq's b is a slice of C
+if ~issparse(C)                             % b full when C is full
     prog.expr.b{e} = full(prog.expr.b{e});
 end
 prog.expr.Z{e} = sparse(nk,numel([prog.vartable; prog.varmat.vartable]));
@@ -138,8 +127,8 @@ end
 function [pos,dup] = table_rows(dvt,Zd,C)
 % [POS,DUP] = TABLE_ROWS(DVT,ZD,C) returns in POS(i) the first row of the
 % table DVT named Zd{i}, and DUP true when a name that C uses occurs twice
-% in Zd. Errors on a name C uses that is not in the table, as getequation
-% does; names whose rows of C are zero are not needed.
+% in Zd. Errors on a name C uses that is not in the table; names whose
+% rows of C are zero are not needed.
 % INPUT  dvt: prog.decvartable, a 'cellstr' or names that 'string'
 %             converts;
 %        Zd:  q x 1 'cellstr'; C: (q+1) x n 'double'.

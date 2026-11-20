@@ -6,7 +6,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %       T x_t + Tw w_t = A x + B1 w,      z = C1 x + D11 w,
 %
 % by a KYP LPI on 'cdopvar' operators, solved as an SDP that minimizes gam.
-% FORM selects the LPI; R is a positive operator, Q a free operator:
+% FORM selects the LPI; R is a positive operator (in 'Q' the generalized
+% storage T'*Q), Q a free operator:
 %
 %   'Q'   R >= 0, T'*Q = R,
 %         [-gam I, D11', B1'*Q; D11, -gam I, C1; Q'*B1, C1', A'*Q + Q'*A] <= 0;
@@ -19,7 +20,9 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %         [-gam I, D11, C1*R*T'; D11', -gam I, B1'; T*R*C1', B1, T*R*A' + A*R*T'] <= 0.
 %
 % 'Q' is posed as 'P' when Tw is nonzero; 'Qd' and 'Pd' require Tw = 0; in
-% two or more variables, 'Qd' is posed as 'Pd'. While the solver returns UNKNOWN or
+% two or more variables, 'Qd' is posed as 'Pd'. In 'Pd', settings without
+% eppos give R the margin 1e-4 on R^n and 1e-6 on the space in every
+% variable, 0 on the other spaces. While the solver returns UNKNOWN or
 % INFEASIBLE, the program is rebuilt with the degree of the negativity
 % slack raised by one, up to settings.sop.max_raise times.
 %
@@ -29,26 +32,23 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % ker K; 'Qd' and 'Pd' are posed as 'Q' and 'P'.
 %
 % INPUT
-% - PIE:      'pie_struct' object of a 1-D or 2-D PIE, with T, Tw, A, B1, C1
-%             and D11 'opvar' (1-D) or 'opvar2d' (2-D) objects, or of a
-%             container PIE in any number of variables, with these
-%             operators 'copvar' objects (EXEC_PIE_SOP; Tw may be absent),
-%             and K a 'copvar' object (the constraint K x = 0 on the state)
-%             or empty; in two or more variables, Tw and B1 not both
-%             nonzero;
-% - settings: (optional) 'struct' of LPI settings, as returned by
-%             lpisettings_sop:
-%               dd1, dd12, options1, options12, override1   1-D degrees of R;
-%               lpi.pos        the storage row of R, in every dimension     % MMP, 11/17/2026
-%                              (POSCOPVAR); settings_2d (optional, no       % MMP, 11/17/2026
-%                              tier field) the 16-basis 2-D degrees,        % MMP, 11/17/2026
-%                              from SETTINGS_2D_STOCK;                      % MMP, 11/17/2026
+% - PIE:      'pie_struct' object of a PIE in any number of spatial
+%             variables, initialized when its T is not yet a 'copvar'
+%             object; T, Tw, A, B1, C1 and D11 'copvar' objects (Tw may be
+%             absent), and K a 'copvar' object (the constraint K x = 0 on
+%             the state) or empty; its other operators are not used; in two
+%             or more variables, Tw and B1 not both nonzero;
+% - settings: (optional) 'struct' of LPI settings:
+%               lpi.pos   the storage row of R, in every dimension;
+%                         settings_2d (optional) the 16-basis 2-D degrees,
+%                         in place of lpi.pos in two variables;
 %               eppos     the margin of R in the 'P' forms, in every
-%                         dimension (EXEC_SOP_SETTINGS);
+%                         dimension;
 %               sos_opts  solver options;
-%               sop     container options (EXEC_SOP_SETTINGS): dw_Q for the
-%                       'Q' forms, dw_P for the 'P' forms, max_raise.
-%             Default lpisettings_sop('light');
+%               sop       the options of the executives, among them dw_Q
+%                         (the degree raise of the slack in the 'Q' forms),
+%                         dw_P (in the 'P' forms) and max_raise.
+%             Default: the 'light' tier;
 % - form:     (optional) char, 'Q' (default), 'Qd', 'P' or 'Pd';
 % - gain:     (optional) positive double: solve the feasibility LPI at
 %             gam = gain instead of minimizing gam (0 or [] minimizes).
@@ -79,7 +79,10 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %                          discretization (NaN if not computed);
 %               witness    'struct' of the discretization ([] if none);
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
-%                          as returned by EXEC_INFO_SOP.
+%                          the last raise and the loop history, the slack
+%                          mode, its degrees and terms, the size of the SDP,
+%                          and the dual kernel of the negativity constraint
+%                          with its 1-norm.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -108,99 +111,33 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: One executive for the seven gain executives of
-%                10/08/2026: the body of this file (a call of
-%                private/hinf_build_sop) is replaced by the builder's code,
-%                and PIETOOLS_Hinf_gain_coercive_sop, _dual_sop,
-%                _dual_coercive_sop, _2D_sop, _2D_non_coercive_sop and
-%                _dual_2D_sop are the forms 'P', 'Qd', 'Pd' and their 2-D
-%                cases, the program of each unchanged. Header to the header
-%                protocol.
-% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs: the PIE
-%                goes through EXEC_PIE_SOP, and the 2-D rules hold for every
-%                nv >= 2: the Tw/B1 check, 'Qd' posed as 'Pd', the margin of
-%                R in the 'P' forms, and the 'Pd' default margin written for
-%                2^nv spaces (1e-4 on R^n, 1e-6 on the space in every
-%                variable, 0 between). The 'like' slack takes opts.cap =
-%                capfor(K) of EXEC_TOOLS_SOP (the per-direction bounds of
-%                settings.sop.cap_delta; empty by default, every program
-%                unchanged), and st.sop takes tl.sop, each per-dimension
-%                vector of the settings tiers reduced to its entry for the
-%                dimension of the PIE.
-% MMP, 11/04/2026: The PIE operators are read as they are (EXEC_PIE_SOP
-%                returns 'copvar' objects); the scalar gamma constraints are
-%                imposed by LPI_INEQ_SOP in place of the stock LPI_INEQ (both
-%                SOSINEQ on a 'dpvar'); R is returned as a 'copvar' object,
-%                not an opvar / opvar2d (maintainer: the executives return
-%                containers). Programs unchanged.
-% MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
-%                convert_PIETOOLS_PDE for rank-deficient boundary conditions,
-%                e.g. periodic) is used: in 'Q' and 'P' the block of the KYP
-%                operator on the state carries + K'*Z + Z'*K, Z free
-%                (EXEC_KMULT_SOP), so the LPI holds on ker K only; 'Qd' and
-%                'Pd', which have no such term, are posed as 'Q' and 'P'. On
-%                x_t = x_ss + lam*x + w, periodic BCs, z = int x (gain
-%                1/|lam|), no form certified a bound before; now every form
-%                returns 1 at lam = -1 and 2 at lam = -0.5, and none
-%                certifies lam = 1 (unstable). Programs without K unchanged.
-%                Help: status 'residual' (LPI_CLASSIFY_SOP, a cuADMM exit
-%                since 11/04/2026).
-% MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
-%                lpisettings('light'), retired with its folder): the same
-%                storage degrees and margins, with the container options of
-%                the light tier (maintainer, 11/08/2026).
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, help
-%                default named after lpisettings_sop; code unchanged.
-% MMP, 11/09/2026: The margin of R in the 'P' and 'Pd' forms in every
-%                dimension (maintainer: the executives apply eppos and epneg
-%                the same way in every dimension); in 1-D, R >= 0 before.
-%                The 'Pd' margin without settings eppos is [1e-4; 1e-6] in
-%                1-D, the rule of every dimension.
-% MMP, 11/12/2026: The program takes the settings of the run (the last
-%                input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
-%                defaults from them instead of the light tier (maintainer,
-%                11/12/2026: "Settings on the program"). Programs unchanged:
-%                every tier sets lpi.ineq.dD = 1, and with dw and like
-%                given wmin does not apply.
-% MMP, 11/17/2026: Help: settings_2d and settings_nd are no tier fields
-%                since work package 5; the storage is the row lpi.pos, and
-%                the stock 2-D struct is SETTINGS_2D_STOCK. Code unchanged.
-%                The lines read before: "settings_2d  2-D degrees of R;
-%                settings_nd  degrees and margin of R in 3 or more
-%                variables (EXEC_TOOLS_SOP);".
 
-% % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
-% % % END marker at the foot of the file is new; see the header entries
-% % % above for what was deleted.
 % Default settings, form and fixed gain
-% if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)
-if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end % MMP, 11/08/2026
+if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
 if nargin<3 || isempty(form),       form = 'Q';     end
 if nargin>=4 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_gain_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
-PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
+PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
 label = ['Hinf_gain_sop ' form];
 
-% Complete the container options and read the tools of the PIE's dimension
+% Complete the options of the executives and read the tools of the
+% dimension of the PIE (storage of R, margins)
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
-st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
+st.sop = tl.sop;    % the options of this dimension
 Tw0 = (PIE.Tw==0);
 
 % Check the form against the PIE: boundary disturbances and the dimension
-% if nv==2 && ~Tw0 && ~(PIE.B1==0)                                          % MMP, 10/29/2026 (was)
-%     error('PIETOOLS_Hinf_gain_sop:TwB','The PIE takes both the input w and its derivative dw/dt; not supported in 2-D.'); % MMP, 10/29/2026 (was)
-if nv>=2 && ~Tw0 && ~(PIE.B1==0)                                            % MMP, 10/29/2026
-    error('PIETOOLS_Hinf_gain_sop:TwB','The PIE takes both the input w and its derivative dw/dt; not supported in two or more variables.'); % MMP, 10/29/2026
+if nv>=2 && ~Tw0 && ~(PIE.B1==0)
+    error('PIETOOLS_Hinf_gain_sop:TwB','The PIE takes both the input w and its derivative dw/dt; not supported in two or more variables.');
 end
-% The constraint K x = 0 on the state, if any (empty for most PIEs). The    % MMP, 11/07/2026
-% dual forms have no term for it: posed as the primal ones                  % MMP, 11/07/2026
-Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;                % MMP, 11/07/2026
-if hasK && strcmp(form,'Qd'),   form = 'Q';     end                         % MMP, 11/07/2026
-if hasK && strcmp(form,'Pd'),   form = 'P';     end                         % MMP, 11/07/2026
+% The constraint K x = 0 on the state, if any (empty for most PIEs). The
+% dual forms have no term for it: posed as the primal ones
+Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+if hasK && strcmp(form,'Qd'),   form = 'Q';     end
+if hasK && strcmp(form,'Pd'),   form = 'P';     end
 switch form
     case 'Q'
         if ~Tw0,    form = 'P';     label = [label ' -> P (Tw ~= 0)'];   end
@@ -208,8 +145,7 @@ switch form
         if ~Tw0
             error('PIETOOLS_Hinf_gain_sop:Tw','The dual LPIs cannot be solved for systems with disturbances at the boundary.');
         end
-%       if strcmp(form,'Qd') && nv==2,  form = 'Pd';    end     % no 2-D Qd form % MMP, 10/29/2026 (was)
-        if strcmp(form,'Qd') && nv>=2,  form = 'Pd';    end     % no N-D Qd form % MMP, 10/29/2026
+        if strcmp(form,'Qd') && nv>=2,  form = 'Pd';    end     % no N-D Qd form
     case 'P'
     otherwise
         error('PIETOOLS_Hinf_gain_sop:form','FORM should be ''Q'', ''Qd'', ''P'' or ''Pd''.');
@@ -220,31 +156,22 @@ coercive = any(strcmp(form,{'P','Pd'}));
 dwbase = st.sop.dw_Q;   if coercive,    dwbase = st.sop.dw_P;   end
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 
-% The PIE operators as containers, and the identities on w and z
-% EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
-% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
-Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
-% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/04/2026 (was)
-Bw = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;                              % MMP, 11/04/2026
+% The PIE operators, 'copvar' objects, and the identities on w and z
+Tm = PIE.T;     Am = PIE.A;
+Bw = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
-% Twm = [];   if ~Tw0,    Twm = op2copvar_sop(PIE.Tw);    end               % MMP, 11/04/2026 (was)
-Twm = [];   if ~Tw0,    Twm = PIE.Tw;    end                                % MMP, 11/04/2026
+Twm = [];   if ~Tw0,    Twm = PIE.Tw;    end
 
-% Margin of R: eppos I in the 'P' forms in every dimension (in 'Pd' without % MMP, 11/09/2026
-% settings eppos: 1e-4 on R^n, 1e-6 on the space in every variable, 0       % MMP, 11/09/2026
-% between, over the 2^nv variable subsets)                                  % MMP, 11/09/2026
+% Margin of R: eppos I in the 'P' forms in every dimension (in 'Pd' without
+% settings eppos: 1e-4 on R^n, 1e-6 on the space in every variable, 0
+% between, over the 2^nv variable subsets)
 e = [];
-% if coercive && nv==2                                                      % MMP, 10/29/2026 (was)
-%     e = tl.eppos;                                                         % MMP, 10/29/2026 (was)
-%     if strcmp(form,'Pd') && tl.eppos_default,   e = [1e-4;0;0;1e-6];    end % MMP, 10/29/2026 (was)
-% end                                                                       % MMP, 10/29/2026 (was)
-% if coercive && nv>=2                                                      % MMP, 11/09/2026 (was)
-if coercive                                                                 % MMP, 11/09/2026
-    e = tl.eppos;                                                           % MMP, 10/29/2026
-    if strcmp(form,'Pd') && tl.eppos_default                                % MMP, 10/29/2026
-        e = zeros(2^nv,1);  e(1) = 1e-4;    e(end) = 1e-6;  % [1e-4;0;0;1e-6] in 2-D % MMP, 10/29/2026
-    end                                                                     % MMP, 10/29/2026
-end                                                                         % MMP, 10/29/2026
+if coercive
+    e = tl.eppos;
+    if strcmp(form,'Pd') && tl.eppos_default
+        e = zeros(2^nv,1);  e(1) = 1e-4;    e(end) = 1e-6;  % [1e-4;0;0;1e-6] in 2-D
+    end
+end
 
 % Build and solve, raising the slack degree while the solver returns
 % UNKNOWN or INFEASIBLE
@@ -256,12 +183,11 @@ elseif certified,   gam = gfix;
 else,               gam = Inf;
 end
 
-% The solved R, as a 'copvar'                                               % MMP, 11/04/2026
+% The solved R, as a 'copvar'
 Rsol = [];  R = [];
 try
     Rsol = getsol_lpivar_sop(prog,aux.Rm);
-%   R = tl.toop(Rsol);                                                      % MMP, 11/04/2026 (was)
-    R = Rsol;                                                               % MMP, 11/04/2026
+    R = Rsol;
 catch
     R = Rsol;
 end
@@ -274,6 +200,8 @@ info.storage = Rsol;    info.K = aux.Km;    info.N = aux.Nm;
 % Numerical witness (1-D): the gain of the discretized PIE, a lower bound
 info.witness = [];  info.gain_lb = NaN;     info.omega = NaN;   info.gap = NaN;     info.dual_alignment = NaN;
 if st.sop.witness && nv==1
+    % In 'Q' and 'P', with the dual kernel and its block of w: the
+    % alignment of the dual with the worst input
     if any(strcmp(form,{'Q','P'})),     Wt = pie_witness_sop(PIE,'gain',st.sop,info.dual,aux.wblk);
     else,                               Wt = pie_witness_sop(PIE,'gain',st.sop);
     end
@@ -295,18 +223,15 @@ end
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam, [] at a
         %               fixed gain), Rm ('cdopvar' R), Km (the KYP
-        %               operator), Nm (the slack), li (slack info of
-        %               LPI_INEQ_SOP), wblk (the block of K that w enters),
-        %               form.
+        %               operator), Nm (the slack), li (the info of the
+        %               slack), wblk (the block of K that w enters), form.
         % New program; record the equality rows when the dual is kept
-%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective, or the fixed gain
         if isempty(gfix)
             [prog,gamv] = lpidecvar(prog,'gam');
-%             prog = lpi_ineq(prog,gamv);                                   % MMP, 11/04/2026 (was)
-            prog = lpi_ineq_sop(prog,gamv);                                 % MMP, 11/04/2026
+            prog = lpi_ineq_sop(prog,gamv);
             prog = lpisetobj(prog,gamv);
         else
             gamv = gfix;
@@ -320,15 +245,15 @@ end
                 [sp,dm] = copvar_space_list(Tm,'out');
                 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
-                % The state block, with K'*Z + Z'*K if K is given           % MMP, 11/07/2026
-                X33 = Am'*Qm + Qm'*Am;                                      % MMP, 11/07/2026
-                if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end  % MMP, 11/07/2026
+                % The state block, with K'*Z + Z'*K if K is given
+                X33 = Am'*Qm + Qm'*Am;
+                if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end
                 Km = [-(gamv*Iw),   Dzw',       Bw'*Qm;
                        Dzw,         -(gamv*Iz), Cz;
-%                      Qm'*Bw,      Cz',        Am'*Qm + Qm'*Am];           % MMP, 11/07/2026 (was)
-                       Qm'*Bw,      Cz',        X33];                       % MMP, 11/07/2026
+                       Qm'*Bw,      Cz',        X33];
                 wblk = 1;
             case 'Qd'
+                % R = T*Q; the dual KYP operator
                 [sp,dm] = copvar_space_list(Tm,'out');
                 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm*Qm-Rm);
@@ -337,6 +262,7 @@ end
                        Qm'*Cz',     Bw,         Qm'*Am' + Am*Qm];
                 wblk = 2;
             case 'P'
+                % R in place of Q, with the terms of Tw
                 PB = Rm*Bw;     PA = Rm*Am;
                 K11 = -(gamv*Iw);   K13 = PB'*Tm;   K31 = Tm'*PB;
                 if ~Tw0         % the terms of the boundary disturbance
@@ -344,13 +270,12 @@ end
                     K11 = on_registry_sop(K11,X) + X + PB'*Twm;
                     K13 = K13 + Twm'*PA;    K31 = K31 + PA'*Twm;
                 end
-                % The state block, with K'*Z + Z'*K if K is given           % MMP, 11/07/2026
-                X33 = PA'*Tm + Tm'*PA;                                      % MMP, 11/07/2026
-                if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end  % MMP, 11/07/2026
+                % The state block, with K'*Z + Z'*K if K is given
+                X33 = PA'*Tm + Tm'*PA;
+                if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end
                 Km = [K11,      Dzw',       K13;
                       Dzw,      -(gamv*Iz), Cz;
-%                     K31,      Cz',        PA'*Tm + Tm'*PA];               % MMP, 11/07/2026 (was)
-                      K31,      Cz',        X33];                           % MMP, 11/07/2026
+                      K31,      Cz',        X33];
                 wblk = 1;
             case 'Pd'
                 CP = Cz*Rm;     AP = Am*Rm;
@@ -359,18 +284,17 @@ end
                        Tm*CP',      Bw,         Tm*AP' + AP*Tm'];
                 wblk = 2;
         end
-        % K <= 0: the stock slack and an equality, or the slack sized from R
+        % K <= 0: the 'stock' slack and an equality, or the slack sized from R
         if strcmp(st.sop.slack,'stock')
             [prog,Nm] = tl.slack(prog,Km);
             [prog,tag] = lpi_eq_sop(prog,Nm+Km,'symmetric');
             li = struct('tag',tag,'degrees',[],'terms',[]);
         else
-%           o = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin);    % MMP, 10/29/2026 (was)
-            o = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Km)); % MMP, 10/29/2026
+            o = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Km));
             [prog,Nm,li] = lpi_ineq_sop(prog,-Km,o);
         end
+        % The objective gam, none at a fixed gain
         obj = gamv;     if ~isempty(gfix),   obj = [];  end
         aux = struct('obj',obj,'Rm',Rm,'Km',Km,'Nm',Nm,'li',li,'wblk',wblk,'form',form);
     end
-% % % END body replaced by MMP, 10/28/2026
 end

@@ -1,8 +1,8 @@
 function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % QDEG = GET_LPIVAR_DEGS_SOP(ROP,TOP) returns the degrees of the free
-% operator Q of an LPI, for LPIVAR_CDOPVAR, read off the positive operator
-% ROP. An ROP that is not a 'copvar' or 'cdopvar' object is an error
+% operator Q of an LPI, read off the positive operator ROP. An ROP that is
+% not a 'copvar' or 'cdopvar' object is an error
 % (get_lpivar_degs_sop:class).
 %
 % For a container ROP ('copvar', 'cdopvar'), each parameter cell of a
@@ -26,8 +26,7 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %
 % INPUT
 % - Rop:  'copvar' or 'cdopvar' object with 'sopvar' and 'sdopvar' blocks;
-% - Top:  (optional) not used; the second input of the stock
-%         GET_LPIVAR_DEGS, whose calling form this keeps.
+% - Top:  (optional) not used.
 %
 % OUTPUT
 % - Qdeg: 1x3 double [deg1, deg2, max(deg2-1,0)] in 1-D; for a container
@@ -62,51 +61,20 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/06/2026. Replaces the test-folder
-%                cx_stability_lpivar_degs and cx_hinf_qdeg (cx_exec, MMP
-%                09/25/2026), two readings of the same rule; the body is
-%                cx_stability_lpivar_degs' (it also reads fixed sopvar
-%                blocks), restricted to 1-D with cx_hinf_qdeg's guard.
-% MMP, 10/08/2026: A block over two or more variables sends the whole
-%                  container to the per-role reading of the test-folder
-%                  cx_hinf_qdeg2d (MMP, 09/26/2026), copied below as
-%                  qdeg_nd, so that the 2-D container executives size their
-%                  free operator from one routine. The 1-D rule is unchanged.
-% MMP, 10/16/2026: Moved from lpi_programming_sopvar/ to
-%                  executives_sopvar/utility_functions/.
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body
-%                  and headers of the local functions; code unchanged.
-% MMP, 11/08/2026: The last 1-D entry is max(deg2-1,0) (was deg2-1): a
-%                  positive operator without integral kernels (deg2 = 0, as
-%                  in the 'extreme' tier) gave -1, which LPIVAR_CDOPVAR
-%                  rejects, so the Q forms of the gain and norm LPIs failed.
-%                  The stock rule subtracts 1 likewise although its help
-%                  text promises nonnegative degrees (maintainer: probably a
-%                  typo). Unchanged whenever deg2 >= 1.
-% MMP, 11/08/2026: An ROP that is not a container is an error
-%                  (get_lpivar_degs_sop:class). It went to GET_LPIVAR_DEGS,
-%                  retired 11/08/2026 (cleaning/private) with the opvar
-%                  classes it read. Help text to match; TOP is unused.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, a
-%                  commented-out note removed; code unchanged.
+% Initial coding MMP, 10/06/2026
 
-% if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))                             % MMP, 11/08/2026 (was)
-%     Qdeg = get_lpivar_degs(Rop,Top);                                      % MMP, 11/08/2026 (was)
-%     return                                                                % MMP, 11/08/2026 (was)
-% end                                                                       % MMP, 11/08/2026 (was)
-% Only a container: GET_LPIVAR_DEGS, which read the opvar classes, is       % MMP, 11/08/2026
-% retired                                                                   % MMP, 11/08/2026
-if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))                               % MMP, 11/08/2026
-    error('get_lpivar_degs_sop:class','Rop should be a copvar or cdopvar object; got %s.',class(Rop)) % MMP, 11/08/2026
-end                                                                         % MMP, 11/08/2026
+% Only a container
+if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))
+    error('get_lpivar_degs_sop:class','Rop should be a copvar or cdopvar object; got %s.',class(Rop))
+end
 % A block over two or more variables on a side: the per-role caps of the
 % N-D reading
-for b = 1:numel(Rop.C)                                                      % MMP, 10/08/2026
-    P = Rop.C{b};                                                           % MMP, 10/08/2026
-    if ~isempty(P) && (numel(P.vars.out)>1 || numel(P.vars.in)>1)           % MMP, 10/08/2026
-        Qdeg = qdeg_nd(Rop);    return                                      % MMP, 10/08/2026
-    end                                                                     % MMP, 10/08/2026
-end                                                                         % MMP, 10/08/2026
+for b = 1:numel(Rop.C)
+    P = Rop.C{b};
+    if ~isempty(P) && (numel(P.vars.out)>1 || numel(P.vars.in)>1)
+        Qdeg = qdeg_nd(Rop);    return
+    end
+end
 % 1-D reading: deg1 and deg2 over the nonzero blocks
 deg1 = 0;   deg2 = 0;
 for b = 1:numel(Rop.C)
@@ -145,8 +113,7 @@ for b = 1:numel(Rop.C)
         end
     end
 end
-% Qdeg = [deg1,deg2,deg2-1];                                                % MMP, 11/08/2026 (was)
-Qdeg = [deg1,deg2,max(deg2-1,0)];       % no negative degree when deg2 = 0  % MMP, 11/08/2026
+Qdeg = [deg1,deg2,max(deg2-1,0)];       % no negative degree when deg2 = 0
 end
 
 
@@ -164,8 +131,8 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function deg = qdeg_nd(Rm)                                                  % MMP, 10/08/2026
-% DEG = QDEG_ND(RM) returns the per-role degree caps of LPIVAR_CDOPVAR read
+function deg = qdeg_nd(Rm)
+% DEG = QDEG_ND(RM) returns the per-role degree caps of a free operator read
 % off the container RM: for every nonzero coefficient of every parameter
 % cell, the exponents of its left and right monomials in each shared
 % variable go to 'mult' (gamma_k = 1, left only) or 'int' (gamma_k = 2, 3);
@@ -224,7 +191,7 @@ end
 end
 
 
-function E = kron_exps(Z)                                                   % MMP, 10/08/2026
+function E = kron_exps(Z)
 % E = KRON_EXPS(Z) returns the exponent table of the tensor monomial basis
 % Z{1} x Z{2} x ..., first factor outer, one row per basis element.
 % INPUT  Z: cell of double columns, the exponents of each variable.

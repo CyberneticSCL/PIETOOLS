@@ -2,11 +2,11 @@ function out = settings2possopvar(settings)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OUT = SETTINGS2POSSOPVAR(SETTINGS) translates the positive operators that
 % a 1-D or 2-D LPI settings struct defines (the Lyapunov operator, the
-% operator of the equality constraint, and their psatz terms) into the
-% degree and option arguments of 'possopvar' on an L2 space: for each basis
-% operator of the settings that is kept, its multi-index (opts.include: 1
-% multiplier, 2 lower, 3 upper, 4 full integral, per direction) and its
-% monomial degree caps (deg).
+% operator of the equality constraint, and their psatz terms) into degree
+% specifications and options of a positive operator on an L2 space: for
+% each basis operator of the settings that is kept, its multi-index
+% (opts.include: 1 multiplier, 2 lower, 3 upper, 4 full integral, per
+% direction) and its monomial degree caps (deg).
 %   1-D  The bases Z1, Z2, Z3 of the degrees {d1,d2,d3} have the
 %        multi-indices 1, 2, 3; with sep set, Z2 has 4 and Z3 is omitted.
 %        Z1 has deg.int = deg.joint = d1, deg.mult = 0; Z2 has deg.int,
@@ -20,9 +20,7 @@ function out = settings2possopvar(settings)
 % What the translation cannot carry is listed in OUT.report.lossy.
 %
 % INPUT
-% - settings: 'struct' of LPI settings in the form of the stock
-%             settings_PIETOOLS_* or settings_PIETOOLS_*_2D (retired
-%             11/08/2026; the callers build it):
+% - settings: 'struct' of LPI settings in the 1-D or 2-D stock format:
 %   1-D (no field is2D, or is2D = 0): dd1, options1 (Lyapunov operator);
 %             dd12, options12, override1 (its psatz term, translated when
 %             override1 is 0 or absent); dd2, options2 (equality
@@ -52,9 +50,8 @@ function out = settings2possopvar(settings)
 %                         int and mult 1x2 in 2-D, and in 2-D subset
 %                         (1x16)) and opts ('struct' with fields include
 %                         (N x 1 in 1-D, N x 2 in 2-D), sep ('logical',
-%                         1x2 in 2-D) and psatz (1 when the settings'
-%                         psatz is nonzero, else 0)), the arguments of
-%                         possopvar(prog,dim,vars,dom,X.deg,X.opts);
+%                         1x2 in 2-D) and psatz (1 when the psatz of the
+%                         settings is nonzero, else 0));
 %           LF_psatz,     1 x K 'cell' of the same, one per psatz term
 %           eq_psatz      translated, each with opts.psatz = 1;
 %           eppos, epneg  settings.eppos and settings.epneg unchanged ([]
@@ -104,22 +101,7 @@ function out = settings2possopvar(settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/21/2026: the positivity builders take degree
-%                  specifications that differ in kind, so a settings file
-%                  written for 'poslpivar_2d' cannot be handed to
-%                  'possopvar'; the parts that map exactly are translated,
-%                  the parts that cannot are reported.
-% MMP, 09/21/2026: 'block1d' had deg.int and deg.mult swapped: measured from
-%                  'poslpivar' itself, the first slot of d{2} caps the
-%                  variable that becomes the integration variable, as
-%                  'caps2spec', the 2-D path, already had it.
-% MMP, 10/28/2026: Header to the header protocol, the licence block in the
-%                  toolbox form, step comments in the body; code unchanged.
-%                  exclude(1:7) is reported in report.lines, where the code
-%                  reports it, not in report.lossy as the old header said.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; the
-%                  retired POSLPIVAR, POSLPIVAR_2D out of See also; the
-%                  09/21/2026 note of block1d shortened; code unchanged.
+% Initial coding MMP, 09/21/2026
 
 % SETTINGS: a 'struct', 2-D when its field is2D is set
 if ~isa(settings,'struct')
@@ -139,9 +121,8 @@ else
     out = conv_1d(settings,out);
 end
 
-% eppos and epneg belong to the executive, not to 'possopvar'. They are
-% passed through unchanged; the caller must apply eppos to the component its
-% state actually has, which for a purely distributed state is the LAST entry.
+% eppos and epneg are not part of the operators: passed through unchanged;
+% for a purely distributed state the margin is the LAST entry of eppos.
 out.eppos = getfielddef(settings,'eppos',[]);
 out.epneg = getfielddef(settings,'epneg',[]);
 % use_sosineq (2-D name) or sosineq_on (1-D name), unchanged
@@ -221,8 +202,8 @@ end
 %%
 function [blk,out] = block2d(d,o,tag,out)
 % [BLK,OUT] = BLOCK2D(D,O,TAG,OUT) translates one 2-D positive-operator
-% specification, degrees D and options O, into 'possopvar' degrees and
-% options on an L2[x,y] space.
+% specification, degrees D and options O, into degree specifications and
+% options of a positive operator on an L2[x,y] space.
 % INPUT  d:   'struct' with field d2, the 3x3 'cell' of cap arrays ([]:
 %             reported lossy, BLK empty);
 %        o:   'struct' with fields exclude (1x16), sep (1x6), psatz, each
@@ -246,11 +227,10 @@ sep = getfielddef(o,'sep',zeros(1,6));
 exc = [reshape(exc,1,[]), zeros(1,max(0,16-numel(exc)))];
 sep = [reshape(sep,1,[]), zeros(1,max(0,6-numel(sep)))];
 
-% Components 1..7 are the R^n, L2[x] and L2[y] blocks, which 'possopvar'
-% cannot build -- it maps L2 -> L2 only. This is NOT a loss for a purely
-% distributed state: 'poslpivar_2d' forces excludeL(1:7)=1 itself whenever
-% n0=nx=ny=0, so the settings value is moot there. Reported as a note, and
-% only as a real gap if the caller does have those components.
+% Components 1..7 are the R^n, L2[x] and L2[y] blocks, which an
+% L2[x,y] -> L2[x,y] operator does not have. For a purely distributed
+% state they are excluded anyway, so the settings value is moot there.
+% Reported as a note, a gap only for a state with those components.
 if any(~exc(1:7))
     out.report.lines{end+1} = sprintf(['%s leaves components %s of ' ...
         'exclude on. poslpivar_2d forces them off for a purely ' ...
@@ -260,8 +240,8 @@ if any(~exc(1:7))
 end
 
 % sep(3)/sep(5) act on direction 1 and sep(4)/sep(6) on direction 2. A
-% direction is separable only when both of its flags agree; the mixed case
-% is the one in which poslpivar_2d itself discards cross terms.
+% direction is separable only when both of its flags agree; a mixed pair
+% is reported and treated as not separable.
 sepv = false(1,2);
 for k = 1:2
     lo = sep(2+k);   hi = sep(4+k);
@@ -280,8 +260,8 @@ if any(sep(1:2))
 end
 
 % Entry 7+r of 'exclude' is the component whose multi-index is map(r,:),
-% which is also possopvar's alpha. Note 14 and 15: includeL(14) is Z2ba,
-% cell R22{3,2}, and includeL(15) is Z2ab, cell R22{2,3}.
+% the alpha of the translation. Entries 14 and 15: Z2ba, cell R22{3,2},
+% and Z2ab, cell R22{2,3}.
 map = [1 1; 2 1; 3 1; 1 2; 1 3; 2 2; 3 2; 2 3; 3 3];
 incl = zeros(0,2);   degs = {};
 d2 = getfielddef(d,'d2',{});
@@ -289,9 +269,9 @@ nkeep = 0;   nmono_a = 0;   nmono_b = 0;
 for r = 1:size(map,1)
     if exc(7+r), continue, end
     a = map(r,:);
-    % With direction k separable, poslpivar keeps only the lower integral
-    % and forces the upper one out, so alpha_k = 2 becomes possopvar's
-    % full-domain index 4 and alpha_k = 3 is the discarded duplicate.
+    % With direction k separable, the settings keep only the lower
+    % integral, so alpha_k = 2 becomes the full-domain index 4 and
+    % alpha_k = 3 is the discarded duplicate.
     skip = false;   an = a;
     for k = 1:2
         if sepv(k)
@@ -303,6 +283,8 @@ for r = 1:size(map,1)
         end
     end
     if skip, continue, end
+    % The degrees d2{a(1),a(2)} of the component (a missing entry is
+    % reported, the component dropped), as a degree specification
     if size(d2,1)>=a(1) && size(d2,2)>=a(2)
         A = d2{a(1),a(2)};
     else
@@ -334,9 +316,9 @@ end
 
 %%
 function [spec,na,nb] = caps2spec(A,alpha)
-% [SPEC,NA,NB] = CAPS2SPEC(A,ALPHA) returns the 'possopvar' degree
-% specification of the 2-D basis operator of multi-index ALPHA from its
-% 'build_monoms' cap array A.
+% [SPEC,NA,NB] = CAPS2SPEC(A,ALPHA) returns the degree specification of
+% the 2-D basis operator of multi-index ALPHA from its subset cap array A
+% of the 2-D settings.
 % INPUT  A:      'double' array of 2^nvars caps (layout below);
 %        alpha:  1x2 'double', the multi-index (1 multiplier, 2 or 3
 %                integral, per direction).
@@ -349,9 +331,8 @@ function [spec,na,nb] = caps2spec(A,alpha)
 %   [ss1, (tt1 if alpha(1)~=1), ss2, (tt2 if alpha(2)~=1)]
 % reshaped from 2x2x...x2, so the cap on the subset with bits B set sits at
 % linear index 1+sum(2.^(B-1)); a singleton k is at 1+2^(k-1) and the full
-% set at 2^nvars. ss_k carries the INTEGRATION variable, possopvar's
-% theta_k, and tt_k the OUTPUT variable, possopvar's s_k -- measured, and
-% the opposite of what the names suggest.
+% set at 2^nvars. ss_k carries the INTEGRATION variable theta_k and tt_k
+% the OUTPUT variable s_k -- the opposite of what the names suggest.
 
 % Slots of ss_k (p_int) and tt_k (p_mult, 0 in a multiplier direction) in
 % the variable list; one cap per subset of the nv variables
@@ -377,11 +358,11 @@ spec.mult  = [capat(v,p_mult(1)), capat(v,p_mult(2))];
 spec.joint = v(2^nv);
 
 % The singleton and total caps alone give only a covering superset, since
-% build_monoms also prunes with every intermediate subset. Carry the whole
-% cap array across so the conversion is exact. possopvar orders its basis
-% variables [theta_1,theta_2,s_1,s_2] and always has all four slots, capping
-% s_k at 0 in a multiplier direction, whereas poslpivar omits that slot
-% entirely -- so the arrays are permuted, not copied.
+% the settings also prune with every intermediate subset; the whole cap
+% array is carried across so the conversion is exact. The translated basis
+% orders its variables [theta_1,theta_2,s_1,s_2] and always has all four
+% slots, capping s_k at 0 in a multiplier direction, whereas the settings
+% omit that slot entirely -- so the arrays are permuted, not copied.
 slotmap = [p_int(1), p_int(2), p_mult(1), p_mult(2)];
 spec.subset = zeros(1,16);
 for i = 2:16
@@ -389,8 +370,8 @@ for i = 2:16
     src = slotmap(mem);
     src = src(src>0);
     if isempty(src)
-        % Every member is an s_k that poslpivar does not carry, and that
-        % possopvar caps at 0 anyway; bounding their sum by 0 is exact.
+        % Every member is an s_k that the settings do not carry and that
+        % the translation caps at 0 anyway; bounding their sum by 0 is exact.
         spec.subset(i) = 0;
     else
         spec.subset(i) = v(1 + sum(2.^(src-1)));
@@ -399,7 +380,7 @@ end
 
 % Monomial count of the basis
 na = count_subset(v,nv);
-nb = na;    % exact by construction; asserted by the covering test
+nb = na;    % exact by construction
 end
 
 
@@ -410,8 +391,7 @@ function c = capat(v,p)
 % INPUT  v: 'double' column of caps;
 %        p: 'double', the slot (0: none).
 % OUTPUT c: 'double'.
-% A multiplier direction has no output-variable slot, so degree 0 in s_k --
-% which is also what 'possopvar' enforces internally for such a direction.
+% A multiplier direction has no output-variable slot, so degree 0 in s_k
 if p==0
     c = 0;
 else
@@ -483,8 +463,8 @@ end
 %%
 function [blk,out] = block1d(d,o,tag,out)
 % [BLK,OUT] = BLOCK1D(D,O,TAG,OUT) translates one 1-D positive-operator
-% specification, degrees D and options O, into 'possopvar' degrees and
-% options on an L2[s] space.
+% specification, degrees D and options O, into degree specifications and
+% options of a positive operator on an L2[s] space.
 % INPUT  d:   'cell' {d1,d2,d3} (d2, d3 1x3 or scalar) or a 'double'
 %             scalar d, read as {d,[d d d],[d d d]} ([]: reported lossy,
 %             BLK empty);
@@ -495,12 +475,10 @@ function [blk,out] = block1d(d,o,tag,out)
 %             include (N x 1), sep ('logical'), psatz (0 or 1));
 %        out: OUT with the report extended.
 %
-% 'poslpivar' takes d = {d1,d2,d3}: d1 the multiplier degree, and d2/d3 the
-% lower/upper integral triples, mapping to (deg.int, deg.mult, deg.joint) in
-% that order -- which is what 'sopquadvar's header says.
-%
-% Measured from poslpivar itself: d{2}(1) caps the variable that becomes    % MMP, 09/21/2026
-% the integration variable (int), d{2}(2) the output variable (mult).       % MMP, 09/21/2026
+% The settings give d = {d1,d2,d3}: d1 the multiplier degree, and d2/d3
+% the lower/upper integral triples, mapping to (deg.int, deg.mult,
+% deg.joint) in that order: d{2}(1) caps the variable that becomes the
+% integration variable (int), d{2}(2) the output variable (mult).
 
 % No degrees: an empty translation, reported
 blk = struct('deg',{{}},'opts',struct());
@@ -536,8 +514,7 @@ for a = 1:3
     else
         t = d{a};
         if isscalar(t), t = [t t t]; end
-%       spec = struct('int',t(2),'mult',t(1),'joint',t(3));                 % MMP, 09/21/2026 (was)
-        spec = struct('int',t(1),'mult',t(2),'joint',t(3));                 % MMP, 09/21/2026
+        spec = struct('int',t(1),'mult',t(2),'joint',t(3));
     end
     incl(end+1,1) = an;                                                 %#ok<AGROW>
     degs{end+1} = spec;                                                 %#ok<AGROW>

@@ -1,20 +1,21 @@
 function info = exec_info_sop(prog,aux,st,label)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% INFO = EXEC_INFO_SOP(PROG,AUX,ST,LABEL) returns the part of the INFO
-% output that every container executive shares: the solver status, the
-% degree loop, the slack of the negativity constraint, the size of the SDP
-% and, when ST.sop.keepdual is set, the dual kernel of that constraint.
+% INFO = EXEC_INFO_SOP(PROG,AUX,ST,LABEL) returns the summary of a solved
+% LPI: the solver status, the degree loop, the slack of the negativity
+% constraint, the size of the SDP and, when ST.sop.keepdual is set, the
+% dual kernel of that constraint.
 %
 % INPUT
 % - prog:   'struct', the solved LPI program;
-% - aux:    'struct' returned by LPI_SOLVE_LOOP_SOP, with fields classify
-%           (the 'struct' of LPI_CLASSIFY_SOP, field status), dw (double,
+% - aux:    'struct' of the degree loop, with fields classify ('struct'
+%           with field status, the class of the solver exit), dw (double,
 %           the raise of the last pass), hist (struct array, one entry per
-%           pass) and li (the slack info of LPI_INEQ_SOP: fields degrees, a
-%           'struct' with D and w, terms and tag);
-% - st:     'struct' of LPI settings completed by EXEC_SOP_SETTINGS
-%           (fields sop.slack, sop.keepdual, sop.verbose);
-% - label:  char, the executive's name for printed messages.
+%           pass) and li (the info of the slack: fields degrees, a
+%           'struct' with D and w, terms, and tag, the index of its
+%           equality record);
+% - st:     'struct' of LPI settings with the fields sop.slack,
+%           sop.keepdual and sop.verbose;
+% - label:  char, the name used in printed messages.
 %
 % OUTPUT
 % - info:   'struct' with fields
@@ -29,7 +30,7 @@ function info = exec_info_sop(prog,aux,st,label)
 %             degrees     'struct' with fields D and w, the lift and weight
 %                         of the slack ([] for the stock slack);
 %             terms       the Positivstellensatz terms of the slack;
-%             shape       'struct' of LPI_SHAPE_SOP: ndv (decision
+%             shape       'struct', the size of the SDP: ndv (decision
 %                         variables), Kf, Ks (PSD block sizes), m (rows),
 %                         nx (primal length);
 %             dual        'copvar' object, the dual kernel of the
@@ -63,12 +64,6 @@ function info = exec_info_sop(prog,aux,st,label)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Moved from executives_sopvar/private/ to
-%                utility_functions/ with the consolidation of the
-%                executives; header to the header protocol, the licence
-%                block added, step comments in the body; code unchanged.
-% MMP, 10/30/2026: Header only: status 'residual' (LPI_CLASSIFY_SOP, a
-%                cuADMM exit) listed; code unchanged.
 
 % Status of the last pass and the SDP shape
 cl = aux.classify;
@@ -82,7 +77,7 @@ if isfield(li,'degrees') && isstruct(li.degrees) && isfield(li.degrees,'D')
     info.degrees = struct('D',li.degrees.D,'w',li.degrees.w);
 end
 if isfield(li,'terms'),     info.terms = li.terms;     end
-% Dual kernel of the tagged constraint, from the solver's multipliers
+% Dual kernel of the tagged constraint, from the multipliers of the solver
 if st.sop.keepdual && isfield(li,'tag') && ~isempty(li.tag) && li.tag>0
     try
         [Y,di] = lpigetdual_sop(prog,li.tag);

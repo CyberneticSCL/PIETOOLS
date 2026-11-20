@@ -33,7 +33,7 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 % [], [], {} and struct('cleared',true).
 %
 % INPUT
-% - prog:     'struct', the LPI program (LPIPROGRAM), or the char
+% - prog:     'struct', the LPI program, or the char
 %             'clear';
 % - dims:     double, M x 1 positive integers, dims(k) = m_k the number of
 %             components of space k; a scalar is used for every space;
@@ -54,15 +54,13 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %             variable only); or a 1 x M cell of these, one per space, each
 %             of which may be a cell with one per basis operator of the
 %             space;
-%             a degree 'struct' may also carry cap (1 x nv, Inf = none):    % MMP, 11/17/2026
-%             theta_k+s_k <= cap_k in an owned direction k, theta_k <=      % MMP, 11/17/2026
-%             cap_k otherwise; replaces subset when both are given; a       % MMP, 11/17/2026
-%             Psatz offset lowers int and not cap;                          % MMP, 11/17/2026
-%             and cap_inc (1 x nv, Inf = none): theta_k+s_k <= cap_inc_k    % MMP, 11/18/2026
-%             for the lower and upper basis operators (alpha_k = 2, 3) of   % MMP, 11/18/2026
-%             an owned direction k only, the triangular bound of a Gram     % MMP, 11/18/2026
-%             factor (Shivakumar 11/17/2026, Lemma 1.2: total degree at     % MMP, 11/18/2026
-%             most p-1 for a kernel of degree p); refines a subset array;   % MMP, 11/18/2026
+%             a degree 'struct' may also carry cap (1 x nv, Inf = none):
+%             theta_k+s_k <= cap_k in an owned direction k, theta_k <=
+%             cap_k otherwise; replaces subset when both are given; a
+%             Psatz offset lowers int and not cap;
+%             and cap_inc (1 x nv, Inf = none): theta_k+s_k <= cap_inc_k
+%             for the lower and upper basis operators (alpha_k = 2, 3) of
+%             an owned direction k only; refines a subset array;
 % - options:  (optional) 'struct' with the optional fields
 %               type          char, 'pos' (any other value is an error);
 %               sep           logical, scalar or 1 x nv: where true, the
@@ -92,14 +90,14 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                             g = prod_d f_d(theta_d), f_d by entry (r,d):
 %                             0 none, 1 (theta_d-a_d)/L_d, 2
 %                             (b_d-theta_d)/L_d, 3 (theta_d-a_d)*
-%                             (b_d-theta_d). Products of faces in
-%                             different directions (the codes express
-%                             none); psatz given and empty: the rows alone;
+%                             (b_d-theta_d). Face products in different
+%                             directions (the codes express none); psatz
+%                             given and empty: the rows alone;
 %               psatz_rows_offset  double, as psatz_offset for the rows
 %                             (one per row or one for all, default 0);
-%               psatz_rows_perdir  logical (default false): a factor row    % MMP, 11/17/2026
-%                             lowers 'int' only in the directions of its    % MMP, 11/17/2026
-%                             nonzero factors (default: in every one);      % MMP, 11/17/2026
+%               psatz_rows_perdir  logical (default false): a factor row
+%                             lowers 'int' only in the directions of its
+%                             nonzero factors (default: in every one);
 %               path          char, 'fast' (default) or 'general': the
 %                             weight moved onto the Gram index as a shift
 %                             when the map of the shifted index set is
@@ -113,7 +111,7 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %
 % OUTPUT
 % - prog:     'struct', the program with each Q_c declared positive
-%             semidefinite (SOSQUADVAR); unchanged with options.estimate;
+%             semidefinite; unchanged with options.estimate;
 % - Pop:      'cdopvar' object, M x M blocks on X, the operator above; []
 %             with options.estimate;
 % - Qcell:    N_b x N_b cell, Qcell{b,b'} the 'cellstr' names of the
@@ -139,7 +137,7 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %               code, offset  double rows, the terms;
 %               cache_hit     logical row, per term;
 %               Qdpvar        'dpvar' object, the N x N Gram matrix, for
-%                             SOSGETSOL; a cell with several terms;
+%                             the solution; a cell with several terms;
 %               rows          double, nt x nv, the factor row of every
 %                             term (the codes as rows, see psatz_rows);
 %               terms         struct array, per term: code, row, offset, E, N,
@@ -179,87 +177,7 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/07/2026. The direct Gram-to-kernel map: 'copquadvar'
-%                spent most of its time in the symbolic product, the sheet
-%                conversion and the per-pair term objects, and the separated
-%                form held three operator objects on union bases (34 GB in
-%                3-D).
-% MMP, 10/08/2026: Single-direction box quadratics as term codes 2nv+2+d,
-%                offset lowering 'int' in that direction only, so the
-%                Markov-Lukacs tensor set can be compared with the 2N faces.
-% MMP, 10/08/2026: Several Positivstellensatz terms in one call ('psatz' a
-%                row, 'psatz_offset' per term): one Gram per term, the maps
-%                shared where the index sets coincide, every term's map
-%                embedded in the union of the bases and summed on one
-%                decision list. For 'lpi_ineq_sop'. One term is unchanged.
-% MMP, 10/17/2026: Spaces without a spatial variable (nv = 0, the W on R^q
-%                of the H2 executives) errored in pos_map: the stride vector
-%                of a one-row exponent grid had a stray entry, and the
-%                Kronecker product over directions indexed an empty third
-%                dimension. Both read the empty direction set as one Gram
-%                position mapped to one coefficient with weight 1. Nothing
-%                changes when nv >= 1.
-% MMP, 10/21/2026: options.estimate: the Gram dimension of every term and
-%                the decision variables of the call, from the grids the
-%                build uses, returned before any declaration (LPI_INEQ_SOP
-%                prints them before it builds).
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body
-%                and headers of the local functions; code unchanged.
-%                Deleted: the comparison with copquadvar, references to
-%                poscopvar and copquadvar for the inputs, the reason for the
-%                cache rule of the fast path, a test name and the cost note;
-%                the 1-D table of the map is in the header of dir_list.
-% MMP, 10/29/2026: A 'subset' degree array moves with a Psatz offset instead
-%                of being refused (reduce_spec; act_of replaces ng_of):
-%                every subset bound falls by the offset of each direction
-%                in which the term's weight acts whose theta lies in the
-%                subset, the smallest shift under which the term reaches no
-%                kernel monomial outside the plain term's (the 'joint' rule,
-%                per subset). For per-direction caps on the 'like' slack of
-%                the N-D executives; on the 2-D heat PIE the gains of the
-%                rules agree to 7e-6 and the shift saves 8-13% Gram entries
-%                at the same rows. Programs without a subset array are
-%                unchanged.
-% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
-%                LPIPROGRAM_SOP is retired.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
-%                code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local ACT_OF
-%                (10/29/2026, one caller) inlined before the reduce_spec
-%                call, its header as the comment of the block and its
-%                10/29/2026 lines with their markers; the commented-out
-%                ng_of header line of 10/29/2026 removed with it.
-% MMP, 11/12/2026: Terms as rows of per-direction factors (options.psatz_rows,
-%                psatz_rows_offset): the products of faces in different
-%                directions, which no code expressed. MEASURED on the
-%                coupled L2[s1] x L2[s1,s2] operator with kernel s1 s2
-%                (zero on two faces meeting at a corner): the codes certify
-%                it one degree above the matched degree (Gram 960), the
-%                corner product at the matched degree (Gram 24); the
-%                edge-coupled 1-D/2-D heat cascade (reaction r, r* = pi^2)
-%                at the light tier: certified to 0.48 r* with the codes,
-%                to 0.67 r* with the four corner rows added (6-step
-%                bisections; heavy certifies 0.5 r* at 1.02M variables,
-%                95 s, light with the rows at 0.57M, 28 s). Every term is
-%                now a factor row (the codes converted; TERM_WEIGHT by
-%                row); programs with codes alone are unchanged.
-% MMP, 11/17/2026: options.psatz_rows_perdir (default false): a factor row
-%                lowers 'int' only in the directions of its nonzero
-%                factors; the offset rule of the settings proposal, eq. d4.
-%                Help text: the option, under OPTIONS.
-% MMP, 11/17/2026: Degree field 'cap' (1 x nv, Inf = no cap): theta_k+s_k
-%                <= cap_k in an owned direction k, theta_k <= cap_k
-%                otherwise; replaces the total-degree caps of the tiers
-%                (settings report 11/16/2026, Sec. 8.5).
-%                Help text: the field, under DEG.
-% MMP, 11/18/2026: Degree field 'cap_inc' (1 x nv): theta_k+s_k <= cap_inc_k on
-%                the lower and upper basis operators (alpha_k = 2, 3) of an
-%                owned direction only, the triangular bound of Shivakumar's
-%                note of 11/17/2026 (Lemma 1.2: the triangular part of a Gram
-%                factor of a purely integral kernel of degree p has total
-%                degree at most p-1; Thm 1.4 the reduced basis). Set by
-%                GET_LIFT_DEGS cap_inc ('auto' = Dmax-1). cap unchanged; a
-%                spec without cap_inc builds the grid of 11/17/2026.
+% Initial coding MMP, 10/07/2026
 
 % The cache of position maps; 'clear' empties it
 persistent CACHE
@@ -305,59 +223,59 @@ if ~any(strcmp(path,{'fast','general'}))
 end
 usecache = true;
 if isfield(options,'cache') && ~isempty(options.cache),  usecache = logical(options.cache);  end
-est = isfield(options,'estimate') && ~isempty(options.estimate) && logical(options.estimate); % MMP, 10/21/2026
-Nest = zeros(1,nt);             % the Gram dimensions, when est             % MMP, 10/21/2026
+est = isfield(options,'estimate') && ~isempty(options.estimate) && logical(options.estimate);
+Nest = zeros(1,nt);             % the Gram dimensions, when est
 t_all = tic;
 
-% % % Spaces, registry, components: 'copquadvar's enumeration, through
-% 'lift_copvar' (multiindex_grid, direction 1 fastest, then include and sep).
+% % % Spaces, registry, components: the multi-index enumeration, direction
+% 1 fastest, then include and sep.
 [meta,sp] = parse_copvar_spaces(dims,spaces,dom);
 M = numel(sp);  vars = meta.vars;   nv = numel(vars);   dom = meta.dom;
 mask = meta.space_out;  mk = meta.dim_out(:);
 own = cell(1,M);
 for k = 1:M,    own{k} = reshape(find(mask(k,:)),1,[]);     end
 % Term codes valid for nv variables
-% if any(~ismember(codes,[0,1,3:2*nv+2]))                                   % MMP, 10/08/2026 (was)
-if any(~ismember(codes,[0,1,3:3*nv+2]))                                     % MMP, 10/08/2026
+if any(~ismember(codes,[0,1,3:3*nv+2]))
     error("'psatz' entries should be 0, 1, face codes 2d+1 / 2d+2 or quadratic codes 2nv+2+d with d in 1..nv.")
 end
-% Terms as rows of per-direction factors: 0 none, 1 lower face, 2 upper     % MMP, 11/12/2026
-% face, 3 box quadratic (TERM_WEIGHT); the codes converted, then the rows   % MMP, 11/12/2026
-% of options.psatz_rows appended (code NaN); psatz given and empty: the     % MMP, 11/12/2026
-% rows alone                                                                % MMP, 11/12/2026
-trow = zeros(nt,nv);                                                        % MMP, 11/12/2026
-for c = 1:nt                                                                % MMP, 11/12/2026
-    if codes(c)==1,                         trow(c,:) = 3;                  % MMP, 11/12/2026
-    elseif codes(c)>=3 && codes(c)<=2*nv+2, trow(c,floor((codes(c)-1)/2)) = 2-mod(codes(c),2); % MMP, 11/12/2026
-    elseif codes(c)>2*nv+2,                 trow(c,codes(c)-2*nv-2) = 3;    % MMP, 11/12/2026
-    end                                                                     % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
-% options.psatz_rows_perdir (logical, default false): a factor row lowers   % MMP, 11/17/2026
-% 'int' only where its factors are nonzero (settings proposal, eq. d4);     % MMP, 11/17/2026
-% false: in every direction                                                 % MMP, 11/17/2026
-perdir = isfield(options,'psatz_rows_perdir') && ~isempty(options.psatz_rows_perdir) && logical(options.psatz_rows_perdir); % MMP, 11/17/2026
-if isfield(options,'psatz_rows') && ~isempty(options.psatz_rows)            % MMP, 11/12/2026
-    Rw = double(options.psatz_rows);                                        % MMP, 11/12/2026
-    if size(Rw,2)~=nv || any(~ismember(Rw(:),0:3))                          % MMP, 11/12/2026
-        error("'psatz_rows' should be R x nv with entries 0 (none), 1 (lower face), 2 (upper face) or 3 (box quadratic).") % MMP, 11/12/2026
-    end                                                                     % MMP, 11/12/2026
-    ro = zeros(1,size(Rw,1));                                               % MMP, 11/12/2026
-    if isfield(options,'psatz_rows_offset') && ~isempty(options.psatz_rows_offset) % MMP, 11/12/2026
-        ro = double(options.psatz_rows_offset(:).');                        % MMP, 11/12/2026
-        if isscalar(ro),    ro = repmat(ro,1,size(Rw,1));                   % MMP, 11/12/2026
-        elseif numel(ro)~=size(Rw,1)                                        % MMP, 11/12/2026
-            error("'psatz_rows_offset' should be a scalar or have one entry per row.") % MMP, 11/12/2026
-        end                                                                 % MMP, 11/12/2026
-    end                                                                     % MMP, 11/12/2026
-    if any(ro<0 | ro~=round(ro))                                            % MMP, 11/12/2026
-        error("'psatz_rows_offset' should be nonnegative integers.")        % MMP, 11/12/2026
-    end                                                                     % MMP, 11/12/2026
-    if isfield(options,'psatz') && isempty(options.psatz)                   % MMP, 11/12/2026
-        codes = zeros(1,0);     offs = zeros(1,0);     trow = zeros(0,nv);  % MMP, 11/12/2026
-    end                                                                     % MMP, 11/12/2026
-    trow = [trow; Rw];      codes = [codes, NaN(1,size(Rw,1))];             % MMP, 11/12/2026
-    offs = [offs, ro];      nt = numel(codes);      Nest = zeros(1,nt);     % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
+% Terms as rows of per-direction factors: 0 none, 1 lower face, 2 upper
+% face, 3 box quadratic (TERM_WEIGHT); the codes converted, then the rows
+% of options.psatz_rows appended (code NaN); psatz given and empty: the
+% rows alone
+trow = zeros(nt,nv);
+for c = 1:nt
+    if codes(c)==1,                         trow(c,:) = 3;
+    elseif codes(c)>=3 && codes(c)<=2*nv+2, trow(c,floor((codes(c)-1)/2)) = 2-mod(codes(c),2);
+    elseif codes(c)>2*nv+2,                 trow(c,codes(c)-2*nv-2) = 3;
+    end
+end
+% options.psatz_rows_perdir (logical, default false): a factor row lowers
+% 'int' only where its factors are nonzero; false: in every direction
+perdir = isfield(options,'psatz_rows_perdir') && ~isempty(options.psatz_rows_perdir) && logical(options.psatz_rows_perdir);
+if isfield(options,'psatz_rows') && ~isempty(options.psatz_rows)
+    Rw = double(options.psatz_rows);
+    if size(Rw,2)~=nv || any(~ismember(Rw(:),0:3))
+        error("'psatz_rows' should be R x nv with entries 0 (none), 1 (lower face), 2 (upper face) or 3 (box quadratic).")
+    end
+    % The offsets of the rows: a scalar or one per row, nonnegative integers
+    ro = zeros(1,size(Rw,1));
+    if isfield(options,'psatz_rows_offset') && ~isempty(options.psatz_rows_offset)
+        ro = double(options.psatz_rows_offset(:).');
+        if isscalar(ro),    ro = repmat(ro,1,size(Rw,1));
+        elseif numel(ro)~=size(Rw,1)
+            error("'psatz_rows_offset' should be a scalar or have one entry per row.")
+        end
+    end
+    if any(ro<0 | ro~=round(ro))
+        error("'psatz_rows_offset' should be nonnegative integers.")
+    end
+    % Append the rows (code NaN), alone when psatz is given and empty
+    if isfield(options,'psatz') && isempty(options.psatz)
+        codes = zeros(1,0);     offs = zeros(1,0);     trow = zeros(0,nv);
+    end
+    trow = [trow; Rw];      codes = [codes, NaN(1,size(Rw,1))];
+    offs = [offs, ro];      nt = numel(codes);      Nest = zeros(1,nt);
+end
 % The basis operators of every space, their space and index within it
 lopt = struct();
 if isfield(options,'sep'),      lopt.sep = options.sep;         end
@@ -376,17 +294,16 @@ else
     deg_sp = repmat({deg},1,M);
 end
 
-% % % Per term: the Gram's monomial grids ('int' lowered by the term's
+% % % Per term: the monomial grids of the Gram ('int' lowered by the term
 % offset), its declaration, its weight and position map. The maps are
 % applied once the common decision list of all terms is known.
-% terms = struct('code',{},'offset',{},'E',{},'N',{},'off',{},'Nc',{},'names',{},'ndec',{},... % MMP, 11/12/2026 (was)
 terms = struct('code',{},'row',{},'offset',{},'E',{},'N',{},'off',{},'Nc',{},'names',{},'ndec',{},...
                'route',{},'cache_hit',{},'Qdpvar',{},'PM',{},'SE',{},'SF',{},'useshift',{},...
-               't_declare',{},'t_map',{},'t_product',{});                   % MMP, 11/12/2026
+               't_declare',{},'t_map',{},'t_product',{});
 for c = 1:nt
-    % The monomial grid of every basis operator, as copquadvar's
-    % monomial_bases: exponents over [theta_1..theta_nv, s^k], 'mult' zero
-    % in a multiplier direction (delta identifies s_d with theta_d).
+    % The monomial grid of every basis operator: exponents over
+    % [theta_1..theta_nv, s^k], 'mult' zero in a multiplier direction
+    % (delta identifies s_d with theta_d).
     E = cell(1,Nb);
     for b = 1:Nb
         k = bsp(b);     spec = deg_sp{k};
@@ -397,33 +314,19 @@ for c = 1:nt
             end
             spec = spec{bix(b)};
         end
-%       spec = reduce_spec(spec,offs(c),ng_of(codes(c),nv),nv);             % MMP, 10/08/2026 (was)
-        offv = offs(c);                                                     % MMP, 10/08/2026
+        offv = offs(c);
         if codes(c)>2*nv+2      % single-direction quadratic: lower 'int' there only
-            offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
+            offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);
         end
-        if isnan(codes(c)) && perdir    % a factor row: its directions only % MMP, 11/17/2026
-            offv = zeros(1,nv);     offv(trow(c,:)~=0) = offs(c);           % MMP, 11/17/2026
-        end                                                                 % MMP, 11/17/2026
-%       spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/29/2026 (was)
-%       spec = reduce_spec(spec,offv,act_of(codes(c),nv),nv);               % MMP, 11/09/2026 (was); MMP, 10/29/2026
-        % act: the directions in which the weight of the term codes(c) has  % MMP, 11/09/2026
-        % positive degree (the former local ACT_OF, which replaced NG_OF:   % MMP, 11/09/2026
-        % that returned the count, and the subset rule of REDUCE_SPEC needs % MMP, 11/09/2026
-        % the directions): none for the plain term, all for the box product, % MMP, 11/09/2026
-        % direction d for a face 2d+1 / 2d+2 or a single-direction box      % MMP, 11/09/2026
-        % quadratic 2nv+2+d                                                 % MMP, 11/09/2026
-        % if code==0,         n = 0;                                        % MMP, 11/09/2026; MMP, 10/29/2026 (was)
-        % elseif code==1,     n = nv;                                       % MMP, 11/09/2026; MMP, 10/29/2026 (was)
-        % else,               n = 1;                                        % MMP, 11/09/2026; MMP, 10/29/2026 (was)
-        % end                                                               % MMP, 11/09/2026; MMP, 10/29/2026 (was)
-%       act = false(1,nv);                                                  % MMP, 11/12/2026 (was); MMP, 11/09/2026; MMP, 10/29/2026
-%       if codes(c)==1,                             act(:) = true;          % MMP, 11/12/2026 (was); MMP, 11/09/2026; MMP, 10/29/2026
-%       elseif codes(c)>=3 && codes(c)<=2*nv+2,     act(floor((codes(c)-1)/2)) = true; % MMP, 11/12/2026 (was); MMP, 11/09/2026; MMP, 10/29/2026
-%       elseif codes(c)>2*nv+2,                     act(codes(c)-2*nv-2) = true; % MMP, 11/12/2026 (was); MMP, 11/09/2026; MMP, 10/29/2026
-%       end                                                                 % MMP, 11/12/2026 (was); MMP, 11/09/2026; MMP, 10/29/2026
-        act = trow(c,:)~=0;     % the directions of the factor row          % MMP, 11/12/2026
-        spec = reduce_spec(spec,offv,act,nv);                               % MMP, 11/09/2026
+        if isnan(codes(c)) && perdir    % a factor row: its directions only
+            offv = zeros(1,nv);     offv(trow(c,:)~=0) = offs(c);
+        end
+        % act: the directions in which the weight of the term codes(c) has
+        % positive degree: none for the plain term, all for the box product,
+        % direction d for a face 2d+1 / 2d+2 or a single-direction box
+        % quadratic 2nv+2+d
+        act = trow(c,:)~=0;     % the directions of the factor row
+        spec = reduce_spec(spec,offv,act,nv);
         % Caps per variable, 'mult' zero where the multi-index is 1; the
         % exponent grid
         d = process_degrees_one(spec,nv);
@@ -434,72 +337,54 @@ for c = 1:nt
         end
         caps_mult = d.mult(ok);
         caps_mult(basis_list(b,1+ok)==1) = 0;
-%       E{b} = build_exponent_grid([d.int,caps_mult],d.joint,d.subset);     % MMP, 11/17/2026 (was)
-        % Field 'cap' (settings report 11/16/2026, Sec. 8.5): theta_k+s_k <= % MMP, 11/17/2026
-        % cap(k) in an owned direction k, theta_k <= cap(k) otherwise; a    % MMP, 11/17/2026
-        % subset array over [theta_1..theta_nv, s_ok] (any space; replaces  % MMP, 11/17/2026
-        % d.subset when given); entries big = no cap                        % MMP, 11/17/2026
-%       sub = d.subset;                                                     % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%       if isfield(spec,'cap') && ~isempty(spec.cap)                        % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%           capv = reshape(spec.cap,1,[]);                                  % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%           if isscalar(capv),  capv = repmat(capv,1,nv);   end             % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%           nn = nv + numel(ok);    big = sum(d.int) + sum(caps_mult);      % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%           sub = big*ones(1,2^nn);                                         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%           for kk = 1:nv                                                   % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%               if ~isfinite(capv(kk)),    continue,   end                  % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%               j = find(ok==kk);                                           % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%               if isempty(j),  ix = 1 + 2^(kk-1);    % theta_k alone       % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%               else,           ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k} % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%               end                                                         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%               sub(ix) = min(sub(ix),capv(kk));                            % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%           end                                                             % MMP, 11/18/2026 (was); MMP, 11/17/2026
-%       end                                                                 % MMP, 11/18/2026 (was); MMP, 11/17/2026
-        % BEGIN MMP, 11/18/2026: cap_inc, the triangular cap on the lower   % MMP, 11/18/2026
-        % and upper basis operators (alpha_k = 2, 3) of an owned direction  % MMP, 11/18/2026
-        % (header 11/18/2026); cap as before (replaces a subset array),     % MMP, 11/18/2026
-        % cap_inc refines the subset array in force, or the uncapped grid   % MMP, 11/18/2026
-        sub = d.subset;                                                     % MMP, 11/18/2026
-        havecap = isfield(spec,'cap') && ~isempty(spec.cap);                % MMP, 11/18/2026
-        haveinc = isfield(spec,'cap_inc') && ~isempty(spec.cap_inc);        % MMP, 11/18/2026
-        if havecap || haveinc                                               % MMP, 11/18/2026
-            nn = nv + numel(ok);    big = sum(d.int) + sum(caps_mult);      % MMP, 11/18/2026
-            if havecap || isempty(sub),     sub = big*ones(1,2^nn);     end % MMP, 11/18/2026
-        end                                                                 % MMP, 11/18/2026
-        if havecap                                                          % MMP, 11/18/2026
-            capv = reshape(spec.cap,1,[]);                                  % MMP, 11/18/2026
-            if isscalar(capv),  capv = repmat(capv,1,nv);   end             % MMP, 11/18/2026
-            for kk = 1:nv                                                   % MMP, 11/18/2026
-                if ~isfinite(capv(kk)),    continue,   end                  % MMP, 11/18/2026
-                j = find(ok==kk);                                           % MMP, 11/18/2026
-                if isempty(j),  ix = 1 + 2^(kk-1);    % theta_k alone       % MMP, 11/18/2026
-                else,           ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k}% MMP, 11/18/2026
-                end                                                         % MMP, 11/18/2026
-                sub(ix) = min(sub(ix),capv(kk));                            % MMP, 11/18/2026
-            end                                                             % MMP, 11/18/2026
-        end                                                                 % MMP, 11/18/2026
-        if haveinc                                                          % MMP, 11/18/2026
-            capi = reshape(spec.cap_inc,1,[]);                              % MMP, 11/18/2026
-            if isscalar(capi),  capi = repmat(capi,1,nv);   end             % MMP, 11/18/2026
-            for kk = 1:nv                                                   % MMP, 11/18/2026
-                j = find(ok==kk);       % owned directions only             % MMP, 11/18/2026
-                if ~isfinite(capi(kk)) || isempty(j),    continue,   end    % MMP, 11/18/2026
-                if basis_list(b,1+kk)==2 || basis_list(b,1+kk)==3           % MMP, 11/18/2026
-                    ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k}      % MMP, 11/18/2026
-                    sub(ix) = min(sub(ix),capi(kk));                        % MMP, 11/18/2026
-                end                                                         % MMP, 11/18/2026
-            end                                                             % MMP, 11/18/2026
-        end                                                                 % MMP, 11/18/2026
-        % END MMP, 11/18/2026                                               % MMP, 11/18/2026
-        E{b} = build_exponent_grid([d.int,caps_mult],d.joint,sub);          % MMP, 11/17/2026
+        % Field 'cap': theta_k+s_k <= cap(k) in an owned direction k,
+        % theta_k <= cap(k) otherwise; a subset array over
+        % [theta_1..theta_nv, s_ok] (any space; replaces d.subset when
+        % given); entries big = no cap. Field 'cap_inc': theta_k+s_k <=
+        % cap_inc(k) on the lower and upper basis operators (alpha_k = 2, 3)
+        % of an owned direction; it refines the subset array in force, or
+        % the uncapped grid
+        sub = d.subset;
+        havecap = isfield(spec,'cap') && ~isempty(spec.cap);
+        haveinc = isfield(spec,'cap_inc') && ~isempty(spec.cap_inc);
+        if havecap || haveinc
+            nn = nv + numel(ok);    big = sum(d.int) + sum(caps_mult);
+            if havecap || isempty(sub),     sub = big*ones(1,2^nn);     end
+        end
+        if havecap
+            capv = reshape(spec.cap,1,[]);
+            if isscalar(capv),  capv = repmat(capv,1,nv);   end
+            for kk = 1:nv
+                if ~isfinite(capv(kk)),    continue,   end
+                j = find(ok==kk);
+                if isempty(j),  ix = 1 + 2^(kk-1);    % theta_k alone
+                else,           ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k}
+                end
+                sub(ix) = min(sub(ix),capv(kk));
+            end
+        end
+        if haveinc
+            capi = reshape(spec.cap_inc,1,[]);
+            if isscalar(capi),  capi = repmat(capi,1,nv);   end
+            for kk = 1:nv
+                j = find(ok==kk);       % owned directions only
+                if ~isfinite(capi(kk)) || isempty(j),    continue,   end
+                if basis_list(b,1+kk)==2 || basis_list(b,1+kk)==3
+                    ix = 1 + 2^(kk-1) + 2^(nv+j-1);   % {theta_k, s_k}
+                    sub(ix) = min(sub(ix),capi(kk));
+                end
+            end
+        end
+        E{b} = build_exponent_grid([d.int,caps_mult],d.joint,sub);
     end
 
-    % The Gram: rows (basis operator outer, matrix row, monomial inner), the
-    % index of 'sosquadvar', declared with the constant basis so that the
-    % names and the lower-triangular numbering are those 'copquadvar' gets.
+    % The Gram: rows (basis operator outer, matrix row, monomial inner),
+    % declared with the constant basis, so the names follow the
+    % lower-triangular numbering of the Gram.
     Tc = cellfun(@(e) size(e,1),E);     Tc = Tc(:);
     Nc = Tc.*mk(bsp);
     off = [0; cumsum(Nc)];  N = off(end);
-    if est,     Nest(c) = N;    continue,   end     % sizes only            % MMP, 10/21/2026
+    if est,     Nest(c) = N;    continue,   end     % sizes only
     t0 = tic;
     [prog,Pq] = sosquadvar(prog,{polynomial(1)},{polynomial(1)},N,N,'pos');
     names = Pq{1,1}.dvarname;
@@ -511,25 +396,22 @@ for c = 1:nt
     end
     t_declare = toc(t0);
 
-    % The term's weight: general path, the coefficients of g_d; fast path,
+    % The weight of the term: general path, the coefficients of g_d; fast path,
     % g = 1 with the degree-1 factors as shifts of the Gram index.
     t0 = tic;
-%     useshift = strcmp(path,'fast') && codes(c)~=0;                        % MMP, 11/12/2026 (was)
-    useshift = strcmp(path,'fast') && any(trow(c,:));                       % MMP, 11/12/2026
-%     [gco,shL,shR] = term_weight(codes(c),nv,dom,path);                    % MMP, 11/12/2026 (was)
-    [gco,shL,shR] = term_weight(trow(c,:),dom,path);                        % MMP, 11/12/2026
+    useshift = strcmp(path,'fast') && any(trow(c,:));
+    [gco,shL,shR] = term_weight(trow(c,:),dom,path);
     [ELt,ERt,SE,SF] = target_grids(E,nv,shL,shR);
     key = cache_key(basis_list,ELt,ERt,mk,dom,gco,own);
     hit = usecache && isKey(CACHE,key);
     if useshift && ~hit
         % A cold shifted map is the plain map on the ENLARGED index set,
-        % with the shift's fan-out on top (measured 3-D, product at int 1:
-        % 26 s against 17 s for the term's own map), so the shift route is
-        % taken only when its map is already cached; otherwise the term's
-        % own map is built and cached under its own key.
+        % with the fan-out of the shift on top (3-D, product at int 1: 26 s
+        % against 17 s for the own map of the term), so the shift route is
+        % taken only when its map is already cached; otherwise the own map
+        % of the term is built and cached under its own key.
         useshift = false;
-%         [gco,shL,shR] = term_weight(codes(c),nv,dom,'general');           % MMP, 11/12/2026 (was)
-        [gco,shL,shR] = term_weight(trow(c,:),dom,'general');               % MMP, 11/12/2026
+        [gco,shL,shR] = term_weight(trow(c,:),dom,'general');
         [ELt,ERt,SE,SF] = target_grids(E,nv,shL,shR);
         key = cache_key(basis_list,ELt,ERt,mk,dom,gco,own);
         hit = usecache && isKey(CACHE,key);
@@ -550,20 +432,19 @@ for c = 1:nt
     end
     t_map = toc(t0);
     % Record the term
-%   terms(c) = struct('code',codes(c),'offset',offs(c),'E',{E},'N',N,'off',off,'Nc',Nc,... % MMP, 11/12/2026 (was)
     terms(c) = struct('code',codes(c),'row',trow(c,:),'offset',offs(c),'E',{E},'N',N,'off',off,'Nc',Nc,...
                       'names',{names},'ndec',ndec_c,'route',route,'cache_hit',hit,...
                       'Qdpvar',Pq{1,1},'PM',PM,'SE',{SE},'SF',{SF},'useshift',useshift,...
-                      't_declare',t_declare,'t_map',t_map,'t_product',0);   % MMP, 11/12/2026
+                      't_declare',t_declare,'t_map',t_map,'t_product',0);
 end
-if est                          % one Gram per term, distinct names         % MMP, 10/21/2026
-    Pop = [];   Qcell = {};                                                 % MMP, 10/21/2026
-    info = struct('N',Nest,'ndec',sum(Nest.*(Nest+1)/2),'estimate',true);   % MMP, 10/21/2026
-    return                                                                  % MMP, 10/21/2026
-end                                                                         % MMP, 10/21/2026
+if est                          % one Gram per term, distinct names
+    Pop = [];   Qcell = {};
+    info = struct('N',Nest,'ndec',sum(Nest.*(Nest+1)/2),'estimate',true);
+    return
+end
 
-% % % The decision variables of all terms in one list, sorted as copquadvar
-% sorts its names, and each term's placement: dvar k sits at (u,v) and
+% % % The decision variables of all terms in one sorted list, and the
+% placement of each term: dvar k sits at (u,v) and
 % (v,u) of its Gram, rows in the common list; the shifts move the source
 % positions to the target positions.
 allnames = vertcat(terms.names);
@@ -587,7 +468,7 @@ for c = 1:nt
     terms(c).t_product = toc(t0);
 end
 
-% % % The blocks: every term's map, embedded in the union of the bases the
+% % % The blocks: the map of every term, embedded in the union of the bases the
 % terms reach, summed over the terms (disjoint rows).
 t0 = tic;
 Cblk = cell(M,M);
@@ -658,19 +539,17 @@ end
 if nt==1,   route = terms(1).route;     Qd = terms(1).Qdpvar;
 else,       route = {terms.route};      Qd = {terms.Qdpvar};
 end
-%             'route',{route},'code',codes,'offset',offs,'cache_hit',[terms.cache_hit],... % MMP, 11/12/2026 (was)
 info = struct('basis_list',basis_list,'E',{terms(1).E},'N',[terms.N],'ndec',ndec,'path',path,...
               'route',{route},'code',codes,'rows',trow,'offset',offs,'cache_hit',[terms.cache_hit],...
               't_declare',sum([terms.t_declare]),'t_map',sum([terms.t_map]),...
               't_product',sum([terms.t_product]),'t_blocks',t_blocks,'t_total',toc(t_all),...
-              'Qdpvar',{Qd},'terms',rmfield(terms,{'PM','SE','SF','useshift','Qdpvar'})); % MMP, 11/12/2026
+              'Qdpvar',{Qd},'terms',rmfield(terms,{'PM','SE','SF','useshift','Qdpvar'}));
 
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function spec = reduce_spec(spec,off,ng,nv)                               % MMP, 10/29/2026 (was)
-function spec = reduce_spec(spec,off,act,nv)                                % MMP, 10/29/2026
+function spec = reduce_spec(spec,off,act,nv)
 % SPEC = REDUCE_SPEC(SPEC,OFF,ACT,NV) returns the degree specification of a
 % Psatz term: 'int' lowered by OFF in every direction (OFF a row: per
 % direction), floored at 0, 'mult' kept at what it was (its default is the
@@ -678,18 +557,18 @@ function spec = reduce_spec(spec,off,act,nv)                                % MM
 % acts in (a row: by its sum), and every 'subset' bound lowered by the
 % offset of each direction the weight acts in whose theta lies in the
 % subset.
-% The subset rule: a term's lower-cell kernel exponent c + a + a' + e + 1
-% (lift exponent c, theta exponents a, a', weight degree e in that
-% direction) is one of the plain term's, c + a0 + a0' + 1 with a0 = a +
-% e_L, a0' = a' + e_R, e_L + e_R = e, only when a0 and a0' satisfy the
-% plain bounds; for term monomials saturating the term's bound on both
+% The subset rule: the lower-cell kernel exponent c + a + a' + e + 1 of a
+% term (lift exponent c, theta exponents a, a', weight degree e in that
+% direction) is one of the plain term, c + a0 + a0' + 1 with a0 = a + e_L,
+% a0' = a' + e_R, e_L + e_R = e, only when a0 and a0' satisfy the plain
+% bounds; for term monomials saturating the bound of the term on both
 % sides this requires the bound lowered by ceil(e/2) = the offset wherever
 % the weight acts, and nothing where only 'int' fell. Under this shift the
 % term adds no kernel monomial, so no equality row, beyond the plain term;
-% with no shift a face reaches kernel monomials outside the plain support
-% (2-D heat, 10/29/2026: 4-10% more rows); a shift in every lowered
-% direction gives a sub-basis of this one. The 'joint' rule above is the
-% same shift applied to the full set.
+% with no shift a face term reaches kernel monomials outside the plain
+% support (4-10% more rows on a 2-D heat equation); a shift in every
+% lowered direction gives a sub-basis of this one. The 'joint' rule above
+% is the same shift applied to the full set.
 % INPUT  spec: double scalar, or 'struct' with the optional fields int,
 %              mult, joint, subset;
 %        off:  double, the offset: a scalar, or 1 x nv, one per direction;
@@ -699,17 +578,13 @@ function spec = reduce_spec(spec,off,act,nv)                                % MM
 %              (1 x max(nv,1) double), mult and, if given, joint and
 %              subset.
 % No offset: SPEC unchanged
-% if off==0,  return,     end                                               % MMP, 10/08/2026 (was)
-if all(off==0),     return,     end                                         % MMP, 10/08/2026
+if all(off==0),     return,     end
 % A scalar specification as a struct
 if isnumeric(spec) && isscalar(spec)
     spec = struct('int',spec,'mult',spec);
 elseif ~isstruct(spec)
     error("Monomial degrees should be specified as a scalar or 'struct' object.")
 end
-% if isfield(spec,'subset') && ~isempty(spec.subset)                        % MMP, 10/29/2026 (was)
-%     error("A 'psatz_offset' is not defined for a 'subset' degree specification.") % MMP, 10/29/2026 (was)
-% end                                                                       % MMP, 10/29/2026 (was)
 % 'int' lowered and floored at 0; 'mult' defaults to the original 'int'
 w = 1;
 if isfield(spec,'int') && ~isempty(spec.int),   w = spec.int;   end
@@ -717,16 +592,15 @@ if ~isfield(spec,'mult') || isempty(spec.mult), spec.mult = w;  end
 w = reshape(w,1,[]);    if isscalar(w),   w = repmat(w,1,max(nv,1));    end
 spec.int = max(w-off,0);
 % 'joint' lowered by the total offset over the directions of the weight
-ng = nnz(act);                                                              % MMP, 10/29/2026
+ng = nnz(act);
 if isfield(spec,'joint') && ~isempty(spec.joint)
-%   spec.joint = max(spec.joint-off*ng,0);                                  % MMP, 10/08/2026 (was)
-    tot = off*ng;   if ~isscalar(off),  tot = sum(off);     end             % MMP, 10/08/2026
-    spec.joint = max(spec.joint-tot,0);                                     % MMP, 10/08/2026
+    tot = off*ng;   if ~isscalar(off),  tot = sum(off);     end
+    spec.joint = max(spec.joint-tot,0);
 end
-% % % BEGIN MMP, 10/29/2026. 'subset' bounds (variables [theta_1..theta_nv,
-% s_1..s_nv], the subset with members b at 1+sum(2.^(b-1)), so theta_k is
-% bit k of i-1; PROCESS_DEGREES_ONE) lowered by the offset of every acting
-% direction whose theta lies in the subset, floored at 0: the rule above.
+% 'subset' bounds (variables [theta_1..theta_nv, s_1..s_nv], the subset
+% with members b at 1+sum(2.^(b-1)), so theta_k is bit k of i-1) lowered
+% by the offset of every acting direction whose theta lies in the subset,
+% floored at 0: the rule above.
 if isfield(spec,'subset') && ~isempty(spec.subset)
     sc = reshape(spec.subset,1,[]);     n = numel(sc);
     offk = reshape(off,1,[]);
@@ -738,7 +612,6 @@ if isfield(spec,'subset') && ~isempty(spec.subset)
     end
     spec.subset = max(sc-drop,0);
 end
-% % % END MMP, 10/29/2026
 end
 
 
@@ -786,8 +659,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function k = lind_sym(u,v,N)
 % K = LIND_SYM(U,V,N) returns the decision variable of Gram position
-% (u,v): the numbering of SOSQUADVAR of the lower triangle by columns,
-% mirrored.
+% (u,v): the numbering of the lower triangle by columns, mirrored.
 % INPUT  u, v: double arrays of one size, row and column indices in 1..N;
 %        N:    double, the Gram dimension.
 % OUTPUT k:    double array of that size, indices in 1..N*(N+1)/2.
@@ -814,7 +686,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function deg = alias_deg(deg)
 % DEG = ALIAS_DEG(DEG) returns the degree specification DEG with the fields
-% 'lift' and 'weight' (the names of POSCOPVAR_LIFT) read as 'mult' and
+% 'lift' and 'weight' read as 'mult' and
 % 'int': each fills the field it stands for when that is absent or empty,
 % and is removed.
 % INPUT  deg: double, 'struct', or a cell of them, nested to any depth.
@@ -836,7 +708,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [gco,shL,shR] = term_weight(trow,dom,path)                         % MMP, 11/12/2026
+function [gco,shL,shR] = term_weight(trow,dom,path)
 % [GCO,SHL,SHR] = TERM_WEIGHT(TROW,DOM,PATH) returns the weight of a term
 % per direction: gco{d}, the coefficients of g_d (constant first) for the
 % general path (1 on the fast path); shL{d}, shR{d}, the rows [shift,
@@ -850,28 +722,25 @@ function [gco,shL,shR] = term_weight(trow,dom,path)                         % MM
 %        path: char, 'fast' or 'general'.
 % OUTPUT gco:      1 x nv cell of double rows;
 %        shL, shR: 1 x nv cells of K x 2 double.
-% MMP, 11/12/2026: by factor row instead of by code (the former body, a
-%                switch on the code with its 10/08/2026 markers, deleted);
-%                the same shifts and coefficients for a converted code.
-nv = numel(trow);                                                           % MMP, 11/12/2026
+nv = numel(trow);
 gco = repmat({1},1,nv);     shL = repmat({[0,1]},1,nv);   shR = shL;
-for d = find(trow)                                                          % MMP, 11/12/2026
-    a = dom(d,1);   b = dom(d,2);   L = b-a;                                % MMP, 11/12/2026
-    if trow(d)==3                                                           % MMP, 11/12/2026
+for d = find(trow)
+    a = dom(d,1);   b = dom(d,2);   L = b-a;
+    if trow(d)==3
         % Box quadratic: on the fast path (theta_d-a_d) on the left and
         % (b_d-theta_d) on the right, else their product
         if strcmp(path,'fast'),     shL{d} = [0,-a; 1,1];   shR{d} = [0,b; 1,-1];
         else,                       gco{d} = [-a*b, a+b, -1];
         end
-    else                                                                    % MMP, 11/12/2026
+    else
         % Face: (theta_d-a_d)/L or (b_d-theta_d)/L, on the fast path a
         % shift on the left only
-        if trow(d)==1,  fl = [-a,1]/L;  else,   fl = [b,-1]/L;    end       % MMP, 11/12/2026
+        if trow(d)==1,  fl = [-a,1]/L;  else,   fl = [b,-1]/L;    end
         if strcmp(path,'fast'),     shL{d} = [0,fl(1); 1,fl(2)];
         else,                       gco{d} = fl;
         end
-    end                                                                     % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
+    end
+end
 end
 
 
@@ -967,8 +836,10 @@ gam = @(X,gm) [gm*ones(size(X,1),1), X(:,2:4)];
 % The entry of the table for KIND, AL and BE
 switch kind
     case 0
+        % Neither space: the definite integral calG(b)-calG(a)
         L = [Cb; neg(Ca)];
     case 2
+        % Output space only: G(s) or a one-sided integral in s
         switch al
             case 1,     L = Gs;
             case 2,     L = [Cb; neg(As)];
@@ -976,6 +847,7 @@ switch kind
             case 4,     L = [Cb; neg(Ca)];
         end
     case 1
+        % Input space only: G(s') or a one-sided integral in s'
         switch be
             case 1,     L = Gsp;
             case 2,     L = [Cb; neg(Asp)];
@@ -983,14 +855,18 @@ switch kind
             case 4,     L = [Cb; neg(Ca)];
         end
     case 3
+        % Both spaces: the semiseparable table of the header, per gamma
         switch 10*al+be
+            % alpha = 1: the multiplier on the output side
             case 11,    L = gam(Gs,1);
             case 12,    L = gam(Gs,2);
             case 13,    L = gam(Gs,3);
             case 14,    L = [gam(Gs,2); gam(Gs,3)];
+            % beta = 1: the multiplier on the input side
             case 21,    L = gam(Gsp,3);
             case 31,    L = gam(Gsp,2);
             case 41,    L = [gam(Gsp,2); gam(Gsp,3)];
+            % Integrals on both sides
             case 22,    L = [gam([Cb; neg(As)],2); gam([Cb; neg(Asp)],3)];
             case 33,    L = [gam([Asp; neg(Ca)],2); gam([As; neg(Ca)],3)];
             case 23,    L = gam([Asp; neg(As)],3);
@@ -1051,12 +927,10 @@ for c = 1:Nb
     % monomial index on the target grid from the exponent row, 0 if absent.
     % The stride vector has one entry per exponent column: with no spatial
     % variable (every space R^q) it is EMPTY, and the one-row grid maps to
-    % index 1; cumprod([1,rng(1:end-1)]) gave a stray entry there.          % MMP, 10/17/2026
-%   rng = [PL(c,:)+1, JL(c,ok)+1];      stL{c} = cumprod([1,rng(1:end-1)]); % MMP, 10/17/2026 (was)
-    rng = [PL(c,:)+1, JL(c,ok)+1];      st = cumprod([1,rng]);  stL{c} = st(1:numel(rng)); % MMP, 10/17/2026
+    % index 1; cumprod([1,rng(1:end-1)]) gave a stray entry there.
+    rng = [PL(c,:)+1, JL(c,ok)+1];      st = cumprod([1,rng]);  stL{c} = st(1:numel(rng));
     tlL{c} = zeros(prod(rng),1);        tlL{c}(1+ELt{c}*stL{c}(:)) = (1:TL(c))';
-%   rng = [PR(c,:)+1, JR(c,ok)+1];      stR{c} = cumprod([1,rng(1:end-1)]); % MMP, 10/17/2026 (was)
-    rng = [PR(c,:)+1, JR(c,ok)+1];      st = cumprod([1,rng]);  stR{c} = st(1:numel(rng)); % MMP, 10/17/2026
+    rng = [PR(c,:)+1, JR(c,ok)+1];      st = cumprod([1,rng]);  stR{c} = st(1:numel(rng));
     tlR{c} = zeros(prod(rng),1);        tlR{c}(1+ERt{c}*stR{c}(:)) = (1:TR(c))';
 end
 Kg = cellfun(@(g) numel(g)-1,gco);
@@ -1097,6 +971,7 @@ for k = 1:M
     Td = cell(numel(cs),numel(cps),nv);
     hitL = cell(1,nv);  hitR = cell(1,nv);
     for d = 1:nv,   hitL{d} = false(ELmax(d)+1,1);  hitR{d} = false(ERmax(d)+1,1);  end
+    % Each pair (c,cp) of basis operators and each direction d
     for ic = 1:numel(cs)
       c = cs(ic);
       for jc = 1:numel(cps)
@@ -1106,6 +981,7 @@ for k = 1:M
             if kind(d)==3,  ng = 3;     else,   ng = 1;     end
             Td{ic,jc,d} = dir_matrix(kind(d),al,be,PL(c,d),PR(cp,d),JL(c,d),JR(cp,d),...
                                      @(kd,a1,b1,n) getlist(d,kd,a1,b1,n),ELmax(d),ERmax(d),ng);
+            % The exponents (eL,eR) that the columns of the matrix encode
             [~,cc] = find(Td{ic,jc,d});
             x = cc-1;
             eR = mod(x,ERmax(d)+1);     x = floor(x/(ERmax(d)+1));
@@ -1143,11 +1019,10 @@ for k = 1:M
         cp = cps(jc);
         % With no spatial variable the Kronecker product over directions is
         % empty: one Gram position (the constant) maps to one coefficient,
-        % weight 1 (Td has no third dimension to index then).               % MMP, 10/17/2026
-%       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2);      % MMP, 10/17/2026 (was)
-        if nv==0,   T = sparse(1);                                          % MMP, 10/17/2026
-        else,       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2); % MMP, 10/17/2026
-        end                                                                 % MMP, 10/17/2026
+        % weight 1 (Td has no third dimension to index then).
+        if nv==0,   T = sparse(1);
+        else,       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2);
+        end
         for d = 2:nv
             T = kron(T,Td{ic,jc,d});
             rsz(d) = size(Td{ic,jc,d},1);   csz(d) = size(Td{ic,jc,d},2);

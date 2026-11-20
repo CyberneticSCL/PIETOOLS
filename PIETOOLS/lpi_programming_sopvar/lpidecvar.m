@@ -4,12 +4,12 @@ function [prog,dvar_out] = lpidecvar(prog,dvar)
 % decision variable of size "dvar". It returns the updated program 
 % structure, as well as (if applicable) the newly generated matrix-valued
 % decision variable "dvar_out", either equal to or of size "dvar". 
-% The function is a shell for 'sosdecvar' and 'sospolymatrixvar'.
+% The decision variables are declared in the SOS program PROG, a matrix of
+% them as a polynomial matrix variable with the single monomial 1.
 %
 % INPUT
-% - prog:       'struct' specifying an LPI optimization program structure
-%               (see also 'lpiprogram'). The format should match that used
-%               by SOSTOOLS.
+% - prog:       'struct' specifying an LPI optimization program structure.
+%               The format should match that used by SOSTOOLS.
 % - dvar:       OPTION 1: nx1 array of type 'dpvar', specifying n decision 
 %               variables to add to the optimization program.
 %               OPTION 2: nx1 cell array specifying names of n decision 
@@ -32,6 +32,7 @@ function [prog,dvar_out] = lpidecvar(prog,dvar)
 %               "dvar", specifying decision variables that have been newly
 %               generated and added to the optimization program structure.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lpidecvar
@@ -63,6 +64,7 @@ function [prog,dvar_out] = lpidecvar(prog,dvar)
 %   code unchanged: it references no operator class and serves both
 %   operator families, while lpi_programming/ is retired with the opvar
 %   classes;
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Check that the inputs make sense.
 if ~isa(prog,'struct')

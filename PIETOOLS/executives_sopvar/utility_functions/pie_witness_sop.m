@@ -5,9 +5,9 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 %       T x_t + Tw w_t = A x + B1 w,      z = C1 x + D11 w,
 %
 % the quantity MODE names on the Galerkin matrices T, Tw, A, B, C, D of its
-% operators in the orthonormal Legendre basis of degree N = OPTS.N_cheb
-% (PIE_DISC_SOP), in which the Euclidean norm of a coefficient vector is
-% the norm of the function it represents:
+% operators in the orthonormal Legendre basis of degree N = OPTS.N_cheb, in
+% which the Euclidean norm of a coefficient vector is the norm of the
+% function it represents:
 %
 %   'gain'  max norm(G(om)), G(om) = C*((1i*om*T - A)\(B - 1i*om*Tw)) + D,
 %           over om = 0
@@ -105,38 +105,6 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol, the licence block added,
-%                step comments in the body and headers of the local
-%                functions; code unchanged.
-% MMP, 10/28/2026: 'gain' includes the disturbance at the boundary: from
-%                T x_t + Tw w_t = A x + B1 w, the input operator of G(om) is
-%                B - i*om*Tw (before, Tw was not used, so for Tw ~= 0 the
-%                witness was the gain of the PIE without the Tw term); 'h2'
-%                returns ok = false when Tw ~= 0. For Tw = 0 both are
-%                computed as before.
-% MMP, 10/28/2026: 'gain' with an empty channel (no disturbance or no
-%                regulated output) returns the gain 0 at omega 0; before, the
-%                worst input was read off the SVD of an nz x 0 response and
-%                the index failed (maintainer: empty channels should not
-%                raise an error).
-% DJ, 10/29/2026: Convert the operators of the PIE to 'opvar' objects
-%                using pie2opvar, which PIE_DISC_SOP and PIE.B1.dim require,
-%                instead of initializing the PIE, whose operators are now
-%                'copvar' objects. This is a temporary fix, we should
-%                really work with the new PIE structure directly;
-% MMP, 11/04/2026: Convert with PIE2PIESIM, to structs of the kernels,
-%                instead of PIE2OPVAR, so that the witness needs no operator
-%                class; the test Tw == 0 reads the kernels (local
-%                ZERO_KERNELS, every coefficient below 1e-14 in modulus, the
-%                tolerance of the opvar test it replaces). Supersedes DJ,
-%                10/29/2026.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
-%                unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                very short and called once go into the body): GAUSS_LEGENDRE
-%                at the nodes of the worst input, BLOCK_MATRIX in
-%                dual_alignment, ZERO_KERNELS (11/04/2026) at the Tw test,
-%                each with its header as the comment of the block.
 
 % Output with every quantity not computed
 W = struct('ok',false,'note','','N',NaN,'gain',NaN,'omega',NaN,'wcoef',[],'wgrid',[],'sgrid',[], ...
@@ -146,12 +114,11 @@ if nargin<3 || isempty(opts),   opts = struct();    end
 if nargin<4,    Y = [];     end
 if nargin<5,    wblk = 1;   end
 N = getf(opts,'N_cheb',24);     nfreq = getf(opts,'nfreq',240);
-% Start the timer; convert the PIE to structs of its kernels (an error      % MMP, 11/04/2026
-% leaves it as given)                                                       % MMP, 11/04/2026
+% Start the timer; convert the PIE to structs of its kernels (an error
+% leaves it as given)
 t0 = tic;
 try
-%   PIE = pie2opvar(PIE);                                                   % MMP, 11/04/2026 (was); DJ, 10/29/2026
-    PIE = pie2piesim(PIE);                                                  % MMP, 11/04/2026
+    PIE = pie2piesim(PIE);
 catch
 end
 % 1-D only
@@ -166,21 +133,17 @@ try
     B = pie_disc_sop(PIE.B1,N);
     C = pie_disc_sop(PIE.C1,N);
     D = pie_disc_sop(PIE.D11,N);
-    % The boundary-disturbance operator Tw, when nonzero                    % MMP, 10/28/2026
-%   Tw0 = (PIE.Tw==0);                                                      % MMP, 11/04/2026 (was); MMP, 10/28/2026
-%   Tw0 = zero_kernels(PIE.Tw,1e-14);                                       % MMP, 11/09/2026 (was); MMP, 11/04/2026
-    % Tw0: every coefficient of the kernels P, Q1, Q2, R0, R1, R2 of Tw below % MMP, 11/09/2026
-    % 1e-14 in modulus, the tolerance of the opvar test it replaced, repeated % MMP, 11/09/2026
-    % monomials merged first as the subtraction of that test did (the former % MMP, 11/09/2026
-    % local ZERO_KERNELS)                                                   % MMP, 11/09/2026
-    Kz = {PIE.Tw.P, PIE.Tw.Q1, PIE.Tw.Q2, PIE.Tw.R.R0, PIE.Tw.R.R1, PIE.Tw.R.R2}; % MMP, 11/09/2026
-    Tw0 = true;                                                             % MMP, 11/09/2026
-    for kz = 1:numel(Kz)                                                    % MMP, 11/09/2026
-        c = Kz{kz};                                                         % MMP, 11/09/2026
-        if isa(c,'polynomial'),     c = combine(c);     c = c.coefficient;  end % MMP, 11/09/2026
-        Tw0 = Tw0 && all(abs(c(:))<1e-14);                                  % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
-    Twd = [];   if ~Tw0,    Twd = pie_disc_sop(PIE.Tw,N);   end             % MMP, 10/28/2026
+    % The boundary-disturbance operator Tw, when nonzero
+    % Tw0: every coefficient of the kernels P, Q1, Q2, R0, R1, R2 of Tw below
+    % 1e-14 in modulus, repeated monomials merged first
+    Kz = {PIE.Tw.P, PIE.Tw.Q1, PIE.Tw.Q2, PIE.Tw.R.R0, PIE.Tw.R.R1, PIE.Tw.R.R2};
+    Tw0 = true;
+    for kz = 1:numel(Kz)
+        c = Kz{kz};
+        if isa(c,'polynomial'),     c = combine(c);     c = c.coefficient;  end
+        Tw0 = Tw0 && all(abs(c(:))<1e-14);
+    end
+    Twd = [];   if ~Tw0,    Twd = pie_disc_sop(PIE.Tw,N);   end
 catch ME
     W.note = ['pie_disc_sop: ' ME.message];     return
 end
@@ -198,11 +161,11 @@ switch mode
         lam = lam(isfinite(lam));
         W.maxre = max(real(lam));   W.rate = -W.maxre;    W.ok = true;
     case 'h2'
-        % No H2 witness for a disturbance at the boundary (Tw ~= 0)         % MMP, 10/28/2026
-        if ~Tw0                                                             % MMP, 10/28/2026
-            W.note = 'h2: not computed for Tw ~= 0';                        % MMP, 10/28/2026
-            W.t = toc(t0);  return                                          % MMP, 10/28/2026
-        end                                                                 % MMP, 10/28/2026
+        % No H2 witness for a disturbance at the boundary (Tw ~= 0)
+        if ~Tw0
+            W.note = 'h2: not computed for Tw ~= 0';
+            W.t = toc(t0);  return
+        end
         % Lyapunov equation of (T\A, T\B), then the trace with C
         try
             At = T\A;   Bt = T\B;
@@ -212,17 +175,17 @@ switch mode
             W.note = ['lyap: ' ME.message];
         end
     case 'gain'
-        % No disturbance or no regulated output: the response is empty and  % MMP, 10/28/2026
-        % the gain 0                                                        % MMP, 10/28/2026
-        if size(B,2)==0 || size(C,1)==0                                     % MMP, 10/28/2026
-            W.omega = 0;    W.gain = 0;     W.ok = true;                    % MMP, 10/28/2026
-            W.t = toc(t0);  return                                          % MMP, 10/28/2026
-        end                                                                 % MMP, 10/28/2026
+        % No disturbance or no regulated output: the response is empty and
+        % the gain 0
+        if size(B,2)==0 || size(C,1)==0
+            W.omega = 0;    W.gain = 0;     W.ok = true;
+            W.t = toc(t0);  return
+        end
         % Norm of the frequency response at om = 0 and nfreq frequencies up
         % to 100*rho, rho the largest of 1 and the finite eigenvalue moduli
         G = @(om) C*((1i*om*T - A)\B) + D;
-        % With Tw ~= 0 the input operator is B - i*om*Tw                    % MMP, 10/28/2026
-        if ~Tw0,    G = @(om) C*((1i*om*T - A)\(B - 1i*om*Twd)) + D;    end % MMP, 10/28/2026
+        % With Tw ~= 0 the input operator is B - i*om*Tw
+        if ~Tw0,    G = @(om) C*((1i*om*T - A)\(B - 1i*om*Twd)) + D;    end
         lam = eig(A,T);     lam = lam(isfinite(lam));
         rho = max([abs(lam); 1]);
         og = [0, logspace(-3,log10(100*rho),nfreq)];
@@ -242,20 +205,18 @@ switch mode
         wc = V(:,1);                                % worst input, orthonormal coefficients
         W.wcoef = wc;
         % Its distributed components at the Gauss-Legendre nodes
-%       [sq,wq] = gauss_legendre(q,a,b);                                    % MMP, 11/09/2026 (was)
-        % Gauss-Legendre nodes sq (increasing) and weights wq on [a,b] by   % MMP, 11/09/2026
-        % Golub-Welsch (the former local GAUSS_LEGENDRE): the eigenvalues of % MMP, 11/09/2026
-        % the Jacobi matrix of the Legendre recurrence and twice the squared % MMP, 11/09/2026
-        % first entries of its eigenvectors, mapped from [-1,1]             % MMP, 11/09/2026
-        betaq = 0.5./sqrt(1-(2*(1:q-1)).^(-2));                             % MMP, 11/09/2026
-        Jq = diag(betaq,1)+diag(betaq,-1);                                  % MMP, 11/09/2026
-        [Vq,Dq] = eig(Jq);                                                  % MMP, 11/09/2026
-        [sq,iq] = sort(diag(Dq));     wq = 2*Vq(1,iq).^2;                   % MMP, 11/09/2026
-        sq = (b-a)/2*sq + (a+b)/2;    wq = (b-a)/2*wq;                      % MMP, 11/09/2026
+        % Gauss-Legendre nodes sq (increasing) and weights wq on [a,b] by
+        % Golub-Welsch: the eigenvalues of the Jacobi matrix of the Legendre
+        % recurrence and twice the squared first entries of its
+        % eigenvectors, mapped from [-1,1]
+        betaq = 0.5./sqrt(1-(2*(1:q-1)).^(-2));
+        Jq = diag(betaq,1)+diag(betaq,-1);
+        [Vq,Dq] = eig(Jq);
+        [sq,iq] = sort(diag(Dq));     wq = 2*Vq(1,iq).^2;
+        sq = (b-a)/2*sq + (a+b)/2;    wq = (b-a)/2*wq;
         W.sgrid = sq;
         if nwd>0
-%           Pq = (sq(:).^(0:N))*di.C';              % p_j(s_q): q x (N+1)  % MMP, 10/08/2026 (was)
-            Pq = di.evalbasis(sq(:));               % p_j(s_q) by recurrence % MMP, 10/08/2026
+            Pq = di.evalbasis(sq(:));               % p_j(s_q) by recurrence
             wd = reshape(wc(nwf+1:end),q,nwd);
             W.wgrid = Pq*wd;                        % values, one column per component
         end
@@ -279,7 +240,7 @@ function v = getf(s,f,d)
 % V = GETF(S,F,D) returns the field F of the struct S, or D when S has no
 % nonempty field F.
 % INPUT  s: 'struct'; f: char, the field name; d: the default value.
-% OUTPUT v: the field's value or D.
+% OUTPUT v: the value of the field, or D.
 if isstruct(s) && isfield(s,f) && ~isempty(s.(f)),  v = s.(f);  else,   v = d;  end
 end
 
@@ -290,7 +251,7 @@ function al = dual_alignment(Y,wblk,W,nwf,nwd,sq,wq)
 % the covariance real(w0*w0') of the worst input w0: on R^NWF, or at the
 % nodes SQ with each entry weighted by the quadrature weights WQ.
 % INPUT  Y:        'copvar' object; wblk: double, the block index;
-%        W:        'struct' of PIE_WITNESS_SOP, fields wcoef and wgrid;
+%        W:        'struct', the output W, fields wcoef and wgrid;
 %        nwf, nwd: double, the finite and distributed components of w;
 %        sq, wq:   double, the Gauss-Legendre nodes and weights.
 % OUTPUT al:       double in [0,1]; NaN for an empty block or for w with
@@ -300,13 +261,12 @@ Yb = Y.C{wblk,wblk};
 if isempty(Yb),     al = NaN;   return,     end
 if nwf>0 && nwd>0,  al = NaN;   return,     end     % mixed space: not compared
 if nwd==0                                           % finite disturbance: the multiplier matrix
-%   K = full(block_matrix(Yb));                                             % MMP, 11/09/2026 (was)
-    % The multiplier matrix of the block Yb: its first parameter, or zeros  % MMP, 11/09/2026
-    % of its dims when that is empty (the former local BLOCK_MATRIX)        % MMP, 11/09/2026
-    p = Yb.params;                                                          % MMP, 11/09/2026
-    if iscell(p),   K = p{1};    else,   K = p;   end                       % MMP, 11/09/2026
-    if isempty(K),  K = zeros(Yb.dims);    end                              % MMP, 11/09/2026
-    K = full(K);                                                            % MMP, 11/09/2026
+    % The multiplier matrix of the block Yb: its first parameter, or zeros
+    % of its dims when that is empty
+    p = Yb.params;
+    if iscell(p),   K = p{1};    else,   K = p;   end
+    if isempty(K),  K = zeros(Yb.dims);    end
+    K = full(K);
     K = (K+K')/2;
     wf = W.wcoef(1:nwf);
     S = real(wf*wf');
@@ -315,8 +275,7 @@ if nwd==0                                           % finite disturbance: the mu
 end
 % Distributed w: kernel and covariance at the nodes, entry (i,j) weighted
 % by sqrt(wq_i*wq_j)
-%Kq = kernel_on_grid(Yb,sq);                        % nwd q x nwd q, symmetrised  % MMP, 10/08/2026 (was)
-Kq = kernel_on_grid(Yb,sq,wq);                      % nwd q x nwd q, symmetrised  % MMP, 10/08/2026
+Kq = kernel_on_grid(Yb,sq,wq);                      % nwd q x nwd q, symmetrised
 S = real(W.wgrid(:)*W.wgrid(:)');
 sw = sqrt(repmat(wq(:),nwd,1));
 Kw = (sw*sw').*Kq;  Sw = (sw*sw').*S;
@@ -324,13 +283,13 @@ al = abs(sum(sum(Kw.*Sw)))/max(norm(Kw,'fro')*norm(Sw,'fro'),eps);
 end
 
 
-function Kq = kernel_on_grid(B,sq,wq)                                       % MMP, 10/08/2026
+function Kq = kernel_on_grid(B,sq,wq)
 % KQ = KERNEL_ON_GRID(B,SQ,WQ) returns the kernel of the 1-D fixed sopvar
 % block B on L2^n[s] at the grid points SQ, symmetrized:
-% lower cell for t < s, the stored upper cell or the lower cell's adjoint for
-% t > s; the multiplier cell, a delta, goes on the diagonal divided by the  % MMP, 10/08/2026
-% quadrature weight, so that the weighted Frobenius product below         % MMP, 10/08/2026
-% integrates it as int y0(s) |w(s)|^2 ds. Component-outer order.          % MMP, 10/08/2026
+% lower cell for t < s, the stored upper cell or the adjoint of the lower cell for
+% t > s; the multiplier cell, a delta, goes on the diagonal divided by the
+% quadrature weight, so that the weighted Frobenius product below
+% integrates it as int y0(s) |w(s)|^2 ds. Component-outer order.
 % INPUT  B:   'sopvar' object, L2^n[s] -> L2^n[s], with parameters
 %             {C0, C1} or {C0, C1, C2} (multiplier, t < s, t > s) and
 %             monomial bases ZL{1}, ZR{1} in s;
@@ -344,7 +303,7 @@ NL = numel(ZL);     NR = numel(ZR);
 q = numel(sq);
 zl = sq(:).^(ZL');  zr = sq(:).^(ZR');
 % Multiplier, lower and upper cells; an empty or zero cell as a sparse zero
-C0 = p{1};  if isempty(C0) || ~any(C0(:)),  C0 = sparse(n*NL,n*NR);     end % MMP, 10/08/2026
+C0 = p{1};  if isempty(C0) || ~any(C0(:)),  C0 = sparse(n*NL,n*NR);     end
 C1 = p{2};  C2 = [];    if numel(p)>=3,  C2 = p{3};    end
 if isempty(C1) || ~any(C1(:)),  C1 = sparse(n*NL,n*NR);     end
 % The n x n kernel block of every pair of grid points (i,j), grid-outer
@@ -364,7 +323,7 @@ for i = 1:q
             end
         else
             K = (Li*C1*Rj + (Li*C1*Rj)')/2;
-            K = K + (Li*C0*Rj + (Li*C0*Rj)')/(2*wq(i));                     % MMP, 10/08/2026
+            K = K + (Li*C0*Rj + (Li*C0*Rj)')/(2*wq(i));
         end
         Kg((i-1)*n+(1:n),(j-1)*n+(1:n)) = full(K);
     end

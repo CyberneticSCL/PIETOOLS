@@ -14,7 +14,7 @@ function prog = lpiprogram(varargin)
 %               variables. If not specified, or declared as [], default 
 %               dummy variables will be generated, so that if vartab(i)=si, 
 %               then  dumvartab(i) = si_dum;
-% - dom:        nx2 array of type 'double', with each row dom(i,:)=[1,b]
+% - dom:        nx2 array of type 'double', with each row dom(i,:)=[a,b]
 %               specifying the interval on which the independent variable
 %               vartab(i) (and corresponding dummy variable) is defined.
 % - decvartab:  (optional) qx1 array of type 'dpvar', specifying
@@ -23,12 +23,11 @@ function prog = lpiprogram(varargin)
 % - freevartab: (optional) mx1 array of type 'polynomial', specifying
 %               additional independent variables in the optimization 
 %               program that need not exist on any fixed domain.
-% - settings:   (optional, the last input) 'struct' of LPI settings
-%               (LPISETTINGS_SOP), or a 'char' or 'string' naming a tier:
-%               'stripped', 'light', 'heavy', 'veryheavy', 'custom' or
-%               'extreme'; default 'light'. LPI_INEQ_SOP and LPISOLVE take
-%               from it the options a call does not give; LPISETSETTINGS
-%               changes it.
+% - settings:   (optional, the last input) 'struct' of LPI settings, or a
+%               'char' or 'string' naming a tier: 'stripped', 'light',
+%               'heavy', 'veryheavy', 'custom' or 'extreme'; default
+%               'light'. Stored in prog.settings, from which the LPI
+%               routines take the options a call does not give.
 %
 % OUTPUT
 % - prog:       'struct' specifying an optimization program structure as
@@ -43,6 +42,8 @@ function prog = lpiprogram(varargin)
 % Thus, if size(prog.dom,1)=n, then prog.vartable(1:n) will correspond to
 % primary spatial variables, prog.vartable(n+1:2*n) to dummy variables, and
 % prog.vartable(2*n+1:end) to non-spatial variables.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lpiprogram
@@ -94,6 +95,7 @@ function prog = lpiprogram(varargin)
 %   signature lpiprogram(vartab,dumvartab,dom,decvartab,freevartab) and its
 %   body move, unchanged, to the local function DECLARE_PROGRAM, whose
 %   three recursive calls now call it directly.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % % % SETTINGS: a 'struct' or text as the last input (no other input is     % MMP, 11/12/2026
 % either), stored in PROG; the inputs before it declare the program.        % MMP, 11/12/2026

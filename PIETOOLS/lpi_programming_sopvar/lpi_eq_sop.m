@@ -1,16 +1,14 @@
-function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MMP, 10/08/2026
+function [prog,tag] = lpi_eq_sop(prog,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PROG,TAG] = LPI_EQ_SOP(PROG,P,OPTS) adds to the LPI program PROG the
 % equality constraints P == 0 on the decision variables of P: for a
-% 'cdopvar' P, that every block is zero (LPI_EQ_CDOPVAR); for an 'sdopvar'
-% P, that every stored coefficient of every parameter is zero
-% (LPI_EQ_SDOPVAR); for a 'dpvar' P, P == 0 by SOSEQ; any other P is an
-% error.
+% 'cdopvar' P, that every block is zero; for an 'sdopvar' P, that every
+% stored coefficient of every parameter is zero; for a 'dpvar' P, P == 0 as
+% an equality of the SOS program; any other P is an error.
 %
 % INPUT
-% - prog:   'struct', the LPI program to modify (from
-%           LPIPROGRAM), whose field decvartable holds every decision
-%           variable of P;
+% - prog:   'struct', the LPI program to modify, whose field decvartable
+%           holds every decision variable of P;
 % - P:      'cdopvar' or 'sdopvar' object, the decision operator to set to
 %           zero; or a 'dpvar' object;
 % - opts:   (optional) char 'symmetric', for a self-adjoint P: one
@@ -24,7 +22,7 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 % - prog:   'struct', PROG with the constraints P == 0 added;
 % - tag:    'double', for a 'cdopvar' P and a PROG with the field sopeq (a
 %           cell): the index in prog.sopeq of the record of the rows this
-%           call added (the TAG input of LPIGETDUAL_SOP); 0 otherwise.
+%           call added; 0 otherwise.
 %
 % NOTES
 % A 'copvar', 'sopvar', 'polynomial' or 'double' P, which has no decision
@@ -60,70 +58,29 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. Dispatcher over both operator families,
-%                in a folder parallel to lpi_programming and suffixed _sop
-%                so that it shadows nothing (every folder is on the path).
-%                'lpi_eq' refuses the new classes ("Input must be of type
-%                'dopvar', 'dopvar2d', or 'dpvar'"), so an LPI body had to
-%                call lpi_eq_cdopvar or lpi_eq_sdopvar by class.
-% MMP, 09/30/2026: Comment only: lpi_eq_sdopvar has one output and three
-%                inputs since its modes were split into collect_eq_rows and
-%                impose_eq_rows; the note on a second output is obsolete.
-% MMP, 10/02/2026: Comment only: the container rows are written by
-%                'lpi_soseq', not soseq.
-% MMP, 10/08/2026: second output TAG, the index in prog.sopeq of the row
-%                  record lpi_eq_cdopvar keeps for this equality, so that
-%                  'lpigetdual_sop' can assemble its dual kernel; 0 on the
-%                  single-block and legacy paths, which keep no record.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body; code
-%                unchanged. The 10/08/2026 entry, which stood in the body,
-%                moved to this log. The deleted header text was the
-%                comparison with lpi_eq, the per-routine remarks on errors,
-%                a test reference and a cost note with its 10/02/2026 edit.
-% MMP, 11/04/2026: A 'dpvar' P is imposed by SOSEQ here (what LPI_EQ did
-%                for this class, OPTS unused), so the container path no
-%                longer calls lpi_programming for it.
-% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
-%                LPIPROGRAM_SOP is retired.
-% MMP, 11/08/2026: P of a class other than 'cdopvar', 'copvar', 'sdopvar',
-%                'sopvar' and 'dpvar' is an error (lpi_eq_sop:class). It
-%                went to LPI_EQ, retired 11/08/2026 (cleaning/private) with
-%                the opvar classes, the only other classes it accepted.
-%                Help text to match.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): (was) comment
-%                lines removed, the first 11/04/2026 entry without its
-%                superseded sentence; code unchanged.
+% Initial coding MMP, 09/29/2026
 
-% Only opts the caller gave is passed on: lpi_eq_cdopvar and lpi_eq_sdopvar % MMP, 11/08/2026
-% each test nargin for it.                                                  % MMP, 11/08/2026
-% TAG is 0 unless lpi_eq_cdopvar records the rows of this equality
-tag = 0;                                                                    % MMP, 10/08/2026
+% OPTS is passed on only when given; TAG is 0 unless the rows of this
+% equality are recorded in prog.sopeq
+tag = 0;
 if isa(P,'cdopvar') || isa(P,'copvar')
-    % Container: every block, by lpi_eq_cdopvar; TAG the index of the row
-    % record it appends to prog.sopeq when the program has that field
+    % Container: every block zero; TAG the index of the row record appended
+    % to prog.sopeq when the program has that field
     if nargin>=3,   prog = lpi_eq_cdopvar(prog,P,opts);
     else,           prog = lpi_eq_cdopvar(prog,P);
     end
-    if isfield(prog,'sopeq'),   tag = numel(prog.sopeq);    end             % MMP, 10/08/2026
+    if isfield(prog,'sopeq'),   tag = numel(prog.sopeq);    end
 elseif isa(P,'sdopvar') || isa(P,'sopvar')
-%   % One output: lpi_eq_sdopvar imposes the rows (a second output would    % MMP, 09/30/2026 (was)
-%   % return them unimposed).                                               % MMP, 09/30/2026 (was)
-    % lpi_eq_sdopvar collects and imposes the rows.                         % MMP, 09/30/2026
+    % 'sdopvar': every stored coefficient of every parameter zero
     if nargin>=3,   prog = lpi_eq_sdopvar(prog,P,opts);
     else,           prog = lpi_eq_sdopvar(prog,P);
     end
-elseif isa(P,'dpvar')                                                       % MMP, 11/04/2026
-    % 'dpvar': SOSEQ, as LPI_EQ does for it                                 % MMP, 11/04/2026
-    prog = soseq(prog,P);                                                   % MMP, 11/04/2026
+elseif isa(P,'dpvar')
+    % 'dpvar': P == 0 as an equality of the SOS program
+    prog = soseq(prog,P);
 else
-%   % Every other class: lpi_eq                                             % MMP, 11/08/2026 (was)
-%   if nargin>=3,   prog = lpi_eq(prog,P,opts);                             % MMP, 11/08/2026 (was)
-%   else,           prog = lpi_eq(prog,P);                                  % MMP, 11/08/2026 (was)
-%   end                                                                     % MMP, 11/08/2026 (was)
-    % Every other class: LPI_EQ, retired 11/08/2026, rejected all but the   % MMP, 11/08/2026
-    % opvar family, retired with it                                         % MMP, 11/08/2026
-    error('lpi_eq_sop:class','P should be a cdopvar, sdopvar or dpvar object; got %s.',class(P)) % MMP, 11/08/2026
+    % Every other class: an error
+    error('lpi_eq_sop:class','P should be a cdopvar, sdopvar or dpvar object; got %s.',class(P))
 end
 
 end

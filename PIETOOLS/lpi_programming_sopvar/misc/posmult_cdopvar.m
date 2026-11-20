@@ -86,21 +86,7 @@ function [prog,M,info] = posmult_cdopvar(prog,dims,spaces,dom,w,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/07/2026. The positive multiplier of the separated
-%                form A'*M*A proposed from the proof program: the parameter
-%                of a positive operator is the pointwise PSD polynomial
-%                matrix M, parameterised as a sum of matrix SOS terms with
-%                the interval Positivstellensatz weights, each term one
-%                degree-counted Gram.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and headers of
-%                the local functions; code unchanged. The deleted header
-%                text was the Positivstellensatz background of the weights
-%                with its notes references, the role of M in the proof
-%                program, the comparison with copquadvar, and the cost and
-%                measurement notes.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the pruning note
-%                condensed; code unchanged.
+% Initial coding MMP, 10/07/2026
 
 % Four inputs required; W = 1 and OPTIONS = struct() when omitted
 if nargin<4
@@ -174,12 +160,12 @@ for c = 1:nt
     if isempty(M),  M = Mc;     else,   M = M + Mc;  end
 end
 
-% % % Prune every block to its occupied monomials. 'copquadvar' returns a
-% block on the bases its pair integrals can reach, and a multiplier-only
-% block occupies right degree 0 and left degree 2w of them only (in 3-D at
-% w = 1, under 1% of the columns). The composition A'*M*A by
-% '@cdopvar/mtimes' carries the bases of M through every intermediate, so
-% the padding multiplies its time and memory. The operator is unchanged.
+% % % Prune every block to its occupied monomials. A block is built on the
+% bases its pair integrals can reach, and a multiplier-only block occupies
+% right degree 0 and left degree 2w of them only (in 3-D at w = 1, under
+% 1% of the columns). The composition A'*M*A carries the bases of M
+% through every intermediate, so the padding multiplies its time and
+% memory. The operator is unchanged.
 [Mo,Mi] = size(M.C);
 for i = 1:Mo
     for j = 1:Mi

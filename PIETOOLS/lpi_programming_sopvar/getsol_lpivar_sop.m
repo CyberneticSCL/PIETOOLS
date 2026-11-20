@@ -19,7 +19,7 @@ function Psol = getsol_lpivar_sop(prog,P)
 % unchanged.
 %
 % INPUT
-% - prog:   'struct', an LPI program solved by LPISOLVE, with the fields
+% - prog:   'struct', a solved LPI program, with the fields
 %           decvartable ('cellstr' or string array, the decision variable
 %           names) and solinfo.RRx ('double' vector, entry r the value of
 %           the r-th name of decvartable);
@@ -67,49 +67,19 @@ function Psol = getsol_lpivar_sop(prog,P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. Solution extraction for 'sdopvar' and
-%                'cdopvar', which had none: every container executive
-%                stopped at getsol. The core generalizes 'const_sdopvar' and
-%                'recover_dvals' of test_lpi_eq_sdopvar_endtoend.m (sopvar/
-%                Testfolder/sdopvar/claude_tests), looking the names up by
-%                position instead of through a 'dpvar' of q names. Legacy
-%                classes go to 'getsol_lpivar' unchanged, so one executive
-%                body can call this for either family.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and headers
-%                of the local functions; code unchanged. The deleted
-%                header text was the class table, the reason solinfo.RRx
-%                is read rather than solinfo.x, the cost analysis with a
-%                measured run time, and the design rationale and
-%                measurements of the local-function headers.
-% MMP, 11/08/2026: The branch of the opvar classes (GETSOL_LPIVAR) is gone:
-%                both are retired (cleaning/private, 11/08/2026), and such a
-%                P now raises getsol_lpivar_sop:badClass, whose message
-%                lists the classes still accepted. Help text to match.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): a (was) comment
-%                line removed; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                very short and called once go into the body): DVAR_POSITIONS
-%                inlined after the name list, its header as the comment of
-%                the block and its early return the first branch of an if.
+% Initial coding MMP, 09/29/2026
 
-% % % Fixed classes: nothing to substitute                                  % MMP, 11/08/2026
+% % % Fixed classes: nothing to substitute
 if isa(P,'sopvar') || isa(P,'copvar')
     Psol = P;                                   % nothing to substitute
     return
-% elseif isa(P,'opvar') || isa(P,'dopvar') || isa(P,'opvar2d') || isa(P,'dopvar2d') % MMP, 11/08/2026 (was)
-%     Psol = getsol_lpivar(prog,P);               % legacy, unchanged       % MMP, 11/08/2026 (was)
-%     return                                                                % MMP, 11/08/2026 (was)
 elseif ~isa(P,'sdopvar') && ~isa(P,'cdopvar')
-%   error('getsol_lpivar_sop:badClass',...
-%       ['No solution extraction for class ''%s''; expected sdopvar, cdopvar, '...
-%        'sopvar, copvar, opvar, dopvar, opvar2d or dopvar2d.'],class(P))   % MMP, 11/08/2026 (was)
     error('getsol_lpivar_sop:badClass',...
         ['No solution extraction for class ''%s''; expected sdopvar, cdopvar, '...
-         'sopvar or copvar.'],class(P))                                     % MMP, 11/08/2026
+         'sopvar or copvar.'],class(P))
 end
 
-% % % Solved values, in decvartable order. Same test and message as sosgetsol.
+% % % Solved values, in decvartable order
 if ~isstruct(prog) || ~isfield(prog,'decvartable')
     error('getsol_lpivar_sop:badProg','PROG must be an LPI program structure with a decvartable.')
 end
@@ -131,24 +101,23 @@ end
 % % % 'cdopvar' carries the container list P.Zd: the values d of the names
 % % % found, 0 for the others, and the names Zk left as decision variables.
 Zd = P.Zd;
-if isstring(Zd),    Zd = cellstr(Zd);   end     % rand_sdopvar names are strings
+if isstring(Zd),    Zd = cellstr(Zd);   end     % names may be strings
 Zd = Zd(:);
 q = numel(Zd);
-% [tf,loc] = dvar_positions(Zd,dtab);                                       % MMP, 11/09/2026 (was)
-% tf(k), loc(k): whether, and at which first row of dtab, the name Zd{k}    % MMP, 11/09/2026
-% sits (the former local DVAR_POSITIONS): decvartable repeats the name of a % MMP, 11/09/2026
-% Gram entry ((i,j) and (j,i)), and getequation puts the At row of a name   % MMP, 11/09/2026
-% at its lowest table row, hence the lowest row of each name                % MMP, 11/09/2026
-if q==0                                                                     % MMP, 11/09/2026
-    tf = false(0,1);    loc = zeros(0,1);                                   % MMP, 11/09/2026
-else                                                                        % MMP, 11/09/2026
-    [in,pos] = ismember(dtab,Zd);                                           % MMP, 11/09/2026
-    r = find(in);                                                           % MMP, 11/09/2026
-    % reshape: for a table of one name find returns a ROW, 1x0 when absent, % MMP, 11/09/2026
-    % and accumarray rejects row subscripts against a [q,1] size            % MMP, 11/09/2026
-    loc = accumarray(reshape(pos(r),[],1),reshape(r,[],1),[q,1],@min,0);    % MMP, 11/09/2026
-    tf = loc>0;                                                             % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
+% tf(k), loc(k): whether, and at which first row of dtab, the name Zd{k}
+% sits: decvartable repeats the name of a Gram entry ((i,j) and (j,i)),
+% and the equations of the program use the lowest table row of a name,
+% hence the lowest row of each name
+if q==0
+    tf = false(0,1);    loc = zeros(0,1);
+else
+    [in,pos] = ismember(dtab,Zd);
+    r = find(in);
+    % reshape: for a table of one name find returns a ROW, 1x0 when absent,
+    % and accumarray rejects row subscripts against a [q,1] size
+    loc = accumarray(reshape(pos(r),[],1),reshape(r,[],1),[q,1],@min,0);
+    tf = loc>0;
+end
 d = zeros(q,1);                                 % absent names contribute 0 here
 d(tf) = full(RRx(loc(tf)));                     % and keep their rows of B
 Zk = Zd(~tf);                                   % names left as decision variables
@@ -164,7 +133,7 @@ end
 C = P.C;
 for k = 1:numel(C)
     if ~isa(C{k},'sdopvar'),    continue,   end
-    if numel(C{k}.Zd)~=q        % O(1) guard; equality of the lists is the class invariant 'verify' checks
+    if numel(C{k}.Zd)~=q        % O(1) guard; equal lists are a class invariant
         error('getsol_lpivar_sop:badBlockZd',...
             ['Block %d carries %d decision variables, the container %d: the container '...
              'is not on one list (see cdopvar/verify).'],k,numel(C{k}.Zd),q)
@@ -173,9 +142,9 @@ for k = 1:numel(C)
 end
 % The container on the metadata of P: a 'copvar' when every name was found,
 % else a 'cdopvar' on the names left
-meta = metadata(P);                             % validated at P's construction
+meta = metadata(P);                             % validated when P was built
 if all(tf)
-    Psol = copvar(C,rmfield(meta,'Zd'));        % trusted form: P's metadata is unchanged
+    Psol = copvar(C,rmfield(meta,'Zd'));        % trusted form: the metadata of P is unchanged
 else
     meta.Zd = Zk;                               % every sdopvar block got this array
     Psol = cdopvar(C,meta);
@@ -190,7 +159,7 @@ function Pout = subs_block(P,d,tf,Zk)
 % POUT = SUBS_BLOCK(P,D,TF,ZK) returns the 'sdopvar' block P with the
 % values D substituted in every gamma cell,
 %
-%   C_gam = unvec(A_gam + B_gam'*d, m, n)          (Sec. 8.1.1),
+%   C_gam = unvec(A_gam + B_gam'*d, m, n),
 %
 % keeping the rows of B_gam for the names not found (TF false), which are
 % ZK.
@@ -214,8 +183,8 @@ for g = 1:numel(A)
     a = A{g};
     b = [];     if g<=numel(B),     b = B{g};   end
     % [], sparse(0,n) or all zero: no decision content. An all-zero B may be
-    % too narrow (sopvar2sdopvar of a scalar-0 cell gives q x 1), so it is
-    % not size-checked; nnz of a sparse B is O(1).
+    % too narrow (q x 1 for a scalar-0 cell), so it is not size-checked;
+    % nnz of a sparse B is O(1).
     if isempty(b) || size(b,1)==0 || nnz(b)==0
         v = a;
         bk = sparse(numel(Zk),m*n);

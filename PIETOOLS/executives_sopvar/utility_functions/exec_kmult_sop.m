@@ -47,11 +47,7 @@ function [prog,X] = exec_kmult_sop(prog,X,K,T,dom,like)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 11/07/2026: shared by the primal LPIs of
-%                PIETOOLS_Hinf_gain_sop, PIETOOLS_H2_norm_sop,
-%                PIETOOLS_Hinf_estimator_sop and PIETOOLS_H2_estimator_sop
-%                for PIEs with a constraint K (convert_PIETOOLS_PDE, e.g.
-%                periodic boundary conditions).
+% Initial coding MMP, 11/07/2026
 
 % Z free, from the state space (input space of T) to the output space of K,
 % with the degrees of the storage

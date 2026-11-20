@@ -54,19 +54,7 @@ function E = build_exponent_grid(caps,jointcap,subsetcaps)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MP, 08/22/2026: Initial coding
-% MMP, 09/21/2026: Accept one cap per variable SUBSET. Per-variable plus
-%                  one total cap cannot express the bases the 2D settings
-%                  files describe -- 'build_monoms' prunes with 2^nvars
-%                  subset caps -- so converting such a file could only
-%                  produce a covering superset, measured at 1.05x to 1.80x
-%                  the basis. With subset caps the conversion is exact.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body; code
-%                  unchanged. The log entries above moved here from the help
-%                  text, below the licence block, which gains its last
-%                  paragraph. The deleted header text was a comparison with
-%                  the cap convention of 'poslpivar_2d/build_monoms'.
+% Initial coding MMP, 08/22/2026
 
 % Caps as a row of nonnegative integers
 caps = reshape(caps,1,[]);
@@ -104,25 +92,25 @@ end
 % Impose the joint degree bound.
 E = E(sum(E,2)<=jointcap,:);
 
-% Impose one bound per variable subset, when given. Singletons and the full  % MMP, 09/21/2026
-% set duplicate 'caps' and 'jointcap'; applying them again is harmless and   % MMP, 09/21/2026
-% keeps the caller free to pass a cap array verbatim.                        % MMP, 09/21/2026
-if nargin>=3 && ~isempty(subsetcaps)                                        % MMP, 09/21/2026
-    if numel(subsetcaps)~=2^n                                               % MMP, 09/21/2026
+% Impose one bound per variable subset, when given. Singletons and the full
+% set duplicate 'caps' and 'jointcap'; applying them again is harmless and
+% keeps the caller free to pass a cap array verbatim.
+if nargin>=3 && ~isempty(subsetcaps)
+    if numel(subsetcaps)~=2^n
         error("Subset degrees should be given as a 2^n array for n "...
-              +"variables.")                                                % MMP, 09/21/2026
-    end                                                                     % MMP, 09/21/2026
-    sc = subsetcaps(:);                                                     % MMP, 09/21/2026
-    if any(sc<0) || any(sc~=round(sc))                                      % MMP, 09/21/2026
-        error("Subset degrees must be nonnegative integers.")               % MMP, 09/21/2026
-    end                                                                     % MMP, 09/21/2026
+              +"variables.")
+    end
+    sc = subsetcaps(:);
+    if any(sc<0) || any(sc~=round(sc))
+        error("Subset degrees must be nonnegative integers.")
+    end
     % Entry i bounds the summed degree of the variables of the set bits of
     % i-1
-    for i = 2:2^n                                                           % MMP, 09/21/2026
-        b = bitget(i-1,1:n)>0;                                              % MMP, 09/21/2026
-        E = E(sum(E(:,b),2)<=sc(i),:);                                      % MMP, 09/21/2026
-    end                                                                     % MMP, 09/21/2026
-end                                                                         % MMP, 09/21/2026
+    for i = 2:2^n
+        b = bitget(i-1,1:n)>0;
+        E = E(sum(E(:,b),2)<=sc(i),:);
+    end
+end
 
 % Rows in ascending order
 E = sortrows(E);

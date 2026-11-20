@@ -24,13 +24,10 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %
 % [PROG,POP] = LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS) declares Pop with the
 % output spaces, the input spaces and the domain of the 'copvar' or
-% 'cdopvar' object X, so that Pop has the shape of X: for a PIE with
-% control input operator B, X = B' gives the Z = K*P of a state-feedback
-% LPI, from the state to the input.
+% 'cdopvar' object X, so that Pop has the shape of X.
 %
 % INPUT
-% - prog:    'struct', the LPI program (LPIPROGRAM), with the field
-%            decvartable;
+% - prog:    'struct', the LPI program, with the field decvartable;
 % - dims:    'struct' with fields out (M x 1 'double', the counts q_i) and,
 %            optionally, in (N x 1 'double', the counts p_j; default out);
 %            or a 'double' array, the counts q_i, also taken as the p_j. A
@@ -52,14 +49,14 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            ('cellstr', every name of SPACES among them) and dom
 %            ('double', one row [a,b] per name of vars). Optional: omitted,
 %            as LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DEG,OPTIONS), the domain
-%            of PROG (LPIPROGRAM), by name;
+%            of PROG, by name;
 % - X:       'copvar' or 'cdopvar' object, in place of DIMS, SPACES and
 %            DOM (second form above);
 % - deg:     (optional) the degree caps, nonnegative integers (default: per
-%            block, from lpi.var.deg in the program settings, LPIPROGRAM,
-%            the left caps mult, int(1) and out at the entry of the
-%            dimension of the output space, the right caps int(2) and in at
-%            that of the input space; 1 for a program without settings):
+%            block, from lpi.var.deg in the program settings, the left
+%            caps mult, int(1) and out at the entry of the dimension of the
+%            output space, the right caps int(2) and in at that of the
+%            input space; 1 for a program without settings):
 %            a 'struct' with any of the fields
 %              mult  'double', the degree in t_k where gam_k = 1;
 %              int   1 x 2 'double', the degrees in t_k and in s'_k where
@@ -119,156 +116,80 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
-% MMP, 09/25/2026: A row or column that 'occ' leaves with no block gets one
-%                  explicit zero block (degree 0, no variables). Without it
-%                  the container failed 'verify' and could not be rebuilt by
-%                  cdopvar(C), which read a row's space off a block. Costs
-%                  O(nC) of column pointers for that block, nothing in q.
-% MMP, 09/30/2026: Shared helpers of sopvar/misc/conventions replace local
-%                  copies that three to four files each wrote:
-%                  'parse_copvar_spaces' (spaces, dimensions, sorted
-%                  registry, reserved names, domains; its bodies are the
-%                  former locals parse_spaces, norm_spaces and parse_dom),
-%                  'kron_strides', 'gamma_of_cell' and 'multiindex_grid'
-%                  (the cells: Sec. 1 and 4 of
-%                  sopvar_implementation_notes.pdf). Locals strides,
-%                  tensor_index, gamma_of, parse_spaces, norm_spaces and
-%                  parse_dom deleted; same program bit for bit. A non-cell
-%                  space list now raises the parser's message instead of a
-%                  brace-indexing error.
-% MMP, 09/30/2026: Help remark on 'deg' ('int' and 'mult' are kernel degrees
-%                  here, basis-operator caps in 'copquadvar' and
-%                  'sopquadvar'); removed with the 10/28/2026 header.
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body
-%                  and headers of the local functions; code unchanged.
-%                  Deleted: the comparisons with lpivar, lpivar_2d,
-%                  copquadvar and poscopvar, the variable count and span
-%                  against lpivar, the shared-parser note and a cost note.
-% MMP, 10/28/2026: An empty count list on one side of a 'struct' DIMS is no
-%                  space on that side: an M x 0 or 0 x N container with no
-%                  decision variable (new local function empty_side).
-%                  Before, the parser read the empty space list as one R^q
-%                  space and the counts as missing, so the container
-%                  executives failed on a PIE with an empty channel (the
-%                  observer gain from no measurement, the controller of no
-%                  input); maintainer: empty channels should not raise an
-%                  error. Help text: DIMS and POP.
-% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
-%                LPIPROGRAM_SOP is retired.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, See
-%                  also without the retired lpivar and lpivar_2d, the
-%                  deletion note before parse_deg shortened; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                  PARSE_DEG (one caller) inlined at the degree caps, its
-%                  header as the comment of the block.
-% MMP, 11/12/2026: DOM may be omitted: the domain of PROG, by name
-%                  (maintainer, 11/12/2026: "Settings on the program"; DOM
-%                  repeated the domain given to LPIPROGRAM). DEG omitted:
-%                  the entry of lpi.var.deg of the program settings for the
-%                  largest space (phase 2 of the knob reduction); it was 1,
-%                  which remains for a program without settings.
-% MMP, 11/12/2026: DEG omitted: per block, the left caps from the entry of
-%                  lpi.var.deg for the dimension of the output space, the
-%                  right caps from that of the input space (phase 3 of the
-%                  knob reduction; replaces the largest-space rule above,
-%                  under which a block changed when a space of another
-%                  dimension joined the container). Same blocks as that
-%                  rule when the spaces other than R^n share one dimension.
-% MMP, 11/14/2026: Operator form LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS): DIMS,
-%                  SPACES and DOM are the output and input spaces and the
-%                  domain of X, read by COPVAR_SPACE_LIST as in POSCOPVAR
-%                  (maintainer, 11/14/2026: the same form for "the lpivar
-%                  indefinite operator structure", the original form kept).
-%                  Any other DIMS takes the original form, unchanged.
 
 % Defaults of the optional inputs; PROG must be an LPI program
-% DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'   % MMP, 11/12/2026
-% without field dom, or a 'cell', never n x 2), and the domain is that of   % MMP, 11/12/2026
-% PROG by name, per element, since the varname of a polynomial vector is    % MMP, 11/12/2026
-% sorted while the rows of prog.dom follow the program order                % MMP, 11/12/2026
-nin = nargin;                                                               % MMP, 11/12/2026
-% Operator form LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS): the output and input    % MMP, 11/14/2026
-% spaces of X and its domain stand for DIMS, SPACES, DOM; DEG and OPTIONS   % MMP, 11/14/2026
-% shift by two. Any other DIMS: the original form                           % MMP, 11/14/2026
-if isa(dims,'copvar') || isa(dims,'cdopvar')                                % MMP, 11/14/2026
-    narginchk(2,4);                                                         % MMP, 11/14/2026
-    if nin>=4,  options = dom;  end                                         % MMP, 11/14/2026
-    if nin>=3,  deg = spaces;   end                                         % MMP, 11/14/2026
-    X = dims;   dims = struct();    spaces = struct();                      % MMP, 11/14/2026
-    [spaces.out,dims.out] = copvar_space_list(X,'out');                     % MMP, 11/14/2026
-    [spaces.in,dims.in] = copvar_space_list(X,'in');                        % MMP, 11/14/2026
-    dom = struct('vars',{X.vars},'dom',X.dom);  nin = nin+2;                % MMP, 11/14/2026
-end                                                                         % MMP, 11/14/2026
+% DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'
+% without field dom, or a 'cell', never n x 2), and the domain is that of
+% PROG by name, per element, since the varname of a polynomial vector is
+% sorted while the rows of prog.dom follow the program order
+nin = nargin;
+% Operator form LPIVAR_CDOPVAR(PROG,X,DEG,OPTIONS): the output and input
+% spaces of X and its domain stand for DIMS, SPACES, DOM; DEG and OPTIONS
+% shift by two. Any other DIMS: the original form
+if isa(dims,'copvar') || isa(dims,'cdopvar')
+    narginchk(2,4);
+    if nin>=4,  options = dom;  end
+    if nin>=3,  deg = spaces;   end
+    X = dims;   dims = struct();    spaces = struct();
+    [spaces.out,dims.out] = copvar_space_list(X,'out');
+    [spaces.in,dims.in] = copvar_space_list(X,'in');
+    dom = struct('vars',{X.vars},'dom',X.dom);  nin = nin+2;
+end
 if nin<4 || ~((isnumeric(dom) && (isempty(dom) || size(dom,2)==2)) ...
-              || (isstruct(dom) && isfield(dom,'dom')))                     % MMP, 11/12/2026
-    if nin>=5,  options = deg;  end                                         % MMP, 11/12/2026
-    if nin>=4,  deg = dom;      end                                         % MMP, 11/12/2026
-    nin = nin+1;                                                            % MMP, 11/12/2026
-    v = cell(1,size(prog.dom,1));                                           % MMP, 11/12/2026
-    for k = 1:numel(v),     v{k} = prog.vartable(k).varname{1};     end     % MMP, 11/12/2026
-    dom = struct('vars',{v},'dom',prog.dom);                                % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
-% if nargin<5 || isempty(deg),        deg = 1;            end               % MMP, 11/12/2026 (was)
-% if nargin<6 || isempty(options),    options = struct(); end               % MMP, 11/12/2026 (was)
-% if nin<5 || isempty(deg),           deg = 1;            end               % MMP, 11/12/2026 (was)
-defdeg = nin<5 || isempty(deg);     % from the settings, after the parse    % MMP, 11/12/2026
-if nin<6 || isempty(options),       options = struct(); end                 % MMP, 11/12/2026
+              || (isstruct(dom) && isfield(dom,'dom')))
+    if nin>=5,  options = deg;  end
+    if nin>=4,  deg = dom;      end
+    nin = nin+1;
+    v = cell(1,size(prog.dom,1));
+    for k = 1:numel(v),     v{k} = prog.vartable(k).varname{1};     end
+    dom = struct('vars',{v},'dom',prog.dom);
+end
+defdeg = nin<5 || isempty(deg);     % from the settings, after the parse
+if nin<6 || isempty(options),       options = struct(); end
 if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
     error("'prog' should be an LPI program structure; use 'lpiprogram'.")
 end
 
-% An empty count list on a side: no space there, so no block and no         % MMP, 10/28/2026
-% decision variable; PROG is unchanged                                      % MMP, 10/28/2026
+% An empty count list on a side: no space there, so no block and no
+% decision variable; PROG is unchanged
 if (~isstruct(dims) && isempty(dims)) || ...
         (isstruct(dims) && ((isfield(dims,'out') && isempty(dims.out)) || ...
-                            (isfield(dims,'in') && isempty(dims.in))))      % MMP, 10/28/2026
-    Pop = empty_side(dims,spaces,dom);                                      % MMP, 10/28/2026
-    return                                                                  % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
+                            (isfield(dims,'in') && isempty(dims.in))))
+    Pop = empty_side(dims,spaces,dom);
+    return
+end
 
 % % % Spaces and dimensions
-% [sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);                    % MMP, 09/30/2026 (was)
-% M = numel(sp_out);      N = numel(sp_in);                                 % MMP, 09/30/2026 (was)
 
-% % % Registry, sorted, as the containers and 'poscopvar' keep it: an
-% sdopvar indexes its gamma cells over S3 in sorted order, and with a sorted
-% registry every space and shared set is already sorted.
-% vars = reshape(unique([sp_out{:}, sp_in{:}]),1,[]);     nv = numel(vars); % MMP, 09/30/2026 (was)
-% is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));       % MMP, 09/30/2026 (was)
-% if any(is_reserved)                                                       % MMP, 09/30/2026 (was)
-%     error("Spatial variable names may not end in '_int' or '_dum'; "...
-%           +"'"+string(vars{find(is_reserved,1)})+"' does.")               % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-% dom = parse_dom(dom,vars);                                                % MMP, 09/30/2026 (was)
-% One shared parser for these inputs; same values and errors, in the same   % MMP, 09/30/2026
-% order: spaces, dims, reserved '_int'/'_dum' names, domain.                % MMP, 09/30/2026
-[meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom);                 % MMP, 09/30/2026
-M = numel(sp_out);      N = numel(sp_in);                                   % MMP, 09/30/2026
-% DEG omitted: lpi.var.deg of the program settings (LPIPROGRAM), per block  % MMP, 11/12/2026
-% (i,j): the left caps (mult, int(1), out) from the entry of the dimension  % MMP, 11/12/2026
-% of output space i, the right caps (int(2), in) from that of input space   % MMP, 11/12/2026
-% j, so a block depends on its own two spaces only. R^n reads entry 1,      % MMP, 11/12/2026
-% which then caps no variable. 1 for a program without settings.            % MMP, 11/12/2026
-if defdeg                                                                   % MMP, 11/12/2026
-    deg = 1;                                                                % MMP, 11/12/2026
-    if isfield(prog,'settings') && isfield(prog.settings,'lpi') && isfield(prog.settings.lpi,'var') % MMP, 11/12/2026
-        zd = prog.settings.lpi.var.deg;                                     % MMP, 11/12/2026
-%       c = max([sum(meta.space_out,2); sum(meta.space_in,2); 1]);          % MMP, 11/12/2026 (was)
-%       deg = zd{min(c,end)};                                               % MMP, 11/12/2026 (was)
-        e = @(a) norm_deg(zd{min(max(a,1),end)});                           % MMP, 11/12/2026
-        dO = arrayfun(e,sum(meta.space_out,2),'UniformOutput',false);       % MMP, 11/12/2026
-        dI = arrayfun(e,sum(meta.space_in,2),'UniformOutput',false);        % MMP, 11/12/2026
-        deg = cell(M,N);                                                    % MMP, 11/12/2026
-        for i = 1:M                                                         % MMP, 11/12/2026
-            for j = 1:N                                                     % MMP, 11/12/2026
+% % % Registry, sorted, as the containers keep it: an sdopvar indexes its
+% gamma cells over S3 in sorted order, and with a sorted registry every
+% space and shared set is already sorted. Parse, in this order: spaces,
+% dims, reserved '_int'/'_dum' names, domain.
+[meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom);
+M = numel(sp_out);      N = numel(sp_in);
+% DEG omitted: lpi.var.deg of the program settings, per block (i,j): the
+% left caps (mult, int(1), out) from the entry of the dimension of output
+% space i, the right caps (int(2), in) from that of input space j, so a
+% block depends on its own two spaces only. R^n reads entry 1, which then
+% caps no variable. 1 for a program without settings.
+if defdeg
+    deg = 1;
+    if isfield(prog,'settings') && isfield(prog.settings,'lpi') && isfield(prog.settings.lpi,'var')
+        zd = prog.settings.lpi.var.deg;
+        e = @(a) norm_deg(zd{min(max(a,1),end)});
+        dO = arrayfun(e,sum(meta.space_out,2),'UniformOutput',false);
+        dI = arrayfun(e,sum(meta.space_in,2),'UniformOutput',false);
+        deg = cell(M,N);
+        for i = 1:M
+            for j = 1:N
                 deg{i,j} = struct('mult',dO{i}.mult,'int',[dO{i}.int(1),dI{j}.int(2)], ...
-                                  'out',dO{i}.out,'in',dI{j}.in);           % MMP, 11/12/2026
-            end                                                             % MMP, 11/12/2026
-        end                                                                 % MMP, 11/12/2026
-    end                                                                     % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
-vars = meta.vars;       dom = meta.dom;                                     % MMP, 09/30/2026
-d_out = meta.dim_out;   d_in = meta.dim_in;                                 % MMP, 09/30/2026
+                                  'out',dO{i}.out,'in',dI{j}.in);
+            end
+        end
+    end
+end
+vars = meta.vars;       dom = meta.dom;
+d_out = meta.dim_out;   d_in = meta.dim_in;
 
 % % % Occupancy and degrees
 occ = true(M,N);
@@ -278,42 +199,38 @@ if isfield(options,'occ') && ~isempty(options.occ)
         error("options.occ should be %d x %d, one entry per block.",M,N)
     end
 end
-% Degree caps of every block
-% degs = parse_deg(deg,M,N);                                                % MMP, 11/09/2026 (was)
-% The degree caps of every block in normalized form, fields mult, int       % MMP, 11/09/2026
-% (1 x 2), out, in (the former local PARSE_DEG): one specification per      % MMP, 11/09/2026
-% block from an M x N cell, or one specification for every block            % MMP, 11/09/2026
-if iscell(deg)                                                              % MMP, 11/09/2026
-    if ~isequal(size(deg),[M,N])                                            % MMP, 11/09/2026
-        error("A cell of degree specifications should be %d x %d.",M,N)     % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
-    degs = cellfun(@norm_deg,deg,'UniformOutput',false);                    % MMP, 11/09/2026
-else                                                                        % MMP, 11/09/2026
-    d = norm_deg(deg);                                                      % MMP, 11/09/2026
-    degs = repmat({d},M,N);                                                 % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
-% A row or column with no block cannot have its space read off one          % MMP, 09/25/2026
-% ('verify', cdopvar(C)), so it gets one explicit zero block: degree 0,     % MMP, 09/25/2026
-% no coefficient positions, hence no variables. Rows first, then columns.   % MMP, 09/25/2026
-zfill = false(M,N);                                                         % MMP, 09/25/2026
-for i = find(~any(occ,2))',         zfill(i,1) = true;      end             % MMP, 09/25/2026
-for j = find(~any(occ|zfill,1)),    zfill(1,j) = true;      end             % MMP, 09/25/2026
-deg0 = struct('mult',0,'int',[0 0],'out',0,'in',0);                         % MMP, 09/25/2026
+% The degree caps of every block in normalized form, fields mult, int
+% (1 x 2), out, in: one specification per block from an M x N cell, or one
+% specification for every block
+if iscell(deg)
+    if ~isequal(size(deg),[M,N])
+        error("A cell of degree specifications should be %d x %d.",M,N)
+    end
+    degs = cellfun(@norm_deg,deg,'UniformOutput',false);
+else
+    d = norm_deg(deg);
+    degs = repmat({d},M,N);
+end
+% A row or column with no block cannot have its space read off one, so it
+% gets one explicit zero block: degree 0, no coefficient positions, hence
+% no variables. Rows first, then columns.
+zfill = false(M,N);
+for i = find(~any(occ,2))',         zfill(i,1) = true;      end
+for j = find(~any(occ|zfill,1)),    zfill(1,j) = true;      end
+deg0 = struct('mult',0,'int',[0 0],'out',0,'in',0);
 
-% % % First pass: each block's bases and the coefficient positions of its
-% % % variables, and the total count, so ONE declaration covers them all.
+% % % First pass: the bases of each block and the coefficient positions of
+% % % its variables, and the total count, so ONE declaration covers them all.
 spec = cell(M,N);       q = 0;
 for i = 1:M
     for j = 1:N
-%       if ~occ(i,j),   continue,   end                                     % MMP, 09/25/2026 (was)
-        if ~occ(i,j) && ~zfill(i,j),    continue,   end                     % MMP, 09/25/2026
-        dg = degs{i,j};     if zfill(i,j),  dg = deg0;  end                 % MMP, 09/25/2026
-%       s = block_spec(sp_out{i},sp_in{j},d_out(i),d_in(j),degs{i,j},vars,dom); % MMP, 09/25/2026 (was)
-        s = block_spec(sp_out{i},sp_in{j},d_out(i),d_in(j),dg,vars,dom);    % MMP, 09/25/2026
-        if zfill(i,j)                                                       % MMP, 09/25/2026
-            s.pos = cellfun(@(p) zeros(0,1),s.pos,'UniformOutput',false);   % MMP, 09/25/2026
-        end                                                                 % MMP, 09/25/2026
-        % Index of the block's first decision variable on the one list
+        if ~occ(i,j) && ~zfill(i,j),    continue,   end
+        dg = degs{i,j};     if zfill(i,j),  dg = deg0;  end
+        s = block_spec(sp_out{i},sp_in{j},d_out(i),d_in(j),dg,vars,dom);
+        if zfill(i,j)
+            s.pos = cellfun(@(p) zeros(0,1),s.pos,'UniformOutput',false);
+        end
+        % Index of the first decision variable of the block on the one list
         s.first = q+1;
         % s.pos is 3 x 3 x ... for two or more shared variables, so sum
         % over ALL of it; a plain sum() returns a row and q a vector.
@@ -333,13 +250,12 @@ if q>0
 end
 
 % % % Second pass: the blocks, straight onto the one list. Variable k of the
-% % % container sits at one coefficient position, so each gamma cell's B is
-% % % one 'sparse' from triplets with a single nonzero per variable.
+% % % container sits at one coefficient position, so the B of each gamma
+% % % cell is one 'sparse' from triplets with a single nonzero per variable.
 C = cell(M,N);
 for i = 1:M
     for j = 1:N
-%       if ~occ(i,j),   continue,   end                                     % MMP, 09/25/2026 (was)
-        if isempty(spec{i,j}),  continue,   end     % a [] block            % MMP, 09/25/2026
+        if isempty(spec{i,j}),  continue,   end     % a [] block
         s = spec{i,j};
         % Gamma cell g: a zero constant part, and in B a 1 in row k0+r-1
         % and column s.pos{g}(r): decision variable k0+r-1 is the
@@ -352,22 +268,17 @@ for i = 1:M
             B{g} = sparse(k0+(0:ng-1)',s.pos{g},1,q,s.nC);
             k0 = k0+ng;
         end
-        % The block, on the container's decision variable list Zd
+        % The block, on the decision variable list Zd of the container
         params = struct('A',{A},'B',{B});
         C{i,j} = sdopvar(params,s.vars,Zd,s.ZL,s.ZR,s.dom,s.dims);
     end
 end
 
 % % % The container, with its metadata stated: a structurally zero block
-% % % leaves nothing to derive a row's or column's space from.
-% so = false(M,nv);       si = false(N,nv);                                 % MMP, 09/30/2026 (was)
-% for i = 1:M,    so(i,:) = ismember(vars,sp_out{i});    end                % MMP, 09/30/2026 (was)
-% for j = 1:N,    si(j,:) = ismember(vars,sp_in{j});     end                % MMP, 09/30/2026 (was)
-% meta = struct('vars',{vars},'dom',dom,'space_out',so,'space_in',si,...
-%     'dim_out',d_out(:),'dim_in',d_in(:),'Zd',{Zd});                       % MMP, 09/30/2026 (was)
-% The parser's meta holds these fields already, in this order; Zd is added  % MMP, 09/30/2026
-% last, as before. The assignment shares Zd, it does not copy q names.      % MMP, 09/30/2026
-meta.Zd = Zd;                                                               % MMP, 09/30/2026
+% % % leaves nothing to derive the space of a row or column from.
+% meta holds these fields already, in this order; Zd is added last. The
+% assignment shares Zd, it does not copy q names.
+meta.Zd = Zd;
 Pop = cdopvar(C,meta);
 
 end
@@ -394,11 +305,11 @@ vo = sort(reshape(vo,1,[]));    vi = sort(reshape(vi,1,[]));
 S3 = intersect(vo,vi);          S2 = setdiff(vo,vi);    S1 = setdiff(vi,vo);
 S3 = reshape(S3,1,[]);          S2 = reshape(S2,1,[]);  S1 = reshape(S1,1,[]);
 n1 = numel(S1);     n2 = numel(S2);     n3 = numel(S3);
-vout = [S2, S3];    vin = [S3, S1];                 % the class's canonical order
+vout = [S2, S3];    vin = [S3, S1];                 % the canonical order of the class
 
-% A shared variable's left basis must hold both the multiplier degrees and
-% the integral ones; the right basis only the integral ones, since a
-% multiplier direction carries no dummy variable degree.
+% The left basis of a shared variable must hold both the multiplier
+% degrees and the integral ones; the right basis only the integral ones,
+% since a multiplier direction carries no dummy variable degree.
 dl3 = max(dg.mult,dg.int(1));
 ZL = [repmat({(0:dg.out)'},1,n2), repmat({(0:dl3)'},1,n3)];
 ZR = [repmat({(0:dg.int(2))'},1,n3), repmat({(0:dg.in)'},1,n1)];
@@ -407,15 +318,13 @@ ZR = [repmat({(0:dg.int(2))'},1,n3), repmat({(0:dg.in)'},1,n1)];
 nL = cellfun(@numel,ZL);    nR = cellfun(@numel,ZR);
 NL = prod([nL,1]);          NR = prod([nR,1]);
 nrow = m*NL;                nC = nrow*n*NR;
-% sL = strides(nL);           sR = strides(nR);                             % MMP, 09/30/2026 (was)
-sL = kron_strides(nL);      sR = kron_strides(nR);                          % MMP, 09/30/2026
+sL = kron_strides(nL);      sR = kron_strides(nR);
 
 % Positions of the admissible coefficients, one gamma cell at a time
 ncell = 3^n3;
 pos = cell([3*ones(1,n3),1,1]);
 for g = 1:ncell
-%   gam = gamma_of(g,n3);                                                   % MMP, 09/30/2026 (was)
-    gam = gamma_of_cell(g,n3);      % direction 1 fastest, as the class     % MMP, 09/30/2026
+    gam = gamma_of_cell(g,n3);      % direction 1 fastest, as the class
     % Admissible left and right monomials, per variable, as 0-based indices.
     iL = cell(1,n2+n3);
     for p = 1:n2,   iL{p} = 0:nL(p)-1;      end
@@ -429,19 +338,19 @@ for g = 1:ncell
         iR{t} = find(ZR{t}<=cap)'-1;
     end
     for p = 1:n1,   iR{n3+p} = 0:nR(n3+p)-1;    end
-%   a = tensor_index(iL,sL);        b = tensor_index(iR,sR);                % MMP, 09/30/2026 (was)
-    % 0-based Kronecker positions of the product set, variable 1 fastest in % MMP, 09/30/2026
-    % the enumeration (as tensor_index): exact integer arithmetic.          % MMP, 09/30/2026
-    a = multiindex_grid(iL)*sL(:);  b = multiindex_grid(iR)*sR(:);          % MMP, 09/30/2026
+    % 0-based Kronecker positions of the product set, variable 1 fastest in
+    % the enumeration: exact integer arithmetic.
+    a = multiindex_grid(iL)*sL(:);  b = multiindex_grid(iR)*sR(:);
     % Coefficient rows are (component, left monomial) with the component
     % outer, columns (component, right monomial) likewise; vec is column
-    % major - the layout 'canonicalize_multiplier' reads.
+    % major.
     r = reshape((0:m-1)'*NL + reshape(a,1,[]),[],1);
     c = reshape((0:n-1)'*NR + reshape(b,1,[]),[],1);
     pos{g} = reshape(r + nrow*reshape(c,1,[]),[],1) + 1;
 end
 
-% The block's variables and domains on each side, bases, size, positions
+% The variables and domains of the block on each side, bases, size,
+% positions
 [~,io] = ismember(vout,vars);   [~,ii] = ismember(vin,vars);
 s = struct();
 s.vars = struct('out',{vout},'in',{vin});
@@ -452,13 +361,6 @@ s.nC = nC;      s.pos = pos;
 end
 
 
-% MMP, 09/30/2026: locals strides, tensor_index and gamma_of (09/25/2026, no
-% line stamps) deleted for the shared kron_strides, multiindex_grid and
-% gamma_of_cell (sopvar/misc/conventions; test_index_maps (B) holds verbatim
-% copies); parse_spaces, norm_spaces and parse_dom (09/25/2026) moved
-% verbatim into parse_copvar_spaces.
-
-
 function d = norm_deg(x)
 % D = NORM_DEG(X) returns one degree specification as a 'struct' with the
 % fields mult, int (1 x 2), out and in, each a nonnegative integer.
@@ -466,8 +368,8 @@ function d = norm_deg(x)
 %           out = in = d1, int = [d3 d2]), or 'struct' with any of the
 %           fields mult, int, out, in (the others 1).
 % OUTPUT d: 'struct'.
-% 'get_lpivar_degs' returns its degrees SPARSE, and the executives pass them
-% straight on; ranges built from a sparse scalar are sparse, so make it full.
+% Degrees may come SPARSE; ranges built from a sparse scalar are sparse, so
+% make it full.
 if isnumeric(x),    x = full(x);    end
 % A scalar, a 1 x 3 array, or a struct over the defaults
 if isnumeric(x) && isscalar(x)
@@ -496,40 +398,40 @@ end
 end
 
 
-function Pop = empty_side(dims,spaces,dom)                                  % MMP, 10/28/2026
-% POP = EMPTY_SIDE(DIMS,SPACES,DOM) returns the container with no space on  % MMP, 10/28/2026
-% the side whose count list in DIMS is empty and the spaces of the other    % MMP, 10/28/2026
-% side, with no block and no decision variable.                             % MMP, 10/28/2026
-% INPUT  dims:   'struct' with fields out and (optionally) in, at least     % MMP, 10/28/2026
-%                one of them empty (in absent: the same as out), or an      % MMP, 10/28/2026
-%                empty 'double' (no space on either side);                  % MMP, 10/28/2026
-%        spaces: 'struct' with fields out and in, as LPIVAR_CDOPVAR; the    % MMP, 10/28/2026
-%                field of an empty side is not read;                        % MMP, 10/28/2026
-%        dom:    as LPIVAR_CDOPVAR.                                         % MMP, 10/28/2026
-% OUTPUT Pop:    'cdopvar' object, M x 0, 0 x N or 0 x 0, Zd empty.         % MMP, 10/28/2026
-% Which sides are empty; an empty 'double' DIMS is both                     % MMP, 10/28/2026
-if ~isstruct(dims),     dims = struct('out',[],'in',[]);    end             % MMP, 10/28/2026
-eo = isempty(dims.out);                                                     % MMP, 10/28/2026
-ei = eo;    if isfield(dims,'in'),  ei = isempty(dims.in);  end             % MMP, 10/28/2026
-if eo && ei                                                                 % MMP, 10/28/2026
-    % Neither side has a space                                              % MMP, 10/28/2026
+function Pop = empty_side(dims,spaces,dom)
+% POP = EMPTY_SIDE(DIMS,SPACES,DOM) returns the container with no space on
+% the side whose count list in DIMS is empty and the spaces of the other
+% side, with no block and no decision variable.
+% INPUT  dims:   'struct' with fields out and (optionally) in, at least
+%                one of them empty (in absent: the same as out), or an
+%                empty 'double' (no space on either side);
+%        spaces: 'struct' with fields out and in, as LPIVAR_CDOPVAR; the
+%                field of an empty side is not read;
+%        dom:    as LPIVAR_CDOPVAR.
+% OUTPUT Pop:    'cdopvar' object, M x 0, 0 x N or 0 x 0, Zd empty.
+% Which sides are empty; an empty 'double' DIMS is both
+if ~isstruct(dims),     dims = struct('out',[],'in',[]);    end
+eo = isempty(dims.out);
+ei = eo;    if isfield(dims,'in'),  ei = isempty(dims.in);  end
+if eo && ei
+    % Neither side has a space
     meta = struct('vars',{cell(1,0)},'dom',zeros(0,2),'space_out',false(0,0),...
-                  'space_in',false(0,0),'dim_out',zeros(0,1),'dim_in',zeros(0,1)); % MMP, 10/28/2026
-else                                                                        % MMP, 10/28/2026
-    % The spaces of the other side, parsed as one list (output = input),    % MMP, 10/28/2026
-    % then the empty side stated with no space                              % MMP, 10/28/2026
-    if eo,  meta = parse_copvar_spaces(dims.in,spaces.in,dom);              % MMP, 10/28/2026
-    else,   meta = parse_copvar_spaces(dims.out,spaces.out,dom);            % MMP, 10/28/2026
-    end                                                                     % MMP, 10/28/2026
-    nv = numel(meta.vars);                                                  % MMP, 10/28/2026
-    if eo                                                                   % MMP, 10/28/2026
-        meta.space_in = meta.space_out;     meta.dim_in = meta.dim_out;     % MMP, 10/28/2026
-        meta.space_out = false(0,nv);       meta.dim_out = zeros(0,1);      % MMP, 10/28/2026
-    else                                                                    % MMP, 10/28/2026
-        meta.space_in = false(0,nv);        meta.dim_in = zeros(0,1);       % MMP, 10/28/2026
-    end                                                                     % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
-% No block, no decision variable                                            % MMP, 10/28/2026
-meta.Zd = cell(0,1);                                                        % MMP, 10/28/2026
-Pop = cdopvar(cell(numel(meta.dim_out),numel(meta.dim_in)),meta);           % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
+                  'space_in',false(0,0),'dim_out',zeros(0,1),'dim_in',zeros(0,1));
+else
+    % The spaces of the other side, parsed as one list (output = input),
+    % then the empty side stated with no space
+    if eo,  meta = parse_copvar_spaces(dims.in,spaces.in,dom);
+    else,   meta = parse_copvar_spaces(dims.out,spaces.out,dom);
+    end
+    nv = numel(meta.vars);
+    if eo
+        meta.space_in = meta.space_out;     meta.dim_in = meta.dim_out;
+        meta.space_out = false(0,nv);       meta.dim_out = zeros(0,1);
+    else
+        meta.space_in = false(0,nv);        meta.dim_in = zeros(0,1);
+    end
+end
+% No block, no decision variable
+meta.Zd = cell(0,1);
+Pop = cdopvar(cell(numel(meta.dim_out),numel(meta.dim_in)),meta);
+end

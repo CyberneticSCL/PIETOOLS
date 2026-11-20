@@ -39,15 +39,7 @@ function A = expand_full(a)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body; code unchanged. The deleted header text was
-%                the reason a full-domain index stands for its 2/3
-%                substitutions and a comparison with the layout of
-%                'alpha_all'. The file had no log: initial coding MMP,
-%                09/12/2026, as a local function of 'possopvar' (the file
-%                since renamed 'sopquadvar'), moved to private/ by MMP,
-%                09/21/2026.
+% Initial coding MMP, 09/12/2026
 
 % Directions with a full-domain integral; none: a itself
 f = find(a==4);

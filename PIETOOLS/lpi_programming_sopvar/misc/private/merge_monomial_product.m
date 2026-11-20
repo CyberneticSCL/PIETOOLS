@@ -49,17 +49,7 @@ function [Z,M] = merge_monomial_product(Z1,Z2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MP, 08/22/2026: Initial coding
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and INPUT and
-%                OUTPUT lines for the local function; code unchanged. The
-%                log entry above moved here from the help text, below the
-%                licence block, which gains its last paragraph. The deleted
-%                header text was the reason the merge is needed (the
-%                elimination of an integration variable) and a reference
-%                to the sopvar convention.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the what line of
-%                full_degmat; code unchanged.
+% Initial coding MMP, 08/22/2026
 
 % Both bases as rows of N per-variable exponent vectors
 Z1 = Z1(:).';

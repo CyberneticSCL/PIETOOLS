@@ -1,39 +1,44 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_auto_execute_sop.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Script that runs the container executives selected by flags in the
-% workspace on a PIE, and stores their outputs in the base workspace.
+% Script that runs, on a PIE, the executives that flags in the workspace
+% select, each with the LPI settings and the form that workspace variables
+% name, and stores their outputs in the base workspace.
 %
 % INPUT (variables in the workspace)
 % - PIE:      'pie_struct' object; if absent, PIE_GUI ('pie_struct'), or
 %             PDE or PDE_GUI ('pde_struct', converted by
-%             convert_PIETOOLS_PDE); if none exists the GUI opens;
+%             convert_PIETOOLS_PDE); if none exists the GUI opens and the
+%             script stops with an error;
 % - flags:    each a double, 1 to run:
-%               stability       PIETOOLS_stability_sop, form 'Q', or the
-%                               form stability_form;
-%               stability_dual  PIETOOLS_stability_sop, form 'Qd', or the
-%                               form stability_form followed by 'd';
-%               Hinf_gain       PIETOOLS_Hinf_gain_sop, form 'Q', or the    % MMP, 11/19/2026
-%                               form Hinf_gain_form;                        % MMP, 11/19/2026
-%               Hinf_gain_dual  PIETOOLS_Hinf_gain_sop, form 'Qd', or the   % MMP, 11/19/2026
-%                               form Hinf_gain_form followed by 'd';        % MMP, 11/19/2026
+%               stability       PIETOOLS_stability_sop with the form
+%                               stability_form;
+%               stability_dual  PIETOOLS_stability_sop with the form
+%                               stability_form followed by 'd';
+%               Hinf_gain       PIETOOLS_Hinf_gain_sop with the form
+%                               Hinf_gain_form;
+%               Hinf_gain_dual  PIETOOLS_Hinf_gain_sop with the form
+%                               Hinf_gain_form followed by 'd';
 %               Hinf_estimator, Hinf_control, H2_estimator, H2_control,
 %               well_posedness  the executive of that name;
-%               H2_norm         PIETOOLS_H2_norm_sop, form 'o';
-%               H2_norm_dual    PIETOOLS_H2_norm_sop, form 'c';
+%               H2_norm         PIETOOLS_H2_norm_sop with the form
+%                               H2_norm_form;
+%               H2_norm_dual    PIETOOLS_H2_norm_sop with the form 'c'
+%                               followed by the letters of H2_norm_form
+%                               after the first ('c' or 'cco');
 %             with no flag set, the script asks which to run;
-% - settings: (optional) 'struct' of LPI settings (lpisettings_sop); if
-%             absent, the script asks for a tier of lpisettings_sop ('light'
-%             when the answer is empty or unknown).
-% - stability_form: (optional) char, the form of the stability test that
-%             an example names, 'P' (storage) or 'Q' (direct); absent or
-%             empty, 'Q'.
-% - Hinf_gain_form: (optional) char, the form of the H-infinity gain      % MMP, 11/19/2026
-%             test that an example names, 'P' or 'Q'; absent or empty,    % MMP, 11/19/2026
-%             'Q'.                                                        % MMP, 11/19/2026
-% - H2_norm_form: (optional) char, the form of the H2 norm test that an   % MMP, 11/19/2026
-%             example names, 'o' or the coercive 'oco' (the dual takes    % MMP, 11/19/2026
-%             'c' or 'cco'); absent or empty, 'o'.                        % MMP, 11/19/2026
+% - settings: (optional) 'struct' of LPI settings, passed to every
+%             executive run (e.g. the settings st that an example file
+%             returns); if absent, the script asks for the name of a tier
+%             and takes lpisettings_sop of it ('light' when the answer is
+%             empty or unknown);
+% - stability_form: (optional) char, the form of the stability LPI, e.g.
+%             'P' (storage P) or 'Q' (generalized storage T'*Q); absent or
+%             empty, 'Q';
+% - Hinf_gain_form: (optional) char, the form of the H-infinity gain LPI,
+%             'P' or 'Q'; absent or empty, 'Q';
+% - H2_norm_form: (optional) char, the form of the H2 norm LPI, 'o' or the
+%             coercive 'oco'; absent or empty, 'o'.
 %
 % OUTPUT (variables in the base workspace), per executive run:
 %   stability:       prog_stability, P_stability, info_stability;
@@ -56,7 +61,8 @@
 %   well_posedness:  prog_well_posedness, P_well_posedness,
 %                    R_well_posedness, omega_well_posedness,
 %                    info_well_posedness;
-% the outputs of each executive as its header states them.
+% each the corresponding output of the executive, in its order. The
+% variables exec, sttngs, j, msg, infun, outval and msg_out are cleared.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -82,33 +88,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/08/2026 (the stock script of DJ, 01/12/2025, with
-% the _sop names and the info outputs)
-% MMP, 10/28/2026: The executives are the consolidated ones of 10/28/2026:
-%                stability, stability_dual, Hinf_gain_dual, H2_norm and
-%                H2_norm_dual call PIETOOLS_stability_sop,
-%                PIETOOLS_Hinf_gain_sop and PIETOOLS_H2_norm_sop with the
-%                form of the file each called before (removed); the call
-%                string is set in each branch. Header to the header protocol.
-% MMP, 11/08/2026: The level asked for goes to lpisettings_sop (was the
-%                stock lpisettings, retired with its folder); every name
-%                offered, 'extreme' included, is a tier there.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help and a body
-%                note name lpisettings_sop; code unchanged.
-% MMP, 11/18/2026: The stability form from the workspace variable
-%                stability_form, 'Q' when absent (maintainer, D100 and the
-%                approval of 11/18: the example names the form, the forms
-%                proving different notions of stability); the dual form
-%                appends 'd'. Default path unchanged.
-% MMP, 11/19/2026: The H-infinity gain form from the workspace variable
-%                Hinf_gain_form, 'Q' when absent: each library example now
-%                names its settings and forms (maintainer, 11/19/2026: "all
-%                examples should have optimized settings files"), and 'P'
-%                is cheaper at the same gain on most gain examples (D141).
-%                The dual form appends 'd'. Default path unchanged. The H2
-%                norm form from H2_norm_form, 'o' when absent ('oco', the
-%                coercive form, certifies PDE 50 of the library at 0.87797,
-%                where 'o' certifies nothing measured); the dual maps o to c.
+% Initial coding MMP, 10/08/2026, from a script of DJ, 01/12/2025
 
 % The PIE: from the workspace, the GUI, or a PDE
 if ~exist('PIE','var')
@@ -122,6 +102,7 @@ if ~exist('PIE','var')
         disp('No struct ''PIE'' specified, continuing with ''PDE_GUI''')
         PIE = convert_PIETOOLS_PDE(PDE_GUI);
     else
+        % No PIE and no PDE: open the GUI and stop
         PIETOOLS_PDE_GUI
         error('Please specify a "PIE" struct (using the GUI), or call an example from the library, and run this script again')
     end
@@ -141,6 +122,7 @@ end
 if exist('Hinf_gain_dual','var') && Hinf_gain_dual==1
     exec = [exec;'Hinf_gain_dual'];
 end
+% The synthesis executives and the H2 norm (H2_norm_o, H2_norm_c)
 if exist('Hinf_estimator','var') && Hinf_estimator==1
     exec = [exec;'Hinf_estimator'];
 end
@@ -153,6 +135,7 @@ end
 if exist('H2_norm_dual','var') && H2_norm_dual==1
     exec = [exec;'H2_norm_c'];
 end
+% The H2 synthesis executives and well-posedness
 if exist('H2_estimator','var') && H2_estimator==1
     exec = [exec;'H2_estimator'];
 end
@@ -162,6 +145,7 @@ end
 if exist('well_posedness','var') && well_posedness==1
     exec = [exec;'well_posedness'];
 end
+% No flag set: ask for the names, separated by spaces or commas
 if isempty(exec)
     fprintf('\n What would you like to analyze/control? \n');
     msg = ['   Please input ''stability'', ''stability_dual'', ''Hinf_gain'', ''Hinf_gain_dual'','...
@@ -187,44 +171,43 @@ if ~exist('settings','var')
         fprintf(2,"\n Unknown settings specified; proceeding with 'light' settings.\n")
         sttngs = 'light';
     end
-%   settings = lpisettings(sttngs);                                         % MMP, 11/08/2026 (was)
-    settings = lpisettings_sop(sttngs);                                     % MMP, 11/08/2026
+    % The settings of the tier
+    settings = lpisettings_sop(sttngs);
 end
 
-% The form of the stability test: the one the example names, else 'Q'       % MMP, 11/18/2026
-sform = 'Q';                                                                % MMP, 11/18/2026
-if exist('stability_form','var') && ~isempty(stability_form),  sform = stability_form;  end % MMP, 11/18/2026
-% The form of the H-infinity gain test: the one the example names, else 'Q'  % MMP, 11/19/2026
-gform = 'Q';                                                                % MMP, 11/19/2026
-if exist('Hinf_gain_form','var') && ~isempty(Hinf_gain_form),  gform = Hinf_gain_form;  end % MMP, 11/19/2026
-% The form of the H2 norm test: 'o' (default) or the coercive 'oco'; the     % MMP, 11/19/2026
-% dual takes 'c' or 'cco' (the first letter o -> c)                         % MMP, 11/19/2026
-hform = 'o';                                                                % MMP, 11/19/2026
-if exist('H2_norm_form','var') && ~isempty(H2_norm_form),  hform = H2_norm_form;  end % MMP, 11/19/2026
+% The form of the stability LPI: stability_form, else 'Q'
+sform = 'Q';
+if exist('stability_form','var') && ~isempty(stability_form),  sform = stability_form;  end
+% The form of the H-infinity gain LPI: Hinf_gain_form, else 'Q'
+gform = 'Q';
+if exist('Hinf_gain_form','var') && ~isempty(Hinf_gain_form),  gform = Hinf_gain_form;  end
+% The form of the H2 norm LPI: 'o' (default) or the coercive 'oco'; the
+% dual takes 'c' or 'cco' (the first letter o -> c)
+hform = 'o';
+if exist('H2_norm_form','var') && ~isempty(H2_norm_form),  hform = H2_norm_form;  end
 
 % Run each executive, assigning its outputs in the base workspace
 for j=1:length(exec)
 if strcmpi(exec{j},'PIE2PDEstability')
+    % Stability in the form sform; the dual appends 'd' to it
     outval = '[prog_stability, P_stability, info_stability]';
-%   infun = 'PIETOOLS_stability_sop(PIE,settings,''Q'')';                   % MMP, 11/18/2026 (was)
-    infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,''')'];         % MMP, 11/18/2026
+    infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,''')'];
     msg_out = '';
 elseif strcmpi(exec{j},'PIE2PDEstability_dual')
     outval = '[prog_stability_d, P_stability_d, info_stability_d]';
-%   infun = 'PIETOOLS_stability_sop(PIE,settings,''Qd'')';                  % MMP, 11/18/2026 (was)
-    infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,'d'')'];        % MMP, 11/18/2026
+    infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,'d'')'];
     msg_out = '';
 elseif strcmp(exec{j},'Hinf_gain')
+    % The H-infinity gain in the form gform; the dual appends 'd' to it
     outval = '[prog_Hinf_gain, P_Hinf_gain, Hinf_gain, info_Hinf_gain]';
-%   infun = 'PIETOOLS_Hinf_gain_sop(PIE,settings,''Q'')';                   % MMP, 11/19/2026 (was)
-    infun = ['PIETOOLS_Hinf_gain_sop(PIE,settings,''',gform,''')'];         % MMP, 11/19/2026
+    infun = ['PIETOOLS_Hinf_gain_sop(PIE,settings,''',gform,''')'];
     msg_out = 'The upper bound on the H-infty norm has been saved as "Hinf_gain" (certificate and witness in "info_Hinf_gain").';
 elseif strcmp(exec{j},'Hinf_gain_dual')
     outval = '[prog_Hinf_gain_d, P_Hinf_gain_d, Hinf_gain_dual, info_Hinf_gain_d]';
-%   infun = 'PIETOOLS_Hinf_gain_sop(PIE,settings,''Qd'')';                  % MMP, 11/19/2026 (was)
-    infun = ['PIETOOLS_Hinf_gain_sop(PIE,settings,''',gform,'d'')'];        % MMP, 11/19/2026
+    infun = ['PIETOOLS_Hinf_gain_sop(PIE,settings,''',gform,'d'')'];
     msg_out = 'The upper bound on the (dual) H-infty norm has been saved as "Hinf_gain_dual".';
 elseif contains(exec{j},'Hinf_control')
+    % The H-infinity synthesis executives
     outval = '[prog_control, K_control, Hinf_gain_control, P_control, Z_control, info_control]';
     infun = 'PIETOOLS_Hinf_control_sop(PIE,settings)';
     msg_out = 'The (optimal) feedback control gain operator has been saved as "K_control".';
@@ -233,16 +216,16 @@ elseif contains(exec{j},'Hinf_estimator')
     infun = 'PIETOOLS_Hinf_estimator_sop(PIE,settings)';
     msg_out = 'The (optimal) estimator operator has been saved as "L_estimator".';
 elseif contains(exec{j},'H2_norm_o')  ||  strcmp(exec{j},'H2_norm')
+    % The H2 norm in the form hform; the dual replaces its first letter by c
     outval = '[prog_H2_norm, W_H2_norm, H2_norm, R_H2_norm, Q_H2_norm, info_H2_norm]';
-%   infun = 'PIETOOLS_H2_norm_sop(PIE,settings,''o'')';                     % MMP, 11/19/2026 (was)
-    infun = ['PIETOOLS_H2_norm_sop(PIE,settings,''',hform,''')'];           % MMP, 11/19/2026
+    infun = ['PIETOOLS_H2_norm_sop(PIE,settings,''',hform,''')'];
     msg_out = 'The upper bound on the H-2 norm has been saved as "H2_norm".';
 elseif contains(exec{j},'H2_norm_c') || strcmp(exec{j},'H2_norm_dual')
     outval = '[prog_H2_norm_d, W_H2_norm_d, H2_norm_dual, R_H2_norm_d, Q_H2_norm_d, info_H2_norm_d]';
-%   infun = 'PIETOOLS_H2_norm_sop(PIE,settings,''c'')';                     % MMP, 11/19/2026 (was)
-    infun = ['PIETOOLS_H2_norm_sop(PIE,settings,''c',hform(2:end),''')'];   % MMP, 11/19/2026
+    infun = ['PIETOOLS_H2_norm_sop(PIE,settings,''c',hform(2:end),''')'];
     msg_out = 'The upper bound on the (dual) H-2 norm has been saved as "H2_norm_dual".';
 elseif contains(exec{j},'H2_control')
+    % The H2 synthesis executives and well-posedness
     outval = '[prog_control, K_control, H2_norm_control, P_control, Z_control, W_control, info_control]';
     infun = 'PIETOOLS_H2_control_sop(PIE,settings)';
     msg_out = 'The (optimal) feedback control gain operator has been saved as "K_control".';
@@ -257,7 +240,9 @@ elseif strcmpi(exec{j},'well_posedness')
 else
     error(['Unknown executive ''',exec{j},'''.'])
 end
+% Run the call in the base workspace, assigning the outputs there
 evalin('base',[outval,'=',infun,';']);
 disp(msg_out);
 end
+% Remove the variables of the script
 clear exec sttngs j msg infun outval msg_out

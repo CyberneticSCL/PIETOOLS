@@ -18,7 +18,7 @@ function [X,info] = qp_copvar(A,B,opts)
 %   H = (A Xh)'(A Xh),   f = (A Xh)'B,   c = B'B,
 % where A*Xh, (A Xh)'(A Xh), (A Xh)'B, B'B are formed by the container
 % composition and the R^n -> R^n, R -> R^n, R -> R blocks of H, f, c are read
-% off their parameters (H = Xh'(A'A)Xh as before, without forming A'A). The degree bound is the basis: a coefficient outside it is
+% off their parameters (H = Xh'(A'A)Xh, without forming A'A). The degree bound is the basis: a coefficient outside it is
 % not a variable, which is the constraint "degree of X <= deg".
 %
 % INPUTS
@@ -40,12 +40,12 @@ function [X,info] = qp_copvar(A,B,opts)
 %   .assembly how H, f, c are formed: 'container' (default) from the
 %             container products AXh = A*Xh, H = AXh'*AXh, f = AXh'*B, B'*B,
 %             which carry the monomial coefficients of the basis through
-%             sopvar mtimes; or 'apply' from A*phi_u, computed by apply_sopvar
+%             sopvar mtimes; or 'apply' from A*phi_u, computed by applying A
 %             for every basis function phi_u and integrated by Gauss-Legendre
 %             quadrature, H being the Gram matrix of these functions
 %             (positive semidefinite by construction). 'container' is faster
 %             and, since A'*A is not formed, light on memory; 'apply' is slower
-%             (one apply_sopvar per unknown and block) and needs L2 input
+%             (one application of A per unknown and block) and needs L2 input
 %             spaces, but its H stays accurate at high degree: through the
 %             monomial coefficients of the basis the 'container' H loses
 %             accuracy from degree 6 in 2-D (indefinite from degree 6 to 8,
@@ -112,6 +112,9 @@ function [X,info] = qp_copvar(A,B,opts)
 % of unknowns grows as prod(deg+1) per block, so the dense H limits N-D use.
 %
 % See also COPVAR/MTIMES, SOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - qp_copvar
 %
@@ -137,42 +140,40 @@ function [X,info] = qp_copvar(A,B,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding AT - 10/26/2026 
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                gauss_legendre (one caller) inlined into the node loop of
-%                assemble_apply; its n==1 return is the first branch of an if.
-% DJ, 11/18/2026: Account for updated `size` function.
 
+% Options: the defaults, then the given fields; an unknown field is an error
 if nargin<3 || isempty(opts),  opts = struct();  end
-%o = struct('deg',4,'basis','monomial','assembly','container','solver','auto','lambda',0,'verbose',false);   % AT, 10/28/2026 (was)
-o = struct('deg',4,'basis','monomial','assembly','container','solver','backslash','lambda',0,'verbose',false);   % AT, 10/28/2026
+o = struct('deg',4,'basis','monomial','assembly','container','solver','backslash','lambda',0,'verbose',false);
 for f = fieldnames(opts)'
     if ~isfield(o,f{1}),  error('qp_copvar:opts','Unknown option ''%s''.',f{1});  end
     if ~isempty(opts.(f{1})),  o.(f{1}) = opts.(f{1});  end
 end
+% A and B: 'copvar' objects, B with one block column and the block rows of A
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('A and B should be copvar objects.')
 end
-if size(B,2,'block')~=1 || size(B,1,'block')~=size(A,1,'block')             % DJ, 11/18/2026
+if size(B,2,'block')~=1 || size(B,1,'block')~=size(A,1,'block')
     error('B must be an M x 1 copvar with M = size(A,1,''block'').')
 end
+% The Tikhonov weight, the solver, the assembly and the basis
 if ~isscalar(o.lambda) || o.lambda<0,  error('lambda must be a scalar >= 0.');  end
 solver = lower(o.solver);
 if strcmp(solver,'auto')
-    % The quadprog on the path may be the one of the MOSEK toolbox, which takes   % AT, 10/28/2026
-    % 'mskoptimset' options, not 'optimoptions': detect it by its location, only  % AT, 10/28/2026
-    % for the solver 'auto' (the solver 'quadprog' does it where it calls it).    % AT, 10/28/2026
-    qp_file = which('quadprog');                                            % AT, 10/28/2026
-    qp_is_mosek = ~isempty(qp_file) && contains(lower(qp_file),'mosek');    % AT, 10/28/2026
-%    if exist('quadprog','file'),  solver = 'quadprog';  else,  solver = 'backslash';  end   % AT, 10/28/2026 (was)
-    % 'quadprog' of the Optimization Toolbox if it is the one on the path, else backslash  % AT, 10/28/2026
-    if ~isempty(qp_file) && ~qp_is_mosek,  solver = 'quadprog';  else,  solver = 'backslash';  end   % AT, 10/28/2026
+    % The quadprog on the path may be the one of the MOSEK toolbox, which takes
+    % 'mskoptimset' options, not 'optimoptions': detect it by its location, only
+    % for the solver 'auto' (the solver 'quadprog' does it where it calls it).
+    qp_file = which('quadprog');
+    qp_is_mosek = ~isempty(qp_file) && contains(lower(qp_file),'mosek');
+    % 'quadprog' of the Optimization Toolbox if it is the one on the path, else backslash
+    if ~isempty(qp_file) && ~qp_is_mosek,  solver = 'quadprog';  else,  solver = 'backslash';  end
 end
 if ~any(strcmp(solver,{'quadprog','backslash'})),  error('qp_copvar:opts','Unknown solver ''%s''.',solver);  end
 assembly = lower(o.assembly);
 if ~any(strcmp(assembly,{'container','apply'})),  error('qp_copvar:opts','Unknown assembly ''%s''.',assembly);  end
 basis = lower(o.basis);
 if ~any(strcmp(basis,{'monomial','legendre','chebyshev'})),  error('qp_copvar:opts','Unknown basis ''%s''.',basis);  end
-N = size(A,2,'block');                                                      % DJ, 11/18/2026
+% The number of blocks of X and the degree bound per variable
+N = size(A,2,'block');
 nv = numel(A.vars);
 deg = o.deg(:)';
 if isscalar(deg),  deg = repmat(deg,1,nv);  end
@@ -235,13 +236,12 @@ off = [0;cumsum(nj)];   n = off(end);
 if strcmp(assembly,'apply')
     [H,f,c,Qs] = assemble_apply(A,B,Xh,nj,off);     % Gram matrix of A*phi_u by quadrature
 else
-%    AtA = A'*A;   AtB = A'*B;                                              % AT, 10/28/2026 (was)
-%    Hc = Xh'*AtA*Xh;   fc = Xh'*AtB;   cc = B'*B;                          % AT, 10/28/2026 (was)
-    % H = (A Xh)'(A Xh), f = (A Xh)'B: A*Xh first, so that A'*A, with twice the    % AT, 10/28/2026
-    % monomials of A, is never formed (92% of the allocation of the old product).  % AT, 10/28/2026
-    AXh = A*Xh;                                                             % AT, 10/28/2026
-    Hc = AXh'*AXh;   fc = AXh'*B;   cc = B'*B;                              % AT, 10/28/2026
+    % H = (A Xh)'(A Xh), f = (A Xh)'B: A*Xh first, so that A'*A, with twice the
+    % monomials of A, is never formed.
+    AXh = A*Xh;
+    Hc = AXh'*AXh;   fc = AXh'*B;   cc = B'*B;
     H = zeros(n);   f = zeros(n,1);
+    % The blocks of H and f, and c, read off the parameters of the products
     for i = 1:N
         ri = off(i)+1:off(i+1);
         for j = 1:N
@@ -254,6 +254,7 @@ else
     c = 0;   blk = cc.C{1,1};
     if ~isempty(blk),  c = full(blk.params{1});  end
 end
+% H symmetrized; Hraw without the Tikhonov term
 H = (H+H')/2;
 Hraw = H;
 if o.lambda>0,  H = H + o.lambda*speye(n);  end
@@ -264,11 +265,11 @@ Hy = H./(s*s');   fy = f./s;   Hy = (Hy+Hy')/2;
 exitflag = 0;
 switch solver
     case 'quadprog'
-        if ~exist('qp_is_mosek','var')      % not set by the solver 'auto': look at the quadprog on the path   % AT, 10/28/2026
+        if ~exist('qp_is_mosek','var')      % not set by the solver 'auto': look at the quadprog on the path
             qp_is_mosek = contains(lower(which('quadprog')),'mosek');       
         end                                                                 
         if qp_is_mosek
-            qo = mskoptimset('Display','off');   % MOSEK's quadprog: its own options, default tolerances  % AT, 10/28/2026
+            qo = mskoptimset('Display','off');   % MOSEK's quadprog: its own options, default tolerances
         else                                                                
             qo = optimoptions('quadprog','Display','off','OptimalityTolerance',1e-12,'StepTolerance',1e-14,'ConstraintTolerance',1e-12);
         end                                                                 
@@ -276,6 +277,7 @@ switch solver
     case 'backslash'
         y = lsqminnorm(Hy,fy); % Hy \ fy
 end
+% The coefficients x, the objective and the diagnostics
 x = y./s;
 obj = x'*H*x - 2*f'*x + c;
 info = struct('n',n,'obj',obj,'relres',sqrt(max(obj,0)/max(c,eps)),'solver',solver,'exitflag',exitflag,'cond',NaN,'rank',NaN,'mineig',NaN,'nneg',NaN,'H',[],'f',[]);
@@ -307,11 +309,18 @@ end
 function [H,f,c,Q] = assemble_apply(A,B,Xh,nj,off)
 % H(u,v) = <A phi_u, A phi_v>, f(u) = <A phi_u, B>, c = <B,B> for the basis
 % functions phi_u of X (the columns of Xh), with every A phi_u computed by
-% apply_sopvar and the L2 inner products by Gauss-Legendre quadrature on the
+% applying the blocks of A to phi_u and the L2 inner products by
+% Gauss-Legendre quadrature on the
 % output space of each block row. H = W'*diag(weights)*W is a Gram matrix of
 % sampled functions, so it is positive semidefinite whatever the basis, and no
 % product of the monomial coefficients of the basis enters.
-[M,N] = size(A,'block');   n = off(end);   q = A.dim_out;                   % DJ, 11/18/2026
+% INPUT  A, B: 'copvar' objects, as in QP_COPVAR; Xh: 'copvar', the basis
+%        functions of X as its columns; nj: N x 1 double, the coefficients
+%        per block; off: (N+1) x 1 double, the block offsets.
+% OUTPUT H, f, c: n x n, n x 1 and 1 x 1 double;
+%        Q: 'struct' with fields W, b, w, the sampled A phi_u, B and the
+%           quadrature weights of each block row.
+[M,N] = size(A,'block');   n = off(end);   q = A.dim_out;
 Wp = cell(M,n);                                     % Wp{i,u} = polynomial q_i x 1, A_i phi_u
 for j = 1:N
     b = Xh.C{j,j};   p = b.dims(1);   nZ = nj(j)/p;
@@ -349,18 +358,19 @@ for i = 1:M
     end
     nq = md+1;   xs = cell(1,nv);   ws = cell(1,nv);
     for k = 1:nv
-%       [xk,wk] = gauss_legendre(nq(k));   xs{k} = dom(k,1)+(dom(k,2)-dom(k,1))*(xk+1)/2;   ws{k} = wk*(dom(k,2)-dom(k,1))/2; % MMP, 11/09/2026 (was)
-        % Gauss-Legendre nodes xk and weights wk on [-1,1] (Golub-Welsch; the % MMP, 11/09/2026
-        % former local gauss_legendre), then mapped onto dom(k,:)           % MMP, 11/09/2026
-        if nq(k)==1                                                         % MMP, 11/09/2026
-            xk = 0;  wk = 2;                                                % MMP, 11/09/2026
-        else                                                                % MMP, 11/09/2026
-            kk = 1:nq(k)-1;   bb = kk./sqrt(4*kk.^2-1);                     % MMP, 11/09/2026
-            [V,D] = eig(diag(bb,1)+diag(bb,-1));                            % MMP, 11/09/2026
-            [xk,io] = sort(diag(D));   wk = 2*V(1,io)'.^2;                  % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
-        xs{k} = dom(k,1)+(dom(k,2)-dom(k,1))*(xk+1)/2;   ws{k} = wk*(dom(k,2)-dom(k,1))/2; % MMP, 11/09/2026
+        % Gauss-Legendre nodes xk and weights wk on [-1,1] (Golub-Welsch),
+        % then mapped onto dom(k,:)
+        if nq(k)==1
+            xk = 0;  wk = 2;
+        else
+            kk = 1:nq(k)-1;   bb = kk./sqrt(4*kk.^2-1);
+            [V,D] = eig(diag(bb,1)+diag(bb,-1));
+            [xk,io] = sort(diag(D));   wk = 2*V(1,io)'.^2;
+        end
+        xs{k} = dom(k,1)+(dom(k,2)-dom(k,1))*(xk+1)/2;   ws{k} = wk*(dom(k,2)-dom(k,1))/2;
     end
+    % The tensor grid of nodes and weights; the samples of A_i phi_u (the
+    % columns of Wr) and of B_i; their weighted products added to H, f, c
     [G{1:max(nv,1)}] = ndgrid(xs{:});   [Gw{1:max(nv,1)}] = ndgrid(ws{:});
     pts = zeros(numel(G{1}),nv);   wq = ones(numel(G{1}),1);
     for k = 1:nv,  pts(:,k) = G{k}(:);   wq = wq.*Gw{k}(:);  end
@@ -380,7 +390,11 @@ end
 end
 
 function V = poly_vals(w,vr,pts,nr)
-% values of the polynomial w (nr x 1) at the points pts (columns = variables vr): npt x nr
+% V = POLY_VALS(W,VR,PTS,NR) the values of the polynomial w (nr x 1) at the
+% points pts (columns = variables vr).
+% INPUT  w: 'polynomial' or double, nr x 1; vr: cellstr, the variable names
+%        of the columns of pts; pts: npt x numel(vr) double; nr: double.
+% OUTPUT V: npt x nr double.
 if ~isa(w,'polynomial'),  V = double(w).*ones(size(pts,1),nr);  return,  end
 dmat = w.degmat;   cf = w.coefficient;
 Mon = ones(size(pts,1),size(dmat,1));
@@ -397,6 +411,9 @@ function S = basis_coef(d,dom,type)
 % dom = [a,b]: 'legendre' orthonormal in L2(a,b), 'chebyshev' the T_k of the
 % first kind in t = (2s-a-b)/(b-a). Built from the three-term recurrence in
 % t, then composed with t = alpha*s + beta, in ascending powers.
+% INPUT  d: double, the largest degree; dom: 1x2 double, [a,b];
+%        type: char, 'legendre' or 'chebyshev'.
+% OUTPUT S: (d+1) x (d+1) double, column k+1 the coefficients of p_k.
 a = dom(1);   b = dom(2);   al = 2/(b-a);   be = -(a+b)/(b-a);
 Pt = zeros(d+1);                                    % column k: coefficients of p_k in t
 Pt(1,1) = 1;

@@ -155,19 +155,7 @@ function [prog,Pop,M,A,info] = poscopvar_lift(prog,dims,spaces,dom,deg,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/07/2026. The separated form A'*M*A proposed from
-%                the proof program's representation P = A_D^* M_W A_D:
-%                lift and weight as separate inputs, the weight the
-%                parameter. Built beside 'poscopvar', which is unchanged,
-%                so that the two can be measured against each other.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and headers
-%                of the local functions; code unchanged. The deleted
-%                header text was the reading of the degrees in the proof
-%                program (with references to notes and a memo), a measured
-%                equivalence with 'poscopvar', and remarks on cost and N-D.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): what lines for
-%                parse_deg and one_deg; code unchanged.
+% Initial coding MMP, 10/07/2026
 
 % Five inputs at least; OPTIONS a 'struct', type 'pos' only
 if nargin<5
@@ -214,7 +202,7 @@ for k = 1:Ms
         end
     end
     % One label for every component of the space, or one per component
-    % (a cell, which 'lift_copvar' reads per component).
+    % (a cell, read per component).
     if numel(lab)==1,   yg{k} = lab;    else,   yg{k} = num2cell(lab);  end
 end
 
@@ -228,7 +216,7 @@ t0 = tic;
 t_lift = toc(t0);
 
 % % % The weight degrees of Y: the R space, then the groups in order of
-% first appearance, which is the order 'lift_copvar' numbers them in.
+% first appearance, the order in which the lift numbers them.
 nY = numel(info.dims_Y);
 wY = cell(1,nY);
 if info.isR_Y(1),   wY{1} = wR;     end
@@ -304,8 +292,8 @@ end
 
 function [dl,w] = one_deg(d,isRk,nv,percell)
 % [DL,W] = ONE_DEG(D,ISRK,NV,PERCELL) returns the lift and weight of one
-% entry of DEG. A scalar: lift = weight = scalar (the scalar 'deg' of
-% copquadvar); a struct: weight (alias int) default 1, lift (alias mult)
+% entry of DEG. A scalar: lift = weight = scalar; a struct: weight (alias
+% int) default 1, lift (alias mult)
 % default weight. An R space reads only the weight, default 0 for a struct
 % or a per-space cell.
 % INPUT  d:       one entry of DEG, a 'double' scalar or a 'struct';

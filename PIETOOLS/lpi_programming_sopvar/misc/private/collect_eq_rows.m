@@ -89,51 +89,7 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: the collect mode of 'lpi_eq_sdopvar' as
-%                  its own routine (there, a second output and a 4th input
-%                  selected it, so '[prog,Eq] = lpi_eq_sdopvar(...)'
-%                  silently imposed nothing). The body is lpi_eq_sdopvar's
-%                  from the input checks to the Eq struct, moved verbatim
-%                  with its markers (MMP 08/28, 08/29, 09/26 and
-%                  09/30/2026), as is the local 'canonical_positions'.
-% MMP, 10/02/2026: Eq.pos, the table row of each name, from the membership
-%                  check's own unique (its first-occurrence output), so
-%                  'impose_eq_rows' can write prog.expr without soseq, whose
-%                  getequation matched all N program names against each
-%                  batch. Same verdict and errors; the N-length arrays of
-%                  the check are freed before the parameter loop.
-% MMP, 10/08/2026: Eq.cols, Eq.cells and Eq.blk: which coefficient position
-%                  each written row constrains, per parameter, with the
-%                  block's bases, so that 'lpigetdual_sop' can assemble the
-%                  solver's multipliers into the dual kernel. Rows unchanged.
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body
-%                  and the header of the local function; code unchanged.
-%                  Deleted: the callers' use of the routine, a notes
-%                  reference, and the reason the kept coefficients determine
-%                  the operator.
-% MMP, 11/01/2026: Equations that are multiples of another equation of P,
-%                  over all cells, are dropped (local 'drop_multiples');
-%                  Eq.dup lists them. A multiple adds no constraint; the
-%                  test holds to 1e-12 of the largest coefficient, entries
-%                  below 5e-13 of it (round-off of the products that build
-%                  P) left out. 3-D heatNd stability LPI: 33,231 -> 23,268
-%                  rows written, MOSEK 283 -> 176 s; the rows kept are
-%                  unchanged bit for bit. Cs{k} holds only the columns of
-%                  cols{k}. Help: description and the OUTPUT entries Cs,
-%                  cols and dup.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed and
-%                  in date order, (was) comment lines and a note on (was)
-%                  code removed, the notes on the canonical positions, the
-%                  membership check and the row layout shortened; code
-%                  unchanged.
-% MMP, 11/10/2026: Equations without a decision variable are all kept
-%                  (drop_multiples; the 11/01 entry no longer holds for
-%                  them). Any two are multiples, so the one kept was the
-%                  largest |A_k(c)|: programs that differ only in A, such
-%                  as the lam-affine family of heatNd_poincare (target
-%                  Q0 + lam Q1), wrote different equations, and
-%                  test_heatNd_poincare failed from 11/01. Other equations
-%                  unchanged. Help: description and drop_multiples.
+% Initial coding MMP, 09/30/2026
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -148,13 +104,12 @@ if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
 end
 
 % % % Extract the structure of the operator
-% dvars = cellstr(string(P.Zd(:)));                                         % MMP, 09/26/2026 (was)
-% A cellstr already is the normal form; the round trip only costs O(q).     % MMP, 09/26/2026
-if iscellstr(P.Zd)                                                          % MMP, 09/26/2026
-    dvars = P.Zd(:);                                                        % MMP, 09/26/2026
-else                                                                        % MMP, 09/26/2026
-    dvars = cellstr(string(P.Zd(:)));                                       % MMP, 09/26/2026
-end                                                                         % MMP, 09/26/2026
+% A cellstr already is the normal form; the round trip only costs O(q).
+if iscellstr(P.Zd)
+    dvars = P.Zd(:);
+else
+    dvars = cellstr(string(P.Zd(:)));
+end
 % Sizes: q names; the m x n matrix; NL and NR monomials; nC coefficients
 % per parameter
 q = numel(dvars);
@@ -182,73 +137,65 @@ end
 % Position of each shared variable among the input variables
 [~,posR] = ismember(vars_S3,P.vars.in);
 
-% Constraining only the positions the canonical form allows is equivalent to  % MMP, 08/29/2026
-% constraining the operator ONLY because the rest are zero. If they are not,  % MMP, 08/29/2026
-% this routine would silently impose no constraint at all where it should   % MMP, 08/29/2026
-% impose one, which is a soundness failure rather than a wrong answer. The  % MMP, 08/29/2026
-% constructor guarantees the invariant, so this can only fire for parameters  % MMP, 08/29/2026
-% assigned directly to the properties, which bypasses it. The check inspects  % MMP, 08/29/2026
-% only the forbidden positions, so it costs numel(C) per parameter and      % MMP, 08/29/2026
-% nothing in the number of decision variables.                              % MMP, 08/29/2026
-[is_canon,canon_info] = is_canonical_multiplier(P.params,P.vars,P.ZL,P.ZR,P.dims);% MMP, 08/29/2026
-if ~is_canon                                                                % MMP, 08/29/2026
-    error("The operator is not in canonical multiplier form, so constraining its "...% MMP, 08/29/2026
-          +"coefficients would not constrain the operator. "+string(canon_info.message)...% MMP, 08/29/2026
-          +" Rebuild it with the 'sdopvar' constructor rather than assigning to its "...% MMP, 08/29/2026
-          +"properties.")                                                   % MMP, 08/29/2026
-end                                                                         % MMP, 08/29/2026
+% Constraining only the positions the canonical form allows is equivalent to
+% constraining the operator ONLY because the rest are zero. If they are not,
+% this routine would silently impose no constraint at all where it should
+% impose one, which is a soundness failure rather than a wrong answer. The
+% constructor guarantees the invariant, so this can only fire for parameters
+% assigned directly to the properties, which bypasses it. The check inspects
+% only the forbidden positions, so it costs numel(C) per parameter and
+% nothing in the number of decision variables.
+[is_canon,canon_info] = is_canonical_multiplier(P.params,P.vars,P.ZL,P.ZR,P.dims);
+if ~is_canon
+    error("The operator is not in canonical multiplier form, so constraining its "...
+          +"coefficients would not constrain the operator. "+string(canon_info.message)...
+          +" Rebuild it with the 'sdopvar' constructor rather than assigning to its "...
+          +"properties.")
+end
 
 % Every decision variable of the operator must be known to the program.
-% The check hashes all of prog.decvartable, so a caller that has verified   % MMP, 09/26/2026
-% this list already (dvars_checked) skips it.                               % MMP, 09/26/2026
-% The check also gives Eq.pos, the table row of each name (see OUTPUT).     % MMP, 10/02/2026
-pos = zeros(0,1);       % stays empty when the check is skipped             % MMP, 10/02/2026
-% if q>0                                                                    % MMP, 09/26/2026 (was)
-if q>0 && ~(nargin>=4 && dvars_checked)                                     % MMP, 09/26/2026
-%   known = cellstr(string(prog.decvartable(:)));                           % MMP, 09/26/2026 (was)
-    if iscellstr(prog.decvartable)                                          % MMP, 09/26/2026
-        known = prog.decvartable(:);                                        % MMP, 09/26/2026
-    else                                                                    % MMP, 09/26/2026
-        known = cellstr(string(prog.decvartable(:)));                       % MMP, 09/26/2026
-    end                                                                     % MMP, 09/26/2026
-%   is_new = ~ismember(dvars,known);                                        % MMP, 09/26/2026 (was)
-    % One unique over [known;dvars]: ic labels each distinct name, and a    % MMP, 09/26/2026
-    % dvar is known iff its label also occurs among the table's (exact, as  % MMP, 09/26/2026
-    % ismember, and about 2x cheaper for large lists). A single name keeps  % MMP, 09/26/2026
-    % ismember, whose scalar path is one strcmp. On failure ismember runs   % MMP, 09/26/2026
-    % to name the first missing variable.                                   % MMP, 09/26/2026
-    if q==1                                                                 % MMP, 09/26/2026
-%       is_new = ~ismember(dvars,known);                                    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-        % The scalar path's loc is the first strcmp match, the lowest row.  % MMP, 10/02/2026
-        [is_known,pos] = ismember(dvars,known);  is_new = ~is_known;        % MMP, 10/02/2026
-    else                                                                    % MMP, 09/26/2026
-        nk = numel(known);                                                  % MMP, 09/26/2026
-%       [~,~,ic] = unique([known;dvars]);                                   % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-%       lab_known = false(max(ic),1);   lab_known(ic(1:nk)) = true;         % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-        % ia = first occurrence of each label; known comes first, so a name % MMP, 10/02/2026
-        % is in the table iff ia <= nk, and ia is then its lowest row - the % MMP, 10/02/2026
-        % row getequation gives it (ismember + accumarray @min).            % MMP, 10/02/2026
-        [~,ia,ic] = unique([known;dvars]);                                  % MMP, 10/02/2026
-        pos = ia(ic(nk+1:end));                                             % MMP, 10/02/2026
-        is_new = false;                                                     % MMP, 09/26/2026
-%       if ~all(lab_known(ic(nk+1:end)))                                    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-        if any(pos>nk)                                                      % MMP, 10/02/2026
-            is_new = ~ismember(dvars,known);                                % MMP, 09/26/2026
-        end                                                                 % MMP, 09/26/2026
-    end                                                                     % MMP, 09/26/2026
+% The check hashes all of prog.decvartable, so a caller that has verified
+% this list already (dvars_checked) skips it.
+% The check also gives Eq.pos, the table row of each name (see OUTPUT).
+pos = zeros(0,1);       % stays empty when the check is skipped
+if q>0 && ~(nargin>=4 && dvars_checked)
+    if iscellstr(prog.decvartable)
+        known = prog.decvartable(:);
+    else
+        known = cellstr(string(prog.decvartable(:)));
+    end
+    % One unique over [known;dvars]: ic labels each distinct name, and a
+    % dvar is known iff its label also occurs among the table's (exact, as
+    % ismember, and about 2x cheaper for large lists). A single name keeps
+    % ismember, whose scalar path is one strcmp. On failure ismember runs
+    % to name the first missing variable.
+    if q==1
+        % The scalar path's loc is the first strcmp match, the lowest row.
+        [is_known,pos] = ismember(dvars,known);  is_new = ~is_known;
+    else
+        nk = numel(known);
+        % ia = first occurrence of each label; known comes first, so a name
+        % is in the table iff ia <= nk, and ia is then its lowest row.
+        [~,ia,ic] = unique([known;dvars]);
+        pos = ia(ic(nk+1:end));
+        is_new = false;
+        if any(pos>nk)
+            is_new = ~ismember(dvars,known);
+        end
+    end
     if any(is_new)
         error("Decision variable '"+string(dvars{find(is_new,1)})+"' does not appear "...
               +"in the program; declare it with 'lpidecvar' before imposing constraints.")
     end
-    % A name repeated in P.Zd: soseq sums its rows and drops a column that  % MMP, 10/02/2026
-    % cancels, so leave such a list to soseq (empty pos). O(N), no sort.    % MMP, 10/02/2026
-    if q>1                          % one name cannot repeat                % MMP, 10/02/2026
-        seen = false(numel(known),1);   seen(pos) = true;                   % MMP, 10/02/2026
-        if nnz(seen)<q,     pos = zeros(0,1);   end                         % MMP, 10/02/2026
-    end                                                                     % MMP, 10/02/2026
-    % Free the check's N-length arrays before the parameter loop; known is  % MMP, 10/02/2026
-    % a new N-name cellstr when the table is not one.                       % MMP, 10/02/2026
-    known = [];     ia = [];    ic = [];    seen = [];                      % MMP, 10/02/2026
+    % A name repeated in P.Zd: its rows are to be summed and a column that
+    % cancels dropped, so pos is left empty for such a list. O(N), no sort.
+    if q>1                          % one name cannot repeat
+        seen = false(numel(known),1);   seen(pos) = true;
+        if nnz(seen)<q,     pos = zeros(0,1);   end
+    end
+    % Free the N-length arrays of the check before the parameter loop; known is
+    % a new N-name cellstr when the table is not one.
+    known = [];     ia = [];    ic = [];    seen = [];
 end
 
 % % % Check the options
@@ -260,13 +207,12 @@ if nargin>=3 && ~isempty(opts)
     use_symmetry = true;
 end
 
-% sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
 
-% Constraint blocks of the parameters, collected for one prog.expr entry.   % MMP, 10/02/2026
-Cs = cell(1,numel(params_A));                                               % MMP, 09/26/2026
-cols = cell(1,numel(params_A));     % positions written, per parameter      % MMP, 10/08/2026
+% Constraint blocks of the parameters, collected for one prog.expr entry.
+Cs = cell(1,numel(params_A));
+cols = cell(1,numel(params_A));     % positions written, per parameter
 
-% % % Collect the constraints, one parameter at a time                      % MMP, 09/26/2026
+% % % Collect the constraints, one parameter at a time
 for k=1:numel(params_A)
     % Parameter k: an empty part as a sparse zero; skipped when all zero;
     % its size checked
@@ -286,82 +232,59 @@ for k=1:numel(params_A)
     end
 
     % Determine the multi-index of this parameter.
-%   gam = ones(1,n3);                                                       % MMP, 09/30/2026 (was)
-%   if n3>0                                                                 % MMP, 09/30/2026 (was)
-%       idcs = cell(1,n3);                                                  % MMP, 09/30/2026 (was)
-%       [idcs{:}] = ind2sub(sz_C,k);                                        % MMP, 09/30/2026 (was)
-%       gam = cell2mat(idcs);                                               % MMP, 09/30/2026 (was)
-%   end                                                                     % MMP, 09/30/2026 (was)
-    gam = gamma_of_cell(k,n3);      % 1 x n3; 1 x 0 at n3 = 0               % MMP, 09/30/2026
+    gam = gamma_of_cell(k,n3);      % 1 x n3; 1 x 0 at n3 = 0
 
     % Under self-adjointness a lower integral pairs with an upper integral.
     if use_symmetry && n3>0
         adj = gam;
         adj(gam==2) = 3;
         adj(gam==3) = 2;
-%       adj_cell = num2cell(adj);                                           % MMP, 09/30/2026 (was)
-%       if sub2ind(sz_C,adj_cell{:})<k                                      % MMP, 09/30/2026 (was)
-        if cell_of_gamma(adj)<k                                             % MMP, 09/30/2026
+        if cell_of_gamma(adj)<k
             continue
         end
     end
 
-    % Keep only the coefficients the canonical form allows to be nonzero:   % MMP, 08/29/2026
-    % the rest are zero by the class invariant, so setting the kept ones to % MMP, 08/29/2026
-    % zero sets the operator to zero (see 'canonicalize_multiplier').       % MMP, 08/29/2026
-    keep = canonical_positions(gam,P.ZR,posR,m,n,NL,NR);                    % MMP, 08/29/2026
-    A_eff = Ak(keep);                                                       % MMP, 08/29/2026
-    B_eff = Bk(:,keep);                                                     % MMP, 08/29/2026
+    % Keep only the coefficients the canonical form allows to be nonzero:
+    % the rest are zero by the class invariant, so setting the kept ones to
+    % zero sets the operator to zero.
+    keep = canonical_positions(gam,P.ZR,posR,m,n,NL,NR);
+    A_eff = Ak(keep);
+    B_eff = Bk(:,keep);
     if nnz(A_eff)==0 && nnz(B_eff)==0
         continue
     end
-    n_eff = numel(keep);                                                    % MMP, 08/29/2026
+    n_eff = numel(keep);
 
     % The equations as the columns of a (q+1) x n_eff block, row 1 the
-    % constant term: the layout of a 1 x n_eff variable-free 'dpvar' (one
-    % block of q+1 rows per matrix ROW), which the writers take as is.
-%   M = [reshape(full(A_eff),1,[]); B_eff];                                 % MMP, 09/26/2026 (was)
-%   [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026 (was)
-%   Cdp = sparse(sg,ii,vv,q+1,n_eff);                                       % MMP, 09/26/2026 (was)
-%   Dk = dpvar(Cdp,zeros(1,0),{},dvars,[1,n_eff]);                          % MMP, 09/26/2026 (was)
-%   used = find(any(B_eff,2));                                              % MMP, 09/26/2026 (was)
-%   M = [reshape(full(A_eff),1,[]); B_eff(used,:)];                         % MMP, 09/26/2026 (was)
-%   [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026 (was)
-%   Cdp = sparse(sg,ii,vv,numel(used)+1,n_eff);                             % MMP, 09/26/2026 (was)
-%   Dk = dpvar(Cdp,zeros(1,0),{},dvars(used),[1,n_eff]);                    % MMP, 09/26/2026 (was)
-%   prog = soseq(prog,Dk);                                                  % MMP, 09/26/2026 (was)
-    % Collect rather than impose: impose_eq_rows writes one prog.expr entry % MMP, 10/02/2026
-    % per ~q nonzeros, not one per parameter.                               % MMP, 10/02/2026
-    % Row 1 the constant term, row 1+i dvars{i}; sparse even if B is full.  % MMP, 09/26/2026
-    Cs{k} = [sparse(reshape(A_eff,1,[])); sparse(B_eff)];                   % MMP, 09/26/2026
-    % The rows the writer will produce: lpi_soseq (and soseq) drop a column % MMP, 10/08/2026
-    % that is all zero, so the written rows are the kept positions whose    % MMP, 10/08/2026
-    % column has a nonzero, in order (LPIGETDUAL_SOP reads them back).      % MMP, 10/08/2026
-    nzc = full(any(Cs{k},1));                                               % MMP, 10/08/2026
-    cols{k} = reshape(keep(nzc),1,[]);                                      % MMP, 10/08/2026
-    % Columns of Cs{k} one to one with cols{k}, for drop_multiples          % MMP, 11/01/2026
-    if ~all(nzc),   Cs{k} = Cs{k}(:,nzc);   end                             % MMP, 11/01/2026
+    % constant term (the layout of a 1 x n_eff variable-free 'dpvar', one
+    % block of q+1 rows per matrix ROW). Collected rather than imposed: the
+    % program gets one prog.expr entry per ~q nonzeros, not one per
+    % parameter.
+    % Row 1 the constant term, row 1+i dvars{i}; sparse even if B is full.
+    Cs{k} = [sparse(reshape(A_eff,1,[])); sparse(B_eff)];
+    % The rows written: an all-zero column is dropped, so the written rows
+    % are the kept positions whose column has a nonzero, in order.
+    nzc = full(any(Cs{k},1));
+    cols{k} = reshape(keep(nzc),1,[]);
+    % Columns of Cs{k} one to one with cols{k}, for the multiple test below
+    if ~all(nzc),   Cs{k} = Cs{k}(:,nzc);   end
 end
 
-% Equations that are multiples of another, over all cells, are dropped:     % MMP, 11/01/2026
-% they constrain nothing more, and solvers pay for each row.                % MMP, 11/01/2026
-[Cs,cols,dup] = drop_multiples(Cs,cols);                                    % MMP, 11/01/2026
+% Equations that are multiples of another, over all cells, are dropped:
+% they constrain nothing more, and solvers pay for each row.
+[Cs,cols,dup] = drop_multiples(Cs,cols);
 
-% Skipped parameters stay [] and are dropped. Order is the loop's, which is % MMP, 09/26/2026
-% the order of the former one-soseq-per-parameter expressions.              % MMP, 09/26/2026
-% Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars});               % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-% Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars},'pos',{pos});   % MMP, 10/02/2026 % MMP, 10/08/2026 (was)
-% cols, cells and blk describe the rows for the dual read-back: the         % MMP, 10/08/2026
-% parameter index of each kept block, its written positions (linear into    % MMP, 10/08/2026
-% the m*NL x n*NR coefficient matrix) and the block's bases and spaces.     % MMP, 10/08/2026
-kept = ~cellfun(@isempty,Cs);                                               % MMP, 10/08/2026
-blk = struct('ZL',{P.ZL},'ZR',{P.ZR},'dims',P.dims,'vars',P.vars,'dom',P.dom, ...% MMP, 10/08/2026
-             'NL',NL,'NR',NR,'psize',size(params_A),'symmetric',use_symmetry);% MMP, 10/08/2026
-% Eq = struct('Cs',{Cs(kept)},'Zd',{dvars},'pos',{pos}, ...                 % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
-%             'cols',{cols(kept)},'cells',find(kept),'blk',blk);            % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
-% dup: the equations dropped as multiples (see OUTPUT).                     % MMP, 11/01/2026
-Eq = struct('Cs',{Cs(kept)},'Zd',{dvars},'pos',{pos}, ...                   % MMP, 10/08/2026
-            'cols',{cols(kept)},'cells',find(kept),'blk',blk,'dup',dup);    % MMP, 11/01/2026
+% Skipped parameters stay [] and are dropped. Order is that of the loop.
+% cols, cells and blk describe the rows for the dual read-back: the
+% parameter index of each kept block, its written positions (linear into
+% the m*NL x n*NR coefficient matrix) and the bases and spaces of the
+% block.
+kept = ~cellfun(@isempty,Cs);
+blk = struct('ZL',{P.ZL},'ZR',{P.ZR},'dims',P.dims,'vars',P.vars,'dom',P.dom, ...
+             'NL',NL,'NR',NR,'psize',size(params_A),'symmetric',use_symmetry);
+% dup: the equations dropped as multiples (see OUTPUT).
+Eq = struct('Cs',{Cs(kept)},'Zd',{dvars},'pos',{pos}, ...
+            'cols',{cols(kept)},'cells',find(kept),'blk',blk,'dup',dup);
 
 end
 
@@ -411,7 +334,6 @@ end
 
 
 
-% BEGIN MMP, 11/01/2026: local function drop_multiples, new
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Cs,cols,dup] = drop_multiples(Cs,cols)
 % [CS,COLS,DUP] = DROP_MULTIPLES(CS,COLS) removes from the blocks CS every
@@ -482,10 +404,10 @@ end
 % its group, so the refused candidates are grouped again among themselves.
 key = [cnt, fr, round(h*1e8)];
 act = (1:nt)';      drop = zeros(0,1);      r = zeros(0,1);     gathered = false;
-% Columns whose only entry compared is row 1 (no decision variable) stay:   % MMP, 11/10/2026
-% any two are multiples, so the one kept would follow the constant terms,   % MMP, 11/10/2026
-% and programs that differ only in those would write different equations.   % MMP, 11/10/2026
-act = act(~(cnt==1 & fr==1));                                               % MMP, 11/10/2026
+% Columns whose only entry compared is row 1 (no decision variable) stay:
+% any two are multiples, so the one kept would follow the constant terms,
+% and programs that differ only in those would write different equations.
+act = act(~(cnt==1 & fr==1));
 while numel(act)>=2
     % Groups of act; cand the members that are not representatives, rc
     % their representatives
@@ -552,4 +474,3 @@ for t = 1:numel(ks)
 end
 
 end
-% END MMP, 11/01/2026

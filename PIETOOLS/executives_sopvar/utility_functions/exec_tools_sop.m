@@ -1,35 +1,33 @@
 function tl = exec_tools_sop(PIE,st)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TL = EXEC_TOOLS_SOP(PIE,ST) returns the constructions that the settings
-% ST define for the container executives on a PIE in any number of spatial
-% variables: the positive operator and the stock slack of the settings, the
-% margins, identity operators on the PIE's spaces, the degrees of a free
-% operator, the container options of the PIE's dimension and the
-% per-direction bounds of the slack bases.
+% TL = EXEC_TOOLS_SOP(PIE,ST) returns the constructions that the LPI
+% settings ST define on a PIE in any number of spatial variables: the
+% positive operator and the 'stock' slack of the settings, the margins,
+% identity operators on the spaces of the PIE, the degrees of a free
+% operator, the options of the executives for the dimension of the PIE and
+% the per-direction bounds of the slack bases.
 %
 % INPUT
-% - PIE:  'pie_struct' object as EXEC_PIE_SOP returns it: each operator a
-%         'copvar' object or 0 (absent), in any number nv >= 1 of
-%         variables;
-% - st:   'struct' of LPI settings, completed by EXEC_SOP_SETTINGS:
+% - PIE:  'pie_struct' object, each operator a 'copvar' object or 0
+%         (absent), in any number nv >= 1 of variables;
+% - st:   'struct' of LPI settings:
 %           1-D  eppos, eppos2, epneg (each optional), lpi.var.deg{1}, the
-%                degrees of a free operator, and lpi.pos, the positive
-%                operator of POSLPIVAR_SETTINGS_SOP;
-%           2-D  settings_2d, read by SETTINGS_2D_SOP and
-%                POSLPIVAR_SETTINGS_2D_SOP;
-%                without settings_2d, as N-D with lpi.var.deg{2} and no     % MMP, 11/17/2026
-%                stock slack;                                               % MMP, 11/17/2026
+%                degrees of a free operator, and lpi.pos, the degrees of
+%                the positive operator;
+%           2-D  settings_2d, the 16-basis degrees, margins and 'stock'
+%                slack of two variables;
+%                without settings_2d, as N-D with lpi.var.deg{2} and no
+%                'stock' slack;
 %           N-D  (nv >= 3) lpi.pos and lpi.var, entry 3: the positive
 %                operator on a space in d >= 1 variables, the multiplier
 %                basis operator (alpha = 1 in every direction) of degree
 %                mult and the full-integral one (alpha = 4, separable in
 %                every direction) with caps int in each variable and joint
-%                in total, the rule of the stock light 2-D storage, the
-%                identity basis on R^n; lpi.var.deg{3}, the degree of a free
-%                operator; and settings_nd (optional), a 'struct' with the
-%                optional fields
-%                  LF_deg, LF_opts  instead, a POSCOPVAR degree
-%                       specification and its options;
+%                in total, the identity basis on R^n; lpi.var.deg{3}, the
+%                degree of a free operator; and settings_nd (optional), a
+%                'struct' with the optional fields
+%                  LF_deg, LF_opts  instead, a degree specification of the
+%                       positive operator and its options;
 %                  LF_psatz  the term codes (default 0);
 %                  eppos  the margin on every space, or 2^nv margins as
 %                       for EYE below (default 1e-2);
@@ -38,11 +36,11 @@ function tl = exec_tools_sop(PIE,st)
 % OUTPUT
 % - tl:   'struct' with fields
 %           nv             double, the spatial dimension;
-%           S              'struct', the 2-D settings of SETTINGS_2D_SOP,
-%                          or in N-D the N-D settings above with field
+%           S              'struct', the completed 2-D settings, or in N-D
+%                          the N-D settings above with field
 %                          eppos_default ([] in 1-D);
-%           dom            the domain argument of LPIVAR_CDOPVAR and
-%                          POSCOPVAR: 1x2 double PIE.dom in 1-D; in 2-D
+%           dom            the domain argument of the operator
+%                          declarations: 1x2 double PIE.dom in 1-D; in 2-D
 %                          and N-D a 'struct' with fields vars (1 x nv
 %                          cellstr, in the order of PIE.vars) and dom
 %                          (nv x 2 double);
@@ -55,14 +53,14 @@ function tl = exec_tools_sop(PIE,st)
 %           storage        function handle, [prog,P] = storage(prog,X,side):
 %                          declares the positive operator of the settings
 %                          on the SIDE ('out' or 'in') spaces of the
-%                          'copvar' X; P is a 'cdopvar' object;
-%                          POSCOPVAR with DEG omitted in every dimension    % MMP, 11/17/2026
-%                          when lpi.pos of the program settings carries     % MMP, 11/17/2026
-%                          len_com (the storage row), else as above;        % MMP, 11/17/2026
+%                          'copvar' X; P is a 'cdopvar' object; from the
+%                          storage row in every dimension when lpi.pos of
+%                          the program settings carries len_com, else as
+%                          above;
 %           slack          function handle, [prog,N] = slack(prog,X):
-%                          declares the stock slack of an inequality on the
-%                          spaces of X; in N-D an error (no stock settings
-%                          exist there);
+%                          declares the 'stock' slack of an inequality on
+%                          the spaces of X; an error without 'stock'
+%                          settings (N-D, and 2-D without settings_2d);
 %           eye            function handle, E = eye(side,e): the 'copvar'
 %                          operator diag(e_k I) on the output (SIDE 1) or
 %                          input (SIDE 2) spaces of PIE.T; e a scalar, or
@@ -72,22 +70,23 @@ function tl = exec_tools_sop(PIE,st)
 %           ident          function handle, I = ident(Bop,side): the
 %                          identity 'copvar' on the output (SIDE 1) or input
 %                          (SIDE 2) space of the 'copvar' or 'cdopvar' Bop;
-%           zdeg           the degrees of a free operator for
-%                          LPIVAR_CDOPVAR: 1-D lpi.var.deg{1}; 2-D a
-%                          'struct' with the largest entry of
-%                          settings_2d.Zop_deg on every role; N-D the same
-%                          with lpi.var.deg{3};
-%                          (2-D without settings_2d: lpi.var.deg{2});       % MMP, 11/17/2026
+%           zdeg           the degrees of a free operator: 1-D
+%                          lpi.var.deg{1}; 2-D a 'struct' with the largest
+%                          entry of settings_2d.Zop_deg on every role; N-D
+%                          the same with lpi.var.deg{3};
+%                          (2-D without settings_2d: lpi.var.deg{2});
 %           sop            'struct', settings.sop with each per-dimension
 %                          vector (dw_feas, dw_P, dw_Q, max_raise,
-%                          max_raise_feas, cap_delta) reduced to its entry
-%                          min(nv,end): the options the executives read;
-%           capfor         function handle, cap = capfor(X): the opts.cap of
-%                          LPI_INEQ_SOP for a slack of the target X, the
-%                          bounds Jmax(T) + cap_delta of this dimension
-%                          (Jmax of GET_LIFT_DEGS on PIE.T) on the variables
-%                          of X; [] (no bound) when cap_delta is empty or
-%                          NaN, X has no variable, or X has one T lacks.
+%                          max_raise_feas, cap_delta, max_raise_Q) reduced
+%                          to its entry min(nv,end);
+%           capfor         function handle, cap = capfor(X): the
+%                          per-direction caps of the slack bases of an
+%                          inequality on X, Jmax(T) + cap_delta of this
+%                          dimension on the variables of X, with Jmax(T)
+%                          the largest total degree per direction of a
+%                          kernel monomial of PIE.T; [] (no bound) when
+%                          cap_delta is empty or NaN, X has no variable,
+%                          or X has one T lacks.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -116,109 +115,6 @@ function tl = exec_tools_sop(PIE,st)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Moved from executives_sopvar/private/ to
-%                utility_functions/ with the consolidation of the
-%                executives; header to the header protocol, the licence
-%                block added, step comments in the body; code unchanged.
-% MMP, 10/29/2026: PIEs in any number of spatial variables and container
-%                PIEs (T a 'copvar') in every dimension. N-D branch: no stock
-%                settings exist in 3-D or higher, so the positive operator
-%                is a POSCOPVAR of settings_nd (local SETTINGS_ND, POS_ND),
-%                whose default has the structure of the stock light 2-D
-%                storage, a multiplier and one separable full integral per
-%                space (with all 3^nv basis operators at degree 1 the 3-D
-%                heat stability SDP was past what MOSEK solves here); the
-%                stock slack is an error, and a solved container is returned
-%                as it is. eye and ident build on the spaces of a container
-%                (local EYE_CONTAINER, IDENT_OP). Field capfor (local
-%                CAP_FOR): the per-direction bounds of settings.sop.cap_delta
-%                for opts.cap of LPI_INEQ_SOP, read from T (GET_LIFT_DEGS
-%                info.Jmax) and laid over each target's variables, [] when
-%                cap_delta is empty. Field sop (local SOP_OF_DIM): the
-%                per-dimension vectors of the settings_sopvar tiers reduced
-%                to this dimension's entry; a NaN cap_delta means no bound.
-%                The 1-D and 2-D branches are unchanged.
-% DJ (CC), 10/29/2026: Support the 'copvar' operators of the new pie_struct:
-%                tl.ident and eye_state read the spaces of PIE.T and Bop
-%                from the 'copvar' fields, as PIE.T.dim and Bop.dim no longer
-%                exist; eye_state gives one block for each block of PIE.T,
-%                and tl.ident one for each space of Bop;
-% MMP, 10/30/2026: Merge of origin/ndopvar: the DJ tl.ident and EYE_STATE
-%                bodies (origin commit 3df33dcc) and the container branch of
-%                10/29/2026 both read the spaces from the 'copvar' fields;
-%                the container branch is kept, the DJ lines commented out
-%                where they stood. EYE_CONTAINER indexes the weights by
-%                1 + sum_k 2^(k-1) over the variables of a space, equal to
-%                the 1 + sum_k loc(k) of DJ in 1-D and 2-D (in 3 or more
-%                variables that index gives {s3} and {s1,s2} the same
-%                weight); IDENT_OP returns the 0 x 0 container of
-%                EYE_COPVAR_SOP for an empty channel, where DJ returned
-%                copvar().
-% MMP, 11/04/2026: The opvar-PIE code is commented out, being unreachable
-%                (EXEC_PIE_SOP returns a PIE whose operators are all 'copvar'
-%                objects): EYE_STATE calls EYE_CONTAINER, IDENT_OP errors on
-%                a class other than 'copvar' or 'cdopvar' (its arguments VARS
-%                and PDOM dropped), capfor reads PIE.T without OP2COPVAR_SOP.
-%                Supersedes the opvar-PIE parts of the entries of 10/29/2026
-%                and 10/30/2026.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; the
-%                help of toop and the 1-D, 2-D branch notes say that
-%                copvar2opvar and copvar2opvar2d are retired (11/08/2026,
-%                cleaning/private), so the handle errors when called (unused
-%                since 11/04/2026); three commented-out notes removed; code
-%                unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                very short and called once go into the body): EYE_STATE
-%                (one call of EYE_CONTAINER since 11/04/2026, with its
-%                disabled opvar body of 10/29/2026) into the handle tl.eye,
-%                SOP_OF_DIM into the construction of tl.sop, ZCAPS into the
-%                2-D branch, each with its header as the comment of the
-%                block. CAP_FOR and IDENT_OP stay: their handles need a
-%                function body.
-% MMP, 11/09/2026: tl.toop removed (maintainer, 11/09/2026: "why does
-%                exec_tools need a converter?"): the handle converted a
-%                container result back to an opvar for output; no executive
-%                has called it since they return containers (11/04/2026),
-%                and its targets copvar2opvar, copvar2opvar2d are retired.
-% MMP, 11/12/2026: Native settings (maintainer, 11/12/2026: phase 2 of the
-%                knob reduction): Z in 1-D from lpi.var.deg{1}, the former
-%                ddZ; in N-D, LF_int, LF_mult and Zop_deg from lpi.pos and
-%                lpi.var, entry 3, the former settings_nd fields, with the
-%                total cap joint of lpi.pos in place of 2*LF_int (2*int in
-%                every tier, so the same P). settings_nd keeps LF_deg,
-%                LF_opts, LF_psatz, eppos and epneg.
-% MMP, 11/17/2026: The storage row (settings revision, work package 4;
-%                settings report 11/16/2026, Sec. 5.1, 6.1): when lpi.pos
-%                of the program settings has the field len_com, tl.storage
-%                is POSCOPVAR with DEG omitted (local POS_ROW), which reads
-%                the row, in every dimension, in place of the 1-D and 2-D
-%                stock storages and POS_ND, so the storage row of the tier
-%                applies in every number of variables (except a 2-D PIE
-%                with an explicit settings_2d, see the last entry); without
-%                len_com the storage of each branch is unchanged (the tier
-%                files switch to the row later). SETTINGS_ND reads int, mult, joint of
-%                lpi.pos through GETF, as a row need not carry them. The
-%                stock slack is unchanged.
-% MMP, 11/17/2026: Settings without settings_2d (the tiers of the settings
-%                report 11/16/2026, Sec. 5, 6; work package 5): a 2-D PIE
-%                takes the margins and the fallback storage of SETTINGS_ND
-%                and POS_ND, the storage row through POS_ROW, the free
-%                operator from lpi.var.deg{2} (as N-D from entry 3; was the
-%                largest stock Zop_deg, 4 at light), and a stock slack that
-%                errors, as in N-D. With settings_2d the 2-D branch is
-%                unchanged.
-% MMP, 11/17/2026: The 2-D stock-slack error names SETTINGS_2D_STOCK, the
-%                way to the stock 2-D struct since it left the tiers.
-% MMP, 11/17/2026: An explicit settings_2d wins in 2-D: POS_ROW is not
-%                wired on a 2-D PIE whose settings carry settings_2d, so a
-%                caller of SETTINGS_2D_STOCK gets the 16-basis storage its
-%                help promises (every tier carries len_com, so the row took
-%                over: rd2d-deg3-f010 Gram [25 424] against HEAD [8 424];
-%                low-rank session, 11/17/2026). Tiers without settings_2d
-%                unchanged.
-% MMP, 11/18/2026: sop.max_raise_Q (the raises of the direct stability
-%                form, PIETOOLS_STABILITY_SOP) reduced to its entry for the
-%                dimension like max_raise_feas.
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -226,134 +122,95 @@ vars = PIE.vars;
 vnames = reshape(vars(:,1).varname,1,[]);
 tl = struct('nv',nv,'S',[]);
 if nv==1
-%   % 1-D: margins from eppos, eppos2, epneg; storage and slack from the    % MMP, 11/12/2026 (was); MMP, 11/09/2026
-%   % 1-D degree fields; Z degrees from ddZ                                 % MMP, 11/12/2026 (was); MMP, 11/09/2026
-    % 1-D: margins from eppos, eppos2, epneg; storage from lpi.pos, stock   % MMP, 11/12/2026
-    % slack from sop.stock (POSLPIVAR_SETTINGS_SOP); Z degrees from lpi.var % MMP, 11/12/2026
+    % 1-D: margins from eppos, eppos2, epneg; storage from lpi.pos, 'stock'
+    % slack from sop.stock; Z degrees from lpi.var
     tl.dom = PIE.dom;
     tl.eppos = [getf(st,'eppos',1e-4); getf(st,'eppos2',1e-6)];
     tl.epneg = getf(st,'epneg',0);
     tl.eppos_default = ~isfield(st,'eppos') || isempty(st.eppos);
     tl.storage = @(prog,X,side) poslpivar_settings_sop(prog,X,st,'lf',side,PIE.dom);
     tl.slack   = @(prog,X) poslpivar_settings_sop(prog,X,st,'slack','out',PIE.dom);
-%   tl.toop    = @(C) copvar2opvar(C);                                      % MMP, 11/09/2026 (was)
-%   tl.zdeg    = getf(st,'ddZ',1);                                          % MMP, 11/12/2026 (was)
-    tl.zdeg    = st.lpi.var.deg{1};     % the former ddZ                    % MMP, 11/12/2026
-% elseif nv==2                                                              % MMP, 11/17/2026 (was)
-elseif nv==2 && isfield(st,'settings_2d')                                   % MMP, 11/17/2026
-    % 2-D: everything from settings_2d; one degree cap for Z                % MMP, 11/09/2026
+    tl.zdeg    = st.lpi.var.deg{1};     % the degrees of a free operator
+elseif nv==2 && isfield(st,'settings_2d')
+    % 2-D: everything from settings_2d; one degree cap for Z
     S = settings_2d_sop(st);
     tl.S = S;
     tl.dom = struct('vars',{vnames},'dom',PIE.dom);
     tl.eppos = S.eppos;     tl.epneg = S.epneg;     tl.eppos_default = S.eppos_default;
     tl.storage = @(prog,X,side) poslpivar_settings_2d_sop(prog,X,st,'lf',side,PIE);
     tl.slack   = @(prog,X) poslpivar_settings_2d_sop(prog,X,st,'slack','out',PIE);
-%   tl.toop    = @(C) copvar2opvar2d(C,vnames);                             % MMP, 11/09/2026 (was)
-%   tl.zdeg    = zcaps(S.Zop_deg);                                          % MMP, 11/09/2026 (was)
-    % One degree cap for every role of LPIVAR_CDOPVAR: the largest entry of % MMP, 11/09/2026
-    % the stock 2-D free-variable degrees (the former local ZCAPS)          % MMP, 11/09/2026
-    m = max([cellmax(S.Zop_deg.dx), cellmax(S.Zop_deg.dy), cellmax(S.Zop_deg.d2), 0]); % MMP, 11/09/2026
-    tl.zdeg    = struct('mult',m,'int',[m m],'out',m,'in',m);               % MMP, 11/09/2026
-elseif nv==2                                                                % MMP, 11/17/2026
-    % 2-D without settings_2d (the tiers since 11/17/2026): margins and     % MMP, 11/17/2026
-    % fallback storage of SETTINGS_ND, POS_ND (the row: POS_ROW below);     % MMP, 11/17/2026
-    % no stock slack; Z from lpi.var.deg{2}, built as N-D from entry 3      % MMP, 11/17/2026
-    S = settings_nd(st);    tl.S = S;                                       % MMP, 11/17/2026
-    tl.dom = struct('vars',{vnames},'dom',PIE.dom);                         % MMP, 11/17/2026
-    tl.eppos = S.eppos(:);  tl.epneg = S.epneg;     tl.eppos_default = S.eppos_default; % MMP, 11/17/2026
-    if isscalar(tl.eppos),  tl.eppos = tl.eppos*ones(4,1);  end  % per space, as SETTINGS_2D_SOP % MMP, 11/17/2026
-    tl.storage = @(prog,X,side) pos_nd(prog,X,side,S,tl.dom);               % MMP, 11/17/2026
-%   tl.slack   = @(prog,X) error('exec_tools_sop:slack',['No stock slack without ' ...
-%                    'settings_2d; set settings.sop.slack = ''like''.']);   % MMP, 11/17/2026 (was)
+    % One degree cap for every role of the free operator: the largest entry
+    % of the 2-D free-operator degrees
+    m = max([cellmax(S.Zop_deg.dx), cellmax(S.Zop_deg.dy), cellmax(S.Zop_deg.d2), 0]);
+    tl.zdeg    = struct('mult',m,'int',[m m],'out',m,'in',m);
+elseif nv==2
+    % 2-D without settings_2d: margins and fallback storage of
+    % SETTINGS_ND, POS_ND (the row: POS_ROW below); no 'stock' slack; Z
+    % from lpi.var.deg{2}, built as N-D from entry 3
+    S = settings_nd(st);    tl.S = S;
+    tl.dom = struct('vars',{vnames},'dom',PIE.dom);
+    tl.eppos = S.eppos(:);  tl.epneg = S.epneg;     tl.eppos_default = S.eppos_default;
+    if isscalar(tl.eppos),  tl.eppos = tl.eppos*ones(4,1);  end  % one margin per space
+    tl.storage = @(prog,X,side) pos_nd(prog,X,side,S,tl.dom);
     tl.slack   = @(prog,X) error('exec_tools_sop:slack',['No stock slack without ' ...
                      'settings_2d; set settings.sop.slack = ''like'', or ' ...
-                     'settings.settings_2d = settings_2d_stock(level).']);  % MMP, 11/17/2026
-    z = st.lpi.var.deg{min(2,end)};                                         % MMP, 11/17/2026
-    if isnumeric(z) && isscalar(z),     tl.zdeg = struct('mult',z,'int',[z z],'out',z,'in',z); % MMP, 11/17/2026
-    else,                               tl.zdeg = z;    end     % a struct or row: as given % MMP, 11/17/2026
-% else                                                                      % MMP, 10/29/2026 (was)
-%     error('exec_tools_sop:dim','The stock executives exist for 1-D and 2-D PIEs only.'); % MMP, 10/29/2026 (was)
-else                                                                        % MMP, 10/29/2026
-    % N-D (a container PIE in 3 or more variables): the storage of          % MMP, 10/29/2026
-    % settings_nd by POSCOPVAR; no stock slack; containers kept             % MMP, 10/29/2026
-    S = settings_nd(st);                                                    % MMP, 10/29/2026
-    tl.S = S;                                                               % MMP, 10/29/2026
-    tl.dom = struct('vars',{vnames},'dom',PIE.dom);                         % MMP, 10/29/2026
-    tl.eppos = S.eppos(:);  tl.epneg = S.epneg;     tl.eppos_default = S.eppos_default; % MMP, 10/29/2026
-    tl.storage = @(prog,X,side) pos_nd(prog,X,side,S,tl.dom);               % MMP, 10/29/2026
+                     'settings.settings_2d = settings_2d_stock(level).']);
+    z = st.lpi.var.deg{min(2,end)};
+    if isnumeric(z) && isscalar(z),     tl.zdeg = struct('mult',z,'int',[z z],'out',z,'in',z);
+    else,                               tl.zdeg = z;    end     % a struct or row: as given
+else
+    % N-D (a container PIE in 3 or more variables): the storage of
+    % settings_nd; no 'stock' slack
+    S = settings_nd(st);
+    tl.S = S;
+    tl.dom = struct('vars',{vnames},'dom',PIE.dom);
+    tl.eppos = S.eppos(:);  tl.epneg = S.epneg;     tl.eppos_default = S.eppos_default;
+    tl.storage = @(prog,X,side) pos_nd(prog,X,side,S,tl.dom);
     tl.slack   = @(prog,X) error('exec_tools_sop:slack',['The stock slack reads the stock 1-D ' ...
-                     'and 2-D settings; for %d variables set settings.sop.slack = ''like''.'],nv); % MMP, 10/29/2026
-%   tl.toop    = @(C) C;                                                    % MMP, 11/09/2026 (was); MMP, 10/29/2026
-    z = S.Zop_deg;  tl.zdeg = struct('mult',z,'int',[z z],'out',z,'in',z);  % MMP, 10/29/2026
+                     'and 2-D settings; for %d variables set settings.sop.slack = ''like''.'],nv);
+    z = S.Zop_deg;  tl.zdeg = struct('mult',z,'int',[z z],'out',z,'in',z);
 end
-% The storage row (lpi.pos with len_com; settings report 11/16/2026, Sec.   % MMP, 11/17/2026
-% 6.1): POSCOPVAR with DEG omitted in every dimension; otherwise the        % MMP, 11/17/2026
-% storage of the branch above (POS_ROW decides on the program settings).    % MMP, 11/17/2026
-% Not on a 2-D PIE with an explicit settings_2d: that branch is the stock   % MMP, 11/17/2026
-% 16-basis storage the caller asked for (SETTINGS_2D_STOCK).                % MMP, 11/17/2026
-% tl.storage = @(prog,X,side) pos_row(prog,X,side,tl.dom,tl.storage);       % MMP, 11/17/2026 (was)
-if ~(nv==2 && isfield(st,'settings_2d'))                                    % MMP, 11/17/2026
-    tl.storage = @(prog,X,side) pos_row(prog,X,side,tl.dom,tl.storage);     % MMP, 11/17/2026
-end                                                                         % MMP, 11/17/2026
+% The storage row (lpi.pos with len_com) in every dimension; otherwise the
+% storage of the branch above (POS_ROW decides on the program settings).
+% Not on a 2-D PIE with an explicit settings_2d: that branch is the
+% 16-basis storage those settings define.
+if ~(nv==2 && isfield(st,'settings_2d'))
+    tl.storage = @(prog,X,side) pos_row(prog,X,side,tl.dom,tl.storage);
+end
 % Identity operators: weighted on the state spaces, plain on an input or
 % output space of an operator
-% tl.eye   = @(side,e) eye_state(PIE,side,e);                               % MMP, 10/29/2026 (was)
-% tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom)); % MMP, 10/29/2026 (was)
-cdom = PIE.dom;     if nv>=2,   cdom = tl.dom;  end % the domain of a container % MMP, 10/29/2026
-% tl.eye   = @(side,e) eye_state(PIE,side,e,cdom);                          % MMP, 11/09/2026 (was); MMP, 10/29/2026
-% diag(e_k I) on the state spaces of the PIE, side 1 the PDE state, 2 the   % MMP, 11/09/2026
-% fundamental state (EYE_CONTAINER directly: the former local EYE_STATE was % MMP, 11/09/2026
-% that one call since 11/04/2026)                                           % MMP, 11/09/2026
-tl.eye   = @(side,e) eye_container(PIE,side,e,cdom);                        % MMP, 11/09/2026
-% tl.ident = @(Bop,side) ident_op(Bop,side,vars,PIE.dom,cdom);              % MMP, 11/04/2026 (was)
-tl.ident = @(Bop,side) ident_op(Bop,side,cdom);    % copvar Bop only        % MMP, 11/04/2026
-% The container options of this dimension, for the executives (the former   % MMP, 11/09/2026
-% local SOP_OF_DIM): each per-dimension vector among dw_feas, dw_P, dw_Q,   % MMP, 11/09/2026
-% max_raise, max_raise_feas and cap_delta reduced to its entry min(nv,end), % MMP, 11/09/2026
-% the last entry serving every higher dimension; eppos_stab (one entry per  % MMP, 11/09/2026
-% space) is kept                                                            % MMP, 11/09/2026
-% tl.sop = [];    if isfield(st,'sop'),   tl.sop = sop_of_dim(st.sop,nv);     end % MMP, 11/09/2026 (was); MMP, 10/29/2026
-tl.sop = [];                                                                % MMP, 11/09/2026
-if isfield(st,'sop')                                                        % MMP, 11/09/2026
-    tl.sop = st.sop;                                                        % MMP, 11/09/2026
-%   f = {'dw_feas','dw_P','dw_Q','max_raise','max_raise_feas','cap_delta'}; % MMP, 11/18/2026 (was); MMP, 11/09/2026
-    f = {'dw_feas','dw_P','dw_Q','max_raise','max_raise_feas','cap_delta','max_raise_Q'}; % MMP, 11/18/2026
-    for k = 1:numel(f)                                                      % MMP, 11/09/2026
-        if isfield(tl.sop,f{k}) && isnumeric(tl.sop.(f{k})) && numel(tl.sop.(f{k}))>1 % MMP, 11/09/2026
-            v = tl.sop.(f{k});   tl.sop.(f{k}) = v(min(nv,end));            % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
-% Per-direction bounds on the slack bases (settings.sop.cap_delta): Jmax    % MMP, 10/29/2026
-% of T plus the delta, laid over each target's variables; none by default   % MMP, 10/29/2026
-% and where the delta of this dimension is NaN                              % MMP, 10/29/2026
-tl.capfor = @(X) [];                                                        % MMP, 10/29/2026
-cd = [];    if isstruct(tl.sop) && isfield(tl.sop,'cap_delta'),     cd = tl.sop.cap_delta;  end % MMP, 10/29/2026
-if ~isempty(cd) && ~isnan(cd)                                               % MMP, 10/29/2026
-%     Tc = op2copvar_sop(PIE.T);      [~,~,ti] = get_lift_degs(Tc,struct()); % MMP, 11/04/2026 (was)
-    Tc = PIE.T;     [~,~,ti] = get_lift_degs(Tc,struct());  % a 'copvar'    % MMP, 11/04/2026
-    ct = max(ti.Jmax,0) + cd;                                               % MMP, 10/29/2026
-    tl.capfor = @(X) cap_for(X,Tc.vars,ct);                                 % MMP, 10/29/2026
-end                                                                         % MMP, 10/29/2026
-% The copvar tl.eye, tl.ident of DJ (CC), 10/29/2026, which the merge of    % MMP, 10/30/2026
-% 10/30/2026 replaces by the container branch above (header entry):         % MMP, 10/30/2026
-% tl.eye   = @(side,e) eye_state(PIE,side,e);                               % MMP, 10/30/2026 (was)
-%   tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom));   % DJ (CC), 10/29/2026 (was)
-% % The identity on the output (side 1) or input (side 2) spaces of a 'copvar'   % DJ (CC), 10/29/2026
-% % Bop, with one block for each of its spaces; an empty container if Bop has    % DJ (CC), 10/29/2026
-% % no space on that side (an empty channel), as the former opvar construction.  % DJ (CC), 10/29/2026
-% sd = {'out','in'};                                                        % MMP, 10/30/2026 (was)
-% spc = @(B,s) arrayfun(@(k) B.vars(B.(['space_',sd{s}])(k,:)),1:numel(B.(['dim_',sd{s}])),'UniformOutput',false);   % MMP, 10/30/2026 (was)
-% mkI = {@(B,s) copvar(), @(B,s) eye_copvar_sop(B.(['dim_',sd{s}]),spc(B,s),struct('vars',{B.vars},'dom',B.dom))};   % MMP, 10/30/2026 (was)
-% tl.ident = @(Bop,side) mkI{1+~isempty(Bop.(['dim_',sd{side}]))}(Bop,side); % MMP, 10/30/2026 (was)
+cdom = PIE.dom;     if nv>=2,   cdom = tl.dom;  end % the domain of a container
+% diag(e_k I) on the state spaces of the PIE, side 1 the PDE state, 2 the
+% fundamental state
+tl.eye   = @(side,e) eye_container(PIE,side,e,cdom);
+tl.ident = @(Bop,side) ident_op(Bop,side,cdom);    % copvar Bop only
+% The options of this dimension: each per-dimension vector among dw_feas,
+% dw_P, dw_Q, max_raise, max_raise_feas, cap_delta and max_raise_Q reduced
+% to its entry min(nv,end), the last entry serving every higher
+% dimension; eppos_stab (one entry per space) is kept
+tl.sop = [];
+if isfield(st,'sop')
+    tl.sop = st.sop;
+    f = {'dw_feas','dw_P','dw_Q','max_raise','max_raise_feas','cap_delta','max_raise_Q'};
+    for k = 1:numel(f)
+        if isfield(tl.sop,f{k}) && isnumeric(tl.sop.(f{k})) && numel(tl.sop.(f{k}))>1
+            v = tl.sop.(f{k});   tl.sop.(f{k}) = v(min(nv,end));
+        end
+    end
+end
+% Per-direction bounds on the slack bases (settings.sop.cap_delta): Jmax
+% of T plus the delta, laid over the variables of each target; none by
+% default and where the delta of this dimension is NaN
+tl.capfor = @(X) [];
+cd = [];    if isstruct(tl.sop) && isfield(tl.sop,'cap_delta'),     cd = tl.sop.cap_delta;  end
+if ~isempty(cd) && ~isnan(cd)
+    Tc = PIE.T;     [~,~,ti] = get_lift_degs(Tc,struct());  % a 'copvar'
+    ct = max(ti.Jmax,0) + cd;
+    tl.capfor = @(X) cap_for(X,Tc.vars,ct);
+end
 end
 
-% function Im = eye_state(PIE,side,e)                                       % MMP, 10/29/2026 (was)
-% % % BEGIN MMP, 10/29/2026: new local functions EYE_CONTAINER, IDENT_OP,
-% % % SETTINGS_ND, POS_ND (container and N-D PIEs), CAP_FOR (the cap_delta
-% % % bounds) and SOP_OF_DIM (the per-dimension options), header entries of
-% % % 10/29/2026; everything from here to the END marker is new.
-function Im = eye_container(PIE,side,e,dom)                                 % MMP, 10/29/2026
+function Im = eye_container(PIE,side,e,dom)
 % IM = EYE_CONTAINER(PIE,SIDE,E,DOM) returns diag(e_k I_{n_k}) on the
 % spaces of the container T of a container PIE as a 'copvar' object.
 % INPUT  PIE:   'pie_struct' object, T a 'copvar' object;
@@ -361,8 +218,9 @@ function Im = eye_container(PIE,side,e,dom)                                 % MM
 %        e:     double, a scalar for every space, or 2^nv weights: the
 %               weight of a space is entry 1 + sum_k 2^(k-1) over the
 %               positions k in PIE.vars of its variables (R^n entry 1; in
-%               2-D the rows R, L2[x], L2[y], L2[x,y] of an opvar2d dim);
-%        dom:   the domain argument of MAT2COPVAR_SOP.
+%               2-D the spaces R, L2[x], L2[y], L2[x,y]);
+%        dom:   the domain of the container (1 x 2 double, or a 'struct'
+%               with fields vars and dom).
 % OUTPUT Im:    'copvar' object, block k e_k I on space k.
 % The spaces of that side, the variable names in the order of PIE.vars
 sd = {'out','in'};
@@ -383,28 +241,26 @@ for k = 1:numel(sp),    blocks{k} = w(k)*eye(dm(k));   end
 Im = mat2copvar_sop(blkdiag(blocks{:}),dm,sp,dom);
 end
 
-% function I = ident_op(Bop,side,vars,pdom,cdom)                            % MMP, 11/04/2026 (was)
-function I = ident_op(Bop,side,cdom)                                        % MMP, 11/04/2026
+function I = ident_op(Bop,side,cdom)
 % I = IDENT_OP(BOP,SIDE,CDOM) returns the identity 'copvar' on the output
 % (SIDE 1) or input (SIDE 2) spaces of BOP.
 % INPUT  Bop:   'copvar' or 'cdopvar' object;
 %        side:  1 or 2;
-%        cdom:  the domain argument of EYE_COPVAR_SOP.
+%        cdom:  the domain of the container.
 % OUTPUT I:     'copvar' object.
 if isa(Bop,'copvar') || isa(Bop,'cdopvar')
     sd = {'out','in'};
     [sp,dm] = copvar_space_list(Bop,sd{side});
     I = eye_copvar_sop(dm,sp,cdom);
 else
-%     I = op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,pdom)); % MMP, 11/04/2026 (was)
-    % Every PIE operator is a 'copvar' (EXEC_PIE_SOP): anything else, such  % MMP, 11/04/2026
-    % as the 0 of an absent channel, has no spaces to read                  % MMP, 11/04/2026
-    error('exec_tools_sop:ident','BOP should be a ''copvar'' or ''cdopvar'' object.'); % MMP, 11/04/2026
+    % Every PIE operator is a 'copvar' or 0: anything else, such as the 0
+    % of an absent channel, has no spaces to read
+    error('exec_tools_sop:ident','BOP should be a ''copvar'' or ''cdopvar'' object.');
 end
 end
 
-function S = settings_nd(st)                                                % MMP, 10/29/2026
-% S = SETTINGS_ND(ST) returns the N-D settings of the container executives:
+function S = settings_nd(st)
+% S = SETTINGS_ND(ST) returns the N-D settings:
 % LF_int, LF_mult, LF_joint and Zop_deg from entry 3 of ST.lpi.pos and
 % ST.lpi.var, the other fields from ST.settings_nd, each absent or empty one
 % at its default.
@@ -416,18 +272,13 @@ function S = settings_nd(st)                                                % MM
 %            (struct()), LF_psatz (0), eppos (1e-2), epneg (ST.epneg, else
 %            0), Zop_deg (lpi.var.deg{3}) and eppos_default (logical, true
 %            when ST.settings_nd has no eppos).
-% S = struct('LF_int',1,'LF_mult',0,'LF_deg',[],'LF_opts',struct(),'LF_psatz',0, ... % MMP, 11/12/2026 (was)
-%            'eppos',1e-2,'epneg',getf(st,'epneg',0),'Zop_deg',1);          % MMP, 11/12/2026 (was)
-ps = st.lpi.pos;    zd = st.lpi.var.deg;    k3 = @(v) v(min(3,end));        % MMP, 11/12/2026
-% S = struct('LF_int',k3(ps.int),'LF_mult',k3(ps.mult),'LF_joint',k3(ps.joint), ...
-%            'LF_deg',[],'LF_opts',struct(),'LF_psatz',0,'eppos',1e-2, ...
-%            'epneg',getf(st,'epneg',0),'Zop_deg',zd{min(3,end)});          % MMP, 11/17/2026 (was); MMP, 11/12/2026
-% A storage row need not carry int, mult, joint (unused then, POS_ROW):     % MMP, 11/17/2026
-% the light entries 1, 0, 2 in their place                                  % MMP, 11/17/2026
+ps = st.lpi.pos;    zd = st.lpi.var.deg;    k3 = @(v) v(min(3,end));
+% A storage row need not carry int, mult, joint (unused then): the
+% defaults 1, 0, 2 in their place
 S = struct('LF_int',k3(getf(ps,'int',1)),'LF_mult',k3(getf(ps,'mult',0)), ...
            'LF_joint',k3(getf(ps,'joint',2)), ...
            'LF_deg',[],'LF_opts',struct(),'LF_psatz',0,'eppos',1e-2, ...
-           'epneg',getf(st,'epneg',0),'Zop_deg',zd{min(3,end)});            % MMP, 11/17/2026
+           'epneg',getf(st,'epneg',0),'Zop_deg',zd{min(3,end)});
 given = struct();
 if isfield(st,'settings_nd') && isstruct(st.settings_nd),   given = st.settings_nd;     end
 f = fieldnames(S);
@@ -437,14 +288,13 @@ end
 S.eppos_default = ~(isfield(given,'eppos') && ~isempty(given.eppos));
 end
 
-function [prog,P] = pos_nd(prog,X,side,S,dom)                               % MMP, 10/29/2026
+function [prog,P] = pos_nd(prog,X,side,S,dom)
 % [PROG,P] = POS_ND(PROG,X,SIDE,S,DOM) declares the positive operator of the
-% N-D settings S on the SIDE spaces of X by POSCOPVAR: with S.LF_deg and
-% S.LF_opts when S.LF_deg is given; else on each space in d >= 1 variables
-% the multiplier basis operator of degree S.LF_mult and the separable
-% full-integral one with caps S.LF_int per variable and 2*S.LF_int in total
-% (the structure SETTINGS2POSSOPVAR gives the stock light 2-D storage), the
-% identity basis on R^n; the term codes S.LF_psatz.
+% N-D settings S on the SIDE spaces of X: with S.LF_deg and S.LF_opts when
+% S.LF_deg is given; else on each space in d >= 1 variables the
+% multiplier basis operator of degree S.LF_mult and the separable
+% full-integral one with caps S.LF_int per variable and 2*S.LF_int in
+% total, the identity basis on R^n; the term codes S.LF_psatz.
 % INPUT  prog:  'struct', the LPI program;
 %        X:     'copvar' or 'cdopvar' object;
 %        side:  char, 'out' or 'in';
@@ -453,15 +303,15 @@ function [prog,P] = pos_nd(prog,X,side,S,dom)                               % MM
 % OUTPUT prog:  'struct', the program with the Gram matrices of P;
 %        P:     'cdopvar' object.
 [sp,dm] = copvar_space_list(X,side);
-% An explicit POSCOPVAR specification
+% An explicit degree specification
 if ~isempty(S.LF_deg)
     co = S.LF_opts;     if ~isfield(co,'psatz'),    co.psatz = S.LF_psatz;  end
     [prog,P] = poscopvar(prog,dm,sp,dom,S.LF_deg,co);
     return
 end
-% The rule: per space, the identity basis on R^n (as POS2D in
-% POSLPIVAR_SETTINGS_2D_SOP), else the multiplier (alpha 1...1) and the
-% full-integral (alpha 4...4) basis operators, in the order of include
+% The rule: per space, the identity basis on R^n, else the multiplier
+% (alpha 1...1) and the full-integral (alpha 4...4) basis operators, in
+% the order of include
 deg = cell(1,numel(sp));    incl = cell(1,numel(sp));
 for k = 1:numel(sp)
     d = numel(sp{k});
@@ -469,8 +319,7 @@ for k = 1:numel(sp)
         deg{k} = struct('int',zeros(1,numel(dom.vars)));   % one 0 per registry variable
     else
         deg{k} = {struct('int',S.LF_mult,'mult',0,'joint',S.LF_mult), ...
-                  struct('int',S.LF_int,'mult',S.LF_int,'joint',S.LF_joint)}; % MMP, 11/12/2026
-%                 struct('int',S.LF_int,'mult',S.LF_int,'joint',2*S.LF_int)}; % MMP, 11/12/2026 (was)
+                  struct('int',S.LF_int,'mult',S.LF_int,'joint',S.LF_joint)};
         incl{k} = [ones(1,d); 4*ones(1,d)];
     end
 end
@@ -479,27 +328,27 @@ co.include = incl;                  % assigned apart: a cell in struct() builds 
 [prog,P] = poscopvar(prog,dm,sp,dom,deg,co);
 end
 
-function [prog,P] = pos_row(prog,X,side,dom,stock)                          % MMP, 11/17/2026
-% [PROG,P] = POS_ROW(PROG,X,SIDE,DOM,STOCK) declares the positive operator  % MMP, 11/17/2026
-% on the SIDE spaces of X: when prog.settings.lpi.pos has the field         % MMP, 11/17/2026
-% len_com (the storage row, POSCOPVAR help, DEG OMITTED), POSCOPVAR with    % MMP, 11/17/2026
-% DEG omitted, which reads the row; otherwise STOCK(PROG,X,SIDE).           % MMP, 11/17/2026
-% INPUT  prog:  'struct', the LPI program (LPIPROGRAM, with settings);      % MMP, 11/17/2026
-%        X:     'copvar' or 'cdopvar' object;                               % MMP, 11/17/2026
-%        side:  char, 'out' or 'in';                                        % MMP, 11/17/2026
-%        dom:   the domain argument of POSCOPVAR (tl.dom);                  % MMP, 11/17/2026
-%        stock: function handle, the storage of the dimension's branch.     % MMP, 11/17/2026
-% OUTPUT prog:  'struct', the program with the Gram matrices of P;          % MMP, 11/17/2026
-%        P:     'cdopvar' object.                                           % MMP, 11/17/2026
+function [prog,P] = pos_row(prog,X,side,dom,stock)
+% [PROG,P] = POS_ROW(PROG,X,SIDE,DOM,STOCK) declares the positive operator
+% on the SIDE spaces of X: when prog.settings.lpi.pos has the field
+% len_com (the storage row), the operator declared without degrees, from
+% the row; otherwise STOCK(PROG,X,SIDE).
+% INPUT  prog:  'struct', the LPI program, with settings;
+%        X:     'copvar' or 'cdopvar' object;
+%        side:  char, 'out' or 'in';
+%        dom:   the domain of the operator (tl.dom);
+%        stock: function handle, the storage of the branch of the dimension.
+% OUTPUT prog:  'struct', the program with the Gram matrices of P;
+%        P:     'cdopvar' object.
 row = isfield(prog,'settings') && isfield(prog.settings,'lpi') && ...
-      isfield(prog.settings.lpi,'pos') && isfield(prog.settings.lpi.pos,'len_com'); % MMP, 11/17/2026
-if row                                                                      % MMP, 11/17/2026
-    [sp,dm] = copvar_space_list(X,side);                                    % MMP, 11/17/2026
-    [prog,P] = poscopvar(prog,dm,sp,dom);                                   % MMP, 11/17/2026
-else                                                                        % MMP, 11/17/2026
-    [prog,P] = stock(prog,X,side);                                          % MMP, 11/17/2026
-end                                                                         % MMP, 11/17/2026
-end                                                                         % MMP, 11/17/2026
+      isfield(prog.settings.lpi,'pos') && isfield(prog.settings.lpi.pos,'len_com');
+if row
+    [sp,dm] = copvar_space_list(X,side);
+    [prog,P] = poscopvar(prog,dm,sp,dom);
+else
+    [prog,P] = stock(prog,X,side);
+end
+end
 
 function c = cap_for(X,tv,tc)
 % C = CAP_FOR(X,TV,TC) lays the bounds TC, one per variable TV of T, over
@@ -517,13 +366,11 @@ if ~all(ok),    return,     end
 c = reshape(tc(ix),1,[]);
 end
 
-% % % END MMP, 10/29/2026
-
 function v = getf(s,f,d)
 % V = GETF(S,F,D) returns the field F of the struct S, or D when S has no
 % nonempty field F.
 % INPUT  s: 'struct'; f: char, the field name; d: the default value.
-% OUTPUT v: the field's value or D.
+% OUTPUT v: the value of the field, or D.
 if isstruct(s) && isfield(s,f) && ~isempty(s.(f)),  v = s.(f);  else,   v = d;  end
 end
 

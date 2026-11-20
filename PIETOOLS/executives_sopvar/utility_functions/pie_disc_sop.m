@@ -19,7 +19,7 @@ function [M,info] = pie_disc_sop(Pop,N,dom)
 % function it represents.
 %
 % INPUT
-% - Pop:  'struct' of kernels (PIE2PIESIM) with fields                      % MMP, 11/09/2026
+% - Pop:  'struct' of kernels with fields
 %         dim = [m0 n0; m1 n1], I, var1, var2 and the parameters P
 %         (double), Q1, Q2, R.R0 (polynomials in Pop.var1, or double) and
 %         R.R1, R.R2 (polynomials in Pop.var1 and Pop.var2, or double); or
@@ -71,42 +71,18 @@ function [M,info] = pie_disc_sop(Pop,N,dom)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/08/2026 (PIESIM's matrices are built on a rescaled
-% PIE inside its own pipeline and are not the plain coefficient maps; this
-% routine is the executives' own discretization for the numerical witness).
-% MMP, 10/08/2026: Pairings by quadrature on the recurrence-evaluated basis
-%                  instead of closed-form monomial moments of the basis'
-%                  monomial coefficients: those coefficients grow as 4^N
-%                  and the moment sums lost every digit beyond N = 12
-%                  (spurious eigenvalues at N = 16, singular T at N >= 24
-%                  on the io1 plant), while the executives' default is 24.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the licence block added, step comments
-%                  in the body and headers of the local functions; code
-%                  unchanged. The deleted header text was a remark on
-%                  compositions and on the mass matrix.
-% MMP, 11/04/2026: Accept a struct of kernels (PIE2PIESIM), which
-%                  PIE_WITNESS_SOP now passes: the routine reads only
-%                  fields. Header: POP input text.
-% MMP, 11/09/2026: Dead opvar branch removed (maintainer, 11/09/2026): the
-%                  'opvar' input is gone from the class test, the error text
-%                  and the help, the class being retired since 11/08/2026.
+% Initial coding MMP, 10/08/2026
 
 % A matrix is its own Galerkin matrix
 if isa(Pop,'double')
     M = Pop;    info = struct('evalbasis',[],'dims',[size(Pop,1) 0; 0 0; size(Pop,2) 0],'a',NaN,'b',NaN,'q',NaN,'nq',NaN);
     return
 end
-% Otherwise a struct of kernels (PIE2PIESIM): domain, basis size,           % MMP, 11/09/2026
-% dimensions and variable names                                             % MMP, 11/09/2026
-% if ~isa(Pop,'opvar'),   error('pie_disc_sop:class','POP should be an opvar or a double.');  end % MMP, 11/04/2026 (was)
-% if ~isa(Pop,'opvar') && ~isstruct(Pop)                                    % MMP, 11/09/2026 (was); MMP, 11/04/2026
-%   error('pie_disc_sop:class',...
-%         'POP should be a struct of kernels, an opvar or a double.');      % MMP, 11/09/2026 (was); MMP, 11/04/2026
-% end                                                                       % MMP, 11/09/2026 (was); MMP, 11/04/2026
-if ~isstruct(Pop)                                                           % MMP, 11/09/2026
-    error('pie_disc_sop:class','POP should be a struct of kernels or a double.'); % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
+% Otherwise a struct of kernels: domain, basis size,
+% dimensions and variable names
+if ~isstruct(Pop)
+    error('pie_disc_sop:class','POP should be a struct of kernels or a double.');
+end
 if nargin<3 || isempty(dom),    dom = Pop.I;    end
 a = dom(1);     b = dom(2);     q = N+1;
 d = Pop.dim;    m0 = d(1,1);    m1 = d(2,1);    n0 = d(1,2);    n1 = d(2,2);

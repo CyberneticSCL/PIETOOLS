@@ -6,7 +6,7 @@ function loc = dvar_rows(dvars_old,dmap)
 %
 % INPUT
 % - dvars_old:  'cellstr', n x 1, decision variable names, in the order of
-%               the block's coefficient rows;
+%               the coefficient rows of the block;
 % - dmap:       'containers.Map' from name (char) to global row index
 %               (double scalar), with every name of DVARS_OLD as a key.
 %
@@ -44,44 +44,18 @@ function loc = dvar_rows(dvars_old,dmap)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 09/22/2026: Initial coding, split out of 'remap_dvars'.
-% MMP, 09/25/2026: Container classes renamed mopvar -> copvar, mdopvar ->
-%                  cdopvar (mechanical, no functional change).
-% MMP, 09/26/2026: One vectorized 'values' call instead of a per-name
-%                  'isKey' and subsref loop; 'isKey' runs only to name the
-%                  culprit when 'values' fails. Same output, 10x faster in
-%                  the 2-D builds. Still a hash per name: linear in the
-%                  names looked up and independent of the global count
-%                  ('ismember' against the global list pays for that list
-%                  on every call).
-% MMP, 09/30/2026: 'remap_dvars' deleted: no caller since 09/22/2026 (its
-%                  scatter half is built from triplets in the callers).
-%                  Comments only.
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
-%                  code unchanged. Deleted: the rationale for the lookup
-%                  with a measurement, the cost of a lookup per name and two
-%                  (was) lines.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
-%                  code unchanged.
+% Initial coding MMP, 09/22/2026
 
 % The global row of every name, by one vectorized lookup
-% loc = zeros(numel(dvars_old),1);                                          % MMP, 09/26/2026 (was)
-% for i = 1:numel(dvars_old)                                                % MMP, 09/26/2026 (was)
-%     if ~isKey(dmap,dvars_old{i})                                          % MMP, 09/26/2026 (was)
-%         error("Internal error: unrecognized decision variable '"...
-%               +string(dvars_old{i})+"'.")                                 % MMP, 09/26/2026 (was)
-%     end                                                                   % MMP, 09/26/2026 (was)
-%     loc(i) = dmap(dvars_old{i});                                          % MMP, 09/26/2026 (was)
-% end                                                                       % MMP, 09/26/2026 (was)
-try                                                                         % MMP, 09/26/2026
-    v = values(dmap,dvars_old);                                             % MMP, 09/26/2026
-catch err                                                                   % MMP, 09/26/2026
-    % Missing name: report the first, as before. Anything else is rethrown.
-    tf = isKey(dmap,dvars_old);                                             % MMP, 09/26/2026
-    if all(tf),  rethrow(err);  end                                         % MMP, 09/26/2026
+try
+    v = values(dmap,dvars_old);
+catch err
+    % Missing name: report the first. Anything else is rethrown.
+    tf = isKey(dmap,dvars_old);
+    if all(tf),  rethrow(err);  end
     error("Internal error: unrecognized decision variable '"...
-          +string(dvars_old{find(~tf,1)})+"'.")                             % MMP, 09/26/2026
-end                                                                         % MMP, 09/26/2026
-loc = reshape([v{:}],[],1);     % values are scalar doubles (num2cell(1:n)) % MMP, 09/26/2026
+          +string(dvars_old{find(~tf,1)})+"'.")
+end
+loc = reshape([v{:}],[],1);     % values are scalar doubles (num2cell(1:n))
 
 end

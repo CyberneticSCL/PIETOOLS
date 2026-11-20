@@ -12,7 +12,7 @@ function cl = lpi_classify_sop(prog,obj)
 % modulus.
 %
 % INPUT
-% - prog:   'struct', an LPI program solved by lpisolve or sossolve; read
+% - prog:   'struct', a solved LPI program; read
 %           are the 'struct' prog.solinfo.info, with the optional fields
 %           numerr, pinf, dinf (double, default 0), feasratio, cpusec,
 %           relres and eta (double, default NaN), and the solver name
@@ -30,8 +30,7 @@ function cl = lpi_classify_sop(prog,obj)
 %                        defaults above when absent; NaN for 'unsolved');
 %                        relres = ||A*x-b||/||b|| and eta, the row-normwise
 %                        backward error, are the residual of the SDP
-%                        equality system A*x = b at the returned point x
-%                        (SOSSOLVE);
+%                        equality system A*x = b at the returned point x;
 %             obj        double, the value of OBJ (NaN without OBJ, for
 %                        'unsolved', or when it cannot be read back);
 %             divergent  logical, true for status 'unknown' with obj NaN or
@@ -65,28 +64,10 @@ function cl = lpi_classify_sop(prog,obj)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body and a header for the local function; code
-%                unchanged. The deleted header text was the interpretation
-%                of a divergent exit, a notes reference and the use the
-%                degree loop makes of the status.
-% MMP, 10/30/2026: A nonzero numerr other than 1 and 2 is now 'unknown';
-%                it was 'optimal', and so certified. SOSSOLVE passes the
-%                SDPT3 termcode as numerr when it is <= 0, and a negative
-%                termcode is a failed solve (-6: iteration limit). The
-%                residual of the SDP equality system at the returned point
-%                (relres, eta) is passed on from the solver report, so an
-%                exit is judged by its residual when the solver sets no
-%                infeasibility flags. A cuADMM exit is 'residual': cuADMM
-%                decides no feasibility, so it is never certified and, not
-%                being 'unknown' or 'infeasible', starts no degree raise.
 
 % Every field unset; 'unsolved' without a solver report
-%   cl = struct('status','','numerr',NaN,'pinf',NaN,'dinf',NaN,'feasratio',NaN,'obj',NaN, ...
-%               'divergent',false,'divtol',1e3,'cpusec',NaN);               % MMP, 10/30/2026 (was)
 cl = struct('status','','numerr',NaN,'pinf',NaN,'dinf',NaN,'feasratio',NaN,'obj',NaN, ...
-            'divergent',false,'divtol',1e3,'cpusec',NaN,'relres',NaN,'eta',NaN); % MMP, 10/30/2026
+            'divergent',false,'divtol',1e3,'cpusec',NaN,'relres',NaN,'eta',NaN);
 if ~isfield(prog,'solinfo') || ~isfield(prog.solinfo,'info')
     cl.status = 'unsolved';     return
 end
@@ -96,7 +77,7 @@ g = @(f,dflt) local_get(info,f,dflt);
 cl.numerr = g('numerr',0);  cl.pinf = g('pinf',0);  cl.dinf = g('dinf',0);
 cl.feasratio = g('feasratio',NaN);  cl.cpusec = g('cpusec',NaN);
 % Residual of the SDP equality system at the returned point (NaN when absent)
-cl.relres = g('relres',NaN);    cl.eta = g('eta',NaN);                      % MMP, 10/30/2026
+cl.relres = g('relres',NaN);    cl.eta = g('eta',NaN);
 % Value of the objective; NaN when it cannot be read back
 if nargin>=2 && ~isempty(obj)
     try
@@ -109,19 +90,18 @@ if nargin>=2 && ~isempty(obj)
 end
 % Status, by precedence pinf, dinf, numerr 2, numerr 1
 % A solver that decides no feasibility (cuADMM) is judged by its residual
-slv = '';                                                                   % MMP, 10/30/2026
-if isfield(prog.solinfo,'solverOptions') && isfield(prog.solinfo.solverOptions,'solver') % MMP, 10/30/2026
-    slv = lower(char(prog.solinfo.solverOptions.solver));                   % MMP, 10/30/2026
-end                                                                         % MMP, 10/30/2026
-% if cl.pinf==1,          cl.status = 'infeasible';                         % MMP, 10/30/2026 (was)
-if strcmp(slv,'cuadmm'),    cl.status = 'residual';                         % MMP, 10/30/2026
-elseif cl.pinf==1,      cl.status = 'infeasible';                           % MMP, 10/30/2026
+slv = '';
+if isfield(prog.solinfo,'solverOptions') && isfield(prog.solinfo.solverOptions,'solver')
+    slv = lower(char(prog.solinfo.solverOptions.solver));
+end
+if strcmp(slv,'cuadmm'),    cl.status = 'residual';
+elseif cl.pinf==1,      cl.status = 'infeasible';
 elseif cl.dinf==1,      cl.status = 'unbounded';
 elseif cl.numerr==2,    cl.status = 'unknown';
 elseif cl.numerr==1,    cl.status = 'inaccurate';
-% Any other nonzero numerr is a failed solve: SOSSOLVE passes the SDPT3
-% termcode as numerr when it is <= 0 (-6: iteration limit)
-elseif cl.numerr~=0,    cl.status = 'unknown';                              % MMP, 10/30/2026
+% Any other nonzero numerr is a failed solve: the SDPT3 termcode, when it
+% is <= 0, arrives as numerr (-6: iteration limit)
+elseif cl.numerr~=0,    cl.status = 'unknown';
 else,                   cl.status = 'optimal';
 end
 % An 'unknown' exit is divergent unless |obj| <= divtol

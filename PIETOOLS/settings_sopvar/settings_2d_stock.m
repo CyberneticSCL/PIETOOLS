@@ -1,13 +1,12 @@
 function s2 = settings_2d_stock(level)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% S2 = SETTINGS_2D_STOCK(LEVEL) returns the stock 2-D storage construction
-% (the 16 bases, degrees dx, dy, d2, options) and the stock 2-D slack of the
-% tier LEVEL, the struct the tiers carried as st.settings_2d until
-% 11/17/2026. It is no tier field: the tiers set the storage row lpi.pos,
-% which POSCOPVAR reads in every dimension. A caller that needs the
-% 16-basis degrees sets st.settings_2d = SETTINGS_2D_STOCK(LEVEL), which
-% EXEC_TOOLS_SOP then reads in two variables (SETTINGS_2D_SOP,
-% POSLPIVAR_SETTINGS_2D_SOP), the 'stock' slack included.
+% S2 = SETTINGS_2D_STOCK(LEVEL) returns the structure settings_2d of the
+% level LEVEL: the degrees dx, dy, d2 and the options of the construction
+% of the positive operator P in two variables from 16 bases, the degrees
+% of the free operator, and the slack of the 'stock' slack mode. As the
+% field settings_2d of LPI settings it replaces, in two variables, the
+% storage row lpi.pos. The values are the 2-D degree levels of M. Peet,
+% S. Shivakumar and D. Jagt (2021-2022).
 %
 % INPUT
 % - level:  (optional) char, 'light' (default), 'stripped', 'heavy',
@@ -46,15 +45,13 @@ function s2 = settings_2d_stock(level)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 11/17/2026: Initial coding; the former section 2 of the tier files
-%                SETTINGS_SOPVAR_<LEVEL> (values of HEAD faca4e51, the 
-%                stock 2-D levels of M. Peet, S. Shivakumar, D. Jagt,
-%                2021-2022), removed from the tiers by work package 5.
+% Initial coding MMP, 11/17/2026
 
+% LEVEL 'light' when omitted
 if nargin<1 || isempty(level),  level = 'light';    end
 
-% P = P0 + P1 + ..., each term Z'*Q*Z with Q >= 0
-% (POSLPIVAR_SETTINGS_2D_SOP, role 'lf'), Z built from the 16 bases
+% P = P0 + P1 + ..., each term Z'*Q*Z with Q >= 0 (role 'lf'), Z built
+% from the 16 bases
 % [R^n; Zx^o, Zx^a, Zx^b; Zy^o, Zy^a, Zy^b; Z2^oo, Z2^ao, Z2^bo, Z2^oa,
 % Z2^ob, Z2^aa, Z2^ba, Z2^ab, Z2^bb]: o the multiplier, a the lower and b
 % the upper integral, in x for the first index and in y for the second;
@@ -69,7 +66,7 @@ if nargin<1 || isempty(level),  level = 'light';    end
 % eq_use_psatz.
 d2 = cell(3,3);
 switch level
-    case {'light','stripped','custom'}      % the stock light 2-D level
+    case {'light','stripped','custom'}      % one level for the three
         dx = {1; [1;1;2]; [1;1;2]};         % Zx^o: degree in x; Zx^a, Zx^b: caps [x; tt; x*tt]
         dy = {1, [1 1 2], [1 1 2]};         % the same in y and nu
         d2{1,1} = [0 0;0 0];                                % Z2^oo
@@ -79,7 +76,7 @@ switch level
         sep = [1;1;1;1;1;1];    excl = [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0];
         pz0 = true;     zsc = 0;    zmu = 0;    usi = 1;    ips = 2;
         up_eq = [3 3 3];    up_ps = [2 2 2];    eup = [0;2];
-    case 'heavy'                            % the stock heavy 2-D level
+    case 'heavy'                            % the heavy level
         dx = {1; [1;1;1]; [1;1;1]};
         dy = {1, [1 1 1], [1 1 1]};
         d2{1,1} = [0 1;1 2];
@@ -89,7 +86,7 @@ switch level
         sep = [1;1;1;1;1;1];    excl = [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0];
         pz0 = false;    zsc = 0;    zmu = 1;    usi = 0;    ips = 0;
         up_eq = [2 2 3];    up_ps = [1 1 2];    eup = [0;0];
-    case 'veryheavy'                        % the stock veryheavy 2-D level
+    case 'veryheavy'                        % the veryheavy level
         dx = {1; [2;2;3]; [2;2;3]};
         dy = {1, [2 2 3], [2 2 3]};
         d2{1,1} = [0 1;1 2];
@@ -99,7 +96,7 @@ switch level
         sep = [0;0;1;1;1;1];    excl = [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0];
         pz0 = true;     zsc = 0;    zmu = 0;    usi = 0;    ips = 2;
         up_eq = [3 3 3];    up_ps = [2 2 2];    eup = [0;2];
-    case 'extreme'                          % the stock extreme 2-D level
+    case 'extreme'                          % the extreme level
         dx = {0; [1;1;1]; [1;1;1]};
         dy = {0, [1 1 1], [1 1 1]};
         d2{1,1} = [0 0;0 0];
@@ -120,7 +117,7 @@ d2{2,3} = d2{2,2};  d2{3,2} = d2{2,2};  d2{3,3} = d2{2,2};  % equal at every lev
 % (1), Ryy{2} = Ryy{3} (2), R22{2,1} = R22{3,1} (3), R22{1,2} = R22{1,3}
 % (4), R22{2,j} = R22{3,j} for j = 2,3 (5), R22{i,2} = R22{i,3} for
 % i = 2,3 (6), with R22{i,j} the parameter of Z2^{ij}; psatz 1 weights Q
-% by the domain, 2 by a disk (rejected by POSCOPVAR). Each nonzero entry
+% by the domain, 2 by a disk (rejected by the declaration of P). Each nonzero entry
 % of LF_use_psatz adds a term of the options LF_opts_psatz{j} and the
 % degrees LF_deg_psatz{j}.
 s2.is2D = 1;
@@ -133,18 +130,16 @@ s2.LF_opts_psatz = {struct('psatz',1,'sep',sp,'exclude',ex), ...
                     struct('psatz',2,'sep',sp,'exclude',ex)};
 s2.LF_deg_psatz  = {s2.LF_deg, s2.LF_deg};
 % Free operator of the synthesis LPIs: twice the degrees of P, of which only
-% the largest entry is read (EXEC_TOOLS_SOP); Zop_opts is read by no
-% container executive.
+% the largest entry is read, and its options
 twice = @(c) cellfun(@(d) 2*d, c, 'UniformOutput', false);
 s2.Zop_deg  = struct('dx',{twice(dx)},'dy',{twice(dy)},'d2',{twice(d2)});
 s2.Zop_opts = struct('sep',[0;0;0;0;0],'isscalar',zsc,'ismultiplier',zmu);
 % Slack of the 'stock' slack mode (role 'slack'), read only with sop.slack
 % = 'stock'. use_sosineq is read from the base workspace (sosineq_on, else
-% use_sosineq) when it exists there, as in the stock settings files: 1
-% selects the stock sosineq, which the container executives reject, and
-% sets only ineq_opts, which none of them reads. With 0, the slack has the
-% degrees of P raised by up_eq in dx, dy and d2, and one term per nonzero
-% entry of eq_use_psatz with those raised by up_ps.
+% use_sosineq) when it exists there: 1 selects an SOS inequality, which
+% the executives reject, and sets only ineq_opts. With 0, the slack has
+% the degrees of P raised by up_eq in dx, dy and d2, and one term per
+% nonzero entry of eq_use_psatz with those raised by up_ps.
 s2.use_sosineq = usi;
 if evalin('base','exist(''sosineq_on'',''var'')')
     s2.use_sosineq = evalin('base','sosineq_on');

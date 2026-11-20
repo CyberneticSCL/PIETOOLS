@@ -7,9 +7,8 @@ function S = settings_2d_sop(st)
 %
 % INPUT
 % - st:   'struct', either LPI settings with the field settings_2d and,
-%         optionally, sos_opts (as returned by lpisettings_sop), or 2-D
-%         settings with is2D true (that field itself); the 2-D settings
-%         have the fields
+%         optionally, sos_opts, or 2-D settings with is2D true (that field
+%         itself); the 2-D settings have the fields
 %         LF_deg_psatz, LF_opts_psatz and LF_use_psatz and, when
 %         use_sosineq is 0, eq_deg_psatz, eq_opts_psatz and eq_use_psatz.
 %
@@ -63,12 +62,6 @@ function S = settings_2d_sop(st)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol, the licence block added,
-%                step comments in the body and the header of the local
-%                function; code unchanged.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
-%                lpisettings_sop, not the retired lpisettings and
-%                settings_PIETOOLS_light_2D; code unchanged.
 
 % The 2-D settings: ST itself, or ST.settings_2d with the solver options
 % of ST
@@ -82,7 +75,7 @@ else
 end
 % Margins: the default when absent, a scalar repeated on the four spaces, a
 % column; the decay rate 0 when absent
-S.eppos_default = ~isfield(S,'eppos') || isempty(S.eppos);   % the dual gain executive defaults differently
+S.eppos_default = ~isfield(S,'eppos') || isempty(S.eppos);   % true: the settings carry no eppos
 if S.eppos_default,     S.eppos = [1e-4;1e-6;1e-6;1e-6];    end
 if numel(S.eppos)==1,   S.eppos = S.eppos*ones(4,1);    end
 S.eppos = S.eppos(:);
@@ -106,7 +99,7 @@ function out = pick(in,use)
 % OUTPUT out: cell: IN repeated for a 'struct' or a one-entry cell, IN
 %             itself with numel(USE) entries, else IN(USE) (an error when
 %             IN has fewer than max(USE) entries).
-% The cases of the stock extract_psatz_deg / extract_psatz_opts
+% The cases: none in use; one entry for all; one per entry; indexed by USE
 out = {};
 if all(use==0),     return,     end
 if isa(in,'struct'),                out = repmat({in},1,numel(use));

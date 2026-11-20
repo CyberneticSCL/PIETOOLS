@@ -112,27 +112,7 @@ function [A,info] = lift_copvar(dims,spaces,dom,dlift,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/07/2026. The lift of the separated form A'*M*A
-%                proposed from the proof program (its canonical primitive
-%                coordinates): the basis operators of 'copquadvar' with the
-%                theta-monomials removed, so that the positive multiplier
-%                M carries the whole weight. The component enumeration and
-%                'include' handling are those of copquadvar (basis_operators,
-%                alpha_select), repeated here so that the two routes agree
-%                component by component.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and headers
-%                of the local functions; code unchanged. The deleted
-%                header text was the relation to 'copquadvar' and to the
-%                proof program (with a notes reference), implementation
-%                notes (canonical blocks, placement matrices) and remarks
-%                on cost and N-D. Two help statements now follow the
-%                code: ygroup is a scalar or cells of scalars (a row was
-%                listed, which the code rejects), and the kernel is
-%                I_{m_k} kron V^alpha(s), component outer (V^alpha kron
-%                I_{m_k} was written).
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): what lines for
-%                lift_block, per_component and alpha_select; code unchanged.
+% Initial coding MMP, 10/07/2026
 
 % Three inputs at least; DLIFT 1 and OPTIONS struct() by default
 if nargin<3
@@ -144,9 +124,9 @@ if ~isa(options,'struct')
     error("Options should be specified as a 'struct' object.")
 end
 
-% % % Spaces and registry, by the parser 'copquadvar' uses. The registry
-% comes back sorted, so every space and every pair's shared set is sorted,
-% which is the order a block indexes its parameter cell in.
+% % % Spaces and registry. The registry comes back sorted, so every space
+% and the shared set of every pair is sorted, which is the order a block
+% indexes its parameter cell in.
 [meta,spaces,sp_in] = parse_copvar_spaces(dims,spaces,dom);
 if ~isequal(sp_in,spaces) || ~isequal(meta.dim_in,meta.dim_out)
     error("A self-adjoint operator has equal input and output spaces.")
@@ -184,8 +164,8 @@ if isfield(options,'include') && ~isempty(options.include)
     end
 end
 
-% % % Components: the multi-indices of copquadvar's basis operators, one
-% list per space, direction 1 fastest, then the space's 'include'.
+% % % Components: the multi-indices of the basis operators, one list per
+% space, direction 1 fastest, then the 'include' of the space.
 alpha_sp = cell(1,M);   nb = zeros(1,M);
 for k = 1:M
     nk = numel(own{k});
@@ -356,7 +336,7 @@ for c = 1:numel(comps)
     if ~all(tf),    error("Internal error: a component monomial is not in the union basis.");   end
     % Output rows (component outer, monomial inner) against columns
     % (component outer, union monomial inner): entry 1 where the monomials
-    % agree, as the kernel is V^alpha(s') kron I_mk.
+    % agree: the kernel is I_mk kron V^alpha(s'), component outer.
     [J,I] = meshgrid(1:Nc,1:mk);
     rows = comps(c).off + (I(:)-1)*Nc + J(:);
     cols = (I(:)-1)*NRu + pos(J(:));
@@ -389,6 +369,8 @@ if iscell(spec)
     if numel(spec)~=M
         error("A cell '%s' should have one entry per space.",name)
     end
+    % Entry k: one value for every component of space k, or a cell of one
+    % per component
     for k = 1:M
         sk = spec{k};
         if iscell(sk)
@@ -428,10 +410,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function A = alpha_select(A,incl,nd,k)
-% A = ALPHA_SELECT(A,INCL,ND,K) applies one space's 'include', in the three
-% formats 'copquadvar' accepts (its local function of the same name):
-% multi-index rows validated against the generated list, a logical mask, or
-% linear indices.
+% A = ALPHA_SELECT(A,INCL,ND,K) applies the 'include' of one space, in
+% three formats: multi-index rows validated against the generated list, a
+% logical mask, or linear indices.
 % INPUT  A:    'double', the enumeration of the multi-indices, one per row;
 %        incl: the entry of OPTIONS.include for the space ([] for all);
 %        nd:   'double', the number of variables of the space;
@@ -449,6 +430,7 @@ if islogical(incl)
     end
     A = A(incl(:),:);
 elseif nd>0 && size(incl,2)==nd
+    % Multi-index rows, each one of the enumeration
     if ~all(ismember(incl,A,'rows'))
         error("'include' for space "+num2str(k)+" contains an inadmissible "...
               +"multi-index.")

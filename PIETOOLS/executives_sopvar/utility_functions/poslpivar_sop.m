@@ -13,8 +13,7 @@ function varargout = poslpivar_sop(prog,n,varargin)
 % D times I_m, and g(eta) = (eta-a)*(b-eta) when OPTIONS.psatz = 1, g = 1
 % otherwise. With OPTIONS.sep = 1, Z2 integrates over [a,b] and Z3 is
 % dropped.
-% An X that is not a 'copvar' or 'cdopvar' object, such as the dimension N
-% of POSLPIVAR (retired), is an error.
+% An X that is not a 'copvar' or 'cdopvar' object is an error.
 %
 % INPUT
 % - prog:     'struct', the LPI program to which the decision variables are
@@ -81,30 +80,12 @@ function varargout = poslpivar_sop(prog,n,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/06/2026. One library translation of a 1-D
-%                poslpivar call for containers, replacing the test-folder
-%                cx_stability_pos, cx_h2_pos, cx_hinf_posdeg and cx_pl2pm
-%                (cx_exec, MMP 09/25/2026), which differed on psatz other
-%                than 0/1, on sep and on degree filling; this follows
-%                poslpivar on all three.
-% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
-%                code unchanged.
-% MMP, 11/08/2026: A second input that is not a 'copvar' or 'cdopvar'
-%                object, such as the dimension N, is an error
-%                (poslpivar_sop:class). It went to POSLPIVAR, retired
-%                11/08/2026 (cleaning/private) with the opvar classes it
-%                returned. Help text to match.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, two
-%                commented-out notes removed; code unchanged.
+% Initial coding MMP, 10/06/2026
 
-% if ~(isa(n,'copvar') || isa(n,'cdopvar'))                                 % MMP, 11/08/2026 (was)
-%     [varargout{1:max(nargout,1)}] = poslpivar(prog,n,varargin{:});        % MMP, 11/08/2026 (was)
-%     return                                                                % MMP, 11/08/2026 (was)
-% end                                                                       % MMP, 11/08/2026 (was)
-% Only a container: POSLPIVAR, which took a dimension N, is retired         % MMP, 11/08/2026
-if ~(isa(n,'copvar') || isa(n,'cdopvar'))                                   % MMP, 11/08/2026
-    error('poslpivar_sop:class','X should be a copvar or cdopvar object; got %s.',class(n)) % MMP, 11/08/2026
-end                                                                         % MMP, 11/08/2026
+% Only a container
+if ~(isa(n,'copvar') || isa(n,'cdopvar'))
+    error('poslpivar_sop:class','X should be a copvar or cdopvar object; got %s.',class(n))
+end
 % A container X: at most two outputs
 X = n;
 if nargout>2
@@ -128,7 +109,7 @@ end
 % DOM omitted: the variables and domain of X
 if isempty(dom),    dom = struct('vars',{X.vars},'dom',X.dom);  end
 
-% Options, as poslpivar.m reads them (defaults; a non-struct is an error).
+% Options: the defaults; a non-struct is an error
 if isempty(options),    options = struct();     end
 if ~isstruct(options)
     error("Options for positive operator should be specified as struct with fields 'psatz', 'exclude', and 'sep'.")
@@ -174,7 +155,7 @@ for k = 1:numel(sp)
         deg{k} = L2(keep);          incl{k} = alph(keep);
     end
 end
-% The positive operator on those spaces, by POSCOPVAR
+% The positive operator on those spaces
 popt = struct('psatz',double(options.psatz==1),'sep',sep,'include',{incl});
 [prog,P] = poscopvar(prog,dm,sp,dom,deg,popt);
 varargout = {prog,P};

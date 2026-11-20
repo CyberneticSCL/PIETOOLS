@@ -34,28 +34,27 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 % times.
 %
 % INPUT
-% - PIE:      'pie_struct' object, with T, A, B1, B2, C1, D11, D12, C2 and
-%             D21 'opvar' (or 'opvar2d') objects, or 'copvar' objects (a
-%             container PIE, EXEC_PIE_SOP), and D22 zero; Tw and Tu zero or
-%             absent (no disturbance or input at the boundary), and no
-%             algebraic constraint K;
-% - settings: (optional) 'struct' of LPI settings, as returned by
-%             lpisettings_sop:
-%               dd1, dd12, options1, options12, override1   degrees of R, V;
+% - PIE:      'pie_struct' object, initialized when its T is not yet a
+%             'copvar' object, with T, A, B1, B2, C1, D11, D12, C2 and D21
+%             'copvar' objects, and D22 zero; Tw and Tu zero or absent (no
+%             disturbance or input at the boundary), and no algebraic
+%             constraint K;
+% - settings: (optional) 'struct' of LPI settings:
+%               lpi.pos   the storage row of R and V;
 %               eppos, eppos2   margins of R and V; the free operators Q and U
-%                       rescale R and V, and with the default margins of
-%                       lpisettings_sop (1e-4) the solver stalls (status 'unknown')
+%                       rescale R and V, and with the margin 1e-4 of the
+%                       tiers the solver stalls (status 'unknown')
 %                       on the examples tried, so eppos = eppos2 = 1e-7 is
 %                       advised;
 %               sos_opts  solver options;
-%               sop     container options (EXEC_SOP_SETTINGS): dw_Q, the
+%               sop     the options of the executives: dw_Q, the
 %                       degree raise of the slack, max_raise,
 %                       gam_fixed (a positive double: solve the
 %                       feasibility LPI at gam = gam_fixed), and
 %                       coupling_margin (default 0: the coupling LPI is
 %                       required to hold with R and V reduced by this
 %                       multiple of the identity).
-%             Default lpisettings_sop('light').
+%             Default: the 'light' tier.
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
@@ -77,12 +76,17 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %                          Bn, Cn, Dn, R and V;
 %               K          'cdopvar' object, the LPI operator Phi;
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
-%                          as returned by EXEC_INFO_SOP.
+%                          the last raise and the loop history, the slack
+%                          mode, its degrees and terms, the size of the SDP,
+%                          and the dual kernel of the negativity constraint
+%                          with its 1-norm.
 %
 % NOTES
-% - The closed loop of the PIE and the controller is the PIE returned by
-%   CLOSEDLOOPPIE(PIE,KC,'dynamic'), to which the analysis executives apply; its L2
-%   gain should be tested with PIETOOLS_Hinf_gain_sop in form 'Q', as the controller carries factors of T.
+% - The closed loop of the PIE and the controller is a PIE with state
+%   [x; xK]; as TK carries factors of T, its L2 gain is tested in the form
+%   'Q' (T'*Q = R) of the gain LPI.
+%
+% See also CLOSEDLOOPPIE, PIETOOLS_HINF_GAIN_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -111,43 +115,21 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 % authorship, and a brief description of modifications
 %
 % Initial coding: DB 10/31/2026, based on formulation and code of Jungbae Chun
-% DB 11/01/2026 - Removed the form 'inv' (TK = T, inverts PI operators); only
-%                 the inversion-free form remains, with TK recovered
-% MMP 11/05/2026 - Kc holds the 'copvar' operators: the conversion by
-%                 tl.toop needs the opvar classes in 1-D and 2-D, and without
-%                 them the recovery failed inside the try/catch, so Kc was [].
-%                 gam >= 0 by LPI_INEQ_SOP instead of the stock LPI_INEQ. No
-%                 OP2COPVAR_SOP on the PIE operators, which EXEC_PIE_SOP has
-%                 already converted (it returned its input).
-% MMP 11/07/2026 - Help: status 'residual' (LPI_CLASSIFY_SOP, a cuADMM exit
-%                 since 11/04/2026). Code unchanged.
-% MMP 11/08/2026 - Default settings lpisettings_sop('light') (was the stock
-%                 lpisettings('light'), retired with its folder): the same
-%                 storage degrees and margins, with the container options of
-%                 the light tier (maintainer, 11/08/2026).
-% MMP 11/08/2026 - Comment pass (maintainer, 11/08/2026): the help names
-%                 lpisettings_sop and lists info.form; code unchanged.
-% MMP 11/12/2026 - The program takes the settings of the run (the last
-%                 input of LPIPROGRAM), so LPI_INEQ_SOP reads its degree
-%                 defaults from them instead of the light tier (maintainer,
-%                 11/12/2026: "Settings on the program"). Programs
-%                 unchanged: every tier sets lpi.ineq.dD = 1, and with dw
-%                 and like given wmin does not apply.
 
 % Default settings; check the PIE
-% if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)
-if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end % MMP, 11/08/2026
+if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
 
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_OFcontrol_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % opvar or container PIE
+PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
 label = 'Hinf_OFcontrol_sop';
 
-% Complete the container options and read the tools of the PIE's dimension
+% Complete the options of the executives and read the tools of the
+% dimension of the PIE
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
-st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)
+st.sop = tl.sop;    % the options of this dimension
 if ~(PIE.Tw==0) || ~(PIE.Tu==0)
     error('PIETOOLS_Hinf_OFcontrol_sop:Tw','The LPI cannot be solved for systems with disturbances or inputs at the boundary.');
 end
@@ -161,16 +143,11 @@ eppos = tl.eppos;
 cmar = 0;   if isfield(st.sop,'coupling_margin') && ~isempty(st.sop.coupling_margin),  cmar = st.sop.coupling_margin;   end
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 
-% The PIE operators as containers, and the identities on w and z
-% EXEC_PIE_SOP has converted them: no OP2COPVAR_SOP                         % MMP, 11/05/2026
-% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/05/2026 (was)
-% Bw = op2copvar_sop(PIE.B1); Bu = op2copvar_sop(PIE.B2);                   % MMP, 11/05/2026 (was)
-% Cz = op2copvar_sop(PIE.C1); Dzw = op2copvar_sop(PIE.D11);   Dzu = op2copvar_sop(PIE.D12); % MMP, 11/05/2026 (was)
-% Cy = op2copvar_sop(PIE.C2); Dyw = op2copvar_sop(PIE.D21);                 % MMP, 11/05/2026 (was)
-Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/05/2026
-Bw = PIE.B1;    Bu = PIE.B2;                                                % MMP, 11/05/2026
-Cz = PIE.C1;    Dzw = PIE.D11;      Dzu = PIE.D12;                          % MMP, 11/05/2026
-Cy = PIE.C2;    Dyw = PIE.D21;                                              % MMP, 11/05/2026
+% The PIE operators, 'copvar' objects, and the identities on w and z
+Tm = PIE.T;     Am = PIE.A;
+Bw = PIE.B1;    Bu = PIE.B2;
+Cz = PIE.C1;    Dzw = PIE.D11;      Dzu = PIE.D12;
+Cy = PIE.C2;    Dyw = PIE.D21;
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 
 % The spaces of the free operators, as lists of the variables of each space
@@ -202,9 +179,8 @@ try
     BK = sol.Bn - sol.Q'*Bu*DK;
     AK = BK*Cy*sol.U + sol.Q'*(Am*sol.U + Bu*sol.Cn) - sol.An;
     TK = Tm'*(sol.Q*sol.U - Tm);
-%   Kc = struct('TK',tl.toop(TK),'AK',tl.toop(AK),'BK',tl.toop(BK),'CK',tl.toop(CK),'DK',tl.toop(DK)); % MMP, 11/05/2026 (was)
-    % The containers: tl.toop needs the opvar classes in 1-D and 2-D        % MMP, 11/05/2026
-    Kc = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);                   % MMP, 11/05/2026
+    % The controller, 'copvar' objects, also in the field G
+    Kc = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
     Kc.G = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
 catch ME
     if st.sop.verbose,  fprintf('  [%s] controller recovery: %s\n',label,ME.message);  end
@@ -226,17 +202,15 @@ end
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam), Q, U, An,
         %               Bn, Cn, Dn, R, V ('cdopvar' objects), Km (the LPI
-        %               operator), Nm (the slack), li (slack info of
-        %               LPI_INEQ_SOP).
+        %               operator), Nm (the slack), li (the info of the
+        %               slack), form.
         % New program; record the equality rows when the dual is kept
-%       prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);             % MMP, 11/12/2026 (was)
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);          % MMP, 11/12/2026
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective, or the fixed gain
         if isempty(gfix)
             [prog,gamv] = lpidecvar(prog,'gam');
-%           prog = lpi_ineq(prog,gamv);                                     % MMP, 11/05/2026 (was)
-            prog = lpi_ineq_sop(prog,gamv);                                 % MMP, 11/05/2026
+            prog = lpi_ineq_sop(prog,gamv);
             prog = lpisetobj(prog,gamv);
         else
             gamv = gfix;
@@ -291,6 +265,7 @@ end
             o = struct('like',Rm,'dw',st.sop.dw_Q+dw,'margin',st.sop.margin,'cap',tl.capfor(Cp));
             prog = lpi_ineq_sop(prog,Cp,o);
         end
+        % The objective gam, none at a fixed gain
         obj = gamv;     if ~isempty(gfix),   obj = [];  end
         aux = struct('obj',obj,'Q',Qm,'U',Um,'An',Anm,'Bn',Bnm,'Cn',Cnm,'Dn',Dnm,'R',Rm,'V',Vm, ...
                      'Km',Km,'Nm',Nm,'li',li,'form','OF');

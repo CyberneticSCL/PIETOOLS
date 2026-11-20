@@ -56,17 +56,7 @@ function d = process_degrees_one(deg,n3)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body; code unchanged. No help text deleted. The
-%                file had no log: initial coding MP, 08/22/2026, as a local
-%                function of 'possopvar' (the file since renamed
-%                'sopquadvar'), moved to private/ by MMP, 09/21/2026; the
-%                lines stamped MMP, 09/21/2026 add the subset caps.
-% MMP, 11/09/2026: The private EXPAND_CAPS (this file its one caller, for
-%                int and mult) inlined as one loop over the two fields
-%                (maintainer, 11/09/2026: the one-caller private files too);
-%                the file removed.
+% Initial coding MMP, 08/22/2026
 
 % A scalar is the cap int
 if isnumeric(deg) && isscalar(deg)
@@ -83,21 +73,19 @@ if ~isfield(deg,'mult') || isempty(deg.mult)
     deg.mult = deg.int;
 end
 
-% Per-variable caps as 1 x n3 rows (the former private EXPAND_CAPS): a      % MMP, 11/09/2026
-% scalar applies to every variable, otherwise one entry per variable        % MMP, 11/09/2026
+% Per-variable caps as 1 x n3 rows: a scalar applies to every variable,
+% otherwise one entry per variable
 d = struct();
-% d.int = expand_caps(deg.int,n3,'int');                                    % MMP, 11/09/2026 (was)
-% d.mult = expand_caps(deg.mult,n3,'mult');                                 % MMP, 11/09/2026 (was)
-for f = {'int','mult'}                                                      % MMP, 11/09/2026
-    caps = reshape(deg.(f{1}),1,[]);                                        % MMP, 11/09/2026
-    if isscalar(caps)                                                       % MMP, 11/09/2026
-        caps = repmat(caps,1,n3);                                           % MMP, 11/09/2026
-    elseif numel(caps)~=n3                                                  % MMP, 11/09/2026
+for f = {'int','mult'}
+    caps = reshape(deg.(f{1}),1,[]);
+    if isscalar(caps)
+        caps = repmat(caps,1,n3);
+    elseif numel(caps)~=n3
         error("The '"+string(f{1})+"' degree should be a scalar or have one "...
-              +"element per spatial variable.")                             % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
-    d.(f{1}) = caps;                                                        % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
+              +"element per spatial variable.")
+    end
+    d.(f{1}) = caps;
+end
 
 % Total cap; default sum(int)+sum(mult)
 if ~isfield(deg,'joint') || isempty(deg.joint)
@@ -108,21 +96,20 @@ else
     d.joint = deg.joint;
 end
 
-% Optional cap per variable SUBSET, over the order the basis is built in,    % MMP, 09/21/2026
-% [theta_1..theta_n3, s_1..s_n3], indexed as 'build_exponent_grid'           % MMP, 09/21/2026
-% documents. 'int', 'mult' and 'joint' are the singleton and full-set        % MMP, 09/21/2026
-% special cases, so this subsumes them; empty leaves the basis determined    % MMP, 09/21/2026
-% by those three alone, unchanged from before. Needed because a             % MMP, 09/21/2026
-% 'poslpivar_2d' basis is cut out by 2^nvars subset caps, which per-variable % MMP, 09/21/2026
-% plus total cannot express -- see 'settings2possopvar'.                     % MMP, 09/21/2026
-if ~isfield(deg,'subset') || isempty(deg.subset)                            % MMP, 09/21/2026
-    d.subset = [];                                                          % MMP, 09/21/2026
-elseif numel(deg.subset)~=2^(2*n3)                                          % MMP, 09/21/2026
+% Optional cap per variable SUBSET, over the order the basis is built in,
+% [theta_1..theta_n3, s_1..s_n3], the subset with members b at linear
+% index 1+sum(2.^(b-1)). 'int', 'mult' and 'joint' are the singleton and
+% full-set special cases, so this subsumes them; empty leaves the basis
+% determined by those three alone. Subset caps express bases that
+% per-variable and total caps cannot.
+if ~isfield(deg,'subset') || isempty(deg.subset)
+    d.subset = [];
+elseif numel(deg.subset)~=2^(2*n3)
     error("A 'subset' degree array should have 2^(2*n3) entries for n3 "...
-          +"spatial variables.")                                            % MMP, 09/21/2026
-else                                                                        % MMP, 09/21/2026
-    d.subset = reshape(deg.subset,1,[]);                                    % MMP, 09/21/2026
-end                                                                         % MMP, 09/21/2026
+          +"spatial variables.")
+else
+    d.subset = reshape(deg.subset,1,[]);
+end
 
 end
 

@@ -1,12 +1,12 @@
 function prog = lpisetobj(prog,obj)
 % LPISETOBJ takes an LPI program structure 'prog' and declares some
 % function 'obj' to be the objective function to minimize in the
-% optimization program. The function is mostly a shell for 'sossetobj'.
+% optimization program. Decision variables of 'obj' that 'prog' does not
+% hold are declared first.
 %
 % INPUT
-% - prog:       'struct' specifying an LPI optimization program structure
-%               (see also 'lpiprogram'). The format should match that used
-%               by SOSTOOLS.
+% - prog:       'struct' specifying an LPI optimization program structure.
+%               The format should match that used by SOSTOOLS.
 % - obj:        1x1 object of type 'dpvar', specifying the objective
 %               function to minimize in the optimization program. Must
 %               correspond to an affine combination of decision variables,
@@ -17,6 +17,7 @@ function prog = lpisetobj(prog,obj)
 %               by the user, but now with the specified function 'obj' set
 %               as objective function to minimize.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lpisetobj
@@ -47,6 +48,7 @@ function prog = lpisetobj(prog,obj)
 %   code unchanged: it references no operator class and serves both
 %   operator families, while lpi_programming/ is retired with the opvar
 %   classes.
+% MMP, 11/19/2026: Release comment pass (comment-only).
 
 % Check that the inputs make sense.
 if ~isa(prog,'struct')

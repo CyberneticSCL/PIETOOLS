@@ -1,40 +1,38 @@
 function [st,stock] = lpisettings_stock_sop(type,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [ST,STOCK] = LPISETTINGS_STOCK_SOP(TYPE,...) returns the settings of the
-% tier TYPE (LPISETTINGS_SOP) with the slack of the stock PIETOOLS executives,
-% sop.slack = 'stock', for reproducing the baselines that compare the
-% container executives with stock PIETOOLS. In one spatial variable the
-% slack N = N1 + N2 is that of the stock level of the tier: N1 of dd2 and
-% options2, N2 (the psatz term) of dd3 and options3, omitted when override2
-% = 1; in two variables it is the stock slack of st.settings_2d; three or
-% more variables have none. The tiers carry no settings_2d: set             % MMP, 11/17/2026
-% st.settings_2d = SETTINGS_2D_STOCK(TYPE) for the 2-D slack.               % MMP, 11/17/2026
+% [ST,STOCK] = LPISETTINGS_STOCK_SOP(TYPE,...) returns the LPI settings of
+% the tier TYPE with the 'stock' slack, sop.slack = 'stock': in one
+% spatial variable each negativity constraint -D >= 0 is imposed as
+% D + N == 0 with the positive slack N = N1 + N2, N1 of the degrees dd2
+% and options options2, N2 (the psatz term) of dd3 and options3, omitted
+% when override2 = 1; in two variables N is the slack of st.settings_2d,
+% which the tiers do not carry; three or more variables have none.
 %
 % INPUT
-% - type:   (optional) char, a tier of LPISETTINGS_SOP: 'extreme',
-%           'stripped', 'light' (default), 'heavy', 'veryheavy' or 'custom';
-% - ...:    (optional) the further inputs of LPISETTINGS_SOP: the decay
-%           rate, the simplification and the solver.
+% - type:   (optional) char, the tier: 'extreme', 'stripped', 'light'
+%           (default), 'heavy', 'veryheavy' or 'custom';
+% - ...:    (optional) the decay rate, the simplification ('' or
+%           'psimplify') and the solver, in this order.
 %
 % OUTPUT
-% - st:     'struct', LPISETTINGS_SOP(TYPE) with sop.slack = 'stock' and
-%           sop.stock = STOCK;
-% - stock:  'struct', the slack alone, for a caller that builds it itself
-%           (tl.slack of EXEC_TOOLS_SOP), with fields
+% - st:     'struct', the settings of the tier TYPE with sop.slack =
+%           'stock' and sop.stock = STOCK;
+% - stock:  'struct', the slack alone, with fields
 %             override2  1 to omit N2;
 %             options2, options3  'struct' with optional fields exclude
 %                        (1x4: the R^n, multiplier, lower- and upper-
-%                        integral bases), sep and psatz (POSLPIVAR_SOP);
+%                        integral bases), sep and psatz;
 %             dd2, dd3   {d1, d2, d3}: d1 the degree of the multiplier
 %                        basis; d2, d3 those of the lower- and upper-
 %                        integral bases, each [degree in the integration
 %                        variable, in s, joint].
 %
 % NOTES
-% The values are those the tiers held until 11/12/2026, the stock levels of
-% M. Peet, S. Shivakumar and D. Jagt (2021-2022): stripped, light and custom
-% the stock light level, heavy and veryheavy the stock heavy and veryheavy
-% levels, extreme the stock extreme level.
+% The values are the degree levels of M. Peet, S. Shivakumar and D. Jagt
+% (2021-2022): stripped, light and custom share one level; heavy,
+% veryheavy and extreme have their own.
+%
+% See also SETTINGS_2D_STOCK
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -62,19 +60,14 @@ function [st,stock] = lpisettings_stock_sop(type,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 11/12/2026: the stock slack leaves the settings tiers
-%   (maintainer, 11/12/2026: "retire it, but create a utility function which
-%   creates an ad hoc settings file which reproduces the baselines"); its
-%   fields, top-level fields of every tier until 11/12/2026, are written out
-%   here under sop.stock.
-% MMP, 11/17/2026: Help: the 2-D stock slack needs st.settings_2d from
-%   SETTINGS_2D_STOCK, since the tiers no longer carry it (work package 5).
+% Initial coding MMP, 11/12/2026
 
+% The settings of the tier
 if nargin<1 || isempty(type),   type = 'light';     end
 st = lpisettings_sop(type,varargin{:});
-% The stock-format slack of each tier, as the tiers set it before 11/12/2026
+% The slack of each tier
 switch type
-    case {'stripped','light','custom'}          % the stock light level
+    case {'stripped','light','custom'}          % one level for the three
         stock = struct('override2',0, ...
                        'options2',struct('exclude',[0 0 0 0]), ...
                        'dd2',{{2, [1 2 3], [1 2 3]}}, ...
@@ -99,6 +92,7 @@ switch type
                        'options3',struct('psatz',1,'exclude',[0 1 0 1]), ...
                        'dd3',{{0, [0 -1 0], [-1 -1 0]}});
 end
+% The 'stock' slack mode and its degrees
 st.sop.slack = 'stock';
 st.sop.stock = stock;
 

@@ -1,21 +1,23 @@
 function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [L,LOP,INFO] = GETOBSERVER_SOP(P,Z[,OPTS]) returns the observer gain
-%   L = P^{-1}*Z
-% of the solved H-infinity or H2 estimator LPI, with P^{-1} the inverse of
-% P by COPVAR/INV (the Gohberg-Krein inverse of the L2 block, its kernels
-% fitted by polynomials, and the finite-dimensional Schur complement for an
-% R^k space) and the product the composition of the containers.
+% [L,LOP,INFO] = GETOBSERVER_SOP(P,Z[,OPTS]) returns the observer gain L of
+% the solved H-infinity or H2 estimator LPI, an approximation of
+%   L = P^{-1}*Z:
+% by default (method 'qp') the L of bounded degree that minimizes
+% ||P*L - Z||^2, with no inverse of P; with method 'inv', L = P^{-1}*Z, the
+% inverse the Gohberg-Krein inverse of the L2 block, its kernels fitted by
+% polynomials, and the finite-dimensional Schur complement for an R^k
+% space, and the product the composition of the containers.
 %
 % INPUT
-% - P:      'copvar' object, the                                            % MMP, 11/09/2026
+% - P:      'copvar' object, the
 %           solved Lyapunov operator, with the same spaces and dimensions in
 %           and out. P may be an N-D copvar, in any number of spatial
 %           variables and with any spaces; the inverse (method 'inv') exists
 %           in one spatial variable for R^k x L2^m[s] with at most one R^k
-%           and one L2 space, and in several for a separable P (COPVAR/INV);
-%           otherwise the method 'qp' is required;
-% - Z:      'copvar' object, the solved free operator, from R^ny            % MMP, 11/09/2026
+%           and one L2 space, and in several for a separable P; otherwise
+%           the method 'qp' is required;
+% - Z:      'copvar' object, the solved free operator, from R^ny
 %           to the spaces of P, R^ny -> R^k x L2^m[s] in 1-D; for the method
 %           'qp' also N-D (the spatial variables of P and Z);
 % - opts:   (optional) 'struct', each field optional. The options of the
@@ -25,18 +27,19 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %           fit degree, in place of deg0, degmax, tol), tol_rank (relative
 %           SVD cut of the kernel ranks, 1e-13). And the method:
 %             method     'qp' (default), the gain L of bounded degree
-%                        minimizing ||P*L - Z||^2 by QP_COPVAR, with no
-%                        inverse of P (P must be self-adjoint), for any number
-%                        of spatial variables and required for a non-separable
-%                        P in several; or 'inv', the gain L = P^{-1}*Z above
-%                        (in several variables an error for a non-separable
-%                        P). The options of the 'qp' method, passed to
-%                        QP_COPVAR: qp_deg (maximal degree
-%                        of L in the spatial variable), qp_basis
+%                        minimizing ||P*L - Z||^2 by a quadratic program in
+%                        the coefficients of L, with no inverse of P (P must
+%                        be self-adjoint), for any number of spatial
+%                        variables and required for a non-separable P in
+%                        several; or 'inv', the gain L = P^{-1}*Z above (in
+%                        several variables an error for a non-separable P).
+%                        The options of the 'qp' method: qp_deg (maximal
+%                        degree of L in the spatial variable), qp_basis
 %                        ('monomial', 'legendre' or 'chebyshev'), qp_assembly
 %                        ('container' or 'apply'), qp_solver ('quadprog' or
 %                        'backslash'), qp_lambda (>= 0, Tikhonov term),
-%                        qp_verbose; each defaults to that of QP_COPVAR.
+%                        qp_verbose; each unset one at the default of the
+%                        quadratic program.
 %
 % OUTPUT
 % - L:      'copvar' object, R^ny -> R^k x L2^m[s];
@@ -49,8 +52,8 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %           and condT (condition number of the Schur complement) when P has
 %           both an R^k and an L2 space; a 'struct' with no fields when P has
 %           no L2 space. For the method 'qp', a 'struct' with the field qp,
-%           a 1 x ny cell, the INFO of QP_COPVAR for each of the ny columns
-%           of Z (without its matrices H and f).
+%           a 1 x ny cell, the diagnostics of the quadratic program for each
+%           of the ny columns of Z (without its matrices H and f).
 %
 % See also GETCONTROLLER_SOP, COPVAR/INV, QP_COPVAR.
 %
@@ -80,93 +83,47 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/09/2026.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body; code
-%                unchanged.
-% AT, 10/28/2026: Option opts.method = 'qp': L is the minimizer of ||P*L - Z||^2
-%                over L of bounded degree, from QP_COPVAR (a QP in the
-%                coefficients of L), one QP per column of Z; no inverse of P is
-%                formed. The previous computation is the method 'inv', the
-%                default, and is unchanged. Options opts.qp_deg, qp_basis,
-%                qp_assembly, qp_solver, qp_lambda, qp_verbose. Lop is the
-%                'opvar' of L for at most one spatial variable, otherwise
-%                [] with a warning (as Kop of GETCONTROLLER_SOP).
-% MMP, 11/04/2026: No 'opvar' copy of L: Lop is [] (the executives return
-%                containers, maintainer decision), so the routine needs no
-%                operator class; the unit vectors of the method 'qp' are
-%                built by MAT2COPVAR_SOP instead of MAT2OPVAR and
-%                OPVAR2COPVAR (supersedes the Lop lines of AT, 10/28/2026).
-%                The method 'inv' in several variables: COPVAR/INV inverts a
-%                separable P (Woodbury), so the refusal of an N-D P or Z is
-%                removed; a non-separable P raises the error of COPVAR/INV.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
-%                help of the method 'qp' no longer calls it required in
-%                several variables (the method 'inv' serves a separable P
-%                since 11/04/2026), the retired stock GETOBSERVER and
-%                GETOBSERVER_2D out of See also, a commented-out note
-%                removed; code unchanged.
-% MMP, 11/09/2026: Dead opvar branch removed (maintainer, 11/09/2026): the
-%                OPVAR2COPVAR conversions of P and Z are gone with the
-%                retired classes; help to match.
-% AT, 11/17/2026: The default of opts.method is 'qp' (was 'inv'); 'inv' is
-%                selected with opts.method = 'inv'. Help to match.
+% Initial coding MMP, 10/09/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Default options                                                           % MMP, 11/09/2026
+% Default options
 if nargin<3,    opts = struct();    end
-% if isa(P,'opvar'),  P = opvar2copvar(P);    end                           % MMP, 11/09/2026 (was)
-% if isa(Z,'opvar'),  Z = opvar2copvar(Z);    end                           % MMP, 11/09/2026 (was)
-% The method: 'qp' (default) or 'inv'                                       % AT, 11/17/2026 (was 'inv' default)
-method = 'qp';                                                              % AT, 11/17/2026
-if isfield(opts,'method'),  method = opts.method;   end                     % AT, 10/28/2026
-if ~any(strcmpi(method,{'inv','qp'}))                                       % AT, 10/28/2026
-    error('getObserver_sop:method','opts.method must be ''inv'' or ''qp''.');     % AT, 10/28/2026
-end                                                                         % AT, 10/28/2026
-if strcmpi(method,'qp')                                                     % AT, 10/28/2026
-    % L = argmin ||P*L - Z||^2 over L of bounded degree: for each column j of Z % AT, 10/28/2026
-    % (input R^ny) a least squares problem for QP_COPVAR with A = P and        % AT, 10/28/2026
-    % B = Z e_j, since it takes a B with one input. No inverse of P is formed.  % AT, 10/28/2026
-    % The degree of L is bounded by opts.qp_deg; the true L is not a polynomial, % AT, 10/28/2026
-    % which limits the accuracy.                                                % AT, 10/28/2026
-    qo = struct();                                                          % AT, 10/28/2026
-    for f = {'deg','basis','assembly','solver','lambda','verbose'}          % AT, 10/28/2026
-        if isfield(opts,['qp_' f{1}]),  qo.(f{1}) = opts.(['qp_' f{1}]);    end % AT, 10/28/2026
-    end                                                                     % AT, 10/28/2026
-    ny = Z.dim_in(1);                                                       % AT, 10/28/2026
-%   pvar s_qp s_qp_dum                                                      % MMP, 11/04/2026 (was); AT, 10/28/2026
-    Lc = [];    info = struct('qp',{cell(1,ny)});                           % AT, 10/28/2026
-    for j = 1:ny                                                            % AT, 10/28/2026
-        % column selector e_j: R^1 -> R^ny                                  % AT, 10/28/2026
-%       Ej = opvar2copvar(mat2opvar(full(sparse(j,1,1,ny,1)),[ny 1;0 0],[s_qp,s_qp_dum],[0,1])); % MMP, 11/04/2026 (was); AT, 10/28/2026
-        % as a container on R, with the variable registry of Z              % MMP, 11/04/2026
+% The method: 'qp' (default) or 'inv'
+method = 'qp';
+if isfield(opts,'method'),  method = opts.method;   end
+if ~any(strcmpi(method,{'inv','qp'}))
+    error('getObserver_sop:method','opts.method must be ''inv'' or ''qp''.');
+end
+if strcmpi(method,'qp')
+    % L = argmin ||P*L - Z||^2 over L of bounded degree: for each column j of Z
+    % (input R^ny) a least squares problem with A = P and B = Z e_j, a B
+    % with one input. No inverse of P is formed. The degree of L is bounded
+    % by opts.qp_deg; the true L is not a polynomial, which limits the
+    % accuracy.
+    qo = struct();
+    for f = {'deg','basis','assembly','solver','lambda','verbose'}
+        if isfield(opts,['qp_' f{1}]),  qo.(f{1}) = opts.(['qp_' f{1}]);    end
+    end
+    ny = Z.dim_in(1);
+    Lc = [];    info = struct('qp',{cell(1,ny)});
+    for j = 1:ny
+        % column selector e_j: R^1 -> R^ny
+        % as a container on R, with the variable registry of Z
         Ej = mat2copvar_sop(full(sparse(j,1,1,ny,1)),struct('out',ny,'in',1),...
-                 struct('out',{{{}}},'in',{{{}}}),struct('vars',{Z.vars},'dom',Z.dom)); % MMP, 11/04/2026
-        [Xj,info.qp{j}] = qp_copvar(P,Z*Ej,qo);                             % AT, 10/28/2026
-        info.qp{j}.H = [];   info.qp{j}.f = [];     % keep the diagnostics, not the n x n matrix  % AT, 10/28/2026
-        Ejt = Ej';                                                          % AT, 10/28/2026
-        if j==1,    Lc = Xj*Ejt;    else,   Lc = Lc + Xj*Ejt;   end         % AT, 10/28/2026
-    end                                                                     % AT, 10/28/2026
-    L = Lc;                                 % L = sum_j X_j e_j'             % AT, 10/28/2026
-else                                                                        % AT, 10/28/2026
-%   if numel(P.vars)>1 || numel(Z.vars)>1                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
-%       error('getObserver_sop:ndInverse',['P and Z depend on %d spatial variables, and the inverse '... % MMP, 11/04/2026 (was); AT, 10/28/2026
-%           '(method ''inv'') is one-dimensional: use opts.method = ''qp''.'],max(numel(P.vars),numel(Z.vars)));% MMP, 11/04/2026 (was); AT, 10/28/2026
-%   end                                                                     % MMP, 11/04/2026 (was); AT, 10/28/2026
-    % In several variables COPVAR/INV inverts a separable P                 % MMP, 11/04/2026
+                 struct('out',{{{}}},'in',{{{}}}),struct('vars',{Z.vars},'dom',Z.dom));
+        [Xj,info.qp{j}] = qp_copvar(P,Z*Ej,qo);
+        info.qp{j}.H = [];   info.qp{j}.f = [];     % keep the diagnostics, not the n x n matrix
+        Ejt = Ej';
+        if j==1,    Lc = Xj*Ejt;    else,   Lc = Lc + Xj*Ejt;   end
+    end
+    L = Lc;                                 % L = sum_j X_j e_j'
+else
+    % In several variables the inverse exists for a separable P
     % L = P^{-1}*Z
     [Pinv,info] = inv(P,opts);
     L = Pinv*Z;
-end                                                                         % AT, 10/28/2026
+end
 
-% Lop = [];                                                                 % MMP, 11/04/2026 (was); AT, 10/28/2026
-% if nargout>1                                                              % MMP, 11/04/2026 (was); AT, 10/28/2026
-%     if numel(L.vars)<=1                                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
-%         Lop = copvar2opvar(L);                                            % MMP, 11/04/2026 (was); AT, 10/28/2026
-%     else    % no 'opvar' form in N-D: Lop = []                            % MMP, 11/04/2026 (was); AT, 10/28/2026
-%         warning('getObserver_sop:Lop','L depends on %d spatial variables and has no ''opvar'' form: Lop = [].',numel(L.vars));% MMP, 11/04/2026 (was); AT, 10/28/2026
-%     end                                                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
-% end                                                                       % MMP, 11/04/2026 (was); AT, 10/28/2026
-% No operator copy of L: the gain is the container L                        % MMP, 11/04/2026
-Lop = [];                                                                   % MMP, 11/04/2026
+% No operator copy of L: the gain is the container L
+Lop = [];
 end

@@ -1,9 +1,9 @@
 function S = lpi_shape_sop(prog)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% S = LPI_SHAPE_SOP(PROG) returns the size of the SDP that sossolve passes
-% to the solver for the LPI program PROG: the number of decision variables,
-% the length of the free block, the sizes of the PSD blocks, the number of
-% equality rows and the length of the primal vector.
+% S = LPI_SHAPE_SOP(PROG) returns the size of the SDP posed to the solver
+% for the LPI program PROG: the number of decision variables, the length
+% of the free block, the sizes of the PSD blocks, the number of equality
+% rows and the length of the primal vector.
 %
 % INPUT
 % - prog:   'struct', an LPI program, solved; read are decvartable, var
@@ -27,9 +27,8 @@ function S = lpi_shape_sop(prog)
 %                  Kf + sum(Ks.^2).
 %
 % NOTES
-% sossolve adds the PSD blocks of the inequality constraints
-% (prog.extravar) during the solve, so for an unsolved program Ks omits
-% them.
+% The PSD blocks of the inequality constraints (prog.extravar) are added
+% during the solve, so for an unsolved program Ks omits them.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -57,12 +56,7 @@ function S = lpi_shape_sop(prog)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/08/2026 (the count of the test helper cx_shape,
-% in the library so that the executives depend on the library only).
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body; code unchanged. No help text deleted; the
-%                initial-coding entry moved here from the help text.
+% Initial coding MMP, 10/08/2026
 
 % Decision variables; the free block starts with those declared outside
 % prog.var
@@ -78,7 +72,7 @@ for i = 1:prog.var.num
         case 'sos',     Ks(end+1) = sqrt(sz);                               %#ok<AGROW>
     end
 end
-% PSD blocks of the inequality constraints, added by sossolve
+% PSD blocks of the inequality constraints, added during the solve
 if isfield(prog,'extravar') && isfield(prog.extravar,'num')
     for i = 1:prog.extravar.num
         Ks(end+1) = sqrt(prog.extravar.idx{i+1}-prog.extravar.idx{i});    %#ok<AGROW>

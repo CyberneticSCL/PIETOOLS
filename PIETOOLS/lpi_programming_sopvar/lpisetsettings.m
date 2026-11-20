@@ -1,23 +1,24 @@
 function prog = lpisetsettings(prog,settings)
-% PROG = LPISETSETTINGS(PROG,SETTINGS) sets the settings of the LPI program
-% PROG: LPI_INEQ_SOP takes from them the degree options a call does not
-% give (settings.lpi.ineq), and LPISOLVE the solver options when a call
-% gives none (settings.sos_opts).
+% PROG = LPISETSETTINGS(PROG,SETTINGS) sets the field settings of the LPI
+% program PROG: the degree options (settings.lpi.ineq) and the solver
+% options (settings.sos_opts) that the LPI routines take when a call gives
+% none.
 %
 % INPUT
-% - prog:      'struct', the LPI program (LPIPROGRAM);
-% - settings:  'struct' of LPI settings (LPISETTINGS_SOP); or a 'char' or
-%              'string' naming a tier: 'stripped', 'light', 'heavy',
-%              'veryheavy', 'custom' or 'extreme'; or [] (or omitted) for
-%              'light';
+% - prog:      'struct', the LPI program;
+% - settings:  'struct' of LPI settings; or a 'char' or 'string' naming a
+%              tier: 'stripped', 'light', 'heavy', 'veryheavy', 'custom'
+%              or 'extreme'; or [] (or omitted) for 'light';
 %
 % OUTPUT
 % - prog:      'struct', PROG with field settings, the settings structure.
 %
 % NOTES
 % One field can also be set directly, as in prog.settings.lpi.ineq.dw = 2.
-% Without a field lpi, LPI_INEQ_SOP reads that of 'light'; without a field
-% sos_opts, LPISOLVE leaves the solver options to SOSSOLVE.
+% Without a field lpi, the degree options of 'light' apply; without a field
+% sos_opts, the default solver options apply.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lpisetsettings
@@ -43,15 +44,14 @@ function prog = lpisetsettings(prog,settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP - 11/12/2026: the settings of a program, so that a
-%   hand-written LPI chooses its tier once instead of passing options to
-%   every call (maintainer, 11/12/2026: "there should also be an option to
-%   change the settings associated with a prog structure"). LPIPROGRAM
-%   calls it with its optional last input.
+% Initial coding MMP - 11/12/2026
 
+% Check PROG
 if ~isa(prog,'struct')
     error("LPI program structure should be specified as object of type 'struct'.")
 end
+% The settings: the 'light' tier when omitted or empty, a tier by name, or
+% a 'struct' as given
 if nargin<2 || isempty(settings)
     settings = lpisettings_sop();
 elseif ischar(settings) || isstring(settings)
@@ -59,6 +59,7 @@ elseif ischar(settings) || isstring(settings)
 elseif ~isa(settings,'struct')
     error("Settings should be a 'struct' (LPISETTINGS_SOP) or the name of a tier.")
 end
+% Store them in PROG
 prog.settings = settings;
 
 end

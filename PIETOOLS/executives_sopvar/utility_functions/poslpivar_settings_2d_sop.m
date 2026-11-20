@@ -3,14 +3,13 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % [PROG,P] = POSLPIVAR_SETTINGS_2D_SOP(PROG,X,ST,ROLE,SIDE,PIE) declares
 % the positive operator P = P0 + P1 + ... that the 2-D LPI settings in ST
 % define for ROLE on the SIDE spaces of the container X, each term a
-% positive semidefinite 'cdopvar' Z'*(g*Q)*Z, Q >= 0, declared by
-% POSCOPVAR: Z the identity on an R^n space and, on an L2[x,y] space, the
-% basis operators Z2^{ij} of the settings that are kept, with their degree
-% caps, as SETTINGS2POSSOPVAR translates them; g the psatz weight of the
-% term's options. On an L2[x] (L2[y]) space Z is the bases Zx^o, Zx^a,
-% Zx^b (Zy^o, Zy^a, Zy^b) of the degrees dx (dy) that are kept, by the 1-D
-% translation of SETTINGS2POSSOPVAR, with exclude(2:4) and sep(1)
-% (exclude(5:7) and sep(2)):
+% positive semidefinite 'cdopvar' Z'*(g*Q)*Z, Q >= 0: Z the identity on an
+% R^n space and, on an L2[x,y] space, the basis operators Z2^{ij} of the
+% settings that are kept, their degree caps translated to multi-indices
+% and caps of each basis operator; g the psatz weight of the options of
+% the term. On an L2[x] (L2[y]) space Z is the bases Zx^o, Zx^a, Zx^b
+% (Zy^o, Zy^a, Zy^b) of the degrees dx (dy) that are kept, translated in
+% one variable, with exclude(2:4) and sep(1) (exclude(5:7) and sep(2)):
 %   ROLE 'lf'     P0 of LF_deg and LF_opts; one Pj of LF_deg_psatz{j} and
 %                 LF_opts_psatz{j} per nonzero LF_use_psatz(j);
 %   ROLE 'slack'  P0 of eq_deg and eq_opts; one Pj of eq_deg_psatz{j} and
@@ -33,9 +32,9 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 %           added;
 % - X:      'copvar' or 'cdopvar' object whose SIDE spaces P maps, each R^n,
 %           L2[x], L2[y] or L2[x,y] (x, y the two variables of the PIE);
-% - st:     'struct' of LPI settings: an LPISETTINGS struct with field
-%           settings_2d, or a 2-D settings struct (settings_PIETOOLS_*_2D,
-%           field is2D = 1). Fields read: LF_deg, LF_opts, LF_use_psatz,
+% - st:     'struct' of LPI settings: an LPI settings struct with field
+%           settings_2d, or the 2-D settings struct itself (field
+%           is2D = 1). Fields read: LF_deg, LF_opts, LF_use_psatz,
 %           LF_deg_psatz, LF_opts_psatz ('lf'); eq_deg, eq_opts,
 %           eq_use_psatz, eq_deg_psatz, eq_opts_psatz, use_sosineq
 %           ('slack'). Each *_deg is a 'struct' with fields dx (3x1
@@ -67,13 +66,13 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % 'slack'; a space of X in a variable other than the two of the PIE;
 % exclude(1) set (for 'slack' also from a zero R^n block of X) with an R^n
 % space present; every basis of an L2[x] or L2[y] space excluded; a term
-% with psatz = 2, which POSCOPVAR rejects. A part of the settings the
-% translation cannot carry is the warning 'poslpivar_settings_2d_sop:lossy':
+% with psatz = 2 (a disk weight). A part of the settings the translation
+% cannot carry is the warning 'poslpivar_settings_2d_sop:lossy':
 % sep(2+k) ~= sep(4+k) in direction k, taken as not separable; sep(k)
 % different from sep(2+k) and sep(4+k) with both an L2[x,y] space and a
-% space in direction k alone, direction k then not separable (POSCOPVAR
-% takes one flag per direction for every space); a missing d2 cell, whose
-% basis operator is omitted.
+% space in direction k alone, direction k then not separable (one
+% separation flag per direction serves every space); a missing d2 cell,
+% whose basis operator is omitted.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -102,20 +101,6 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol, the licence block added,
-%                step comments in the body; code unchanged.
-% MMP, 10/28/2026: L2[x] and L2[y] spaces (one-variable states, as in the
-%                PIEs of coupled ODE-PDE and delay systems); before, such a
-%                space was an error in pos2d and eqopts2d, so the container
-%                executives could not run those 2-D PIEs (example library
-%                PDE 42, 43, 50). pos2d declares their bases from dx, dy by
-%                the 1-D translation of settings2possopvar (local pos1d) and
-%                settles the one separation flag per direction that
-%                poscopvar takes; eqopts2d adds the exclude(2:7), sep(1:2)
-%                rules of the stock get_eq_opts_2D. R^n and L2[x,y] spaces
-%                are translated as before.
-% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed; code
-%                unchanged.
 
 % The 2-D settings, the domain of P (variable names of the PIE), and the
 % SIDE spaces of X
@@ -124,21 +109,19 @@ dom = struct();     dom.vars = reshape(PIE.vars(:,1).varname,1,[]);    dom.dom =
 [sp,dm] = copvar_space_list(X,side);
 switch role
     case 'lf'
-        % P0, then one term per psatz entry in use; pos2d reads the PIE's   % MMP, 10/28/2026
-        % variable names to tell an L2[x] space from an L2[y] space         % MMP, 10/28/2026
-%       [deg,co] = pos2d(S.LF_deg,S.LF_opts,sp);                            % MMP, 10/28/2026 (was)
-        [deg,co] = pos2d(S.LF_deg,S.LF_opts,sp,dom.vars);                   % MMP, 10/28/2026
+        % P0, then one term per psatz entry in use; pos2d reads the variable
+        % names of the PIE to tell an L2[x] space from an L2[y] space
+        [deg,co] = pos2d(S.LF_deg,S.LF_opts,sp,dom.vars);
         [prog,P] = poscopvar(prog,dm,sp,dom,deg,co);
         for j = 1:numel(S.LF_use_psatz)
             if S.LF_use_psatz(j)~=0
-%               [deg,co] = pos2d(S.LF_deg_psatz{j},S.LF_opts_psatz{j},sp);  % MMP, 10/28/2026 (was)
-                [deg,co] = pos2d(S.LF_deg_psatz{j},S.LF_opts_psatz{j},sp,dom.vars); % MMP, 10/28/2026
+                [deg,co] = pos2d(S.LF_deg_psatz{j},S.LF_opts_psatz{j},sp,dom.vars);
                 [prog,P2] = poscopvar(prog,dm,sp,dom,deg,co);
                 P = P + P2;
             end
         end
     case 'slack'
-        % use_sosineq (lpi_ineq_2d in place of the equality) is not
+        % use_sosineq (an SOS inequality in place of the equality) is not
         % supported
         if S.use_sosineq
             error('poslpivar_settings_2d_sop:sosineq','use_sosineq selects lpi_ineq_2d, which has no container counterpart.');
@@ -146,17 +129,14 @@ switch role
         % The exclusions and separations the structure of X allows; P0,
         % then one term per psatz entry in use, with the same exclusions and
         % separations added to its own
-%       eq_opts = eqopts2d(X,S.eq_opts,1e-12);                              % MMP, 10/28/2026 (was)
-%       [deg,co] = pos2d(S.eq_deg,eq_opts,sp);                              % MMP, 10/28/2026 (was)
-        eq_opts = eqopts2d(X,S.eq_opts,1e-12,dom.vars);                     % MMP, 10/28/2026
-        [deg,co] = pos2d(S.eq_deg,eq_opts,sp,dom.vars);                     % MMP, 10/28/2026
+        eq_opts = eqopts2d(X,S.eq_opts,1e-12,dom.vars);
+        [deg,co] = pos2d(S.eq_deg,eq_opts,sp,dom.vars);
         [prog,P] = poscopvar(prog,dm,sp,dom,deg,co);
         for j = 1:numel(S.eq_use_psatz)
             if S.eq_use_psatz(j)~=0
                 o = S.eq_opts_psatz{j};
                 o.exclude = o.exclude | eq_opts.exclude;    o.sep = o.sep | eq_opts.sep;
-%               [deg,co] = pos2d(S.eq_deg_psatz{j},o,sp);                   % MMP, 10/28/2026 (was)
-                [deg,co] = pos2d(S.eq_deg_psatz{j},o,sp,dom.vars);          % MMP, 10/28/2026
+                [deg,co] = pos2d(S.eq_deg_psatz{j},o,sp,dom.vars);
                 [prog,P2] = poscopvar(prog,dm,sp,dom,deg,co);
                 P = P + P2;
             end
@@ -167,12 +147,11 @@ end
 end
 
 
-% function [deg,copts] = pos2d(pdeg,popts,sp)                               % MMP, 10/28/2026 (was)
-function [deg,copts] = pos2d(pdeg,popts,sp,xy)                              % MMP, 10/28/2026
-% [DEG,COPTS] = POS2D(PDEG,POPTS,SP,XY) returns the POSCOPVAR degrees and
-% options of one term with the 2-D settings degrees PDEG and options POPTS
-% over the spaces SP: the identity basis on R^n, the bases of POS1D on
-% L2[x] and L2[y], the basis operators of SETTINGS2POSSOPVAR on L2[x,y].
+function [deg,copts] = pos2d(pdeg,popts,sp,xy)
+% [DEG,COPTS] = POS2D(PDEG,POPTS,SP,XY) returns the degree specifications
+% and options of one term with the 2-D settings degrees PDEG and options
+% POPTS over the spaces SP: the identity basis on R^n, the bases of POS1D
+% on L2[x] and L2[y], the translated basis operators on L2[x,y].
 % INPUT  pdeg:   'struct' with fields dx, dy (read for an L2[x], L2[y]
 %                space) and d2 (3x3 'cell' of degree-cap arrays);
 %        popts:  'struct' with fields exclude (1x16), sep (1x6), psatz;
@@ -181,33 +160,33 @@ function [deg,copts] = pos2d(pdeg,popts,sp,xy)                              % MM
 % OUTPUT deg:    1xM 'cell', the degree specification of each space;
 %        copts:  'struct' with fields psatz (POPTS.psatz, default 0), sep
 %                (1x2 logical) and include (1xM 'cell' of multi-indices).
-% The direction (1 x, 2 y) of each one-variable space; a variable other     % MMP, 10/28/2026
-% than x and y is an error                                                  % MMP, 10/28/2026
-dir1 = zeros(1,numel(sp));                                                  % MMP, 10/28/2026
-for k = 1:numel(sp)                                                         % MMP, 10/28/2026
-    if numel(sp{k})==1                                                      % MMP, 10/28/2026
-        d = find(strcmp(xy,sp{k}{1}));                                      % MMP, 10/28/2026
-        if isempty(d)                                                       % MMP, 10/28/2026
-            error('poslpivar_settings_2d_sop:space','Space {%s}: not a variable of the PIE.',sp{k}{1}); % MMP, 10/28/2026
-        end                                                                 % MMP, 10/28/2026
-        dir1(k) = d;                                                        % MMP, 10/28/2026
-    end                                                                     % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
-% One separation flag per direction serves every space in POSCOPVAR. In a   % MMP, 10/28/2026
-% direction held by a one-variable space and by the L2[x,y] space, flags    % MMP, 10/28/2026
-% that differ (sep(d) against sep(2+d) and sep(4+d)) leave the direction    % MMP, 10/28/2026
-% not separated: more basis operators than the stock, never fewer           % MMP, 10/28/2026
-s6 = zeros(1,6);                                                            % MMP, 10/28/2026
-if isfield(popts,'sep') && ~isempty(popts.sep),  s6(1:numel(popts.sep)) = popts.sep(:)';  end % MMP, 10/28/2026
-has2 = any(cellfun(@numel,sp)==2);                                          % MMP, 10/28/2026
-sep1 = s6(1:2);                 % the flags of the one-variable spaces      % MMP, 10/28/2026
-for d = 1:2                                                                 % MMP, 10/28/2026
-    if any(dir1==d) && has2 && (s6(2+d) && s6(4+d))~=s6(d)                  % MMP, 10/28/2026
+% The direction (1 x, 2 y) of each one-variable space; a variable other
+% than x and y is an error
+dir1 = zeros(1,numel(sp));
+for k = 1:numel(sp)
+    if numel(sp{k})==1
+        d = find(strcmp(xy,sp{k}{1}));
+        if isempty(d)
+            error('poslpivar_settings_2d_sop:space','Space {%s}: not a variable of the PIE.',sp{k}{1});
+        end
+        dir1(k) = d;
+    end
+end
+% One separation flag per direction serves every space. In a direction
+% held by a one-variable space and by the L2[x,y] space, flags that differ
+% (sep(d) against sep(2+d) and sep(4+d)) leave the direction not
+% separated: more basis operators than the settings give, never fewer
+s6 = zeros(1,6);
+if isfield(popts,'sep') && ~isempty(popts.sep),  s6(1:numel(popts.sep)) = popts.sep(:)';  end
+has2 = any(cellfun(@numel,sp)==2);
+sep1 = s6(1:2);                 % the flags of the one-variable spaces
+for d = 1:2
+    if any(dir1==d) && has2 && (s6(2+d) && s6(4+d))~=s6(d)
         warning('poslpivar_settings_2d_sop:lossy',['sep(%d) = %d against sep(%d), sep(%d) = %d, %d: '...
-                'direction %d not separated.'],d,s6(d),2+d,4+d,s6(2+d),s6(4+d),d); % MMP, 10/28/2026
-        popts.sep(2+d) = 0;     popts.sep(4+d) = 0;     sep1(d) = 0;        % MMP, 10/28/2026
-    end                                                                     % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
+                'direction %d not separated.'],d,s6(d),2+d,4+d,s6(2+d),s6(4+d),d);
+        popts.sep(2+d) = 0;     popts.sep(4+d) = 0;     sep1(d) = 0;
+    end
+end
 % The translation (as the LF block of a 2-D settings struct); what it
 % cannot carry for that block is a warning
 s = struct('is2D',1);   s.LF_deg = pdeg;    s.LF_opts = popts;
@@ -234,88 +213,83 @@ for k = 1:numel(sp)
                   'poscopvar needs one basis operator per space.']);
         end
         deg{k} = struct('int',[0 0]);
-    elseif numel(v)==1                                                      % MMP, 10/28/2026
-        [deg{k},incl{k}] = pos1d(pdeg,exc,dir1(k),sep1(dir1(k)),numel(xy)); % MMP, 10/28/2026
+    elseif numel(v)==1
+        [deg{k},incl{k}] = pos1d(pdeg,exc,dir1(k),sep1(dir1(k)),numel(xy));
     elseif numel(v)==2
         deg{k} = o.LF.deg;      incl{k} = o.LF.opts.include;
     else
-%       error('poslpivar_settings_2d_sop:space',['Space {%s}: only R^n and L2[x,y] spaces '...
-%             'are handled.'],strjoin(v,','));                              % MMP, 10/28/2026 (was)
         error('poslpivar_settings_2d_sop:space',['Space {%s}: only R^n, L2[x], L2[y] and '...
-              'L2[x,y] spaces are handled.'],strjoin(v,','));               % MMP, 10/28/2026
+              'L2[x,y] spaces are handled.'],strjoin(v,','));
     end
 end
 % psatz of POPTS unchanged, sep of the translation
 ps = 0;     if isfield(popts,'psatz') && ~isempty(popts.psatz),  ps = popts.psatz;  end
 copts = struct('psatz',ps,'sep',o.LF.opts.sep);
 copts.include = incl;           % assigned apart: a cell value in struct() builds a struct array
-% In a direction held by a one-variable space, the flag of that space,      % MMP, 10/28/2026
-% equal to the translation's when an L2[x,y] space is present (see above)   % MMP, 10/28/2026
-for d = unique(dir1(dir1>0))                                                % MMP, 10/28/2026
-    copts.sep(d) = logical(sep1(d));                                        % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
+% In a direction held by a one-variable space, the flag of that space,
+% equal to that of the translation when an L2[x,y] space is present (see above)
+for d = unique(dir1(dir1>0))
+    copts.sep(d) = logical(sep1(d));
+end
 end
 
 
-function [deg,incl] = pos1d(pdeg,exc,d,sepd,nv)                             % MMP, 10/28/2026
-% [DEG,INCL] = POS1D(PDEG,EXC,D,SEPD,NV) returns the POSCOPVAR degrees and  % MMP, 10/28/2026
-% included basis operators of an L2[x] (D = 1) or L2[y] (D = 2) space: the  % MMP, 10/28/2026
-% bases Zx^o, Zx^a, Zx^b (Zy^o, Zy^a, Zy^b) of the degrees dx (dy) that     % MMP, 10/28/2026
-% exclude(2:4) (exclude(5:7)) keeps, separated when SEPD is set, by the     % MMP, 10/28/2026
-% 1-D translation of SETTINGS2POSSOPVAR. That translation reads the caps    % MMP, 10/28/2026
-% of Zx^a in the order [middle variable; outer variable; joint], as         % MMP, 10/28/2026
-% POSLPIVAR_2D applies dx{2} (Zxa(ss1,tt1), ss1 becoming the integrated     % MMP, 10/28/2026
-% variable of P); its scalar int, mult become entry D of 1 x NV rows,       % MMP, 10/28/2026
-% 0 in the direction the space lacks.                                       % MMP, 10/28/2026
-% INPUT  pdeg:  'struct' with field dx (D = 1) or dy (D = 2), a 3-entry     % MMP, 10/28/2026
-%               'cell' {d1; [d2(1) d2(2) d2(3)]; [d3(1) d3(2) d3(3)]};      % MMP, 10/28/2026
-%        exc:   1x16 'double', the exclude entries of the term;             % MMP, 10/28/2026
-%        d:     'double', 1 or 2;                                           % MMP, 10/28/2026
-%        sepd:  'double' or 'logical', the separation flag of direction D;  % MMP, 10/28/2026
-%        nv:    'double', the number of registry variables (2).             % MMP, 10/28/2026
-% OUTPUT deg:   1xN 'cell' of 'struct' (fields int, mult: 1 x NV; joint),   % MMP, 10/28/2026
-%               one per kept basis operator;                                % MMP, 10/28/2026
-%        incl:  Nx1 'double', their multi-indices (1 multiplier, 2 lower,   % MMP, 10/28/2026
-%               3 upper, 4 full integral).                                  % MMP, 10/28/2026
-% The degrees of the direction; none is an error                            % MMP, 10/28/2026
-f = {'dx','dy'};                                                            % MMP, 10/28/2026
-if ~isfield(pdeg,f{d}) || isempty(pdeg.(f{d}))                              % MMP, 10/28/2026
-    error('poslpivar_settings_2d_sop:deg1d','The settings give no %s degrees for the L2 space in that variable alone.',f{d}); % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
-c = pdeg.(f{d});                                                            % MMP, 10/28/2026
-% The 1-D settings of the direction: exclude [R^n (not in this space),      % MMP, 10/28/2026
-% multiplier, lower, upper]; no psatz term (the caller adds those)          % MMP, 10/28/2026
-s = struct();                                                               % MMP, 10/28/2026
-s.dd1 = {c{1}, reshape(c{2},1,[]), reshape(c{3},1,[])};                     % MMP, 10/28/2026
-s.options1 = struct('exclude',[1, exc(3*d-1:3*d+1)],'sep',double(sepd));    % MMP, 10/28/2026
-s.override1 = 1;                                                            % MMP, 10/28/2026
-o = settings2possopvar(s);                                                  % MMP, 10/28/2026
-lossy = o.report.lossy;     lossy = lossy(startsWith(lossy,'LF'));          % MMP, 10/28/2026
-if ~isempty(lossy)                                                          % MMP, 10/28/2026
-    warning('poslpivar_settings_2d_sop:lossy','%s',strjoin(lossy,' '));     % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
-% No basis left: POSCOPVAR needs one per space                              % MMP, 10/28/2026
-if isempty(o.LF.deg)                                                        % MMP, 10/28/2026
+function [deg,incl] = pos1d(pdeg,exc,d,sepd,nv)
+% [DEG,INCL] = POS1D(PDEG,EXC,D,SEPD,NV) returns the degree specifications
+% and included basis operators of an L2[x] (D = 1) or L2[y] (D = 2) space:
+% the bases Zx^o, Zx^a, Zx^b (Zy^o, Zy^a, Zy^b) of the degrees dx (dy) that
+% exclude(2:4) (exclude(5:7)) keeps, separated when SEPD is set, translated
+% in one variable. The translation reads the caps of Zx^a in the order
+% [middle variable; outer variable; joint], the middle variable becoming
+% the integrated variable of P; its scalar int, mult become entry D of
+% 1 x NV rows, 0 in the direction the space lacks.
+% INPUT  pdeg:  'struct' with field dx (D = 1) or dy (D = 2), a 3-entry
+%               'cell' {d1; [d2(1) d2(2) d2(3)]; [d3(1) d3(2) d3(3)]};
+%        exc:   1x16 'double', the exclude entries of the term;
+%        d:     'double', 1 or 2;
+%        sepd:  'double' or 'logical', the separation flag of direction D;
+%        nv:    'double', the number of registry variables (2).
+% OUTPUT deg:   1xN 'cell' of 'struct' (fields int, mult: 1 x NV; joint),
+%               one per kept basis operator;
+%        incl:  Nx1 'double', their multi-indices (1 multiplier, 2 lower,
+%               3 upper, 4 full integral).
+% The degrees of the direction; none is an error
+f = {'dx','dy'};
+if ~isfield(pdeg,f{d}) || isempty(pdeg.(f{d}))
+    error('poslpivar_settings_2d_sop:deg1d','The settings give no %s degrees for the L2 space in that variable alone.',f{d});
+end
+c = pdeg.(f{d});
+% The 1-D settings of the direction: exclude [R^n (not in this space),
+% multiplier, lower, upper]; no psatz term (the caller adds those)
+s = struct();
+s.dd1 = {c{1}, reshape(c{2},1,[]), reshape(c{3},1,[])};
+s.options1 = struct('exclude',[1, exc(3*d-1:3*d+1)],'sep',double(sepd));
+s.override1 = 1;
+o = settings2possopvar(s);
+lossy = o.report.lossy;     lossy = lossy(startsWith(lossy,'LF'));
+if ~isempty(lossy)
+    warning('poslpivar_settings_2d_sop:lossy','%s',strjoin(lossy,' '));
+end
+% No basis left: one basis operator per space is needed
+if isempty(o.LF.deg)
     error('poslpivar_settings_2d_sop:exclude1d',['exclude(%d:%d) drops every basis of the '...
-          'L2 space in %s alone; poscopvar needs one basis operator per space.'],3*d-1,3*d+1,f{d}(2)); % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
-% The scalar caps of each basis operator laid over the registry             % MMP, 10/28/2026
-deg = cell(1,numel(o.LF.deg));                                              % MMP, 10/28/2026
-for b = 1:numel(o.LF.deg)                                                   % MMP, 10/28/2026
-    g = o.LF.deg{b};                                                        % MMP, 10/28/2026
-    t = struct('int',zeros(1,nv),'mult',zeros(1,nv),'joint',g.joint);       % MMP, 10/28/2026
-    t.int(d) = g.int;   t.mult(d) = g.mult;     deg{b} = t;                 % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
-incl = o.LF.opts.include;                                                   % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
+          'L2 space in %s alone; poscopvar needs one basis operator per space.'],3*d-1,3*d+1,f{d}(2));
+end
+% The scalar caps of each basis operator laid over the registry
+deg = cell(1,numel(o.LF.deg));
+for b = 1:numel(o.LF.deg)
+    g = o.LF.deg{b};
+    t = struct('int',zeros(1,nv),'mult',zeros(1,nv),'joint',g.joint);
+    t.int(d) = g.int;   t.mult(d) = g.mult;     deg{b} = t;
+end
+incl = o.LF.opts.include;
+end
 
 
-% function eq_opts = eqopts2d(Km,eq_opts,ztol)                              % MMP, 10/28/2026 (was)
-function eq_opts = eqopts2d(Km,eq_opts,ztol,xy)                             % MMP, 10/28/2026
+function eq_opts = eqopts2d(Km,eq_opts,ztol,xy)
 % EQ_OPTS = EQOPTS2D(KM,EQ_OPTS,ZTOL,XY) sets the exclude and sep entries of
 % EQ_OPTS that the structure of KM allows, for R^n, L2[x], L2[y] and
-% L2[x,y] spaces, as the stock get_eq_opts_2D (retired 11/08/2026) did for
-% an 'opvar2d'. With (i,j) the
+% L2[x,y] spaces. With (i,j) the
 % parameter cells of an L2[x,y] -> L2[x,y] block (i, j = 1 multiplier, 2
 % lower, 3 upper integral in x, in y), q the cells of an L2[x] -> L2[x]
 % block (L2[y] -> L2[y]; q = 1 multiplier, 2 lower, 3 upper integral), and
@@ -344,32 +318,30 @@ exc = eq_opts.exclude;      sep = eq_opts.sep;
 % Spaces: R^n (no variable), L2[x] and L2[y] (one), L2[x,y] (two); a
 % registry of more than two variables is an error
 nvs = sum(Km.space_out,2);
-% if any(nvs==1) || numel(Km.vars)>2                                        % MMP, 10/28/2026 (was)
-%     error('poslpivar_settings_2d_sop:space','Only R^n and L2[x,y] spaces are handled.'); % MMP, 10/28/2026 (was)
-if numel(Km.vars)>2                                                         % MMP, 10/28/2026
-    error('poslpivar_settings_2d_sop:space','Only spaces in the two variables of the PIE are handled.'); % MMP, 10/28/2026
+if numel(Km.vars)>2
+    error('poslpivar_settings_2d_sop:space','Only spaces in the two variables of the PIE are handled.');
 end
 iR = find(nvs==0);      iX = find(nvs==2);
 % exclude(1): every R^n -> R^n block zero
 if ~isempty(iR) && all_zero(Km,iR,1)
     exc(1) = 1;
 end
-% exclude(2:7), sep(1:2): the spaces in x alone, then in y alone, by the    % MMP, 10/28/2026
-% rules of get_eq_opts_2D for Rxx (Ryy): a zero cell q excludes its basis;  % MMP, 10/28/2026
-% with cell 3 nonzero and the lower-integral basis kept, cells 2 and 3      % MMP, 10/28/2026
-% that agree separate the direction                                         % MMP, 10/28/2026
-for d = 1:2                                                                 % MMP, 10/28/2026
-    i1 = find(nvs==1 & any(Km.space_out(:,strcmp(Km.vars,xy{d})),2));       % MMP, 10/28/2026
-    if isempty(i1),     continue,   end                                     % MMP, 10/28/2026
-    e0 = 3*d - 1;       % exclude(2) in x, exclude(5) in y                  % MMP, 10/28/2026
-    if all_zero(Km,i1,1),   exc(e0) = 1;    end                             % MMP, 10/28/2026
-    if all_zero(Km,i1,2),   exc(e0+1) = 1;  end                             % MMP, 10/28/2026
-    if all_zero(Km,i1,3)                                                    % MMP, 10/28/2026
-        exc(e0+2) = 1;                                                      % MMP, 10/28/2026
-    elseif ~exc(e0+1) && diff_le(Km,i1,2,3,ztol)                            % MMP, 10/28/2026
-        sep(d) = 1;                                                         % MMP, 10/28/2026
-    end                                                                     % MMP, 10/28/2026
-end                                                                         % MMP, 10/28/2026
+% exclude(2:7), sep(1:2): the spaces in x alone, then in y alone, by the
+% rules above for their blocks: a zero cell q excludes its basis; with
+% cell 3 nonzero and the lower-integral basis kept, cells 2 and 3 that
+% agree separate the direction
+for d = 1:2
+    i1 = find(nvs==1 & any(Km.space_out(:,strcmp(Km.vars,xy{d})),2));
+    if isempty(i1),     continue,   end
+    e0 = 3*d - 1;       % exclude(2) in x, exclude(5) in y
+    if all_zero(Km,i1,1),   exc(e0) = 1;    end
+    if all_zero(Km,i1,2),   exc(e0+1) = 1;  end
+    if all_zero(Km,i1,3)
+        exc(e0+2) = 1;
+    elseif ~exc(e0+1) && diff_le(Km,i1,2,3,ztol)
+        sep(d) = 1;
+    end
+end
 if ~isempty(iX)
     % exclude(8:16): pidx(ii) is the exclude entry of the cell of linear
     % index ii in the 3x3 grid of cells
