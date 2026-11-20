@@ -1,0 +1,10 @@
+parser/@npie_struct/display.m
+parser/@npie_struct/eq.m
+parser/@npie_struct/expand_tderivatives.m
+parser/@npie_struct/horzcat.m
+parser/@npie_struct/initialize.m
+parser/@npie_struct/subsasgn.m
+parser/@npie_struct/vertcat.m
+parser/@pde_struct/mpower.m
+parser/@pde_struct/power.m
+parser/@pde_struct/times.m

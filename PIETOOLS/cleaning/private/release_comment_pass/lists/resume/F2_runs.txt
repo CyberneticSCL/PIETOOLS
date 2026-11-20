@@ -1,0 +1,7 @@
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m:126-155:28
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m:209-238:28
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch4_Declaring_PDEs.m:74-97:23
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch6_PIESIM.m:150-195:43
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch6_PIESIM.m:240-268:29
+PIETOOLS_examples/Examples_Library/command_line_input_Examples/stability_3.m:64-83:20
+PIETOOLS_examples/examples_PDE_library_PIETOOLS.m:1890-1926:37
