@@ -67,12 +67,9 @@ function [dPop,is_zero] = diff(Pop,vars,d,chk_override)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 10/20/2026: Initial coding;
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
-%                  added to the headers of the local functions; code
-%                  unchanged.
-% DJ, 11/12/2026: Bugfix in case that no term of the kernel depends on the
-%                  differentiation variable;
 
 if nargin<=3 || ~chk_override
     % Check that the operator is properly specified

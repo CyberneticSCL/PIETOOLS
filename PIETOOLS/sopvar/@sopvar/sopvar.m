@@ -7,8 +7,6 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %
     %   Pop: L_2^p[S1,S3] to L_2^q[S2,S3]
     %
-    % Elements of this class are intended to be included in a container object.
-    %
     %   The operator has the form
     %         y(S2,S3)=sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3)
     %         C{\alpha} Z_d(S_3dum,S_1) x(S_3dum,S_1)
@@ -18,17 +16,21 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %         S_2 is the variables in y(S2,S3) (output) not in S3 (common)
     %         S_3 is the variables common to x (input) and y (output)
     %         S_3dum are dummy versions of the variables in S_3
+    %   and the cell index gamma in {1,2,3}^n_3 of params stores alpha with
+    %   gamma_k = 1, 2, 3 for alpha_k = 0 (multiplier, delta(s_k-s_k')),
+    %   1 (integral from the lower limit to s_k), -1 (from s_k to the upper
+    %   limit), direction 1 varying fastest.
     %
     % CLASS properties
     % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
-    % - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
+    % - P.dims:   1x2 vector specifying the rows and columns of the operator i.e. [q,p];
     % - P.vars: a structure with fields 'in' and 'out'
-    % - P.vars.in: a cell array specifying the unique names of the spatial  % MMP, 09/09/2026
-    % variables in the input function space, stored in the canonical order  % MMP, 09/09/2026
-    % [S_3,S_1]. S_1 and S_3 are each sorted, but the concatenation is not, % MMP, 09/09/2026
-    % so do not assume vars.in is sorted; look up a variable by name        % MMP, 09/09/2026
-    % - P.vars.out: a cell array specifying the unique names of the spatial % MMP, 09/09/2026
-    % variables in the output function space, canonical order [S_2,S_3]     % MMP, 09/09/2026
+    % - P.vars.in: a cell array specifying the unique names of the spatial
+    % variables in the input function space, stored in the canonical order
+    % [S_3,S_1]. S_1 and S_3 are each sorted, but the concatenation is not,
+    % so do not assume vars.in is sorted; look up a variable by name
+    % - P.vars.out: a cell array specifying the unique names of the spatial
+    % variables in the output function space, canonical order [S_2,S_3]
     % - P.dom.: struct object with fields 'in' and 'out'
     % - P.dom.in: ordered array (2 columns) specifying the spatial domain of each
     % variable in P.vars.in, so that dom(i,:) = [ai,bi] -> vars.in(i) \in [ai,bi]
@@ -40,6 +42,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     % - ZR: cell array of column vectors representing exponents of
     % monomials in P.vars.in. That is monomials are constructed by as
     % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}...
+    % - P.kernels: (dependent, hidden) cell of the size of P.params, the
+    % dims(1) x dims(2) kernel of each parameter as a 'polynomial' object.
     %
     % CONSTRUCTOR P = sopvar(params,vars,ZL,ZR,dom,dims)
     %
@@ -67,24 +71,25 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %           multiplier cell in canonical form; a warning is issued when
     %           a parameter had to be rewritten.
     %
-    % CANONICAL MULTIPLIER FORM                                             % MMP, 08/29/2026
-    % A parameter P.params{alpha} with alpha(k)==1 carries a factor         % MMP, 08/29/2026
-    % delta(s_k-s_k'), which identifies s_k with s_k'. A coefficient at left % MMP, 08/29/2026
-    % degree a and right degree b in direction k then contributes the same  % MMP, 08/29/2026
-    % monomial s_k^(a+b) as one at left degree a+b and right degree 0, so   % MMP, 08/29/2026
-    % the stored coefficients are not determined by the operator. Objects of % MMP, 08/29/2026
-    % this class therefore satisfy                                          % MMP, 08/29/2026
-    %                                                                       % MMP, 08/29/2026
-    %   alpha(k)==1  ==>  P.params{alpha} has no content outside the columns % MMP, 08/29/2026
-    %                     whose ZR monomial has degree 0 in direction k,    % MMP, 08/29/2026
-    %                                                                       % MMP, 08/29/2026
-    % that is, a multiplier direction carries no dummy variable degree. The % MMP, 08/29/2026
-    % constructor enforces this by rewriting anything that does not already % MMP, 08/29/2026
-    % satisfy it, enlarging ZL where the folded degrees require it; see     % MMP, 08/29/2026
-    % 'canonicalize_multiplier'. The representation is then unique, which is % MMP, 08/29/2026
-    % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain    % MMP, 08/29/2026
-    % them. Assigning to P.params directly bypasses the constructor and so  % MMP, 08/29/2026
-    % bypasses the invariant; build a new object instead.                   % MMP, 08/29/2026
+    % CANONICAL MULTIPLIER FORM
+    % A parameter P.params{alpha} with alpha(k)==1 carries a factor
+    % delta(s_k-s_k'), which identifies s_k with s_k'. A coefficient at left
+    % degree a and right degree b in direction k then contributes the same
+    % monomial s_k^(a+b) as one at left degree a+b and right degree 0, so
+    % the stored coefficients are not determined by the operator. Objects of
+    % this class therefore satisfy
+    %
+    %   alpha(k)==1  ==>  P.params{alpha} has no content outside the columns
+    %                     whose ZR monomial has degree 0 in direction k,
+    %
+    % that is, a multiplier direction carries no dummy variable degree. The
+    % constructor enforces this by rewriting anything that does not already
+    % satisfy it, enlarging ZL where the folded degrees require it. The
+    % representation is then unique: equal operators have equal
+    % coefficients. Assigning to P.params directly bypasses the constructor
+    % and so bypasses the invariant; build a new object instead.
+    %
+    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Copyright (C) 2026 PIETOOLS Team
     %
@@ -108,28 +113,6 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     % authorship, and a brief description of modifications
     %
     % SS,MP, 01/15/2026: Initial coding
-    % MMP, 09/09/2026: Enforce the canonical spatial-variable order
-    %                  vars.out = [S2,S3], vars.in = [S3,S1] in the
-    %                  constructor, and check that a variable appearing on
-    %                  both sides is given the same domain by each. The
-    %                  property documentation above said vars.in and
-    %                  vars.out held SORTED names, which the canonical order
-    %                  contradicts: [S2,S3] is sorted only when S2 is empty.
-    %                  Corrected, since code that assumed it could locate a
-    %                  variable by sorted position would now be wrong.
-    % MMP, 09/29/2026: Dead files of this class removed (no live caller):
-    %                  the quadPoly-era methods sopvar_old, ctranspose_old,
-    %                  randOpvar, three test scripts and 11 private helpers
-    %                  moved to the dead-code folder (now cleaning/dead_code/,
-    %                  whose README lists origin and author); randsopvar and
-    %                  test_MP, written by MMP, deleted. The Static
-    %                  declaration of randsopvar is removed.
-    % DJ, 11/05/2026: Add the dependent property 'kernels'.
-    % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): constructor
-    %                  INPUT/OUTPUT added to the class help, the 09/29/2026
-    %                  entry condensed to what it records, constructor
-    %                  comments tightened, the commented-out randsopvar
-    %                  declaration removed; code unchanged.
     properties
         vars = struct('in',{},'out',{});
         dom = struct('in',zeros(0,2),'out',zeros(0,2));
@@ -139,7 +122,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         params = {0};
     end
     properties(Dependent,Hidden)
-        kernels;    % cell of the kernels defined by params, see get.kernels
+        kernels;    % cell of the kernels defined by params, as 'polynomial' objects
     end
     properties(Access=protected)
         vars_S1;   % these variables are integrated out (full integral only)
@@ -152,34 +135,34 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 
     methods
         function P = sopvar(params,vars,ZL,ZR,dom,dims)
-            % Canonical variable order first, vars.out = [S2,S3] and        % MMP, 09/09/2026
-            % vars.in = [S3,S1]: ZL{i} is bound to vars.out(i), so a        % MMP, 09/09/2026
-            % reordering permutes the monomial index of every coefficient   % MMP, 09/09/2026
-            % (rowIdx, colIdx, lifted over the matrix dimension; empty when % MMP, 09/09/2026
-            % nothing moves). A pass-through variable given two domains is  % MMP, 09/09/2026
-            % rejected there.                                               % MMP, 09/09/2026
-            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                  % MMP, 09/09/2026
-                canonical_var_order(vars,dom,ZL,ZR,dims);                   % MMP, 09/09/2026
-            if reordered                                                    % MMP, 09/09/2026
-                for ii = 1:numel(params)                                    % MMP, 09/09/2026
-                    % [] and scalar 0 (zero-block shorthand) cannot be      % MMP, 09/09/2026
-                    % indexed, and permuting a zero block is a no-op.       % MMP, 09/09/2026
-                    if numel(params{ii})>1                                  % MMP, 09/09/2026
-                        params{ii} = params{ii}(rowIdx,colIdx);             % MMP, 09/09/2026
-                    end                                                     % MMP, 09/09/2026
-                end                                                         % MMP, 09/09/2026
-            end                                                             % MMP, 09/09/2026
-            % Then the canonical multiplier form, the class invariant of    % MMP, 08/29/2026
-            % the help text: a non-canonical parameter is rewritten, a      % MMP, 08/29/2026
-            % canonical one is not touched.                                 % MMP, 08/29/2026
-            [params,ZL,ZR,was_rewritten] = ...                              % MMP, 08/29/2026
-                canonicalize_multiplier(params,vars,ZL,ZR,dims);            % MMP, 08/29/2026
-            if was_rewritten                                                % MMP, 08/29/2026
-                warning('sopvar:noncanonicalMultiplier',...                 % MMP, 08/29/2026
-                    ['A multiplier parameter depended on a dummy variable, so it was rewritten in '...% MMP, 08/29/2026
-                     'canonical form and ZL was enlarged to hold the folded degrees. The operator '...% MMP, 08/29/2026
-                     'is unchanged. Build multiplier parameters with the degree on ZL to avoid this.']);% MMP, 08/29/2026
-            end                                                             % MMP, 08/29/2026
+            % Canonical variable order first, vars.out = [S2,S3] and
+            % vars.in = [S3,S1]: ZL{i} is bound to vars.out(i), so a
+            % reordering permutes the monomial index of every coefficient
+            % (rowIdx, colIdx, lifted over the matrix dimension; empty when
+            % nothing moves). A pass-through variable given two domains is
+            % rejected there.
+            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...
+                canonical_var_order(vars,dom,ZL,ZR,dims);
+            if reordered
+                for ii = 1:numel(params)
+                    % [] and scalar 0 (zero-block shorthand) cannot be
+                    % indexed, and permuting a zero block is a no-op.
+                    if numel(params{ii})>1
+                        params{ii} = params{ii}(rowIdx,colIdx);
+                    end
+                end
+            end
+            % Then the canonical multiplier form, the class invariant of
+            % the help text: a non-canonical parameter is rewritten, a
+            % canonical one is not touched.
+            [params,ZL,ZR,was_rewritten] = ...
+                canonicalize_multiplier(params,vars,ZL,ZR,dims);
+            if was_rewritten
+                warning('sopvar:noncanonicalMultiplier',...
+                    ['A multiplier parameter depended on a dummy variable, so it was rewritten in '...
+                     'canonical form and ZL was enlarged to hold the folded degrees. The operator '...
+                     'is unchanged. Build multiplier parameters with the degree on ZL to avoid this.']);
+            end
             % Store the canonical data
             P.params = params;
             P.vars = vars;
@@ -207,9 +190,17 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             % the dims(1) x dims(2) kernel K_i associated with P.params{i},
             % as a 'polynomial' object in the variables vars.out, and in
             % the dummy variables, named as the variables in vars.in with
-            % _dum appended. See 'display' for the integrals corresponding
-            % to each kernel.
+            % _dum appended. Kernel K_i enters the operator with the
+            % multiplier or integrals of the multi-index of cell i (class
+            % help).
+            %
+            % INPUT
+            % - P:  'sopvar' object;
+            %
+            % OUTPUT
+            % - K:  cell of the size of P.params of 'polynomial' objects.
             K = cell(size(P.params));
+            % One kernel per parameter cell
             for k=1:numel(K)
                 K{k} = params2kernel(P,k);
             end

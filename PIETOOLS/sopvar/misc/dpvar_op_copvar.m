@@ -2,53 +2,50 @@ function R = dpvar_op_copvar(op,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % R = DPVAR_OP_COPVAR(OP,...) evaluates the arithmetic OP with a 'dpvar'
 % operand (scalar or matrix, constant in space) and an operator X of class
-% 'copvar', 'cdopvar', 'sopvar' or 'sdopvar', with the semantics of the
-% legacy @opvar/@dopvar methods (plus.m, mtimes.m, horzcat.m, vertcat.m):
+% 'copvar', 'cdopvar', 'sopvar' or 'sdopvar':
 %
 %   'mtimes'  d*X, X*d: a scalar scales every block. A matrix D multiplies
 %             the output (D*X) or input (X*D) components, and needs all
-%             output (input) spaces of X to be ONE space, as legacy needs
-%             nnz(dim(:,1)) <= 1: that space is then the result's;
+%             output (input) spaces of X to be ONE space, which is then the
+%             output (input) space of the result;
 %   'plus'    d+X, X+d: a scalar is d*I, for X square (the same spaces and
-%             dimensions in and out, row i = column i); a matrix of X's
-%             total size is a multiplier split by X's dimensions, and one
-%             that would integrate is refused, as 'mat2opvar' refuses Q1.
-%             A difference reaches here through minus = plus(A,-B);
-%   'horzcat' a matrix entry maps R^{cols} into the rows' spaces;
-%   'vertcat' a matrix entry maps the columns' spaces into R^{rows}: for
-%             an L2 column that is the integral, legacy's Q1 (see
-%             'mat2copvar_grid' for the one meaning a constant has).
+%             dimensions in and out, row i = column i); a matrix of the
+%             total size of X is a multiplier split by the dimensions of X,
+%             and one that would integrate is refused. A difference is
+%             plus(A,-B);
+%   'horzcat' a matrix entry maps R^{cols} into the spaces of the rows;
+%   'vertcat' a matrix entry maps the spaces of the columns into R^{rows}:
+%             for an L2 column that is the integral over the variables of
+%             that space.
 %
 % INPUTS
 % - op:     'mtimes' | 'plus' (two operands) | 'horzcat' | 'vertcat' (any);
-% - ...:    the operands, as the class method received them. At least one
-%           is a copvar/cdopvar/sopvar/sdopvar; the caller routes here only
-%           when a 'dpvar' is among them. Numeric operands keep the classes'
-%           own behavior: a numeric scalar scales, anything else numeric is
-%           refused as before (use dpvar(M) or mat2copvar_sop for a matrix);
+% - ...:    the operands: at least one a 'copvar', 'cdopvar', 'sopvar' or
+%           'sdopvar' object, and a 'dpvar' among them (for 'plus', a
+%           numeric scalar may take the place of the 'dpvar');
 %
 % OUTPUTS
 % - R:      mtimes/plus on a block: a block ('sdopvar' when a decision
 %           variable is involved). On a container, and for any
-%           concatenation: a container. Class follows legacy: a 'dpvar'
-%           operand makes the result a decision operator.
+%           concatenation: a container. A 'dpvar' operand with decision
+%           variables makes the result a decision operator.
 %
 % NOTES
 % A 'dpvar' with no decision variables is its constant value, a 'double',
 % so dpvar(M)*X, dpvar(c) + X, [dpvar(M), X] give FIXED results.
-% Decision x decision stays refused (cdopvar:decisionTimesDecision): a
-% 'dpvar' with a decision variable times a 'cdopvar' or 'sdopvar' is
-% quadratic. Decided by the argument types, as @cdopvar/mtimes decides it.
-% A dpvar that depends on a spatial variable is refused
-% (mat2copvar_grid:spatial); polynomial operands are not handled.
+% Decision x decision is refused (cdopvar:decisionTimesDecision): a 'dpvar'
+% with a decision variable times a 'cdopvar' or 'sdopvar' is quadratic,
+% decided by the argument types. A dpvar that depends on a spatial
+% variable is refused (mat2copvar_grid:spatial); polynomial operands are
+% not handled.
 %
 % Cost: a scalar product is O(nnz) per block with a one-row B per decision
-% variable of d, flat in the container's q. A matrix product or a sum goes
-% through the class's own mtimes/plus against the constant container, so
-% it costs what they cost; a sum or concatenation with a container on a
-% DIFFERENT decision list pays 'merge_dvar_lists' (O(q log q)). 'plus' puts
-% X first so that X's own list is the union's head and its blocks keep
-% their rows.
+% variable of d, flat in the q of the container. A matrix product or a sum
+% goes through the mtimes/plus of the class against the constant
+% container, so it costs what they cost; a sum or concatenation with a
+% container on a DIFFERENT decision list pays the merge of the lists
+% (O(q log q)). 'plus' puts X first, so that the decision list of X heads
+% the union and its blocks keep their rows.
 %
 % See also MAT2COPVAR_GRID, DPVAR2SDVAR.
 %
@@ -78,15 +75,9 @@ function R = dpvar_op_copvar(op,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. Tier 1b of the container parity map: gamma
-%                as a decision variable (gam*I, gam - T'*T, [-gam, D'; ..])
-%                for the H-inf/H2 executives and DEMO2/3/5/6/9, one branch
-%                shared by the four classes' mtimes/plus/horzcat/vertcat.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
-%                for the local functions; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
-%                local ISDECISION inlined into op_mtimes.
+% Initial coding MMP, 09/29/2026
 
+% Dispatch on the operation
 switch op
     case 'mtimes',              R = op_mtimes(varargin{1},varargin{2});
     case 'plus',                R = op_plus(varargin{1},varargin{2});
@@ -101,9 +92,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R = op_mtimes(A,B)
 % R = OP_MTIMES(A,B) is A*B with one operand a 'dpvar' and the other an
-% operator: a constant scalar scales through the class's own path, a dpvar
-% scalar scales every block (fixed operator only), a matrix multiplies the
-% output or input components through its constant container.
+% operator: a constant scalar scales through the numeric product of the
+% class, a dpvar scalar scales every block (fixed operator only), a matrix
+% multiplies the output or input components through its constant
+% container.
 % INPUTS  A, B: the two factors, one a 'dpvar'.
 % OUTPUT  R: block or container; 'sdopvar'/'cdopvar' when decision
 %         variables enter.
@@ -111,27 +103,28 @@ left = ~isoperator(A);              % the matrix is the left factor
 if left,    D = A;  X = B;  else,   D = B;  X = A;      end
 D = const_value(D);
 if isnumeric(D) && isscalar(D)
-    % A constant scalar is the classes' own numeric path.
+    % A constant scalar: the numeric product of the class.
     R = mtimes(D,X);
     return
 end
 if all(size(D)==1)
     % dpvar scalar with decision variables: d*X = X*d, scale each block.
-%   if isdecision(X)                                                        % MMP, 11/09/2026 (was)
-    % decision by type, not by content: a cdopvar or sdopvar, as in         % MMP, 11/09/2026
-    % @cdopvar/mtimes (the former local ISDECISION)                         % MMP, 11/09/2026
-    if isa(X,'cdopvar') || isa(X,'sdopvar')                                 % MMP, 11/09/2026
+    % decision by type, not by content: a cdopvar or sdopvar
+    if isa(X,'cdopvar') || isa(X,'sdopvar')
         error('cdopvar:decisionTimesDecision',['A dpvar with decision '...
             'variables times a %s is quadratic in the decision variables and '...
             'is not representable. Multiply a decision scalar only into a '...
             'fixed operator (copvar/sopvar).'],class(X))
     end
+    % d = a + b'*z: a the constant term, b one row per decision variable z;
+    % a d that depends on a spatial variable is refused
     [Pc,ZLc] = dpvar2sdvar(D,struct('out',{reshape(D.varname,1,[])},'in',{cell(1,0)}));
     if any(cellfun(@(z) any(z(:)~=0),ZLc))
         error('mat2copvar_grid:spatial',['The dpvar depends on a spatial '...
             'variable; only matrices constant in space are supported here.'])
     end
     a = full(Pc.A);     b = Pc.B;       Zd = reshape(D.dvarname,[],1);
+    % A block is scaled; a container has each nonempty block scaled
     if isa(X,'sopvar')
         R = scale_block(X,a,b,Zd);
         return
@@ -144,10 +137,12 @@ if all(size(D)==1)
     R = cdopvar(Cc,meta);
     return
 end
-% A matrix: the constant container between X's side and one space, then
-% the class's own composition, which refuses decision x decision.
+% A matrix: the constant container between one side of X and one space,
+% then the composition of the class, which refuses decision x decision.
 [meta,blk] = side_meta(X);
 if left
+    % D*X: the output spaces of X must be one space; D maps the output
+    % components of X to size(D,1) components on that space
     so = meta.space_out(1,:);
     if any(any(xor(meta.space_out,so)))
         error('mtimes:ambiguousMatrix',['A matrix times an operator whose '...
@@ -163,6 +158,7 @@ if left
     Mop = mat2copvar_grid(D,mm);
     if blk,     R = Mop.C{1,1}*X;   else,   R = Mop*X;      end
 else
+    % X*D: likewise on the input side
     si = meta.space_in(1,:);
     if any(any(xor(meta.space_in,si)))
         error('mtimes:ambiguousMatrix',['An operator whose input spaces '...
@@ -222,27 +218,31 @@ meta = side_meta(args{iref});
 nv = numel(meta.vars);
 for k = 1:numel(args)
     a = args{k};
-    % Only dpvar entries; anything else goes to the class's concatenation
-    % as it is, which drops [] and refuses a double (BadOperand).
+    % Only dpvar entries; anything else goes to the concatenation of the
+    % class as it is, which drops [] and refuses a double (BadOperand).
     if ~isa(a,'dpvar'),     continue,   end
     a = const_value(a);
     mm = meta;
     if strcmp(op,'horzcat')
+        % horzcat: the entry maps R^{cols} into the row spaces
         if size(a,1)~=sum(meta.dim_out)
             error('horzcat:dimMismatch',['Entry %d has %d rows; the row spaces '...
                 'have %d components.'],k,size(a,1),sum(meta.dim_out))
         end
         mm.space_in = false(1,nv);      mm.dim_in = size(a,2);
     else
+        % vertcat: the entry maps the column spaces into R^{rows}
         if size(a,2)~=sum(meta.dim_in)
             error('vertcat:dimMismatch',['Entry %d has %d columns; the column '...
                 'spaces have %d components.'],k,size(a,2),sum(meta.dim_in))
         end
         mm.space_out = false(1,nv);     mm.dim_out = size(a,1);
     end
+    % An empty entry is dropped; any other becomes a constant container
     if any(size(a)==0),     args{k} = [];   continue,   end
     args{k} = mat2copvar_grid(a,mm);
 end
+% Concatenate with the method of the operator class
 if strcmp(op,'horzcat'),    R = horzcat(args{:});   else,   R = vertcat(args{:});   end
 end
 
@@ -250,13 +250,18 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function tf = isoperator(x)
 % TF = ISOPERATOR(X) is true for a container or a block of the four classes.
+% INPUT   x: any value.
+% OUTPUT  tf: logical, true for a 'copvar', 'cdopvar', 'sopvar' or 'sdopvar'.
 tf = isa(x,'copvar') || isa(x,'cdopvar') || isa(x,'sopvar') || isa(x,'sdopvar');
 end
 
 
 function D = const_value(D)
-% A dpvar with no decision variables is the double it equals. 'double'
-% errors if it still depends on a spatial variable, which is intended.
+% D = CONST_VALUE(D): a dpvar with no decision variables is the double it
+% equals. The conversion errors if it still depends on a spatial variable,
+% which is intended.
+% INPUT   D: 'dpvar', or any other value.
+% OUTPUT  D: 'double' for a dpvar without decision variables, else D.
 if isa(D,'dpvar') && isempty(D.dvarname)
     D = double(D);
 end
@@ -264,13 +269,18 @@ end
 
 
 function [meta,blk] = side_meta(X)
-% Container metadata of X; for a single block, the 1 x 1 container's,
-% built from the block's own vars and dom, O(nv), with no Zd check.
+% [META,BLK] = SIDE_META(X) returns the container metadata of X; for a
+% single block, that of the 1 x 1 container built from the vars and dom of
+% the block, O(nv), with no Zd check.
+% INPUT   X: 'copvar', 'cdopvar', 'sopvar' or 'sdopvar' object.
+% OUTPUT  meta: 'struct' with fields vars, dom, space_out, space_in,
+%         dim_out, dim_in; blk: logical, true for a block.
 blk = isa(X,'sopvar') || isa(X,'sdopvar');
 if ~blk
     meta = metadata(X);
     return
 end
+% Registry: the sorted variables of both sides, with their domains
 v = unique([reshape(X.vars.out,1,[]),reshape(X.vars.in,1,[])]);
 v = reshape(v,1,[]);        nv = numel(v);
 dom = zeros(nv,2);
@@ -282,15 +292,19 @@ end
 
 
 function S = scale_block(P,a,b,Zd)
-% (a + b'*d)*P for a FIXED block P: A = a*vec(C), B = b*vec(C)', per gamma
-% cell. nnz(B) = nnz(b)*nnz(C); b has one entry per decision variable of d.
+% S = SCALE_BLOCK(P,A,B,ZD) is (a + b'*d)*P for a FIXED block P:
+% A = a*vec(C), B = b*vec(C)', per gamma cell. nnz(B) = nnz(b)*nnz(C); b
+% has one entry per decision variable of d.
+% INPUT   P: 'sopvar' object; a: scalar; b: nd x 1 coefficients of the
+%         decision variables; Zd: nd x 1 cellstr of their names.
+% OUTPUT  S: 'sdopvar' object on the bases of P.
 S = sopvar2sdopvar(P,Zd);
 nc = P.dims(1)*prod(cellfun(@numel,P.ZL))*P.dims(2)*prod(cellfun(@numel,P.ZR));
 for k = 1:numel(S.params.A)
     v = S.params.A{k};
     if numel(v)~=nc
         % [] or scalar 0, the class zero-cell shorthand: expand, or B would
-        % be nd x 1 and A 1 x 1 (getsol and mtimes then refuse the block).
+        % be nd x 1 and A 1 x 1, a block of inconsistent size.
         if nnz(v)
             error('dpvar_op_copvar:badCell','Gamma cell %d of the block has %d entries; expected %d.',k,numel(v),nc)
         end

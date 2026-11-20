@@ -4,7 +4,7 @@ function varargout = size(P,dim)
 % sdopvar object P, i.e. P maps L_2^n[vars.in] to L_2^m[vars.out].
 %
 % INPUTS
-% P:    sdopvar class object
+% P:    'sdopvar' object
 % dim:  (optional) 1 to request the number of rows, 2 the number of columns
 %
 % OUTPUTS
@@ -13,7 +13,6 @@ function varargout = size(P,dim)
 % NOTES:
 % Without this method 'size' reports the size of the MATLAB object array,
 % which is [1,1] for a single operator regardless of its true dimensions.
-% 'end' is built on 'size', so the two must be present together.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -41,10 +40,12 @@ function varargout = size(P,dim)
 %
 % Initial coding MMP, 09/06/2026
 
+% Check the input
 if ~isa(P,'sdopvar')
     error('To check validity input must be sdopvar object');
 end
 
+% Both dimensions as one array, or those selected by dim
 matdim = P.dims;
 
 if nargout<=1 && nargin==1

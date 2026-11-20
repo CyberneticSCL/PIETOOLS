@@ -3,7 +3,7 @@ function [Rinv,info] = inv(R,opts)
 % [RINV,INFO] = INV(R[,OPTS]) the inverse of a square 1-D 'sopvar' block
 %   (R x)(s) = R0(s) x(s) + int_a^s R1(s,t) x(t) dt + int_s^b R2(s,t) x(t) dt
 % on L2^m[a,b], as a 'sopvar' with polynomial parameters of one degree d in
-% s and in t. The block stores (sopvar document Sec. 4, 1-D)
+% s and in t. The block stores
 %   R_i(s,t) = (I_m kron ZL(s)') C_i (I_m kron ZR(t)),   C_i = R.params{i+1},
 % so each kernel is already in the separated form Lemma 16 below needs:
 %   C_i = U_i V_i  (SVD, numerical rank r_i)  ==>  R_i = F_i(s) G_i(t),
@@ -18,14 +18,14 @@ function [Rinv,info] = inv(R,opts)
 %   Pg = [0 0; U22^{-1} U21 I],
 %   R^{-1} = {R0^{-1},  C(s) U(s) (I - Pg) V(t) B(t) R0(t)^{-1},
 %                      -C(s) U(s) Pg V(t) B(t) R0(t)^{-1}}.
-% GK_GRID (sopvar/misc) propagates U, V by RK4 on OPTS.N uniform nodes with
-% midpoints and returns M(s) = C(s)U(s), N(t) = V(t)B(t)R0(t)^{-1} and
-% R0^{-1} at the nodes. The three parameters are evaluated on the node grid
+% U and V are propagated by RK4 on OPTS.N uniform nodes with midpoints,
+% giving M(s) = C(s)U(s), N(t) = V(t)B(t)R0(t)^{-1} and R0^{-1} at the
+% nodes. The three parameters are evaluated on the node grid
 % (the kernels on the WHOLE square from the formulas, not only on their
 % triangle, because the formula is the smooth continuation and a
 % polynomial fits it; fitting a kernel that is cut at the diagonal does not
-% converge) and fitted by least squares in the Chebyshev basis on [a,b]
-% (CHEBFIT_MONO), one degree d for the three, raised from OPTS.deg0 in
+% converge) and fitted by least squares in the Chebyshev basis on [a,b],
+% one degree d for the three, raised from OPTS.deg0 in
 % steps of 2 until the relative RMS residual of all three fits is below
 % OPTS.tol or d = OPTS.degmax; the monomial coefficients are placed on
 % ZL = ZR = (0:d)', the multiplier in the ZR-degree-0 columns, the canonical
@@ -84,17 +84,7 @@ function [Rinv,info] = inv(R,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/09/2026. Container counterpart of @opvar/inv for
-%                the synthesis reconstruction K = Z P^{-1}, L = P^{-1} Z on
-%                the container path (getController_sop, getObserver_sop).
-% MMP, 10/09/2026: The grid part (kernel factors, RK4, Pg, M, N) moved to
-%                sopvar/misc/gk_grid.m and the Chebyshev fit to
-%                sopvar/misc/chebfit_mono.m, both shared with
-%                getController_direct_sop, which builds the gains from the
-%                same grid data without forming the inverse. Same output
-%                (Test_copvar_inv passes unchanged).
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): a history sentence
-%                removed from the help text; code unchanged.
+% Initial coding MMP, 10/09/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % ---- options, defaults overridden by the fields of OPTS
@@ -110,7 +100,8 @@ m = G.m;    N = G.N;    n = G.n;    a = G.a;    b = G.b;    sg = G.sg;
 Pg = G.Pg;  ImP = eye(n) - Pg;
 
 % ---- parameter values on the node grid: S0_i = R0^{-1}(s_i),
-%      S1_ij = M_i (I-Pg) N_j, S2_ij = -M_i Pg N_j; whole square, see header
+%      S1_ij = M_i (I-Pg) N_j, S2_ij = -M_i Pg N_j; on the whole square,
+%      where the formulas continue smoothly across the diagonal
 S1 = zeros(m,m,N,N);    S2 = zeros(m,m,N,N);
 if n>0
     for i = 1:N

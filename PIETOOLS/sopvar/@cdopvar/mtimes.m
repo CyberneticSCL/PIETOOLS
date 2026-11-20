@@ -2,49 +2,46 @@ function C = mtimes(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % C = MTIMES(A,B) composes a decision container with a FIXED one,
 %
-%       (A*B)_{ij} = sum_{k=1}^{K} A_{ik} * B_{kj},
+%       (A*B)_{ij} = sum_{k=1}^{K} A_{ik} * B_{kj}.
 %
-% following Sec. 8.2 of the sopvar document. Also handles a scalar factor.
+% Also handles a scalar factor and a 'dpvar' factor.
 %
 % INPUTS
-% - A:      M x K 'cdopvar' or 'copvar', or a scalar double;
-% - B:      K x N 'cdopvar' or 'copvar', or a scalar double; the input
-%           spaces of A must be the output spaces of B. AT MOST ONE of A
-%           and B may be a 'cdopvar';
+% - A:      M x K 'cdopvar' or 'copvar', or a scalar double, or a 'dpvar';
+% - B:      K x N 'cdopvar' or 'copvar', or a scalar double, or a 'dpvar';
+%           the input spaces of A must be the output spaces of B. AT MOST
+%           ONE of A and B may be a 'cdopvar'. A constant 'dpvar' scales, or
+%           multiplies the output or input components as a matrix; a 'dpvar'
+%           with decision variables is an error;
 % OUTPUTS
 % - C:      the M x N composition, a 'cdopvar';
 %
 % NOTES
 % Two 'cdopvar' factors are refused outright, before any work: the product
 % of two operators affine in the decision variables is quadratic in them and
-% no block class can represent it. This is the check the class split buys -
+% no block class can represent it. This is the check the class split buys:
 % it is decided by the argument types, with no scan of the blocks. Compose a
 % decision operator only against a fixed one, as in T'*P*T. A container that
 % happens to hold no 'sdopvar' block is still refused; use 'copvar' for the
 % fixed factor, which is what it is for.
 %
-% Sec. 8.3.1 writes the inner sum as running to N and "each consists of N
-% compositions"; both are K, the shared block dimension, as Sec. 8.2 has it.
-% The stated total K*M*N is right.
-%
 % Absent blocks are skipped rather than composed against, so a structurally
-% sparse operator - which a PIE is - costs only its populated products. A
+% sparse operator, such as a PIE, costs only its populated products. A
 % product that receives no term stays [] and the container metadata says
 % what that zero block maps between.
 %
-% Factors over different registries are first restated over their sorted    % MMP, 09/26/2026
-% union ('merge_copvar_registry'), so an R^n -> R^n factor such as Dzu,     % MMP, 09/26/2026
-% whose registry is empty, composes with an L_2 one. Metadata only, O(nv);  % MMP, 09/26/2026
-% the result keeps the union registry.                                      % MMP, 09/26/2026
+% Factors over different registries are first restated over their sorted
+% union, so an R^n -> R^n factor such as Dzu, whose registry is empty,
+% composes with an L_2 one. Metadata only, O(nv); the result keeps the
+% union registry.
 %
-% The inner sum goes to 'plus_batch' when its terms include an 'sdopvar', so
-% the K terms are synchronized once rather than K-1 times against a growing
-% accumulator; pairwise accumulation profiled at 32% of 'possopvar' at three
-% spatial variables. All-'sopvar' terms fold with 'plus' instead, which costs
+% The inner sum is one batch sum when its terms include an 'sdopvar', so the
+% K terms are synchronized once rather than K-1 times against a growing
+% accumulator. All-'sopvar' terms are added pairwise instead, which costs
 % nothing extra since they carry no decision variables.
 %
-% COST - READ BEFORE SCALING UP. K*M*N block products, and the per-product
-% cost is NOT constant: each runs the Sec. 4 composition, whose alpha,beta
+% COST: READ BEFORE SCALING UP. K*M*N block products, and the per-product
+% cost is NOT constant: each runs the block composition, whose alpha,beta
 % double sum is 9^n3 in the number of shared variables. Measured warm on
 % 'sopvar' blocks, 2 components each, all variables shared:
 %
@@ -58,10 +55,9 @@ function C = mtimes(A,B)
 % 0.86 s at 4 spaces (64 products), 4.97 s at 8 spaces (512) and 56.7 s at
 % 16 spaces (4096). With decision variables, a 4x4 grid at q = 2e5 measured
 % 5.65 s for its 64 products. This is the scaling wall of the class, and it
-% is in the block algebra, not in this loop: Sec. 8.3.1's row/column
-% factorization removes the repeated basis alignment (K*M*N -> M*K + K*N)
-% but leaves the K*M*N kernel-algebra calls, at the inflated union inner
-% dimension. If it is added it belongs here as a transient, not in storage.
+% is in the block algebra, not in this loop: a row/column factorization
+% would remove the repeated basis alignment (K*M*N -> M*K + K*N) but leave
+% the K*M*N kernel-algebra calls, at the inflated union inner dimension.
 %
 % See also PLUS, CTRANSPOSE, CDOPVAR, COPVAR, PLUS_BATCH.
 %
@@ -92,49 +88,13 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/17/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Moved from
-%                  @mdopvar/ with the class.
-% MMP, 09/26/2026: (1) Factors over different variable registries are
-%                  restated over their union by 'merge_copvar_registry'
-%                  instead of raising mtimes:registryMismatch, so an R^n ->
-%                  R^n operator (Dzu, Dyw: empty registry) composes with an
-%                  L_2 one. Metadata only, flat in q and nv; a variable on
-%                  two domains is cdopvar:domConflict. (2) The decision
-%                  variable lists are reconciled by 'merge_dvar_lists', as
-%                  in 'plus', instead of unique(...,'stable') +
-%                  'put_on_list': one factor is always fixed with an empty
-%                  promoted list, so the old route sorted the names and
-%                  searched them per block on every product; the owner
-%                  shortcut keeps the decision factor's list and points its
-%                  blocks at it (per product 0.23 -> 0.01 s at q = 3.9e5,
-%                  same result). 'put_on_list' now has no caller.
-% MMP, 09/29/2026: A dpvar factor is routed at the top to 'dpvar_op_copvar'
-%                  with the legacy @dopvar semantics: a constant dpvar
-%                  scales, a dpvar with decision variables is refused
-%                  (decision x decision, as cdopvar x cdopvar below), a
-%                  constant dpvar matrix multiplies the output or input
-%                  components. Before, dpvar*P reached the dpvar's method and
-%                  failed. Numeric factors and the composition body are
-%                  unchanged.
-% MMP, 09/30/2026: The reconciliation calls 'merge_dvar_pair' (new, private),
-%                  the two-operand wrapper of 'merge_dvar_lists' that this
-%                  file and 'plus' each carried inline. It reads each list as
-%                  stored, where A.Zd(:) and B.Zd(:) made 2 or 3 q-length
-%                  copies per product (the "+6 MB" of the 09/26/2026 entry).
-%                  Same union, same blocks, same result. 'put_on_list', in
-%                  the '(was)' lines, is deleted (no caller since 09/26/2026).
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/26/2026
-%                  entry condensed; code unchanged.
-% DJ, 11/18/2026: Account for updated `size` function.
 
-% dpvar factor: the constant multiplier of legacy @dopvar/mtimes. Before    % MMP, 09/29/2026
-% any work, so the composition below is untouched.                          % MMP, 09/29/2026
-if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
-    C = dpvar_op_copvar('mtimes',A,B);                                      % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% dpvar factor: a constant multiplier; one with decision variables is an
+% error. Before any work, so the composition below is untouched.
+if isa(A,'dpvar') || isa(B,'dpvar')
+    C = dpvar_op_copvar('mtimes',A,B);
+    return
+end
 
 % % % Scalar factor: scales every populated block, changes no metadata.
 if isnumeric(A) || isnumeric(B)
@@ -167,18 +127,14 @@ if ~isa(A,'cdopvar') || ~isa(B,'cdopvar')
         'Factors must be cdopvar or copvar objects, or one a scalar.')
 end
 
-[M,K] = size(A,'block');        [KB,N] = size(B,'block');                   % DJ, 11/18/2026
+[M,K] = size(A,'block');        [KB,N] = size(B,'block');
 if K~=KB
     error('mtimes:gridMismatch','Inner block dimensions differ: A is %dx%d, B is %dx%d.',...
         M,K,KB,N)
 end
-% if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
-%     error('mtimes:registryMismatch',['Factors are built on different variable '...
-%         'registries; rebuild them over a common set of variables and domains.']) % MMP, 09/26/2026 (was)
-% end                                                                       % MMP, 09/26/2026 (was)
-% One registry for both, so the masks below compare by name; the domain     % MMP, 09/26/2026
-% conflict check lives there too.                                           % MMP, 09/26/2026
-[A,B] = merge_copvar_registry('cdopvar','mtimes',A,B);                      % MMP, 09/26/2026
+% One registry for both, so the masks below compare by name; a variable
+% on two domains is an error.
+[A,B] = merge_copvar_registry('cdopvar','mtimes',A,B);
 % The image of B must be the domain of A: input space k of A is output space
 % k of B. Compared as masks over the shared registry.
 if ~isequal(A.space_in,B.space_out)
@@ -190,20 +146,10 @@ if ~isequal(A.dim_in(:),B.dim_out(:))
 end
 
 % Reconcile the decision variables once for the whole composition, so that
-% none of the K*M*N products merges a name list of its own.
-% CA = A.C;   CB = B.C;   Zd = A.Zd(:);                                     % MMP, 09/30/2026 (was)
-% if ~isequal(A.Zd(:),B.Zd(:))                                              % MMP, 09/30/2026 (was)
-%     Zd = unique([A.Zd(:);B.Zd(:)],'stable');                              % MMP, 09/26/2026 (was)
-%     CA = put_on_list(CA,Zd);                                              % MMP, 09/26/2026 (was)
-%     CB = put_on_list(CB,Zd);                                              % MMP, 09/26/2026 (was)
-% Deleted MMP, 09/30/2026: the rest of this 'if' (09/26/2026: both grids    % MMP, 09/30/2026
-% as one, operand 1 = A and 2 = B, one 'merge_dvar_lists' call on           % MMP, 09/30/2026
-% {A.Zd(:),B.Zd(:)}) and its 'end'. It is now 'merge_dvar_pair', shared     % MMP, 09/30/2026
-% with 'plus', which reads no list through a q-length (:) copy. The fixed   % MMP, 09/30/2026
-% factor's promoted list is empty, so only the decision factor owns         % MMP, 09/30/2026
-% sdopvar blocks: 'merge_dvar_lists' keeps its list and points the blocks   % MMP, 09/30/2026
-% at it, O(blocks), no sort.                                                % MMP, 09/30/2026
-[CA,CB,Zd] = merge_dvar_pair(A.C,B.C,A.Zd,B.Zd);                            % MMP, 09/30/2026
+% none of the K*M*N products merges a name list of its own. The promoted
+% fixed factor has an empty list, so the list of the decision factor is
+% kept and its blocks point at it: O(blocks), no sort.
+[CA,CB,Zd] = merge_dvar_pair(A.C,B.C,A.Zd,B.Zd);
 
 Cc = cell(M,N);
 terms = cell(1,K);

@@ -6,17 +6,28 @@ function Pop = int2copvar(Kmat,vars,dom,int_dom)
 % with s the variables vars.out, and t the variables vars.in.
 %
 % INPUTS
-% - Kmat, vars, dom, int_dom:   as for 'int2sopvar';
+% - Kmat:   m x n 'double', 'polynomial' or 'quadPoly' array, the kernel
+%           K(s,t); in a 'polynomial', the dummy variable t of a variable s
+%           that is also in vars.in is named s_dum;
+% - vars:   struct with fields 'in' (1 x N cellstr, the variables t) and
+%           'out' (1 x M cellstr, the variables s), or one cellstr for both;
+% - dom:    struct with fields 'in' (N x 2 'double') and 'out' (M x 2
+%           'double'), the intervals of the variables, or one N x 2 array
+%           for both;
+% - int_dom: (optional) N x 2 'double', 'polynomial' or 'cell' array, the
+%           limits [L,U] of integration in each variable of vars.in: the
+%           limits of its domain, or the variable itself if it is also in
+%           vars.out. Defaults to the full domain;
 %
 % OUTPUTS
 % - Pop:    1 x 1 'copvar' object holding the 'sopvar' integral operator
 %           defined by Kmat;
 %
 % NOTES
-% - Currently, this is a wrapper for 'int2sopvar', so the operator has a
-%   single input space, with the variables vars.in, and a single output
-%   space, with the variables vars.out;
+% - The operator has a single input space, with the variables vars.in, and
+%   a single output space, with the variables vars.out;
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - int2copvar
@@ -44,6 +55,7 @@ function Pop = int2copvar(Kmat,vars,dom,int_dom)
 %
 % DJ, 10/30/2026: Initial coding;
 
+% Default limits: the full domain
 if nargin<=3
     int_dom = [];
 end

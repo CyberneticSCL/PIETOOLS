@@ -21,8 +21,7 @@ function display(P,name,width_max,call_name)
 %           'Pop.C{1,1}';
 %
 % OUTPUTS
-% Display of the operator in the command window, with the terms constructed
-% by 'get_display', see there for the integrals. The terms are placed on
+% Display of the operator in the command window. The terms are placed on
 % the same line, unless the line would have more characters than fit in the
 % command window, in which case the whole next term is moved to the next
 % line, so that no term is split by the command window, with the sign
@@ -69,9 +68,11 @@ function display(P,name,width_max,call_name)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
+% Determine the name of the operator, and the name the user can call
 if nargin<2 || isempty(name)
     name = inputname(1);
     if isempty(name)
@@ -89,16 +90,21 @@ end
 if nargin<3
     width_max = [];
 end
+% An empty operator
 if isempty(P.vars) || prod(P.dims)==0
     fprintf('\n  %s is an empty operator, with input dimension %d and output dimension %d.\n\n',name,P.dims(2),P.dims(1));
     return
 end
 
+% The terms of the display; with explicit rows, each element of the output
+% on its own line
 disp_struct = get_display(P);
 if ~isempty(disp_struct.rows)
     out_names = cellfun(@varname2display,reshape(P.vars.out,1,[]),'UniformOutput',false);
     fprintf('\n');
     for i=1:numel(disp_struct.rows)
+        % Left-hand side (NAME x)_i(s): the subscript i for several rows,
+        % the arguments s for output variables
         lhs = [name,' ',disp_struct.xname];
         if ~isempty(out_names) || numel(disp_struct.rows)>1
             lhs = ['(',lhs,')'];
@@ -115,6 +121,7 @@ if ~isempty(disp_struct.rows)
     fprintf('\n');
     return
 end
+% Otherwise one line (NAME x)(s) = ..., wrapped by term
 if isempty(P.vars.out)
     lhs = [name,' ',disp_struct.xname,' ='];
 else
@@ -124,6 +131,7 @@ end
 fprintf('\n');
 print_terms(lhs,disp_struct.terms,disp_struct.signs,width_max);
 
+% Explain how to extract the kernels that are not displayed
 if disp_struct.use_K
     if isscalar(P.params)
         fprintf('\n  Call "%s.kernels{1}" to extract kernel K.\n',call_name);

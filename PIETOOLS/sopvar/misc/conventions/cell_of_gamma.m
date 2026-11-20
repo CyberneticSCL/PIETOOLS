@@ -2,8 +2,7 @@ function k = cell_of_gamma(G)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % K = CELL_OF_GAMMA(G) returns the linear parameter cell index of each
 % multi-index gamma in the rows of G, for a 'sopvar' or 'sdopvar' whose
-% parameter cell spans size(G,2) shared variables. The inverse of
-% 'gamma_of_cell'.
+% parameter cell spans size(G,2) shared variables.
 %
 % INPUT
 % - G:      r x n3 array, row i a multi-index with entries 1 (multiplier),
@@ -15,8 +14,8 @@ function k = cell_of_gamma(G)
 %           3 x ... x 3 parameter cell array; 1 for the empty multi-index.
 %
 % NOTES
-% Convention (sopvar_implementation_notes.pdf Sec. 1, 3 and 4) as in
-% 'gamma_of_cell': MATLAB's column-major linear index, direction 1 fastest,
+% Convention: the column-major linear index into the 3 x ... x 3 cell
+% array, direction 1 fastest,
 %
 %   k = 1 + sum_t (gamma_t - 1)*3^(t-1),
 %
@@ -53,16 +52,14 @@ function k = cell_of_gamma(G)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of the gamma -> cell-index
-%                  map, which 'eq_opts_sopvar' (lin_of), 'degbalance_core'
-%                  (inline loop) and 'lpi_eq_sdopvar' (sub2ind) each wrote
-%                  locally.
+% Initial coding MMP, 09/30/2026
 
-% An entry outside 1..3 would address another cell silently; sub2ind
-% raises an error there, so this does too.
+% An entry outside 1..3 would address another cell silently, so it raises
+% an error.
 if any(G(:)<1 | G(:)>3 | G(:)~=fix(G(:)))
     error("Multi-index entries should be 1, 2 or 3.")
 end
+% k = 1 + sum_t (gamma_t - 1)*3^(t-1), one row of G at a time
 k = 1 + (G-1)*(3.^(0:size(G,2)-1)).';
 
 end

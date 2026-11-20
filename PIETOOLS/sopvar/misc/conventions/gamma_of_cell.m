@@ -2,7 +2,7 @@ function G = gamma_of_cell(k,n3)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % G = GAMMA_OF_CELL(K,N3) returns the multi-index gamma of each linear
 % parameter cell index in K, for a 'sopvar' or 'sdopvar' whose parameter
-% cell spans N3 shared variables. The inverse is 'cell_of_gamma'.
+% cell spans N3 shared variables.
 %
 % INPUT
 % - k:      array of linear cell indices, integers in 1..3^n3, any shape;
@@ -15,22 +15,20 @@ function G = gamma_of_cell(k,n3)
 %           numel(k) x 0.
 %
 % NOTES
-% Convention (sopvar_implementation_notes.pdf Sec. 1, 3 and 4): the
-% parameters form a 3 x ... x 3 cell array, one direction per shared
-% variable, and cell gamma holds the kernel carrying the indicator I_gamma,
-% where the labels 1, 2, 3 are the spec's gamma_k = 0, 1, -1. K is MATLAB's
-% column-major linear index into that array, so DIRECTION 1 VARIES FASTEST:
+% Convention: the parameters form a 3 x ... x 3 cell array, one direction
+% per shared variable, and cell gamma holds the kernel carrying the
+% indicator I_gamma, where the labels 1, 2, 3 stand for gamma_k = 0, 1, -1
+% of the indicator. K is the column-major linear index into that array, so
+% DIRECTION 1 VARIES FASTEST:
 %
 %   k = 1 + sum_t (gamma_t - 1)*3^(t-1).
 %
-% The directions are the shared variables in sorted order, as the classes
-% index them (intersect(vars.in,vars.out)).
+% The directions are the shared variables in sorted order,
+% intersect(vars.in,vars.out).
 %
-% This is what '[idcs{:}] = ind2sub([3*ones(1,n3),1],k); cell2mat(idcs)'
-% computes one cell at a time, with the same values and a 1 x n3 row per
-% cell. Here the whole table of a call, gamma_of_cell((1:3^n3)',n3), is one
-% vectorized expression. floor((k-1)/3^t) is exact for k < 2^53, so the
-% values are those of ind2sub.
+% The values equal those of
+% '[idcs{:}] = ind2sub([3*ones(1,n3),1],k); cell2mat(idcs)', computed for
+% all of K at once; floor((k-1)/3^t) is exact for k < 2^53.
 %
 % Cost: O(numel(k)*n3) on the spatial axis; nothing depends on decision
 % variables.
@@ -63,20 +61,16 @@ function G = gamma_of_cell(k,n3)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of the cell-index ->
-%                  gamma map, which the canonical-form routines,
-%                  'lpivar_cdopvar', 'eq_opts_sopvar' and 'lpi_eq_sdopvar'
-%                  each wrote locally (ind2sub + cell2mat, or mod
-%                  arithmetic). A copy that drifted would re-label cells
-%                  silently in the others.
+% Initial coding MMP, 09/30/2026
 
 k = k(:);
 % Out-of-range k is refused: the mod arithmetic would wrap it onto another
-% cell, and the ind2sub idiom returns a last entry above 3 (measured).
+% cell.
 if any(k<1 | k>3^n3 | k~=fix(k))
     error("Parameter cell indices should be integers in 1..3^n3 = "...
           +num2str(3^n3)+".")
 end
+% The base-3 digits of k-1, plus 1, direction 1 the least significant
 G = mod(floor((k-1)./3.^(0:n3-1)),3)+1;
 
 end

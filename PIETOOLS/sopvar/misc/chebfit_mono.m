@@ -53,36 +53,32 @@ function [Cmono,relrms,d] = chebfit_mono(x,Y,ab,deg0,degmax,tol,x2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/09/2026: the fit part of @sopvar/inv (same date),
-%                moved here so that the gain construction can share it.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
-%                block added; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local DESIGN2
-%                (one caller) inlined into the two-variable branch of the
-%                degree loop.
+% Initial coding MMP, 10/09/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Map the sample points onto [-1,1]
 a = ab(1);  b = ab(2);
 two = nargin>=7 && ~isempty(x2);
 xs = (2*(x(:) - a)/(b - a)) - 1;
 if two,     xt = (2*(x2(:) - a)/(b - a)) - 1;   end
+% Raise the degree by 2 until the residual meets tol or d = degmax
 d = deg0;
 while true
     T1 = chebV(xs,d);
     if two
         T2 = chebV(xt,d);
-%       Phi = design2(T1,T2,d);                                             % MMP, 11/09/2026 (was)
-        % Phi: rows (i,j) with i fastest, columns (p-1)(d+1)+q, the products % MMP, 11/09/2026
-        % T_p(x_i) T_q(y_j) (the former local DESIGN2)                      % MMP, 11/09/2026
-        Phi = zeros(size(T1,1)*size(T2,1),(d+1)^2);                         % MMP, 11/09/2026
-        for qq = 1:d+1                                                      % MMP, 11/09/2026
-            for pp = 1:d+1                                                  % MMP, 11/09/2026
-                Phi(:,(pp-1)*(d+1)+qq) = reshape(T1(:,pp)*T2(:,qq)',[],1);  % MMP, 11/09/2026
-            end                                                             % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
+        % Phi: rows (i,j) with i fastest, columns (p-1)(d+1)+q, the products
+        % T_p(x_i) T_q(y_j)
+        Phi = zeros(size(T1,1)*size(T2,1),(d+1)^2);
+        for qq = 1:d+1
+            for pp = 1:d+1
+                Phi(:,(pp-1)*(d+1)+qq) = reshape(T1(:,pp)*T2(:,qq)',[],1);
+            end
+        end
     else
         Phi = T1;
     end
+    % Least squares fit and its relative RMS residual (0 for zero data)
     c = Phi\Y;
     res = Phi*c - Y;
     relrms = sqrt(mean(res(:).^2))/max(1e-300,sqrt(mean(Y(:).^2)));
@@ -90,6 +86,7 @@ while true
     if relrms<=tol || d>=degmax,    break,  end
     d = min(d+2,degmax);
 end
+% Chebyshev to monomial coefficients on [a,b], once per variable
 Mc = cheb2mono(d,2/(b-a),-(a+b)/(b-a));
 if ~two
     Cmono = Mc*c;
@@ -105,14 +102,21 @@ end
 end
 
 function T = chebV(x,d)
-% T(:,p+1) = T_p(x), p = 0..d
+% T = CHEBV(X,D) returns the Chebyshev Vandermonde matrix,
+% T(:,p+1) = T_p(x), p = 0..d, by the three-term recurrence.
+% INPUTS  x: points in [-1,1]; d: degree.
+% OUTPUT  T: numel(x) x (d+1).
 x = x(:);   T = zeros(numel(x),d+1);    T(:,1) = 1;
 if d>=1,    T(:,2) = x;     end
 for p = 2:d,    T(:,p+1) = 2*x.*T(:,p) - T(:,p-1);   end
 end
 
 function M = cheb2mono(d,alpha,beta)
-% sum_p c_p T_p(alpha s + beta) = sum_r (M c)_r s^r; column p+1 of M holds T_p(alpha s + beta)
+% M = CHEB2MONO(D,ALPHA,BETA): sum_p c_p T_p(alpha s + beta) = sum_r (M c)_r s^r;
+% column p+1 of M holds the monomial coefficients of T_p(alpha s + beta),
+% from T_{p+1} = 2 (alpha s + beta) T_p - T_{p-1} on coefficient vectors.
+% INPUTS  d: degree; alpha, beta: scalars of the affine map.
+% OUTPUT  M: (d+1) x (d+1).
 M = zeros(d+1,d+1);
 Tprev = 1;  M(1,1) = 1;
 if d>=1

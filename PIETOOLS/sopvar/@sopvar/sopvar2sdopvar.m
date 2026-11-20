@@ -16,14 +16,12 @@ function Pd = sopvar2sdopvar(P,Zd)
 % NOTES:
 % An sopvar stores each parameter as a coefficient MATRIX, an sdopvar stores
 % the same content as vec of that matrix plus a q x nC block of decision
-% variable coefficients (sopvar document Sec. 8). Promotion is therefore a
-% vec and a zero block; no arithmetic is involved and the kernels are
-% unchanged.
+% variable coefficients. Promotion is therefore a vec and a zero block; no
+% arithmetic is involved and the kernels are unchanged.
 %
-% Pass Zd when the result is to be combined with an existing sdopvar, so the
-% two share a decision variable list and 'sync_basis' takes its equal-list  % MMP, 09/29/2026
-% path (one isequal, or none with 'shared_Zd') instead of a unique over     % MMP, 09/29/2026
-% every name and a remap of the rows of B.                                  % MMP, 09/29/2026
+% Pass Zd to give the result the decision variable list of an existing
+% sdopvar: arithmetic between objects with equal lists skips the merge of
+% the lists (a unique over every name and a remap of the rows of B).
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -50,12 +48,6 @@ function Pd = sopvar2sdopvar(P,Zd)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
-% MMP, 09/29/2026: The help text named 'CombineDecisionBasis' as the routine
-%                  that merges decision variable lists; it is dead code and
-%                  'sync_basis' does the merge. Comment only.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the two replaced
-%                  help lines kept as (was) in the 09/29/2026 entry removed;
-%                  code unchanged.
 
 % The input must be a fixed operator; no decision variables by default
 if ~isa(P,'sopvar')
@@ -75,6 +67,7 @@ for k = 1:numel(P.params)
     params.B{k} = sparse(q,numel(params.A{k}));
 end
 
+% The decision operator on the variables, bases and domains of P
 Pd = sdopvar(params,P.vars,Zd,P.ZL,P.ZR,P.dom,P.dims);
 
 end

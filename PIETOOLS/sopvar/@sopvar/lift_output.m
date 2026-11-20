@@ -43,6 +43,7 @@ function Pop_new = lift_output(Pop,vars,dom,dims)
 % - Since the parameters of a 'sopvar' object are constant coefficients,
 %   the cost is independent of any decision variables.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lift_output
@@ -106,8 +107,8 @@ if ~isempty(vars_add)
 end
 
 % Lift a scalar output to a vector: since the parameters are stacked with
-% the matrix row as outer index (see sopvar), repeating the scalar
-% operator along the rows repeats the parameters
+% the matrix row as outer index, repeating the scalar operator along the
+% rows repeats the parameters
 if m_new~=m
     Pop_new = repmat(Pop_new,m_new,1);
 end
@@ -134,7 +135,7 @@ function params_new = lift_params(Pop,vars_in,vars_old,vars_S1to3,matdim)
 % OUTPUTS
 % - params_new: 3 x ... x 3 cell of sparse matrices, for the pass-through
 %           variables S3 = intersect(vars_in,[vars_old,vars_S1to3]), in the
-%           order intersect returns (see sopvar);
+%           sorted order intersect returns;
 %
 params_old = Pop.params;
 if isempty(vars_S1to3)
@@ -143,8 +144,8 @@ if isempty(vars_S1to3)
     return
 end
 
-% Set the parameters along the pass-through directions, in the order of
-% intersect, as for sopvar
+% Set the parameters along the pass-through directions, in the sorted
+% order of intersect, the order of the parameter cell
 S3_old = intersect(vars_in,vars_old);               N3_old = numel(S3_old);
 S3_new = intersect(vars_in,[vars_old,vars_S1to3]);  N3_new = numel(S3_new);
 [~,pos_old] = ismember(S3_old,S3_new);

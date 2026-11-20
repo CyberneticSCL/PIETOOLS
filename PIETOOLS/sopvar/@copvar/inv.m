@@ -18,32 +18,34 @@ function [Pinv,info] = inv(P,opts)
 % residual is below tol or d = degmax.
 %
 % One spatial variable: P over the spaces R^k and L2^m[s] (either may be
-% absent), the container counterpart of @opvar/inv. With the grid written as
+% absent). With the grid written as
 %   P = [Pm  Q1;  Q2  R],   Pm: R^k -> R^k,  Q1: L2 -> R^k,  Q2: R^k -> L2,
-% R: L2 -> L2, the L2 block is inverted by @sopvar/inv (Gohberg-Krein) and
+% R: L2 -> L2, the L2 block is inverted by the Gohberg-Krein formula and
 % the rest is the block inverse through the finite-dimensional Schur
 % complement (Shivakumar, Das, Peet, arXiv 2208.13104, Lemma 18):
 %   T = Pm - Q1 Rh Q2  (k x k),   Rh = R^{-1},
 %   P^{-1} = [T^{-1},        -T^{-1} Q1 Rh;
 %             -Rh Q2 T^{-1},  Rh + Rh Q2 T^{-1} Q1 Rh].
-% Only one operator inverse (Rh) and one matrix inverse are taken; the stock
-% 'inv_opvar' takes the other Schur complement, (R - Q2 Pm^{-1} Q1)^{-1},
-% which is a second operator inverse of a modified kernel. The products are
-% block compositions of the class ('sopvar' mtimes), exact on polynomials.
+% Only one operator inverse (Rh) and one matrix inverse are taken. The
+% products are block compositions, exact on polynomials.
 %
 % INPUTS
 % - P:      'copvar', square: the same spaces and dimensions in and out; in
 %           one spatial variable at most one R^k and one L2[s] space, in
 %           several any spaces, P separable;
-% - opts:   (optional) 'struct': in one variable the options of @sopvar/inv
-%           (N, tol, deg0, degmax, deg, tol_rank); in several, tol (1e-8),
+% - opts:   (optional) 'struct': in one variable the options of the inverse
+%           of the L2 block, N (RK4 nodes, 101), tol (1e-8), deg0 (4),
+%           degmax (16), deg (one fixed degree) and tol_rank (relative SVD
+%           cut of the kernel rank, 1e-13); in several, tol (1e-8),
 %           deg0 (4), degmax (14), deg (one fixed degree), nq (Gauss nodes
 %           per variable for K, 40) and septol (relative tolerance of the
 %           separability test, 1e-10).
 % OUTPUTS
 % - Pinv:   'copvar' over the same spaces in the same order as P;
-% - info:   one variable: the INFO of @sopvar/inv (empty when there is no
-%           L2 space), plus condT, the condition number of the Schur
+% - info:   one variable: the 'struct' of the inverse of the L2 block,
+%           fields N, h, r1, r2 (kernel ranks), n, rcondU22, condR0, d,
+%           relrms and note (empty when there is no L2 space), plus condT,
+%           the condition number of the Schur
 %           complement, when both spaces are present. Several variables:
 %           'struct' with fields method ('separable'), d (fit degree),
 %           relrms (largest relative RMS residual of the fits), condIKH
@@ -54,11 +56,9 @@ function [Pinv,info] = inv(P,opts)
 % A structurally zero block ([]) of P is respected: a zero Q1 or Q2 leaves
 % T = Pm and the off-diagonal blocks of the inverse zero. The R^k -> R^k
 % block Pm may itself be [], in which case T = -Q1 Rh Q2.
-% In several variables a non-separable P raises an error (no inverse
-% formula for a non-separable kernel exists in the toolbox; 'opvar2d' falls
-% back to least squares, 'mrdivide', and GETOBSERVER_SOP has the method
-% 'qp'). M^{-1} is rational, so the inverse is a polynomial approximation;
-% info.relrms and info.d say how good.
+% In several variables a non-separable P raises an error. M^{-1} is
+% rational, so the inverse is a polynomial approximation; info.relrms and
+% info.d give its fit residual and degree.
 %
 % See also SOPVAR/INV, GETCONTROLLER_SOP, GETOBSERVER_SOP, COPVAR2OPVAR.
 %
@@ -89,38 +89,21 @@ function [Pinv,info] = inv(P,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/09/2026.
-% MMP, 11/04/2026: Two or more spatial variables: the inverse of a separable
-%                P by the Woodbury identity (local INV_SEP), the container
-%                counterpart of the stock inv_opvar2d_separable, in any
-%                number of variables and spaces; before, N-D containers
-%                were refused. The 2-D H-infinity estimator gain uses it in
-%                place of the stock getObserver_2D. Header: the N-D method,
-%                its options and info fields.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUT/OUTPUT for
-%                the local functions 'blockmat' and 'matblock'; code
-%                unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                very short and called once go into the body): cheb1 into
-%                cheb_fit, cheb_grid into fits, gl_grid (with gauss1 inside
-%                it) into kmat, each with its header as the comment of the
-%                block; tensor_points stays, called from both grids.
-% DJ, 11/18/2026: Account for updated `size` function.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Default options; check that P is a square container
 if nargin<2,    opts = struct();    end
 if ~isa(P,'copvar'),    error('copvar:inv:class','Input must be a copvar.');   end
-% if numel(P.vars)>1                                                        % MMP, 11/04/2026 (was)
-%     error('copvar:inv:nd','INV is implemented for one spatial variable; this container has %d (%s).',numel(P.vars),strjoin(P.vars,',')); % MMP, 11/04/2026 (was)
-% end                                                                       % MMP, 11/04/2026 (was)
-[M,Nc] = size(P,'block');                                                   % DJ, 11/18/2026
+[M,Nc] = size(P,'block');
 if M~=Nc || ~isequal(P.space_out,P.space_in) || ~isequal(P.dim_out(:),P.dim_in(:))
     error('copvar:inv:square','The container must map a space list to itself (same spaces and dimensions in and out).');
 end
-% Two or more variables: the separable inverse (Woodbury)                   % MMP, 11/04/2026
-if numel(P.vars)>1                                                          % MMP, 11/04/2026
-    [Pinv,info] = inv_sep(P,opts);                                          % MMP, 11/04/2026
-    return                                                                  % MMP, 11/04/2026
-end                                                                         % MMP, 11/04/2026
+% Two or more variables: the separable inverse (Woodbury)
+if numel(P.vars)>1
+    [Pinv,info] = inv_sep(P,opts);
+    return
+end
+% One variable: at most one R^k space (r) and one L2[s] space (l)
 isL2 = any(P.space_out,2);
 l = find(isL2);     r = find(~isL2);
 if numel(l)>1 || numel(r)>1
@@ -133,8 +116,10 @@ if isempty(l)
     k = P.dim_out(r);
     C{r,r} = matblock(blockmat(P.C{r,r},k)\eye(k),k);
 elseif isempty(r)
+    % L2[s] -> L2[s] alone
     [C{l,l},info] = inv(P.C{l,l},opts);
 else
+    % Both: the Schur complement T = Pm - Q1 Rh Q2 and the block inverse
     k = P.dim_out(r);
     [Rh,info] = inv(P.C{l,l},opts);
     Q1 = P.C{r,l};  Q2 = P.C{l,r};
@@ -142,6 +127,8 @@ else
     if ~isempty(Q1) && ~isempty(Q2)
         T = T - blockmat(Q1*Rh*Q2,k);
     end
+    % T^{-1}, then the four blocks of P^{-1}; a zero Q1 or Q2 leaves its
+    % off-diagonal block zero and C{l,l} = Rh
     info.condT = cond(T);
     Th = matblock(T\eye(k),k);
     C{r,r} = Th;
@@ -153,6 +140,7 @@ else
         C{l,l} = Rh;
     end
 end
+% The inverse, on the spaces of P
 Pinv = copvar(C);
 end
 
@@ -169,8 +157,7 @@ end
 end
 
 function B = matblock(Mat,k)
-% B = MATBLOCK(MAT,K) the 'sopvar' block of a k x k matrix on R^k, as
-% 'opvar2sopvar' builds it.
+% B = MATBLOCK(MAT,K) the 'sopvar' block of a k x k matrix on R^k.
 % INPUT  Mat: k x k double; k: its dimension.
 % OUTPUT B: 'sopvar' block with no spatial variable.
 vars = struct;  vars.in = {};   vars.out = {};
@@ -179,15 +166,18 @@ B = sopvar({Mat},vars,cell(1,0),cell(1,0),dom,[k k]);
 end
 
 
-% BEGIN MMP, 11/04/2026: separable inverse in two or more variables (new)
 function [Pinv,info] = inv_sep(P,opts)
 % [PINV,INFO] = INV_SEP(P,OPTS) the inverse of a square separable 'copvar'
 % P = M + L H R in two or more spatial variables, by the Woodbury identity
 %   P^{-1} = M^{-1} + M^{-1} L Hh R M^{-1},  Hh = -H (I + K H)^{-1},
 %   K = R M^{-1} L.
-% INPUT  P: 'copvar', square, separable (see INV); opts: 'struct' with the
-%        optional fields tol, deg0, degmax, deg, nq, septol (see INV).
-% OUTPUT Pinv: 'copvar' over the spaces of P; info: 'struct' (see INV).
+% INPUT  P: 'copvar', square, separable: multipliers only in the diagonal
+%        blocks, no mixed multiplier-integral term, and equal lower and
+%        upper kernels in each shared variable; opts: 'struct' with the
+%        optional fields tol (1e-8), deg0 (4), degmax (14), deg (one fixed
+%        degree), nq (40) and septol (1e-10).
+% OUTPUT Pinv: 'copvar' over the spaces of P; info: 'struct' with fields
+%        method, d, relrms, condIKH, Kdiff, nF and note.
 
 % Options and their defaults
 o = struct('tol',1e-8,'deg0',4,'degmax',14,'nq',40,'septol',1e-10);
@@ -196,7 +186,7 @@ for f = fieldnames(o)'
 end
 if isfield(opts,'deg') && ~isempty(opts.deg),   o.deg0 = opts.deg;  o.degmax = opts.deg;    end
 % Each space: its variables (registry order), domain and dimension
-nsp = size(P,1,'block');    q = P.dim_out(:);                               % DJ, 11/18/2026
+nsp = size(P,1,'block');    q = P.dim_out(:);
 V = cell(nsp,1);    D = cell(nsp,1);
 for i = 1:nsp
     V{i} = P.vars(P.space_out(i,:));    D{i} = P.dom(P.space_out(i,:),:);
@@ -221,6 +211,8 @@ for i = 1:nsp
             if i==j,    Mb{i} = blk(pr{1},B);   else,   F(end+1) = term(i,j,pr{1},B);  end %#ok<AGROW>
             continue
         end
+        % Shared variables: the multiplier index (all 1) only on the
+        % diagonal, one kernel Cint in every integral index, no mixed index
         Cint = [];
         for n = 1:numel(pr)
             a = alpha(size(pr),n,k);    c = pr{n};
@@ -297,32 +289,36 @@ end
     % R factor b and L factor b', where b integrates over the space that b'
     % maps into, is the integral over that space of R_b M^{-1} L_b', at NQ
     % Gauss-Legendre nodes per variable.
+    % INPUT  nq: number of nodes per variable.
+    % OUTPUT K: sum(mb) x sum(nb) 'double'.
     K = zeros(sum(mb),sum(nb));
     for jj = 1:nsp
         bs = find([F.j]==jj);   bp = find([F.i]==jj);
         if isempty(bs) || isempty(bp),  continue,   end
-%       [X,w] = gl_grid(D{jj},nq);                                          % MMP, 11/09/2026 (was)
-        % The tensor Gauss-Legendre rule of nq nodes per variable on the box % MMP, 11/09/2026
-        % D{jj}: points X (one row each) and weights w; with no variable, one % MMP, 11/09/2026
-        % point with weight 1 (the former locals GL_GRID and GAUSS1, the    % MMP, 11/09/2026
-        % latter Golub-Welsch on [a,b] for each variable)                   % MMP, 11/09/2026
-        if size(D{jj},1)==0                                                 % MMP, 11/09/2026
-            X = zeros(1,0);     w = 1;                                      % MMP, 11/09/2026
-        else                                                                % MMP, 11/09/2026
-            g = cell(1,size(D{jj},1));    w = 1;                            % MMP, 11/09/2026
-            for v = 1:size(D{jj},1)                                         % MMP, 11/09/2026
-                k = (1:nq-1)';   bt = k./sqrt(4*k.^2-1);                    % MMP, 11/09/2026
-                [Vv,Dv] = eig(diag(bt,1)+diag(bt,-1));                      % MMP, 11/09/2026
-                [t,ix] = sort(diag(Dv));                                    % MMP, 11/09/2026
-                g{v} = (D{jj}(v,1)+D{jj}(v,2))/2 + (D{jj}(v,2)-D{jj}(v,1))/2*t; % MMP, 11/09/2026
-                wv = (D{jj}(v,2)-D{jj}(v,1))/2*2*Vv(1,ix)'.^2;              % MMP, 11/09/2026
-                w = kron(w,wv);                                             % MMP, 11/09/2026
-            end                                                             % MMP, 11/09/2026
-            X = tensor_points(g);                                           % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
+        % The tensor Gauss-Legendre rule of nq nodes per variable on the box
+        % D{jj}: points X (one row each) and weights w; with no variable, one
+        % point with weight 1 (Golub-Welsch on [a,b] for each variable)
+        if size(D{jj},1)==0
+            X = zeros(1,0);     w = 1;
+        else
+            g = cell(1,size(D{jj},1));    w = 1;
+            for v = 1:size(D{jj},1)
+                % Nodes: eigenvalues of the Legendre Jacobi matrix; weights:
+                % 2 (first eigenvector entry)^2; both mapped to [a,b]
+                k = (1:nq-1)';   bt = k./sqrt(4*k.^2-1);
+                [Vv,Dv] = eig(diag(bt,1)+diag(bt,-1));
+                [t,ix] = sort(diag(Dv));
+                g{v} = (D{jj}(v,1)+D{jj}(v,2))/2 + (D{jj}(v,2)-D{jj}(v,1))/2*t;
+                wv = (D{jj}(v,2)-D{jj}(v,1))/2*2*Vv(1,ix)'.^2;
+                w = kron(w,wv);
+            end
+            X = tensor_points(g);
+        end
+        % M^{-1} and the monomials of the R and L factors at the nodes
         Mi = minv_at(jj,X);
         ZRb = arrayfun(@(b) zeval(F(b).ZR,F(b).vi,V{jj},X),bs,'UniformOutput',false);
         ZLb = arrayfun(@(b) zeval(F(b).ZL,F(b).vo,V{jj},X),bp,'UniformOutput',false);
+        % Quadrature sum of R_b M^{-1} L_b' into the block (b,b') of K
         for u = 1:numel(bs)
             ru = coff(bs(u))+(1:mb(bs(u)));
             for v = 1:numel(bp)
@@ -342,6 +338,8 @@ end
     function Mi = minv_at(i,X)
     % MI = MINV_AT(I,X) the inverse of the multiplier M_I at the points X
     % (one row each, columns the variables V{I}), q(I) x q(I) x size(X,1).
+    % INPUT  i: space index; X: np x numel(V{i}) 'double'.
+    % OUTPUT Mi: q(i) x q(i) x np 'double'.
     ZLm = zeval(Mb{i}.ZL,Mb{i}.vo,V{i},X);  ZRm = zeval(Mb{i}.ZR,Mb{i}.vi,V{i},X);
     Mi = zeros(q(i),q(i),size(X,1));
     for p = 1:size(X,1)
@@ -356,22 +354,25 @@ end
     % (m_i x (q_i nW)) of [R_b; ...] M_i^{-1} on the tensor monomials of
     % degree D per variable (nW = (D+1)^k_i, 1 on R; exact values on R),
     % and RR the largest relative RMS residual of the fits.
+    % INPUT  d: monomial degree per variable.
+    % OUTPUT G, Lam: nsp x 1 'cell' of 'double'; rr: 'double' scalar.
     G = cell(nsp,1);    Lam = cell(nsp,1);  rr = 0;
     for i = 1:nsp
         Li = find([F.i]==i);    Ri = find([F.j]==i);    kv = numel(V{i});
-%       if kv==0,   X = zeros(1,0);     else,   X = cheb_grid(D{i},2*(d+1));    end % MMP, 11/09/2026 (was)
-        % X: the tensor grid of 2(d+1) first-kind Chebyshev points per      % MMP, 11/09/2026
-        % variable on the box D{i}, one row per point (the former local     % MMP, 11/09/2026
-        % CHEB_GRID); no variable: one empty point                          % MMP, 11/09/2026
-        if kv==0                                                            % MMP, 11/09/2026
-            X = zeros(1,0);                                                 % MMP, 11/09/2026
-        else                                                                % MMP, 11/09/2026
-            nc = 2*(d+1);   g = cell(1,size(D{i},1));                       % MMP, 11/09/2026
-            for v = 1:size(D{i},1)                                          % MMP, 11/09/2026
-                g{v} = (D{i}(v,1)+D{i}(v,2))/2 + (D{i}(v,2)-D{i}(v,1))/2*cos(pi*((1:nc)'-0.5)/nc); % MMP, 11/09/2026
-            end                                                             % MMP, 11/09/2026
-            X = tensor_points(g);                                           % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
+        % X: the tensor grid of 2(d+1) first-kind Chebyshev points per
+        % variable on the box D{i}, one row per point; no variable: one empty
+        % point
+        if kv==0
+            X = zeros(1,0);
+        else
+            nc = 2*(d+1);   g = cell(1,size(D{i},1));
+            for v = 1:size(D{i},1)
+                g{v} = (D{i}(v,1)+D{i}(v,2))/2 + (D{i}(v,2)-D{i}(v,1))/2*cos(pi*((1:nc)'-0.5)/nc);
+            end
+            X = tensor_points(g);
+        end
+        % Values at X: M_i^{-1} [I, L_b ...] (rows of A) and [R_b; ...]
+        % M_i^{-1} (rows of Bv), each vectorized
         Mi = minv_at(i,X);  np = size(X,1);
         ZLi = arrayfun(@(b) zeval(F(b).ZL,F(b).vo,V{i},X),Li,'UniformOutput',false);
         ZRi = arrayfun(@(b) zeval(F(b).ZR,F(b).vi,V{i},X),Ri,'UniformOutput',false);
@@ -415,14 +416,21 @@ end
     % spaces I and J, and on the diagonal the multiplier M_I^{-1}, its
     % coefficients in the columns of the constant ZR monomial (canonical
     % multiplier form).
+    % INPUT  i, j: block indices; Cij: (q(i) nWi) x (q(j) nWj) 'double', or
+    %        [] for no integral term; d: monomial degree per variable.
+    % OUTPUT Bk: 'sopvar' block from space j to space i.
     ki = numel(V{i});   kj = numel(V{j});
     nWi = (d+1)^ki;     nWj = (d+1)^kj;
     if isempty(Cij),    Cij = zeros(q(i)*nWi,q(j)*nWj);     end
+    % Multiplier coefficients C0: the first q(i) columns of G{i}, placed in
+    % the column of the constant ZR monomial of each input component
     C0 = zeros(q(i)*nWi,q(j)*nWj);
     if i==j
         Gm = G{i}(:,1:q(i));
         for a = 1:q(i),     C0(:,(a-1)*nWj+1) = Gm(:,a);    end
     end
+    % Params cell: C0 + Cij without a shared variable; otherwise C0 in the
+    % multiplier index, Cij in the integral indices, zero in mixed indices
     k = numel(intersect(V{i},V{j}));
     if k==0
         pr = {sparse(C0+Cij)};
@@ -436,6 +444,7 @@ end
             end
         end
     end
+    % Block from space j to space i, degrees 0..d in every variable
     vars = struct;  vars.out = V{i};    vars.in = V{j};
     dom = struct;   dom.out = D{i};     dom.in = D{j};
     Bk = sopvar(pr,vars,repmat({(0:d)'},1,ki),repmat({(0:d)'},1,kj),dom,[q(i) q(j)]);
@@ -445,7 +454,10 @@ end
 
 function s = blk(C,B)
 % S = BLK(C,B) the multiplier parameter C of the 'sopvar' block B, with
-% the block's monomial exponents ZL, ZR and its variables vo (out), vi (in).
+% the monomial exponents ZL (in vo) and ZR (in vi) and the variables vo
+% (out) and vi (in) of B.
+% INPUT  C: 'double' parameter; B: 'sopvar' block.
+% OUTPUT s: 'struct' with fields C, ZL, ZR, vo, vi.
 s = struct('C',full(C),'ZL',{B.ZL},'ZR',{B.ZR},'vo',{cellstr(B.vars.out)},'vi',{cellstr(B.vars.in)});
 end
 
@@ -453,6 +465,8 @@ function t = term(i,j,C,B)
 % T = TERM(I,J,C,B) the integral term of block (I,J): the coefficient C of
 % the kernel (I x Z_L)' C (I x Z_R) of the 'sopvar' block B, with its
 % exponents and variables, as a 'struct' with fields i, j, C, ZL, ZR, vo, vi.
+% INPUT  i, j: block indices; C: 'double' coefficient; B: 'sopvar' block.
+% OUTPUT t: 'struct'.
 t = struct('i',i,'j',j,'C',full(C),'ZL',{B.ZL},'ZR',{B.ZR},'vo',{cellstr(B.vars.out)},'vi',{cellstr(B.vars.in)});
 end
 
@@ -460,6 +474,9 @@ function a = alpha(sz,n,k)
 % A = ALPHA(SZ,N,K) the multi-index (1 multiplier, 2 lower, 3 upper in each
 % shared variable) of the N-th entry of a params cell of size SZ with K
 % shared variables.
+% INPUT  sz: size of the params cell; n: linear index; k: number of shared
+%        variables.
+% OUTPUT a: 1 x k multi-index.
 if k==1,    a = n;  return,     end
 c = cell(1,numel(sz));  [c{:}] = ind2sub(sz,n);     a = [c{1:k}];
 end
@@ -468,6 +485,10 @@ function Z = zeval(Zc,bv,Vs,X)
 % Z = ZEVAL(ZC,BV,VS,X) the values of the monomial vector kron_v
 % BV{v}.^ZC{v} at the points X (one row each, columns the variables VS),
 % one row per point; a column of ones for no variable.
+% INPUT  Zc: 'cell' of exponent columns, one per variable of bv; bv:
+%        'cellstr' of variables; Vs: 'cellstr', the variables of the columns
+%        of X; X: np x numel(Vs) 'double'.
+% OUTPUT Z: np x prod_v numel(Zc{v}) 'double'.
 Z = ones(size(X,1),1);
 for v = 1:numel(bv)
     Zv = X(:,strcmp(Vs,bv{v})).^(Zc{v}(:).');
@@ -482,25 +503,29 @@ function [cM,rr] = cheb_fit(X,Fv,dom,d)
 % tensor Chebyshev polynomials of degree D per variable, returned as the
 % coefficients CM of the tensor monomials kron_v x_v.^(0:D)', and RR, the
 % relative RMS residual at X.
+% INPUT  X: np x nv 'double'; Fv: np x nf 'double'; dom: nv x 2 'double';
+%        d: degree per variable.
+% OUTPUT cM: (d+1)^nv x nf 'double'; rr: 'double' scalar.
 Phi = ones(size(X,1),1);    T = 1;
 for v = 1:size(X,2)
-%   [Pv,Tv] = cheb1(X(:,v),dom(v,:),d);                                     % MMP, 11/09/2026 (was)
-    % Pv: the values at X(:,v) of the Chebyshev polynomials T_0..T_d of     % MMP, 11/09/2026
-    % t = (2x-a-b)/(b-a) on dom(v,:) = [a b]; Tv: column k+1 the monomial   % MMP, 11/09/2026
-    % coefficients of T_k in x, ascending degree (the former local CHEB1)   % MMP, 11/09/2026
-    xv = X(:,v);                                                            % MMP, 11/09/2026
-    al = 2/(dom(v,2)-dom(v,1));     be = -(dom(v,1)+dom(v,2))/(dom(v,2)-dom(v,1)); % MMP, 11/09/2026
-    t = al*xv(:)+be;                                                        % MMP, 11/09/2026
-    Pv = ones(numel(xv),d+1);   Tv = zeros(d+1,d+1);    Tv(1,1) = 1;        % MMP, 11/09/2026
-    if d>=1,    Pv(:,2) = t;    Tv(1:2,2) = [be;al];    end                 % MMP, 11/09/2026
-    for k = 2:d                                                             % MMP, 11/09/2026
-        Pv(:,k+1) = 2*t.*Pv(:,k) - Pv(:,k-1);                               % MMP, 11/09/2026
-        Tv(:,k+1) = 2*(al*[0;Tv(1:end-1,k)] + be*Tv(:,k)) - Tv(:,k-1);      % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
+    % Pv: the values at X(:,v) of the Chebyshev polynomials T_0..T_d of
+    % t = (2x-a-b)/(b-a) on dom(v,:) = [a b]; Tv: column k+1 the monomial
+    % coefficients of T_k in x, ascending degree
+    xv = X(:,v);
+    al = 2/(dom(v,2)-dom(v,1));     be = -(dom(v,1)+dom(v,2))/(dom(v,2)-dom(v,1));
+    t = al*xv(:)+be;
+    Pv = ones(numel(xv),d+1);   Tv = zeros(d+1,d+1);    Tv(1,1) = 1;
+    if d>=1,    Pv(:,2) = t;    Tv(1:2,2) = [be;al];    end
+    for k = 2:d
+        Pv(:,k+1) = 2*t.*Pv(:,k) - Pv(:,k-1);
+        Tv(:,k+1) = 2*(al*[0;Tv(1:end-1,k)] + be*Tv(:,k)) - Tv(:,k-1);
+    end
+    % Tensor (Kronecker) products over the variables
     n1 = size(Phi,2);   n2 = d+1;
     Phi = Phi(:,kron(1:n1,ones(1,n2))).*Pv(:,repmat(1:n2,1,n1));
     T = kron(T,Tv);
 end
+% Least squares in the Chebyshev basis, mapped to monomial coefficients
 cP = Phi\Fv;
 cM = T*cP;
 rr = norm(Phi*cP-Fv,'fro')/max(norm(Fv,'fro'),realmin);
@@ -509,11 +534,11 @@ end
 function X = tensor_points(g)
 % X = TENSOR_POINTS(G) all combinations of the node vectors in the cell G,
 % one row per point, the last variable running fastest (the order of kron).
+% INPUT  g: 1 x nv 'cell' of node vectors.
+% OUTPUT X: (prod_v numel(g{v})) x nv 'double'.
 X = zeros(1,0);
 for v = 1:numel(g)
     n1 = size(X,1);     n2 = numel(g{v});
     X = [X(kron(1:n1,ones(1,n2)),:), reshape(g{v}(repmat(1:n2,1,n1)),[],1)];
 end
 end
-
-% END MMP, 11/04/2026

@@ -1,14 +1,14 @@
 function info = verify_copvar_meta(P,cls,okclasses)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INFO = VERIFY_COPVAR_META(P,CLS,OKCLASSES) checks that the blocks of a
-% container agree with its metadata and with each other, for the 'verify'
-% methods of 'copvar' and 'cdopvar'.
+% 'copvar' or 'cdopvar' container agree with its metadata and with each
+% other.
 %
 % INPUTS
 % - P:          'copvar' or 'cdopvar' object;
 % - cls:        its class, 'copvar' or 'cdopvar', named in the messages;
 % - okclasses:  cellstr of block classes the container admits, {'sopvar'}
-%               or {'sopvar','sdopvar'}, as for 'derive_copvar_meta';
+%               or {'sopvar','sdopvar'};
 %
 % OUTPUTS
 % - info.true:  1 if P is consistent, 0 otherwise;
@@ -19,13 +19,11 @@ function info = verify_copvar_meta(P,cls,okclasses)
 % CHECKED: metadata shapes; no all-empty row or column; per block, that it
 % is of an admitted class with 1x2 dims, that its output side matches its
 % row and its input side matches its column, that it puts every variable on
-% the registry's domain, and for a 'cdopvar' that an 'sdopvar' block carries
-% the container's Zd.
+% the domain the registry gives it, and for a 'cdopvar' that an 'sdopvar'
+% block carries the Zd of the container.
 %
-% This is the report-mode counterpart of 'derive_copvar_meta', which throws
-% on the same defects while deriving the metadata of a new container: here
-% the metadata already exists, and each block is checked against it (derive
-% checks each block against the first block of its row or column).
+% Defects are reported, not thrown: the metadata already exists, and each
+% block is checked against it.
 %
 % The space checks are SET equality of the names, not 'isequal' on the
 % lists: the block constructors enforce vars.out = [S2,S3] and vars.in =
@@ -34,10 +32,9 @@ function info = verify_copvar_meta(P,cls,okclasses)
 %
 % Cost: O(M*N) block visits, spatial set operations on the registry, and
 % O(q) string comparisons per 'sdopvar' block guarded by the size test in
-% 'isequal'. P is a container read in a plain function, so each P.name read
-% goes through the overloaded subsref (about 13 us, 'eq_copvar'): every
-% property is read once, into a struct. No decision variable list is copied
-% unless it is stored as a row.
+% 'isequal'. Each P.name read in this plain function goes through the
+% overloaded indexing (about 13 us): every property is read once, into a
+% struct. No decision variable list is copied unless it is stored as a row.
 %
 % See also VERIFY, DERIVE_COPVAR_META, COPVAR, CDOPVAR.
 %
@@ -67,26 +64,18 @@ function info = verify_copvar_meta(P,cls,okclasses)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026. The body of @copvar/verify (MMP,
-%                09/17/2026) and @cdopvar/verify (MMP, 09/17/2026), which
-%                were one algorithm in two copies, differing only in the
-%                admitted block classes and the Zd check; both methods now
-%                call this. Changes from those copies, none in a verdict or
-%                a message: the admitted classes are an argument, each
-%                property of P is read once into the struct 'm', and the
-%                Zd lists are compared as columns without copying a column.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
-%                for the local function; code unchanged.
+% Initial coding MMP, 09/30/2026
 
+% Check the class; only a 'cdopvar' has a decision variable list
 if ~isa(P,cls)
     error('verify:badInput','Input must be a %s object.',cls)
 end
 hasZd = strcmp(cls,'cdopvar');
 
-% One read per property: P.(name) in this plain function is the overloaded
-% subsref. Not 'metadata(P)', whose struct() call would build a struct
-% ARRAY from a malformed cell-valued property, which is what 'verify' is
-% for; a direct read keeps any value as it is.
+% One read per property: P.(name) in this plain function goes through the
+% overloaded indexing. Not 'metadata(P)', whose struct() call would build a
+% struct ARRAY from a malformed cell-valued property; a direct read keeps
+% any value as it is, malformed ones included.
 fn = {'vars','dom','space_out','space_in','dim_out','dim_in'};
 for k = 1:numel(fn),    m.(fn{k}) = P.(fn{k});    end
 C = P.C;
@@ -95,8 +84,9 @@ if hasZd
     if ~iscolumn(Zd),   Zd = Zd(:);     end
 end
 
+% Messages, grid size, registry and occupied cells
 flags = cell(0,1);
-M = size(C,1);      N = size(C,2);      % @copvar/size, @cdopvar/size
+M = size(C,1);      N = size(C,2);      % block rows and columns of the grid
 vars = m.vars;      nv = numel(vars);
 occ = ~cellfun(@isempty,C);
 

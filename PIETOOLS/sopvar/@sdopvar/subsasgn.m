@@ -17,10 +17,10 @@ function obj = subsasgn(obj,s,varargin)
 % assignment S(2,1) = P builds a 2 x 1 ARRAY of sdopvar objects, on which
 % the overloaded 'size' errors and every other method misreads it. Assigning
 % components, P(I,J) = X, is not implemented. Dot assignment
-% (P.params.A{k} = X, P.Zd = ...) is unchanged; assigning into a property
-% directly still bypasses the constructor and its canonical form, as
-% before. Assigning a block INTO a cell or a struct field (C{i,j} = P) does
-% not call this method.
+% (P.params.A{k} = X, P.Zd = ...) is the builtin; assigning into a property
+% directly bypasses the constructor and its canonical form. Assigning a
+% block INTO a cell or a struct field (C{i,j} = P) does not call this
+% method.
 %
 % Cost (measured, R2025b): called for every assignment into an sdopvar
 % outside the class methods.
@@ -65,12 +65,7 @@ function obj = subsasgn(obj,s,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. S(2,1) = P built an object array (see
-%                NOTES); it is now an error. 'matlab.mixin.Scalar' would
-%                give the error without an overload, but it seals size,
-%                horzcat, vertcat, ctranspose and transpose, which this
-%                class overloads, so the class would not load (measured,
-%                R2025b).
+% Initial coding MMP, 09/29/2026
 
 if strcmp(s(1).type,'()')
     error('sdopvar:parenAssign',['Paren assignment P(...) = X is not '...
@@ -78,10 +73,10 @@ if strcmp(s(1).type,'()')
         'component assignment is not implemented. P(I,J) (reference) '...
         'slices components; assign properties with P.name = X.'])
 end
-% The builtin called from this method has the class's own access, so it
+% The builtin called from this method has the access of the class, so it
 % would set any non-public property that P.name = X outside the class may
-% not (sdopvar has none today). Raise the builtin's error for them, same
-% identifier and text (measured). Names come from the metaclass, once.
+% not (sdopvar has none). Raise the error of the builtin for them, same
+% identifier and text. Names come from the metaclass, once.
 persistent hidden
 if ~iscell(hidden)
     mc = ?sdopvar;  pl = mc.PropertyList;
@@ -90,6 +85,7 @@ end
 if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,hidden))
     error(message('MATLAB:class:SetProhibited',s(1).subs,'''sdopvar'''))
 end
+% Any other assignment: the builtin
 obj = builtin('subsasgn',obj,s,varargin{:});
 
 end

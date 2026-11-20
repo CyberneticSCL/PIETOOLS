@@ -2,8 +2,7 @@ function disp_struct = get_display(P,xname,out_names)
 % DISP_STRUCT = GET_DISPLAY(P,XNAME,OUT_NAMES) constructs the terms of the
 % expression
 %   int ... int K(s,s') x(s') ds' ... ds' + ...
-% of the PI operator P with decision variables, acting on a function x, for
-% use in the 'display' method of 'sdopvar'.
+% of the PI operator P with decision variables, acting on a function x.
 %
 % INPUTS
 % - P:          'sdopvar' object representing a PI operator;
@@ -14,13 +13,13 @@ function disp_struct = get_display(P,xname,out_names)
 %               variable. If the operator acts on R, the name '1' indicates
 %               the constant 1, which is not displayed;
 % - out_names:  (optional) 1 x M cellstr, the names to display for the
-%               output variables P.vars.out. Defaults to the names given by
-%               'varname2display';
+%               output variables P.vars.out. Defaults to the names of
+%               P.vars.out in display form, trailing digits as subscripts;
 %
 % OUTPUTS
 % - disp_struct:      struct with the fields
 %       terms:  1 x n cell of char, the terms of the sum, without their
-%               sign, see 'display_term';
+%               sign;
 %       signs:  1 x n array of 1 and -1, the sign of each term;
 %       use_K:  logical, true if a kernel is displayed by name. The kernel
 %               K_i can then be extracted by calling P.kernels{i};
@@ -38,8 +37,8 @@ function disp_struct = get_display(P,xname,out_names)
 %               act on the elements x_1, x_2, ... of the function x;
 %
 % NOTES
-% - The terms correspond to the parameters P.params.A and P.params.B, see
-%   'display_term'. They are numbered like the elements of P.params.A, so a
+% - The terms correspond to the parameters P.params.A and P.params.B. They
+%   are numbered like the elements of P.params.A, so a
 %   term with a zero kernel is not displayed, but does take an index.
 % - A kernel with at most 4 nonzero coefficients, counting those of the
 %   constant part and of the part with the decision variables, is displayed
@@ -75,10 +74,9 @@ function disp_struct = get_display(P,xname,out_names)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Extract the kernels that are displayed by name with
-%                   'kernels', instead of the coefficients;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_terms = 6;          % maximal number of terms of an operator displayed explicitly
@@ -96,6 +94,7 @@ if nargin<2 || isempty(xname)
         end
     end
 end
+% Default output names; the empty display structure
 if nargin<3
     out_names = [];
 end
@@ -136,8 +135,7 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function rows = display_rows(P,xname,out_names,max_chars)
 % ROWS = DISPLAY_ROWS(P,XNAME,OUT_NAMES,MAX_CHARS) constructs the terms of
-% each element of the output of the matrix-valued operator P acting on x,
-% for 'get_display'.
+% each element of the output of the matrix-valued operator P acting on x.
 %
 % INPUTS
 % - P:          'sdopvar' object, with P.dims(1)*P.dims(2)>1;
@@ -171,6 +169,8 @@ for k=1:numel(P.params.A)
     if nnz(P.params.A{k})==0 && nnz(P.params.B{k})==0
         continue
     end
+    % One term per nonzero kernel element (i,j); a kernel element too large
+    % to write out leaves the rows empty
     [i,j] = decode_params(P,k);
     entry_idcs = unique([i,j],'rows');
     for t=1:size(entry_idcs,1)
@@ -181,6 +181,7 @@ for k=1:numel(P.params.A)
         row_terms{entry_idcs(t,1)}{end+1} = term_str;      row_signs{entry_idcs(t,1)}(end+1) = term_sign;
     end
 end
+% An empty row is 0; a row longer than max_chars leaves the rows empty
 for i=1:m
     if isempty(row_terms{i})
         row_terms{i} = {'0'};      row_signs{i} = 1;
@@ -199,7 +200,7 @@ function is_id = is_id_sdop(P)
 % IS_ID = IS_ID_SDOP(P) checks whether the 'sdopvar' object P is an
 % identity operator, which requires that it does not depend on the decision
 % variables, and that the operator with its coefficients is an identity
-% operator, see 'sopvar/is_id_op'.
+% operator.
 %
 % INPUTS
 % - P:      'sdopvar' object;

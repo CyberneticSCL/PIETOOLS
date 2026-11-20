@@ -1,8 +1,7 @@
 function map = monomial_position_map(Zvec)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAP = MONOMIAL_POSITION_MAP(ZVEC) returns a lookup table from degree to
-% 0-based position in a one-variable monomial basis, for
-% 'monomial_position'.
+% 0-based position in a one-variable monomial basis.
 %
 % INPUT
 % - Zvec:   vector of distinct nonnegative integer exponents, the basis
@@ -47,22 +46,19 @@ function map = monomial_position_map(Zvec)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of 'degree_lookup', whose
-%                  two copies had diverged: 'canonical_adjoint_map' rejects
-%                  a negative or non-integer exponent, 'canonicalize_
-%                  multiplier' does not and then fails inside MATLAB
-%                  indexing on the same input. Body is the rejecting copy,
-%                  verbatim; the outputs of the two agree on every basis
-%                  either accepts.
+% Initial coding MMP, 09/30/2026
 
+% An empty basis gives an empty table
 d = double(Zvec(:));
 if isempty(d)
     map = zeros(0,1);
     return
 end
+% Exponents must be nonnegative integers
 if any(d<0) || any(d~=round(d))
     error("Monomial exponents should be nonnegative integers.")
 end
+% map(p+1) = position of p in Zvec, -1 for an exponent not in Zvec
 map = -ones(max(d)+1,1);
 map(d+1) = 0:numel(d)-1;
 

@@ -1,25 +1,25 @@
-classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MMP, 09/29/2026
+classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % COPVAR  Container for FIXED PI operators between concatenated mixed L2
-% spaces. Sec. 8 of the sopvar document. An M x N grid of 'sopvar' blocks,
+% spaces. An M x N grid of 'sopvar' blocks,
 %
 %   P.C{i,j} : L_2^{p_j}[s^j] -> L_2^{q_i}[s^i],   (P*x)_i = sum_j P.C{i,j}*x_j
 %
 % For a container that carries decision variables, use 'cdopvar', whose
 % blocks may be 'sdopvar'. The two stand to each other as 'sopvar' does to
-% 'sdopvar': 'copvar' is closed under composition, 'cdopvar' is not.
+% 'sdopvar': 'copvar' is closed under composition, 'cdopvar' is not. A
+% 'dpvar' operand (gam*P, gam - T'*T, [-gam, D']) dispatches to the methods
+% of this class, and the result is a 'cdopvar'; so is the concatenation of
+% a 'copvar' with an 'sdopvar' block.
 %
-% ROW IS OUTPUT, COLUMN IS INPUT. Sec. 8 also writes the blocks inline as
-% "P_{i,j}: L_2^{p_i}[s^i] -> L_2^{q_j}[s^j]", putting i on the input side;
-% that contradicts its own display of P acting on [x_1;...;x_M] and its
-% partition s_1^{ij} = s^j/s^i (input only), s_2^{ij} = s^i/s^j (output
-% only). The partition is the correct reading and is implemented here.
+% ROW IS OUTPUT, COLUMN IS INPUT: block (i,j) maps L_2^{p_j}[s^j] into
+% L_2^{q_i}[s^i]; its input-only variables are s_1^{ij} = s^j/s^i and its
+% output-only variables s_2^{ij} = s^i/s^j.
 %
 % CLASS properties
 % - P.C:         M x N cell of 'sopvar'. A cell holding [] is a
 %                STRUCTURALLY ZERO block: it stores nothing and its space
-%                and dimension come from the metadata below. Sec. 8 has no
-%                convention for an absent block, but a PIE is mostly zero;
+%                and dimension come from the metadata below;
 % - P.vars:      1 x nv sorted cellstr registry of every spatial variable;
 % - P.dom:       nv x 2, dom(k,:) = [a,b] the domain of P.vars{k};
 % - P.space_out: M x nv logical, row i is the mask of s^i in P.vars;
@@ -27,27 +27,22 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 % - P.dim_out:   M x 1 component counts q_i;
 % - P.dim_in:    N x 1 component counts p_j;
 % - (protected) leftCommonBasis, leftCommonC, rightCommonBasis,
-%                rightCommonC: the row- and column-common forms that
-%                'canonicalize' fills in; empty otherwise.
+%                rightCommonC: row- and column-common forms of the blocks;
+%                no method of the class fills them, so they stay empty.
 %
 % Blocks still carry their own vars/dom/dims, so they stay valid standalone
 % operators and no block method changes. The container holds the
 % authoritative copy for two reasons: it is the only place a cross-block
-% conflict is visible, since 'canonical_var_order' sees one block at a time
-% and so catches only a variable given two domains by the two SIDES of one
-% block, not by two different blocks; and it determines the zero blocks,
-% which have no metadata of their own. This is what 'opvar2d' does with
-% P.var1 and P.I.
+% conflict is visible, since a block check sees one block at a time and so
+% catches only a variable given two domains by the two SIDES of one block,
+% not by two different blocks; and it determines the zero blocks, which
+% have no metadata of their own.
 %
-% What this placement does NOT buy, because the blocks are left intact:
-% container-level checks compare masks over P.vars, but the per-block
-% spatial set operations remain - the block constructor still computes
-% vars_S1/S2/S3 by setdiff/intersect ('sopvar.m'), and @sopvar/mtimes still
-% re-partitions by name per pair ('mtimes.m'). The container-level domain
-% check is likewise ADDITIONAL to the per-block one, not a replacement.
-% Removing those would require 'sopvar' to accept externally owned vars/dom
-% and index them by position, which would touch every block method; that is
-% a separate change and has not been made.
+% The blocks are left intact, so the container-level checks compare masks
+% over P.vars but the per-block spatial set operations remain: each block
+% computes vars_S1/S2/S3 by setdiff/intersect, and a block product
+% re-partitions by name per pair. The container-level domain check is
+% likewise ADDITIONAL to the per-block one, not a replacement.
 %
 % ROW AND COLUMN CONSISTENCY. Every populated block in row i maps into
 % L_2^{q_i}[s^i], every block in column j out of L_2^{p_j}[s^j]. The space
@@ -56,19 +51,27 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 % blocks in one row order the same variable set differently whenever their
 % input spaces differ.
 %
-% NOT STORED: any row- or column-synchronized auxiliary representation
-% (Sec. 8.3.1). ZL and ZR are metadata - together under 0.1 MB of a 66.85 MB
+% NOT STORED: any row- or column-synchronized auxiliary representation.
+% ZL and ZR are metadata - together under 0.1 MB of a 66.85 MB
 % 'sdopvar' block at q = 1e6 - so sharing them across a row saves nothing,
 % while forcing blocks onto the row-union basis multiplies their coefficient
 % column count, the union being taken per variable and then tensored.
 % Measured over the subset lattice at 2 components per space, total
 % coefficient columns grow x2.3 (nv=2, deg 1), x5.9 (nv=3, deg 2) and x15.3
-% (nv=4, deg 3) under synchronization. Row/column factorization belongs
-% inside 'mtimes' as a transient.
+% (nv=4, deg 3) under synchronization.
 %
 % COST. Construction is O(M*N) block visits. The spatial set operations run
 % on the registry, one entry per direction. Class methods pass validated
 % metadata to the two-argument constructor rather than re-deriving it.
+%
+% INPUTS
+% - C:      M x N cell of 'sopvar' blocks, [] for a zero block;
+% - meta:   (optional) struct with fields vars, dom, space_out, space_in,
+%           dim_out, dim_in, trusted as is, validation skipped;
+%
+% OUTPUTS
+% - P:      'copvar' container. Called with no output, as 'copvar P1 P2',
+%           it declares empty containers P1, P2 in the caller;
 %
 % See also CDOPVAR, VERIFY, SIZE, PLUS, CTRANSPOSE, MTIMES, SOPVAR.
 %
@@ -99,47 +102,6 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 % authorship, and a brief description of modifications
 %
 % MP, 01/15/2026: Initial coding
-% MMP, 09/17/2026: Body replaced. The 01/15/2026 stub was a copy of
-%                  'ndopvar' (constructor, header and properties, with the
-%                  single-basis deg/nZ convention that 'sopvar' does not
-%                  have), none of it reusable; all of it deleted rather than
-%                  commented out, so the 01/15/2026 entry describes no code
-%                  present here.
-% MMP, 09/17/2026: Decision-variable case split out into 'cdopvar', so the
-%                  containers mirror the sopvar/sdopvar pair and 'class(P)'
-%                  states whether decision variables are present: the 'Zd'
-%                  property, its merge, 'private/put_on_list', the
-%                  reconciliation in 'plus'/'mtimes', 'isdecision' and the
-%                  'decisionTimesDecision' guard are gone, and an 'sdopvar'
-%                  block is rejected.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  derive_mopvar_meta -> derive_copvar_meta. File was
-%                  'mopvar.m'.
-% MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar operand
-%                  (gam*P, gam - T'*T, [-gam, D']) dispatches to this
-%                  class's methods, which route it to 'dpvar_op_copvar'
-%                  (legacy @opvar/@dopvar semantics; the result is a
-%                  cdopvar). Before, the dpvar's own method was called and
-%                  failed. The classdef line before is the (was) line at
-%                  the end of this log.
-% MMP, 09/30/2026: The ?sdopvar precedence is relied on since 09/25/2026:
-%                  @copvar/horzcat, vertcat and blkdiag receive a decision
-%                  BLOCK among the operands because copvar outranks sdopvar,
-%                  promote it and re-dispatch to 'cdopvar'; without it
-%                  [B, P] with B an 'sdopvar' would reach @sdopvar/horzcat
-%                  (MATLAB calls the leftmost argument's method when no
-%                  precedence is declared). Doc only.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): log entries
-%                  condensed, the (was) classdef line moved to the end of
-%                  the log, the protected properties named in the help;
-%                  code unchanged.
-% classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) copvar          % MMP, 09/29/2026 (was)
-
-% % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
-% % % END marker at the foot of the file is new; see the header entries
-% % % above for what was deleted.
 
     properties
         C = {};                     % M x N cell of blocks; [] = zero block
@@ -170,9 +132,12 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
             % the class methods, which already know their result's metadata.
             %
             % COPVAR P1 P2 declares empty containers in the caller.
+
+            % No input: an empty container
             if nargin==0
                 return
             end
+            % Command form: declare each named container in the caller
             if nargout==0 && (ischar(varargin{1}) || isstring(varargin{1}))
                 for i = 1:nargin
                     assignin('caller',char(varargin{i}),copvar());
@@ -183,11 +148,13 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
             if ~iscell(C)
                 error('copvar:badBlocks','Blocks must be an M x N cell array.')
             end
+            % Trust the metadata if given; otherwise derive and validate it
             if nargin>=2
                 meta = varargin{2};
             else
                 meta = derive_copvar_meta(C,'copvar',{'sopvar'});
             end
+            % Store the blocks and the metadata
             P.C = C;
             P.vars      = meta.vars;            P.dom       = meta.dom;
             P.space_out = meta.space_out;       P.space_in  = meta.space_in;
@@ -203,5 +170,3 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
         end
     end
 end
-
-% % % END body replaced by MMP, 09/17/2026

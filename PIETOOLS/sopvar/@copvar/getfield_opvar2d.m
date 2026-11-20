@@ -17,8 +17,9 @@ function val = getfield_opvar2d(P,fname)
 % [a,x] or [c,y] (i,j=2), or over [x,b] or [y,d] (i,j=3) in x and in y.
 %
 % INPUT
-% P:      copvar class object with the structure of an 'opvar2d', see
-%         'is_opvar2d'
+% P:      copvar class object with the structure of an 'opvar2d': at most
+%         two spatial variables, and the block rows (columns) ordered by
+%         space, first R, then L2[x], then L2[y], then L2[x,y]
 % fname:  char or string, the name of an 'opvar2d' field: 'R00', 'R0x',
 %         'R0y', 'R02', 'Rx0', 'Rxx', 'Rxy', 'Rx2', 'Ry0', 'Ryx', 'Ryy',
 %         'Ry2', 'R20', 'R2x', 'R2y', 'R22', 'I', 'var1', 'var2' or 'dim'
@@ -38,17 +39,17 @@ function val = getfield_opvar2d(P,fname)
 %         'dim':    4 x 2 array [n0,m0; nx,mx; ny,my; n2,m2];
 %
 % NOTES:
-% - x is P.vars{1} and y is P.vars{2}, see 'is_opvar2d'. With fewer
+% - x is P.vars{1} and y is P.vars{2}. With fewer
 %   variables, 'I', 'var1', 'var2' have fewer rows, and the components on
 %   an absent space have zero rows or columns.
 % - The block rows of each space are stacked in order into the rows of
-%   that space, likewise for the block columns. 'is_opvar2d' ensures this
-%   keeps the order of the components.
-% - A component is assembled from the kernels of the blocks, 'kernels' of
-%   'sopvar', so it is in the output variables and the dummy variables of
-%   the input variables. The parameters of a block form a 3 x ... x 3 cell,
-%   one direction per variable in both spaces, sorted, so x before y as in
-%   'opvar2d' ('gamma_of_cell'). A variable only in the input space is
+%   that space, likewise for the block columns. The structure of P ensures
+%   this keeps the order of the components.
+% - A component is assembled from the kernels of the blocks, so it is in
+%   the output variables and the dummy variables of the input variables.
+%   The parameters of a block form a 3 x ... x 3 cell, one direction per
+%   variable in both spaces, sorted, so x before y as in
+%   'opvar2d'. A variable only in the input space is
 %   integrated over its whole domain, and 'opvar2d' names it as var1, so
 %   its dummy is renamed (e.g. Rxy in x and y, not y_dum).
 % - A structurally zero block ([]) gives zeros.
@@ -77,8 +78,12 @@ function val = getfield_opvar2d(P,fname)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/15/2026: Initial coding;
 
+% Check the structure of P, giving the space of each block row and column,
+% and the field name
 [is_2d,idx_out,idx_in] = is_opvar2d(P);
 if ~is_2d
     error('copvar:notOpvar2d',['The operator does not have the structure of an ''opvar2d'', '...
@@ -175,6 +180,7 @@ if isempty(ir) || isempty(jc)
     K(:) = {polynomial(zeros(sum(P.dim_out(rows)),sum(P.dim_in(cols))))};
     return
 end
+% The kernels of each block, zero for a structurally zero block
 Kblk = cell(numel(ir),numel(jc),prod(sz));
 for a=1:numel(ir)
     for b=1:numel(jc)
@@ -187,6 +193,7 @@ for a=1:numel(ir)
         end
     end
 end
+% Each parameter: the blocks of each row side by side, the rows stacked
 for k=1:numel(K)
     Krows = cell(numel(ir),1);
     for a=1:numel(ir)

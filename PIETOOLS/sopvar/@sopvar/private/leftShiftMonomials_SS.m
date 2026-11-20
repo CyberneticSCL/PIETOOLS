@@ -9,18 +9,20 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % for each cell index I,J.
 %
 % INPUTS
-%   varsA : variables for ZA
+%   varsA : 1-by-nA cellstr, variables for ZA
 %   ZA    : 1-by-nA cell array of exponent vectors
 %   CA    : nI-by-nJ cell array, CA{I,J} has size p*NA by q
-%   varsB : variables for ZB
+%   varsB : 1-by-nB cellstr, variables for ZB
 %   ZB    : 1-by-nB cell array of exponent vectors
 %   CB    : 1-by-nI or nI-by-1 cell array, CB{I} has size q*NB by r
 %
 % OUTPUTS
-%   varsC : merged variable list
-%   ZC    : merged/product monomial basis
+%   varsC : merged variable list, the sorted union of varsA and varsB
+%   ZC    : merged/product monomial basis, per variable the sums of the
+%           exponents of ZA and ZB
 %   CC    : nI-by-nJ cell array, CC{I,J} has size p*NC by r
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - leftShiftMonomials_SS
@@ -46,16 +48,7 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 09/10/2026: Hoist the 'kron(speye(p),Qmat)' lift out of the I,J loops,
-%                  where it was rebuilt nI*nJ times identically; check the
-%                  cell shapes once instead of inside them; preallocate CC.
-%                  Taking Sec. 5.1's partial sum over I inside this routine
-%                  was tried and rejected as slower -- see the note at the
-%                  coefficient loop.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): commented-out
-%                  scratch lines and a debug line removed, a duplicated
-%                  derivation and the 09/10/2026 note tightened; code
-%                  unchanged.
+% Initial coding SS - 04/15/2026
 
 % % % % % % % % % % DERIVATION % % % % % % % %
 % We need to compute (I_p otimes Z1^T) A (I_q otimes Z^2T) B
@@ -76,8 +69,9 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % Then, 
 % Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
 %       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
-%          p x           Q is Nc x Na*Nb 
+%          p x           Q is Nc x Na*Nb
 
+% Variables and bases as rows; basis sizes NA, NB (1 without variables)
 varsA = varsA(:).';
 varsB = varsB(:).';
 ZA = ZA(:).';
@@ -93,6 +87,8 @@ if isempty(ZB)
     NB = 1;
 end
 
+% Cell and block sizes: one CB cell per row of CA, p = rows of A per
+% monomial block
 [nI,nJ] = size(CA);
 
 if numel(CB) ~= nI
@@ -123,6 +119,8 @@ for t = 1:nC
     ia = find(strcmp(varsA,varsC{t}),1);
     ib = find(strcmp(varsB,varsC{t}),1);
 
+    % A variable of one side keeps its exponents; a shared variable gets
+    % every sum of an exponent of ZA and one of ZB
     if isempty(ia)
         ZC{t} = ZB{ib}(:);
     elseif isempty(ib)
@@ -179,42 +177,41 @@ end
 % % % % % Computing Q such that ZA otimes ZB = Q ZC % % % % % 
 
 
-% An empty merged variable list leaves nothing to permute, so Qmat is the   % MMP, 08/30/2026
-% 1-by-1 identity. Without this branch ismember returns an empty index and  % MMP, 08/30/2026
-% 'sparse' builds the 1-by-1 ZERO instead, which zeroed every composition   % MMP, 08/30/2026
-% involving R^n. Matches the @sdopvar copy, which already had the guard.    % MMP, 08/30/2026
-if nC == 0                                                                  % MMP, 08/30/2026
-    Qmat = sparse(1,1,1,1,1);                                               % MMP, 08/30/2026
-else                                                                        % MMP, 08/30/2026
+% An empty merged variable list leaves nothing to permute, so Qmat is the
+% 1-by-1 identity (ismember would return an empty index, and 'sparse' the
+% 1-by-1 zero).
+if nC == 0
+    Qmat = sparse(1,1,1,1,1);
+else
     EC3dt = reshape(EAc, 1,  [],size(EAc, 2)) + reshape(EBc, [], 1, size(EBc, 2));
     % Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
     EC2dt = reshape(EC3dt, [], size(EC3dt, 3));
     [~, Idx_array] = ismember(EC2dt, EC, 'rows');
     Qmat = sparse(Idx_array, 1:(NA*NB), ones(size(Idx_array)), NC, NA*NB);
-end                                                                         % MMP, 08/30/2026
+end
 
-% Cell shapes, checked once rather than inside the coefficient loops.       % MMP, 09/10/2026
-for I = 1:nI                                                                % MMP, 09/10/2026
-    if ~isequal(size(CB{I}),[q*NB,r])                                       % MMP, 09/10/2026
-        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');   % MMP, 09/10/2026
-    end                                                                     % MMP, 09/10/2026
-    for J = 1:nJ                                                            % MMP, 09/10/2026
-        if ~isequal(size(CA{I,J}),[p*NA,q])                                 % MMP, 09/10/2026
-            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');% MMP, 09/10/2026
-        end                                                                 % MMP, 09/10/2026
-    end                                                                     % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
+% Cell shapes, checked once rather than inside the coefficient loops.
+for I = 1:nI
+    if ~isequal(size(CB{I}),[q*NB,r])
+        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');
+    end
+    for J = 1:nJ
+        if ~isequal(size(CA{I,J}),[p*NA,q])
+            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
+        end
+    end
+end
 
 % The products: (I_p otimes Z1^T) A (I_q otimes Z2^T) B =
 %               (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B.
-% Q is fixed by the bases alone, so it is lifted over the matrix dimension  % MMP, 09/10/2026
-% once, not inside the loops.                                               % MMP, 09/10/2026
-IpQ = kron(speye(p),Qmat);                                                  % MMP, 09/10/2026
+% Q is fixed by the bases alone, so it is lifted over the matrix dimension
+% once, not inside the loops.
+IpQ = kron(speye(p),Qmat);
 
-% The sum over I (sopvar document Sec. 5.1) stays with the caller: summing  % MMP, 09/10/2026
-% before the shift was measured slower, since Qmat shrinks the rows from    % MMP, 09/10/2026
-% p*NA*NB to p*NC and the caller then adds the smaller matrices.            % MMP, 09/10/2026
-CC = cell(nI,nJ);                                                           % MMP, 09/10/2026
+% One product per cell (I,J), the sum over I not taken here: Qmat shrinks
+% the rows from p*NA*NB to p*NC, so summing after the shift adds the
+% smaller matrices (measured faster).
+CC = cell(nI,nJ);
 for I = 1:nI
 
     Bcoef = CB{I};

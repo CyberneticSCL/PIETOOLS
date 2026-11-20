@@ -13,12 +13,12 @@ function P = blkdiag(varargin)
 %
 % OUTPUTS
 % - P:          'copvar' object. If any operand is an 'sdopvar' block, the
-%               result is a 'cdopvar' and is built by @cdopvar/blkdiag.
+%               result is a 'cdopvar'.
 %
 % NOTES
-% The off-diagonal blocks are [], the container's zero block, which stores
-% nothing; their spaces and dimensions come from the metadata, which is why
-% the container owns it. MATLAB's builtin blkdiag cannot build this: it
+% The off-diagonal blocks are [], the zero block of the container, which
+% stores nothing; their spaces and dimensions come from the metadata, which
+% is why the container owns it. The builtin blkdiag cannot build this: it
 % tries to fill the off-diagonal with double zeros and fails converting them.
 %
 % Cost: O(total blocks) plus set operations on the variable registries.
@@ -54,7 +54,7 @@ function P = blkdiag(varargin)
 % Initial coding MMP, 09/25/2026
 
 % copvar outranks sdopvar, so a decision BLOCK among the operands lands
-% here; promote it and re-dispatch, which reaches @cdopvar/blkdiag.
+% here; promote it to a 'cdopvar' and dispatch again.
 isdec = cellfun(@(a) isa(a,'sdopvar'),varargin);
 if any(isdec)
     varargin(isdec) = cellfun(@(a) cdopvar({a}),varargin(isdec),'uni',0);
@@ -62,6 +62,7 @@ if any(isdec)
     return
 end
 
+% Block-diagonal grid and merged metadata
 [C,meta] = cat_copvar_grid('d',varargin,'copvar');
 P = copvar(C,meta);
 

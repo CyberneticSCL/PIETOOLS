@@ -1,7 +1,6 @@
 function disp_struct = get_display(Pop,name,expand)
 % DISP_STRUCT = GET_DISPLAY(POP,NAME,EXPAND) constructs the lines of the
-% display of the block matrix POP of PI operators, for use in the 'display'
-% method of 'copvar',
+% display of the block matrix POP of PI operators,
 %   NAME = [C_11 ... C_1d] : [X_1] --> [Y_1]
 %          [ :   .    :  ]   [ : ]     [ : ]
 %          [C_p1 ... C_pd]   [X_d]     [Y_p]
@@ -26,22 +25,22 @@ function disp_struct = get_display(Pop,name,expand)
 %       defs:   struct array with the fields lhs, terms and signs, for each
 %               of the blocks that is displayed as the actual operator, in
 %               the order of the rows, with lhs the left-hand side, e.g.
-%               '(C_11 x_1)(s) =', and terms and signs as for the output D
-%               of 'sopvar/get_display'. An identity block is defined with
-%               its spatial variables, (C_11 x_1)(s) = x_1(s);
+%               '(C_11 x_1)(s) =', terms the cellstr of the terms of the
+%               block acting on x_j, and signs their signs (1 or -1). An
+%               identity block is defined with its spatial variables,
+%               (C_11 x_1)(s) = x_1(s);
 %       rows:   struct array with the fields lhs, terms and signs, for each
 %               element of the output of Pop, with lhs the left-hand side,
 %               e.g. '(Pop x)_1(s) =', and terms and signs for the sum of
-%               the blocks in its row acting on the elements of the input,
-%               see 'get_display'. Empty if the operator is not displayed
-%               explicitly, see the notes;
+%               the blocks in its row acting on the elements of the input.
+%               Empty if the operator is not displayed explicitly, see the
+%               notes;
 %       xnames: 1 x d cellstr, the names x_j of the functions that the
 %               blocks act on;
 %       xsym:   char, the name x of the function that Pop acts on, from
 %               which x_j follows;
-%       is_id:  logical, true if Pop is an identity operator, in which case
-%               'display' shows (Pop x)_i(s) = x_i(s) for each block
-%               row i;
+%       is_id:  logical, true if Pop is an identity operator, displayed as
+%               (Pop x)_i(s) = x_i(s) for each block row i;
 %
 % NOTES
 % - The blocks are named C_ij, dropping i if there is only one block row,
@@ -60,14 +59,14 @@ function disp_struct = get_display(Pop,name,expand)
 %   and nothing is defined.
 % - The operator is displayed explicitly, with a row for each element of
 %   the output, if the input and the output have at most 5 elements,
-%   counting those of vector-valued functions, every block is displayed
-%   explicitly by 'get_display' (scalar-valued, or with explicit rows), and
+%   counting those of vector-valued functions, every block can be displayed
+%   explicitly (scalar-valued, or with explicit rows), and
 %   each row has at most 6 terms of at most 100 characters. The elements of
 %   a function x_j of a vector-valued space are named x_j,k. The blocks are
 %   then not defined.
 % - The definitions of the blocks are only given if all of the blocks can
-%   be displayed as the actual operators, acting on x_j, with 'get_display'
-%   of 'sopvar', and there are at most 6 of them. Blocks that are
+%   be displayed as the actual operators, acting on x_j, and there are at
+%   most 6 of them. Blocks that are
 %   matrix-valued are not displayed as the actual operators, so that none
 %   of the blocks is defined if one of them is.
 
@@ -95,8 +94,9 @@ function disp_struct = get_display(Pop,name,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_blocks = 6;         % maximal number of blocks defined as the actual operators
@@ -105,6 +105,7 @@ max_elems = 5;          % maximal number of elements of the input and of the out
 max_terms = 6;          % maximal number of terms of each element of the output
 max_chars = 100;        % maximal number of characters of each such term
 
+% Defaults of the optional inputs, and the size of the block grid
 if nargin<2
     name = 'Pop';
 end
@@ -113,11 +114,13 @@ if nargin<3
 end
 [p,d] = size(Pop.C);
 
+% Subscript digits 0,...,9, and superscript digits 0,...,9
 [~,sub_dig,sup_dig] = varname2display('0123456789');        % subscript and superscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
 sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 L2_sym = ['L',sub_str(2)];
 
+% Name each of the blocks, C_ij
 blk = cell(p,d);
 for i=1:p
     for j=1:d
@@ -125,6 +128,8 @@ for i=1:p
             blk{i,j} = '0';
             continue
         end
+        % C with the subscripts i (p > 1) and j (d > 1), separated by a
+        % comma when either exceeds 9
         blk_name = 'C';
         if p>1
             blk_name = [blk_name,sub_str(i)];
@@ -195,6 +200,7 @@ end
 % first line
 nrows = max(numel(spc{1}),numel(spc{2}));
 
+% Pad the names of the blocks, and the spaces, to a common width
 blk_width = max(cellfun(@numel,blk(:)));
 row_str = cell(p,1);
 for i=1:p
@@ -217,11 +223,13 @@ for k=1:nrows
     else
         line_str = repmat(' ',1,2+numel(lhs));
     end
+    % Block row k, blank below the last block row
     if k<=numel(row_str)
         line_str = [line_str,row_str{k}];
     else
         line_str = [line_str,repmat(' ',1,numel(row_str{1}))];
     end
+    % Input space k and output space k, blank where there is none
     if k<=numel(spc{1})
         spc_in_k = spc_in_str{k};
     else
@@ -231,6 +239,7 @@ for k=1:nrows
     if k<=numel(spc{2})
         spc_out_k = spc_out_str{k};
     end
+    % The colon and the arrow on the first line only; no trailing blanks
     if k==1
         line_str = [line_str,' : ',spc_in_k,' --> ',spc_out_k];
     else
@@ -239,6 +248,7 @@ for k=1:nrows
     lines{k} = regexprep(line_str,'\s+$','');
 end
 
+% The output structure; the definitions and explicit rows are filled below
 disp_struct = struct('lines',{lines}, ...
     'defs',struct('lhs',{},'terms',{},'signs',{}),'xnames',{cell(1,d)},'xsym','','is_id',false, ...
     'rows',struct('lhs',{},'terms',{},'signs',{}),'spc_in',{spc{1}},'spc_out',{spc{2}});
@@ -350,6 +360,7 @@ for i=1:p
         if ~blk_disp.ok
             return
         end
+        % Left-hand side (C_ij x_j)(s), or C_ij x_j without output variables
         lhs = ['(',blk{i,j},' ',disp_struct.xnames{j},')'];
         if ~isempty(Pop.C{i,j}.vars.out)
             out_names = cellfun(@varname2display,reshape(Pop.C{i,j}.vars.out,1,[]),'UniformOutput',false);

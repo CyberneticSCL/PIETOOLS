@@ -31,6 +31,7 @@ function C = kron(A,B)
 %   components of M between those of P and the monomials.
 % - A zero block of the parameters, [] or scalar 0, remains zero.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - kron (sopvar)

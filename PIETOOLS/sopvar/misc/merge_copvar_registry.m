@@ -1,12 +1,12 @@
 function varargout = merge_copvar_registry(cls,opname,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [A,B,...] = MERGE_COPVAR_REGISTRY(CLS,OPNAME,A,B,...) restates containers
-% over the union of their variable registries, so that 'plus' and 'mtimes'
-% of 'copvar' and 'cdopvar' accept operands built over different ones.
+% [A,B,...] = MERGE_COPVAR_REGISTRY(CLS,OPNAME,A,B,...) restates 'copvar'
+% or 'cdopvar' containers over the union of their variable registries, so
+% that operands built over different registries can be combined.
 %
 % INPUTS
 % - cls:    'copvar' or 'cdopvar', the class named in the error identifier
-%           cls:domConflict, as for concatenation;
+%           cls:domConflict;
 % - opname: the operation named in the error message, e.g. 'plus';
 % - A,B,..: 'copvar' or 'cdopvar' containers, in operand order;
 %
@@ -16,18 +16,16 @@ function varargout = merge_copvar_registry(cls,opname,varargin)
 %           dimensions and decision variable lists are untouched;
 %
 % NOTES
-% The registry is container metadata (Sec. 8; see 'copvar'): every block
-% carries its own vars and dom, and a mask over a larger registry, false in
-% the added columns, names the same space. Restating therefore changes no
-% operator. It is needed because an R^n -> R^n operator (-gam*Iw, Dzu, Dyw)
-% has an EMPTY registry, and a product such as PB'*Tw keeps its left
-% factor's registry although it maps R^n -> R^n, so operands that are
-% compatible space by space can still disagree on the registry.
+% The registry is container metadata: every block carries its own vars and
+% dom, and a mask over a larger registry, false in the added columns, names
+% the same space. Restating therefore changes no operator. It is needed
+% because an R^n -> R^n operator (-gam*Iw, Dzu, Dyw) has an EMPTY registry,
+% and a product such as PB'*Tw keeps the registry of its left factor
+% although it maps R^n -> R^n, so operands that are compatible space by
+% space can still disagree on the registry.
 %
-% The merge rule is the one concatenation applies in 'cat_copvar_grid':
-% sorted union, and a variable given two different domains is an error,
-% cls:domConflict. 'cat_copvar_grid' calls this routine for it, so          % MMP, 09/30/2026
-% concatenation, 'plus' and 'mtimes' share one copy of the rule.            % MMP, 09/30/2026
+% The merge rule: sorted union, and a variable given two different domains
+% is an error, cls:domConflict.
 %
 % When all registries already agree nothing is built, and an operand that
 % is already on the union is returned as it is.
@@ -36,7 +34,8 @@ function varargout = merge_copvar_registry(cls,opname,varargin)
 % operand, nv the number of spatial variables (one per direction). No
 % coefficient matrix or decision variable list is read or copied, so the
 % cost is flat in the number of decision variables. Measured on 2 x 2
-% 'poscopvar' containers, q = 1e3 to 3.9e5, 1-D and 2-D, union nv = 1 to 4:
+% containers of positive operators, q = 1e3 to 3.9e5, 1-D and 2-D, union
+% nv = 1 to 4:
 % 3 us when the registries agree, 20-40 us when one is restated, no memory
 % held; P*A with A restated onto {s1,...,s4} runs as fast as P*A.
 %
@@ -69,11 +68,8 @@ function varargout = merge_copvar_registry(cls,opname,varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/26/2026
-% MMP, 09/30/2026: NOTES: 'cat_copvar_grid' now calls this routine instead
-%                  of keeping its own copy of the merge loop. Doc only here.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) lines of
-%                  the 09/30/2026 doc change removed; code unchanged.
 
+% Operands are returned as given unless restated below
 K = numel(varargin);
 varargout = varargin;
 
@@ -109,7 +105,8 @@ for k = 1:K
     end
 end
 
-% % % Remap each operand's masks onto the union, column by variable name.
+% % % Remap the masks of each operand onto the union, column by variable
+% % % name.
 % Assigned in place, so the class, the blocks and Zd carry over as they are.
 nv = numel(vars);
 for k = 1:K

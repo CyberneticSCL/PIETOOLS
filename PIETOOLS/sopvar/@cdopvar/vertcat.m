@@ -11,21 +11,20 @@ function P = vertcat(varargin)
 %               on every block COLUMN: the same input space and component
 %               count in column j. They may be built over different variable
 %               registries; the registries are merged, and a variable given
-%               two domains is an error. [] is ignored;
+%               two domains is an error. A 'dpvar' entry maps the column
+%               spaces into R^{rows}, as an integral operator on each L2
+%               component. [] is ignored;
 %
 % OUTPUTS
 % - P:          'cdopvar' object, every block on one decision variable list.
 %
 % NOTES
-% The grid and metadata come from 'cat_copvar_grid', shared with 'copvar';
-% the decision variable lists are reconciled by 'merge_dvar_lists', the rule
-% '@cdopvar/plus' applies.
+% The decision variable lists of the operands are merged into one.
 %
 % Cost: O(total blocks) when the operands share a decision variable list,
 % which is the normal case. Otherwise one stable union, O(q log q), gives
-% every operand's row map, and each block moves in O(nnz(B)) with no
-% per-block name search; see 'merge_dvar_lists'. Measured 0.99 s at
-% q = 4e5 per operand.
+% the row map of every operand, and each block moves in O(nnz(B)) with no
+% per-block name search. Measured 0.99 s at q = 4e5 per operand.
 %
 % See also HORZCAT, BLKDIAG, CAT_COPVAR_GRID, CDOPVAR.
 %
@@ -56,21 +55,18 @@ function P = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
-% MMP, 09/29/2026: A dpvar operand is converted by
-%                  'dpvar_op_copvar' (legacy @dopvar/vertcat semantics: the
-%                  entry maps the columns' spaces into R^{rows}, the integral
-%                  Q1 from L2), then stacked as a container. Before, it
-%                  errored cdopvar:vertcatBadOperand (or never dispatched
-%                  here, for a dpvar on top).
 
-% dpvar entry: a column-space -> R^{rows} container; see                    % MMP, 09/29/2026
-% 'dpvar_op_copvar'. [] stays ignored, below.                               % MMP, 09/29/2026
-if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
-    P = dpvar_op_copvar('vertcat',varargin{:});                             % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% dpvar entry: converted to a column-space -> R^{rows} container.
+% [] stays ignored, below.
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))
+    P = dpvar_op_copvar('vertcat',varargin{:});
+    return
+end
+% Stacked grid and merged metadata
 [C,meta,Zds,src] = cat_copvar_grid('v',varargin,'cdopvar');
+% Put every block on one decision variable list
 [C,meta.Zd] = merge_dvar_lists(C,Zds,src);
+% Build the container from the trusted metadata
 P = cdopvar(C,meta);
 
 end

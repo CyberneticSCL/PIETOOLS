@@ -1,7 +1,8 @@
 function At = transpose(A)
 % At = TRANSPOSE(A) returns the adjoint of the 'sdopvar' operator A,
-% A.' = A'; it simply calls 'ctranspose', which swaps the output and input
-% variables and the integral kernels as described there.
+% A.' = A': all parameters are real, so the transpose is the adjoint, which
+% swaps the output and input variables and, in every integral direction,
+% the lower and upper integrals.
 %
 % INPUTS
 % - A:  'sdopvar' object representing a PI operator L_2^p[S1,S3] to
@@ -35,8 +36,10 @@ function At = transpose(A)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 
+% The transpose is the adjoint
 At = ctranspose(A);
 end

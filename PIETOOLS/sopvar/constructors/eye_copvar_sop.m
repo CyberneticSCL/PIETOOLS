@@ -5,25 +5,27 @@ function Iop = eye_copvar_sop(dims,spaces,dom)
 %   L_2^{q_1}[s^1] x ... x L_2^{q_M}[s^M]
 %
 % as an M x M 'copvar': block (i,i) the multiplier I_{q_i} on space i, every
-% other block zero. It is the container counterpart of
-% mat2opvar(eye(n),dim,vars,dom), with any number of spatial variables.
+% other block zero, with any number of spatial variables per space.
 %
 % IOP = EYE_COPVAR_SOP(X) returns the identity on the output spaces of the
 % 'copvar' or 'cdopvar' object X, with the domain of X: for an operator P
-% of POSCOPVAR, P + e*EYE_COPVAR_SOP(P) is P + e*I.
+% with equal input and output spaces, P + e*EYE_COPVAR_SOP(P) is P + e*I.
 %
 % INPUT
 % - dims:   M x 1 component counts q_i (a scalar is expanded), or a struct
 %           with field 'out' (a field 'in' must then equal it);
 % - spaces: 1 x M cell of cellstr variable names, {} being R^q, or a
 %           struct with field 'out' (a field 'in' must then equal it);
-% - dom:    as for 'mat2copvar_sop';
+% - dom:    nv x 2 domains in the order of the sorted registry of the
+%           variables, one 1 x 2 row for every variable, or a scalar struct
+%           with fields 'vars' and 'dom' pairing names with rows;
 % - X:      'copvar' or 'cdopvar' object, in place of DIMS, SPACES and DOM
 %           (second form above).
 %
 % OUTPUT
-% - Iop:    M x M 'copvar', diagonal, passing 'verify'. A space listed twice
-%           gives two separate components, and Iop is still the identity.
+% - Iop:    M x M 'copvar', diagonal, with consistent metadata. A space
+%           listed twice gives two separate components, and Iop is still
+%           the identity.
 %
 % NOTES
 % Cost: O(M^2) block visits, O(q_i^2) per diagonal block, no decision
@@ -57,30 +59,21 @@ function Iop = eye_copvar_sop(dims,spaces,dom)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. Tier 1c: the Iw, Iz and eppos*I of the
-%                executives, without opvar2copvar(mat2opvar(...)).
-% MMP, 09/30/2026: Read the spaces with the shared 'parse_copvar_spaces'
-%                (sopvar/misc/conventions); 'private/spaces2meta_sop', a
-%                verbatim copy of the same parser, is deleted. Same meta on
-%                every input; a non-cell space list now raises the parser's
-%                message instead of MATLAB's brace-indexing error.
-% MMP, 11/14/2026: Operator form EYE_COPVAR_SOP(X): the output spaces and
-%                the domain of X, read by COPVAR_SPACE_LIST (maintainer,
-%                11/14/2026: P + 1e-4*I restated the spaces of P and was too
-%                complicated).
+% Initial coding MMP, 09/29/2026
 
-% Operator form EYE_COPVAR_SOP(X): the output spaces and domain of X        % MMP, 11/14/2026
-if isa(dims,'copvar') || isa(dims,'cdopvar')                                % MMP, 11/14/2026
-    narginchk(1,1);                                                         % MMP, 11/14/2026
-    X = dims;   [spaces,dims] = copvar_space_list(X,'out');                 % MMP, 11/14/2026
-    dom = struct('vars',{X.vars},'dom',X.dom);                              % MMP, 11/14/2026
-end                                                                         % MMP, 11/14/2026
-% meta = spaces2meta_sop(dims,spaces,dom);                                  % MMP, 09/30/2026 (was)
-meta = parse_copvar_spaces(dims,spaces,dom);                                % MMP, 09/30/2026
+% Operator form EYE_COPVAR_SOP(X): the output spaces and domain of X
+if isa(dims,'copvar') || isa(dims,'cdopvar')
+    narginchk(1,1);
+    X = dims;   [spaces,dims] = copvar_space_list(X,'out');
+    dom = struct('vars',{X.vars},'dom',X.dom);
+end
+% Container metadata; the identity needs the same spaces in and out
+meta = parse_copvar_spaces(dims,spaces,dom);
 if ~isequal(meta.space_out,meta.space_in) || ~isequal(meta.dim_out,meta.dim_in)
     error('eye_copvar_sop:notSquare',...
         'The identity needs the same spaces and dimensions in and out.')
 end
+% The identity matrix as a multiplier on the spaces
 Iop = mat2copvar_grid(speye(sum(meta.dim_out)),meta,true);
 
 end

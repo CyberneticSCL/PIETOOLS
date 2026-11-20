@@ -16,7 +16,7 @@ function [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = canonical_var_order(vars,dom,Z
 % dom:  struct with fields 'in' and 'out', one row per corresponding variable;
 % ZL:   1 x numel(vars.out) cell of exponent columns;
 % ZR:   1 x numel(vars.in)  cell of exponent columns;
-% dims: [p,q] dimensions of the operator;
+% dims: 1 x 2 [rows, columns], the numbers of output and input components;
 %
 % OUTPUT
 % vars,dom,ZL,ZR: the same content, reordered into the canonical order;
@@ -37,17 +37,15 @@ function [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = canonical_var_order(vars,dom,Z
 % the cells is a tensor transposition of that index.
 %
 % The permutation is obtained by building the full degree table both ways and
-% matching rows, which is the same construction 'UnionBasisMonomials' uses,
-% rather than by stride arithmetic. The table has one row per monomial and
-% one column per direction, i.e. it lives on the small axis, and getting a
-% tensor stride wrong here would be silent.
+% matching rows, rather than by stride arithmetic. The table has one row per
+% monomial and one column per direction, i.e. it lives on the small axis,
+% and getting a tensor stride wrong here would be silent.
 %
 % The parameter CELL array is NOT permuted and must not be. Its multi-index
 % runs over S3 in the order 'intersect(vars.in,vars.out)' returns, which this
-% reordering leaves alone; routines that need a direction from a multi-index
-% component recover it with ismember against the stored order at the point of
-% use (see canonicalize_multiplier and lpi_eq_sdopvar), so they follow the
-% new order automatically.
+% reordering leaves alone; a direction is recovered from a multi-index
+% component with ismember against the stored order at the point of use, so
+% it follows the new order.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -74,27 +72,13 @@ function [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = canonical_var_order(vars,dom,Z
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/09/2026
-% MMP, 09/30/2026: Comments only. The normalization note cited
-%                  canonicalize_multiplier by file and line, which goes
-%                  stale on the next edit above it; it now names the step.
-%                  The monomial_gather failure it gives as the reason is
-%                  marked as past: since 09/30 monomial_gather builds its
-%                  degree tables with multiindex_grid, which reads a row
-%                  exponent vector as a list. The normalization stays, for
-%                  the column bases the class stores.
-% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
-%                  sopvar/misc/canonical_form, after what it holds (the
-%                  canonical form of the block classes), not the tool that
-%                  wrote it. The move changes no code.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the normalization
-%                  note condensed; code unchanged.
 
+% Variable lists as rows
 vin  = vars.in(:).';        vout = vars.out(:).';
 
 % Normalize the two input shapes the class tolerates elsewhere (row
-% exponent vectors, [] for an empty domain side): this routine runs BEFORE
-% 'canonicalize_multiplier', whose 'Normalize the bases' step did this, and % MMP, 09/30/2026
-% the code below reads the column form.                                     % MMP, 09/30/2026
+% exponent vectors, [] for an empty domain side): the code below reads the
+% column form.
 ZL = reshape(ZL,1,[]);      ZR = reshape(ZR,1,[]);
 for i = 1:numel(ZL),    ZL{i} = ZL{i}(:);    end
 for i = 1:numel(ZR),    ZR{i} = ZR{i}(:);    end
@@ -117,23 +101,19 @@ if numel(ZL)~=numel(vout) || numel(ZR)~=numel(vin)
           numel(ZL),numel(vout),numel(ZR),numel(vin))
 end
 
+% The partition: S1 input only, S2 output only, S3 shared, each sorted
 S1 = reshape(setdiff(vin,vout),1,[]);
 S2 = reshape(setdiff(vout,vin),1,[]);
 S3 = reshape(intersect(vin,vout),1,[]);
 
 % A pass-through variable is ONE variable, so its interval must agree on the
-% two sides. Nothing checked this before: the constructor took S3's domain
-% from dom.in alone (P.dom_3 = dom.in(idx,:)) and kept a contradictory
-% dom.out on the object unexamined, so an operator could carry two intervals
-% for one variable and still compare cleanly against others, since plus and
-% mtimes compare domains BETWEEN operands and never within one object.
-% Checked before the fast-path return below, so an already-canonical object
-% is validated too.
+% two sides; operations on operators compare domains BETWEEN operands, never
+% within one object, so the check is made here. Checked before the
+% fast-path return below, so an already-canonical object is validated too.
 [~,pl] = ismember(S3,vout);
 [~,pr] = ismember(S3,vin);
-% NaN~=NaN, so a plain '~=' rejected an unbounded or placeholder domain even
-% when the caller passed the very same array to both sides. Treat two NaNs in
-% the same position as agreeing, which is what isequaln would do.
+% NaN~=NaN: two NaNs in the same position agree, as for isequaln, so an
+% unbounded or placeholder domain passed to both sides is accepted.
 dl = dom.out(pl,:);     dr = dom.in(pr,:);
 bad = find(any(dl~=dr & ~(isnan(dl)&isnan(dr)),2),1);
 if ~isempty(bad)
@@ -143,14 +123,14 @@ if ~isempty(bad)
          +mat2str(dom.out(pl(bad),:))+" on the output side.")
 end
 
+% The canonical orders
 outTarget = [S2,S3];
 inTarget  = [S3,S1];
 
 changed = ~isequal(vout,outTarget) || ~isequal(vin,inTarget);
 if ~changed
-    % Already canonical, which is the normal case: every producer in the
-    % toolbox emits vars.in and vars.out in the natural spatial order with
-    % S1 and S2 empty, so this is the path that must stay cheap.
+    % Already canonical, the common case (S1 and S2 empty, the variables in
+    % sorted order): no gather, so this path stays cheap.
     rowIdx = [];    colIdx = [];
     return
 end
@@ -162,6 +142,7 @@ if ~all(okL) || ~all(okR)
     error("canonical_var_order: the variable lists are inconsistent.")
 end
 
+% Monomial permutations of the reordered bases, then the reordered data
 pL = monomial_gather(ZL,ordL);
 pR = monomial_gather(ZR,ordR);
 

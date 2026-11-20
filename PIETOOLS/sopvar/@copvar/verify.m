@@ -1,15 +1,15 @@
-function info = verify(P)                                                   % MMP, 09/30/2026
+function info = verify(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% INFO = VERIFY(P) checks that the blocks of a 'copvar' agree with its      % MMP, 09/30/2026
+% INFO = VERIFY(P) checks that the blocks of a 'copvar' agree with its
 % container metadata and with each other.
 %
 % INPUTS
 % - P:      'copvar' container to be checked;
 %
 % OUTPUTS
-% - info.true:   1 if P is consistent, 0 otherwise;                         % MMP, 09/30/2026
+% - info.true:   1 if P is consistent, 0 otherwise;
 % - info.flags:  cell array of messages, one per inconsistency, empty when
-%                P is consistent;                                           % MMP, 09/30/2026
+%                P is consistent;
 %
 % CHECKED: metadata shapes; no all-empty row or column; per block, that its
 % output side matches its row and its input side matches its column, that it
@@ -27,8 +27,6 @@ function info = verify(P)                                                   % MM
 % constructor, or a block replaced in place via P.C{i,j} = ....
 %
 % Cost: O(M*N) block visits, with spatial set operations on the registry.
-%
-% The checks are in 'verify_copvar_meta', shared with 'cdopvar'.            % MMP, 09/30/2026
 %
 % See also COPVAR, SIZE.
 %
@@ -59,34 +57,8 @@ function info = verify(P)                                                   % MM
 % authorship, and a brief description of modifications
 %
 % MP, 01/19/2026: Initial coding
-% MMP, 09/17/2026: Body replaced. The 01/19/2026 draft could not run (it
-%                  read unassigned variables and took the first element of
-%                  a comma list) and compared variable lists for equality,
-%                  which rejects legitimate containers (canonical order,
-%                  above). All of it deleted rather than commented out; the
-%                  01/19/2026 entry describes no code present here.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Moved from
-%                  @mopvar/ with the class.
-% MMP, 09/30/2026: The body, between the 'BEGIN/END body replaced by MMP,
-%                  09/17/2026' markers (the checks and the local
-%                  'check_dom'), is deleted and moved to 'verify_copvar_meta',
-%                  which @cdopvar/verify, a copy of it, now calls too. One
-%                  algorithm had two copies; derive_copvar_meta's NOTES name
-%                  exactly this validation as what must not diverge.
-%                  Verdicts and messages unchanged. The 09/17/2026 entry
-%                  describes code that now lives there.
-% MMP, 09/30/2026: Renamed the input Mop -> P, a name from before the
-%                  09/25/2026 rename ('mopvar' is now the stub class in
-%                  @mopvar). Mechanical, no functional change; each marked
-%                  line differs from its old text only by that name.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/17/2026
-%                  entry condensed; code unchanged.
 
-% % % BEGIN body replaced by MMP, 09/30/2026 - the 09/17/2026 body, deleted
-% % % here, is 'verify_copvar_meta'; see the header entry above.
-info = verify_copvar_meta(P,'copvar',{'sopvar'});                           % MMP, 09/30/2026
+% Check the metadata, and every 'sopvar' block against it
+info = verify_copvar_meta(P,'copvar',{'sopvar'});
 
 end
-% % % END body replaced by MMP, 09/30/2026

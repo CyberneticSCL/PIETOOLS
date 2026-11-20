@@ -1,68 +1,57 @@
 function [deg,report] = degbalance_core(P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [DEG,REPORT] = DEGBALANCE_CORE(P,OPTS) picks 'possopvar' degrees so that a
-% positive operator declared with them has monomials of similar degree to
-% those of P. It is the n-variate counterpart of '@opvar/degbalance' and
-% '@dopvar2d/degbalance', and is shared by '@sopvar/degbalance' and
-% '@sdopvar/degbalance'.
+% [DEG,REPORT] = DEGBALANCE_CORE(P,OPTS) picks the degrees of the basis of
+% a positive operator so that, declared with them, it has monomials of
+% similar degree to those of the operator P.
 %
 % INPUT
 % - P:    'sopvar' or 'sdopvar' object, the operator whose degrees are to be
 %         matched -- typically the one a positive operator must cancel;
 % - opts: (optional) 'struct' with fields
-%         - include: the basis multi-indices to size, as 'possopvar' takes
-%                    them. Defaults to every block, or, when 'sep' is given,
-%                    every block over {1,4} per separable direction. Pass
-%                    the 'include' from 'eq_opts_sopvar' to size only the
-%                    blocks that can contribute;
+%         - include: nblk x n3 array, the basis multi-indices to size, one
+%                    row per block, an entry 1, 2 or 3 per direction (1 or 4
+%                    in a separable direction). Defaults to every block, or,
+%                    when 'sep' is given, every block over {1,4} per
+%                    separable direction;
 %         - sep:     1 x n3 logical, the separable directions;
-%         - weight:  'uniform' (default) halves every cap, which is what
-%                    '@dopvar2d/degbalance' does as shipped. 'slotwise'
+%         - weight:  'uniform' (default) halves every cap. 'slotwise'
 %                    instead halves only the integration slot and leaves the
-%                    output slot at full degree -- see the note below;
+%                    output slot at full degree -- see SLOT WEIGHTING;
 %
 % OUTPUT
 % - deg:    1 x nblk cell, one degree struct per row of opts.include, with
-%           fields 'int', 'mult', 'joint' and 'subset', ready to hand to
-%           'possopvar' as its degree argument;
+%           fields 'int' (1 x n3, the integration-variable caps), 'mult'
+%           (1 x n3, the output-variable caps), 'joint' (the cap of the full
+%           set of variables) and 'subset' (1 x 2^(2*n3), the cap of every
+%           subset of variables);
 % - report: 'struct' with 'lines' (what was decided) and 'maxdeg' (the
 %           per-block per-subset maximal degrees read off P).
 %
 % THE RULE
-% '@dopvar2d/degbalance' as shipped is, for every block,
-%       d2{i,j} = floor(Pmaxdegs.R22{i,j}/2),
-% i.e. halve the target's per-NONEMPTY-SUBSET maximal degree array
-% elementwise. That form is already n-variate, since the array is indexed by
-% variable subset, so nothing needs generalizing beyond reading the array off
-% an 'sopvar' -- which has no 'getdeg', so the degrees are taken here from
-% the coefficient support together with ZL and ZR.
-%
-% The halving is the Newton-polytope factor: a positive operator is a sum of
-% squares in the Gram sense, so its basis carries roughly half the degree of
-% what it represents.
+% For every block, halve the maximal degree of the target on every
+% nonempty subset of variables,
+%       d{i,j} = ceil(maxdeg{i,j}/2),
+% the degrees read from the coefficient support of P together with ZL and
+% ZR. The halving is the Newton-polytope factor: a positive operator is a
+% sum of squares in the Gram sense, so its basis carries roughly half the
+% degree of what it represents.
 %
 % SLOT WEIGHTING
 % The two slots do not contribute equally. MEASURED on a one-variable
 % Volterra block, the maximal degree of the DECLARED operator is
 %       2*deg.int + deg.mult + 1,
 % because the integrand carries r^(a_p+c_q) from both factors, so the
-% variable-limit integral int_a^s gives s^(a_p+c_q+1), on top of the left
-% factor's s^(b_p). The integration slot therefore reaches twice as far per
-% unit of degree as the output slot. 'uniform' ignores this and is
-% conservative on the output slot; 'slotwise' halves only the integration
-% slot. '@dopvar2d/degbalance' carries the same observation in a
-% commented-out alternative ("degrees in the primary variables get doubled,
-% whereas those in the dummy variables do not") with factors 0.5 and 1,
-% which agree with the measurement. 'uniform' is the default because it is
-% what the toolbox ships and has been exercised; 'slotwise' is offered
-% because the measurement supports it, not because it has been validated on
-% a solve.
+% variable-limit integral int_a^s gives s^(a_p+c_q+1), on top of the
+% s^(b_p) of the left factor. The integration slot therefore reaches twice
+% as far per unit of degree as the output slot. 'uniform' ignores this and
+% is conservative on the output slot; 'slotwise' halves only the
+% integration slot, as the measurement supports; it has not been validated
+% on a solve.
 %
-% WHAT THIS DOES NOT DO
-% It sizes the basis; it does not prune it. Deciding WHICH blocks can
-% contribute is 'eq_opts_sopvar'. Per-monomial pruning does not follow from
-% the same argument -- see the note in 'eq_opts_sopvar' -- so the degrees
-% here are a matching rule, not a minimal one.
+% LIMITS
+% It sizes the basis; it does not prune it, nor decide which blocks can
+% contribute. Per-monomial pruning does not follow from the same argument,
+% so the degrees here are a matching rule, not a minimal one.
 %
 % See also DEGBALANCE, EQ_OPTS_SOPVAR, POSSOPVAR, SETTINGS2POSSOPVAR.
 %
@@ -90,38 +79,10 @@ function [deg,report] = degbalance_core(P,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/21/2026: 'degbalance' existed for 'opvar',
-%                  'dopvar' and 'dopvar2d' but not for 'sopvar', so a
-%                  positive operator for an 'sopvar' equality had to be
-%                  given degrees by hand. The shipped 2D rule is already
-%                  n-variate in form -- halve the per-subset maximal degree
-%                  array -- so what was missing was reading that array off
-%                  an 'sopvar', which has no 'getdeg'.
-% MMP, 09/30/2026: The degree tables, the gamma enumeration of 'reach' and
-%                  'enum_alpha' use the shared helpers multiindex_grid and
-%                  cell_of_gamma (sopvar/misc/conventions); the local
-%                  degree_table is deleted. The same grids were written out
-%                  in five files, and this degree_table and monomial_gather's
-%                  had diverged. Same values in the same order on every
-%                  input the old code accepted, so deg and report are
-%                  unchanged. Degenerate inputs differ: an operator with no
-%                  shared variable (n3 = 0) now fails later, at a(1), not at
-%                  vals{1}; an empty basis before a nonempty one gives an
-%                  empty table, where the old table lost a column.
-% MMP, 09/30/2026 (move): from sopvar/misc/claude to
-%                  sopvar/misc/degree_sizing. It sizes 'possopvar' degrees,
-%                  which is not the canonical form the rest of that folder,
-%                  now sopvar/misc/canonical_form, holds. The move changes
-%                  no code.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
-%                  for the local functions; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                  very short and called once go into the body): NUMCELLS at
-%                  the cell count, ENUM_ALPHA at the default include list,
-%                  REACH in the block loop, each with its header as the
-%                  comment of the block; their 09/30/2026 lines keep their
-%                  markers.
+% Initial coding MMP, 09/21/2026
 
+% Defaults and checks of the inputs; an operator with no shared variable
+% (n3 = 0) is not supported
 if nargin<2 || isempty(opts)
     opts = struct();
 end
@@ -133,9 +94,8 @@ if ~ismember(weight,{'uniform','slotwise'})
     error("'weight' should be 'uniform' or 'slotwise'.")
 end
 
-% ncell = numcells(P);                                                      % MMP, 11/09/2026 (was)
-% The number of parameter cells of the block P (the former local NUMCELLS)  % MMP, 11/09/2026
-if isa(P,'sdopvar'), ncell = numel(P.params.A); else, ncell = numel(P.params); end % MMP, 11/09/2026
+% The number of parameter cells of the block P, and the basis sizes
+if isa(P,'sdopvar'), ncell = numel(P.params.A); else, ncell = numel(P.params); end
 n3 = round(log(ncell)/log(3));
 if 3^n3 ~= ncell
     error("The parameter cell count %d is not a power of 3.",ncell)
@@ -144,61 +104,41 @@ nL = cellfun(@numel,P.ZL);      nL = nL(:).';
 nR = cellfun(@numel,P.ZR);      nR = nR(:).';
 NL = prod([nL,1]);              NR = prod([nR,1]);
 
+% Separable directions, one flag per shared variable
 sepv = getdef(opts,'sep',false(1,n3));
 sepv = logical(reshape(sepv,1,[]));
 if isscalar(sepv), sepv = repmat(sepv,1,n3); end
 
 incl = getdef(opts,'include',[]);
 if isempty(incl)
-%   incl = enum_alpha(n3,sepv);                                             % MMP, 11/09/2026 (was)
-    % every basis multi-index, {1,2,3} per direction or {1,4} in a          % MMP, 11/09/2026
-    % separable one, direction 1 fastest (the former local ENUM_ALPHA)      % MMP, 11/09/2026
-    vals = cell(1,n3);                                                      % MMP, 11/09/2026
-    for k = 1:n3                                                            % MMP, 11/09/2026
-        if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end           % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
-    % A = vals{1}(:);                                                       % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % for k = 2:n3                                                          % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    %     A = [kron(ones(numel(vals{k}),1),A), ...
-    %          kron(vals{k}(:),ones(size(A,1),1))];                         % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % end                                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    incl = multiindex_grid(vals);          % direction 1 fastest            % MMP, 11/09/2026; MMP, 09/30/2026
+    % every basis multi-index, {1,2,3} per direction or {1,4} in a
+    % separable one, direction 1 fastest
+    vals = cell(1,n3);
+    for k = 1:n3
+        if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
+    end
+    incl = multiindex_grid(vals);          % direction 1 fastest
 end
 
+% One degree struct per block
 report = struct('lines',{{}},'maxdeg',{cell(1,size(incl,1))});
 deg = cell(1,size(incl,1));
 
 % Degree tables of the two bases: row t of DL gives the degree of composite
 % ZL monomial t in each output variable, first direction outermost.
-% DL = degree_table(P.ZL);                                                  % MMP, 09/30/2026 (was)
-% DR = degree_table(P.ZR);                                                  % MMP, 09/30/2026 (was)
-% The shared kron-order grid (sopvar/misc/conventions) is the degree table. % MMP, 09/30/2026
-DL = multiindex_grid(P.ZL,'first_slowest');                                 % MMP, 09/30/2026
-DR = multiindex_grid(P.ZR,'first_slowest');                                 % MMP, 09/30/2026
+DL = multiindex_grid(P.ZL,'first_slowest');
+DR = multiindex_grid(P.ZR,'first_slowest');
 
 for r = 1:size(incl,1)
     a = incl(r,:);
-%   cells = reach(a,n3);                                                    % MMP, 11/09/2026 (was)
-    % The cells the diagonal of block a can populate (the former local      % MMP, 11/09/2026
-    % REACH; see 'eq_opts_sopvar', where this was measured): every gamma in % MMP, 11/09/2026
-    % the product of the sets {1} or {2,3} per direction, direction 1       % MMP, 11/09/2026
-    % fastest, as cells                                                     % MMP, 11/09/2026
-    sets = cell(1,n3);                                                      % MMP, 11/09/2026
-    for k = 1:n3                                                            % MMP, 11/09/2026
-        if a(k)==1, sets{k} = 1; else, sets{k} = [2 3]; end                 % MMP, 11/09/2026
-    end                                                                     % MMP, 11/09/2026
-    % G = sets{1}(:);                                                       % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % for k = 2:n3                                                          % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    %     G = [kron(ones(numel(sets{k}),1),G), ...
-    %          kron(sets{k}(:),ones(size(G,1),1))];                         % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % end                                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % C = zeros(size(G,1),1);                                               % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % for r = 1:size(G,1)                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    %     k = 1;                                                            % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    %     for t = 1:n3, k = k + (G(r,t)-1)*3^(t-1); end                     % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    %     C(r) = k;                                                         % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    % end                                                                   % MMP, 11/09/2026; MMP, 09/30/2026 (was)
-    cells = cell_of_gamma(multiindex_grid(sets));                           % MMP, 11/09/2026; MMP, 09/30/2026
+    % The cells the diagonal of block a can populate: every gamma in the
+    % product of the sets {1} or {2,3} per direction, direction 1 fastest,
+    % as cells
+    sets = cell(1,n3);
+    for k = 1:n3
+        if a(k)==1, sets{k} = 1; else, sets{k} = [2 3]; end
+    end
+    cells = cell_of_gamma(multiindex_grid(sets));
 
     % % % Exponent pairs the target actually carries on those cells. The
     % rows of a coefficient are (matrix row outer, ZL monomial inner) and
@@ -212,11 +152,7 @@ for r = 1:size(incl,1)
     end
 
     % % % Per-subset maximal degrees of the target, over the variable order
-    % [out_1..out_n3, in_1..in_n3], which is the order the basis uses once
-    % the target's output variable is matched to the basis integration slot
-    % and its input variable to the basis output slot. That is the positional
-    % correspondence '@dopvar2d/degbalance' uses, and the covering test in
-    % the verification script is what confirms it.
+    % [out_1..out_n3, in_1..in_n3]; subset i is the set of bits of i-1.
     nv = 2*n3;
     T = zeros(1,2^nv);
     if ~isempty(EO)
@@ -231,13 +167,10 @@ for r = 1:size(incl,1)
     % % % Halve. 'uniform' halves every entry; 'slotwise' halves only the
     % subsets made purely of integration slots and leaves the rest whole,
     % reflecting that the integration slot reaches twice as far.
-    % CEIL, not floor. The two shipped implementations disagree:
-    % '@opvar/degbalance' rounds up and '@dopvar2d/degbalance' rounds down.
-    % Rounding up is taken here because under-sizing the basis shows up as
-    % spurious infeasibility -- the positive operator cannot represent the
-    % target, so the equality forces genuine coefficients to zero -- while
-    % over-sizing only costs decision variables. It is also what makes the
-    % cross-check against '@opvar/degbalance' agree exactly.
+    % CEIL, not floor: under-sizing the basis shows up as spurious
+    % infeasibility -- the positive operator cannot represent the target, so
+    % the equality forces genuine coefficients to zero -- while over-sizing
+    % only costs decision variables.
     S = zeros(1,2^nv);
     for i = 2:2^nv
         b = bitget(i-1,1:nv)>0;
@@ -248,17 +181,10 @@ for r = 1:size(incl,1)
         end
     end
 
-    % Singletons and the full set are the int, mult and joint caps.
-    %
-    % SLOT CORRESPONDENCE, determined by cross-check against
-    % '@opvar/degbalance' rather than from documentation, which is wrong on
-    % this point in 'possopvar' itself. Their d{2} is ordered
-    % [deg s, deg theta, joint]; matching their answer on targets with
-    % DIFFERENT s and theta degrees shows that possopvar's 'int' -- the
-    % INTEGRATION-variable cap -- takes the target's INPUT-variable degree,
-    % and 'mult' -- the output-variable cap -- takes the target's OUTPUT
-    % degree. Reading it the other way round reproduced their numbers
-    % transposed on 3 of 4 test targets.
+    % Singletons and the full set are the int, mult and joint caps. SLOT
+    % CORRESPONDENCE: 'int', the INTEGRATION-variable cap of the basis, takes
+    % the degree of the INPUT variable of the target, and 'mult', the
+    % output-variable cap, the degree of its OUTPUT variable.
     d = struct();
     d.int  = zeros(1,n3);
     d.mult = zeros(1,n3);
@@ -278,11 +204,6 @@ report.lines{end+1} = sprintf(['sized %d blocks from the target degrees, ' ...
     'weight ''%s''.'],size(incl,1),weight);
 
 end
-
-
-%%
-% Deleted: the local function degree_table (initial coding 09/21/2026, no   % MMP, 09/30/2026
-% later stamps), now multiindex_grid(Z,'first_slowest').                    % MMP, 09/30/2026
 
 
 %%

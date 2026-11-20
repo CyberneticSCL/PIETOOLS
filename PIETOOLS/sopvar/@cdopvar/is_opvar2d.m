@@ -3,9 +3,7 @@ function [logval,idx_out,idx_in] = is_opvar2d(P)
 % [logval,idx_out,idx_in] = is_opvar2d(P) checks whether the PI operator P
 % has the structure of a 'dopvar2d' object,
 %   P: R^m0 x L2^mx[x] x L2^my[y] x L2^m2[x,y]
-%                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y],
-% so that its fields can be read as those of a 'dopvar2d' with
-% 'getfield_opvar2d'.
+%                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y].
 %
 % INPUT
 % P:        cdopvar class object
@@ -23,8 +21,8 @@ function [logval,idx_out,idx_in] = is_opvar2d(P)
 %   sorted registry. A container with one variable has no y, and its
 %   variable is x, whatever its name.
 % - Any of the dimensions may be zero.
-% - P may have several block rows of each space, as 'convert' gives one
-%   block row per group of PDE states. Stacked in order, they are the
+% - P may have several block rows of each space, e.g. one block row per
+%   group of PDE states. Stacked in order, they are the
 %   spaces of the 'dopvar2d'. A block row of a space before one of an
 %   earlier space (e.g. L2[x,y] before L2[x]) would change the order of the
 %   components, which a 'dopvar2d' cannot represent, so that P is not
@@ -56,6 +54,8 @@ function [logval,idx_out,idx_in] = is_opvar2d(P)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % DJ, 11/15/2026: Initial coding;
 

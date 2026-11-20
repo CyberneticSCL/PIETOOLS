@@ -2,8 +2,7 @@ function [C,meta,Zds,src] = cat_copvar_grid(dir,args,cls)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [C,META,ZDS,SRC] = CAT_COPVAR_GRID(DIR,ARGS,CLS) assembles the block grid and
 % metadata of a horizontal, vertical or block-diagonal concatenation of
-% containers, for the 'horzcat', 'vertcat' and 'blkdiag' methods of 'copvar'
-% and 'cdopvar'.
+% 'copvar' or 'cdopvar' containers.
 %
 % INPUTS
 % - dir:    'h' for [A, B, ...], 'v' for [A; B; ...], 'd' for
@@ -13,28 +12,24 @@ function [C,meta,Zds,src] = cat_copvar_grid(dir,args,cls)
 %           Numeric [] operands, as MATLAB passes for [A, []], are dropped,
 %           and so are containers with an empty 0 x 0 grid;
 % - cls:    class of the result, 'copvar' or 'cdopvar'. Every operand is
-%           promoted to it; the caller decides it;
+%           promoted to it;
 %
 % OUTPUTS
 % - C:      the concatenated block grid; zero blocks stay [];
 % - meta:   struct with fields vars, dom, space_out, space_in, dim_out,
-%           dim_in, for the two-argument constructor. No decision variable
-%           list: a 'cdopvar' caller reconciles that itself;
-% - Zds:    1 x K' cell holding each surviving operand's decision variable
-%           list, for that reconciliation, as a column; the stored list
-%           itself, not a copy. Empty lists for 'copvar';
+%           dim_in: the container metadata, without a decision variable
+%           list;
+% - Zds:    1 x K' cell holding the decision variable list of each
+%           surviving operand, as a column; the stored list itself, not a
+%           copy. Empty lists for 'copvar';
 % - src:    grid the size of C: which surviving operand each block came
-%           from, 0 for a [] block. With Zds it lets the reconciliation
-%           move every block of one operand by ONE row map.
+%           from, 0 for a [] block. With Zds, every block of one operand can
+%           be moved by ONE row map when the decision lists are merged.
 %
 % NOTES
 % A container grid keeps its spaces SEPARATE: [A, B] has the columns of A
-% followed by the columns of B, and each block is left as it was. This is
-% not what 'dopvar/horzcat' does - it merges the finite-dimensional parts of
-% all operands into one R^n block and the L_2 parts into one L_2 block - and
-% it is why the container needs no 'ambiguous ordering' warning: nothing is
-% reordered. Positive operators built over the result take its space list
-% directly (see 'poscopvar').
+% followed by the columns of B, and each block is left as it was; nothing
+% is reordered.
 %
 % [A, B] needs A and B to agree on every ROW: the same number of block rows,
 % and in row i the same output space (as a SET of variable names) and the
@@ -45,11 +40,9 @@ function [C,meta,Zds,src] = cat_copvar_grid(dir,args,cls)
 % remapped onto the merged registry. That is what lets [Dzw, Cz] join a
 % finite-dimensional block to one over L_2[s].
 %
-% This routine is shared by both container classes, like
-% 'derive_copvar_meta', because the grid and metadata logic is identical
-% for the two and is the part that would silently diverge if duplicated.
-% The decision variable list is not handled here, since reconciling it
-% needs @cdopvar's private 'merge_dvar_lists', which uses SRC below.
+% The grid and metadata logic is the same for both container classes. The
+% decision variable lists are not merged here; ZDS and SRC carry what the
+% merge needs.
 %
 % Cost: O(total blocks) cell moves, plus set operations on the variable
 % registries, which have one entry per spatial direction. Nothing here
@@ -85,22 +78,8 @@ function [C,meta,Zds,src] = cat_copvar_grid(dir,args,cls)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
-% MMP, 09/30/2026: The registry merge and the mask remap call
-%                  'merge_copvar_registry' instead of carrying a verbatim
-%                  copy of its merge loop, which that file's NOTES recorded.
-%                  Same union, domains, masks, error identifier and message.
-%                  Difference: an operand not yet on the union is restated
-%                  in place (4 property writes through the overloaded
-%                  subsasgn, O(nv), flat in q), where this routine only read.
-%                  The equalities hold under the class invariant (sorted
-%                  1 x nv registry, logical masks). Operands that all share
-%                  one off-invariant registry (column or 0x0 'vars',
-%                  unsorted names, double masks) now keep it, as plus and
-%                  mtimes already did; the deleted loop rebuilt a sorted row
-%                  and logical masks. No library constructor builds one.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT for the
-%                  local functions; code unchanged.
 
+% Check the direction; the name of the operation, for messages
 if ~any(strcmp(dir,{'h','v','d'}))
     error('cat_copvar_grid:badDir',"'dir' must be 'h', 'v' or 'd'.")
 end
@@ -111,10 +90,13 @@ opname = opname.(dir);
 keep = true(1,numel(args));
 for k = 1:numel(args)
     a = args{k};
+    % Numeric [] operands are dropped
     if isnumeric(a) && isempty(a)
         keep(k) = false;
         continue
     end
+    % A block, or a 'copvar' for a 'cdopvar' result, is promoted; any other
+    % class is refused
     if strcmp(cls,'copvar')
         if isa(a,'sopvar') && ~isa(a,'sdopvar')
             a = copvar({a});
@@ -125,6 +107,7 @@ for k = 1:numel(args)
                 'opvar2copvar.'],opname,class(a))
         end
     else
+        % 'cdopvar' result: a 'copvar' is promoted, a block wrapped
         if isa(a,'copvar')
             a = cdopvar(a);
         elseif isa(a,'sopvar') || isa(a,'sdopvar')
@@ -143,6 +126,7 @@ for k = 1:numel(args)
     end
     args{k} = a;
 end
+% No operand left: the empty container
 args = args(keep);
 K = numel(args);
 if K==0
@@ -155,24 +139,19 @@ if K==0
     return
 end
 
-% % % BEGIN merge replaced by MMP, 09/30/2026. Deleted: the registry merge
-% % % (sorted union, one domain per name, cls:domConflict) and the remap of
-% % % each operand's masks onto it (initial coding 09/25/2026), a verbatim
-% % % copy of the loop in 'merge_copvar_registry', which plus and mtimes
-% % % call. That routine now does both: every operand comes back on the
-% % % sorted union registry, masks remapped by name, same error and message.
-% % % Registries are sorted and short (one entry per spatial direction), so
-% % % this is on the small axis.
-[args{1:K}] = merge_copvar_registry(cls,opname,args{:});                    % MMP, 09/30/2026
-vars = args{1}.vars;        dom = args{1}.dom;                              % MMP, 09/30/2026
+% % % Merge the registries: every operand comes back on the sorted union
+% % % registry, its masks remapped by name; a variable given two domains is
+% % % an error (cls:domConflict). Registries are short (one entry per
+% % % spatial direction), so this is on the small axis.
+[args{1:K}] = merge_copvar_registry(cls,opname,args{:});
+vars = args{1}.vars;        dom = args{1}.dom;
 S_out = cell(1,K);      S_in = cell(1,K);
 D_out = cell(1,K);      D_in = cell(1,K);
 for k = 1:K
     a = args{k};
-    S_out{k} = a.space_out;         S_in{k} = a.space_in;                   % MMP, 09/30/2026
+    S_out{k} = a.space_out;         S_in{k} = a.space_in;
     D_out{k} = a.dim_out(:);        D_in{k} = a.dim_in(:);
 end
-% % % END merge replaced by MMP, 09/30/2026
 
 % % % Agreement checks, and the grid.
 switch dir
@@ -224,6 +203,7 @@ switch dir
         space_in = vertcat(S_in{:});    dim_in = vertcat(D_in{:});
 end
 
+% Metadata of the result; src is 0 at [] blocks
 meta = struct('vars',{vars},'dom',dom,'space_out',space_out,...
     'space_in',space_in,'dim_out',dim_out,'dim_in',dim_in);
 
@@ -277,5 +257,6 @@ end
 
 function s = ternary(c,a,b)
 % S = TERNARY(C,A,B) is A when C is true and B otherwise.
+% INPUTS  c: logical; a, b: any values.  OUTPUT  s: a or b.
 if c,   s = a;  else,   s = b;  end
 end

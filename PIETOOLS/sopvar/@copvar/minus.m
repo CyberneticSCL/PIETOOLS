@@ -3,18 +3,19 @@ function P = minus(A,B)
 % P = MINUS(A,B) or A-B subtracts two 'copvar' objects blockwise.
 %
 % INPUTS
-% - A, B:   'copvar' objects on the same grid, spaces and dimensions, as
-%           'plus' requires. A 'cdopvar' operand dispatches to
-%           @cdopvar/minus instead;
+% - A, B:   'copvar' objects on the same grid, spaces and dimensions; with a
+%           'cdopvar' operand the difference is a 'cdopvar'. A numeric or
+%           'dpvar' scalar c is c*I on a square operator; a 'dpvar' matrix
+%           of the total size is a multiplier split by the dimensions;
 %
 % OUTPUTS
 % - P:      'copvar' object equal to A - B.
 %
 % NOTES
-% Written as A + (-B), as @sopvar/minus and @sdopvar/minus are, so that the
-% checks on grids, registries and spaces live only in 'plus'.
+% Computed as A + (-B), so the grids, registries and spaces are checked as
+% for a sum.
 %
-% Cost: that of 'uminus' on B plus that of 'plus'.
+% Cost: one negation of B and one sum.
 %
 % See also UMINUS, PLUS, COPVAR.
 %
@@ -46,6 +47,7 @@ function P = minus(A,B)
 %
 % Initial coding MMP, 09/25/2026
 
+% A - B as A + (-B)
 P = plus(A,uminus(B));
 
 end

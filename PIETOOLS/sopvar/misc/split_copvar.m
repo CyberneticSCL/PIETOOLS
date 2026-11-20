@@ -35,6 +35,7 @@ function Q = split_copvar(P,rsplit,csplit,opts)
 %   variable.
 % - The components of P in a split component can be in any order.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - split_copvar
@@ -62,6 +63,7 @@ function Q = split_copvar(P,rsplit,csplit,opts)
 %
 % DJ, 11/01/2026: Initial coding;
 
+% An empty input gives an empty output; any other must be a 'copvar'
 if isempty(P)
     Q = [];
     return
@@ -69,6 +71,7 @@ end
 if ~isa(P,'copvar')
     error("Operator must be specified as object of type 'copvar'.")
 end
+% Option 'tensopmat': return the blocks as a cell
 as_cell = false;
 if nargin>=4
     if ~(ischar(opts) || isstring(opts)) || ~strcmp(opts,'tensopmat')
@@ -76,6 +79,7 @@ if nargin>=4
     end
     as_cell = true;
 end
+% Default splits: one row (column) with all components of each row (column)
 [M,N] = size(P.C);
 if nargin<2 || isempty(rsplit)
     rsplit = arrayfun(@(i) {{1:P.dim_out(i)}},(1:M)');
@@ -103,6 +107,7 @@ for i=1:M
                     ops{r0(i)+rr,c0(j)+cc} = P.C{i,j}(ridcs,cidcs);
                     continue
                 end
+                % A zero block of P: an explicit zero operator on its spaces
                 spc = struct('in',{P.vars(P.space_in(j,:))},'out',{P.vars(P.space_out(i,:))});
                 dom = struct('in',P.dom(P.space_in(j,:),:),'out',P.dom(P.space_out(i,:),:));
                 ops{r0(i)+rr,c0(j)+cc} = mat2sopvar(zeros(numel(ridcs),numel(cidcs)),spc,dom);

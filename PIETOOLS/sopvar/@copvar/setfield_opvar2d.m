@@ -3,18 +3,20 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % P = setfield_opvar2d(P,fname,val) sets the field fname of the PI operator
 %   P: R^m0 x L2^mx[x] x L2^my[y] x L2^m2[x,y]
 %                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y]
-% as if P were an 'opvar2d' object, with the components Rij of
-% 'getfield_opvar2d', so that P.(fname) then returns val.
+% as if P were an 'opvar2d' object, with the components Rij mapping the
+% space j to the space i (i,j = 0, x, y, 2), so that P.(fname) then
+% returns val.
 %
 % INPUT
-% P:      copvar class object with the structure of an 'opvar2d', see
-%         'is_opvar2d'
+% P:      copvar class object with the structure of an 'opvar2d': at most
+%         two spatial variables, and the block rows (columns) ordered by
+%         space, first R, then L2[x], then L2[y], then L2[x,y]
 % fname:  char or string, the name of an 'opvar2d' field: 'R00', ...,
 %         'R22', 'I', 'var1' or 'var2'
 % val:    the value of the field:
-%         'Rij':    ni x mj 'double' or 'polynomial', or a cell of these of
-%                   the shape 'getfield_opvar2d' returns (3 x 1, 1 x 3 or
-%                   3 x 3), [] for zero. Kernels are in var1 (x,y) and, in
+%         'Rij':    ni x mj 'double' or 'polynomial', or a cell of these,
+%                   3 x 1 if x is in both spaces i and j, 1 x 3 if y is,
+%                   3 x 3 if both are, [] for zero. Kernels are in var1 (x,y) and, in
 %                   a direction with an integral over part of the domain, in
 %                   var2 (x_dum, y_dum); a variable only in the input space
 %                   may be named x or x_dum;
@@ -34,7 +36,7 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % P:      the copvar with the field set
 %
 % NOTES:
-% - x is P.vars{1} and y is P.vars{2} (sorted), as in 'getfield_opvar2d'.
+% - x is P.vars{1} and y is P.vars{2} (sorted).
 %   A variable P does not have yet is taken from the kernel (its name with
 %   '_dum' removed), else from opts.vars, with domain [0,1]; a second
 %   variable must sort after the first, else it would be read as x.
@@ -42,8 +44,8 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 %   kept. A component on a space of dimension 0 adds a block row (column)
 %   for it, in the order R, L2[x], L2[y], L2[x,y], the other components in
 %   it being zero. A row or column of the component left without a block
-%   keeps a zero block, as the container reads its space off a block
-%   ('verify'). Setting a component with no rows or columns does nothing.
+%   keeps a zero block, as the container reads its space off a block.
+%   Setting a component with no rows or columns does nothing.
 % - var1 renames the variables only if no block depends on them, or adds
 %   y. I changes the domain of every block.
 
@@ -71,8 +73,11 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/15/2026: Initial coding;
 
+% Defaults of the optional inputs; check the structure of P and the field
 if nargin<4
     cidx = [];
 end
@@ -85,6 +90,7 @@ end
 if ~isfield(opts,'label')
     opts.label = fname;
 end
+% P must have the spaces R, L2[x], L2[y], L2[x,y] of an 'opvar2d'
 [is_2d,idx_out,idx_in] = is_opvar2d(P);
 if ~is_2d
     error('copvar:notOpvar2d',['The operator does not have the structure of an ''opvar2d'', '...
@@ -211,6 +217,7 @@ for k=idcs_K
         K{k} = polynomial(K{k});
     end
 end
+% Rows and columns of the component in P, and the one size of the kernels
 nr_P = sum(P.dim_out(idx_out==i));      nc_P = sum(P.dim_in(idx_in==j));
 sz_K = cellfun(@size,K(idcs_K),'UniformOutput',false);
 sz_K = unique(cell2mat(sz_K(~cellfun(@isempty,K(idcs_K)))'),'rows');
@@ -220,6 +227,8 @@ elseif isempty(sz_K)
     sz_K = [nr_P,nc_P];
 end
 nr = sz_K(1);   nc = sz_K(2);
+% The kernels must match the nonzero dimensions of the spaces of P; a
+% component of size zero leaves nothing to set
 spaces = {'R','L2[x]','L2[y]','L2[x,y]'};
 if nr_P>0 && nr~=nr_P
     error('copvar:sizeMismatch','''%s'' must have %d rows, the dimension of the %s output space; it has %d.',label,nr_P,spaces{i},nr)

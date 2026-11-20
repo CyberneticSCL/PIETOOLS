@@ -7,6 +7,8 @@ function Pop_in = uplus(Pop_in)
 %
 % OUTPUT
 % - Pop_in:     the same m x n 'sopvar' object, unchanged.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - uplus
@@ -33,8 +35,6 @@ function Pop_in = uplus(Pop_in)
 % authorship, and a brief description of modifications
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
-% MMP, 11/06/2026: Help text corrected: it described (-1)*P, copied from
-%                  'uminus'; +P returns P. Code unchanged.
 
 % Nothing to do: +P is P
 end

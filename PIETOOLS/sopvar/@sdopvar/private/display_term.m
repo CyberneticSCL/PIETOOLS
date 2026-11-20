@@ -1,8 +1,7 @@
 function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs)
 % [TERM_STR,TERM_SIGN,USE_K] = DISPLAY_TERM(P,K,XSYM,OUT_NAMES,ENTRY_IDCS)
 % builds a char representing the term of the operator P defined by the
-% parameters P.PARAMS.A{K} and P.PARAMS.B{K}, for use in the 'display' and
-% 'get_display' methods of 'sdopvar'.
+% parameters P.PARAMS.A{K} and P.PARAMS.B{K}.
 %
 % INPUTS
 % - P:      'sdopvar' object, with M output variables and N input
@@ -13,8 +12,8 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 %           acts on, as in K(s,s') x(s'). Defaults to 'x'. If the operator
 %           acts on R, and xsym is '1', the function is not displayed;
 % - out_names:  (optional) 1 x M cellstr, the names to display for the
-%               output variables. Defaults to those given by
-%               'varname2display';
+%               output variables. Defaults to their names in display
+%               form, trailing digits as subscripts;
 % - entry_idcs: (optional) 1 x 2 array, the row and column of the element
 %               of the matrix-valued kernel. If given, the term is that of
 %               the scalar kernel K_ij, acting on the function XSYM (the
@@ -40,7 +39,7 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 %
 % NOTES
 % - A variable that is also an output variable has the parameter indexed by
-%   1, 2 or 3, see 'decode_params'. For 1, the term is a multiplier, so
+%   1, 2 or 3. For 1, the term is a multiplier, so
 %   that there is no integral, and the function is evaluated at the output
 %   variable, which is also used as the limit of the integrals for 2 and 3.
 %   For 2, the integral is taken from the lower boundary of the domain to
@@ -80,14 +79,15 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the names of dummy variables, the limits, and the
-%                   subscripts from 'varname2display';
 
 % Default settings
 max_nnz = 4;            % maximal number of nonzero coefficients of a kernel (element)
                         % displayed explicitly
 
+% Defaults of the optional inputs; variables, dimensions and display names
 if nargin<3 || isempty(xsym)
     xsym = 'x';
 end
@@ -140,8 +140,7 @@ for q=1:nvars_in
     x_args{q} = dum_disp{q};
     kern_args{end+1} = dum_disp{q};                                %#ok<AGROW>
     % Limits: the boundaries of the domain, or the output variable, as
-    % displayed. A limit is a subscript or superscript, or in braces, see
-    % 'varname2display'
+    % displayed. A limit is a subscript or superscript, or in braces
     [~,lim_lo] = varname2display(sprintf('%g',P.dom.in(q,1)));
     [~,~,lim_hi] = varname2display(sprintf('%g',P.dom.in(q,2)));
     if var_kind(q)==2

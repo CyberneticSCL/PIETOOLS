@@ -1,7 +1,6 @@
 function disp_struct = get_display(Pop,name,expand)
 % DISP_STRUCT = GET_DISPLAY(POP,NAME,EXPAND) constructs the lines of the
 % display of the block matrix POP of PI operators with decision variables,
-% for use in the 'display' method of 'cdopvar',
 %   NAME = [C_11 ... C_1d] : [X_1] --> [Y_1]
 %          [ :   .    :  ]   [ : ]     [ : ]
 %          [C_p1 ... C_pd]   [X_d]     [Y_p]
@@ -26,22 +25,22 @@ function disp_struct = get_display(Pop,name,expand)
 %       defs:   struct array with the fields lhs, terms and signs, for each
 %               of the blocks that is displayed as the actual operator, in
 %               the order of the rows, with lhs the left-hand side, e.g.
-%               '(C_11 x_1)(s) =', and terms and signs as for the output D
-%               of 'get_display' of 'sopvar' or 'sdopvar'. An identity
-%               block is defined with its spatial variables, (C_11 x_1)(s)
-%               = x_1(s);
+%               '(C_11 x_1)(s) =', terms the cellstr of the terms of the
+%               block acting on x_j, and signs their signs (1 or -1). An
+%               identity block is defined with its spatial variables,
+%               (C_11 x_1)(s) = x_1(s);
 %       rows:   struct array with the fields lhs, terms and signs, for each
 %               element of the output of Pop, with lhs the left-hand side,
 %               e.g. '(Pop x)_1(s) =', and terms and signs for the sum of
-%               the blocks in its row acting on the elements of the input,
-%               see 'get_display' of 'sopvar'. Empty if the operator is not
-%               displayed explicitly, see the notes;
+%               the blocks in its row acting on the elements of the input.
+%               Empty if the operator is not displayed explicitly, see the
+%               notes;
 %       xnames: 1 x d cellstr, the names x_j of the functions that the
 %               blocks act on;
 %       xsym:   char, the name x of the function that Pop acts on, from
 %               which x_j follows;
-%       is_id:  logical, true if Pop is an identity operator, in which case
-%               'display' shows (Pop x)_i(s) = x_i(s) for each block row i;
+%       is_id:  logical, true if Pop is an identity operator, displayed as
+%               (Pop x)_i(s) = x_i(s) for each block row i;
 %
 % NOTES
 % - The blocks are named C_ij, dropping i if there is only one block row,
@@ -60,14 +59,14 @@ function disp_struct = get_display(Pop,name,expand)
 %   and nothing is defined.
 % - The operator is displayed explicitly, with a row for each element of
 %   the output, if the input and the output have at most 5 elements,
-%   counting those of vector-valued functions, every block is displayed
-%   explicitly by 'get_display' (scalar-valued, or with explicit rows), and
+%   counting those of vector-valued functions, every block can be displayed
+%   explicitly (scalar-valued, or with explicit rows), and
 %   each row has at most 6 terms of at most 100 characters. The elements of
 %   a function x_j of a vector-valued space are named x_j,k. The blocks are
 %   then not defined. The decision variables are displayed by their names.
 % - The definitions of the blocks are only given if all of the blocks can
-%   be displayed as the actual operators, acting on x_j, with 'get_display'
-%   of 'sopvar' or 'sdopvar', and there are at most 6 of them. Blocks that
+%   be displayed as the actual operators, acting on x_j, and there are at
+%   most 6 of them. Blocks that
 %   are matrix-valued are not displayed as the actual operators, so that
 %   none of the blocks is defined if one of them is.
 % - An identity operator, which does not depend on the decision variables,
@@ -97,13 +96,9 @@ function disp_struct = get_display(Pop,name,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                  very short and called once go into the body): is_id_block
-%                  and is_zero_block inlined into the block loop of
-%                  is_id_cdopvar, each with its header as the comment of the
-%                  block.
 
 % Default settings
 max_blocks = 6;         % maximal number of blocks defined as the actual operators
@@ -112,6 +107,7 @@ max_elems = 5;          % maximal number of elements of the input and of the out
 max_terms = 6;          % maximal number of terms of each element of the output
 max_chars = 100;        % maximal number of characters of each such term
 
+% Defaults of the optional inputs, and the size of the block grid
 if nargin<2
     name = 'Pop';
 end
@@ -134,6 +130,8 @@ for i=1:p
             blk{i,j} = '0';
             continue
         end
+        % C with the subscripts i (p > 1) and j (d > 1), separated by a
+        % comma when either exceeds 9
         blk_name = 'C';
         if p>1
             blk_name = [blk_name,sub_str(i)];
@@ -227,11 +225,13 @@ for k=1:nrows
     else
         line_str = repmat(' ',1,2+numel(lhs));
     end
+    % Block row k, blank below the last block row
     if k<=numel(row_str)
         line_str = [line_str,row_str{k}];
     else
         line_str = [line_str,repmat(' ',1,numel(row_str{1}))];
     end
+    % Input space k and output space k, blank where there is none
     if k<=numel(spc{1})
         spc_in_k = spc_in_str{k};
     else
@@ -241,6 +241,7 @@ for k=1:nrows
     if k<=numel(spc{2})
         spc_out_k = spc_out_str{k};
     end
+    % The colon and the arrow on the first line only; no trailing blanks
     if k==1
         line_str = [line_str,' : ',spc_in_k,' --> ',spc_out_k];
     else
@@ -249,6 +250,7 @@ for k=1:nrows
     lines{k} = regexprep(line_str,'\s+$','');
 end
 
+% The output structure; the definitions and explicit rows are filled below
 disp_struct = struct('lines',{lines}, ...
     'defs',struct('lhs',{},'terms',{},'signs',{}),'xnames',{cell(1,d)},'xsym','','is_id',false, ...
     'rows',struct('lhs',{},'terms',{},'signs',{}),'spc_in',{spc{1}},'spc_out',{spc{2}});
@@ -360,6 +362,7 @@ for i=1:p
         if ~blk_disp.ok
             return
         end
+        % Left-hand side (C_ij x_j)(s), or C_ij x_j without output variables
         lhs = ['(',blk{i,j},' ',disp_struct.xnames{j},')'];
         if ~isempty(Pop.C{i,j}.vars.out)
             out_names = cellfun(@varname2display,reshape(Pop.C{i,j}.vars.out,1,[]),'UniformOutput',false);
@@ -377,7 +380,7 @@ end
 
 function is_id = is_id_cdopvar(Pop)
 % IS_ID = IS_ID_CDOPVAR(POP) checks whether the block matrix POP of PI
-% operators is an identity operator, as used in 'get_display' for 'cdopvar'.
+% operators is an identity operator.
 %
 % INPUTS
 % - Pop:    'cdopvar' object with p x d blocks;
@@ -385,7 +388,7 @@ function is_id = is_id_cdopvar(Pop)
 % OUTPUTS
 % - is_id:  logical, true if Pop is square, maps from and to the same
 %           space, every diagonal block is an identity operator, and every
-%           other block is empty or zero, see 'is_id_op' of 'sopvar';
+%           other block is empty or zero;
 
 is_id = false;
 [p,d] = size(Pop.C);
@@ -396,26 +399,17 @@ for i=1:p
     for j=1:d
         blk = Pop.C{i,j};
         if i==j
-            % An empty diagonal block is a zero operator
-%           if isempty(blk) || ~is_id_block(blk)                            % MMP, 11/09/2026 (was)
-%               return                                                      % MMP, 11/09/2026 (was)
-%           end                                                             % MMP, 11/09/2026 (was)
-%       elseif ~isempty(blk) && ~is_zero_block(blk)                         % MMP, 11/09/2026 (was)
-%           return                                                          % MMP, 11/09/2026 (was)
-%       end                                                                 % MMP, 11/09/2026 (was)
-            % and a nonempty one an identity operator ('is_id_op' of        % MMP, 11/09/2026
-            % 'sopvar', 'get_display' of 'sdopvar'; the former local        % MMP, 11/09/2026
-            % IS_ID_BLOCK)                                                  % MMP, 11/09/2026
-            if isempty(blk),    return,     end                             % MMP, 11/09/2026
-            if isa(blk,'sdopvar'),  blk_id = get_display(blk).is_id;   else,   blk_id = is_id_op(blk);  end % MMP, 11/09/2026
-            if ~blk_id,     return,     end                                 % MMP, 11/09/2026
-        elseif ~isempty(blk)                                                % MMP, 11/09/2026
-            % An off-diagonal block must have every coefficient zero up to  % MMP, 11/09/2026
-            % 1e-12, those of the decision variables included (the former   % MMP, 11/09/2026
-            % local IS_ZERO_BLOCK)                                          % MMP, 11/09/2026
-            if isa(blk,'sdopvar'),  coef_sets = [blk.params.A(:);blk.params.B(:)];  else,   coef_sets = blk.params(:);  end % MMP, 11/09/2026
-            if any(cellfun(@(c) ~isempty(c) && any(abs(nonzeros(c))>1e-12),coef_sets)),  return,  end % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
+            % An empty diagonal block is a zero operator; a nonempty one
+            % must be an identity operator
+            if isempty(blk),    return,     end
+            if isa(blk,'sdopvar'),  blk_id = get_display(blk).is_id;   else,   blk_id = is_id_op(blk);  end
+            if ~blk_id,     return,     end
+        elseif ~isempty(blk)
+            % An off-diagonal block must have every coefficient zero up to
+            % 1e-12, those of the decision variables included
+            if isa(blk,'sdopvar'),  coef_sets = [blk.params.A(:);blk.params.B(:)];  else,   coef_sets = blk.params(:);  end
+            if any(cellfun(@(c) ~isempty(c) && any(abs(nonzeros(c))>1e-12),coef_sets)),  return,  end
+        end
     end
 end
 is_id = true;

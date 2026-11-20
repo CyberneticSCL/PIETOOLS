@@ -4,18 +4,18 @@ function P = minus(A,B)
 %
 % INPUTS
 % - A, B:   'cdopvar' or 'copvar' objects on the same grid, spaces and
-%           dimensions, as 'plus' requires; at least one is a 'cdopvar'
-%           for this method to be reached;
+%           dimensions; at least one is a 'cdopvar'. A numeric or 'dpvar'
+%           scalar c is c*I on a square operator; a 'dpvar' matrix of the
+%           total size is a multiplier split by the dimensions;
 %
 % OUTPUTS
 % - P:      'cdopvar' object equal to A - B.
 %
 % NOTES
-% Written as A + (-B), as @sdopvar/minus is, so that the promotion of a
-% 'copvar' operand and the reconciliation of decision variable lists live
-% only in @cdopvar/plus. Negating B leaves its list unchanged.
+% Computed as A + (-B); negating B leaves its decision variable list
+% unchanged.
 %
-% Cost: that of 'uminus' on B plus that of 'plus'.
+% Cost: one negation of B and one sum.
 %
 % See also UMINUS, PLUS, CDOPVAR.
 %
@@ -47,6 +47,7 @@ function P = minus(A,B)
 %
 % Initial coding MMP, 09/25/2026
 
+% A - B as A + (-B)
 P = plus(A,uminus(B));
 
 end

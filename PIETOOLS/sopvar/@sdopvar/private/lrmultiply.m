@@ -39,13 +39,11 @@ function Cout = lrmultiply(L, C, R)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding SS; vectorization AT, 09/08/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): commented-out
-%                  earlier implementations removed, step comments; the
-%                  preallocation of Bout before the product is dead and is
-%                  left in place; code unchanged.
 
-
+% Constant and decision parts
 A = C.A;
 B = C.B;
 

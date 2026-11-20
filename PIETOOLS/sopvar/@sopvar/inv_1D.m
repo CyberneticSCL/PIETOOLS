@@ -4,7 +4,7 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 % OPTS) inverts the 1D operator on L2^m[a,b] given by 'quadPoly' kernels,
 %   (M - K)x = M(s)x(s) - ∫_a^s M(s)^{-1} FG1(s,t) x(t) dt - ∫_s^b M(s)^{-1} FG2(s,t)x(t) dt,
 % computing (M - K)^(-1) = (I - K)^(-1) M^{-1} = M^{-1} + R M^{-1}
-% by the Gohberg-Krein method (see @sopvar/inv), where
+% by the Gohberg-Krein method, where
 %   K1(s,t) = M(s)^{-1} FG1(s,t) ≈ M(s)^{-1}F1(s)G1(t)
 %   K2(s,t) = M(s)^{-1} FG2(s,t) ≈ M(s)^{-1}F2(s)G2(t)
 % are split by SVD. The kernels of the inverse are fitted back to 'quadPoly'
@@ -16,7 +16,7 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 %   FG2_qp : quadPoly kernel, m×m, is NOT split
 %   interval : [a,b]
 %   opts   : optional struct with fields:
-%       .tol_rank (default 1e-12)  numerical rank tol for decomposeLR
+%       .tol_rank (default 1e-12)  numerical rank tol of the SVD split
 %       .alpha    (default 3)      oversampling factor for basis -> grid size
 %       .Nmin     (default 8)
 %       .maxN     (default 512)
@@ -33,6 +33,8 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 %   - Lambda is NOT used inside. FG1_qp/FG2_qp must already include it.
 %   - We solve U' = A(s) U, V' = -V A(s), where A(s)=B(s)C(s).
 %   - Fits Minv and RM kernels back to quadPoly only at the end.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - inv_1D
@@ -59,12 +61,6 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 % authorship, and a brief description of modifications
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): calling line and
-%                  method statement added to the help text, headers with
-%                  INPUTS/OUTPUTS for the local functions; code unchanged.
-%                  The only caller is ndopvar/@quadPoly/test/
-%                  transfer_function_test.m; @sopvar/inv is the inverse of
-%                  the class.
 %
 
     % ----------------------- Defaults -----------------------
@@ -147,7 +143,8 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
     end
 
     % ----------------- 3) Optional CFL refinement using coarse A norm -----------------
-    % NOTE: lambda removed, so heuristic is h*||A|| <= rk4_cfl
+    % Heuristic: h*||A|| <= rk4_cfl, with ||A|| estimated on a coarse
+    % subgrid of Nc points
     Lest = 0;
     Nc = min(20, max(10, floor(N/4)));
     idxc = unique(round(linspace(1, N, Nc)));
@@ -163,6 +160,8 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
         end
     end
 
+    % Grid size the heuristic needs; a larger grid reruns the inversion on
+    % it, with alpha = 1 and Nmin the new size
     N_cfl = 0;
     if Lest > 0
         N_cfl = ceil((b-a) * Lest / max(opts.rk4_cfl, eps));
@@ -289,7 +288,7 @@ function Q = fit_kernel_from_TS(Zs_out, ns_out, Zt_in, nt_in, grid, T, S, isLowe
     m = size(T,1);
     n = size(T,2);
 
-    % Build basis matrices efficiently (replaces build_Phi)
+    % Basis matrices on the grid
     Phi_out = basis_matrix_cached(Zs_out, grid);  % N×d_out
     Phi_in  = basis_matrix_cached(Zt_in,  grid);  % N×d_in
     d_out = size(Phi_out,2);
@@ -362,6 +361,8 @@ function F = quadPoly_eval(Q, sval, tval)
 % OUTPUT  F: full dim(1) x dim(2) matrix Q(sval,tval).
     m = Q.dim(1); n = Q.dim(2);
 
+    % Left monomial vector Z_s(sval), the Kronecker product over the
+    % variables (exponents of a constant side evaluated at 1)
     zs = 1;
     if ~isempty(Q.Zs)
         zs = 1;
@@ -373,6 +374,7 @@ function F = quadPoly_eval(Q, sval, tval)
     end
     zs = zs(:);
 
+    % Right monomial vector Z_t(tval), likewise
     zt = 1;
     if ~isempty(Q.Zt)
         zt = 1;
@@ -384,6 +386,7 @@ function F = quadPoly_eval(Q, sval, tval)
     end
     zt = zt(:);
 
+    % Q(sval,tval) = (I_m kron Z_s')*C*(I_n kron Z_t)
     L = kron(speye(m), zs');   % (m × m*ds)
     R = kron(speye(n), zt);    % (n*dt × n)
     F = full(L * Q.C * R);
@@ -529,6 +532,7 @@ function [Zc, nc] = mergeBasis(Z1, n1, Z2, n2)
         error('mergeBasis: incompatible number of variables (%d vs %d).', numel(Z1), numel(Z2));
     end
 
+    % Merge variable by variable
     k = numel(Z1);
     Zc = cell(1,k);
     nc = cell(1,k);

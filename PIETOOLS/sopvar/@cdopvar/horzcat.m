@@ -11,23 +11,22 @@ function P = horzcat(varargin)
 %               on every block ROW: the same output space and component
 %               count in row i. They may be built over different variable
 %               registries; the registries are merged, and a variable given
-%               two domains is an error. [] is ignored;
+%               two domains is an error. A 'dpvar' entry maps R^{cols}
+%               into the row spaces (e.g. -gam in [-gam, D', Bw'*Q]). [] is
+%               ignored;
 %
 % OUTPUTS
 % - P:          'cdopvar' object, every block on one decision variable list.
 %
 % NOTES
-% The grid and metadata come from 'cat_copvar_grid', shared with 'copvar'.
-% The decision variable lists are then reconciled by 'merge_dvar_lists',
-% the rule '@cdopvar/plus' applies: when the operands share one list, as
-% they do when they were declared or carried through arithmetic together,
-% it is reused and nothing is remapped.
+% The decision variable lists of the operands are merged into one: when the
+% operands share one list, as they do when they were declared or carried
+% through arithmetic together, it is reused and nothing is remapped.
 %
 % Cost: O(total blocks) when the operands share a decision variable list,
 % which is the normal case. Otherwise one stable union, O(q log q), gives
-% every operand's row map, and each block moves in O(nnz(B)) with no
-% per-block name search; see 'merge_dvar_lists'. Measured 0.99 s at
-% q = 4e5 per operand.
+% the row map of every operand, and each block moves in O(nnz(B)) with no
+% per-block name search. Measured 0.99 s at q = 4e5 per operand.
 %
 % See also VERTCAT, BLKDIAG, CAT_COPVAR_GRID, CDOPVAR.
 %
@@ -58,21 +57,18 @@ function P = horzcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
-% MMP, 09/29/2026: A dpvar operand is converted by
-%                  'dpvar_op_copvar' (legacy @dopvar/horzcat semantics: the
-%                  entry maps R^{cols} into the rows' spaces, e.g. -gam in
-%                  [-gam, D', Bw'*Q]), then concatenated as a container.
-%                  Before, it errored cdopvar:horzcatBadOperand (or never
-%                  dispatched here, for a dpvar on the left).
 
-% dpvar entry: an R^{cols} -> row-space container; see                      % MMP, 09/29/2026
-% 'dpvar_op_copvar'. [] stays ignored, below.                               % MMP, 09/29/2026
-if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
-    P = dpvar_op_copvar('horzcat',varargin{:});                             % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% dpvar entry: converted to an R^{cols} -> row-space container.
+% [] stays ignored, below.
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))
+    P = dpvar_op_copvar('horzcat',varargin{:});
+    return
+end
+% Concatenated grid and merged metadata
 [C,meta,Zds,src] = cat_copvar_grid('h',varargin,'cdopvar');
+% Put every block on one decision variable list
 [C,meta.Zd] = merge_dvar_lists(C,Zds,src);
+% Build the container from the trusted metadata
 P = cdopvar(C,meta);
 
 end

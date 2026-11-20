@@ -12,8 +12,7 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 %
 %   vec(CC{I,J}) = Tmap{I} * vec(CA{I,J}),
 %
-% which 'leftShiftMonomials_SD' applies to the decision-variable
-% coefficients of an affine CA{I,J}.
+% which also maps the decision-variable coefficients of an affine CA{I,J}.
 %
 % INPUTS
 % - varsA, varsB:   cell arrays of spatial variable names;
@@ -55,11 +54,9 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line in the
-%                  house format, the sentence on Tmap completed (its tail
-%                  sat in the body), step comments; code unchanged.
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 
 % Row orientation of the lists; NA, NB the numbers of monomials
 varsA = varsA(:).';
@@ -77,6 +74,7 @@ if isempty(ZB)
     NB = 1;
 end
 
+% Cell grid and block sizes: CA cells (p*NA) x q, CB cells (q*NB) x r
 [nI,nJ] = size(CA);
 
 if numel(CB) ~= nI
@@ -107,6 +105,7 @@ for t = 1:nC
     ia = find(strcmp(varsA,varsC{t}),1);
     ib = find(strcmp(varsB,varsC{t}),1);
 
+    % A variable of one basis keeps its exponents; of both, their sums
     if isempty(ia)
         ZC{t} = ZB{ib}(:);
     elseif isempty(ib)
@@ -118,6 +117,7 @@ for t = 1:nC
     end
 end
 
+% NC monomials in ZC (1 without variables)
 NC = prod(cellfun(@numel,ZC));
 if isempty(ZC)
     NC = 1;
@@ -138,6 +138,7 @@ for t = 1:numel(varsA)
     EAc(:,k) = kron(ones(left,1),kron(ZA{t}(:),ones(right,1)));
 end
 
+% The same for ZB
 EBc = zeros(NB,nC);
 
 for t = 1:numel(varsB)
@@ -150,6 +151,7 @@ for t = 1:numel(varsB)
     EBc(:,k) = kron(ones(left,1),kron(ZB{t}(:),ones(right,1)));
 end
 
+% The same for ZC, which has every variable of varsC
 EC = zeros(NC,nC);
 
 for t = 1:nC
@@ -213,6 +215,7 @@ for I = 1:nI
         Tmap{I} = T;
     end
 
+    % Each cell of the row block: through Tmap{I}, or as the product
     for J = 1:nJ
 
         Acoef = CA{I,J};

@@ -1,6 +1,5 @@
 function At = transpose(A)
-% At = TRANSPOSE(A) returns the adjoint of the 'sopvar' operator A, A.' = A',
-% by calling 'ctranspose'.
+% At = TRANSPOSE(A) returns the adjoint of the 'sopvar' operator A, A.' = A'.
 % since all parameters are real-valued transpose and conjugate transpose
 % funtions should be the same.
 %
@@ -9,6 +8,8 @@ function At = transpose(A)
 %
 % OUTPUTS
 % - At:     n x m 'sopvar' object representing the adjoint of A;
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - transpose
@@ -37,5 +38,6 @@ function At = transpose(A)
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 %
 
+% Real parameters: the transpose is the adjoint
 At = ctranspose(A);
 end

@@ -5,22 +5,23 @@ function Pblkdiag = blkdiag(varargin)
 % output (A*x_A; B*x_B; ...).
 %
 % INPUTS
-% varargin: sdopvar objects sharing vars and dom. Dimensions need not match.
-%           A fixed 'sopvar' operand is accepted and promoted;
+% varargin: 'sdopvar' objects sharing vars and dom. Dimensions need not
+%           match. A fixed 'sopvar' operand is accepted and promoted;
 %
 % OUTPUTS
-% Pblkdiag: sdopvar object of dimension [sum of output dims, sum of input dims]
+% Pblkdiag: 'sdopvar' object of dimension [sum of output dims, sum of input
+%           dims]
 %
 % NOTES:
 % Built as the block matrix whose diagonal holds the operands and whose
-% off-diagonal blocks are zero operators, using @sdopvar/horzcat and
-% @sdopvar/vertcat. Those already reconcile the monomial bases and decision
+% off-diagonal blocks are zero operators, by horizontal and vertical
+% concatenation. These already reconcile the monomial bases and decision
 % variable lists of all N operands in one pass, so nothing is gained by
 % doing the index arithmetic again here, and the off-diagonal blocks cost
 % almost nothing: an all-zero parameter is a sparse allocation with no
 % stored entries.
 %
-% MATLAB's builtin blkdiag cannot be used on these objects: it interleaves
+% The builtin blkdiag cannot be used on these objects: it interleaves
 % numeric zero matrices among the operands and hands them to horzcat, which
 % has no meaning for an operator on L_2.
 %
@@ -49,8 +50,6 @@ function Pblkdiag = blkdiag(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
-%                  for the local function; code unchanged.
 
 % A single operand is returned as is
 if nargin==1
@@ -73,6 +72,7 @@ end
 ops = varargin;
 N = numel(ops);
 
+% Every operand must now be an 'sdopvar'
 if ~all(cellfun(@(x) isa(x,'sdopvar'),ops))
     error('blkdiag is currently supported only for sdopvar and sopvar objects');
 end

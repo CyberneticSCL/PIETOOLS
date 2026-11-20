@@ -10,7 +10,7 @@ function Cop = minus(Aop,Bop)
 % - Cop:    m x n 'sopvar' object representing the difference of the operators
 %           defined by Aop and Bop
 %
-
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - minus
@@ -39,6 +39,7 @@ function Cop = minus(Aop,Bop)
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 
 
+% A - B = A + (-B)
 Cop = plus(Aop,uminus(Bop));
 
 end

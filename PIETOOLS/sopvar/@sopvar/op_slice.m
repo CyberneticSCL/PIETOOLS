@@ -16,6 +16,8 @@ function Psop = op_slice(P,varargin)
 %   one column. P(:) of a row operator is refused, as it is not a slice.
 % - Psop keeps the monomial bases ZL and ZR of P.
 % - If indr and indc select every row and column in order, Psop = P.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - op_slice (sopvar)
@@ -41,8 +43,9 @@ function Psop = op_slice(P,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 11/14/2026: Initial coding (slicing moved from @sopvar/subsref);
+% DJ, 11/14/2026: Initial coding;
 
+% Slicing needs a 1 x 2 'dims'
 dims = P.dims;
 if numel(dims)~=2
     error('sopvar:sliceDims',['Slicing needs a 1 x 2 ''dims''; this sopvar '...

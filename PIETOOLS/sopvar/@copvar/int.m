@@ -60,8 +60,11 @@ function Pint = int(Pop,vars,dom)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 10/29/2026: Initial coding;
 
+% Check the input; default limits: the full domain of each variable
 if ~isa(Pop,'copvar')
     error("PI operator must be specified as object of type 'copvar'.")
 end

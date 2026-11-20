@@ -20,14 +20,14 @@ function Pop = int2sopvar(Kmat,vars,dom,int_dom)
 %    out:   1 x M cellstr array specifying the names of the output
 %           variables to the operator, the variables s;
 %           Can also be specified as a 1 x N cellstr, in which case
-%           vars.in = vars.out = vars, as for 'copvar';
+%           vars.in = vars.out = vars;
 % - dom:    struct with fields
 %    in:    N x 2 'double' array specifying the intervals on which the
 %           input variables are defined;
 %   out:    M x 2 'double' array specifying the intervals on which the
 %           output variables are defined;
 %           Can also be specified as an N x 2 'double' array, in which
-%           case dom.in = dom.out = dom, as for 'copvar';
+%           case dom.in = dom.out = dom;
 % - int_dom:    (optional) N x 2 'double', 'polynomial' or 'cell' array,
 %           int_dom(i,:) = [L,U] specifying the lower and upper limit of
 %           integration in the variable vars.in{i}. Each limit is either
@@ -50,12 +50,13 @@ function Pop = int2sopvar(Kmat,vars,dom,int_dom)
 %   [s,s]:  multiplier along s, K(s) x(s), parameter gamma = 1. The kernel
 %           may not depend on the dummy variable t of s, as a multiplier
 %           acts pointwise;
-% where the labels 1, 2, 3 for gamma are those of the sopvar document,
-% Sec. 4 (see 'gamma_of_cell'). A variable only in vars.in must have the
-% limits [a,b], as the integral is then taken over all of the interval.
-% Other limits are refused, as the integral between other limits is not a
-% PI operator in the variable.
+% where gamma is the entry of the parameter multi-index in the direction
+% of s. A variable only in vars.in must have the limits [a,b], as the
+% integral is then taken over all of the interval. Other limits are
+% refused, as the integral between other limits is not a PI operator in
+% the variable.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - int2sopvar
@@ -82,10 +83,6 @@ function Pop = int2sopvar(Kmat,vars,dom,int_dom)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/29/2026: Initial coding;
-% DJ, 11/08/2026: Read s_dum in a 'polynomial' kernel as the dummy variable
-%                   associated with s;
-% DJ, 11/15/2026: Bugfix: Rename s_dum to s in the right variables of the
-%                   'polynomial' kernel;
 
 % Check that the kernel is properly specified
 if ~isa(Kmat,'double') && ~isa(Kmat,'polynomial') && ~isa(Kmat,'quadPoly')
@@ -93,7 +90,7 @@ if ~isa(Kmat,'double') && ~isa(Kmat,'polynomial') && ~isa(Kmat,'quadPoly')
 end
 
 % Check that the variables are properly specified. A cellstr is the same
-% list of variables for the input and the output space, as for 'copvar'
+% list of variables for the input and the output space
 if iscellstr(vars)
     vars = struct('in',{vars},'out',{vars});
 end
@@ -107,7 +104,7 @@ vars.in = reshape(vars.in,1,[]);        N = numel(vars.in);
 vars.out = reshape(vars.out,1,[]);      M = numel(vars.out);
 
 % Check that the domains are properly specified. An array is the same domain
-% for the input and the output variable, as for 'copvar'
+% for the input and the output variable
 if isnumeric(dom)
     dom = struct('in',dom,'out',dom);
 end
@@ -145,33 +142,31 @@ end
 if isa(Kmat,'double')
     Kmat = quadPoly(Kmat);
 elseif isa(Kmat,'polynomial')
-    % % % Start of changes DJ (CC), 11/08/2026
     % The variables in vars.out are the left variables s. The right variable t
     % of a variable that is also in vars.out is named s_dum, that of a variable
     % only in vars.in is that variable, and is renamed to vars.in below
     dvars = vars.in;
     dvars(is_out) = strcat(vars.in(is_out),'_dum');
-    % % % End of changes DJ (CC), 11/08/2026
-    % The kernel can only depend on variables of the operator, and
-    % polynomial2quadPoly would drop any other variable without an error
+    % The kernel can only depend on variables of the operator, and the
+    % conversion below would drop any other variable without an error
     vname_Kmat = Kmat.varname(:);
     has_coef = full(any(Kmat.coefficient,2));
-    is_bad = any(full(Kmat.degmat(has_coef,:)),1)' & ~ismember(vname_Kmat,[vars.out,dvars]);    % DJ, 11/08/2026
+    is_bad = any(full(Kmat.degmat(has_coef,:)),1)' & ~ismember(vname_Kmat,[vars.out,dvars]);
     if any(is_bad)
         error("Kernel depends on variable(s) '%s', which are not variables of the operator.",...
             strjoin(vname_Kmat(is_bad)',"', '"))
     end
-    Kmat = quadPoly.polynomial2quadPoly(Kmat,vars.out,dvars);               % DJ, 11/08/2026
+    Kmat = quadPoly.polynomial2quadPoly(Kmat,vars.out,dvars);
     % bind_basis matches the right variables against vars.in, so rename each
     % s_dum to s.
-    [~,idcs_t] = ismember(Kmat.nt,dvars);                                   % DJ, 11/15/2026
+    [~,idcs_t] = ismember(Kmat.nt,dvars);
     Kmat.nt = vars.in(idcs_t);
 end
 
 % Bind the monomial bases to the variables. The monomial index of the
 % coefficients follows the variables of the kernel, so these are placed
 % first, the others getting degree 0; the constructor puts the variables in
-% canonical order, permuting the coefficients accordingly (sopvar.m)
+% canonical order, permuting the coefficients accordingly
 [vars_out,ZL] = bind_basis(Kmat.ns,Kmat.Zs,vars.out,'output');
 [vars_in,ZR] = bind_basis(Kmat.nt,Kmat.Zt,vars.in,'input');
 [~,idcs_out] = ismember(vars_out,vars.out);

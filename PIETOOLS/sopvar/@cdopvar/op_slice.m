@@ -21,7 +21,7 @@ function Psop = op_slice(P,varargin)
 %   becomes one block row (column) of Psop. The order of the indices is
 %   kept, and block rows (columns) of P that are not selected are dropped.
 % - A block row or column of Psop with only zero blocks gets an explicit
-%   zero 'sopvar' block, since 'verify' requires one.
+%   zero 'sopvar' block, as a valid container requires one.
 % - Psop keeps the decision variables Zd of P, including decision variables
 %   that no longer appear in the slice.
 % - Psop = op_slice(P,ind) takes linear indices ind, for P with one row or
@@ -52,8 +52,11 @@ function Psop = op_slice(P,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/14/2026: Initial coding;
 
+% Numbers of rows and columns of the full operator
 nr = sum(P.dim_out);    nc = sum(P.dim_in);
 % Linear indices: only a container with one input (output) component in
 % all has a sub-operator for them; P(:) of a row would be a reshape.
@@ -70,6 +73,7 @@ if isscalar(varargin)
 elseif numel(varargin)~=2
     error('cdopvar:numIndices','Index a cdopvar as P(I,J), or P(I) for one row or column.')
 end
+% Row and column indices as columns of integers
 indr = parse_index(varargin{1},nr,'Row');
 indc = parse_index(varargin{2},nc,'Column');
 
@@ -96,6 +100,8 @@ for k = 1:2
     blk{k} = b(first);
     loc{k} = mat2cell(ind{k}-edges(b),diff([find(first);numel(b)+1]),1);
 end
+% Metadata of the slice: the spaces of the selected blocks, one component
+% per selected index
 [rb,cb] = blk{:};       [rloc,cloc] = loc{:};
 meta = metadata(P);
 meta.space_out = P.space_out(rb,:);     meta.space_in = P.space_in(cb,:);
@@ -112,7 +118,7 @@ for t = 1:numel(rb)
     end
 end
 % A block row or column with no block gets an explicit zero block, at (t,1)
-% and then at (1,u), placed and built as in 'mat2copvar_grid'.
+% and then at (1,u).
 if ~isempty(C)
     occ = ~cellfun(@isempty,C);
     er = find(~any(occ,2));         occ(er,1) = true;
@@ -145,6 +151,8 @@ function ind = parse_index(ind,n,side)
 %
 % OUTPUT
 % ind:  numel x 1 array of integers in 1:n
+
+% ':' selects every component; a logical index becomes integer indices
 if ischar(ind) && isequal(ind,':')
     ind = (1:n)';
     return

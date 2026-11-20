@@ -3,18 +3,20 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % P = setfield_opvar2d(P,fname,val) sets the field fname of the PI operator
 %   P: R^m0 x L2^mx[x] x L2^my[y] x L2^m2[x,y]
 %                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y]
-% as if P were a 'dopvar2d' object, with the components Rij of
-% 'getfield_opvar2d', so that P.(fname) then returns val.
+% as if P were a 'dopvar2d' object, with the components Rij mapping the
+% space j to the space i (i,j = 0, x, y, 2), so that P.(fname) then
+% returns val.
 %
 % INPUT
-% P:      cdopvar class object with the structure of a 'dopvar2d', see
-%         'is_opvar2d'
+% P:      cdopvar class object with the structure of a 'dopvar2d': at most
+%         two spatial variables, and the block rows (columns) ordered by
+%         space, first R, then L2[x], then L2[y], then L2[x,y]
 % fname:  char or string, the name of a 'dopvar2d' field: 'R00', ...,
 %         'R22', 'I', 'var1' or 'var2'
 % val:    the value of the field:
 %         'Rij':    ni x mj 'double', 'polynomial' or 'dpvar', or a cell of
-%                   these of the shape 'getfield_opvar2d' returns (3 x 1,
-%                   1 x 3 or 3 x 3), [] for zero. Kernels are in var1 (x,y)
+%                   these, 3 x 1 if x is in both spaces i and j, 1 x 3 if y
+%                   is, 3 x 3 if both are, [] for zero. Kernels are in var1 (x,y)
 %                   and, in a direction with an integral over part of the
 %                   domain, in var2 (x_dum, y_dum); a variable only in the
 %                   input space may be named x or x_dum;
@@ -34,7 +36,7 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % P:      the cdopvar with the field set
 %
 % NOTES:
-% - x is P.vars{1} and y is P.vars{2} (sorted), as in 'getfield_opvar2d'.
+% - x is P.vars{1} and y is P.vars{2} (sorted).
 %   A variable P does not have yet is taken from the kernel (its name with
 %   '_dum' removed), else from opts.vars, with domain [0,1]; a second
 %   variable must sort after the first, else it would be read as x.
@@ -42,8 +44,8 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 %   kept. A component on a space of dimension 0 adds a block row (column)
 %   for it, in the order R, L2[x], L2[y], L2[x,y], the other components in
 %   it being zero. A row or column of the component left without a block
-%   keeps a zero block, as the container reads its space off a block
-%   ('verify'). Setting a component with no rows or columns does nothing.
+%   keeps a zero block, as the container reads its space off a block.
+%   Setting a component with no rows or columns does nothing.
 % - var1 renames the variables only if no block depends on them, or adds
 %   y. I changes the domain of every block.
 
@@ -71,8 +73,11 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/15/2026: Initial coding;
 
+% Defaults of the optional inputs; check the structure of P and the field
 if nargin<4
     cidx = [];
 end
@@ -85,6 +90,7 @@ end
 if ~isfield(opts,'label')
     opts.label = fname;
 end
+% P must have the spaces R, L2[x], L2[y], L2[x,y] of a 'dopvar2d'
 [is_2d,idx_out,idx_in] = is_opvar2d(P);
 if ~is_2d
     error('cdopvar:notOpvar2d',['The operator does not have the structure of a ''dopvar2d'', '...
@@ -212,6 +218,7 @@ for k=idcs_K
         K{k} = polynomial(K{k});
     end
 end
+% Rows and columns of the component in P, and the one size of the kernels
 nr_P = sum(P.dim_out(idx_out==i));      nc_P = sum(P.dim_in(idx_in==j));
 sz_K = cellfun(@size,K(idcs_K),'UniformOutput',false);
 sz_K = unique(cell2mat(sz_K(~cellfun(@isempty,K(idcs_K)))'),'rows');
@@ -221,6 +228,8 @@ elseif isempty(sz_K)
     sz_K = [nr_P,nc_P];
 end
 nr = sz_K(1);   nc = sz_K(2);
+% The kernels must match the nonzero dimensions of the spaces of P; a
+% component of size zero leaves nothing to set
 spaces = {'R','L2[x]','L2[y]','L2[x,y]'};
 if nr_P>0 && nr~=nr_P
     error('cdopvar:sizeMismatch','''%s'' must have %d rows, the dimension of the %s output space; it has %d.',label,nr_P,spaces{i},nr)
@@ -376,6 +385,8 @@ for a=1:numel(rows)
                         Zd = [Zd_blk; Zd_K(~is_old)];
                         idcs_Zd(~is_old) = numel(Zd_blk)+(1:nnz(~is_old));
                     end
+                    % Old B padded with zero rows for the new names; rows
+                    % of the new B moved to their positions in Zd
                     B = blk.params.B;   B_new = blk_new.params.B;
                     for k=1:numel(B)
                         if size(B{k},1)==numel(Zd_blk)
@@ -387,9 +398,11 @@ for a=1:numel(rows)
                     blk = sdopvar(struct('A',{blk.params.A},'B',{B}),blk.vars,Zd,blk.ZL,blk.ZR,blk.dom,blk.dims);
                     blk_new = sdopvar(struct('A',{blk_new.params.A},'B',{B_new}),blk_new.vars,Zd,blk_new.ZL,blk_new.ZR,blk_new.dom,blk_new.dims);
                 end
+                % The old block, with these parameters zeroed, plus the new
                 blk = blk + blk_new;
             end
         elseif ~is_zero
+            % No block, or every parameter set: the block from the kernels
             blk = build_block(K_blk,vars,vars_K,dom,[dim_out(r),dim_in(c)]);
         else
             blk = [];
@@ -410,9 +423,8 @@ for c=cols'
 end
 
 % The metadata, with every 'sdopvar' block on one decision variable list as
-% the constructor puts them ('merge_dvar_lists'). The one-argument
-% constructor is not called: it refuses a row without blocks, which PIE
-% operators may have.
+% the constructor puts them. The one-argument constructor is not called: it
+% refuses a row without blocks, which PIE operators may have.
 space_out = [has_x(idx_out)', has_y(idx_out)'];     space_in = [has_x(idx_in)', has_y(idx_in)'];
 idcs_dec = find(cellfun(@(blk) isa(blk,'sdopvar'),C(:)))';
 Zd = cell(0,1);

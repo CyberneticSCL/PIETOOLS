@@ -9,8 +9,9 @@ function P = setfield_opvar1d(P,fname,val)
 % so that P.(fname) then returns val.
 %
 % INPUT
-% P:      cdopvar class object with the structure of a 'dopvar', see
-%         'is_opvar1d'
+% P:      cdopvar class object with the structure of a 'dopvar': at most
+%         one spatial variable, and every block row (column) of R before
+%         every block row (column) of L2
 % fname:  char or string, the name of a 'dopvar' field: 'P', 'Q1', 'Q2',
 %         'R', 'R.R0', 'R.R1', 'R.R2', 'I', 'var1' or 'var2'
 % val:    the value of the field, 'double', 'polynomial' or 'dpvar':
@@ -32,8 +33,9 @@ function P = setfield_opvar1d(P,fname,val)
 % NOTES:
 % - The fields are those of 'dopvar2d' on the one variable x = s: P is
 %   R00, Q1 is R0x, Q2 is Rx0, and R is Rxx with R.R0-R.R2 its parameters
-%   1-3, so this calls 'setfield_opvar2d' (see there for the rules on
-%   sizes, new block rows and columns, and variables).
+%   1-3, and each is set as that 'dopvar2d' field. A component on a space
+%   of dimension 0 adds a block row (column) for it, the other components
+%   in it being zero.
 % - Without a spatial variable, s is the variable the kernel names, else
 %   's', on [0,1], as for a new 'dopvar'.
 
@@ -61,8 +63,11 @@ function P = setfield_opvar1d(P,fname,val)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/15/2026: Initial coding;
 
+% Check the structure of P and the field name; default variable name s
 if ~is_opvar1d(P)
     error('cdopvar:notOpvar1d',['The operator does not have the structure of a ''dopvar'', '...
         'R^m x L2^n[a,b] -> R^p x L2^q[a,b]; see ''is_opvar1d''.'])
@@ -79,13 +84,16 @@ switch fname
     case 'Q1',      P = setfield_opvar2d(P,'R0x',val,[],opts);
     case 'Q2',      P = setfield_opvar2d(P,'Rx0',val,[],opts);
     case 'R'
+        % The three kernels, as the parameters {R0;R1;R2} of Rxx
         if ~isstruct(val) || ~isscalar(val) || ~isempty(setxor(fieldnames(val),{'R0';'R1';'R2'}))
             error('cdopvar:badValue','''R'' must be a struct with fields R0, R1 and R2.')
         end
         P = setfield_opvar2d(P,'Rxx',{val.R0;val.R1;val.R2},[],opts);
     case {'R.R0','R.R1','R.R2'}
+        % One kernel: parameter 1, 2 or 3 of Rxx
         P = setfield_opvar2d(P,'Rxx',val,str2double(fname(end))+1,opts);
     case {'I','var1','var2'}
+        % One spatial variable: one row of I, one variable
         if (strcmp(fname,'I') && size(val,1)~=1) || (~strcmp(fname,'I') && numel(val)~=1)
             error('cdopvar:badValue','A ''dopvar'' has one spatial variable: ''%s'' must have one row.',fname)
         end

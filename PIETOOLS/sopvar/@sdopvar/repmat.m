@@ -4,16 +4,16 @@ function Pout = repmat(P,varargin)
 % pattern, so that Pout is the operator whose (i,j) block is P.
 %
 % INPUTS
-% P:        sdopvar class object
+% P:        'sdopvar' object
 % p,q:      number of copies down and across; may also be given as [p,q],
 %           or as a single scalar p meaning [p,p]
 %
 % OUTPUTS
-% Pout:     sdopvar object of dimension [p*P.dims(1), q*P.dims(2)]
+% Pout:     'sdopvar' object of dimension [p*P.dims(1), q*P.dims(2)]
 %
 % NOTES:
 % Tiling a matrix is the same as indexing it with repeated row and column
-% indices, so this is one call to @sdopvar/subsref. Nothing else is needed:
+% indices, so this is one indexing operation. Nothing else is needed:
 % every copy shares the monomial bases and decision variables of P.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

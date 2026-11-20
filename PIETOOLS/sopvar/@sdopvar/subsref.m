@@ -1,25 +1,25 @@
-function [out,varargout] = subsref(obj,s)                                   % MMP, 09/29/2026
+function [out,varargout] = subsref(obj,s)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [out,varargout] = subsref(obj,s) overloads indexing for sdopvar objects,
 % so that obj(I,J) returns the sub-operator mapping the input components J
 % to the output components I, rather than indexing the MATLAB object array.
 %
 % INPUT
-% obj:  sdopvar class object
+% obj:  'sdopvar' object
 % s:    substruct specifying the indexing operation
 %
 % OUTPUT
-% out:  for s(1).type '.', the requested property; for '()', an sdopvar
+% out:  for s(1).type '.', the requested property; for '()', an 'sdopvar'
 %       object of dimension [numel(I),numel(J)]
 % varargout: the remaining elements of a '.' comma list
 %
 % NOTES:
 % Rows of the coefficient matrix C_gamma are ordered with the matrix row
 % index outer and the ZL monomial index inner, and columns with the matrix
-% column index outer and the ZR monomial index inner (sopvar document
-% Sec. 4). Since C_gamma is stored vectorized as A + B'*d, selecting rows
-% and columns of the operator is a gather of entries of vec(C_gamma), which
-% is a gather of rows of A and of COLUMNS of B. The decision variables are
+% column index outer and the ZR monomial index inner. Since C_gamma is
+% stored vectorized as A + B'*d, selecting rows and columns of the operator
+% is a gather of entries of vec(C_gamma), which is a gather of rows of A
+% and of COLUMNS of B. The decision variables are
 % the rows of B and are never touched, so the cost is independent of their
 % number.
 %
@@ -27,8 +27,8 @@ function [out,varargout] = subsref(obj,s)                                   % MM
 % fewer matrix rows and columns. The canonical multiplier form constrains
 % which ZR monomials may carry content in a multiplier direction, and that
 % is preserved by discarding whole (row,column) blocks, so a sub-block of a
-% canonical object is canonical. The slice is computed by 'op_slice', which
-% also takes P(I) on a one-row or one-column operator.
+% canonical object is canonical. P(I) of a one-row or one-column operator
+% takes linear indices.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - subsref (sdopvar)
@@ -54,49 +54,35 @@ function [out,varargout] = subsref(obj,s)                                   % MM
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding MMP, 09/06/2026
-% MMP, 09/29/2026: '.' reads return every element of a comma list. With the
-%                  one output 'out', {P.Zd{:}}, [P.params.A{:}] and
-%                  f(P.ZL{:}) silently kept the first element only, and
-%                  P.C{i,j}.Zd{:} through a container raised
-%                  MATLAB:TooManyOutputs. A '.' read now returns nargout
-%                  values, the builtin count set by
-%                  'numArgumentsFromSubscript'; the one-value read and '()'
-%                  run the same lines as before, so their outputs and cost
-%                  are unchanged. The signature was
-% function out = subsref(obj,s)                                             % MMP, 09/29/2026 (was)
-% MMP, 09/29/2026: A slice followed by a comma-list brace, e.g.
-%                  {P(I,J).Zd{:}}, now errors 'sdopvar:parenThenList'. A
-%                  '()' read gets one output, so the list silently kept its
-%                  first element.
-% DJ, 11/14/2026: Use op_slice for ()-type subsref;
 
 switch s(1).type
     case '.'
         % Every property access, at any depth, is handled by the builtin.
         % Without this branch no property of an sdopvar is readable.
-        if nargout~=1                                                       % MMP, 09/29/2026
-            % A comma list: nargout is its length (0 for an empty list;     % MMP, 09/29/2026
-            % an explicit subsref(P,s) statement also has 0 and returns     % MMP, 09/29/2026
-            % the one value as 'ans', as before).                           % MMP, 09/29/2026
-            [varargout{1:nargout}] = builtin('subsref',obj,s);              % MMP, 09/29/2026
-            if ~isempty(varargout)                                          % MMP, 09/29/2026
-                out = varargout{1};  varargout(1) = [];                     % MMP, 09/29/2026
-            end                                                             % MMP, 09/29/2026
-            return                                                          % MMP, 09/29/2026
-        end                                                                 % MMP, 09/29/2026
+        if nargout~=1
+            % A comma list: nargout is its length (0 for an empty list;
+            % an explicit subsref(P,s) statement also has 0 and returns
+            % the one value as 'ans').
+            [varargout{1:nargout}] = builtin('subsref',obj,s);
+            if ~isempty(varargout)
+                out = varargout{1};  varargout(1) = [];
+            end
+            return
+        end
         out = builtin('subsref',obj,s);
     case '()'
-        % A comma-list brace after the slice cannot be served (one output). % MMP, 09/29/2026
-        for k = 2:numel(s)                                                  % MMP, 09/29/2026
-            if strcmp(s(k).type,'{}') && ~all(cellfun(@(x) isscalar(x) && (isnumeric(x) || islogical(x)),s(k).subs)) % MMP, 09/29/2026
-                error('sdopvar:parenThenList','Slice first, then read the list: Y = P(I,J); Y.field{...}.') % MMP, 09/29/2026
-            end                                                             % MMP, 09/29/2026
-        end                                                                 % MMP, 09/29/2026
-        out = op_slice(obj,s(1).subs{:});                                   % DJ, 11/14/2026
+        % A comma-list brace after the slice cannot be served (one output).
+        for k = 2:numel(s)
+            if strcmp(s(k).type,'{}') && ~all(cellfun(@(x) isscalar(x) && (isnumeric(x) || islogical(x)),s(k).subs))
+                error('sdopvar:parenThenList','Slice first, then read the list: Y = P(I,J); Y.field{...}.')
+            end
+        end
+        out = op_slice(obj,s(1).subs{:});
 
-        % Continue any further indexing, e.g. P(1,1).dims. @sopvar/subsref
-        % drops these subscripts and returns the sliced object instead.
+        % Continue any further indexing, e.g. P(1,1).dims
         if numel(s)>1
             out = subsref(out,s(2:end));
         end

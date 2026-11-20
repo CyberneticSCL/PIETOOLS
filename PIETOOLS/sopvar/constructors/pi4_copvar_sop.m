@@ -31,9 +31,7 @@ function Pop = pi4_copvar_sop(P,Q1,Q2,R,dims,var1,var2,dom)
 %           container has no space there (an empty channel of a PIE).
 %
 % NOTES
-% The blocks, monomial bases and zero blocks are those 'opvar2copvar'
-% builds from the opvar with fields P, Q1, Q2, R.R0-R2, dim = DIMS, var1,
-% var2 and I = DOM. Cost: a fixed operator, O(blocks x monomials).
+% Cost: a fixed operator, O(blocks x monomials).
 %
 % EXAMPLE - the Volterra operator x -> int_0^s x(t) dt on L2[0,1]:
 %   pvar s1 s1_dum
@@ -66,15 +64,15 @@ function Pop = pi4_copvar_sop(P,Q1,Q2,R,dims,var1,var2,dom)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 11/04/2026. The operator builder of
-%                convert_PIETOOLS_DDF and convert_PIETOOLS_DDE2PIE_legacy,
-%                which built these operators as opvar objects.
+% Initial coding MMP, 11/04/2026
 
+% The dummy variable must be named as the primary one with '_dum' appended
 v1 = var1.varname;      v2 = var2.varname;
 if ~strcmp(v2{1},[v1{1},'_dum'])
     error('pi4_copvar_sop:dummy',['The dummy variable ''%s'' should be named ',...
           '''%s_dum'': a sopvar records no dummy name.'],v2{1},v1{1});
 end
+% The four components, and the rows and columns of positive dimension
 comp = {P, Q1; Q2, R};
 rows = [dims(1,1)>0, dims(2,1)>0];      cols = [dims(1,2)>0, dims(2,2)>0];
 % Blocks: the nonzero components, plus one zero block in each row, then
@@ -84,6 +82,7 @@ for i = find(rows),     for j = find(cols),     keep(i,j) = ~pi4_iszero(comp{i,j
 ir = find(rows);        jc = find(cols);
 for i = ir,     if ~isempty(jc) && ~any(keep(i,:)),     keep(i,jc(1)) = true;   end,    end
 for j = jc,     if ~isempty(ir) && ~any(keep(:,j)),     keep(ir(1),j) = true;   end,    end
+% One 'sopvar' block per kept component, on the variables its spaces have
 C = cell(nnz(rows),nnz(cols));
 for a = 1:numel(ir)
     for b = 1:numel(jc)
@@ -131,6 +130,7 @@ else
     reg = cell(1,0);            rdom = zeros(0,2);
     so = false(nnz(rows),0);    si = false(nnz(cols),0);
 end
+% The container on these spaces
 meta = struct('vars',{reg},'dom',rdom,'space_out',so,'space_in',si,...
               'dim_out',dims(rows,1),'dim_in',dims(cols,2));
 Pop = copvar(C,meta);
@@ -139,6 +139,8 @@ end
 function tf = pi4_iszero(c)
 % TF = PI4_ISZERO(C) is true when the component C, a 'double', a
 % 'polynomial' or a cell of them (R), is empty or all zero.
+% INPUT   c: 'double', 'polynomial', or cell of them.
+% OUTPUT  tf: logical.
 if iscell(c),   tf = all(cellfun(@pi4_iszero,c));   return,     end
 if isempty(c),  tf = true;  return,     end
 c = polynomial(c);
@@ -156,6 +158,7 @@ function [C,Zs,Zt] = pi4_params(Q)
 % OUTPUT
 % - C:      n x 1 cell of 'double', the coefficients of Q{k} on ZS, ZT;
 % - Zs, Zt: 1 x 1 cells, the monomials in the primary and the dummy variable.
+% One kernel: its own coefficients and bases
 if isscalar(Q)
     Q = Q{1};
     C = Q.C;        C = {full(C)};
@@ -179,6 +182,8 @@ for i=1:numel(Q)
 end
 [Ps,Zs] = uniquerows_integerTable(Zsfull);
 [Pt,Zt] = uniquerows_integerTable(Ztfull);
+% Coefficients of each kernel on the common bases, lifted over the matrix
+% dimensions
 C = Ccell;
 [m,n] = size(Q{1});
 nnZs = [0;cumsum(nZs)];

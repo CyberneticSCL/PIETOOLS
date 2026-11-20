@@ -1,7 +1,8 @@
 function P = subsasgn(P,s,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % P = SUBSASGN(P,S,VAL) assigns into a 'cdopvar': dot assignment is the
-% builtin, paren assignment P(...) = VAL is an error.
+% builtin, except for the 'dopvar' and 'dopvar2d' field names described
+% below; paren assignment P(...) = VAL is an error.
 %
 % INPUTS
 % - P:    'cdopvar' object, or [] when P(...) = VAL creates a variable;
@@ -24,23 +25,23 @@ function P = subsasgn(P,s,varargin)
 % outside the class methods, 12-14 us each, independent of q.
 % - A direct edit of a local container is in place: P.dim_out(1) = k,
 %   P.Zd = Zd, and P.C{i,j} = X, which replaces the block without copying.
-% - A NESTED indexed edit into a block also calls the block's own
-%   subsasgn with the block as a shared temporary, which COPIES the edited
+% - A NESTED indexed edit into a block also calls the subsasgn of the
+%   block with the block as a shared temporary, which COPIES the edited
 %   leaf on every assignment: P.C{i,j}.params.B{k}(r,c) = v is
 %   O(nnz(B{k})) (1.1 ms at q = 2e6, nnz 3.9e5) and P.C{i,j}.Zd{i} = name
 %   is O(q) (23 ms at q = 2e6), against 31 us and 1.4 us without the
-%   overloads; see @sdopvar/subsasgn.
+%   overloads.
 % - For such an edit, extract, clear, edit, reinsert, which edits the
 %   block in place (53-93 us per edit for q = 1e5 to 2e6):
 %       X = P.C{i,j};  P.C{i,j} = [];  X.params.B{k}(r,c) = v;  P.C{i,j} = X;
 %
 % The fields of a 'dopvar' (P, Q1, Q2, R) and of a 'dopvar2d' (R00 to
-% R22), and I, var1, var2, are set in a container with that structure by
-% 'setfield_opvar1d' and 'setfield_opvar2d': P.Q1 = X, P.R.R1 = X and
-% P.R22{2,3} = X set that component or parameter; P.Q1(1,2) = X reads the
-% field, assigns into it and sets it. The first such assignment of a session
-% warns ('cdopvar:opvarField') that these are not fields of the class, and
-% that this support may be dropped in future versions.
+% R22), and I, var1, var2, are set in a container with that structure:
+% P.Q1 = X, P.R.R1 = X and P.R22{2,3} = X set that component or parameter;
+% P.Q1(1,2) = X reads the field, assigns into it and sets it. The first
+% such assignment of a session warns ('cdopvar:opvarField') that these are
+% not fields of the class, and that this support may be dropped in future
+% versions.
 %
 % See also SUBSREF, CDOPVAR.
 %
@@ -70,10 +71,7 @@ function P = subsasgn(P,s,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. Q(1,2) = P built an object array (see
-%                NOTES); it is now an error.
-% DJ, 11/15/2026: Support setting fields of a 'dopvar' or 'dopvar2d' if
-%                   the operator has appropriate structure;
+% Initial coding MMP, 09/29/2026
 
 if strcmp(s(1).type,'()')
     error('cdopvar:parenAssign',['Paren assignment P(...) = X is not '...
@@ -81,10 +79,10 @@ if strcmp(s(1).type,'()')
         'index one, which no container method accepts. Assign block (i,j) '...
         'with P.C{i,j} = X.'])
 end
-% The builtin called from this method has the class's own access, so it
+% The builtin called from this method has the access of the class, so it
 % would set protected properties that P.name = X outside the class may
-% not. Raise the builtin's error for them, same identifier and text
-% (measured). Names come from the metaclass, once.
+% not. Raise the error of the builtin for them, same identifier and text.
+% Names come from the metaclass, once.
 persistent hidden
 if ~iscell(hidden)
     mc = ?cdopvar;   pl = mc.PropertyList;
@@ -131,6 +129,7 @@ if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
     elseif ~isempty(rest) && any(strcmp(fname,f2)) && strcmp(rest(1).type,'{}')
         cidx = rest(1).subs;            rest = rest(2:end);
     end
+    % Remaining subscripts: assign into the current value of the target
     if ~isempty(rest)
         if use1,    cur = getfield_opvar1d(P,target);
         else,       cur = getfield_opvar2d(P,target);
@@ -138,6 +137,8 @@ if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
         if ~isempty(cidx),  cur = cur{cidx{:}};     end
         val = subsasgn(cur,rest,val);
     end
+    % Write the value into the blocks: 'dopvar' (1-D) or 'dopvar2d' (2-D)
+    % layout, the latter labelled with the parameter index for messages
     if use1
         P = setfield_opvar1d(P,target,val);
     else
@@ -154,6 +155,7 @@ if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
     end
     return
 end
+% Any other assignment: the builtin
 P = builtin('subsasgn',P,s,varargin{:});
 
 end

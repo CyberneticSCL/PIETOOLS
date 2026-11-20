@@ -39,11 +39,9 @@ function logval = eq(P1,P2,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % AT, 01/21/2026: Initial coding
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
-%                  house format, step comments, stale comments removed
-%                  (commented-out field assignments of another class);
-%                  code unchanged.
 
 % Default tolerance
 if nargin<3
@@ -72,19 +70,19 @@ if any(any(P1.dom_1~=P2.dom_1))|| any(any(P1.dom_2~=P2.dom_2)) || any(any(P1.dom
     disp('Operators have different intervals and hence cannot be equal');
 end
 
-% Compare through the difference, so that 'plus' aligns the monomial bases: % MMP, 08/29/2026
-% two objects can represent one operator on different bases ('ctranspose'   % MMP, 08/29/2026
-% enlarges them where a multiplier and an integral direction share a basis). % MMP, 08/29/2026
-D = P1 + uminus(P2);                                                        % MMP, 08/29/2026
+% Compare through the difference, so that 'plus' aligns the monomial bases:
+% two objects can represent one operator on different bases ('ctranspose'
+% enlarges them where a multiplier and an integral direction share a basis).
+D = P1 + uminus(P2);
 
 % Equal iff every coefficient of the difference is below the tolerance
 logval = true;
-for ii = 1:numel(D.params)                                                  % MMP, 08/29/2026
-    dv = nonzeros(D.params{ii});    % 'max(...,''all'')' rejects sparse input % MMP, 08/29/2026
-    if ~isempty(dv) && max(abs(dv))>=tol                                    % MMP, 08/29/2026
-        logval = false;                                                     % MMP, 08/29/2026
-        return                                                              % MMP, 08/29/2026
-    end                                                                     % MMP, 08/29/2026
+for ii = 1:numel(D.params)
+    dv = nonzeros(D.params{ii});    % 'max(...,''all'')' rejects sparse input
+    if ~isempty(dv) && max(abs(dv))>=tol
+        logval = false;
+        return
+    end
 end
 
 end

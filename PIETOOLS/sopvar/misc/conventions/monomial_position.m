@@ -7,7 +7,9 @@ function out = monomial_position(map,deg,basis)
 % OUT = MONOMIAL_POSITION(MAP,DEG,BASIS) names the basis in that error.
 %
 % INPUT
-% - map:    lookup table from 'monomial_position_map';
+% - map:    (max exponent+1) x 1 double, the lookup table of the basis:
+%           map(p+1) the 0-based position of exponent p, -1 where the basis
+%           does not hold p;
 % - deg:    array of exponents, any shape;
 % - basis:  (optional) string naming the basis in the error message,
 %           default "Monomial basis";
@@ -16,9 +18,9 @@ function out = monomial_position(map,deg,basis)
 % - out:    numel(deg) x 1 double of 0-based positions.
 %
 % NOTES
-% The error means a caller's basis enlargement missed a degree, an internal
-% inconsistency rather than a user input error, so it is raised rather than
-% returned as -1.
+% A missing degree means a basis was enlarged without it, an internal
+% inconsistency rather than a user input error, so it raises an error
+% rather than returning -1.
 %
 % Cost: O(numel(deg)), on the coefficient positions being re-indexed.
 %
@@ -50,21 +52,18 @@ function out = monomial_position(map,deg,basis)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of 'lookup'
-%                  (canonicalize_multiplier, canonical_adjoint_map), whose
-%                  copies differ only in the first words of the error
-%                  message; BASIS carries that difference. Not named
-%                  'lookup': which -all finds three toolbox class methods
-%                  of that name, and it does not say what is looked up.
-%                  Body verbatim.
+% Initial coding MMP, 09/30/2026
 
+% Default name of the basis in the error message
 if nargin<3
     basis = "Monomial basis";
 end
+% Look up the exponents in the range of the table; -1 marks any other
 deg = double(deg(:));
 out = -ones(numel(deg),1);
 in_range = deg>=0 & deg==round(deg) & deg+1<=numel(map);
 out(in_range) = map(deg(in_range)+1);
+% Error on the first exponent the basis does not hold
 bad = find(out<0,1);
 if ~isempty(bad)
     error(basis+" does not contain degree "+num2str(deg(bad))...

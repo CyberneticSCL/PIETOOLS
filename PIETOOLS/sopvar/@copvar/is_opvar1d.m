@@ -2,9 +2,7 @@ function logval = is_opvar1d(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % logval = is_opvar1d(P) checks whether the PI operator P has the structure
 % of an 'opvar' object,
-%   P: R^m x L2^n[a,b] -> R^p x L2^q[a,b],
-% so that its fields can be read as those of an 'opvar' with
-% 'getfield_opvar1d'.
+%   P: R^m x L2^n[a,b] -> R^p x L2^q[a,b].
 %
 % INPUT
 % P:      copvar class object
@@ -17,8 +15,8 @@ function logval = is_opvar1d(P)
 % NOTES:
 % - m, n, p, q may be zero. A container without a spatial variable maps
 %   R^m -> R^p.
-% - P may have several block rows of R, and several of L2[a,b], as 'convert'
-%   gives one block row per group of PDE states. Stacked in order, they are
+% - P may have several block rows of R, and several of L2[a,b], e.g. one
+%   block row per group of PDE states. Stacked in order, they are
 %   R^p and L2^q. A block row of R after one of L2 would put components of
 %   R^p after those of L2^q, which an 'opvar' cannot represent, so that P
 %   is not opvar-like. The same holds for the block columns.
@@ -48,6 +46,8 @@ function logval = is_opvar1d(P)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % DJ, 11/15/2026: Initial coding;
 

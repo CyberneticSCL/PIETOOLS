@@ -1,14 +1,15 @@
 function out = end(a,k,n)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out = end(a,k,n) is used to establish the size of sopvar object a
-% associated with index k out of n (used in subsref, e.g. a(i:end,j:end))
+% associated with index k out of n (in indexing, e.g. a(i:end,j:end))
 % 
 % INPUTS
 % a:    sopvar class object
 % k,n:  natural numbers
 %
 % OUTPUTS
-% out:  the size of a along dim k
+% out:  the size of a along dimension k (n = 2), or the number of entries,
+%       rows times columns, for a linear index (n = 1)
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -38,6 +39,7 @@ function out = end(a,k,n)
 %
 % Initial coding AT, 01/26/2026
 
+% Number of entries for a linear index, else the size along dimension k
 if n ==1
     sza = size(a);
     out = sza(1)*sza(2);

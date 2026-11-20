@@ -8,6 +8,8 @@ function Pop_out = uminus(Pop_in)
 % OUTPUTS
 % - Pop_out:    m x n 'sopvar' object representing the operator defined by
 %               (-1)*Pop_in;
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - uminus

@@ -11,14 +11,15 @@ function C = mtimes(A,B)
 %   S9 = S6 and S2 cap S5 (output only);
 % the variables S2 cap S4, created by B and integrated out by A, do not
 % appear in C. The kernels of C are the semiseparable integrals of the
-% products of the kernels of A and B (sopvar document Sec. 6).
+% products of the kernels of A and B.
 %
 % INPUT
 % - A, B:   'sopvar' objects with A.vars.in the same set of variables as
 %           B.vars.out and A.dims(2) equal to B.dims(1); or one of them a
 %           'double', a scalar or a matrix (m x A.dims(1), or B.dims(2) x n)
 %           acting on the output or input components; or a 'dpvar' object,
-%           in which case the call is routed to 'dpvar_op_copvar';
+%           a scalar d giving the 'sdopvar' (a + b'*d)*P and a matrix
+%           acting on the components;
 %
 % OUTPUT
 % - C:      'sopvar' object representing A*B, of dims [A.dims(1),B.dims(2)],
@@ -54,55 +55,14 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
-% MMP, 09/06/2026: A numeric matrix factor is lifted over the monomial index
-%                  and the new dimension recorded; before, a matrix applied
-%                  straight to the coefficients failed for degree >= 1 and
-%                  left 'dims' wrong for degree 0.
-% MMP, 09/07/2026: Variable lists compared with 'isequal', not
-%                  'any(~strcmp(...))', which is false for lists of
-%                  different length.
-% MMP, 09/09/2026: B's output side is aligned onto A.vars.in by NAME: the
-%                  canonical orders of the two lists differ (for A'*A the
-%                  adjoint's vars.in is [S3,S2], A's vars.out [S2,S3]), so
-%                  the variable SETS are compared and B.ZL, B.dom.out and
-%                  the row index of each parameter are permuted onto A's
-%                  order before the positional contraction below.
-% MMP, 09/10/2026: int_2b assembles C3a vectorized over the (i,j) grid
-%                  ('condenseIdx'); the scalar loop called num2cell, sub2ind
-%                  and fliplr per pair. Exact: the triplet positions are
-%                  bijections, so 'sparse' sums no duplicates.
-% MMP, 09/10/2026: PART 4 forms only the nMid diagonal blocks of
-%                  LeftMat*CMat*RightMat (sopvar document Sec. 5.4), not the
-%                  full product and a dense mask.
-% MMP, 09/11/2026: The composed bases CZL/CZR are pruned of the degrees that
-%                  hold no coefficient before C is built
-%                  ('prune_zero_monomials'): PART 3 lists the degrees the
-%                  integrals can reach, most of which are empty and were
-%                  redundant rows in every later equality constraint.
-% MMP, 09/29/2026: A dpvar factor is routed to 'dpvar_op_copvar' (a scalar
-%                  gives the sdopvar (a + b'd)*P, a matrix acts on the
-%                  components); gam*P failed in the dims check before.
-% DJ, 11/01/2026: Bugfix for scalar multiplication with zero blocks
-%                   specified as [] or scalar 0.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
-%                  house format, log entries condensed to defect and fix,
-%                  commented-out code of earlier versions and debug lines
-%                  removed, notes tightened, INPUTS/OUTPUTS for the local
-%                  functions; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                  very short and called once go into the body):
-%                  paramMultiIdx_SS and paramMultiIdxToLinear_SS into
-%                  expandCommonFullIntegrals, kronSub2ind_SS into
-%                  kronPermutationMatrix_SS, each with its header as the
-%                  comment of the block.
 %
 
-% dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
-% is untouched.                                                             % MMP, 09/29/2026
-if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
-    C = dpvar_op_copvar('mtimes',A,B);                                      % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% A 'dpvar' factor, before any work: a scalar scales, a matrix acts on the
+% components.
+if isa(A,'dpvar') || isa(B,'dpvar')
+    C = dpvar_op_copvar('mtimes',A,B);
+    return
+end
 
 % Separately deal with scalar multiplication
 if isnumeric(A)
@@ -110,15 +70,15 @@ if isnumeric(A)
         error("Inner dimensions of matrix-valued objects must match for multiplication.")
     end
     C = B;
-    if ~isscalar(A)                                                         % MMP, 09/06/2026
-        % A matrix factor acts on the row index lifted over ZL:             % MMP, 09/06/2026
-        %   M*(I_m kron ZL') = (I_p kron ZL')*kron(M,I_NL).                 % MMP, 09/06/2026
-        C.dims(1) = size(A,1);                                              % MMP, 09/06/2026
-        A = kron(sparse(A),speye(prod([cellfun(@numel,B.ZL),1])));          % MMP, 09/06/2026
-    end                                                                     % MMP, 09/06/2026
+    if ~isscalar(A)
+        % A matrix factor acts on the row index lifted over ZL:
+        %   M*(I_m kron ZL') = (I_p kron ZL')*kron(M,I_NL).
+        C.dims(1) = size(A,1);
+        A = kron(sparse(A),speye(prod([cellfun(@numel,B.ZL),1])));
+    end
     % Zero-blocks declared as [] or scalar 0 stay as is.
     Bparams = B.params;
-    is_zeroB = cellfun(@(b) isempty(b) || (isscalar(b) && b==0), Bparams);  % DJ, 11/01/2026
+    is_zeroB = cellfun(@(b) isempty(b) || (isscalar(b) && b==0), Bparams);
     Bparams(~is_zeroB) = cellfun(@(b) A*b, Bparams(~is_zeroB),'UniformOutput',false);
     C.params = Bparams;
     return
@@ -127,13 +87,13 @@ elseif isnumeric(B)
         error("Inner dimensions of matrix-valued objects must match for multiplication.")
     end
     C = A;
-    if ~isscalar(B)                                                         % MMP, 09/06/2026
-        C.dims(2) = size(B,2);                                              % MMP, 09/06/2026
-        B = kron(sparse(B),speye(prod([cellfun(@numel,A.ZR),1])));          % MMP, 09/06/2026
-    end                                                                     % MMP, 09/06/2026
+    if ~isscalar(B)
+        C.dims(2) = size(B,2);
+        B = kron(sparse(B),speye(prod([cellfun(@numel,A.ZR),1])));
+    end
     % Zero-blocks declared as [] or scalar 0 stay as is.
     Aparams = A.params;
-    is_zeroA = cellfun(@(a) isempty(a) || (isscalar(a) && a==0), Aparams);  % DJ, 11/01/2026
+    is_zeroA = cellfun(@(a) isempty(a) || (isscalar(a) && a==0), Aparams);
     Aparams(~is_zeroA) = cellfun(@(a) a*B, Aparams(~is_zeroA),'UniformOutput',false); 
     C.params = Aparams;
     return
@@ -143,38 +103,37 @@ end
 if A.dims(2)~=B.dims(1)
     error('number of output components of B is different than number of input components of A');
 end
-% Legality is a question about the variable SETS. The composition body      % MMP, 09/09/2026
-% below contracts A.ZR against B.ZL positionally, so the two lists must     % MMP, 09/09/2026
-% then agree in ORDER -- and they need not, because each operand is         % MMP, 09/09/2026
-% stored in its own canonical order: for A'*A the adjoint's vars.in is      % MMP, 09/09/2026
-% [S3,S2] while A's vars.out is [S2,S3]. So B is aligned onto A.vars.in     % MMP, 09/09/2026
-% by name below rather than the composition being refused.                  % MMP, 09/09/2026
-if ~isempty(setxor(A.vars.in,B.vars.out))                                   % MMP, 09/09/2026
-%if ~isequal(A.vars.in(:),B.vars.out(:))                                    % MMP, 09/09/2026 (was)
-%if any(~strcmp(A.vars.in,B.vars.out))                                      % MMP, 09/07/2026 (was)
+% Legality is a question about the variable SETS. The composition body
+% below contracts A.ZR against B.ZL positionally, so the two lists must
+% then agree in ORDER -- and they need not, because each operand is
+% stored in its own canonical order: for A'*A, vars.in of the adjoint is
+% [S3,S2] while vars.out of A is [S2,S3]. So B is aligned onto A.vars.in
+% by name below rather than the composition being refused.
+if ~isempty(setxor(A.vars.in,B.vars.out))
     error('names of B output variables differ from names of A input variables');
 end
 
-% Permute B's output side onto A's input order: reorder B.ZL, B.dom.out     % MMP, 09/09/2026
-% and the ROW index of every parameter, the row being (matrix row outer,    % MMP, 09/09/2026
-% ZL monomial inner). Done in place on this local copy, NOT through the     % MMP, 09/09/2026
-% constructor, which would canonicalize B straight back. The permutation    % MMP, 09/09/2026
-% touches only rows, so the canonical multiplier form -- a condition on     % MMP, 09/09/2026
-% ZR columns -- is untouched, and vars_S1/S2/S3 are sorted and so are       % MMP, 09/09/2026
-% unchanged by a reordering.                                                % MMP, 09/09/2026
-if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/09/2026
-    [~,ordB] = ismember(A.vars.in,B.vars.out);                              % MMP, 09/09/2026
-    pB   = monomial_gather(B.ZL,ordB);                                      % MMP, 09/09/2026
-    NLb  = prod([cellfun(@numel,B.ZL),1]);                                  % MMP, 09/09/2026
-    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);                         % MMP, 09/09/2026
-    for ii = 1:numel(B.params)                                              % MMP, 09/09/2026
-        B.params{ii} = B.params{ii}(rowB,:);                                % MMP, 09/09/2026
-    end                                                                     % MMP, 09/09/2026
-    B.ZL      = B.ZL(ordB);                                                 % MMP, 09/09/2026
-    B.dom.out = B.dom.out(ordB,:);                                          % MMP, 09/09/2026
-    B.vars.out = B.vars.out(ordB);                                          % MMP, 09/09/2026
-end                                                                         % MMP, 09/09/2026
+% Permute the output side of B onto the input order of A: reorder B.ZL, B.dom.out
+% and the ROW index of every parameter, the row being (matrix row outer,
+% ZL monomial inner). Done in place on this local copy, NOT through the
+% constructor, which would canonicalize B straight back. The permutation
+% touches only rows, so the canonical multiplier form -- a condition on
+% ZR columns -- is untouched, and vars_S1/S2/S3 are sorted and so are
+% unchanged by a reordering.
+if ~isequal(A.vars.in(:),B.vars.out(:))
+    [~,ordB] = ismember(A.vars.in,B.vars.out);
+    pB   = monomial_gather(B.ZL,ordB);
+    NLb  = prod([cellfun(@numel,B.ZL),1]);
+    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);
+    for ii = 1:numel(B.params)
+        B.params{ii} = B.params{ii}(rowB,:);
+    end
+    B.ZL      = B.ZL(ordB);
+    B.dom.out = B.dom.out(ordB,:);
+    B.vars.out = B.vars.out(ordB);
+end
 
+% The matched variables must have the same domains
 if any(any(A.dom.in~=B.dom.out))
     error('output domain of B differs from input domain of A');
 end
@@ -253,12 +212,15 @@ if any(~tf)
     error('mtimes: vs3b not found in B.vars_S3.');
 end
 
+% The distinct multi-indices of each group, in order of first appearance
 beta_a  = unique(betaIdx(:,colsbetaa),'rows','stable');
 beta_b  = unique(betaIdx(:,colsbetab),'rows','stable');
 
 alpha_a = unique(alphaIdx(:,colsalphaa),'rows','stable');
 alpha_b = unique(alphaIdx(:,colsalphab),'rows','stable');
 
+% The parameters of A as a cell matrix CA(beta_a,beta_b), and those of B
+% as CB(alpha_a,alpha_b)
 if nbeta == 0
     Aparams = reshape(A.params,1,1);
     CA = Aparams;
@@ -326,6 +288,8 @@ if any(~tf)
 end
 dom2a = A.dom_3(idx,:);
 
+% Domains of the shared (vs3a) and of the B-only pass-through (vs3b)
+% variables
 [tf,idx] = ismember(vs3a,B.vars_S3);
 if any(~tf)
     error('mtimes: vs3a not found in B.vars_S3.');
@@ -422,6 +386,7 @@ if numel(Cs2a_betaa) ~= nBetaA
     error('mtimes: Cs2a_betaa must have one cell for each beta_a.');
 end
 
+% PL lifted over the matrix dimension, applied to every cell of CA
 PLbig = kron(eye(size(CA{1},2)/size(PL,2)),PL);
 
 CA_PL = cell(nBetaA,nBetaB);
@@ -432,6 +397,7 @@ for ia = 1:nBetaA
     end
 end
 
+% One coefficient block (I kron Cs2a_beta') per beta_a
 qL = size(CA_PL{1},2);
 
 CB_s2a = cell(nBetaA,1);
@@ -440,6 +406,7 @@ for ia = 1:nBetaA
     CB_s2a{ia} = kron(eye(qL),Cs2a_betaa{ia}.');
 end
 
+% Shift KZhat_s2a into the left basis, then sum over beta_a
 [varLtemp,ZLtemp,CLtemp_betaab] = leftShiftMonomials_SS( ...
     A.vars.out,A.ZL,CA_PL, ...
     vs2a,KZhat_s2a,CB_s2a);
@@ -617,7 +584,7 @@ end
 %
 % [LeftMat]_{d, j} = L_{j, d} and
 % [RightMat]_{k, d} = R_{k, d}
-% [CMat]_{j, k} = C_gam_alp_beta{i, j, k} (computed in int_semisep_AT)
+% [CMat]_{j, k} = C_gam_alp_beta{i, j, k} (computed in PART 1)
 % Then, 
 %
 % sum_{j, k} L_j [I_{nMid} otimes C_gam_alp_beta{i, j, k}] R_k
@@ -686,20 +653,17 @@ new_ind_c = ind_c + (d_indx - 1)*sz_CR(2);
 RightMat = sparse(new_ind_r, new_ind_c, vals, sz_RMat(1), sz_RMat(2));
 
 % % % % STEP 3 % % % %
-% Only the nMid DIAGONAL blocks of LeftMat*CMat*RightMat are wanted (sopvar % MMP, 09/10/2026
-% document Sec. 5.4): block row d of LeftMat is [L_{1,d},...,L_{n,d}],      % MMP, 09/10/2026
-% block column d of RightMat is [R_{1,d};...;R_{n,d}], and the sum over d   % MMP, 09/10/2026
-% of Ld{d}*CMat*Rd{d} is formed directly, without the full product.         % MMP, 09/10/2026
+% Only the nMid DIAGONAL blocks of LeftMat*CMat*RightMat are wanted:
+% block row d of LeftMat is [L_{1,d},...,L_{n,d}],
+% block column d of RightMat is [R_{1,d};...;R_{n,d}], and the sum over d
+% of Ld{d}*CMat*Rd{d} is formed directly, without the full product.
 right_BLCK_size = sz_CR(2);
 left_BLCK_size  = sz_CL(1);
-%Mask = kron(speye(nMid), ones(left_BLCK_size, right_BLCK_size));           % MMP, 09/10/2026 (was)
-%LeftMult  = kron(ones(nMid, 1), speye(left_BLCK_size));                    % MMP, 09/10/2026 (was)
-%RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));                   % MMP, 09/10/2026 (was)
-Ld = cell(1,nMid);   Rd = cell(1,nMid);                                     % MMP, 09/10/2026
-for d = 1:nMid                                                              % MMP, 09/10/2026
-    Ld{d} = LeftMat((d-1)*left_BLCK_size+(1:left_BLCK_size),:);             % MMP, 09/10/2026
-    Rd{d} = RightMat(:,(d-1)*right_BLCK_size+(1:right_BLCK_size));          % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
+Ld = cell(1,nMid);   Rd = cell(1,nMid);
+for d = 1:nMid
+    Ld{d} = LeftMat((d-1)*left_BLCK_size+(1:left_BLCK_size),:);
+    Rd{d} = RightMat(:,(d-1)*right_BLCK_size+(1:right_BLCK_size));
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% PART 4 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -707,13 +671,9 @@ end                                                                         % MM
 for i = 1:numel(Cparams)
     
     Cparams{i} = sparse(size(CLtemp_betab{1},1),size(CRtemp_alphaa{1},1)); 
-    for d = 1:nMid                                                          % MMP, 09/10/2026
-        Cparams{i} = Cparams{i} + Ld{d}*CMat{i}*Rd{d};                      % MMP, 09/10/2026
-    end                                                                     % MMP, 09/10/2026
-%   CLCMCR = LeftMat*CMat{i}*RightMat;                                      % MMP, 09/10/2026 (was)
-%   PROD2 = Mask.*CLCMCR;                                                   % MMP, 09/10/2026 (was)
-%   PROD3 =LeftMult'*PROD2*RightMult;                                       % MMP, 09/10/2026 (was)
-%   Cparams{i} = Cparams{i} + PROD3;                                        % MMP, 09/10/2026 (was)
+    for d = 1:nMid
+        Cparams{i} = Cparams{i} + Ld{d}*CMat{i}*Rd{d};
+    end
 end
 
 
@@ -759,34 +719,35 @@ Cvars = struct('in',{Cvarsin},'out',{Cvarsout});
 Cdom  = struct('in',B.dom.in(idx_in,:), ...
                'out',A.dom.out(idx_out,:));
 
-% Drop the composed-basis degrees that hold no coefficient: CZL/CZR list    % MMP, 09/11/2026
-% the degrees the integrals can REACH, not the ones attained. An empty      % MMP, 09/11/2026
-% degree is the zero function, so the operator is unchanged, and a          % MMP, 09/11/2026
-% redundant row in every later equality constraint is avoided.              % MMP, 09/11/2026
-NLc  = prod([cellfun(@numel,CZL),1]);                                       % MMP, 09/11/2026
-NRc  = prod([cellfun(@numel,CZR),1]);                                       % MMP, 09/11/2026
-occL = false(NLc,1);                                                        % MMP, 09/11/2026
-occR = false(NRc,1);                                                        % MMP, 09/11/2026
-for ii = 1:numel(Cparams)                                                   % MMP, 09/11/2026
-    % [] and scalar 0 are the zero-block shorthand and hold no degree.      % MMP, 09/11/2026
-    if numel(Cparams{ii})>1                                                 % MMP, 09/11/2026
-        [ri,ci] = find(Cparams{ii});                                        % MMP, 09/11/2026
-        % Rows are (matrix row outer, monomial inner), columns likewise.    % MMP, 09/11/2026
-        occL(mod(ri-1,NLc)+1) = true;                                       % MMP, 09/11/2026
-        occR(mod(ci-1,NRc)+1) = true;                                       % MMP, 09/11/2026
-    end                                                                     % MMP, 09/11/2026
-end                                                                         % MMP, 09/11/2026
-[CZL,CZR,keepL,keepR] = prune_zero_monomials(CZL,CZR,occL,occR);            % MMP, 09/11/2026
-if numel(keepL)<NLc || numel(keepR)<NRc                                     % MMP, 09/11/2026
-    rowK = reshape(keepL(:)+(0:Cdims(1)-1)*NLc,[],1);                       % MMP, 09/11/2026
-    colK = reshape(keepR(:)+(0:Cdims(2)-1)*NRc,[],1);                       % MMP, 09/11/2026
-    for ii = 1:numel(Cparams)                                               % MMP, 09/11/2026
-        if numel(Cparams{ii})>1                                             % MMP, 09/11/2026
-            Cparams{ii} = Cparams{ii}(rowK,colK);                           % MMP, 09/11/2026
-        end                                                                 % MMP, 09/11/2026
-    end                                                                     % MMP, 09/11/2026
-end                                                                         % MMP, 09/11/2026
+% Drop the composed-basis degrees that hold no coefficient: CZL/CZR list
+% the degrees the integrals can REACH, not the ones attained. An empty
+% degree is the zero function, so the operator is unchanged, and a
+% redundant row in every later equality constraint is avoided.
+NLc  = prod([cellfun(@numel,CZL),1]);
+NRc  = prod([cellfun(@numel,CZR),1]);
+occL = false(NLc,1);
+occR = false(NRc,1);
+for ii = 1:numel(Cparams)
+    % [] and scalar 0 are the zero-block shorthand and hold no degree.
+    if numel(Cparams{ii})>1
+        [ri,ci] = find(Cparams{ii});
+        % Rows are (matrix row outer, monomial inner), columns likewise.
+        occL(mod(ri-1,NLc)+1) = true;
+        occR(mod(ci-1,NRc)+1) = true;
+    end
+end
+[CZL,CZR,keepL,keepR] = prune_zero_monomials(CZL,CZR,occL,occR);
+if numel(keepL)<NLc || numel(keepR)<NRc
+    rowK = reshape(keepL(:)+(0:Cdims(1)-1)*NLc,[],1);
+    colK = reshape(keepR(:)+(0:Cdims(2)-1)*NRc,[],1);
+    for ii = 1:numel(Cparams)
+        if numel(Cparams{ii})>1
+            Cparams{ii} = Cparams{ii}(rowK,colK);
+        end
+    end
+end
 
+% Declare the composition (the constructor enforces the canonical form)
 C = sopvar(Cparams,Cvars,CZL,CZR,Cdom,Cdims);
 end
 
@@ -823,15 +784,13 @@ end
 nBase = numel(baseVars);
 nFinal = numel(finalVars);
 
-% finalIdx = paramMultiIdx_SS(nFinal);                                      % MMP, 11/09/2026 (was)
-% finalIdx: the multi-indices of the 3^nFinal parameter cells in linear     % MMP, 11/09/2026
-% index order, first variable fastest, entries 1, 2, 3 (the former local    % MMP, 11/09/2026
-% PARAMMULTIIDX_SS)                                                         % MMP, 11/09/2026
-if nFinal == 0                                                              % MMP, 11/09/2026
-    finalIdx = zeros(1,0);                                                  % MMP, 11/09/2026
-else                                                                        % MMP, 11/09/2026
-    finalIdx = fliplr(dec2base(0:3^nFinal-1,3,nFinal)-'0') + 1;             % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
+% finalIdx: the multi-indices of the 3^nFinal parameter cells in linear
+% index order, first variable fastest, entries 1, 2, 3
+if nFinal == 0
+    finalIdx = zeros(1,0);
+else
+    finalIdx = fliplr(dec2base(0:3^nFinal-1,3,nFinal)-'0') + 1;
+end
 
 if nFinal == 0
     Csize = [1,1];
@@ -841,6 +800,7 @@ else
     Csize = 3*ones(1,nFinal);
 end
 
+% Zero cells over FINALVARS, then each filled from its cell over BASEVARS
 zeroParam = sparse(size(Cparams_in{1},1),size(Cparams_in{1},2));
 Cparams_out = repmat({zeroParam},Csize);
 
@@ -860,13 +820,12 @@ for k = 1:size(finalIdx,1)
     else
         gammaBase = zeros(1,nBase);
         gammaBase(basePos(isBaseVar)) = gamma(isBaseVar);
-%       linBase = paramMultiIdxToLinear_SS(gammaBase);                      % MMP, 11/09/2026 (was)
-        % the linear cell index 1 + sum_i (gammaBase(i)-1)*3^(i-1), first   % MMP, 11/09/2026
-        % variable fastest (the former local PARAMMULTIIDXTOLINEAR_SS)      % MMP, 11/09/2026
-        linBase = 1;                                                        % MMP, 11/09/2026
-        for ib = 1:numel(gammaBase)                                         % MMP, 11/09/2026
-            linBase = linBase + (gammaBase(ib)-1)*3^(ib-1);                 % MMP, 11/09/2026
-        end                                                                 % MMP, 11/09/2026
+        % the linear cell index 1 + sum_i (gammaBase(i)-1)*3^(i-1), first
+        % variable fastest
+        linBase = 1;
+        for ib = 1:numel(gammaBase)
+            linBase = linBase + (gammaBase(ib)-1)*3^(ib-1);
+        end
         Cparams_out{k} = Cparams_in{linBase};
     end
 end
@@ -936,7 +895,7 @@ a = lims(:,1);
 b = lims(:,2);
 
 % Build common expanded output basis.
-% This is the important correction: Zint must work for every row of idxAll.
+% Zint must serve every row of idxAll.
 Zint = cell(1,d);
 
 for i = 1:d
@@ -1150,8 +1109,8 @@ dimLold = cellfun(@numel, ZL);
 dimRold = cellfun(@numel, ZR);
 
 % Monomial vectors in PIETOOLS are ordered with the first variable outermost
-% and the last variable fastest.  A reshape/permute on dimLold uses MATLAB's
-% first-dimension-fastest convention and gives the wrong permutation for
+% and the last variable fastest.  A reshape/permute on dimLold uses the
+% first-dimension-fastest convention of MATLAB and gives the wrong permutation for
 % nontrivial variable reordering.  Build the permutation from explicit
 % tensor-product multi-indices instead.
 PL = kronPermutationMatrix_SS(Zvar,Zvar_ordered,dimLold);
@@ -1174,6 +1133,7 @@ for i = 1:numel(s2a)
     idx2a{i} = reshape(idx, size(E));
 end
 
+% Likewise in s3a
 Z3anew = cell(1, numel(s3a));
 idx3a  = cell(1, numel(s3a));
 for i = 1:numel(s3a)
@@ -1182,6 +1142,7 @@ for i = 1:numel(s3a)
     idx3a{i} = reshape(idx, size(E));
 end
 
+% and in s3b
 Z3bnew = cell(1, numel(s3b));
 idx3b  = cell(1, numel(s3b));
 for i = 1:numel(s3b)
@@ -1223,6 +1184,7 @@ else
     IL = flipud(vertcat(tmp{:})).';
 end
 
+% Likewise IR for the ordered ZR
 if isempty(dimsRord)
     IR = zeros(1,0);
 elseif numel(dimsRord) == 1
@@ -1275,31 +1237,31 @@ dims2a = cellfun(@numel, Z2anew);
 dims3a = cellfun(@numel, Z3anew);
 dims3b = cellfun(@numel, Z3bnew);
 
-% Vectorized over the whole m-by-n grid: every per-direction lookup depends % MMP, 09/10/2026
-% on (i,j) only through IL(i,:) and IR(j,:), so each is a linear-index      % MMP, 09/10/2026
-% gather. (i,k2a,k3a) -> row and (j,k3b) -> col are bijections, so no two   % MMP, 09/10/2026
-% (i,j) collide and 'sparse' sums no duplicates: exact, not approximate.    % MMP, 09/10/2026
-iv = reshape(repmat((1:m).',1,n),[],1);                                     % MMP, 09/10/2026
-jv = reshape(repmat(1:n,m,1),[],1);                                         % MMP, 09/10/2026
+% Vectorized over the whole m-by-n grid: every per-direction lookup depends
+% on (i,j) only through IL(i,:) and IR(j,:), so each is a linear-index
+% gather. (i,k2a,k3a) -> row and (j,k3b) -> col are bijections, so no two
+% (i,j) collide and 'sparse' sums no duplicates: exact, not approximate.
+iv = reshape(repmat((1:m).',1,n),[],1);
+jv = reshape(repmat(1:n,m,1),[],1);
 
-% Scalar contribution from full integration over s2b.                       % MMP, 09/10/2026
-VV = ones(m*n,1);                                                           % MMP, 09/10/2026
-for k = 1:n2b                                                               % MMP, 09/10/2026
-    Ck = C2b{k};                                                            % MMP, 09/10/2026
-    % reshape, not just indexing: when Ck is a ROW vector MATLAB returns a  % MMP, 09/10/2026
-    % row for a column index, and 'VV .* row' would implicitly expand to an % MMP, 09/10/2026
-    % m*n by m*n matrix instead of failing loudly.                          % MMP, 09/10/2026
-    VV = VV .* reshape(Ck(IL(iv,L2b(k)) + (IR(jv,R2b(k))-1)*size(Ck,1)),[],1);% MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
+% Scalar contribution from full integration over s2b.
+VV = ones(m*n,1);
+for k = 1:n2b
+    Ck = C2b{k};
+    % reshape, not just indexing: when Ck is a ROW vector MATLAB returns a
+    % row for a column index, and 'VV .* row' would implicitly expand to an
+    % m*n by m*n matrix instead of failing loudly.
+    VV = VV .* reshape(Ck(IL(iv,L2b(k)) + (IR(jv,R2b(k))-1)*size(Ck,1)),[],1);
+end
 
-% Condensed basis indices for the s2a, s3a and s3b products.                % MMP, 09/10/2026
-k2a = condenseIdx(idx2a,IL,IR,iv,jv,L2a,R2a,dims2a,n2a);                    % MMP, 09/10/2026
-k3a = condenseIdx(idx3a,IL,IR,iv,jv,L3a,R3a,dims3a,n3a);                    % MMP, 09/10/2026
-k3b = condenseIdx(idx3b,IL,IR,iv,jv,L3b,R3b,dims3b,n3b);                    % MMP, 09/10/2026
+% Condensed basis indices for the s2a, s3a and s3b products.
+k2a = condenseIdx(idx2a,IL,IR,iv,jv,L2a,R2a,dims2a,n2a);
+k3a = condenseIdx(idx3a,IL,IR,iv,jv,L3a,R3a,dims3a,n3a);
+k3b = condenseIdx(idx3b,IL,IR,iv,jv,L3b,R3b,dims3b,n3b);
 
-% Row: k3a inside block (i,k2a).  Column: k3b inside block j.               % MMP, 09/10/2026
-II = k3a + (k2a + (iv-1)*nz2a - 1)*nz3a;                                    % MMP, 09/10/2026
-JJ = k3b + (jv-1)*nz3b;                                                     % MMP, 09/10/2026
+% Row: k3a inside block (i,k2a).  Column: k3b inside block j.
+II = k3a + (k2a + (iv-1)*nz2a - 1)*nz3a;
+JJ = k3b + (jv-1)*nz3b;
 
 C3a = sparse(II, JJ, VV, m*nz2a*nz3a, n*nz3b);
 
@@ -1312,30 +1274,30 @@ G3aout.C = C3a;
 G3aout.Z = Z3anew;
 
 end
-function kk = condenseIdx(T,IL,IR,iv,jv,Lk,Rk,dims,nk)                      % MMP, 09/10/2026
-% KK = CONDENSEIDX(T,IL,IR,IV,JV,LK,RK,DIMS,NK) condenses the per-direction % MMP, 09/10/2026
-% indices of one variable group into a single basis index, for every (i,j)  % MMP, 09/10/2026
-% of the grid at once: the LAST direction runs fastest, so direction k      % MMP, 09/10/2026
-% carries stride prod(dims(k+1:end)); kk = 1 for nk == 0.                   % MMP, 09/10/2026
+function kk = condenseIdx(T,IL,IR,iv,jv,Lk,Rk,dims,nk)
+% KK = CONDENSEIDX(T,IL,IR,IV,JV,LK,RK,DIMS,NK) condenses the per-direction
+% indices of one variable group into a single basis index, for every (i,j)
+% of the grid at once: the LAST direction runs fastest, so direction k
+% carries stride prod(dims(k+1:end)); kk = 1 for nk == 0.
 % INPUTS  T: cell of per-direction lookup tables (ZL_i + ZR_j -> index);
 %         IL, IR: multi-index tables of the ordered bases; iv, jv: the
 %         (i,j) pairs of the grid; Lk, Rk: the columns of IL, IR of the
 %         group; dims: the condensed basis sizes; nk: number of directions.
 % OUTPUT  kk: numel(iv) x 1 condensed basis index of each pair.
-kk = ones(numel(iv),1);                                                     % MMP, 09/10/2026
-if nk == 0                                                                  % MMP, 09/10/2026
-    return                                                                  % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
-str = ones(1,nk);                                                           % MMP, 09/10/2026
-for k = nk-1:-1:1                                                           % MMP, 09/10/2026
-    str(k) = str(k+1)*dims(k+1);                                            % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
-for k = 1:nk                                                                % MMP, 09/10/2026
-    Tk = T{k};                                                              % MMP, 09/10/2026
-    a  = Tk(IL(iv,Lk(k)) + (IR(jv,Rk(k))-1)*size(Tk,1));                    % MMP, 09/10/2026
-    kk = kk + (a(:)-1)*str(k);                                              % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
+kk = ones(numel(iv),1);
+if nk == 0
+    return
+end
+str = ones(1,nk);
+for k = nk-1:-1:1
+    str(k) = str(k+1)*dims(k+1);
+end
+for k = 1:nk
+    Tk = T{k};
+    a  = Tk(IL(iv,Lk(k)) + (IR(jv,Rk(k))-1)*size(Tk,1));
+    kk = kk + (a(:)-1)*str(k);
+end
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1347,6 +1309,7 @@ function P = kronPermutationMatrix_SS(oldVars,newVars,dimsOld)
 %         dimsOld: numbers of monomials per variable, in the old order.
 % OUTPUT  P: sparse prod(dimsOld) x prod(dimsOld) permutation matrix.
 
+% Inputs as rows; newVars must be a permutation of oldVars
 oldVars = oldVars(:).';
 newVars = newVars(:).';
 dimsOld = dimsOld(:).';
@@ -1360,6 +1323,7 @@ if any(~tf) || numel(unique(loc)) ~= numel(loc)
     error('kronPermutationMatrix_SS: newVars must be a permutation of oldVars.');
 end
 
+% Basis size; with at most one variable there is nothing to permute
 N = prod(dimsOld);
 if isempty(dimsOld)
     N = 1;
@@ -1370,24 +1334,23 @@ if numel(dimsOld) <= 1
     return
 end
 
+% Multi-indices of the new order, moved to the old variable positions
 dimsNew = dimsOld(loc);
 idxNew = kronMultiIdx_SS(dimsNew);
 idxOld = zeros(N,numel(dimsOld));
 idxOld(:,loc) = idxNew;
-% oldLin = kronSub2ind_SS(dimsOld,idxOld);                                  % MMP, 11/09/2026 (was)
-% oldLin: the linear positions of the multi-index rows of idxOld in the     % MMP, 11/09/2026
-% tensor basis of dimsOld, the inverse of kronMultiIdx_SS (the former local % MMP, 11/09/2026
-% KRONSUB2IND_SS)                                                           % MMP, 11/09/2026
-dimsRow = dimsOld(:).';                                                     % MMP, 11/09/2026
-if isempty(dimsRow)                                                         % MMP, 11/09/2026
-    oldLin = ones(size(idxOld,1),1);                                        % MMP, 11/09/2026
-elseif numel(dimsRow) == 1                                                  % MMP, 11/09/2026
-    oldLin = idxOld(:,1);                                                   % MMP, 11/09/2026
-else                                                                        % MMP, 11/09/2026
-    subs = num2cell(fliplr(idxOld),1);                                      % MMP, 11/09/2026
-    oldLin = sub2ind(fliplr(dimsRow),subs{:});                              % MMP, 11/09/2026
-    oldLin = oldLin(:);                                                     % MMP, 11/09/2026
-end                                                                         % MMP, 11/09/2026
+% oldLin: the linear positions of the multi-index rows of idxOld in the
+% tensor basis of dimsOld, first variable outermost
+dimsRow = dimsOld(:).';
+if isempty(dimsRow)
+    oldLin = ones(size(idxOld,1),1);
+elseif numel(dimsRow) == 1
+    oldLin = idxOld(:,1);
+else
+    subs = num2cell(fliplr(idxOld),1);
+    oldLin = sub2ind(fliplr(dimsRow),subs{:});
+    oldLin = oldLin(:);
+end
 
 P = sparse(oldLin,(1:N).',1,N,N);
 end

@@ -16,9 +16,10 @@ function varname = pvar2varname(var)
 %   variable names as a k x 1 cell of unique variable names in alphabetical
 %   order;
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - nopvar
+% PIETOOLS - pvar2varname
 %
 % Copyright (C) 2026 PIETOOLS Team
 %

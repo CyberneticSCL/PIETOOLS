@@ -12,8 +12,7 @@ function P = uminus(A)
 % NOTES
 % Negating vec(C) = A + B'*d negates both A and B, so the decision variable
 % list is unchanged and every block stays on it; the container invariant
-% needs no reconciliation. Zero blocks stay []. 'sdopvar' blocks are negated
-% by @sdopvar/uminus and 'sopvar' blocks by @sopvar/uminus.
+% needs no reconciliation. Zero blocks stay [].
 %
 % Cost: O(nnz) over all blocks, including the decision rows of each B.
 %
@@ -47,6 +46,7 @@ function P = uminus(A)
 %
 % Initial coding MMP, 09/25/2026
 
+% Negate each nonzero block; the metadata is unchanged
 Cc = A.C;
 for ii = 1:numel(Cc)
     if ~isempty(Cc{ii})

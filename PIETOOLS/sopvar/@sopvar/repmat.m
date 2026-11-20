@@ -12,6 +12,7 @@ function B = repmat(A,r1,r2)
 % OUTPUTS
 % - B:  m*r1 x n*r2 'sopvar' object representing kron(ones(r1,r2),A);
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2026  PIETOOLS Team
@@ -61,6 +62,6 @@ for k=1:numel(params)
     params{k} = repmat(params{k},repdim(1),repdim(2));
 end
 matdim = repdim.*size(A);
-B = sopvar(params,A.vars,A.ZL,A.ZR,A.dom,matdim);                           % MMP, 08/29/2026
+B = sopvar(params,A.vars,A.ZL,A.ZR,A.dom,matdim);
 
 end

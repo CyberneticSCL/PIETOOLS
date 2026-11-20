@@ -2,7 +2,7 @@ function [i,j,l,v,degmat] = decode_params(P,k)
 % [I,J,L,V,DEGMAT] = DECODE_PARAMS(P,K) decodes the nonzero coefficients of
 % the parameter K of the 'sdopvar' object P into the terms
 %   V(t)*Zd(L(t))*Z_L(s)*Z_R(s')
-% of the kernel of the operator, for use in the display of the operator.
+% of the kernel of the operator.
 %
 % INPUTS
 % - P:      'sdopvar' object, with M output variables and N input
@@ -32,7 +32,7 @@ function [i,j,l,v,degmat] = decode_params(P,k)
 %   P.params.B{k} are accessed, so the cost does not depend on the number
 %   of decision variables.
 % - The parameters are indexed by multi-indices over the variables shared
-%   by the input and output, see 'gamma_of_cell': 1 for a multiplier, 2 for
+%   by the input and output: 1 for a multiplier, 2 for
 %   the integral from the lower boundary to the variable, and 3 for the
 %   integral from the variable to the upper boundary.
 
@@ -60,8 +60,11 @@ function [i,j,l,v,degmat] = decode_params(P,k)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
 
+% Variables and basis sizes
 vout = reshape(P.vars.out,1,[]);
 vin = reshape(P.vars.in,1,[]);
 M = numel(vout);
@@ -79,6 +82,8 @@ nrow = P.dims(1)*nZL;
 idx = [idx_a(:);idx_b(:)];
 l = [zeros(numel(idx_a),1);l_b(:)];
 v = [v_a(:);v_b(:)];
+% Matrix row i and column j of each term, its monomials zl and zr, and
+% their degrees in each variable
 r = rem(idx-1,nrow)+1;
 c = ceil(idx/nrow);
 i = ceil(r/nZL);

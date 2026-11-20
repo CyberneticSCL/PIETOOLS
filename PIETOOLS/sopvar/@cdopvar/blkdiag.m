@@ -16,16 +16,14 @@ function P = blkdiag(varargin)
 % - P:          'cdopvar' object, every block on one decision variable list.
 %
 % NOTES
-% The off-diagonal blocks are [], the container's zero block. The grid and
-% metadata come from 'cat_copvar_grid', shared with 'copvar'; the decision
-% variable lists are reconciled by 'merge_dvar_lists', the rule
-% '@cdopvar/plus' applies. Operands declared by separate calls - two
-% Lyapunov operators, say - have different lists, so here the union is the
-% common case rather than the exception.
+% The off-diagonal blocks are [], the zero block of the container. The
+% decision variable lists of the operands are merged into one. Operands
+% declared by separate calls (two Lyapunov operators, say) have different
+% lists, so here the union is the common case rather than the exception.
 %
 % Cost: O(total blocks) when the operands share a decision variable list.
-% Otherwise one stable union, O(q log q), gives every operand's row map,
-% and each block moves in O(nnz(B)); see 'merge_dvar_lists'.
+% Otherwise one stable union, O(q log q), gives the row map of every
+% operand, and each block moves in O(nnz(B)).
 %
 % See also HORZCAT, VERTCAT, CAT_COPVAR_GRID, CDOPVAR.
 %
@@ -57,8 +55,11 @@ function P = blkdiag(varargin)
 %
 % Initial coding MMP, 09/25/2026
 
+% Block-diagonal grid and merged metadata
 [C,meta,Zds,src] = cat_copvar_grid('d',varargin,'cdopvar');
+% Put every block on one decision variable list
 [C,meta.Zd] = merge_dvar_lists(C,Zds,src);
+% Build the container from the trusted metadata
 P = cdopvar(C,meta);
 
 end

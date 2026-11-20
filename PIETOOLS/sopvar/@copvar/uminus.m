@@ -11,8 +11,8 @@ function P = uminus(A)
 %
 % NOTES
 % Zero blocks stay [], and the metadata is carried over unchanged, since
-% negation changes no space, dimension or basis. Each block is negated by
-% @sopvar/uminus, one pass over its coefficients.
+% negation changes no space, dimension or basis. Each block is negated in
+% one pass over its coefficients.
 %
 % Cost: O(nnz) over all blocks.
 %
@@ -46,6 +46,7 @@ function P = uminus(A)
 %
 % Initial coding MMP, 09/25/2026
 
+% Negate each nonzero block; the metadata is unchanged
 Cc = A.C;
 for ii = 1:numel(Cc)
     if ~isempty(Cc{ii})

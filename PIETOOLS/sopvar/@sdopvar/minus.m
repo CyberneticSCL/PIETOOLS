@@ -4,16 +4,16 @@ function Cop = minus(Aop,Bop)
 %
 % INPUTS
 % Aop,Bop:  'sdopvar' objects of equal dimension, sharing vars and dom. A
-%           fixed 'sopvar' operand is accepted, on either side;
+%           fixed 'sopvar' operand is accepted, on either side; a 'dpvar' or
+%           numeric scalar c is c*I, a 'dpvar' matrix a multiplier;
 %
 % OUTPUTS
 % Cop:      'sdopvar' object representing Aop-Bop;
 %
 % NOTES:
-% Written as Aop + (-Bop), as in @sopvar/minus, so that the reconciliation of
-% decision variable lists and monomial bases lives only in @sdopvar/plus.
-% The negation is one pass over the nonzeros of the subtrahend and is
-% negligible next to that reconciliation.
+% Computed as Aop + (-Bop), so the decision variable lists and monomial
+% bases are reconciled as for a sum. The negation is one pass over the
+% nonzeros of the subtrahend and is negligible next to that reconciliation.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -41,6 +41,7 @@ function Cop = minus(Aop,Bop)
 %
 % Initial coding MMP, 09/07/2026
 
+% Aop - Bop as Aop + (-Bop)
 Cop = plus(Aop,uminus(Bop));
 
 end

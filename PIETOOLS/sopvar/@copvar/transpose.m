@@ -1,17 +1,16 @@
 function Pt = transpose(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PT = TRANSPOSE(P) or P.' is the adjoint P', as for the blocks
-% (@sopvar/transpose, @sdopvar/transpose): all parameters are real, so the
-% transpose and the adjoint coincide.
+% PT = TRANSPOSE(P) or P.' is the adjoint P': all parameters are real, so
+% the transpose and the adjoint coincide.
 %
 % INPUTS
 % - P:      'copvar' container;
 %
 % OUTPUTS
-% - Pt:     'copvar' container, the adjoint of P, as returned by 'ctranspose';
+% - Pt:     'copvar' container, the adjoint of P;
 %
-% Why: without this method P.' is the builtin transpose of a scalar object
-% and returned P unchanged, a silently wrong operator whenever P is not
+% Without this method, P.' is the builtin transpose of a scalar object,
+% which returns P unchanged: a wrong operator whenever P is not
 % self-adjoint.
 %
 % See also CTRANSPOSE, COPVAR.
@@ -44,6 +43,7 @@ function Pt = transpose(P)
 %
 % Initial coding MMP, 09/29/2026
 
+% The transpose is the adjoint
 Pt = ctranspose(P);
 
 end

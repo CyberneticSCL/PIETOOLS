@@ -16,8 +16,12 @@ function K = params2kernel(P,k)
 %
 % NOTES
 % - The operator is the sum over the parameters of the integrals of the
-%   kernels K_k(s,s') times the function, see 'display' for the integrals
-%   that correspond to each parameter.
+%   kernels K_k(s,s') times the function. In a shared direction, multi-index
+%   entry 1 is a multiplier (s' = s), 2 integrates s' from the lower limit
+%   to s, and 3 from s to the upper limit; an input-only variable is
+%   integrated over its domain.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - params2kernel
@@ -45,13 +49,17 @@ function K = params2kernel(P,k)
 %
 % DJ, 11/06/2026: Initial coding;
 
+% Terms of the parameter: matrix entry (i,j), coefficient v, degrees E
 [i,j,v,E,names] = decode_params(P,k);
 m = P.dims(1);
 n = P.dims(2);
+% A zero parameter gives the zero kernel
 if isempty(v)
     K = polynomial(zeros(m,n));
     return
 end
+% Keep the variables that appear; one row of C per distinct monomial, one
+% column per matrix entry in column-major order
 used = any(E,1);
 [dg,~,ic] = unique(E(:,used),'rows');
 C = sparse(ic,(j-1)*m+i,v,size(dg,1),m*n);

@@ -13,14 +13,13 @@ function obj = subsasgn(obj,s,varargin)
 % - obj:  the modified object.
 %
 % NOTES
-% Why an error: 'subsref' makes P(I,J) a component slice, but the builtin
+% Why an error: the read P(I,J) is a component slice, but the builtin
 % assignment S(2,1) = P builds a 2 x 1 ARRAY of sopvar objects, on which
 % the overloaded 'size' errors and every other method misreads it. Assigning
 % components, P(I,J) = X, is not implemented. Dot assignment (P.params{k} =
-% X, P.dims = ...) is unchanged; assigning into a property directly still
-% bypasses the constructor and its canonical form, as before. Assigning a
-% block INTO a cell or a struct field (C{i,j} = P) does not call this
-% method.
+% X, P.dims = ...) is the builtin; assigning into a property directly
+% bypasses the constructor and its canonical form. Assigning a block INTO a
+% cell or a struct field (C{i,j} = P) does not call this method.
 %
 % Cost (measured, R2025b): called for every assignment into a sopvar
 % outside the class methods.
@@ -32,7 +31,7 @@ function obj = subsasgn(obj,s,varargin)
 %   as a shared temporary. P.C{i,j}.params{k}(r,c) = v is O(numel) of
 %   params{k}: 1.07 ms on the 22.9 MB params{1} in a copvar, a full copy
 %   (1.1 ms), against 8 us without the overloads. The cell, struct and
-%   method cases were measured on sdopvar blocks (@sdopvar/subsasgn).
+%   method cases were measured on 'sdopvar' blocks.
 % - For such an edit, extract, clear, edit, reinsert, which edits the
 %   block in place (65 us on the 22.9 MB params{1}):
 %       X = P.C{i,j};  P.C{i,j} = [];  X.params{k}(r,c) = v;  P.C{i,j} = X;
@@ -65,23 +64,19 @@ function obj = subsasgn(obj,s,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. S(2,1) = P built an object array (see
-%                NOTES); it is now an error. 'matlab.mixin.Scalar' would
-%                give the error without an overload, but it seals size,
-%                horzcat, vertcat, ctranspose and transpose, which this
-%                class overloads, so the class would not load (measured,
-%                R2025b).
+% Initial coding MMP, 09/29/2026
 
+% Paren assignment is refused
 if strcmp(s(1).type,'()')
     error('sopvar:parenAssign',['Paren assignment P(...) = X is not '...
         'supported for sopvar: it would build an array of operators, and '...
         'component assignment is not implemented. P(I,J) (reference) '...
         'slices components; assign properties with P.name = X.'])
 end
-% The builtin called from this method has the class's own access, so it
+% The builtin called from this method has the access of the class, so it
 % would set protected properties (vars_S1, dom_1, ...) that P.name = X
-% outside the class may not. Raise the builtin's error for them, same
-% identifier and text (measured). Names come from the metaclass, once.
+% outside the class may not. Raise the error of the builtin for them, with
+% the same identifier and text. Names come from the metaclass, once.
 persistent hidden
 if ~iscell(hidden)
     mc = ?sopvar;   pl = mc.PropertyList;
@@ -90,6 +85,7 @@ end
 if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,hidden))
     error(message('MATLAB:class:SetProhibited',s(1).subs,'''sopvar'''))
 end
+% Any other assignment: the builtin
 obj = builtin('subsasgn',obj,s,varargin{:});
 
 end

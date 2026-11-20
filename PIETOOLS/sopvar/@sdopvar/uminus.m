@@ -42,6 +42,7 @@ function Pop_out = uminus(Pop_in)
 %
 % Initial coding MMP, 09/07/2026
 
+% Negate the constant and decision parts of every parameter
 Pop_out = Pop_in;
 for ii=1:numel(Pop_in.params.A)
     Pop_out.params.A{ii} = -Pop_in.params.A{ii};

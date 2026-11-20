@@ -1,5 +1,4 @@
-function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MMP, 09/26/2026
-% function [objs,T,Zd,ZL,ZR] = sync_basis(objs)                             % MMP, 09/26/2026 (was)
+function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [objs,T,Zd,ZL,ZR] = sync_basis(objs) puts N sdopvar objects on a common
 % decision variable list and a common pair of monomial bases, in one pass
@@ -8,10 +7,10 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % INPUTS
 % objs: 1 x N cell of 'sdopvar' objects. They must already agree on vars and
 %       dom; this routine reconciles only Zd, ZL and ZR;
-% shared_Zd: (optional) true is the CALLER's guarantee that each operand's  % MMP, 09/26/2026
-%       Zd holds the same entries as objs{1}.Zd, e.g. because all were      % MMP, 09/26/2026
-%       built from one list. The O(q)-per-operand comparison is skipped.    % MMP, 09/26/2026
-%       Default false;                                                      % MMP, 09/26/2026
+% shared_Zd: (optional) true is the CALLER's guarantee that each operand's
+%       Zd holds the same entries as objs{1}.Zd, e.g. because all were
+%       built from one list. The O(q)-per-operand comparison is skipped.
+%       Default false;
 %
 % OUTPUTS
 % objs: the same operators, with the rows of params.B reordered onto the
@@ -26,9 +25,7 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % ZL,ZR: merged monomial bases, as column vectors per direction;
 %
 % NOTES
-% Replaces the prologue that @sdopvar/plus, eq, horzcat and vertcat each
-% carried inline, and makes it N-ary. Three things are gained over calling
-% the pairwise version N-1 times:
+% Three things are gained over N-1 pairwise merges:
 %
 %   1. The decision variable lists are merged with a single
 %      unique(...,'stable') over the concatenation of all N: the same list
@@ -44,8 +41,8 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 %
 % The bases are unioned per direction with 'union' and forced to columns.
 % MATLAB's 'union' returns a ROW when both arguments are rows, and a monomial
-% basis that comes back row-oriented breaks plus, minus and eq silently; see
-% the CANONICAL MULTIPLIER FORM note in sdopvar.m.
+% basis that comes back row-oriented breaks the sum, difference and
+% equality test of the class silently.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -72,25 +69,8 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
-% MMP, 09/26/2026: (1) Optional input 'shared_Zd', the caller's guarantee
-%                  that the decision lists are equal, skips the O(q) isequal
-%                  per operand (1.24 of 1.36 s in the 2-D container Hinf
-%                  build, 147 calls on 3.8e5 names); 'plus_batch' forwards
-%                  it. (2) Zd is compared as stored when already a column:
-%                  'P.Zd(:)' copies the q-entry cell. Same output.
-% MMP, 09/29/2026: The positions of each operand's monomials in the merged
-%                  bases are read directly by the local 'basis_positions'
-%                  (ismember per direction, Kronecker strides) instead of
-%                  through the selection matrices of 'UnionBasisMonomials'
-%                  and find(); same positions, flat in q (3-D heat build:
-%                  1.83 -> 0.62 s). A monomial missing from the merged
-%                  basis now errors. The @sdopvar copy of
-%                  'UnionBasisMonomials' (MMP, SS, AT, DJ, 06/08/2026) lost
-%                  its only caller and is in the dead-code folder.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): log entries
-%                  condensed, a measurement dropped from the NOTES, the
-%                  BEGIN note shortened; code unchanged.
 
+% No operands: empty outputs
 N = numel(objs);
 if N==0
     T = {};  Zd = cell(0,1);  ZL = {};  ZR = {};   return
@@ -99,29 +79,29 @@ end
 % % % Decision variables: one merged list for all N.
 % The common case is that every operand already carries the same list, and
 % then no comparison beyond isequal is needed.
-% Zd = objs{1}.Zd(:);                                                       % MMP, 09/26/2026 (was)
-% '(:)' on a property copies the whole cell (O(q)); a column needs none.    % MMP, 09/26/2026
-Zd = objs{1}.Zd;                                                            % MMP, 09/26/2026
-if ~iscolumn(Zd),   Zd = Zd(:);     end                                     % MMP, 09/26/2026
+% '(:)' on a property copies the whole cell (O(q)); a column needs none.
+Zd = objs{1}.Zd;
+if ~iscolumn(Zd),   Zd = Zd(:);     end
 allsame = true;
-% Equal by the caller's guarantee: no O(q) comparison needed. A length      % MMP, 09/26/2026
-% mismatch is a broken guarantee, and merging on it would pair the rows of  % MMP, 09/26/2026
-% params.B with the wrong names, so it errors rather than proceeding.       % MMP, 09/26/2026
-if nargin>=2 && shared_Zd                                                   % MMP, 09/26/2026
-    for k = 2:N                                                             % MMP, 09/26/2026
-        if numel(objs{k}.Zd)~=numel(Zd)                                     % MMP, 09/26/2026
+% Equal by the caller's guarantee: no O(q) comparison needed. A length
+% mismatch is a broken guarantee, and merging on it would pair the rows of
+% params.B with the wrong names, so it errors rather than proceeding.
+if nargin>=2 && shared_Zd
+    for k = 2:N
+        if numel(objs{k}.Zd)~=numel(Zd)
             error("'shared_Zd' was set, but operand %d has %d decision "+...
-                  "variables against %d.",k,numel(objs{k}.Zd),numel(Zd))    % MMP, 09/26/2026
-        end                                                                 % MMP, 09/26/2026
-    end                                                                     % MMP, 09/26/2026
-else                                                                        % MMP, 09/26/2026
+                  "variables against %d.",k,numel(objs{k}.Zd),numel(Zd))
+        end
+    end
+else
+% Otherwise compare each list with the first, up to the first difference
 for k = 2:N
-%   if ~isequal(objs{k}.Zd(:),Zd),    allsame = false;    break;    end     % MMP, 09/26/2026 (was)
-    Zk = objs{k}.Zd;                                                        % MMP, 09/26/2026
-    if ~iscolumn(Zk),   Zk = Zk(:);     end                                 % MMP, 09/26/2026
-    if ~isequal(Zk,Zd),    allsame = false;    break;    end                % MMP, 09/26/2026
+    Zk = objs{k}.Zd;
+    if ~iscolumn(Zk),   Zk = Zk(:);     end
+    if ~isequal(Zk,Zd),    allsame = false;    break;    end
 end
-end                                                                         % MMP, 09/26/2026
+end
+% Different lists: their stable union, the first list first
 if ~allsame
     lists = cell(1,N);
     for k = 1:N,    lists{k} = objs{k}.Zd(:);    end
@@ -158,17 +138,12 @@ for k = 1:N
         % the remapping entirely rather than performing an identity one.
         continue
     end
-    % BEGIN MMP, 09/29/2026: aL(a) is the position in ZL of monomial a of
-    % objs{k}.ZL, read directly; likewise aR. The embedding into the merged
-    % basis is a pure scatter, stored as the index vector T{k}.idx below
-    % rather than as a matrix; see 'apply_basis_map'.
-%   [~,CL] = UnionBasisMonomials(objs{k}.ZL,ZL);                            % MMP, 09/29/2026 (was)
-%   [~,CR] = UnionBasisMonomials(objs{k}.ZR,ZR);                            % MMP, 09/29/2026 (was)
-%   aL = zeros(size(CL,1),1);   [rL,cL] = find(CL);     aL(rL) = cL;        % MMP, 09/29/2026 (was)
-%   aR = zeros(size(CR,1),1);   [rR,cR] = find(CR);     aR(rR) = cR;        % MMP, 09/29/2026 (was)
-    aL = basis_positions(objs{k}.ZL,ZL);                                    % MMP, 09/29/2026
-    aR = basis_positions(objs{k}.ZR,ZR);                                    % MMP, 09/29/2026
-    % END MMP, 09/29/2026
+    % aL(a) is the position in ZL of monomial a of objs{k}.ZL, read
+    % directly; likewise aR. The embedding into the merged basis is a pure
+    % scatter, stored as the index vector T{k}.idx below rather than as a
+    % matrix.
+    aL = basis_positions(objs{k}.ZL,ZL);
+    aR = basis_positions(objs{k}.ZR,ZR);
     mk = objs{k}.dims(1);       nk = objs{k}.dims(2);
 
     % Entry (matrix row i, ZL index a, matrix column j, ZR index b) sits at
@@ -185,23 +160,25 @@ end
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 09/29/2026
-function a = basis_positions(Zs,Zf)                                         % MMP, 09/29/2026
-% A = BASIS_POSITIONS(ZS,ZF): A(j) is the position in the monomial vector   % MMP, 09/29/2026
-% kron(ZF{1},...,ZF{N}) of monomial j of kron(ZS{1},...,ZS{N}), first       % MMP, 09/29/2026
-% variable outermost, as in 'UnionBasisMonomials' and the class bases.      % MMP, 09/29/2026
-% Requires ZS{i} within ZF{i} for each direction i, which holds for the     % MMP, 09/29/2026
-% unions formed in 'sync_basis'; otherwise it errors, since a missing       % MMP, 09/29/2026
-% monomial would get position 0. Cost: the monomial axis only, not q.       % MMP, 09/29/2026
-a = 1;                                                                      % MMP, 09/29/2026
-for i = 1:numel(Zs)                                                         % MMP, 09/29/2026
-    [tf,p] = ismember(Zs{i}(:),Zf{i}(:));                                   % MMP, 09/29/2026
-    if ~all(tf)                                                             % MMP, 09/29/2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function a = basis_positions(Zs,Zf)
+% A = BASIS_POSITIONS(ZS,ZF): A(j) is the position in the monomial vector
+% kron(ZF{1},...,ZF{N}) of monomial j of kron(ZS{1},...,ZS{N}), first
+% variable outermost, as in the class bases. Requires ZS{i} within ZF{i}
+% for each direction i, which holds for the unions formed above; otherwise
+% it errors, since a missing monomial would get position 0. Cost: the
+% monomial axis only, not q.
+% INPUT  Zs, Zf: 1 x N 'cell' of exponent columns, Zs{i} a subset of Zf{i}.
+% OUTPUT a: prod_i numel(Zs{i}) x 1 positions in the monomial vector of Zf.
+a = 1;
+for i = 1:numel(Zs)
+    [tf,p] = ismember(Zs{i}(:),Zf{i}(:));
+    if ~all(tf)
         error('sync_basis:basisNotContained',['A monomial of an operand '...
-              'basis is missing from the merged basis.'])                   % MMP, 09/29/2026
-    end                                                                     % MMP, 09/29/2026
-    % (a-1)*numel(Zf{i}) + p is the merged position of (earlier directions, % MMP, 09/29/2026
-    % direction i); direction i is the inner index, hence the transpose.    % MMP, 09/29/2026
-    a = reshape(((a(:)-1)*numel(Zf{i}) + p(:).').',[],1);                   % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+              'basis is missing from the merged basis.'])
+    end
+    % (a-1)*numel(Zf{i}) + p is the merged position of (earlier directions,
+    % direction i); direction i is the inner index, hence the transpose.
+    a = reshape(((a(:)-1)*numel(Zf{i}) + p(:).').',[],1);
+end
+end

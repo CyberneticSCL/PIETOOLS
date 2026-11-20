@@ -1,18 +1,15 @@
 function out = end(a,k,n)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out = end(a,k,n) is used to establish the size of sdopvar object a
-% associated with index k out of n (used in subsref, e.g. a(i:end,j:end))
+% associated with index k out of n (in indexing, e.g. a(i:end,j:end))
 %
 % INPUTS
-% a:    sdopvar class object
-% k,n:  natural numbers
+% a:    'sdopvar' object
+% k,n:  natural numbers, the position k of the index among n indices
 %
 % OUTPUTS
-% out:  the size of a along dim k
-%
-% NOTES:
-% Identical to @sopvar/end, @opvar/end and @dopvar/end. It is built on
-% 'size', so @sdopvar/size must be present or 'end' evaluates to 1.
+% out:  the size of a along dimension k (n = 2), or the number of entries,
+%       rows times columns, for a linear index (n = 1)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -40,6 +37,7 @@ function out = end(a,k,n)
 %
 % Initial coding MMP, 09/06/2026
 
+% Number of entries for a linear index, else the size along dimension k
 if n ==1
     sza = size(a);
     out = sza(1)*sza(2);

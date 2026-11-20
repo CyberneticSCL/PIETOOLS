@@ -2,8 +2,8 @@ function C = plus_batch(varargin)
 % C = PLUS_BATCH(P1,P2,...,PN) is P1 + P2 + ... + PN for 'copvar'
 % containers on one block grid. Fixed containers carry no decision variable
 % lists, so the chain has nothing to reconcile and is used as is. A call
-% with any 'cdopvar' operand dispatches to '@cdopvar/plus_batch'
-% (InferiorClasses), which reconciles the lists once.
+% with any 'cdopvar' operand is a 'cdopvar' sum, which reconciles the lists
+% once.
 %
 % INPUTS
 % varargin: N >= 1 'copvar' containers on the same block grid, mapping
@@ -12,10 +12,6 @@ function C = plus_batch(varargin)
 %
 % OUTPUTS
 % C:        'copvar' equal to P1 + P2 + ... + PN;
-%
-% NOTES
-% Dispatched to when every operand is a 'copvar'; with any 'cdopvar'
-% operand see '@cdopvar/plus_batch'.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus_batch
@@ -41,8 +37,11 @@ function C = plus_batch(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding MMP, 10/01/2026
 
+% Check the operands; add them left to right
 if ~all(cellfun(@(x) isa(x,'copvar'),varargin))
     error('plus_batch:badInput','Summands must be copvar or cdopvar objects.')
 end

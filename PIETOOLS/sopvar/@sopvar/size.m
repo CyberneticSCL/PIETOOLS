@@ -43,10 +43,8 @@ function varargout = size(P,dim)
 % authorship, and a brief description of modifications
 %
 % Initial coding AT -- 01/28/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
-%                  house format (it described the spaces of another class),
-%                  step comments, dead comment lines removed; code unchanged.
 
+% The input must be a 'sopvar' object
 if ~isa(P,'sopvar')
     error('To check validity input must be sopvar object');
 end

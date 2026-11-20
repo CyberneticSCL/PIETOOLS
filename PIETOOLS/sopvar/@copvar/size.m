@@ -2,8 +2,8 @@ function varargout = size(P,dim,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [m,n] = SIZE(P) returns the row and column dimensions of the operator
 % represented by the 'copvar' P: the total numbers of output and input
-% components m = sum(P.dim_out) and n = sum(P.dim_in), as @sopvar/size
-% does for a single block. SIZE(P,'block') instead returns the block grid
+% components m = sum(P.dim_out) and n = sum(P.dim_in). SIZE(P,'block')
+% instead returns the block grid
 % [M,N] = size(P.C), the numbers of output and input spaces, and
 % SIZE(P,'split') the number of components of each of those spaces.
 %
@@ -57,11 +57,6 @@ function varargout = size(P,dim,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/17/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Moved from
-%                  @mopvar/ with the class.
-% DJ, 11/18/2026: Update to support 'opts'.
 
 % Default to the total size; accept size(P,opts) and size(P,opts,dim) as
 % well as size(P,dim) and size(P,dim,opts).
@@ -71,7 +66,7 @@ end
 if nargin<2
     dim = [];
 end
-if ischar(dim) || isstring(dim)                                             % DJ, 11/18/2026
+if ischar(dim) || isstring(dim)
     if nargin==3
         [dim,opts] = deal(opts,dim);
     else
@@ -80,7 +75,7 @@ if ischar(dim) || isstring(dim)                                             % DJ
 end
 
 % Row and column size {row,col} for the requested option.
-switch lower(char(opts))                                                    % DJ, 11/18/2026
+switch lower(char(opts))
     case 'tot'
         sz = {sum(P.dim_out),sum(P.dim_in)};
     case 'block'
@@ -93,7 +88,7 @@ end
 
 % 'split' returns a cell for a single output without dim, since dim_out
 % and dim_in need not have the same length.
-if ~isempty(dim)                                                            % DJ, 11/18/2026
+if ~isempty(dim)
     varargout = {[sz{dim}]};
 elseif nargout>=2
     varargout = sz;

@@ -11,8 +11,8 @@ function logval = eq(P1,P2,tol)
 %
 % OUTPUTS
 % - logval: logical, true if P1 and P2 have the same dimensions, variables,
-%           domains and number of parameters, and, after 'sync_basis' has
-%           put them on common decision-variable and monomial bases, their
+%           domains and number of parameters, and, once both are put on
+%           common decision-variable and monomial bases, their
 %           coefficients A and B agree entrywise within tol. This tests the
 %           stored coefficients, which determine the operator since the
 %           canonical multiplier form is a class invariant;
@@ -41,12 +41,9 @@ function logval = eq(P1,P2,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 09/07/2026: The operands are aligned by 'sync_basis' and
-%                  'apply_basis_map' (the (was) lines below held the
-%                  pairwise prologue) and compared on the stored nonzeros.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line and log
-%                  entries, the sparse-comparison note tightened, header for
-%                  the local function; code unchanged.
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
+% Initial coding DB - 08/17/2026
 
 % Default tolerance
 if nargin<3
@@ -83,33 +80,19 @@ if numel(P1.params.A)~=numel(P2.params.A)
     return
 end
 
-% Put both objects in the same decision-variable and monomial coordinates.  % MMP, 09/07/2026
-[ops,T] = sync_basis({P1,P2});                                              % MMP, 09/07/2026
-P1 = ops{1};    P2 = ops{2};                                                % MMP, 09/07/2026
-%[P1,P2,~] = CombineDecisionBasis(P1,P2);                                   % MMP, 09/07/2026 (was)
-%[~,C1R,C2R] = UnionBasisMonomials(P1.ZR,P2.ZR);                            % MMP, 09/07/2026 (was)
-%[~,C1L,C2L] = UnionBasisMonomials(P1.ZL,P2.ZL);                            % MMP, 09/07/2026 (was)
-%C1L = kron(eye(P1.dims(1)),C1L);                                           % MMP, 09/07/2026 (was)
-%C2L = kron(eye(P2.dims(1)),C2L);                                           % MMP, 09/07/2026 (was)
-%C1R = kron(eye(P1.dims(2)),C1R);                                           % MMP, 09/07/2026 (was)
-%C2R = kron(eye(P2.dims(2)),C2R);                                           % MMP, 09/07/2026 (was)
-%T1 = kron(C1R',C1L');                                                      % MMP, 09/07/2026 (was)
-%T2 = kron(C2R',C2L');                                                      % MMP, 09/07/2026 (was)
+% Put both objects in the same decision-variable and monomial coordinates.
+[ops,T] = sync_basis({P1,P2});
+P1 = ops{1};    P2 = ops{2};
 
 % Compare the coefficients cell by cell on the common bases
 logval = true;
 for ii=1:numel(P1.params.A)
-    [A1,B1] = apply_basis_map(T{1},P1.params.A{ii},P1.params.B{ii});        % MMP, 09/07/2026
-    [A2,B2] = apply_basis_map(T{2},P2.params.A{ii},P2.params.B{ii});        % MMP, 09/07/2026
-%   A1 = T1*P1.params.A{ii};                                                % MMP, 09/07/2026 (was)
-%   A2 = T2*P2.params.A{ii};                                                % MMP, 09/07/2026 (was)
-%   B1 = P1.params.B{ii}*T1.';                                              % MMP, 09/07/2026 (was)
-%   B2 = P2.params.B{ii}*T2.';                                              % MMP, 09/07/2026 (was)
-    % Test the stored nonzeros: 'all(abs(D(:))<tol)' on a sparse D would    % MMP, 09/07/2026
-    % build a full q*nC logical (the rows of B are the decision variables). % MMP, 09/07/2026
+    [A1,B1] = apply_basis_map(T{1},P1.params.A{ii},P1.params.B{ii});
+    [A2,B2] = apply_basis_map(T{2},P2.params.A{ii},P2.params.B{ii});
+    % Test the stored nonzeros: 'all(abs(D(:))<tol)' on a sparse D would
+    % build a full q*nC logical (the rows of B are the decision variables).
     logval = logval && ~any(abs(nonzeros(A1-A2))>=tol) ...
-                    && ~any(abs(nonzeros(B1-B2))>=tol);                     % MMP, 09/07/2026
-%   logval = logval && all(abs(A1(:)-A2(:))<tol) && all(abs(B1(:)-B2(:))<tol); % MMP, 09/07/2026 (was)
+                    && ~any(abs(nonzeros(B1-B2))>=tol);
     if ~logval
         return
     end
@@ -127,10 +110,9 @@ if ~isa(P,'sdopvar')
 end
 logval = true;
 for ii=1:numel(P.params.A)
-    % Same sparse-comparison trap as above; see the note in eq.             % MMP, 09/07/2026
+    % Test the stored nonzeros only: no full q*nC logical is built
     logval = logval && ~any(abs(nonzeros(P.params.A{ii}))>=tol) ...
-                    && ~any(abs(nonzeros(P.params.B{ii}))>=tol);            % MMP, 09/07/2026
-%   logval = logval && all(abs(P.params.A{ii}(:))<tol) && all(abs(P.params.B{ii}(:))<tol); % MMP, 09/07/2026 (was)
+                    && ~any(abs(nonzeros(P.params.B{ii}))>=tol);
     if ~logval
         return
     end

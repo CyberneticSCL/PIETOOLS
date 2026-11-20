@@ -1,22 +1,23 @@
 function [deg,report] = degbalance(P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [DEG,REPORT] = DEGBALANCE(P,OPTS) picks 'possopvar' degrees so that a
-% positive operator declared with them carries monomials of similar degree
-% to those of P, the n-variate counterpart of '@opvar/degbalance' and
-% '@dopvar2d/degbalance'.
-%
-% The rule, the slot weighting and the limits of what it does are documented
-% in 'degbalance_core', which both the 'sopvar' and 'sdopvar' methods share
-% because the only class-dependent step is reading a cell's nonzeros.
+% [DEG,REPORT] = DEGBALANCE(P,OPTS) picks the degrees of the basis of a
+% positive operator so that, declared with them, it carries monomials of
+% similar degree to those of P: for every block, the maximal degree of P on
+% every nonempty subset of variables, halved and rounded up (the
+% Newton-polytope factor of a sum of squares in the Gram sense).
 %
 % INPUTS
 % - P:    'sopvar' object, the operator whose degrees are to be matched;
-% - opts: (optional) 'struct' of options, with fields 'include', 'sep' and
-%         'weight' as documented in 'degbalance_core';
+% - opts: (optional) 'struct' with fields 'include' (nblk x n3 array, the
+%         basis multi-indices to size; default every block), 'sep' (1 x n3
+%         logical, the separable directions) and 'weight' ('uniform',
+%         default, halves every cap; 'slotwise' halves only the
+%         integration slot);
 %
 % OUTPUTS
 % - deg:    1 x nblk cell, one degree struct per block, with fields 'int',
-%           'mult', 'joint' and 'subset', to be passed to 'possopvar';
+%           'mult', 'joint' and 'subset', the degrees of the basis of a
+%           positive operator;
 % - report: 'struct' with fields 'lines' (what was decided) and 'maxdeg'
 %           (per-block maximal degrees read off P);
 %
@@ -46,11 +47,9 @@ function [deg,report] = degbalance(P,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/21/2026: thin wrapper so 'degbalance' is reachable
-%                  as a method, matching '@opvar', '@dopvar' and
-%                  '@dopvar2d'.
-%
+% Initial coding MMP, 09/21/2026
 
+% Degrees read off P and halved, with or without options
 if nargin<2
     [deg,report] = degbalance_core(P);
 else

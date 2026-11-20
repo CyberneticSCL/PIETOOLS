@@ -1,7 +1,6 @@
 function [vars,d] = parse_diff_inputs(vars,d)
 % [VARS,D] = PARSE_DIFF_INPUTS(VARS,D) checks and normalizes the variables
-% and orders of differentiation specified for the 'diff' functions of the
-% sopvar and tensor-PI classes.
+% and orders of differentiation of p derivatives.
 %
 % INPUTS
 % - vars:   1 x r 'cellstr', char, or 1 x r 'polynomial' (pvar) array
@@ -22,6 +21,7 @@ function [vars,d] = parse_diff_inputs(vars,d)
 % - r'=0, with d a p x 0 array, if all orders are zero;
 % - Normalized inputs are returned unchanged if passed in again.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - parse_diff_inputs

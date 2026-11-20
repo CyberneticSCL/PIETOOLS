@@ -14,11 +14,9 @@ function [tf,info] = is_canonical_multiplier(params,vars,ZL,ZR,dims)
 %   GAM(k)==1  ==>  the parameter has no content outside the columns whose
 %                   ZR monomial has degree 0 in direction k.
 %
-% Every routine that consumes the stored coefficients directly, rather than
-% the operator they represent, relies on this. In particular 'eq' can compare
-% coefficients only because they are canonical, and 'lpi_eq_sdopvar' can
-% constrain coefficients to zero only because that is equivalent to
-% constraining the operator to zero.
+% Only in this form is comparing the stored coefficients of two operators
+% equivalent to comparing the operators, and constraining the coefficients
+% to zero equivalent to constraining the operator to zero.
 %
 % INPUT
 % - params: parameters of the operator, either a cell array of coefficient
@@ -31,10 +29,10 @@ function [tf,info] = is_canonical_multiplier(params,vars,ZL,ZR,dims)
 %
 % OUTPUT
 % - tf:     'logical', true if every multiplier parameter is canonical.
-%           A declaration this routine cannot interpret, or a parameter whose
-%           size disagrees with the declared bases, returns FALSE: callers use
-%           the result to decide whether it is safe to work on the stored
-%           coefficients, so an object that cannot be assessed must not pass.
+%           A declaration that cannot be interpreted, or a parameter whose
+%           size disagrees with the declared bases, returns FALSE: only TRUE
+%           means the stored coefficients are safe to work on, so an object
+%           that cannot be assessed does not pass.
 %           An operator with no variable common to its input and output space
 %           has no multiplier parameter and satisfies the form vacuously;
 % - info:   'struct' with fields
@@ -44,6 +42,8 @@ function [tf,info] = is_canonical_multiplier(params,vars,ZL,ZR,dims)
 %             .message    a description of the first problem, or ''.
 %
 % See also CANONICAL_ADJOINT_MAP, SOPVAR, SDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - is_canonical_multiplier
@@ -70,19 +70,8 @@ function [tf,info] = is_canonical_multiplier(params,vars,ZL,ZR,dims)
 % authorship, and a brief description of modifications
 %
 % MMP, 08/29/2026: Initial coding
-% MMP, 09/30/2026: The cell multi-index comes from the shared helper
-%                  gamma_of_cell (sopvar/misc/conventions) instead of the
-%                  ind2sub + cell2mat idiom, one definition of the cell
-%                  order for every file. The mask of each multiplier
-%                  direction t depends on (ZR,t) only and was rebuilt for
-%                  every cell; it is now built on first use and reused, as
-%                  canonicalize_multiplier does since 09/29. Same values, so
-%                  tf and info are unchanged.
-% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
-%                  sopvar/misc/canonical_form, after what it holds (the
-%                  canonical form of the block classes), not the tool that
-%                  wrote it. The move changes no code.
 
+% Canonical unless shown otherwise; the variables must be a struct
 tf = true;
 info = struct('bad',[],'dirs',{{}},'unchecked',[],'message','');
 
@@ -98,12 +87,14 @@ if n3==0
     return              % no common direction, so no multiplier parameter,
 end                     % and the form holds vacuously
 
+% Bases as rows, one per declared variable
 ZL = reshape(ZL,1,[]);      ZR = reshape(ZR,1,[]);
 if numel(ZL)~=numel(vout) || numel(ZR)~=numel(vin) || numel(dims)<2
     [tf,info] = cannot_assess(info,"the monomial bases or dimensions do not match "...
                                    +"the declared variables");
     return
 end
+% Position of each shared variable in ZR; basis sizes and numel of vec(C)
 [~,posR] = ismember(vS3,vin);
 
 nR = cellfun(@numel,ZR);        NR = prod([nR,1]);
@@ -112,6 +103,7 @@ m  = dims(1);       n = dims(2);
 nrow = m*NL;        nC = nrow*(n*NR);
 
 
+% Parameter cells: a struct of A and B cells for 'sdopvar'; 3^n3 of them
 is_sdop = isstruct(params);
 if is_sdop
     if ~isfield(params,'A') || ~isfield(params,'B')
@@ -128,21 +120,18 @@ if ncell~=3^n3
     return
 end
 
-% sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
-% maskR{t}: ZR monomials of degree 0 in shared direction t, a function of   % MMP, 09/30/2026
-% (ZR,t) only, built on first use and reused by every later cell, as in     % MMP, 09/30/2026
-% canonicalize_multiplier.                                                  % MMP, 09/30/2026
-maskR = cell(1,n3);                                                         % MMP, 09/30/2026
+% maskR{t}: ZR monomials of degree 0 in shared direction t, a function of
+% (ZR,t) only, built on first use and reused by every later cell.
+maskR = cell(1,n3);
 for k = 1:ncell
-%   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
-%   [idcs{:}] = ind2sub(sz_C,k);                                            % MMP, 09/30/2026 (was)
-%   gam = cell2mat(idcs);                                                   % MMP, 09/30/2026 (was)
-    gam = gamma_of_cell(k,n3);      % helper in sopvar/misc/conventions     % MMP, 09/30/2026
+    gam = gamma_of_cell(k,n3);      % multi-index of cell k
     mult_dirs = find(gam==1);
     if isempty(mult_dirs)
         continue
     end
 
+    % A parameter of the wrong size cannot be assessed; an empty one is
+    % canonical
     if is_sdop
         Ak = params.A{k};       Bk = params.B{k};
         if (~isempty(Ak) && numel(Ak)~=nC) || (~isempty(Bk) && size(Bk,2)~=nC)
@@ -153,6 +142,7 @@ for k = 1:ncell
             continue
         end
     else
+        % 'sopvar': one coefficient matrix, no decision part
         Ak = params{k};         Bk = [];
         if isempty(Ak)
             continue
@@ -172,21 +162,23 @@ for k = 1:ncell
     % % % nonzeros, so it does not scale with the decision variables.
     viol = false(1,numel(mult_dirs));
     for ii = 1:numel(mult_dirs)
-        t = mult_dirs(ii);                                                  % MMP, 09/30/2026
-        if isempty(maskR{t})            % first use: build, keep            % MMP, 09/30/2026
-            p = posR(mult_dirs(ii));                                        % MMP, 09/30/2026
-            v = (ZR{p}(:)==0);                                              % MMP, 09/30/2026
-            kk = true(1,1);                                                 % MMP, 09/30/2026
-            for i = 1:numel(nR)                                             % MMP, 09/30/2026
-                if i==p                                                     % MMP, 09/30/2026
-                    kk = kron(kk,v);                                        % MMP, 09/30/2026
-                else                                                        % MMP, 09/30/2026
-                    kk = kron(kk,true(nR(i),1));                            % MMP, 09/30/2026
-                end                                                         % MMP, 09/30/2026
-            end                                                             % MMP, 09/30/2026
-            maskR{t} = kk;                                                  % MMP, 09/30/2026
-        end                                                                 % MMP, 09/30/2026
-        kk = maskR{t};                                                      % MMP, 09/30/2026
+        t = mult_dirs(ii);
+        if isempty(maskR{t})            % first use: build, keep
+            p = posR(mult_dirs(ii));
+            v = (ZR{p}(:)==0);
+            kk = true(1,1);
+            for i = 1:numel(nR)
+                if i==p
+                    kk = kron(kk,v);
+                else
+                    kk = kron(kk,true(nR(i),1));
+                end
+            end
+            maskR{t} = kk;
+        end
+        % Forbidden positions: the columns whose ZR monomial has a nonzero
+        % degree in direction t; any content there violates the form
+        kk = maskR{t};
         bBad = find(~kk)-1;
         if isempty(bBad)
             continue
@@ -199,6 +191,7 @@ for k = 1:ncell
         end
         viol(ii) = hit;
     end
+    % Record the violating parameter, its directions and the first message
     if any(viol)
         tf = false;
         info.bad(end+1) = k;
@@ -218,9 +211,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tf,info] = cannot_assess(info,why)
-% A declaration this routine cannot interpret is reported as NOT canonical.
-% Callers use the result to decide whether it is safe to work on the stored
-% coefficients, so an unassessable object has to fail, not pass by default.
+% [TF,INFO] = CANNOT_ASSESS(INFO,WHY) reports a declaration that cannot be
+% interpreted as NOT canonical: only TRUE means the stored coefficients are
+% safe to work on, so an unassessable object fails rather than passing by
+% default.
+% INPUTS  info: the 'struct' of the primary output; why: string, the reason.
+% OUTPUT  tf: false; info: with the message set if none was.
 
 tf = false;
 if isempty(info.message)
@@ -233,8 +229,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tf,info] = mark_unchecked(info,k)
-% A parameter whose size disagrees with the declared bases cannot be tested,
-% so it fails for the same reason a whole declaration that cannot be read does.
+% [TF,INFO] = MARK_UNCHECKED(INFO,K) fails parameter k, whose size
+% disagrees with the declared bases and so cannot be tested, for the same
+% reason a whole declaration that cannot be read fails.
+% INPUTS  info: the 'struct' of the primary output; k: cell index.
+% OUTPUT  tf: false; info: k appended to info.unchecked, the message set if
+%         none was.
 
 tf = false;
 info.unchecked(end+1) = k;

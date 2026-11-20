@@ -2,8 +2,7 @@ function [i,j,v,degmat,names] = decode_params(P,k)
 % [I,J,V,E,NAMES] = DECODE_PARAMS(P,K) decodes the nonzero coefficients of
 % the parameter P.PARAMS{K} of the 'sopvar' object P into the terms
 %   V(t)*Z_L(s)*Z_R(s')
-% of the kernel of the operator, for use in 'params2kernel' and in the
-% display of the operator.
+% of the kernel of the operator.
 %
 % INPUTS
 % - P:      'sopvar' object, with M output variables and N input variables;
@@ -29,9 +28,11 @@ function [i,j,v,degmat,names] = decode_params(P,k)
 %   Kronecker product of the bases P.ZL (rows) and P.ZR (columns), with the
 %   first variable changing slowest.
 % - The parameters are indexed by multi-indices over the variables shared
-%   by the input and output, see 'gamma_of_cell': 1 for a multiplier, 2 for
-%   the integral from the lower boundary to the variable, and 3 for the
-%   integral from the variable to the upper boundary.
+%   by the input and output (linear index, direction 1 fastest): 1 for a
+%   multiplier, 2 for the integral from the lower boundary to the variable,
+%   and 3 for the integral from the variable to the upper boundary.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - decode_params
@@ -59,6 +60,7 @@ function [i,j,v,degmat,names] = decode_params(P,k)
 %
 % DJ, 11/06/2026: Initial coding;
 
+% Variables and the sizes of the bases ZL and ZR
 vout = reshape(P.vars.out,1,[]);
 vin = reshape(P.vars.in,1,[]);
 M = numel(vout);
@@ -68,6 +70,8 @@ nR = cellfun(@numel,P.ZR);
 nZL = prod(nL);
 nZR = prod(nR);
 
+% Split each nonzero row and column into the matrix entry (i,j) and the
+% composite monomial positions zl, zr, then into per-variable positions
 [r,c,v] = find(P.params{k});
 r = r(:);   c = c(:);   v = v(:);       % row vectors if the parameter has one row
 i = ceil(r/nZL);
@@ -76,6 +80,7 @@ j = ceil(c/nZR);
 zr = c - (j-1)*nZR;
 aL = kron_split(zl-1,kron_strides(nL));
 aR = kron_split(zr-1,kron_strides(nR));
+% Degree of each term in each output variable and each dummy variable
 degmat = zeros(numel(v),M+N);
 for q=1:M
     degmat(:,q) = P.ZL{q}(aL(:,q)+1);

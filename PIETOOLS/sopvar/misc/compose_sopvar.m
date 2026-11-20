@@ -38,9 +38,9 @@ function Yop = compose_sopvar(Xops,vars_in,vars_tot,dom,dim_in)
 %   K_nX(s_nX,theta_nX)*...*K_1(s_1,theta_1), so that the parameters of
 %   Yop, for each choice of the partial integral of each stage, follow from
 %   the product of those of the stages, contracted over the components,
-%   with the monomials tensored. This avoids lifting each stage to all
-%   variables and composing them with the 'mtimes' method of 'sopvar'.
+%   with the monomials tensored.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - compose_sopvar
@@ -109,6 +109,7 @@ for side_idx=1:2
     Z_cell{side_idx} = repmat({0},1,numel(vars_side));
     dom_cell{side_idx} = zeros(numel(vars_side),2);
     for k=1:numel(vars_side)
+        % Domain of the variable, and the basis of the stage acting on it
         j = find(strcmp(vars_stage,vars_side{k}),1);
         dom_cell{side_idx}(k,:) = dom(strcmp(vars_tot,vars_side{k}),:);
         if ~isempty(j)
@@ -139,6 +140,7 @@ for j=1:n_ops
         error('Dimensions of the operators in the chain do not match.')
     end
 end
+% Zero parameters of the composition, one per multi-index over S3
 n3 = numel(S3);
 nnZL_arr = prod(nZL_arr);       nnZR_arr = prod(nZR_arr);
 params_new = cell([repmat(3,1,n3),1]);
@@ -183,6 +185,9 @@ for j=1:n_ops
                 Mr = sparse(((ridcs-1)*nZL_stage(j)+(ZL_idcs-1))*nZR_stage(j)+ZR_idcs,cidcs,vals,p_arr(j)*nZL_stage(j)*nZR_stage(j),p_arr(j-1));
                 [rridcs_A,ccidcs_A,vals_A] = find(Mr*part.A);
                 rridcs_A = rridcs_A(:);     ccidcs_A = ccidcs_A(:);     vals_A = vals_A(:);
+                % Rows: component, output and input monomial of stage j;
+                % columns: previous output monomial, input component,
+                % previous input monomial
                 ZR_idcs_t = mod(rridcs_A-1,nZR_stage(j))+1;
                 tmp_idcs = floor((rridcs_A-1)/nZR_stage(j));
                 ZL_idcs_t = mod(tmp_idcs,nZL_stage(j))+1;
@@ -193,10 +198,12 @@ for j=1:n_ops
                 ZL_idcs_prev = floor(rem_idcs/q_arr(1))+1;
                 ZL_idcs_new = (ZL_idcs_prev-1)*nZL_stage(j)+ZL_idcs_t;
                 ZR_idcs_new = (ZR_idcs_prev-1)*nZR_stage(j)+ZR_idcs_t;
+                % The product on the extended monomial indices
                 nZ = part.nZ*nZL_stage(j);      nZp = part.nZp*nZR_stage(j);
                 ccidcs_new = ((ZL_idcs_new-1)*q_arr(1)+(cidcs_in-1))*nZp+ZR_idcs_new;
                 A = sparse(ridcs_new,ccidcs_new,vals_A,p_arr(j),nZ*q_arr(1)*nZp);
             end
+            % A vanishing product drops the term
             if nnz(A)==0
                 continue
             end
@@ -218,6 +225,7 @@ for pidx=1:numel(parts)
     [ridcs_new,ccidcs_A,vals_A] = find(parts(pidx).A);
     ridcs_new = ridcs_new(:);   ccidcs_A = ccidcs_A(:);     vals_A = vals_A(:);
     nZp = parts(pidx).nZp;
+    % Columns: input component, and the monomial digits of each stage
     ZR_idcs_rem = mod(ccidcs_A-1,nZp);
     rem_idcs = floor((ccidcs_A-1)/nZp);
     cidcs_in = mod(rem_idcs,q_arr(1))+1;
@@ -229,6 +237,8 @@ for pidx=1:numel(parts)
         ZR_idcs_arr(:,j) = mod(ZR_idcs_rem,nZR_stage(j));
         ZR_idcs_rem = floor(ZR_idcs_rem/nZR_stage(j));
     end
+    % Canonical monomial index on each side, first variable slowest; a
+    % variable no stage acts on has the single monomial 1
     mono_cell = {zeros(numel(vals_A),1),zeros(numel(vals_A),1)};
     digits_cell = {ZL_idcs_arr,ZR_idcs_arr};
     for side_idx=1:2
@@ -242,6 +252,7 @@ for pidx=1:numel(parts)
         end
     end
     ZL_idcs_can = mono_cell{1};     ZR_idcs_can = mono_cell{2};
+    % The parameter cell of the slots, and the canonical rows and columns
     lidx = 1;
     if n3>0
         slot_cell = num2cell(parts(pidx).slot);

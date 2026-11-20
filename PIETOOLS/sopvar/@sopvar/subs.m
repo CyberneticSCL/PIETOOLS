@@ -5,7 +5,8 @@ function Q = subs(P,invar,inval,opts)
 % with Q again a PI operator, from the space of P to the space of the output
 % variables of P without invar. Writing the input variables as S1 (integrated
 % out), S3 (shared with the output), and the output variables as S2
-% (introduced), S3, with the parameters of P indexed by S3 as in 'sopvar':
+% (introduced), S3, with the parameters of P indexed by multi-indices over
+% S3:
 % - invar in S2 (the output is a polynomial in invar, e.g. x --> s^2*x):
 %       s^p is replaced by inval^p;
 % - invar in S3 and the PI parameter acting along invar is
@@ -40,6 +41,7 @@ function Q = subs(P,invar,inval,opts)
 %   for variables in S3, only boundary values are supported here.
 % - Several variables are evaluated one at a time, in the order of invar.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - subs (sopvar)
@@ -90,6 +92,7 @@ if isa(inval,'polynomial')
     end
     invar = invar(~same);   inval = double(inval(~same));
 end
+% One value per variable, no repeated names
 inval = inval(:);
 if numel(invar)~=numel(inval)
     error("The number of variables must match the number of values at which to evaluate them.")
@@ -97,6 +100,7 @@ end
 if numel(unique(invar))~=numel(invar)
     error("Variable names must be unique.")
 end
+% Tolerance to which a multiplier must vanish
 tol = 1e-10;
 if nargin>=4 && ~isempty(opts)
     if isstruct(opts) && isfield(opts,'tol')

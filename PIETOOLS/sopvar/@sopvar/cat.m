@@ -5,18 +5,16 @@ function P = cat(dim,varargin)
 %
 % INPUTS
 % - dim:        1 or 2;
-% - A, B, ...:  operands, as accepted by @sopvar/vertcat or
-%               @sopvar/horzcat;
+% - A, B, ...:  'sopvar' objects on the same spaces, or 'dpvar' entries;
 %
 % OUTPUTS
 % - P:          the result of vertcat(A,B,...) or horzcat(A,B,...).
 %
 % NOTES
-% Why: the builtin 'cat' does not call the overloaded vertcat/horzcat, so
-% cat(1,A,B), cat(2,A,B) and cat(3,A,B) silently built 2 x 1, 1 x 2 and
-% 1 x 1 x 2 ARRAYS of sopvar objects, which no sopvar method accepts
-% (measured, R2025b). An operator has an output and an input axis only,
-% so DIM >= 3 has no operator meaning.
+% The builtin 'cat' does not call the overloaded vertcat/horzcat: it would
+% build an ARRAY of sopvar objects, which no sopvar method accepts. An
+% operator has an output and an input axis only, so DIM >= 3 has no
+% operator meaning.
 %
 % See also VERTCAT, HORZCAT, SOPVAR.
 %

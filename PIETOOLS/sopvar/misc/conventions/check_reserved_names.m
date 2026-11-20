@@ -7,11 +7,11 @@ function check_reserved_names(vars)
 % - vars:   cellstr of spatial variable names;
 %
 % NOTES
-% The positive-operator constructors name the integration variable theta_d
-% and the input dummy s'_d by appending '_int' and '_dum' to s_d, so the
-% suffixes are reserved outright, not only where they would collide: the
-% set of admissible names then does not depend on which other variables
-% are present.
+% The suffixes '_int' and '_dum' appended to s_d name the integration
+% variable theta_d and the input dummy s'_d of positive operators. They are
+% reserved outright, not only where they would collide: the set of
+% admissible names then does not depend on which other variables are
+% present.
 %
 % Cost: one regexp over the registry, one name per spatial direction.
 %
@@ -43,11 +43,9 @@ function check_reserved_names(vars)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of the reserved-suffix
-%                  check, written identically in 'copquadvar',
-%                  'sopquadvar', 'lpivar_cdopvar' and 'spaces2meta_sop'.
-%                  Body and message verbatim.
+% Initial coding MMP, 09/30/2026
 
+% Names ending in '_int' or '_dum'; the first one found is reported
 is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));
 if any(is_reserved)
     error("Spatial variable names may not end in '_int' or '_dum'; "...

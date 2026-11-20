@@ -42,8 +42,11 @@ function Psop = op_slice(P,varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 11/14/2026: Initial coding (slicing moved from @sdopvar/subsref);
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
+% DJ, 11/14/2026: Initial coding;
 
+% The operator must have a 1 x 2 dims
 dims = P.dims;
 if numel(dims)~=2
     error('sdopvar:sliceDims',['Slicing needs a 1 x 2 ''dims''; this sdopvar '...
@@ -63,6 +66,7 @@ if isscalar(varargin)
 elseif numel(varargin)~=2
     error('sdopvar:numIndices','Index an sdopvar as P(I,J), or P(I) for one row or column.')
 end
+% Row and column indices as columns of integers
 indr = parse_index(varargin{1},dims(1),'Row');
 indc = parse_index(varargin{2},dims(2),'Column');
 
@@ -84,6 +88,7 @@ rows = reshape((indr.'-1)*nL + (1:nL).',[],1);
 cols = reshape((indc.'-1)*nR + (1:nR).',[],1);
 idx  = reshape(rows + (cols.'-1)*nrow,[],1);
 
+% Keep those entries of each A and those columns of each B
 params = P.params;
 for ii = 1:numel(params.A)
     % Full-size A and B only; the [] / scalar-0 shorthand stays zero.
@@ -113,6 +118,8 @@ function ind = parse_index(ind,n,side)
 %
 % OUTPUT
 % ind:  numel x 1 array of integers in 1:n
+
+% ':' selects every component; a logical index becomes integer indices
 if ischar(ind) && isequal(ind,':')
     ind = (1:n)';
     return

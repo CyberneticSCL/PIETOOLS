@@ -22,8 +22,8 @@ function Pint = int(Pop,vars,dom)
 %           integral operator with the PI operator Pop;
 %
 % NOTES
-% - The operator is declared as a 'sopvar' object with 'int2sopvar', and
-%   composed with Pop using 'mtimes'. For each variable s, it acts as
+% - The integral operator is declared as a 'sopvar' object and composed
+%   with Pop. For each variable s, it acts as
 %       s in Pop.vars.out, [a,b]:    full integral, s is not an output
 %                                    variable of Pint;
 %       s in Pop.vars.out, [a,s]:    int_a^s, s remains an output variable;
@@ -34,6 +34,7 @@ function Pint = int(Pop,vars,dom)
 %                                    integral is multiplication with U-L.
 %                                    Limits must then be numbers;
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - int
@@ -61,6 +62,7 @@ function Pint = int(Pop,vars,dom)
 %
 % DJ, 10/29/2026: Initial coding;
 
+% Check the operator; the domain defaults to the full domain
 if ~isa(Pop,'sopvar')
     error("PI operator must be specified as object of type 'sopvar'.")
 end

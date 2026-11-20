@@ -12,6 +12,7 @@ function B = repelem(A,r1,r2)
 % OUTPUTS
 % - B:  m*r1 x n*r2 'sopvar' object representing kron(A,ones(r1,r2));
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2026  PIETOOLS Team
@@ -55,8 +56,8 @@ elseif any(~isnumeric(repdim)) || any(repdim~=round(abs(repdim)))
 end
 r1 = repdim(1);     r2 = repdim(2);
 
-% By definition of the sopvar class, repmat of the operator reduces to just
-% repmat of the parameters.
+% By definition of the sopvar class, repelem of the operator repeats each
+% operator row (column) index of the parameters, keeping the monomial index.
 params = A.params;
 nZL_arr = cellfun(@(a) numel(a),A.ZL);      nZL = prod([nZL_arr,1]);
 nZR_arr = cellfun(@(a) numel(a),A.ZR);      nZR = prod([nZR_arr,1]);
@@ -84,6 +85,6 @@ for k=1:numel(params)
 end
 % Construct the updated operator
 matdim = repdim.*size(A);
-B = sopvar(params,A.vars,A.ZL,A.ZR,A.dom,matdim);                           % MMP, 08/29/2026
+B = sopvar(params,A.vars,A.ZL,A.ZR,A.dom,matdim);
 
 end

@@ -1,7 +1,6 @@
 function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layout)
 % [C_GAM_ALP_BETA,ZL,ZR] = INT_SEMISEP(G,IDXBETA,IDXALPHA,LIMS,CSIZE,LAYOUT)
-% evaluates the two-sided semiseparable integral of Sec. 6.1 of the sopvar
-% document,
+% evaluates the two-sided semiseparable integral
 %
 %   int_{s''} I_beta(s-s'') I_alpha(s''-s') G(s'') ds''
 %       = sum_gamma (Delta_{p(gamma,alpha,beta)} G)(s,s') I_gamma(s-s')
@@ -20,17 +19,19 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % INPUTS
 %   G.C      : coefficient matrix CG, size g1*NG by g2
 %   G.Z      : 1-by-ns3a cell array of exponent vectors
-%   idxbeta  : nbeta-by-ns3a array, beta indices, entries in {1,2,3}
-%   idxalpha : nalpha-by-ns3a array, alpha indices, entries in {1,2,3}
+%   idxbeta  : nbeta-by-ns3a array, beta indices, entries in {1,2,3}, any
+%              subset of the multi-indices
+%   idxalpha : nalpha-by-ns3a array, alpha indices, entries in {1,2,3},
+%              any subset of the multi-indices
 %   lims     : ns3a-by-2 domain array
 %   Csize    : (optional) size of final C.params over gamma, used only for
 %              an input consistency check. Pass [] to skip it
-%   layout   : (optional) 'separate' (default), 'packed' or 'triplets',     % MMP, 09/26/2026
-%              selecting the output layout described below. May be given    % MMP, 09/26/2026
-%              in place of Csize, since the two are told apart by type      % MMP, 09/26/2026
+%   layout   : (optional) 'separate' (default), 'packed' or 'triplets',
+%              selecting the output layout described below. May be given
+%              in place of Csize, since the two are told apart by type
 %
 % OUTPUTS
-%   C_gam_alp_beta : coefficient matrices, in one of three layouts          % MMP, 09/26/2026
+%   C_gam_alp_beta : coefficient matrices, in one of three layouts
 %   ZL             : left monomial basis in s3a
 %   ZR             : right monomial basis in s3a_dum
 %
@@ -52,13 +53,12 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % instead of 3^ns3a*nbeta*nalpha of them, which is cheaper when nbeta and
 % nalpha are large.
 %
-% 'triplets' is 'separate' with each matrix M replaced by the struct        % MMP, 09/26/2026
-%   struct('i',I,'j',J,'v',V,'m',size(M,1),'n',size(M,2))                   % MMP, 09/26/2026
-% of column vectors, M == sparse(I,J,V,m,n), no repeated (I,J), no zero V,  % MMP, 09/26/2026
-% in no particular order. The matrix is never formed: its g2*NR columns     % MMP, 09/26/2026
-% carry the decision variables in 'copquadvar', so its column pointers      % MMP, 09/26/2026
-% alone cost O(q) per cell to write and again to scan. Consumed by          % MMP, 09/26/2026
-% 'lpi_programming_sopvar/misc/private/unpack_sheets'.                      % MMP, 10/21/2026
+% 'triplets' is 'separate' with each matrix M replaced by the struct
+%   struct('i',I,'j',J,'v',V,'m',size(M,1),'n',size(M,2))
+% of column vectors, M == sparse(I,J,V,m,n), no repeated (I,J), no zero V,
+% in no particular order. The matrix is never formed: its g2*NR columns can
+% carry the decision variables, so its column pointers alone would cost
+% O(q) per cell to write and again to scan.
 %
 % The index convention for beta, alpha and gamma is
 %   1 <-> 0   (multiplier, I_0(s) = delta(s))
@@ -66,14 +66,10 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 %   3 <-> -1  (upper integral, I_-1(s) = 1 for s<=0)
 %
 % NOTES
-% This is the only implementation of the routine, called by the positive    % MMP, 08/30/2026
-% operator constructors and by '@sopvar/mtimes' and '@sdopvar/mtimes'; it   % MMP, 08/30/2026
-% existed in four near-identical copies before, so a fix applied to one     % MMP, 08/30/2026
-% silently missed the others.                                               % MMP, 08/30/2026
-%
 % A repeated row in IDXBETA or IDXALPHA is filled in every slot it occupies,
-% not only the first. Both callers pass deduplicated indices, so this costs
-% nothing in practice, but the output does not depend on their doing so.
+% not only the first.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - int_semisep
@@ -99,84 +95,25 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
-% MP, 08/22/2026: Promoted to a shared function. Added a guard so that
-%                 partial (nbeta<3^ns3a, nalpha<3^ns3a) index lists are
-%                 supported, as the documented interface implies; the
-%                 previous version passed a zero subscript to sub2ind
-%                 whenever an enumerated key was absent from idxbeta or
-%                 idxalpha.
-% MMP, 08/30/2026: Optional 'layout'; the (gamma,beta,alpha) triples are
-%                  enumerated from the requested rows (at most 2^ns3a per
-%                  pair) instead of all 11^ns3a; the reindexing of
-%                  'rearrangeCoef' precomputed once (rowMap, colMap).
-% MMP, 09/10/2026: 'packed' outputs built from accumulated triplets, one
-%                  'sparse' per gamma, instead of subscripted assignment
-%                  into preallocated sparse matrices (67-80% of the routine
-%                  at two or three pass-through variables); the eleven keys
-%                  share eight distinct per-direction factors, found by
-%                  comparing the built factors, so 'rearrangeCoef' is
-%                  memoized over 8^ns3a slots instead of run 11^ns3a times.
-% MMP, 09/26/2026: 'rearrangeCoef' builds only the nonempty columns of
-%                  X = reshape(C,NG,[]) when X is wide (p*q > 8*nnz(C)+1024):
-%                  in 'copquadvar' q carries the decision variables, so X
-%                  had 7.0e6 columns for 1.1e4 nonzeros (7.8 of 12.8 s in
-%                  the 2-D Hinf build). Bit-identical; narrow X keeps the
-%                  original lines.
-% MMP, 09/26/2026: New layout 'triplets' ('copquadvar' only): each output
-%                  matrix is returned as its (i,j,v) triplets and never
-%                  built, since its NZ*q columns carry the decision
-%                  variables (108 MB of column pointers per heavy 2-D Hinf
-%                  call). Exact: each cell is one memoized 'rearrangeCoef'
-%                  result whose scatter is a bijection. 2-D Hinf build
-%                  20.0 -> 10.8 s, peak memory in 'copquadvar' 216 -> 17 MB;
-%                  'separate' and 'packed' unchanged.
-% MMP, 09/29/2026: The Sec. 6.1 key table is also the literal 11 x 3 matrix
-%                  keyGBA ([gamma beta alpha]), replacing a number -> string
-%                  -> number parse of cllA (165 us per call); the unused
-%                  gamIdx removed. Outputs bit-identical on 3589 calls.
-% MMP, 09/30/2026: The 600-line primary split into local functions along
-%                  Sec. 6.1: semisep_setup (bases, reindexing, factor
-%                  table), semisep_enumerate (the (beta,alpha,gamma) blocks)
-%                  and semisep_assemble (memoized products, layouts); the
-%                  primary keeps input handling. Code moved unchanged. The
-%                  setup depends on (G.Z, lims, g1) only and is memoized (at
-%                  most 16 setups, 16 MB), matched bit for bit on that key.
-% MMP, 10/16/2026: comment only: unpack_sheets moved with the rest of
-%                  sopvar/lpis_sopvar to lpi_programming_sopvar.
-% MMP, 10/21/2026: comment only: unpack_sheets is now in
-%                  lpi_programming_sopvar/misc/private.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-lines in the
-%                  house format (primary and 'rearrangeCoef'), log entries
-%                  condensed and put in date order (an 08/30/2026 entry
-%                  added for the lines so marked), two (was) help lines and
-%                  the references to the retired 'mtimes_AT' removed, long
-%                  body notes tightened, INPUT/OUTPUT for the local
-%                  functions; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                  SETUP_KEY (09/30/2026, one caller) inlined at the top of
-%                  memo_setup, its header as the comment of the block and
-%                  its lines with their markers.
+% AT, 2026: Initial coding
 
-% % % Resolve the optional arguments. The layout may be supplied in either    % MMP, 08/30/2026
-% % % trailing position, since Csize is numeric and layout is text.           % MMP, 08/30/2026
-if nargin<5,    Csize = [];     end                                         % MMP, 08/30/2026
-if nargin<6,    layout = '';    end                                         % MMP, 08/30/2026
-if ischar(Csize) || isstring(Csize)                                         % MMP, 08/30/2026
-    layout = Csize;     Csize = [];                                         % MMP, 08/30/2026
-end                                                                         % MMP, 08/30/2026
-if isempty(layout)                                                          % MMP, 08/30/2026
-    layout = 'separate';                                                    % MMP, 08/30/2026
-end                                                                         % MMP, 08/30/2026
-if ~(ischar(layout) || isstring(layout)) ...                                % MMP, 08/30/2026
-        || ~any(strcmpi(layout,{'separate','packed','triplets'}))           % MMP, 09/26/2026
-%       || ~any(strcmpi(layout,{'separate','packed'}))                      % MMP, 08/30/2026 % MMP, 09/26/2026 (was)
+% % % Resolve the optional arguments. The layout may be supplied in either
+% % % trailing position, since Csize is numeric and layout is text.
+if nargin<5,    Csize = [];     end
+if nargin<6,    layout = '';    end
+if ischar(Csize) || isstring(Csize)
+    layout = Csize;     Csize = [];
+end
+if isempty(layout)
+    layout = 'separate';
+end
+if ~(ischar(layout) || isstring(layout)) ...
+        || ~any(strcmpi(layout,{'separate','packed','triplets'}))
     error(['int_semisep: layout must be ''separate'', ''packed'' or ' ...
-           '''triplets''.']);                                               % MMP, 09/26/2026
-%   error('int_semisep: layout must be ''separate'' or ''packed''.');       % MMP, 08/30/2026 % MMP, 09/26/2026 (was)
-end                                                                         % MMP, 08/30/2026
-packed = strcmpi(layout,'packed');                                          % MMP, 08/30/2026
-trip   = strcmpi(layout,'triplets');    % 'separate' shape, triplet entries % MMP, 09/26/2026
+           '''triplets''.']);
+end
+packed = strcmpi(layout,'packed');
+trip   = strcmpi(layout,'triplets');    % 'separate' shape, triplet entries
 
 ZG = G.Z(:).';
 CG = G.C;
@@ -203,6 +140,7 @@ if size(idxalpha,2) ~= ns3a
     error('int_semisep: idxalpha must have one column per s3a variable.');
 end
 
+% One domain row per variable; index entries 1, 2 or 3
 if size(lims,1) ~= ns3a || size(lims,2) ~= 2
     error('int_semisep: lims must be numel(G.Z)-by-2.');
 end
@@ -217,6 +155,7 @@ if any(idxalpha(:) < 1) || any(idxalpha(:) > 3) || ...
     error('int_semisep: idxalpha entries must be 1, 2, or 3.');
 end
 
+% Basis size of G, and the row and column block counts of G.C
 NG = prod(cellfun(@numel,ZG));
 
 if NG == 0
@@ -233,122 +172,117 @@ g2 = size(CG,2);
 % No common pass-through variables.
 % Then there is no semiseparable integration to perform.
 if ns3a == 0
-    if packed                                                               % MMP, 08/30/2026
-        C_gam_alp_beta = {repmat(CG,nbeta,nalpha)};                         % MMP, 08/30/2026
-    else                                                                    % MMP, 08/30/2026
-        if trip     % CG itself is the output; hand over its nonzeros       % MMP, 09/26/2026
-            [ti,tj,tv] = find(CG);                                          % MMP, 09/26/2026
+    if packed
+        C_gam_alp_beta = {repmat(CG,nbeta,nalpha)};
+    else
+        if trip     % CG itself is the output; hand over its nonzeros
+            [ti,tj,tv] = find(CG);
             CG = struct('i',ti(:),'j',tj(:),'v',tv(:), ...
-                        'm',size(CG,1),'n',size(CG,2));                     % MMP, 09/26/2026
-        end                                                                 % MMP, 09/26/2026
+                        'm',size(CG,1),'n',size(CG,2));
+        end
+        % CG in every (beta,alpha) cell
         C_gam_alp_beta = cell(1,nbeta,nalpha);
         for i = 1:nbeta
             for j = 1:nalpha
                 C_gam_alp_beta{1,i,j} = CG;
             end
         end
-    end                                                                     % MMP, 08/30/2026
+    end
 
     ZL = {};
     ZR = {};
     return
 end
 
-if ~isempty(Csize) && prod(Csize) ~= 3^ns3a                                 % MMP, 08/30/2026
+if ~isempty(Csize) && prod(Csize) ~= 3^ns3a
     error('int_semisep: Csize is inconsistent with the number of s3a variables.');
 end
 
-% BEGIN MMP, 09/30/2026: split into setup / enumerate / assemble, setup
-% memoized. What was the rest of this function is now three local
-% functions (below), one per object of Sec. 6.1 of
-% sopvar_implementation_notes.pdf:
-%   semisep_setup     the bases ZL, ZR, the reindexing of 'rearrangeCoef'
-%                     and the per-direction factors of the eleven keys;
-%   semisep_enumerate for each requested (beta,alpha) row pair, the gammas
-%                     with p(gamma,alpha,beta) nonzero and their factors;
-%   semisep_assemble  each block's coefficients (Sec. 6.2) in the layout.
-% Lines moved unchanged; only the lines marked 09/30 are new. Nothing was
-% deleted apart from blank lines. The setup depends on (G.Z, lims, g1)
-% alone and the callers repeat it, so it is fetched from a bounded memo
-% (memo_setup, which states the measurements).
-S = memo_setup(ZG,lims,g1);                                                 % MMP, 09/30/2026
-ZL = S.ZL;      ZR = S.ZR;                                                  % MMP, 09/30/2026
-[blk,kseqs] = semisep_enumerate(S,idxbeta,idxalpha);                        % MMP, 09/30/2026
+% Three steps:
+%   setup     the bases ZL, ZR, the reindexing of 'rearrangeCoef' and the
+%             per-direction factors of the eleven keys; it depends on
+%             (G.Z, lims, g1) alone, so it is fetched from a bounded memo;
+%   enumerate for each requested (beta,alpha) row pair, the gammas with
+%             p(gamma,alpha,beta) nonzero and their factors;
+%   assemble  the coefficients of each block, in the layout.
+S = memo_setup(ZG,lims,g1);
+ZL = S.ZL;      ZR = S.ZR;
+[blk,kseqs] = semisep_enumerate(S,idxbeta,idxalpha);
 C_gam_alp_beta = semisep_assemble(S,blk,kseqs,CG,NG,g1,g2,nbeta,nalpha, ...
-                                  packed,trip);                             % MMP, 09/30/2026
-% END MMP, 09/30/2026
+                                  packed,trip);
 
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S = memo_setup(ZG,lims,g1)                                         % MMP, 09/30/2026
-% The setup of (ZG, lims, g1), from the memo when it holds that key.        % MMP, 09/30/2026
-% copquadvar calls int_semisep once per (i,j) basis pair with G.Z and the   % MMP, 09/30/2026
-% domain fixed: 3251 calls in the 3-D heatNd build, 9 distinct keys, 61     % MMP, 09/30/2026
-% calls whose key differs from the previous call's, 3.5 s of setup. The     % MMP, 09/30/2026
-% 1-D and 2-D builds have 9 and 10 keys but 68 and 54 changes, so the memo  % MMP, 09/30/2026
-% holds several setups, not the last one only. Keys match bit for bit       % MMP, 09/30/2026
-% (setup_key); the last match is tried first. Bounded: at most 16 setups    % MMP, 09/30/2026
-% and 2^20 rowMap entries in all (rowMap and colMap have g1*NL*NR entries   % MMP, 09/30/2026
-% each: 16 MB), oldest dropped first. A setup is of spatial size and holds  % MMP, 09/30/2026
-% no G.C, so nothing q-sized is kept.                                       % MMP, 09/30/2026
-% INPUT   ZG, lims, g1: as for 'semisep_setup'.
-% OUTPUT  S: the setup struct of 'semisep_setup'.
-persistent keys Ss last                                                     % MMP, 09/30/2026
-% key = setup_key(ZG,lims,g1);                                              % MMP, 11/09/2026 (was); MMP, 09/30/2026
-% The setup key (ZG, lims, g1) as the 64-bit patterns of g1, the counts and % MMP, 11/09/2026; MMP, 09/30/2026
-% every entry, so equal keys give bit-identical setups; isequal on the      % MMP, 11/09/2026; MMP, 09/30/2026
-% values would equate 0 and -0. [] (never cached) unless lims and every     % MMP, 11/09/2026; MMP, 09/30/2026
-% ZG{i} are real full double and each ZG{i} a column: those fix the class   % MMP, 11/09/2026; MMP, 09/30/2026
-% and shape of the setup, and the counts then fix every size. lims is       % MMP, 11/09/2026; MMP, 09/30/2026
-% numel(ZG) x 2 (checked in semisep_setup). A few builtins, independent of  % MMP, 11/09/2026; MMP, 09/30/2026
-% numel(ZG): an entry-by-entry comparison cost 6-22 us per call (measured). % MMP, 11/09/2026; MMP, 09/30/2026
-% (The former local SETUP_KEY.)                                             % MMP, 11/09/2026
-key = [];                                                                   % MMP, 11/09/2026; MMP, 09/30/2026
+function S = memo_setup(ZG,lims,g1)
+% S = MEMO_SETUP(ZG,LIMS,G1) returns the setup of (ZG, lims, g1), from the
+% memo when it holds that key. Calls with G.Z and the domain fixed come
+% with a few distinct keys interleaved (measured on program builds: 9 or
+% 10 keys, 54 to 68 key changes in up to 3251 calls), so the memo holds
+% several setups, not the last one only. Keys match bit for bit; the last
+% match is tried first. Bounded: at most 16 setups and 2^20 rowMap entries
+% in all (rowMap and colMap have g1*NL*NR entries each: 16 MB), oldest
+% dropped first. A setup is of spatial size and holds no G.C, so nothing
+% q-sized is kept.
+% INPUT   ZG: 1 x ns3a cell of exponent columns; lims: ns3a x 2; g1: the
+%         row block count of G.C.
+% OUTPUT  S: the setup struct (fields as returned by semisep_setup).
+persistent keys Ss last
+% The setup key (ZG, lims, g1) as the 64-bit patterns of g1, the counts and
+% every entry, so equal keys give bit-identical setups; isequal on the
+% values would equate 0 and -0. [] (never cached) unless lims and every
+% ZG{i} are real full double and each ZG{i} a column: those fix the class
+% and shape of the setup, and the counts then fix every size. lims is
+% numel(ZG) x 2 (checked in semisep_setup). A few builtins, independent of
+% numel(ZG): an entry-by-entry comparison cost 6-22 us per call (measured).
+key = [];
 if isa(lims,'double') && ~issparse(lims) && isreal(lims) ...
         && all(cellfun('isclass',ZG,'double')) && all(cellfun('isreal',ZG)) ...
-        && all(cellfun('size',ZG,2)==1)                                     % MMP, 11/09/2026; MMP, 09/30/2026
-    v = vertcat(ZG{:});         % sparse if any ZG{i} is                    % MMP, 11/09/2026; MMP, 09/30/2026
-    if ~issparse(v)                                                         % MMP, 11/09/2026; MMP, 09/30/2026
+        && all(cellfun('size',ZG,2)==1)
+    v = vertcat(ZG{:});         % sparse if any ZG{i} is
+    if ~issparse(v)
         key = typecast([g1; numel(ZG); cellfun('prodofsize',ZG(:)); ...
-                        lims(:); v],'uint64');                              % MMP, 11/09/2026; MMP, 09/30/2026
-    end                                                                     % MMP, 11/09/2026; MMP, 09/30/2026
-end                                                                         % MMP, 11/09/2026; MMP, 09/30/2026
-if ~isempty(key) && ~isempty(last) && isequal(key,keys{last})               % MMP, 09/30/2026
-    S = Ss{last};                                                           % MMP, 09/30/2026
-    return                                                                  % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
-if ~isempty(key)                                                            % MMP, 09/30/2026
-    for i = 1:numel(keys)                                                   % MMP, 09/30/2026
-        if isequal(key,keys{i}),    S = Ss{i};  last = i;   return,     end % MMP, 09/30/2026
-    end                                                                     % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
-S = semisep_setup(ZG,lims,g1);                                              % MMP, 09/30/2026
-if ~isempty(key) && numel(S.rowMap)<=2^20                                   % MMP, 09/30/2026
-    keys{end+1} = key;      Ss{end+1} = S;                                  % MMP, 09/30/2026
-    nmap = cellfun(@(s) numel(s.rowMap),Ss);                                % MMP, 09/30/2026
-    while numel(Ss)>16 || sum(nmap)>2^20                                    % MMP, 09/30/2026
-        keys(1) = [];   Ss(1) = [];     nmap(1) = [];                       % MMP, 09/30/2026
-    end                                                                     % MMP, 09/30/2026
-    last = numel(Ss);                                                       % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
+                        lims(:); v],'uint64');
+    end
+end
+% The last match first, then every cached key
+if ~isempty(key) && ~isempty(last) && isequal(key,keys{last})
+    S = Ss{last};
+    return
+end
+if ~isempty(key)
+    for i = 1:numel(keys)
+        if isequal(key,keys{i}),    S = Ss{i};  last = i;   return,     end
+    end
+end
+% A miss: build the setup, and cache it within the bounds, oldest first out
+S = semisep_setup(ZG,lims,g1);
+if ~isempty(key) && numel(S.rowMap)<=2^20
+    keys{end+1} = key;      Ss{end+1} = S;
+    nmap = cellfun(@(s) numel(s.rowMap),Ss);
+    while numel(Ss)>16 || sum(nmap)>2^20
+        keys(1) = [];   Ss(1) = [];     nmap(1) = [];
+    end
+    last = numel(Ss);
+end
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S = semisep_setup(ZG,lims,g1)                                      % MMP, 09/30/2026
-% Everything of int_semisep that depends on the key (ZG, lims, g1) alone,   % MMP, 09/30/2026
-% Sec. 6.1: the common bases ZL = ZR, the permutation of 'rearrangeCoef'    % MMP, 09/30/2026
-% (rowMap, colMap), the factor Ci_key_ell{key,ell} of each key and          % MMP, 09/30/2026
-% direction with the classes of equal factors (clsOf, nCls, pwCls), and     % MMP, 09/30/2026
-% the key lists key_of{beta,alpha}. Nothing here reads G.C, the index rows  % MMP, 09/30/2026
-% or the layout, which is what makes caching S exact.                       % MMP, 09/30/2026
+function S = semisep_setup(ZG,lims,g1)
+% S = SEMISEP_SETUP(ZG,LIMS,G1) returns everything of int_semisep that
+% depends on the key (ZG, lims, g1) alone: the common bases ZL = ZR, the
+% permutation of 'rearrangeCoef'
+% (rowMap, colMap), the factor Ci_key_ell{key,ell} of each key and
+% direction with the classes of equal factors (clsOf, nCls, pwCls), and
+% the key lists key_of{beta,alpha}. Nothing here reads G.C, the index rows
+% or the layout, which is what makes caching S exact.
 % INPUT   ZG: 1 x ns3a cell of exponent columns; lims: ns3a x 2; g1: the
 %         row block count of G.C.
 % OUTPUT  S: struct with fields ZL, ZR, NL, NR, rowMap, colMap, Ci_key_ell,
 %         cllA, clsOf, nCls, pwCls, pw3, key_of.
-ns3a = numel(ZG);                                                           % MMP, 09/30/2026
+ns3a = numel(ZG);
 a = lims(:,1);
 b = lims(:,2);
 
@@ -373,35 +307,32 @@ ZR = ZL;
 NL = prod(cellfun(@numel,ZL));
 NR = NL;
 
-% % % Precompute the reindexing that 'rearrangeCoef' applies: the row index  % MMP, 08/30/2026
-% of D encodes (t_n,s_n,...,t_1,s_1,p), and its nonzero moves to row        % MMP, 08/30/2026
-% (s_n,...,s_1,p) and column (t_n,...,t_1,q). The permutation depends on the % MMP, 08/30/2026
-% monomial sizes and g1 only, not on the key, so it is two gathers per key. % MMP, 08/30/2026
-nsL = cellfun(@numel,ZL);                                                   % MMP, 08/30/2026
-oldDims = [repelem(fliplr(nsL),2), g1];                                     % MMP, 08/30/2026
-nrowD = g1*NL*NR;                                                           % MMP, 08/30/2026
-oldSub = cell(1,2*ns3a+1);                                                  % MMP, 08/30/2026
-[oldSub{:}] = ind2sub(oldDims,(1:nrowD)');                                  % MMP, 08/30/2026
-tSub = oldSub(1:2:2*ns3a);                                                  % MMP, 08/30/2026
-sSub = oldSub(2:2:2*ns3a);                                                  % MMP, 08/30/2026
-rowMap = sub2ind([fliplr(nsL), g1], sSub{:}, oldSub{2*ns3a+1});             % MMP, 08/30/2026
-if ns3a==1                                                                  % MMP, 08/30/2026
-    colMap = tSub{1};                                                       % MMP, 08/30/2026
-else                                                                        % MMP, 08/30/2026
-    colMap = sub2ind(fliplr(nsL), tSub{:});                                 % MMP, 08/30/2026
-end                                                                         % MMP, 08/30/2026
-
-% Gamma multi-indices in the same linear order as 3-by-3-by-... parameter cells.
-% gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;                     % MMP, 09/29/2026 (was)
-% Removed: never read; gam_lin in the key loop encodes gamma in base 3.     % MMP, 09/29/2026
+% % % Precompute the reindexing that 'rearrangeCoef' applies: the row index
+% of D encodes (t_n,s_n,...,t_1,s_1,p), and its nonzero moves to row
+% (s_n,...,s_1,p) and column (t_n,...,t_1,q). The permutation depends on the
+% monomial sizes and g1 only, not on the key, so it is two gathers per key.
+nsL = cellfun(@numel,ZL);
+oldDims = [repelem(fliplr(nsL),2), g1];
+nrowD = g1*NL*NR;
+oldSub = cell(1,2*ns3a+1);
+[oldSub{:}] = ind2sub(oldDims,(1:nrowD)');
+tSub = oldSub(1:2:2*ns3a);
+sSub = oldSub(2:2:2*ns3a);
+rowMap = sub2ind([fliplr(nsL), g1], sSub{:}, oldSub{2*ns3a+1});
+if ns3a==1
+    colMap = tSub{1};
+else
+    colMap = sub2ind(fliplr(nsL), tSub{:});
+end
 
 % The eleven (gamma,beta,alpha) keys for which p(gamma,alpha,beta) is
-% nonzero, i.e. the eleven cases of the integral table in Sec. 6.1.
+% nonzero, i.e. the eleven cases of the integral table.
 cllA = [111   212   313   221   331   222   232   332   223   323   333];
-% The same eleven keys as rows [gamma beta alpha], row k the digits of      % MMP, 09/29/2026
-% cllA(k): column 1 gamma, 2 beta, 3 alpha. Replaces cllA after the switch. % MMP, 09/29/2026
+% The same eleven keys as rows [gamma beta alpha], row k the digits of
+% cllA(k): column 1 gamma, 2 beta, 3 alpha. cllA is set to it after the
+% switch.
 keyGBA = [1 1 1; 2 1 2; 3 1 3; 2 2 1; 3 3 1; 2 2 2; ...
-          2 3 2; 3 3 2; 2 2 3; 3 2 3; 3 3 3];                               % MMP, 09/29/2026
+          2 3 2; 3 3 2; 2 2 3; 3 2 3; 3 3 3];
 
 Ci_key_ell = cell(numel(cllA),ns3a);
 
@@ -473,6 +404,8 @@ for key_idx = 1:length(cllA)
                 exp_s  = [];
                 exp_t  = [];
         end
+        % Term h of each exponent e: coefficient coeffs(:,h) at the basis
+        % position of s^exp_s * t^exp_t
         for h = 1:size(coeffs, 2)
             [is, ~, ~] = find(ZE == exp_s(:, h)');
             [it, ~, ~] = find(ZE == exp_t(:, h)');
@@ -490,177 +423,171 @@ for key_idx = 1:length(cllA)
     end
 end
 
-% cllA = str2double(num2cell(num2str(cllA')));                              % MMP, 09/29/2026 (was)
-% The literal above, not a number->string->number parse (165 us per call).  % MMP, 09/29/2026
-cllA = keyGBA;                                                              % MMP, 09/29/2026
+% From here on, cllA holds the keys as rows [gamma beta alpha].
+cllA = keyGBA;
 
-% The eleven keys share only EIGHT distinct per-direction factors: the switch  % MMP, 09/10/2026
-% above handles {111,212,313} in one branch and {221,331} in another, so    % MMP, 09/10/2026
-% Ci_key_ell takes 8 values per direction and the Kronecker product Csep    % MMP, 09/10/2026
-% below takes 8^ns3a, not 11^ns3a. Every repeat costs a redundant           % MMP, 09/10/2026
-% 'rearrangeCoef', which is 11^ns3a/8^ns3a = 1.89x at two pass-through      % MMP, 09/10/2026
-% variables, 2.60x at three and 3.57x at four. The duplicates are found by  % MMP, 09/10/2026
-% COMPARING the built factors rather than by hard-coding the branch labels, % MMP, 09/10/2026
-% so the grouping stays correct if the table or the domains change; the     % MMP, 09/10/2026
-% comparison is 11^2 per direction on matrices of a few dozen nonzeros.     % MMP, 09/10/2026
-nkey  = size(cllA,1);                                                       % MMP, 09/10/2026
-repOf = repmat((1:nkey).',1,ns3a);                                          % MMP, 09/10/2026
-for ell = 1:ns3a                                                            % MMP, 09/10/2026
-    for k = 2:nkey                                                          % MMP, 09/10/2026
-        for j = 1:k-1                                                       % MMP, 09/10/2026
-            if isequal(Ci_key_ell{k,ell},Ci_key_ell{j,ell})                 % MMP, 09/10/2026
-                repOf(k,ell) = repOf(j,ell);                                % MMP, 09/10/2026
-                break                                                       % MMP, 09/10/2026
-            end                                                             % MMP, 09/10/2026
-        end                                                                 % MMP, 09/10/2026
-    end                                                                     % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
-% Renumber the representatives densely per direction, so the memo is indexed  % MMP, 09/10/2026
-% in mixed radix over the DISTINCT counts (8 per direction in the current   % MMP, 09/10/2026
-% table) rather than over 11, and holds prod(nCls) slots instead of         % MMP, 09/10/2026
-% 11^ns3a.                                                                  % MMP, 09/10/2026
-clsOf = zeros(nkey,ns3a);   nCls = zeros(1,ns3a);                           % MMP, 09/10/2026
-for ell = 1:ns3a                                                            % MMP, 09/10/2026
-    [~,~,ic] = unique(repOf(:,ell));                                        % MMP, 09/10/2026
-    clsOf(:,ell) = ic;                                                      % MMP, 09/10/2026
-    nCls(ell)    = max(ic);                                                 % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
-pwCls = cumprod([1,nCls(1:end-1)]);                                         % MMP, 09/10/2026
+% The eleven keys share only EIGHT distinct per-direction factors: the switch
+% above handles {111,212,313} in one branch and {221,331} in another, so
+% Ci_key_ell takes 8 values per direction and the Kronecker product Csep
+% below takes 8^ns3a, not 11^ns3a. Every repeat costs a redundant
+% 'rearrangeCoef', which is 11^ns3a/8^ns3a = 1.89x at two pass-through
+% variables, 2.60x at three and 3.57x at four. The duplicates are found by
+% COMPARING the built factors rather than by hard-coding the branch labels,
+% so the grouping stays correct if the table or the domains change; the
+% comparison is 11^2 per direction on matrices of a few dozen nonzeros.
+nkey  = size(cllA,1);
+repOf = repmat((1:nkey).',1,ns3a);
+for ell = 1:ns3a
+    for k = 2:nkey
+        for j = 1:k-1
+            if isequal(Ci_key_ell{k,ell},Ci_key_ell{j,ell})
+                repOf(k,ell) = repOf(j,ell);
+                break
+            end
+        end
+    end
+end
+% Renumber the representatives densely per direction, so the memo is indexed
+% in mixed radix over the DISTINCT counts (8 per direction in the current
+% table) rather than over 11, and holds prod(nCls) slots instead of
+% 11^ns3a.
+clsOf = zeros(nkey,ns3a);   nCls = zeros(1,ns3a);
+for ell = 1:ns3a
+    [~,~,ic] = unique(repOf(:,ell));
+    clsOf(:,ell) = ic;
+    nCls(ell)    = max(ic);
+end
+pwCls = cumprod([1,nCls(1:end-1)]);
 
-pw3 = 3.^(0:ns3a-1)';                                                       % MMP, 08/30/2026
-key_of = cell(3,3);                                                         % MMP, 08/30/2026
-for k = 1:size(cllA,1)                                                      % MMP, 08/30/2026
-    key_of{cllA(k,2),cllA(k,3)} = [key_of{cllA(k,2),cllA(k,3)}, k];         % MMP, 08/30/2026
-end                                                                         % MMP, 08/30/2026
+% Base-3 weights of gamma, and the keys of each (beta,alpha) pair
+pw3 = 3.^(0:ns3a-1)';
+key_of = cell(3,3);
+for k = 1:size(cllA,1)
+    key_of{cllA(k,2),cllA(k,3)} = [key_of{cllA(k,2),cllA(k,3)}, k];
+end
 S = struct('ZL',{ZL},'ZR',{ZR},'NL',NL,'NR',NR,'rowMap',rowMap, ...
            'colMap',colMap,'Ci_key_ell',{Ci_key_ell},'cllA',cllA, ...
            'clsOf',clsOf,'nCls',nCls,'pwCls',pwCls,'pw3',pw3, ...
-           'key_of',{key_of});                                              % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
+           'key_of',{key_of});
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [blk,kseqs] = semisep_enumerate(S,idxbeta,idxalpha)                % MMP, 09/30/2026
-% The blocks to build, Sec. 6.1: p(gamma,alpha,beta) is the product over    % MMP, 09/30/2026
-% directions of the per-direction table, so for a (beta,alpha) row pair     % MMP, 09/30/2026
-% the gammas are the Cartesian product of the per-direction key options.    % MMP, 09/30/2026
-% Row t of blk is [gamma cell, beta row, alpha row, memo slot] of block t,  % MMP, 09/30/2026
-% in the order the loop below met it; kseqs(t,:) its key per direction.     % MMP, 09/30/2026
-% Index work only, on at most nbeta*nalpha*2^ns3a rows.                     % MMP, 09/30/2026
+function [blk,kseqs] = semisep_enumerate(S,idxbeta,idxalpha)
+% [BLK,KSEQS] = SEMISEP_ENUMERATE(S,IDXBETA,IDXALPHA) lists the blocks to
+% build: p(gamma,alpha,beta) is the product over directions of the
+% per-direction table, so for a (beta,alpha) row pair
+% the gammas are the Cartesian product of the per-direction key options.
+% Row t of blk is [gamma cell, beta row, alpha row, memo slot] of block t,
+% in the order the loop below met it; kseqs(t,:) its key per direction.
+% Index work only, on at most nbeta*nalpha*2^ns3a rows.
 % INPUT   S: the setup struct; idxbeta, idxalpha: the index rows.
 % OUTPUT  blk: nb x 4 block table; kseqs: nb x ns3a key indices.
-ns3a = numel(S.ZL);                                                         % MMP, 09/30/2026
-nbeta = size(idxbeta,1);        nalpha = size(idxalpha,1);                  % MMP, 09/30/2026
-key_of = S.key_of;  cllA = S.cllA;  clsOf = S.clsOf;                        % MMP, 09/30/2026
-pwCls = S.pwCls;    pw3 = S.pw3;                                            % MMP, 09/30/2026
-% A (beta,alpha) pair admits at most max numel(key_of) keys per direction.  % MMP, 09/30/2026
-nmax = nbeta*nalpha*max(cellfun('prodofsize',key_of(:)))^ns3a;              % MMP, 09/30/2026
-blk = zeros(nmax,4);    kseqs = zeros(nmax,ns3a);   nb = 0;                 % MMP, 09/30/2026
+ns3a = numel(S.ZL);
+nbeta = size(idxbeta,1);        nalpha = size(idxalpha,1);
+key_of = S.key_of;  cllA = S.cllA;  clsOf = S.clsOf;
+pwCls = S.pwCls;    pw3 = S.pw3;
+% A (beta,alpha) pair admits at most max numel(key_of) keys per direction.
+nmax = nbeta*nalpha*max(cellfun('prodofsize',key_of(:)))^ns3a;
+blk = zeros(nmax,4);    kseqs = zeros(nmax,ns3a);   nb = 0;
 
-% % % Enumerate only the (gamma,beta,alpha) triples the caller asked for:    % MMP, 08/30/2026
-% a (beta,alpha) pair admits one gamma per direction, two for (3,2) and     % MMP, 08/30/2026
-% (2,3), so at most 2^ns3a blocks per requested row pair against the        % MMP, 08/30/2026
-% 11^ns3a of the full table (a factor 166 at ns3a = 3 for 'possopvar',      % MMP, 08/30/2026
-% which asks for one row pair). The row indices are the loop indices, so    % MMP, 08/30/2026
-% repeated rows are filled as they come.                                    % MMP, 08/30/2026
-for ib = 1:nbeta                                                            % MMP, 08/30/2026
-for ia = 1:nalpha                                                           % MMP, 08/30/2026
-    % Options per direction, and the size of their Cartesian product.       % MMP, 08/30/2026
-    opt = cell(1,ns3a);     nopt = zeros(1,ns3a);                           % MMP, 08/30/2026
-    for ell = 1:ns3a                                                        % MMP, 08/30/2026
-        opt{ell} = key_of{idxbeta(ib,ell),idxalpha(ia,ell)};                % MMP, 08/30/2026
-        nopt(ell) = numel(opt{ell});                                        % MMP, 08/30/2026
-    end                                                                     % MMP, 08/30/2026
-    if any(nopt==0)                                                         % MMP, 08/30/2026
-        continue                                                            % MMP, 08/30/2026
-    end                                                                     % MMP, 08/30/2026
+% % % Enumerate only the (gamma,beta,alpha) triples the caller asked for:
+% a (beta,alpha) pair admits one gamma per direction, two for (3,2) and
+% (2,3), so at most 2^ns3a blocks per requested row pair against the
+% 11^ns3a of the full table (a factor 166 at ns3a = 3 for one row pair).
+% The row indices are the loop indices, so repeated rows are filled as they
+% come.
+for ib = 1:nbeta
+for ia = 1:nalpha
+    % Options per direction, and the size of their Cartesian product.
+    opt = cell(1,ns3a);     nopt = zeros(1,ns3a);
+    for ell = 1:ns3a
+        opt{ell} = key_of{idxbeta(ib,ell),idxalpha(ia,ell)};
+        nopt(ell) = numel(opt{ell});
+    end
+    if any(nopt==0)
+        continue
+    end
 
-for comb = 0:prod(nopt)-1                                                   % MMP, 08/30/2026
-    un_indices_beta  = ib;                                                  % MMP, 08/30/2026
-    un_indices_alpha = ia;                                                  % MMP, 08/30/2026
+for comb = 0:prod(nopt)-1
+    un_indices_beta  = ib;
+    un_indices_alpha = ia;
 
-    % Mixed-radix walk over the Cartesian product of the per-direction      % MMP, 08/30/2026
-    % options, accumulating both the Kronecker factor and the linear index  % MMP, 08/30/2026
-    % of gamma. The gamma multi-index encodes to its own cell position in   % MMP, 08/30/2026
-    % base 3, so no lookup table is needed.                                 % MMP, 08/30/2026
-    % Walk the mixed radix for the keys, gamma, and the memo slot. Csep is  % MMP, 09/10/2026
-    % NOT built here: it is only needed on a memo miss, so the Kronecker    % MMP, 09/10/2026
-    % chain is skipped on a hit along with the rearrangeCoef.               % MMP, 09/10/2026
-    gam_lin = 1;    rem_c = comb;    memoLin = 1;                           % MMP, 09/10/2026
-    kseq = zeros(1,ns3a);                                                   % MMP, 09/10/2026
-    for ell = 1:ns3a                                                        % MMP, 08/30/2026
-        sel = mod(rem_c,nopt(ell)) + 1;                                     % MMP, 08/30/2026
-        rem_c = floor(rem_c/nopt(ell));                                     % MMP, 08/30/2026
-        key_idx = opt{ell}(sel);                                            % MMP, 08/30/2026
-        kseq(ell) = key_idx;                                                % MMP, 09/10/2026
-        memoLin = memoLin + (clsOf(key_idx,ell)-1)*pwCls(ell);              % MMP, 09/10/2026
-%       Csep = kron(Csep,Ci_key_ell{key_idx,ell});                          % MMP, 09/10/2026 (was)
-        gam_lin = gam_lin + (cllA(key_idx,1)-1)*pw3(ell);                   % MMP, 08/30/2026
-    end                                                                     % MMP, 08/30/2026
-    un_indices_gamma = gam_lin;                                             % MMP, 08/30/2026
-    % Record the block; semisep_assemble builds it.                         % MMP, 09/30/2026
-    nb = nb + 1;                                                            % MMP, 09/30/2026
+    % Mixed-radix walk over the Cartesian product of the per-direction
+    % options, accumulating both the Kronecker factor and the linear index
+    % of gamma. The gamma multi-index encodes to its own cell position in
+    % base 3, so no lookup table is needed.
+    % Walk the mixed radix for the keys, gamma, and the memo slot. Csep is
+    % NOT built here: it is only needed on a memo miss, so the Kronecker
+    % chain is skipped on a hit along with the rearrangeCoef.
+    gam_lin = 1;    rem_c = comb;    memoLin = 1;
+    kseq = zeros(1,ns3a);
+    for ell = 1:ns3a
+        sel = mod(rem_c,nopt(ell)) + 1;
+        rem_c = floor(rem_c/nopt(ell));
+        key_idx = opt{ell}(sel);
+        kseq(ell) = key_idx;
+        memoLin = memoLin + (clsOf(key_idx,ell)-1)*pwCls(ell);
+        gam_lin = gam_lin + (cllA(key_idx,1)-1)*pw3(ell);
+    end
+    un_indices_gamma = gam_lin;
+    % Record the block; semisep_assemble builds it.
+    nb = nb + 1;
     blk(nb,:) = [un_indices_gamma,un_indices_beta, ...
-                 un_indices_alpha,memoLin];                                 % MMP, 09/30/2026
-    kseqs(nb,:) = kseq;                                                     % MMP, 09/30/2026
-end                                                                         % MMP, 08/30/2026
-end                                                                         % MMP, 08/30/2026
-end                                                                         % MMP, 08/30/2026
+                 un_indices_alpha,memoLin];
+    kseqs(nb,:) = kseq;
+end
+end
+end
 
-% Repeated rows in IDXBETA or IDXALPHA need no special handling: the loop   % MMP, 08/30/2026
-% above is driven by the row indices themselves, so every occurrence is     % MMP, 08/30/2026
-% filled. The earlier version resolved a multi-index back to its first      % MMP, 08/30/2026
-% matching row and needed a separate pass to copy the duplicates.           % MMP, 08/30/2026
-blk = blk(1:nb,:);      kseqs = kseqs(1:nb,:);                              % MMP, 09/30/2026
-end                                                                         % MMP, 09/30/2026
+% Repeated rows in IDXBETA or IDXALPHA need no special handling: the loop
+% above is driven by the row indices themselves, so every occurrence is
+% filled.
+blk = blk(1:nb,:);      kseqs = kseqs(1:nb,:);
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function C_gam_alp_beta = semisep_assemble(S,blk,kseqs,CG,NG,g1,g2, ...
-                                           nbeta,nalpha,packed,trip)        % MMP, 09/30/2026
-% The coefficients of every block of blk (Sec. 6.2): the Kronecker product  % MMP, 09/30/2026
-% of its per-direction factors kseqs, applied to CG and re-indexed onto ZL, % MMP, 09/30/2026
-% ZR by 'rearrangeCoef', memoized per slot since blocks share factors;      % MMP, 09/30/2026
-% written into the requested layout. Blocks are taken in blk's order, so    % MMP, 09/30/2026
-% each slot is built from the same block, and 'rearrangeCoef' runs in the   % MMP, 09/30/2026
-% same order, as when this was one loop.                                    % MMP, 09/30/2026
+                                           nbeta,nalpha,packed,trip)
+% C_GAM_ALP_BETA = SEMISEP_ASSEMBLE(S,BLK,KSEQS,CG,NG,G1,G2,NBETA,NALPHA,
+% PACKED,TRIP) returns the coefficients of every block of blk: the
+% Kronecker product of its per-direction factors kseqs, applied to CG and
+% re-indexed onto ZL, ZR by 'rearrangeCoef', memoized per slot since blocks
+% share factors; written into the requested layout. Blocks are taken in
+% the order of blk, so each memo slot is built from its first block.
 % INPUT   S, blk, kseqs: from the setup and the enumeration; CG: G.C; NG,
 %         g1, g2, nbeta, nalpha: sizes; packed, trip: layout flags.
 % OUTPUT  C_gam_alp_beta: the coefficients in the requested layout.
-ns3a = numel(S.ZL);     NL = S.NL;      NR = S.NR;      nCls = S.nCls;      % MMP, 09/30/2026
-Ci_key_ell = S.Ci_key_ell;  rowMap = S.rowMap;  colMap = S.colMap;          % MMP, 09/30/2026
-% 'packed' needs 3^ns3a matrices rather than 3^ns3a*nbeta*nalpha of them.   % MMP, 08/30/2026
-if packed                                                                   % MMP, 08/30/2026
-    % The packed outputs are accumulated as triplets and built with one     % MMP, 09/10/2026
-    % 'sparse' call each, below the loop (subscripted assignment into a     % MMP, 09/10/2026
-    % preallocated sparse rebuilt the structure on each of the 11^ns3a      % MMP, 09/10/2026
-    % writes). One slot per (gamma,beta,alpha): the eleven keys are         % MMP, 09/10/2026
-    % distinct triples and gamma -> gam_lin is a bijection, so each block   % MMP, 09/10/2026
-    % is written at most once and nothing needs summing.                    % MMP, 09/10/2026
-    nGam = 3^ns3a;                                                          % MMP, 09/10/2026
-    accI = cell(nGam,nbeta*nalpha);                                         % MMP, 09/10/2026
-    accJ = cell(nGam,nbeta*nalpha);                                         % MMP, 09/10/2026
-    accV = cell(nGam,nbeta*nalpha);                                         % MMP, 09/10/2026
-%   C_gam_alp_beta = cell(3^ns3a,1);                                        % MMP, 09/10/2026 (was)
-%   for idx_C = 1:numel(C_gam_alp_beta)                                     % MMP, 09/10/2026 (was)
-%       C_gam_alp_beta{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);           % MMP, 09/10/2026 (was)
-%   end                                                                     % MMP, 09/10/2026 (was)
-elseif trip                                                                 % MMP, 09/26/2026
-    % Unwritten cells: no triplets, the dimensions of the all-zero matrix.  % MMP, 09/26/2026
-    C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);                             % MMP, 09/26/2026
+ns3a = numel(S.ZL);     NL = S.NL;      NR = S.NR;      nCls = S.nCls;
+Ci_key_ell = S.Ci_key_ell;  rowMap = S.rowMap;  colMap = S.colMap;
+% 'packed' needs 3^ns3a matrices rather than 3^ns3a*nbeta*nalpha of them.
+if packed
+    % The packed outputs are accumulated as triplets and built with one
+    % 'sparse' call each, below the loop. One slot per
+    % (gamma,beta,alpha): the eleven keys are
+    % distinct triples and gamma -> gam_lin is a bijection, so each block
+    % is written at most once and nothing needs summing.
+    nGam = 3^ns3a;
+    accI = cell(nGam,nbeta*nalpha);
+    accJ = cell(nGam,nbeta*nalpha);
+    accV = cell(nGam,nbeta*nalpha);
+elseif trip
+    % Unwritten cells: no triplets, the dimensions of the all-zero matrix.
+    C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
     C_gam_alp_beta(:) = {struct('i',zeros(0,1),'j',zeros(0,1), ...
-        'v',zeros(0,1),'m',g1*NL,'n',g2*NR)};                               % MMP, 09/26/2026
-else                                                                        % MMP, 08/30/2026
+        'v',zeros(0,1),'m',g1*NL,'n',g2*NR)};
+else
     C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
     for idx_C = 1:numel(C_gam_alp_beta)
         C_gam_alp_beta{idx_C} = sparse(g1*NL,g2*NR);
     end
-end                                                                         % MMP, 08/30/2026
-memoC = cell(prod([nCls,1]),1);                                             % MMP, 09/10/2026
-for t = 1:size(blk,1)                                                       % MMP, 09/30/2026
-    un_indices_gamma = blk(t,1);        un_indices_beta = blk(t,2);         % MMP, 09/30/2026
-    un_indices_alpha = blk(t,3);        memoLin = blk(t,4);                 % MMP, 09/30/2026
-    kseq = kseqs(t,:);                                                      % MMP, 09/30/2026
+end
+memoC = cell(prod([nCls,1]),1);
+for t = 1:size(blk,1)
+    un_indices_gamma = blk(t,1);        un_indices_beta = blk(t,2);
+    un_indices_alpha = blk(t,3);        memoLin = blk(t,4);
+    kseq = kseqs(t,:);
 
     % Convert
     %
@@ -669,61 +596,56 @@ for t = 1:size(blk,1)                                                       % MM
     % into
     %
     %   (I_g1 \otimes ZL')*Cnew*(I_g2 \otimes ZR).
-    % Keyed on the representative tuple, so the 11^ns3a enumerated blocks   % MMP, 09/10/2026
-    % share the 8^ns3a distinct results. The size checks stay on the miss   % MMP, 09/10/2026
-    % path, so every distinct Csep and Cnew is still validated once.        % MMP, 09/10/2026
-    if isempty(memoC{memoLin})                                              % MMP, 09/10/2026
-        Csep = 1;                                                           % MMP, 09/10/2026
-        for ell = 1:ns3a                                                    % MMP, 09/10/2026
-            Csep = kron(Csep,Ci_key_ell{kseq(ell),ell});                    % MMP, 09/10/2026
-        end                                                                 % MMP, 09/10/2026
+    % Keyed on the representative tuple, so the 11^ns3a enumerated blocks
+    % share the 8^ns3a distinct results. The size checks stay on the miss
+    % path, so every distinct Csep and Cnew is still validated once.
+    if isempty(memoC{memoLin})
+        Csep = 1;
+        for ell = 1:ns3a
+            Csep = kron(Csep,Ci_key_ell{kseq(ell),ell});
+        end
         if ~isequal(size(Csep),[NG,NL*NR])
             error('int_semisep: internal Csep size mismatch.');
         end
-%       Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);              % MMP, 09/10/2026 % MMP, 09/26/2026 (was)
-%       if ~isequal(size(Cmiss),[g1*NL,g2*NR])                              % MMP, 09/10/2026 % MMP, 09/26/2026 (was)
-        % 'triplets': Cmiss is a triplet struct and its size is its m, n.   % MMP, 09/26/2026
-        Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL,trip);         % MMP, 09/26/2026
-        if trip,  szC = [Cmiss.m,Cmiss.n];  else,  szC = size(Cmiss);  end  % MMP, 09/26/2026
-        if ~isequal(szC,[g1*NL,g2*NR])                                      % MMP, 09/26/2026
+        % 'triplets': Cmiss is a triplet struct and its size is its m, n.
+        Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL,trip);
+        if trip,  szC = [Cmiss.m,Cmiss.n];  else,  szC = size(Cmiss);  end
+        if ~isequal(szC,[g1*NL,g2*NR])
             error('int_semisep: output coefficient size mismatch.');
         end
-        memoC{memoLin} = Cmiss;                                             % MMP, 09/10/2026
-    end                                                                     % MMP, 09/10/2026
-    Cnew = memoC{memoLin};                                                  % MMP, 09/10/2026
+        memoC{memoLin} = Cmiss;
+    end
+    Cnew = memoC{memoLin};
 
-    if packed                                                               % MMP, 08/30/2026
-        % Stash this block's nonzeros, shifted onto its (beta,alpha) offset. % MMP, 09/10/2026
-        [ri,ci,vi] = find(Cnew);                                            % MMP, 09/10/2026
-        slot = un_indices_beta + nbeta*(un_indices_alpha - 1);              % MMP, 09/10/2026
-        accI{un_indices_gamma,slot} = ri + g1*NL*(un_indices_beta - 1);     % MMP, 09/10/2026
-        accJ{un_indices_gamma,slot} = ci + g2*NR*(un_indices_alpha - 1);    % MMP, 09/10/2026
-        accV{un_indices_gamma,slot} = vi;                                   % MMP, 09/10/2026
-%       rows = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);                   % MMP, 09/10/2026 (was)
-%       cols = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);                  % MMP, 09/10/2026 (was)
-%       C_gam_alp_beta{un_indices_gamma}(rows,cols) = Cnew;                 % MMP, 09/10/2026 (was)
-    else                                                                    % MMP, 08/30/2026
+    if packed
+        % Stash the nonzeros of this block, shifted onto its (beta,alpha)
+        % offset.
+        [ri,ci,vi] = find(Cnew);
+        slot = un_indices_beta + nbeta*(un_indices_alpha - 1);
+        accI{un_indices_gamma,slot} = ri + g1*NL*(un_indices_beta - 1);
+        accJ{un_indices_gamma,slot} = ci + g2*NR*(un_indices_alpha - 1);
+        accV{un_indices_gamma,slot} = vi;
+    else
         ind_Cgam_alpha = sub2ind(size(C_gam_alp_beta), un_indices_gamma, un_indices_beta, un_indices_alpha);
         C_gam_alp_beta{ind_Cgam_alpha} = Cnew;
-    end                                                                     % MMP, 08/30/2026
-end                                                                         % MMP, 09/30/2026
+    end
+end
 
-% One 'sparse' per gamma from the accumulated triplets. A gamma that was    % MMP, 09/10/2026
-% never written concatenates to empty, which 'sparse' turns into the        % MMP, 09/10/2026
-% all-zero matrix the preallocation used to supply.                         % MMP, 09/10/2026
-if packed                                                                   % MMP, 09/10/2026
-    C_gam_alp_beta = cell(nGam,1);                                          % MMP, 09/10/2026
-    for k = 1:nGam                                                          % MMP, 09/10/2026
-        C_gam_alp_beta{k} = sparse(vertcat(accI{k,:}),vertcat(accJ{k,:}), ...% MMP, 09/10/2026
-            vertcat(accV{k,:}),g1*NL*nbeta,g2*NR*nalpha);                   % MMP, 09/10/2026
-    end                                                                     % MMP, 09/10/2026
-end                                                                         % MMP, 09/10/2026
-end                                                                         % MMP, 09/30/2026
+% One 'sparse' per gamma from the accumulated triplets. A gamma that was
+% never written concatenates to empty, which 'sparse' turns into the
+% all-zero matrix.
+if packed
+    C_gam_alp_beta = cell(nGam,1);
+    for k = 1:nGam
+        C_gam_alp_beta{k} = sparse(vertcat(accI{k,:}),vertcat(accJ{k,:}), ...
+            vertcat(accV{k,:}),g1*NL*nbeta,g2*NR*nalpha);
+    end
+end
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ,trip)             % MMP, 09/26/2026
-% function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ)                % MMP, 08/30/2026 % MMP, 09/26/2026 (was)
+function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ,trip)
 % COUT = REARRANGECOEF(CSEP,C,P,Q,ROWMAP,COLMAP,NZ,TRIP) converts
 %
 %   (I_p o Zmix(s,t)') * kron(I_p,Csep') * C
@@ -739,40 +661,38 @@ function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ,trip)             % MM
 %   diagonal, so materializing it would cost p times the nonzeros of M and
 %   make the multiply p times wider than it need be; reshaping C so that its
 %   p row blocks sit side by side gives the same result from one multiply.
-%   When that reshape is wide -- q carries the decision variables and its   % MMP, 09/26/2026
-%   p*q columns are nearly all empty -- only its nonempty columns are       % MMP, 09/26/2026
-%   formed, from C's triplets.                                              % MMP, 09/26/2026
+%   When that reshape is wide -- q carries the decision variables and its
+%   p*q columns are nearly all empty -- only its nonempty columns are
+%   formed, from the triplets of C.
 %
-%   The reindexing is a fixed permutation of D's row index, depending only on
-%   the monomial sizes and on p, not on the key being processed. ROWMAP and
-%   COLMAP carry it, precomputed once by the caller, so what remains here is
-%   two gathers rather than an ind2sub with 2*ns3a+1 outputs and two sub2ind
-%   calls per key. The scatter, not the multiply, was 69 to 89 percent of
-%   this routine.
+%   The reindexing is a fixed permutation of the row index of D, depending
+%   only on the monomial sizes and on p, not on the key being processed.
+%   ROWMAP and COLMAP carry it, precomputed once per setup, so what remains
+%   here is two gathers rather than an ind2sub with 2*ns3a+1 outputs and two
+%   sub2ind calls per key.
 %
 % INPUTS
 %   Csep   : NG by NZ^2 separable coefficient matrix for one key
 %   C      : p*NG by q coefficient matrix of G
 %   p,q    : row and column block counts
 %   rowMap : p*NZ^2 vector, destination row for each row of D
-%   colMap : p*NZ^2 vector, destination column of D's row index, before the
-%            contribution of D's own column index
+%   colMap : p*NZ^2 vector, destination column for each row of D, before
+%            the contribution of the column index of D
 %   NZ     : prod(cellfun(@numel,ZL))
-%   trip   : (optional, default false) return Cout as the triplet struct    % MMP, 09/26/2026
-%            of the 'triplets' layout instead of building it                % MMP, 09/26/2026
+%   trip   : (optional, default false) return Cout as the triplet struct
+%            of the 'triplets' layout instead of building it
 %
 % OUTPUT
 %   Cout   : NZ*p by NZ*q sparse matrix
-if nargin<8,    trip = false;   end                                         % MMP, 09/26/2026
+if nargin<8,    trip = false;   end
 
-% BEGIN MMP, 09/26/2026: wide X. The line after END forms X = reshape(C,NG,[])
-% with p*q columns and the product over all of them, O(p*q) whatever nnz(C);
-% in 'copquadvar' q carries the decision variables and nearly every column
-% is empty. Here only the nonempty columns of X are built, from C's
-% triplets, O(nnz(C)). Exact: sparse*sparse computes each column of the
-% product from the same column of X alone, so the result is bit-identical.
-% The crossover rule is measured (p = 8, 25, 64); narrow X, as in every
-% call from the operator products, keeps the original lines.
+% Wide X: the general lines below form X = reshape(C,NG,[]) with p*q
+% columns and the product over all of them, O(p*q) whatever nnz(C); when q
+% carries the decision variables nearly every column is empty. Here only
+% the nonempty columns of X are built, from the triplets of C, O(nnz(C)).
+% Exact: sparse*sparse computes each column of the product from the same
+% column of X alone, so the result is bit-identical. The crossover rule is
+% measured (p = 8, 25, 64); a narrow X takes the general lines.
 if ~isempty(rowMap) && p*q > 8*nnz(C) + 1024
     NG  = size(Csep,1);     NZ2 = size(Csep,2);
     if NZ2*size(C,1)~=NG*numel(rowMap)          % the size(D,1) test below
@@ -792,16 +712,16 @@ if ~isempty(rowMap) && p*q > 8*nnz(C) + 1024
     ppD   = mod(pc-1,p) + 1;
     rowD  = kD + NZ2*(ppD-1);                       % row of D
     colD  = (pc-ppD)/p + 1;                         % column of D
-    if trip     % the scatter's triplets: bijective, so no duplicates       % MMP, 09/26/2026
+    if trip     % triplets of the scatter: bijective, so no duplicates
         Cout = struct('i',rowMap(rowD(:)),'j',colMap(rowD(:))+NZ*(colD(:)-1), ...
-                      'v',valD(:),'m',NZ*p,'n',NZ*q);                       % MMP, 09/26/2026
-        return                                                              % MMP, 09/26/2026
-    end                                                                     % MMP, 09/26/2026
+                      'v',valD(:),'m',NZ*p,'n',NZ*q);
+        return
+    end
     Cout = sparse(rowMap(rowD), colMap(rowD) + NZ*(colD-1), valD, NZ*p, NZ*q);
     return
 end
-% END MMP, 09/26/2026
 
+% General case: D = kron(I_p,Csep')*C from one product, then the scatter
 D = reshape(sparse(Csep).' * reshape(sparse(C),size(Csep,1),[]), [], q);
 
 if isempty(rowMap)
@@ -813,11 +733,11 @@ if size(D,1)~=numel(rowMap)
 end
 
 [rowD,colD,valD] = find(D);
-if trip         % as in the wide branch above                               % MMP, 09/26/2026
+if trip         % as in the wide branch above
     Cout = struct('i',rowMap(rowD(:)),'j',colMap(rowD(:))+NZ*(colD(:)-1), ...
-                  'v',valD(:),'m',NZ*p,'n',NZ*q);                           % MMP, 09/26/2026
-    return                                                                  % MMP, 09/26/2026
-end                                                                         % MMP, 09/26/2026
+                  'v',valD(:),'m',NZ*p,'n',NZ*q);
+    return
+end
 Cout = sparse(rowMap(rowD), colMap(rowD) + NZ*(colD-1), valD, NZ*p, NZ*q);
 
 end

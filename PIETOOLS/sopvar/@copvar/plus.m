@@ -1,33 +1,35 @@
 function C = plus(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % C = PLUS(A,B) adds two 'copvar' objects blockwise, (A+B)_{ij} = A_{ij} +
-% B_{ij}, following Sec. 8.2 of the sopvar document.
+% B_{ij}.
 %
 % INPUTS
-% - A, B:   'copvar' objects on the same grid, spaces and dimensions;
+% - A, B:   'copvar' objects on the same grid, spaces and dimensions. A
+%           numeric or 'dpvar' scalar c is c*I on a square operator
+%           (gam - T'*T); a 'dpvar' matrix of the total size is a
+%           multiplier split by the dimensions; a 'dpvar' summand makes
+%           the sum a 'cdopvar';
 % OUTPUTS
 % - C:      'copvar' object equal to A + B;
 %
 % NOTES
 % Zero blocks pass through: [] + X is X and [] + [] stays []. A zero block
 % carries no basis, so there is nothing to align. This is why the container
-% owns the space metadata - a sum of two absent blocks would otherwise have
+% owns the space metadata: a sum of two absent blocks would otherwise have
 % no way to say what it maps between.
 %
 % Spaces are compared as masks over the shared registry, so the canonical
 % per-block order of vars.out and vars.in does not enter.
 %
-% Summands over different registries are first restated over their sorted   % MMP, 09/26/2026
-% union, as concatenation does ('merge_copvar_registry'): an R^n -> R^n     % MMP, 09/26/2026
-% summand such as -gam*Iw has an empty registry. Metadata only, O(nv).      % MMP, 09/26/2026
+% Summands over different registries are first restated over their sorted
+% union; an R^n -> R^n summand such as -gam*Iw has an empty registry.
+% Metadata only, O(nv).
 %
 % Cost: M*N block additions. Each unions the two bases for that block only,
-% so nothing is inflated to a row or column union; see the Sec. 8.3.1 note
-% in 'copvar'. Measured over the subset lattice at 2 components and degree
-% 1, the whole loop costs 0.032 s at 4 spaces and 0.062 s at 8, so the
-% Sec. 8.2 for-loop is not a bottleneck here - unlike composition. Block
-% sums stay pairwise. A decision container reconciles decision variables
-% here as well; see @cdopvar/plus.
+% so nothing is inflated to a row or column union. Measured over the subset
+% lattice at 2 components and degree 1, the whole loop costs 0.032 s at 4
+% spaces and 0.062 s at 8, so the block loop is not a bottleneck here,
+% unlike composition. Block sums stay pairwise.
 %
 % See also MTIMES, CTRANSPOSE, COPVAR.
 %
@@ -58,51 +60,26 @@ function C = plus(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/17/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Moved from
-%                  @mopvar/ with the class.
-% MMP, 09/26/2026: Summands over different variable registries are restated
-%                  over their union by 'merge_copvar_registry' instead of
-%                  raising plus:registryMismatch. An R^n -> R^n operator
-%                  (-gam*Iw) has an empty registry and a product such as
-%                  PB'*Tw keeps its left factor's, so compatible summands
-%                  were refused, blocking Hinf_gain with Tw ~= 0. The
-%                  registry is metadata: blocks untouched, cost O(nv), flat
-%                  in q. A variable on two domains is copvar:domConflict.
-% MMP, 09/29/2026: A dpvar summand is routed at the top to
-%                  'dpvar_op_copvar' with the legacy @opvar/plus semantics: a
-%                  scalar is scalar*I on a square operator (gam - T'*T), a
-%                  matrix of the total size a multiplier split by the
-%                  dimensions. A dpvar makes the sum a cdopvar. Before, it
-%                  reached the dpvar's method or errored plus:badInput. A
-%                  numeric summand is still plus:badInput. minus = plus(A,-B)
-%                  reaches the branch unchanged.
-% AT, 11/17/2026:  Allow for scalar inputs A + c = A + c I
-% DJ, 11/18/2026: Account for updated `size` function.
 
-% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
-% the container checks below.                                               % MMP, 09/29/2026
-% A numeric scalar is the same as a constant dpvar scalar: scalar*I.        % AT, 11/17/2026
-if isa(A,'dpvar') || isa(B,'dpvar') || ...                                  % AT, 11/17/2026
-        (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))      % AT, 11/17/2026
-    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% dpvar summand: scalar*I or a matrix multiplier, before
+% the container checks below.
+% A numeric scalar is the same as a constant dpvar scalar: scalar*I.
+if isa(A,'dpvar') || isa(B,'dpvar') || ...
+        (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))
+    C = dpvar_op_copvar('plus',A,B);
+    return
+end
+% Check the summands and their block grids
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('plus:badInput','Both summands must be copvar objects.')
 end
-if ~isequal(size(A,'block'),size(B,'block'))                                % DJ, 11/18/2026
+if ~isequal(size(A,'block'),size(B,'block'))
     error('plus:gridMismatch','Summands have block grids %s and %s.',...
         mat2str(size(A,'block')),mat2str(size(B,'block')))
 end
-% if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
-%     error('plus:registryMismatch',['Summands are built on different variable '...
-%         'registries; rebuild them over a common set of variables and domains.']) % MMP, 09/26/2026 (was)
-% end                                                                       % MMP, 09/26/2026 (was)
-% One registry for both, so the masks below compare by name; the domain     % MMP, 09/26/2026
-% conflict check lives there too.                                           % MMP, 09/26/2026
-[A,B] = merge_copvar_registry('copvar','plus',A,B);                         % MMP, 09/26/2026
+% One registry for both, so the masks below compare by name; a variable
+% on two domains is an error.
+[A,B] = merge_copvar_registry('copvar','plus',A,B);
 if ~isequal(A.space_out,B.space_out) || ~isequal(A.space_in,B.space_in)
     error('plus:spaceMismatch','Summands map between different spaces.')
 end
@@ -110,6 +87,7 @@ if ~isequal(A.dim_out(:),B.dim_out(:)) || ~isequal(A.dim_in(:),B.dim_in(:))
     error('plus:dimMismatch','Summands have different component dimensions.')
 end
 
+% Blockwise sum; a zero block passes the other summand through
 CA = A.C;   CB = B.C;
 Cc = cell(size(CA));
 for ii = 1:numel(Cc)

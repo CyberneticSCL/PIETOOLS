@@ -26,20 +26,33 @@ function varargout = spIkron(q,varargin)
 %       the elements IC{1},...,IC{6} with
 %           ICmat = sparse(IC{1}, IC{2}, IC{3}, IC{4}, IC{5}).
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - spIkron
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
-%                  corrected to the argument form the code reads (separate
-%                  arguments, not one cell); code unchanged. The branch
-%                  'if varargout==6' compares a cell with 6 and never runs
-%                  (nargout==6 is meant); left as is.
-% MMP, 11/08/2026: 'if varargout==6' compared a cell with 6, so every call
-%                  with 2 to 6 outputs errored; replaced by 'if nargout==6'
-%                  (the 11/06 note that it was left as is no longer applies).
-% MMP, 11/08/2026: The one-output form no longer passes C{6} as the nzmax of
-%                  I o Cmat: sparse requires nzmax at least the number of
-%                  triplets, q times those of Cmat (duplicates included),
-%                  so the call errored for q > 1. C{6} now scales into IC{6}
-%                  only. Help of C{6} to match.
 
 % If C is specified as an actual array, we compute the kronecker product
 % using the built-in Matlab routine
@@ -85,23 +98,18 @@ r_idcs_I = r_idcs + (0:q-1)*m;
 c_idcs_I = c_idcs + (0:q-1)*n;
 Cvals_I = repmat(Cvals,[q,1]);
 if nargout==1
-%   if nargin==7                                                            % MMP, 11/08/2026 (was)
-%       varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q,varargin{6}); % MMP, 11/08/2026 (was)
-%   else                                                                    % MMP, 11/08/2026 (was)
-%       varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q); % MMP, 11/08/2026 (was)
-%   end                                                                     % MMP, 11/08/2026 (was)
-    % No nzmax from C{6}: sparse needs nzmax at least the number of         % MMP, 11/08/2026
-    % triplets, q times those of Cmat (duplicates included), so the count   % MMP, 11/08/2026
-    % of Cmat errored for q > 1; sparse allocates the exact size itself.    % MMP, 11/08/2026
-    varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q);  % MMP, 11/08/2026
+    % No nzmax from C{6}: sparse needs nzmax at least the number of
+    % triplets, q times those of Cmat (duplicates included); sparse
+    % allocates the exact size itself.
+    varargout{1} = sparse(r_idcs_I(:), c_idcs_I(:), Cvals_I(:), m*q, n*q);
 elseif nargout<=6
+    % The elements of I_q o Cmat; IC{6} from C{6}, or the count of values
     varargout{1} = r_idcs_I;
     varargout{2} = c_idcs_I;
     varargout{3} = Cvals_I;
     varargout{4} = m*q;
     varargout{5} = n*q;
-%   if varargout==6                                                         % MMP, 11/08/2026 (was)
-    if nargout==6                                                           % MMP, 11/08/2026
+    if nargout==6
         if nargin==7
             varargout{6} = varargin{6}*q;
         else

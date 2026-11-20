@@ -5,15 +5,19 @@ function Pcat = vertcat(varargin)
 % operands must share the input space.
 %
 % INPUTS
-% varargin: sdopvar objects with matching vars, dom and input dimension. A
-%           fixed 'sopvar' operand is accepted and promoted;
+% varargin: 'sdopvar' objects with matching vars, dom and input dimension.
+%           A fixed 'sopvar' operand is accepted and promoted. A 'dpvar'
+%           entry maps the input space into R^{rows}, as an integral from
+%           L2;
 %
 % OUTPUTS
-% Pcat:     sdopvar object of dimension [sum of output dimensions, A.dims(2)]
+% Pcat:     'sdopvar' object of dimension [sum of output dimensions,
+%           A.dims(2)]; with a 'dpvar' entry, a 'cdopvar' container
 %
 % NOTES:
 % All N operands are synchronized in ONE pass by 'sync_basis' and then
-% combined once; see the note in horzcat on why pairwise recursion is worse.
+% combined once; pairwise recursion would re-map operand 1 through N-1
+% successive transforms.
 %
 % Unlike horzcat this is not a plain append: rows of the coefficient matrix
 % C_gamma are ordered with the matrix row index outer and the ZL monomial
@@ -23,8 +27,8 @@ function Pcat = vertcat(varargin)
 % rows of A and of COLUMNS of B; the decision variables are the rows of B
 % and are untouched.
 %
-% Cross-check: the adjoint of a stacked operator is the concatenation of the
-% adjoints, so [A;B] must equal ([A',B'])'.
+% The adjoint of a stacked operator is the concatenation of the adjoints:
+% [A;B] = ([A',B'])'.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -51,33 +55,18 @@ function Pcat = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/06/2026
-% MMP, 09/07/2026: Accept a fixed 'sopvar' operand, promoting it with
-%                  'sopvar2sdopvar'. Building a decision operator out of a
-%                  mix of fixed and decision blocks is the normal usage.
-% MMP, 09/07/2026: Synchronize all N operands in one pass via 'sync_basis'
-%                  instead of recursing pairwise.
-% MMP, 09/07/2026: Scatter each operand with an indexed assignment rather
-%                  than collecting all N operands' triplets into one
-%                  sparse() call, which was 2x to 4.5x slower because that
-%                  constructor sorts every entry.
-% MMP, 09/29/2026: A dpvar operand is routed to
-%                  'dpvar_op_copvar' (legacy @dopvar/vertcat semantics: the
-%                  entry maps the blocks' input space into R^{rows}, an
-%                  integral from L2), which returns a CONTAINER, since that
-%                  entry's output space is not this block's. Before, it
-%                  errored below.
 
 % Deal with single input case
 if nargin==1
     Pcat = varargin{1};
     return
 end
-% dpvar entry: an input-space -> R^{rows} block, so the result              % MMP, 09/29/2026
-% is a container; see 'dpvar_op_copvar'.                                    % MMP, 09/29/2026
-if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
-    Pcat = dpvar_op_copvar('vertcat',varargin{:});                          % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% dpvar entry: an input-space -> R^{rows} block, so the result
+% is a container.
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))
+    Pcat = dpvar_op_copvar('vertcat',varargin{:});
+    return
+end
 
 % A fixed 'sopvar' operand is promoted to a decision operator with a zero B.
 % The decision variable list is taken from whichever operand already has
@@ -133,30 +122,25 @@ for k = 1:N
     J{k} = reshape(off(k)+(1:mk(k)*NL).' + (0:ncol-1)*nrow,[],1);
 end
 
-% % % Scatter each operand into its rows. One indexed assignment per        % MMP, 09/07/2026
-% operand, not a single triplet sparse() over all N: measured 2x to 4.5x    % MMP, 09/07/2026
-% faster across N=2..8 and densities 1e-2..1 (40.9 s against 14.4 s at      % MMP, 09/07/2026
-% N=8 with 6e8 nonzeros), because the triplet form must sort every entry.   % MMP, 09/07/2026
+% % % Scatter each operand into its rows. One indexed assignment per
+% operand, not a single triplet sparse() over all N: measured 2x to 4.5x
+% faster across N=2..8 and densities 1e-2..1 (40.9 s against 14.4 s at
+% N=8 with 6e8 nonzeros), because the triplet form must sort every entry.
 q = numel(Zd);
 ncell = numel(ops{1}.params.A);
 params_new.A = cell(size(ops{1}.params.A));
 params_new.B = cell(size(ops{1}.params.B));
 for i = 1:ncell
-    params_new.A{i} = sparse(nrow*ncol,1);                                  % MMP, 09/07/2026
-    params_new.B{i} = sparse(q,nrow*ncol);                                  % MMP, 09/07/2026
+    params_new.A{i} = sparse(nrow*ncol,1);
+    params_new.B{i} = sparse(q,nrow*ncol);
     for k = 1:N
         [Ak,Bk] = apply_basis_map(T{k},ops{k}.params.A{i},ops{k}.params.B{i});
-        params_new.A{i}(J{k})   = Ak;                                       % MMP, 09/07/2026
-        params_new.B{i}(:,J{k}) = Bk;                                       % MMP, 09/07/2026
+        params_new.A{i}(J{k})   = Ak;
+        params_new.B{i}(:,J{k}) = Bk;
     end
 end
-%   ia = cell(1,N);  va = cell(1,N);  ib = cell(1,N);  jb = cell(1,N);      % MMP, 09/07/2026 (was)
-%   vb = cell(1,N);                                                         % MMP, 09/07/2026 (was)
-%   [r,~,v] = find(Ak);      ia{k} = J{k}(r);   va{k} = v;                  % MMP, 09/07/2026 (was)
-%   [r,c,v] = find(Bk);      ib{k} = r; jb{k} = J{k}(c); vb{k} = v;         % MMP, 09/07/2026 (was)
-%   params_new.A{i} = sparse(cat(1,ia{:}),1,cat(1,va{:}),nrow*ncol,1);      % MMP, 09/07/2026 (was)
-%   params_new.B{i} = sparse(cat(1,ib{:}),cat(1,jb{:}),cat(1,vb{:}),q,nrow*ncol); % MMP, 09/07/2026 (was)
 
+% The stacked operator on the common bases
 dims = [sum(mk), ops{1}.dims(2)];
 Pcat = sdopvar(params_new,ops{1}.vars,Zd,ZL,ZR,ops{1}.dom,dims);
 

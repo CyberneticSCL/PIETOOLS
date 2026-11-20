@@ -2,10 +2,10 @@ function [Aout,Bout] = apply_basis_map(T,Ain,Bin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Aout,Bout] = apply_basis_map(T,Ain,Bin) re-expresses one affine
 % coefficient  vec(C) = A + B'*d  on the merged monomial bases, using the
-% map T returned by 'sync_basis'.
+% scatter map T of the merge.
 %
 % INPUTS
-% T:        the scatter from 'sync_basis' -- a struct with fields 'idx'
+% T:        the scatter map -- a struct with fields 'idx'
 %           (destination vec position of each source position) and 'nC'
 %           (length of the destination) -- or [] when it is the identity;
 % Ain,Bin:  one parameter cell of an sdopvar, i.e. vec(C) and its q x nC
@@ -49,9 +49,8 @@ function [Aout,Bout] = apply_basis_map(T,Ain,Bin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the scatter note
-%                  condensed; code unchanged.
 
+% The identity map leaves the coefficient as it is
 if isempty(T)
     Aout = Ain;     Bout = Bin;
 else

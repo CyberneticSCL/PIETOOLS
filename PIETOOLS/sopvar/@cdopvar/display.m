@@ -9,11 +9,11 @@ function display(Pop,name,width_max,expand)
 % maps to, e.g. R, L_2[0,1], or L_2^2[[-1,1]x[0,2]], with the 2 of L_2 as
 % subscript and the powers as superscripts, followed by the operator
 % written out explicitly, or the definitions of the blocks as the actual
-% operators acting on x_j, if they are small enough, see 'get_display'. If
+% operators acting on x_j, if they are small enough. If
 % the operator maps from a single space to a single space, it is displayed
 % as
 %   NAME : X --> Y
-% instead, followed by the single block, see 'sdopvar/display'. An empty
+% instead, followed by the display of the single block. An empty
 % block matrix is displayed as
 %   NAME = [] : [X_1] --> [Y_1]
 % with R^0 as the space of the absent block columns or rows. Called
@@ -33,8 +33,7 @@ function display(Pop,name,width_max,expand)
 %           actual operators. Defaults to true;
 %
 % OUTPUTS
-% Display of the block matrix in the command window, with the lines
-% constructed by 'get_display'.
+% Display of the block matrix in the command window.
 %
 % NOTES
 % - An identity operator is displayed as (NAME x)_i(s) = x_i(s) for each
@@ -45,7 +44,7 @@ function display(Pop,name,width_max,expand)
 % - The blocks can be extracted by calling Pop.C{i,j}, and displayed in
 %   turn. The decision variables of the blocks are those in Pop.Zd.
 % - The spaces follow from Pop.dim_in, Pop.dim_out, Pop.space_in,
-%   Pop.space_out, Pop.vars and Pop.dom, see 'get_display'.
+%   Pop.space_out, Pop.vars and Pop.dom.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display
@@ -71,8 +70,9 @@ function display(Pop,name,width_max,expand)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Determine the name of the operator
 if nargin<2 || isempty(name)
@@ -87,6 +87,7 @@ if is_ans
     % Display an unnamed object under a default name
     name = 'Pop';
 end
+% Defaults of the optional inputs, and the size of the block grid
 if nargin<3
     width_max = [];
 end
@@ -123,11 +124,13 @@ if disp_struct.is_id
     end
     fprintf('\n');
     for i=1:p
+        % Arguments (s): the output variables of diagonal block (i,i)
         args = '';
         if ~isempty(Pop.C{i,i}.vars.out)
             out_names = cellfun(@varname2display,reshape(Pop.C{i,i}.vars.out,1,[]),'UniformOutput',false);
             args = ['(',strjoin(out_names,','),')'];
         end
+        % Left-hand side (NAME x)_i, the subscript i only for p > 1 rows
         lhs = [name,' ',disp_struct.xsym];
         if p>1
             [~,sub_i] = varname2display(sprintf('%d',i));

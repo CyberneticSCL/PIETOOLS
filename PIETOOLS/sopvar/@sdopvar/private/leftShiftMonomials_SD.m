@@ -1,8 +1,7 @@
 function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SD( ...
     varsA,ZA,CA,varsB,ZB,CB)
-% [VARSC,ZC,CC,TMAP] = LEFTSHIFTMONOMIALS_SD(VARSA,ZA,CA,VARSB,ZB,CB) is the
-% decision-variable-dependent version of 'leftShiftMonomials_SS': it
-% computes
+% [VARSC,ZC,CC,TMAP] = LEFTSHIFTMONOMIALS_SD(VARSA,ZA,CA,VARSB,ZB,CB)
+% computes, for a left factor affine in the decision variables,
 %
 %   ((I_p \otimes ZA')*CA{I,J})*((I_q \otimes ZB')*CB{I})
 %       = (I_p \otimes ZC')*CC{I,J}
@@ -21,11 +20,12 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SD( ...
 % OUTPUTS
 % - varsC, ZC:  union of the variables, and the resulting monomial basis;
 % - CC:         nI x nJ cell of structs with fields 'A' and 'B', such that
-%               the constant part is shifted as in 'leftShiftMonomials_SS'
-%               and 'B' is mapped with the same linear map, Tmap{I}, i.e.
+%               the constant part is shifted as for a fixed factor, and
+%               'B' is mapped with the same linear map, Tmap{I}, i.e.
 %               CC{I,J}.B = CA{I,J}.B*Tmap{I}.';
-% - Tmap:       (optional) nI x 1 cell of sparse matrices, the maps of
-%               'leftShiftMonomials_SS'. If requested, CC{I,J}.B is returned
+% - Tmap:       (optional) nI x 1 cell of sparse matrices, the linear maps
+%               of the shift, vec(CC) = Tmap{I}*vec(CA). If requested,
+%               CC{I,J}.B is returned
 %               UNMAPPED (= CA{I,J}.B, nd x size(Tmap{I},2)) and the caller
 %               applies Tmap{I}: the mapped B has numel(CC{I,J}.A) columns,
 %               57e6 for three variables at degree 4, and a sparse matrix
@@ -56,13 +56,9 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SD( ...
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line in the
-%                  house format, step comments; code unchanged.
-% DJ (CC), 11/10/2026: Optional 4th output Tmap; with it, 'B' is returned
-%                  unmapped and the caller applies the map to the nonzero
-%                  columns only.
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 
 % Sizes: NB monomials of the right factor, q its row blocks, mA x q the
 % constant part of each CA cell as a matrix
@@ -73,6 +69,7 @@ if isempty(ZB)
     NB = 1;
 end
 
+% CB: one cell per row of CA, with a multiple of NB rows
 if numel(CB) ~= nI
     error('leftShiftMonomials_SD:cellDimensions', ...
         'CB must contain one cell for each row of CA.');
@@ -83,6 +80,7 @@ if mod(size(CB{1},1),NB) ~= 0
         'CB dimensions are inconsistent with ZB.');
 end
 
+% q row blocks of CB; the nCoef = mA*q constant coefficients of each CA cell
 q = size(CB{1},1)/NB;
 nCoef = numel(CA{1,1}.A);
 
@@ -123,12 +121,11 @@ for i = 1:nI
     for j = 1:nJ
         CC{i,j} = struct( ...
             'A',CCconstant{i,j}(:), ...
-            'B',CA{i,j}.B);                                                 % DJ (CC), 11/10/2026
-%           'B',CA{i,j}.B*T.');                                             % DJ (CC), 11/10/2026 (was)
-        % Apply the map only if the caller does not take it (4th output)    % DJ (CC), 11/10/2026
-        if nargout < 4                                                      % DJ (CC), 11/10/2026
-            CC{i,j}.B = CC{i,j}.B*T.';                                      % DJ (CC), 11/10/2026
-        end                                                                 % DJ (CC), 11/10/2026
+            'B',CA{i,j}.B);
+        % Apply the map only if the caller does not take it (4th output)
+        if nargout < 4
+            CC{i,j}.B = CC{i,j}.B*T.';
+        end
     end
 end
 end

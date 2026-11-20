@@ -5,15 +5,14 @@ function C = plus(A,B)
 %
 % INPUT
 % - A, B:   'sopvar' objects with the same dims, spatial variables and
-%           domains. One of them may be a 'dpvar' object, in which case the
-%           call is routed to 'dpvar_op_copvar' (a scalar stands for
-%           scalar*I on a square block, a matrix of the block's size for its
-%           multiplier);
+%           domains. One of them may be a 'dpvar' object or a numeric
+%           scalar: a scalar c stands for c*I on a square block, a matrix
+%           of the size of the block for its multiplier;
 %
 % OUTPUT
 % - C:      'sopvar' object representing A + B, with ZL and ZR the unions
 %           of the monomial bases of A and B; an 'sdopvar' object when a
-%           summand is a 'dpvar'.
+%           summand is a 'dpvar' with decision variables.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
@@ -43,46 +42,23 @@ function C = plus(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
-% MMP, 09/07/2026: Compare the spatial variable lists with 'isequal'
-%                  instead of 'any(~strcmp(...))'. strcmp of two cellstr of
-%                  different length scalar-expands to an empty logical, so
-%                  the guard was false for a genuine mismatch and blocks on
-%                  different spaces were accepted, discarding a spatial
-%                  variable and retyping an L2 component as R.
-% Allowing different monomials AT - 05/26/26
-% Switch order ZL and ZR, DJ 06/08/2026
-% MMP, 09/29/2026: A dpvar summand is routed at the top to
-%                  'dpvar_op_copvar' (legacy @opvar/plus semantics): a
-%                  scalar is scalar*I on a square block, a matrix of the
-%                  block's size its multiplier; the sum is an sdopvar.
-%                  Before, it failed in the dims check below. Numeric
-%                  summands are not routed and fail there as before.
-% DJ, 11/04/2026: Support zero blocks specified as [] or scalar 0, by
-%                   expanding them to the size of the block.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
-%                  house format, step comments, stale comments removed
-%                  (empty lead-in lines, a remark attributing the loop form
-%                  to a chat assistant); code unchanged.
-% AT, 11/17/2026:  Allow for scalar inputs A + c = A + c I
 
-% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
-% the checks below.                                                         % MMP, 09/29/2026
-% A numeric scalar is the same as a constant dpvar scalar: scalar*I.        % AT, 11/17/2026
-if isa(A,'dpvar') || isa(B,'dpvar') || ...                                  % AT, 11/17/2026
-        (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))      % AT, 11/17/2026
-    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% A 'dpvar' or numeric scalar summand, before the checks below: a scalar c
+% is c*I, a matrix the multiplier of the block.
+if isa(A,'dpvar') || isa(B,'dpvar') || ...
+        (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))
+    C = dpvar_op_copvar('plus',A,B);
+    return
+end
 
 % The summands must have the same dimensions, variables, domains and cells
 if any(A.dims~=B.dims)
     error('Summands A and B have different dimensions');
 end
 
-% 'isequal', not 'any(~strcmp(...))': for lists of different length strcmp  % MMP, 09/07/2026
-% gives an empty logical, so a summand on {} passed against one on {'s1'}.  % MMP, 09/07/2026
-if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:)) % MMP, 09/07/2026
-%if any(~strcmp(A.vars.in,B.vars.in)) ||any(~strcmp(A.vars.out,B.vars.out)) % MMP, 09/07/2026 (was)
+% The same spatial variables, in the same order, on both sides; lists of
+% different length differ
+if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:))
     error('Summands A and B map between different spaces');
 end
 
@@ -95,7 +71,7 @@ if numel(A.params)~=numel(B.params)
 end
 
 % Union monomial bases Z of the two summands, with Zi = Ci*Z the embedding
-% of each summand's basis
+% of the basis of each summand
 ZL1 = A.ZL;
 ZL2 = B.ZL;
 ZR1 = A.ZR;
@@ -111,8 +87,8 @@ C2L = kron(eye(B.dims(1)), C2L);
 C1R = kron(eye(A.dims(2)), C1R);
 C2R = kron(eye(B.dims(2)), C2R);
 
-% [] and scalar 0 are zero blocks of the size of the block (see sopvar.m)
-for i=1:numel(A.params)                                                     % DJ, 11/04/2026
+% [] and scalar 0 are zero blocks of the size of the block
+for i=1:numel(A.params)
     if isempty(A.params{i}) || (isscalar(A.params{i}) && A.params{i}==0)
         A.params{i} = sparse(size(C1L,1),size(C1R,1));
     end
@@ -129,6 +105,6 @@ for i=1:numel(A.params)
 end
 
 % Declare the operator (the constructor enforces the canonical form)
-C = sopvar(params, A.vars, ZL, ZR, A.dom, A.dims);                          % MMP, 08/29/2026
+C = sopvar(params, A.vars, ZL, ZR, A.dom, A.dims);
 
 end

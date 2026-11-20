@@ -14,11 +14,10 @@ function s = kron_strides(nvec)
 %           position a*s(:) of the composite basis. N = 0 gives ones(1,0).
 %
 % NOTES
-% Convention (sopvar_implementation_notes.pdf Sec. 8): the monomial basis
-% of a kernel is the Kronecker product of per-variable bases,
-% Z(s) = Z_1(s_1) (x) ... (x) Z_N(s_N), over the variables in the class's
-% order (vars.out for ZL, vars.in for ZR), so variable 1 is the outermost
-% factor. 'kron_split' inverts the position map.
+% Convention: the monomial basis of a kernel is the Kronecker product of
+% per-variable bases, Z(s) = Z_1(s_1) (x) ... (x) Z_N(s_N), over the
+% variables in the order of the class (vars.out for ZL, vars.in for ZR), so
+% variable 1 is the outermost factor.
 %
 % Cost: O(N).
 %
@@ -50,11 +49,9 @@ function s = kron_strides(nvec)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of 'strides_of'
-%                  (canonicalize_multiplier, canonical_adjoint_map) and
-%                  'strides' (lpivar_cdopvar), identical copies of the
-%                  first-variable-slowest rule. Body verbatim.
+% Initial coding MMP, 09/30/2026
 
+% s(N) = 1, and s(k) = s(k+1)*nvec(k+1) backwards
 N = numel(nvec);
 s = ones(1,N);
 for k = N-1:-1:1

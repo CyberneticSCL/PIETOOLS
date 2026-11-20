@@ -1,7 +1,7 @@
 function out = end(P,k,n)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out = end(P,k,n) is used to establish the size of copvar object P
-% associated with index k out of n (used in subsref, e.g. P(i:end,j:end))
+% associated with index k out of n (in indexing, e.g. P(i:end,j:end))
 %
 % INPUT
 % P:    copvar class object
@@ -39,8 +39,11 @@ function out = end(P,k,n)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/14/2026: Initial coding;
 
+% Rows times columns for a linear index, else rows (k=1) or columns (k=2)
 if n==1
     out = sum(P.dim_out)*sum(P.dim_in);
 elseif n==2 && k==1

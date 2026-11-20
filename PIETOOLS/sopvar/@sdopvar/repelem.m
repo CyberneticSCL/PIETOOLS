@@ -13,8 +13,8 @@ function Pout = repelem(P,varargin)
 %
 % NOTES:
 % Repeating the elements of a matrix is the same as indexing it with
-% consecutively repeated row and column indices, so this is one call to
-% @sdopvar/subsref. It differs from 'repmat' only in the order of those
+% consecutively repeated row and column indices, so this is one indexing
+% operation. It differs from 'repmat' only in the order of those
 % indices: repelem gives 1,1,2,2,... where repmat gives 1,2,...,1,2,...
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

@@ -4,17 +4,16 @@ function [ZLn,ZRn,keepL,keepR] = prune_zero_monomials(ZL,ZR,occL,occR)
 % monomial degrees that carry no coefficient from a pair of tensor bases.
 %
 % Composition enlarges ZL and ZR to every degree the intermediate products
-% can reach, and most of those degrees end up empty: for the 2D heat
+% can reach (the per-direction integrals set the reachable degree, not the
+% attained one), and most of those degrees end up empty: for the 2D heat
 % equation at Lyapunov degree 1 the composed bases hold 31 degrees per
 % direction while only 13 are occupied, so 32x of the coefficient area is
-% padding (sopvar.pdf S4.1 -- the per-direction integrals set the reachable
-% degree, not the attained one).
+% padding.
 %
 % A degree with no stored coefficient represents the zero function, so
 % removing it does not change the operator. It does remove one redundant row
-% from every equality constraint the operator later enters, which is what
-% makes it worth doing: 'sossolve' fails inside SeDuMi's 'pretransfo' on
-% highly redundant equality systems.
+% from every equality constraint the operator later enters; the SDP solver
+% can fail on highly redundant equality systems.
 %
 % Pruning is PER DIRECTION because ZL and ZR are tensor bases: the composite
 % monomial index is the tensor index over the per-direction lists, so a
@@ -33,20 +32,19 @@ function [ZLn,ZRn,keepL,keepR] = prune_zero_monomials(ZL,ZR,occL,occR)
 % - ZLn,ZRn: the bases with the empty degrees removed, in the input shape;
 % - keepL:   prod(cellfun(@numel,ZLn)) gather index, new composite monomial
 %            j is old composite monomial keepL(j). Lift it over the matrix
-%            dimension to reindex a coefficient's rows;
+%            dimension to reindex the rows of a coefficient matrix;
 % - keepR:   the same over the columns.
 %
 % NOTES
 % Nothing is pruned, and the gathers are returned as the identity, when
-% every degree of every direction is reached -- so a caller on a hot path
-% pays one 'find' per parameter and no data movement. Callers should test
-% 'numel(keepL)' against the old size rather than reindexing unconditionally.
+% every degree of every direction is reached: numel(keepL) then equals the
+% old size, and no reindexing is needed.
 %
 % The canonical multiplier form survives the prune. Content is not moved, so
 % a coefficient that was at a permitted (left,right) degree pair is still
 % there; in particular right degree 0 in a multiplier direction is occupied
-% whenever any multiplier parameter has content, which is exactly when
-% 'canonicalize_multiplier' inspects that direction.
+% whenever any multiplier parameter has content, the only case in which the
+% canonical form constrains that direction.
 %
 % See also MONOMIAL_GATHER, CANONICALIZE_MULTIPLIER, SOPVAR, SDOPVAR.
 %
@@ -74,19 +72,9 @@ function [ZLn,ZRn,keepL,keepR] = prune_zero_monomials(ZL,ZR,occL,occR)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/11/2026: composition leaves the output bases padded
-%                  with degrees that hold no coefficient, at 32x the
-%                  coefficient area for a 2D problem, which both inflates
-%                  every downstream operation and hands the solver a large
-%                  block of redundant equality rows. Shared by
-%                  '@sopvar/mtimes' and '@sdopvar/mtimes'.
-% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
-%                  sopvar/misc/canonical_form, after what it holds (the
-%                  canonical form of the block classes), not the tool that
-%                  wrote it. The move changes no code.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
-%                  for the local function; code unchanged.
+% Initial coding MMP, 09/11/2026
 
+% Prune each side
 [ZLn,keepL] = prune_side(ZL,occL);
 [ZRn,keepR] = prune_side(ZR,occR);
 
@@ -115,7 +103,7 @@ end
 
 % Decode the composite index. The monomial vector is kron(Z{1},...,Z{N})
 % with the FIRST direction outermost, so direction t has stride
-% prod(sz(t+1:end)) -- the same convention as 'monomial_gather'.
+% prod(sz(t+1:end)); kd{t} lists the reached degrees of direction t.
 N = numel(sz);
 rem = find(occ(:)) - 1;
 kd  = cell(1,N);
@@ -137,7 +125,7 @@ for t = 1:N
     old = kron(old,ones(numel(kd{t}),1)) + ...
           kron(ones(numel(old),1),(kd{t}(:)-1)*str);
     Zn{t} = Z{t}(kd{t});
-    Zn{t} = Zn{t}(:);           % a basis must be a column; see 'plus'
+    Zn{t} = Zn{t}(:);           % a basis must be a column
 end
 keep = old + 1;
 

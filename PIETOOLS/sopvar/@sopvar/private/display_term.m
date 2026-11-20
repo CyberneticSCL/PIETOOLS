@@ -1,8 +1,7 @@
 function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs)
 % [TERM_STR,TERM_SIGN,USE_K] = DISPLAY_TERM(P,K,XSYM,OUT_NAMES,
 %   ENTRY_IDCS) builds a char representing the term of the operator P
-% defined by the parameter P.PARAMS{K}, for use in the 'get_display' method
-% of 'sopvar'.
+% defined by the parameter P.PARAMS{K}.
 %
 % INPUTS
 % - P:      'sopvar' object, with M output variables and N input variables;
@@ -12,8 +11,8 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 %           acts on, as in K(s,s') x(s'). Defaults to 'x'. If the operator
 %           acts on R, and xsym is '1', the function is not displayed;
 % - out_names:  (optional) 1 x M cellstr, the names to display for the
-%               output variables. Defaults to those given by
-%               'varname2display';
+%               output variables. Defaults to the display names of the
+%               output variables;
 % - entry_idcs: (optional) 1 x 2 array, the row and column of the element
 %               of the matrix-valued kernel. If given, the term is that of
 %               the scalar kernel K_ij, acting on the function XSYM (the
@@ -39,7 +38,7 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 %
 % NOTES
 % - A variable that is also an output variable has the parameter indexed by
-%   1, 2 or 3, see 'decode_params'. For 1, the term is a multiplier, so
+%   1, 2 or 3. For 1, the term is a multiplier, so
 %   that there is no integral, and the function is evaluated at the output
 %   variable, which is also used as the limit of the integrals for 2 and 3.
 %   For 2, the integral is taken from the lower boundary of the domain to
@@ -51,6 +50,8 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 %   nonzeros in P.params{k}, and P is scalar-valued (P.dims=[1,1]), or if
 %   IJ is given, and the element K_ij has at most 4 nonzero coefficients.
 % - The characters are declared by their code, to keep the file ASCII.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display_term
@@ -77,13 +78,12 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the names of dummy variables, the limits, and the
-%                   subscripts from 'varname2display';
 
 % Default settings
 max_nnz = 4;            % maximal number of nonzero coefficients of a kernel (element)
                         % displayed explicitly
 
+% Optional inputs
 if nargin<3 || isempty(xsym)
     xsym = 'x';
 end
@@ -91,6 +91,7 @@ if nargin<5
     entry_idcs = [];
 end
 
+% Variables, dimensions, and display names of the output variables
 out_vars = reshape(P.vars.out,1,[]);
 in_vars = reshape(P.vars.in,1,[]);
 nvars_in = numel(in_vars);
@@ -123,6 +124,8 @@ if sum(var_kind~=1)>1
     end
 end
 
+% Per input variable: the integral sign with its limits, the differential,
+% and the arguments of the function and of the kernel
 int_strs = cell(1,0);       diff_strs = cell(1,0);
 x_args = cell(1,nvars_in);      kern_args = out_disp;
 for q=1:nvars_in
@@ -134,8 +137,7 @@ for q=1:nvars_in
     x_args{q} = dum_disp{q};
     kern_args{end+1} = dum_disp{q};                                %#ok<AGROW>
     % Limits: the boundaries of the domain, or the output variable, as
-    % displayed. A limit is a subscript or superscript, or in braces, see
-    % 'varname2display'
+    % displayed. A limit is a subscript or superscript, or in braces
     [~,lim_lo] = varname2display(sprintf('%g',P.dom.in(q,1)));
     [~,~,lim_hi] = varname2display(sprintf('%g',P.dom.in(q,2)));
     if var_kind(q)==2
@@ -147,19 +149,23 @@ for q=1:nvars_in
     diff_strs = [{['d',dum_disp{q}]},diff_strs];                       %#ok<AGROW>
 end
 
+% Kernel text: explicit for at most max_nnz terms, else K_k(arguments)
 param_k = P.params{k};
 if ~isempty(entry_idcs)
     [row_idcs,col_idcs,coefs,degmat,~] = decode_params(P,k);
     entry_sel = row_idcs==entry_idcs(1) & col_idcs==entry_idcs(2);              % terms of the element K_ij
 end
 if nnz(param_k)<=max_nnz && m*n==1
+    % Scalar operator with few terms: the kernel written out
     [row_idcs,col_idcs,coefs,degmat,~] = decode_params(P,k);
     [kern_str,term_sign] = explicit_kernel(row_idcs,col_idcs,coefs,degmat,[out_disp,dum_disp],m,n);
     use_K = false;
 elseif ~isempty(entry_idcs) && nnz(entry_sel)<=max_nnz
+    % Element K_ij with few terms: the element written out
     [kern_str,term_sign] = explicit_kernel(ones(nnz(entry_sel),1),ones(nnz(entry_sel),1),coefs(entry_sel),degmat(entry_sel,:),[out_disp,dum_disp],1,1);
     use_K = false;
 else
+    % Otherwise the kernel is named, K or K_k, with its arguments
     if isscalar(P.params)
         kern_str = 'K';
     else
@@ -172,6 +178,7 @@ else
     use_K = true;
 end
 
+% The function acted on, with its arguments
 if nvars_in>0
     x_str = [xsym,'(',strjoin(x_args,','),')'];
 elseif strcmp(xsym,'1')
@@ -179,6 +186,7 @@ elseif strcmp(xsym,'1')
 else
     x_str = xsym;
 end
+% Integrals, kernel, function and differentials, separated by blanks
 term_parts = [int_strs,{kern_str,x_str},diff_strs];
 term_parts = term_parts(~cellfun(@isempty,term_parts));
 term_str = strjoin(term_parts,' ');
@@ -218,10 +226,12 @@ coef_sums = accumarray(key_idx,coefs);
 is_nonzero = coef_sums~=0;
 term_keys = term_keys(is_nonzero,:);        coef_sums = coef_sums(is_nonzero);
 
+% Text, number of terms and leading sign of each element of the kernel
 elem_strs = repmat({'0'},m,n);
 elem_nterms = zeros(m,n);
 elem_signs = ones(m,n);
 for t=1:numel(coef_sums)
+    % Monomial of term t: the product of its variables, with powers
     row_t = term_keys(t,1);         col_t = term_keys(t,2);
     mono_degs = term_keys(t,3:end);
     mono_facs = cell(1,0);
@@ -232,10 +242,14 @@ for t=1:numel(coef_sums)
             mono_facs{end} = [var_names{g},pow_str];
         end
     end
+    % The magnitude of the coefficient is shown unless it is 1 and the
+    % monomial is not constant
     if abs(coef_sums(t))~=1 || isempty(mono_facs)
         mono_facs = [{sprintf('%.4g',abs(coef_sums(t)))},mono_facs];
     end
     mono_str = strjoin(mono_facs,'*');
+    % Append the term to its element: the first term keeps its sign apart,
+    % later terms are joined with + or -
     if elem_nterms(row_t,col_t)==0
         elem_strs{row_t,col_t} = mono_str;
         elem_signs(row_t,col_t) = sign(coef_sums(t));
@@ -245,6 +259,8 @@ for t=1:numel(coef_sums)
     elem_nterms(row_t,col_t) = elem_nterms(row_t,col_t)+1;
 end
 
+% Scalar kernel: several terms in brackets with the sign inside, a single
+% term with its sign returned apart, the constant 1 as an empty char
 if m*n==1
     kern_str = elem_strs{1};
     ksign = elem_signs(1);
@@ -255,6 +271,7 @@ if m*n==1
         kern_str = '';
     end
 else
+    % Matrix kernel: [K11, K12; K21, K22], each sign written in its element
     ksign = 1;
     row_strs = cell(1,m);
     for row_t=1:m

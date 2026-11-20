@@ -4,23 +4,22 @@ function n = numArgumentsFromSubscript(obj,s,ctx)
 % indexing expression S on the 'sdopvar' OBJ takes or yields, which MATLAB
 % passes to the overloaded 'subsasgn' / 'subsref'.
 %
-% ASSIGNMENT, and a READ that starts with '.': the builtin count. Once
-% 'subsref' / 'subsasgn' are overloaded, MATLAB's default is 1, so a comma
-% list silently kept its first element on reads ({P.Zd{:}},
-% [P.params.A{:}], f(P.ZL{:})) and failed on assignment ([P.Zd{1:2}] =
-% deal(a,b): deal:narginNargoutMismatch), both measured on R2025b. The '.'
-% case of @sdopvar/subsref serves the read by the builtin with this count.
+% ASSIGNMENT, and a READ that starts with '.': the builtin count. With
+% 'subsref' / 'subsasgn' overloaded, the default count of MATLAB is 1, so a
+% comma list would keep only its first element on reads ({P.Zd{:}},
+% [P.params.A{:}], f(P.ZL{:})) and fail on assignment ([P.Zd{1:2}] =
+% deal(a,b): deal:narginNargoutMismatch), both measured on R2025b. A '.'
+% read is served by the builtin with this count.
 %
 % A READ that starts with '()' (the component slice P(I,J)) or '{}' (an
-% error): 1, as before, since the slice is one object. A list after a
-% slice, {P(I,J).Zd{:}}, therefore still holds its first element only
-% (pre-existing).
+% error): 1, since the slice is one object. A list after a slice,
+% {P(I,J).Zd{:}}, therefore holds its first element only.
 %
 % INPUTS
 % - obj:    'sdopvar' object being indexed;
 % - s:      struct array describing the indexing expression, with fields
 %           'type' ('.', '()' or '{}') and 'subs', as passed by MATLAB;
-% - ctx:    matlab.indexing.IndexingContext of the expression (assignment
+% - ctx:    'matlab.indexing.IndexingContext' of the expression (assignment
 %           or not);
 %
 % OUTPUTS
@@ -54,10 +53,7 @@ function n = numArgumentsFromSubscript(obj,s,ctx)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026, with 'subsasgn'. Reads that start with
-%                '.' return the builtin count too (same date), with the
-%                comma-list case of 'subsref'.
-%
+% Initial coding MMP, 09/29/2026
 
 persistent props
 if strcmp(s(1).type,'.')
@@ -65,10 +61,9 @@ if strcmp(s(1).type,'.')
     % a read, so the common chains are counted here: a property; then at
     % most one field of a scalar struct property; then at most one brace
     % with a single numeric scalar, and at most one paren, last. Such a
-    % chain names one value, n = 1: the builtin count, and the count before
-    % this method existed. Any other chain (a ':', vector or logical index,
-    % a struct array, a longer chain) is counted by the builtin. A single
-    % '.' on a method name also gets 1, as before.
+    % chain names one value, n = 1, the builtin count. Any other chain (a
+    % ':', vector or logical index, a struct array, a longer chain) is
+    % counted by the builtin. A single '.' on a method name also gets 1.
     n = 1;
     L = numel(s);
     for k = 2:L
@@ -99,6 +94,7 @@ if strcmp(s(1).type,'.')
             n = builtin('numArgumentsFromSubscript',obj,s,ctx);  return
         end
     end
+% Assignment: the builtin count; a read that starts with '()' or '{}': 1
 elseif ctx==matlab.indexing.IndexingContext.Assignment
     n = builtin('numArgumentsFromSubscript',obj,s,ctx);
 else

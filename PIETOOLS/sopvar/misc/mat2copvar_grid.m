@@ -6,40 +6,39 @@ function P = mat2copvar_grid(Mat,meta,mult_only)
 %   (P*x)_i = sum_j K_ij x_j,   K_ij the (i,j) block of MAT, cut by
 %                               META.dim_out (rows) and META.dim_in (cols).
 %
-% The kernel form (sopvar document Sec. 4) gives a constant kernel exactly
-% one meaning per pair of spaces: a multiplier in every variable the two
-% spaces share (gamma = 1), constant in an output-only variable, and
-% integrated over an input-only variable. In 1-D that is 'mat2opvar' (P, Q2,
-% R0) plus the Q1 integral that 'dopvar/vertcat' makes of a matrix stacked
-% on an L2 operator.
+% The kernel form gives a constant kernel exactly one meaning per pair of
+% spaces: a multiplier in every variable the two spaces share (gamma = 1),
+% constant in an output-only variable, and integrated over an input-only
+% variable. In 1-D these are the 4-PI parameters P, Q2 and R0, and the
+% integral Q1.
 %
 % INPUTS
 % - Mat:       sum(dim_out) x sum(dim_in) 'double' or 'dpvar', constant in
 %              the spatial variables;
 % - meta:      container metadata, fields vars (sorted registry), dom,
-%              space_out, space_in, dim_out, dim_in, as 'metadata' returns;
+%              space_out, space_in, dim_out, dim_in;
 % - mult_only: (optional, default false) true refuses a nonzero block that
 %              would integrate, i.e. whose input space has a variable the
-%              output space lacks, as 'mat2opvar' refuses Q1;
+%              output space lacks;
 %
 % OUTPUTS
 % - P:         'copvar' for a double, 'cdopvar' for a 'dpvar' (Zd = its
-%              decision variables), by input CLASS, as 'mat2opvar' returns
-%              opvar or dopvar.
+%              decision variables), by the class of MAT.
 %
 % NOTES
 % A zero block of MAT stays [], except one explicit zero block per row or
-% column that would otherwise have none, placed as 'lpivar_cdopvar' places
-% it: 'verify' and cdopvar(C) read a row's space off a block.
+% column that would otherwise have none, first in column 1 of each empty
+% row, then in row 1 of each empty column: the space of a row or column is
+% read off a block.
 %
 % Canonical by construction: every basis is degree 0, so the multiplier
-% cell has content only at right degree 0 (CANONICAL MULTIPLIER FORM,
-% sopvar.m), and the integral cells are zero.
+% cell has content only at right degree 0 (the canonical multiplier form),
+% and the integral cells are zero.
 %
 % Cost: O(M*N) blocks. A block is the slice A(lin), B(:,lin) of the
 % coefficients, O(nnz of the slice + number of columns), plus the column
-% pointers of 3^n3 cells of q_i*p_j columns; nothing is O(q) but the one
-% 'dpvar2sdvar' call, which is O(nnz(Mat.C)).
+% pointers of 3^n3 cells of q_i*p_j columns; nothing is O(q) but the
+% conversion of a dpvar, which is O(nnz(Mat.C)).
 %
 % See also DPVAR_OP_COPVAR, DPVAR2SDVAR, MAT2OPVAR, LPIVAR_CDOPVAR.
 %
@@ -69,15 +68,9 @@ function P = mat2copvar_grid(Mat,meta,mult_only)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. The shared core of the Tier-1 dpvar
-%                operator branches (dpvar_op_copvar) and the constructors
-%                eye_copvar_sop, zeros_copvar_sop and mat2copvar_sop, which
-%                replace the opvar2copvar(mat2opvar(...)) detour; that
-%                detour has no N-D route.
-% DJ, 11/02/2026: Support empty input/output spaces;
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
-%                for the local function; code unchanged.
+% Initial coding MMP, 09/29/2026
 
+% Default, class and size checks
 if nargin<3 || isempty(mult_only),  mult_only = false;  end
 isdec = isa(Mat,'dpvar');
 if ~isdec && ~isnumeric(Mat)
@@ -92,7 +85,7 @@ end
 
 % % % vec(Mat) = A + B'*d, column-major, d the decision variables.
 if isdec
-    % All of Mat's spatial variables go on the output side, so a degree
+    % All spatial variables of Mat go on the output side, so a degree
     % above 0 shows up in ZL: the matrix is not constant and is refused.
     vconv = struct('out',{reshape(Mat.varname,1,[])},'in',{cell(1,0)});
     [Pc,ZLc] = dpvar2sdvar(Mat,vconv);
@@ -121,7 +114,7 @@ end
 % One explicit zero block per empty row, then per empty column.
 occ = ~cellfun(@isempty,C);
 % (none if there are no rows or no columns)
-if M>0 && N>0                                                               % DJ, 11/02/2026
+if M>0 && N>0
     for i = find(~any(occ,2))'
         nc = meta.dim_out(i)*meta.dim_in(1);
         C{i,1} = const_block(sparse(nc,1),sparse(numel(Zd),nc),Zd,isdec,meta,i,1,false);
@@ -133,7 +126,7 @@ if M>0 && N>0                                                               % DJ
     end
 end
 
-% Metadata is the caller's, already validated, so the trusted constructor.
+% The metadata comes validated, so the trusted two-argument constructor.
 keep = {'vars','dom','space_out','space_in','dim_out','dim_in'};
 mt = struct();
 for k = 1:numel(keep),  mt.(keep{k}) = meta.(keep{k});  end
@@ -154,12 +147,14 @@ function b = const_block(Aij,Bij,Zd,isdec,meta,i,j,mult_only)
 % block from input space j to output space i: degree-0 bases, content in
 % the all-multiplier cell only (gamma = 1 in every shared direction, linear
 % index 1).
-% INPUTS  Aij: vec of the block's matrix; Bij: nd x numel(Aij) decision
+% INPUTS  Aij: vec of the matrix of the block; Bij: nd x numel(Aij) decision
 %         coefficients; Zd: decision variable names; isdec: build an
 %         'sdopvar'; meta: container metadata; i, j: the spaces;
 %         mult_only: refuse an integral block.
 % OUTPUT  b: 'sopvar' or 'sdopvar' block.
 
+% The partition of the variables of the two spaces; an integral block is
+% refused under mult_only
 vars = meta.vars;
 vo = vars(meta.space_out(i,:));     vi = vars(meta.space_in(j,:));   % sorted
 S3 = vo(ismember(vo,vi));   S2 = vo(~ismember(vo,vi));  S1 = vi(~ismember(vi,vo));
@@ -169,13 +164,14 @@ if mult_only && ~isempty(S1) && (nnz(Aij)>0 || nnz(Bij)>0)
         'an integral, not a multiplier; refused here as mat2opvar refuses Q1.'],...
         i,j,strjoin(S1,','))
 end
-vout = [S2,S3];     vin = [S3,S1];      % the classes' canonical order
+vout = [S2,S3];     vin = [S3,S1];      % the canonical order of the classes
 [~,io] = ismember(vout,vars);   [~,ii] = ismember(vin,vars);
 bvars = struct('out',{vout},'in',{vin});
 bdom = struct('out',meta.dom(io,:),'in',meta.dom(ii,:));
 ZL = repmat({0},1,numel(vout));     ZR = repmat({0},1,numel(vin));
 dims = [meta.dim_out(i),meta.dim_in(j)];    nc = dims(1)*dims(2);
 shape = [3*ones(1,numel(S3)),1,1];
+% Content in cell 1 only, all other cells zero
 if isdec
     Ac = repmat({sparse(nc,1)},shape);      Bc = repmat({sparse(numel(Zd),nc)},shape);
     Ac{1} = Aij;    Bc{1} = Bij;

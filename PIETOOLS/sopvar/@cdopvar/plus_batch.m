@@ -14,20 +14,18 @@ function C = plus_batch(varargin)
 %
 % NOTES
 % In a chain, each '+' puts the accumulated sum on the union of its list and
-% the next operand's, remapping the rows of every decision block of the sum
-% ('setdvars'): the sum's list is a prefix of the union, yet each block is
-% rebuilt, so N operands with their own lists cost O(N^2) block rows. Here
-% the lists are merged once ('merge_dvar_lists', stable union in operand
-% order, the order the chain produces) and each grid cell is summed by one
-% sdopvar 'plus_batch' on the shared list, adding the blocks left to right
-% as the chain does. A call with 'copvar' operands only dispatches to
-% '@copvar/plus_batch'.
-% Measured on the heatNd bench face sums, N-D (2N+1 terms), bit-identical to
+% the list of the next operand, remapping the rows of every decision block
+% of the sum: the list of the sum is a prefix of the union, yet each block
+% is rebuilt, so N operands with their own lists cost O(N^2) block rows.
+% Here the lists are merged once (stable union in operand order, the order
+% the chain produces) and each grid cell is summed by one batch sum of its
+% 'sdopvar' blocks on the shared list, adding the blocks left to right as
+% the chain does. A call with 'copvar' operands only is a 'copvar' sum.
+% Measured on sums of 2N+1 terms in N spatial variables, bit-identical to
 % the chain: N = 3, q = 2.9e5 and 1.1e6: 4.1 -> 2.0 s, peak commit 1.29 ->
 % 1.05 GB; N = 2, q = 1.5e4: 0.25 -> 0.19 s; N = 1: 0.16 -> 0.15 s.
 %
 % See also PLUS, PLUS_BATCH, MERGE_DVAR_LISTS, MERGE_COPVAR_REGISTRY.
-%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus_batch
@@ -53,9 +51,11 @@ function C = plus_batch(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % Initial coding MMP, 10/01/2026
-% DJ, 11/18/2026: Account for updated `size` function.
 
+% Check the operand classes; promote 'copvar' operands; check the grids
 ops = varargin;     N = numel(ops);
 isc = cellfun(@(x) isa(x,'copvar'),ops);    isd = cellfun(@(x) isa(x,'cdopvar'),ops);
 if ~all(isc | isd)
@@ -63,7 +63,7 @@ if ~all(isc | isd)
 end
 if N==1,    C = ops{1};     return,     end
 for k = find(isc),  ops{k} = cdopvar(ops{k});   end
-sz = size(ops{1},'block');                                                  % DJ, 11/18/2026
+sz = size(ops{1},'block');
 for k = 2:N
     if ~isequal(size(ops{k},'block'),sz)
         error('plus:gridMismatch','Summands have block grids %s and %s.',...
@@ -110,6 +110,7 @@ for ii = 1:nc
     end
     if isa(Cc{ii},'sdopvar'),   Cc{ii}.Zd = Zd;     end
 end
+% The sum keeps the spaces and dimensions of the operands
 meta = metadata(A);     meta.Zd = Zd;
 C = cdopvar(Cc,meta);
 end

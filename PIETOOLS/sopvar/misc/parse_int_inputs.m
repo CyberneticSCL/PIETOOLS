@@ -1,7 +1,7 @@
 function [vars,lims,is_var] = parse_int_inputs(vars,dom,vars_reg,dom_reg)
 % [VARS,LIMS,IS_VAR] = PARSE_INT_INPUTS(VARS,DOM,VARS_REG,DOM_REG) checks
-% and normalizes the variables and limits of integration specified for the
-% 'int' functions of the 'sopvar' and 'copvar' classes, and 'int2sopvar'.
+% and normalizes the variables and limits of integration of an integral
+% operator.
 %
 % INPUTS
 % - vars:       N x 1 or 1 x N 'cellstr', char, string or 'polynomial'
@@ -18,17 +18,18 @@ function [vars,lims,is_var] = parse_int_inputs(vars,dom,vars_reg,dom_reg)
 %               vars_reg{k};
 %
 % OUTPUTS
-% - vars:       1 x N 'cellstr' of the names of the variables;
+% - vars:       1 x N 'cellstr' of the names of the variables, in the given
+%               order (not sorted): row i of lims belongs to vars{i};
 % - lims:       N x 2 'double' of the numeric limits, NaN where the limit
 %               is the variable itself;
 % - is_var:     N x 2 'logical', true where the limit is the variable
 %               itself;
 %
 % NOTES
-% - Whether a limit is admissible depends on the operator. It is checked in
-%   'int2sopvar', and in the 'int' functions for the variables that are not
-%   variables of the operator;
+% - Whether a variable limit is admissible depends on the operator; it is
+%   not checked here;
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - parse_int_inputs
@@ -54,10 +55,7 @@ function [vars,lims,is_var] = parse_int_inputs(vars,dom,vars_reg,dom_reg)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ (CC), 10/29/2026: Initial coding. Shared by @sopvar/int, @copvar/int
-%                      and int2sopvar, so that they accept the same inputs.
-%                      Unlike parse_diff_inputs, the names are not sorted:
-%                      row i of dom belongs to vars{i}.
+% DJ (CC), 10/29/2026: Initial coding.
 
 % Variables: normalize to a 1 x N cellstr, so one list serves all types
 if isa(vars,'polynomial')
@@ -108,6 +106,8 @@ lims = zeros(N,2);      is_var = false(N,2);
 for i=1:N
     for j=1:2
         lim_ij = dom{i,j};
+        % A pvar or a char/string limit gives a name; a constant polynomial
+        % its value
         vname_lim = '';
         if isa(lim_ij,'polynomial')
             if ispvar(lim_ij)
@@ -120,6 +120,7 @@ for i=1:N
         elseif ischar(lim_ij) || isstring(lim_ij)
             vname_lim = char(lim_ij);
         end
+        % A named limit must be the variable itself
         if ~isempty(vname_lim)
             if ~strcmp(vname_lim,vars{i})
                 error("Limit of integration '%s' not allowed in '%s': limits must be numbers or '%s' itself.",vname_lim,vars{i},vars{i})

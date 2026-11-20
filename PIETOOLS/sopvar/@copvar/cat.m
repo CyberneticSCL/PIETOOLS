@@ -5,17 +5,16 @@ function P = cat(dim,varargin)
 %
 % INPUTS
 % - dim:        1 or 2;
-% - A, B, ...:  operands, as accepted by @copvar/vertcat or @copvar/horzcat;
+% - A, B, ...:  'copvar' objects and the operands they concatenate with:
+%               'sopvar'/'sdopvar' blocks, 'dpvar' entries, or [];
 %
 % OUTPUTS
 % - P:          the result of vertcat(A,B,...) or horzcat(A,B,...).
 %
 % NOTES
-% Why: the builtin 'cat' does not call the overloaded vertcat/horzcat, so
-% cat(1,A,B), cat(2,A,B) and cat(3,A,B) silently built 2 x 1, 1 x 2 and
-% 1 x 1 x 2 ARRAYS of copvar objects, which no container method accepts
-% (measured, R2025b). A container has two block axes, so DIM >= 3 has no
-% operator meaning.
+% The builtin 'cat' does not call the overloaded vertcat/horzcat: it would
+% build an ARRAY of copvar objects, which no container method accepts. A
+% container has two block axes, so DIM >= 3 has no operator meaning.
 %
 % See also VERTCAT, HORZCAT, COPVAR.
 %

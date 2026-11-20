@@ -4,20 +4,19 @@ function tf = eq(A,B,tol)
 % operator; A==0 tests whether A is zero.
 %
 % INPUTS
-% - A, B:   'copvar' objects, single 'sopvar' blocks, or the double 0. A
-%           'cdopvar' operand dispatches to @cdopvar/eq;
+% - A, B:   'copvar' objects, single 'sopvar' blocks, or the double 0; a
+%           'cdopvar' operand is compared with its decision variables;
 % - tol:    (optional) absolute coefficient tolerance, default 1e-14 as for
 %           the blocks;
 %
 % OUTPUTS
-% - tf:     logical scalar; true iff the same ordered sequence of component % MMP, 09/29/2026
-%           spaces (by name and domain) on each side and equal kernels      % MMP, 09/29/2026
-%           componentwise, within tol, whatever the two block partitions.   % MMP, 09/29/2026
-%           Different spaces give false, not an error.                      % MMP, 09/29/2026
+% - tf:     logical scalar; true iff the same ordered sequence of component
+%           spaces (by name and domain) on each side and equal kernels
+%           componentwise, within tol, whatever the two block partitions.
+%           Different spaces give false, not an error.
 %
 % NOTES
-% The logic is in 'eq_copvar', shared with 'cdopvar'. Returns a scalar, not
-% an array, as @opvar/eq does, so '~(Twop==0)' works unchanged.
+% Returns a scalar, not an array, so ~(P==0) is a scalar test.
 %
 % See also EQ_COPVAR, MINUS, COPVAR.
 %
@@ -48,13 +47,8 @@ function tf = eq(A,B,tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
-% MMP, 09/29/2026: OUTPUTS updated for 'eq_copvar', which now compares one
-%                  operator stored in two block partitions as equal. No code
-%                  change here. The OUTPUTS entry for tf was:
-% - tf:     logical scalar; true iff same spaces, dimensions and domains,   % MMP, 09/29/2026 (was)
-%           and every block pair equal within tol. Different spaces give    % MMP, 09/29/2026 (was)
-%           false, not an error.                                            % MMP, 09/29/2026 (was)
 
+% Default tolerance; compare the component spaces and the kernels
 if nargin<3,    tol = [];   end
 tf = eq_copvar(A,B,tol);
 

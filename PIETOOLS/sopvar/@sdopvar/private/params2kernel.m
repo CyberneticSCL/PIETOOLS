@@ -18,8 +18,10 @@ function K = params2kernel(P,k)
 %
 % NOTES
 % - The operator is the sum over the parameters of the integrals of the
-%   kernels K_k(s,s') times the function, see 'display' for the integrals
-%   that correspond to each parameter.
+%   kernels K_k(s,s') times the function; in each shared variable, index 1
+%   of the parameter is a multiplier, 2 the integral from the lower
+%   boundary to the variable, and 3 that from the variable to the upper
+%   boundary.
 % - The kernel is constructed with 'sdvar2dpvar'. This assumes the
 %   canonical multiplier form of the object, in which a multiplier direction
 %   has no dependence on the dummy variable, so that the dummy variable need
@@ -49,8 +51,11 @@ function K = params2kernel(P,k)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
 
+% Dimensions of the kernel
 m = P.dims(1);
 n = P.dims(2);
 % The decision variables as a column cell of char, also if they are a string array

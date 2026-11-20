@@ -6,7 +6,7 @@ function Px = apply_sopvar(Pop,x)
 % - Pop:    m x n 'sopvar' object representing a PI operator
 %               Pop: L2^{n}[dom_in] --> L2^{m}[dom_out];
 % - x:      n x q 'polynomial' object representing a polynomial function
-%               x in L2^{m}[dom_in]
+%               x in L2^{n}[dom_in]
 %
 % OUTPUTS
 % - Px:     m x q 'polynomial' object representing the output of Pop when
@@ -21,6 +21,7 @@ function Px = apply_sopvar(Pop,x)
 %   there are issues with the 'quadPoly' class functions. Speed could
 %   likely be improved using 'quadPoly'.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2026  PIETOOLS Team
@@ -47,6 +48,7 @@ function Px = apply_sopvar(Pop,x)
 % DJ, 06/05/2026: Initial coding;
 
 
+% Check the operator
 if ~isa(Pop,'sopvar')
     error("Operator must be specified as object of type 'sopvar'.")
 end
@@ -78,9 +80,6 @@ if size(Pop,2)~=size(x,1)
     error("Inner dimensions of operator and function must match.")
 end
 
-% Express x in terms of dummy variables for integration
-%x = subs(x,vars.in,vars2);
-
 % Compute the left-monomial vector
 if m==0
     ZL = polynomial(zeros(0,0));
@@ -92,6 +91,7 @@ else
         ZLmons = [repelem(ZLmons,nZL_i,1),repmat(Pop.ZL{i},nZL,1)];
         nZL = nZL_i*nZL;
     end
+    % ZL as the m x m*nZL matrix I_m kron ZL(s)'
     ridcs = repmat((1:nZL)',m,1);
     cidcs = (1:m:m*nZL)' + (0:m-1)*(m*nZL+1);
     ZL_C = sparse(ridcs(:),cidcs(:),1);
@@ -109,6 +109,7 @@ else
         ZRmons = [repelem(ZRmons,nZR_i,1),repmat(Pop.ZR{i},nZR,1)];
         nZR = nZR_i*nZR;
     end
+    % ZR as the n*nZR x n matrix I_n kron ZR(t)
     ridcs = repmat((1:nZR)',n,1);
     cidcs = (1:nZR)' + (0:n-1)*nZR + (0:n:n^2-1)*nZR;
     ZR_C = sparse(ridcs(:),cidcs(:),1);

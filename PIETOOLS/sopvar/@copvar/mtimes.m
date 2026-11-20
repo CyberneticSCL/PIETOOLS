@@ -2,42 +2,40 @@ function C = mtimes(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % C = MTIMES(A,B) composes two 'copvar' objects,
 %
-%       (A*B)_{ij} = sum_{k=1}^{K} A_{ik} * B_{kj},
+%       (A*B)_{ij} = sum_{k=1}^{K} A_{ik} * B_{kj}.
 %
-% following Sec. 8.2 of the sopvar document. Also handles a scalar factor.
+% Also handles a scalar factor and a 'dpvar' factor.
 %
 % INPUTS
-% - A:      M x K 'copvar', or a scalar double;
-% - B:      K x N 'copvar', or a scalar double; the input spaces of A must
-%           be the output spaces of B;
+% - A:      M x K 'copvar', or a scalar double, or a 'dpvar';
+% - B:      K x N 'copvar', or a scalar double, or a 'dpvar'; the input
+%           spaces of A must be the output spaces of B. A 'dpvar' scalar
+%           scales (gam*P is a 'cdopvar'); a 'dpvar' matrix multiplies the
+%           output (D*P) or input (P*D) components. A numeric matrix M is
+%           an error; dpvar(M) multiplies by it;
 % OUTPUTS
 % - C:      the M x N composition;
 %
 % NOTES
-% Sec. 8.3.1 writes the inner sum as running to N and "each consists of N
-% compositions"; both are K, the shared block dimension, as Sec. 8.2 has it.
-% The stated total K*M*N is right.
-%
 % Absent blocks are skipped rather than composed against, so a structurally
-% sparse operator - which a PIE is - costs only its populated products. A
+% sparse operator, such as a PIE, costs only its populated products. A
 % product that receives no term stays [] and the container metadata says
 % what that zero block maps between.
 %
-% Factors over different registries are first restated over their sorted    % MMP, 09/26/2026
-% union ('merge_copvar_registry'), so an R^n -> R^n factor such as Dzu,     % MMP, 09/26/2026
-% whose registry is empty, composes with an L_2 one. Metadata only, O(nv);  % MMP, 09/26/2026
-% the result keeps the union registry.                                      % MMP, 09/26/2026
+% Factors over different registries are first restated over their sorted
+% union, so an R^n -> R^n factor such as Dzu, whose registry is empty,
+% composes with an L_2 one. Metadata only, O(nv); the result keeps the
+% union registry.
 %
-% The inner sum folds with 'plus'. There is nothing to batch: 'sopvar'
-% carries no decision variables, so the synchronization that makes
-% 'plus_batch' worthwhile for a decision container does not arise here. See
-% @cdopvar/mtimes, which does batch.
+% The inner sum is added pairwise. There is nothing to batch: 'sopvar'
+% carries no decision variables, so no decision variable lists need to be
+% synchronized.
 %
-% 'copvar' is closed under composition. A decision container is not, which
-% is why @cdopvar/mtimes refuses two decision factors.
+% 'copvar' is closed under composition. A decision container is not: the
+% product of two decision containers is an error.
 %
-% COST - READ BEFORE SCALING UP. K*M*N block products, and the per-product
-% cost is NOT constant: each runs the Sec. 4 composition, whose alpha,beta
+% COST: READ BEFORE SCALING UP. K*M*N block products, and the per-product
+% cost is NOT constant: each runs the block composition, whose alpha,beta
 % double sum is 9^n3 in the number of shared variables. Measured warm, 2
 % components per block, all variables shared:
 %
@@ -50,10 +48,9 @@ function C = mtimes(A,B)
 % 1, 2 components per space, no decision variables, one composition costs
 % 0.86 s at 4 spaces (64 products), 4.97 s at 8 spaces (512) and 56.7 s at
 % 16 spaces (4096). This is the scaling wall of the class, and it is in the
-% block algebra, not in this loop: Sec. 8.3.1's row/column factorization
-% removes the repeated basis alignment (K*M*N -> M*K + K*N) but leaves the
-% K*M*N kernel-algebra calls, at the inflated union inner dimension. If it
-% is added it belongs here as a transient, not in storage.
+% block algebra, not in this loop: a row/column factorization would remove
+% the repeated basis alignment (K*M*N -> M*K + K*N) but leave the K*M*N
+% kernel-algebra calls, at the inflated union inner dimension.
 %
 % See also PLUS, CTRANSPOSE, COPVAR, CDOPVAR.
 %
@@ -84,33 +81,13 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/17/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Moved from
-%                  @mopvar/ with the class.
-% MMP, 09/26/2026: Factors over different variable registries are restated
-%                  over their union by 'merge_copvar_registry' instead of
-%                  raising mtimes:registryMismatch. An R^n -> R^n operator
-%                  (Dzu, Dyw) has an empty registry, so it could not compose
-%                  with an L_2 one. The registry is metadata: blocks
-%                  untouched, cost O(nv), flat in q. A variable on two
-%                  domains is copvar:domConflict.
-% MMP, 09/29/2026: A dpvar factor is routed at the top to 'dpvar_op_copvar'
-%                  with the legacy @opvar/@dopvar semantics: a scalar scales
-%                  (gam*P is a cdopvar), a dpvar matrix multiplies the output
-%                  (D*P) or input (P*D) components. Before, gam*P reached the
-%                  dpvar's method and failed. Numeric factors (a matrix still
-%                  errors mtimes:nonScalarNumeric; dpvar(M) or
-%                  mat2copvar_sop give its multiplier) and the composition
-%                  body are unchanged.
-% DJ, 11/18/2026: Account for updated `size` function.
 
-% dpvar factor: the constant multiplier of legacy @opvar/mtimes. Before any % MMP, 09/29/2026
-% work, so the composition below is untouched.                              % MMP, 09/29/2026
-if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
-    C = dpvar_op_copvar('mtimes',A,B);                                      % MMP, 09/29/2026
-    return                                                                  % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+% dpvar factor: a scalar or a matrix multiplier, handled before any
+% work, so the composition below is untouched.
+if isa(A,'dpvar') || isa(B,'dpvar')
+    C = dpvar_op_copvar('mtimes',A,B);
+    return
+end
 
 % % % Scalar factor: scales every populated block, changes no metadata.
 if isnumeric(A) || isnumeric(B)
@@ -127,21 +104,18 @@ if isnumeric(A) || isnumeric(B)
     return
 end
 
+% Check the factors and their block grids
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('mtimes:badInput','Factors must be copvar objects, or one a scalar.')
 end
-[M,K] = size(A,'block');        [KB,N] = size(B,'block');                   % DJ, 11/18/2026
+[M,K] = size(A,'block');        [KB,N] = size(B,'block');
 if K~=KB
     error('mtimes:gridMismatch','Inner block dimensions differ: A is %dx%d, B is %dx%d.',...
         M,K,KB,N)
 end
-% if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
-%     error('mtimes:registryMismatch',['Factors are built on different variable '...
-%         'registries; rebuild them over a common set of variables and domains.']) % MMP, 09/26/2026 (was)
-% end                                                                       % MMP, 09/26/2026 (was)
-% One registry for both, so the masks below compare by name; the domain     % MMP, 09/26/2026
-% conflict check lives there too.                                           % MMP, 09/26/2026
-[A,B] = merge_copvar_registry('copvar','mtimes',A,B);                       % MMP, 09/26/2026
+% One registry for both, so the masks below compare by name; a variable
+% on two domains is an error.
+[A,B] = merge_copvar_registry('copvar','mtimes',A,B);
 % The image of B must be the domain of A: input space k of A is output space
 % k of B. Compared as masks over the shared registry.
 if ~isequal(A.space_in,B.space_out)
@@ -151,6 +125,7 @@ if ~isequal(A.dim_in(:),B.dim_out(:))
     error('mtimes:dimMismatch',...
         'The input dimensions of A do not match the output dimensions of B.')
 end
+% Block (i,j) of the product: the sum over k of the nonzero A_{ik}*B_{kj}
 CA = A.C;   CB = B.C;
 Cc = cell(M,N);
 terms = cell(1,K);

@@ -6,8 +6,7 @@ function [dP,is_zero] = diff(P,vars,d)
 % for each of the output spaces of P. VARS and D can be row vectors to
 % simultaneously differentiate with respect to multiple variables. D can
 % also be a column vector or matrix to take multiple derivatives,
-% concatenated vertically. See the 'diff' method of 'sopvar' for the
-% operators that are supported.
+% concatenated vertically.
 %
 % INPUTS
 % - P:      M x N 'copvar' object representing a PI operator;
@@ -67,6 +66,8 @@ function [dP,is_zero] = diff(P,vars,d)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % DJ, 11/06/2026: Initial coding;
 

@@ -4,8 +4,8 @@ function At = ctranspose(A)
 %
 %       (A*)_{ij} = (A_{ji})*,
 %
-% following Sec. 8.2 of the sopvar document. The block grid transposes and
-% each block is adjoined by @sopvar/ctranspose.                             % MMP, 09/26/2026
+% that is, the block grid transposes and each block is replaced by its
+% adjoint.
 %
 % INPUTS
 % - A:      an M x N 'copvar' object;
@@ -17,8 +17,8 @@ function At = ctranspose(A)
 % NOTES
 % The container metadata transposes with the grid: the output spaces of At
 % are the input spaces of A and vice versa, so space_out and space_in swap,
-% as do dim_out and dim_in. The variable registry and the domains are       % MMP, 09/26/2026
-% unchanged - an adjoint introduces no spatial variable.                    % MMP, 09/26/2026
+% as do dim_out and dim_in. The variable registry and the domains are
+% unchanged: an adjoint introduces no spatial variable.
 %
 % Zero blocks stay zero: the adjoint of an absent block is absent, and the
 % container metadata continues to determine what it maps between.
@@ -26,16 +26,10 @@ function At = ctranspose(A)
 % The per-block adjoint is where the subtlety lives, and it is already
 % handled by the block classes: in an integral direction ZL and ZR swap, but
 % in a multiplier direction they must NOT, because delta(s_k - s_k')
-% collapses the kernel to the diagonal. See the CANONICAL MULTIPLIER FORM
-% note in 'sopvar'. Nothing at the container level may assume the two bases
-% exchange.
+% collapses the kernel to the diagonal. Nothing at the container level may
+% assume the two bases exchange.
 %
-% Cost: M*N block adjoints. No basis is unioned and no decision variable
-% list is touched, so this is the cheapest of the three operations. Sec.
-% 8.3.1 observes that a row factorization of A becomes a column
-% factorization of A*, which is correct, and is one reason those
-% factorizations belong inside the operation that wants them rather than in
-% storage.
+% Cost: M*N block adjoints. No basis is unioned.
 %
 % See also PLUS, MTIMES, COPVAR.
 %
@@ -66,24 +60,13 @@ function At = ctranspose(A)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/17/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Moved from
-%                  @mopvar/ with the class.
-% MMP, 09/26/2026: Header no longer mentions sdopvar blocks or a decision
-%                  variable list, left over from before the 09/17 class split:
-%                  a copvar holds sopvar blocks only and has no Zd. Doc only.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) lines
-%                  of the 09/26/2026 doc change removed from the help text
-%                  (that entry records them); code unchanged.
-% DJ, 11/18/2026: Account for updated `size` function.
 
 % Transpose the grid, adjoining each populated block; [] stays []
 if ~isa(A,'copvar')
     error('ctranspose:badInput','Input must be a copvar object.')
 end
 
-[M,N] = size(A,'block');                                                    % DJ, 11/18/2026
+[M,N] = size(A,'block');
 CA = A.C;
 Ct = cell(N,M);
 for i = 1:M

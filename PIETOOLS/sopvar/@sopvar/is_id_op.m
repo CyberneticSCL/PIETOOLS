@@ -18,6 +18,7 @@ function logval = is_id_op(Pop,ztol)
 %   multiplier I_p*1. The monomial bases may be larger than {1}, provided
 %   all other coefficients are zero.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - is_id_op

@@ -13,6 +13,8 @@ function [Z, C1, C2] = UnionBasisMonomials(Z1, Z2)
 % - C1,C2:  ni x n_new sparse matrix such that Zi(x) = Ci*Z(x), where Zi(x)
 %           is the monomial vector defined by Zi, i.e.
 %               Zi(x) = kron(Zi{1}(x),...,Zi{N}(x))
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - UnionBasisMonomials
@@ -41,6 +43,7 @@ function [Z, C1, C2] = UnionBasisMonomials(Z1, Z2)
 %
 % MMP, SS, AT, DJ, 06/08/2026: Initial Coding
 
+% One union basis per variable
 N = numel(Z1);
 Z = cell(1,N);
 
@@ -64,6 +67,8 @@ end
 [~, C1_index] =ismember(degmat_1,  degmat_new, 'rows');
 [~, C2_index] =ismember(degmat_2,  degmat_new, 'rows');
 
+% Selection matrices: row t of Ci picks the union monomial equal to
+% monomial t of Zi
 n1 = size(degmat_1,1);
 n2 = size(degmat_2,1);
 n_new = size(degmat_new,1);

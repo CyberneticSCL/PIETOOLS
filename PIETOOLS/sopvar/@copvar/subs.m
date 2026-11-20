@@ -8,8 +8,7 @@ function Q = subs(P,invar,inval,opts)
 % that Q is a container with the same inputs as P, and with output spaces
 % L_2^{q_i}[s^i], for s^i the variables of the i-th block row of P without
 % invar, if it contained invar.
-% See the 'subs' method of 'sopvar' for the evaluation of each block, and
-% for the operators that are supported:
+% Each block is evaluated as follows:
 %     * int_{a}^{s} K(s,theta) u(theta) dtheta
 %       --> int_{a}^{b} K(b,theta) u(theta) dtheta (s=b) or 0 (s=a);
 %     * int_{s}^{b} K(s,theta) u(theta) dtheta
@@ -22,8 +21,8 @@ function Q = subs(P,invar,inval,opts)
 %           specifying variables of the output spaces of P;
 % - inval:  numeric array, with one boundary value for each variable in
 %           invar;
-% - opts:   (optional) tolerance for multipliers to vanish, see the 'subs'
-%           method of 'sopvar';
+% - opts:   (optional) tolerance below which a multiplier K(inval) is taken
+%           to vanish;
 %
 % OUTPUT
 % - Q:      'copvar' object with blocks Q.C{i,j}=subs(P.C{i,j},...) in the
@@ -61,6 +60,8 @@ function Q = subs(P,invar,inval,opts)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % DJ, 11/01/2026: Initial coding;
 

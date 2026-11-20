@@ -2,9 +2,7 @@ function disp_struct = get_display(P,xname,out_names)
 % DISP_STRUCT = GET_DISPLAY(P,XNAME,OUT_NAMES) constructs the terms of the
 % expression
 %   int ... int K(s,s') x(s') ds' ... ds' + ...
-% of the PI operator P acting on a function x, for use in the 'display'
-% method of 'sopvar', and in the 'get_display' methods of the classes of
-% operators that have 'sopvar' objects as factors or blocks.
+% of the PI operator P acting on a function x.
 %
 % INPUTS
 % - P:          'sopvar' object representing a PI operator;
@@ -15,13 +13,13 @@ function disp_struct = get_display(P,xname,out_names)
 %               variable. If the operator acts on R, the name '1' indicates
 %               the constant 1, which is not displayed;
 % - out_names:  (optional) 1 x M cellstr, the names to display for the
-%               output variables P.vars.out. Defaults to the names given by
-%               'varname2display';
+%               output variables P.vars.out. Defaults to the names of
+%               P.vars.out in display form, trailing digits as subscripts;
 %
 % OUTPUTS
 % - disp_struct:      struct with the fields
 %       terms:  1 x n cell of char, the terms of the sum, without their
-%               sign, see 'display_term';
+%               sign;
 %       signs:  1 x n array of 1 and -1, the sign of each term;
 %       use_K:  logical, true if a kernel is displayed by name. The kernel
 %               K_i can then be extracted by calling P.kernels{i};
@@ -39,15 +37,15 @@ function disp_struct = get_display(P,xname,out_names)
 %               act on the elements x_1, x_2, ... of the function x;
 %
 % NOTES
-% - The terms correspond to the parameters P.params, see 'display_term'.
-%   They are numbered like the elements of P.params, so a term with a zero
+% - The terms correspond to the parameters P.params. They are numbered
+%   like the elements of P.params, so a term with a zero
 %   kernel is not displayed, but does take an index.
 % - A kernel with at most 4 nonzero coefficients is displayed explicitly,
 %   if P is scalar-valued (P.dims=[1,1]). The kernels of a matrix-valued
 %   operator are displayed by name in terms, and explicitly in rows if the
 %   element of every row has at most 4 nonzero coefficients in each kernel,
 %   and the row has at most 100 characters.
-% - An identity operator is displayed as x(s), see 'is_id_op'.
+% - An identity operator is displayed as x(s).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - get_display
@@ -73,8 +71,9 @@ function disp_struct = get_display(P,xname,out_names)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+%
 % DJ, 11/06/2026: Initial coding;
-% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_terms = 6;          % maximal number of terms of an operator displayed explicitly
@@ -92,11 +91,13 @@ if nargin<2 || isempty(xname)
         end
     end
 end
+% Default output names; the empty display structure
 if nargin<3
     out_names = [];
 end
 disp_struct = struct('terms',{cell(1,0)},'signs',zeros(1,0),'use_K',false,'ok',false,'xname',xname,'is_id',false,'rows',struct('terms',{},'signs',{}));
 
+% An identity operator maps x to x, also if it is matrix-valued
 if is_id_op(P)
     if isempty(out_names)
         out_names = cellfun(@varname2display,reshape(P.vars.out,1,[]),'UniformOutput',false);
@@ -109,6 +110,7 @@ if is_id_op(P)
     return
 end
 
+% Construct the terms, in the order of the parameters
 for k=1:numel(P.params)
     if nnz(P.params{k})==0
         continue
@@ -119,6 +121,7 @@ for k=1:numel(P.params)
 end
 disp_struct.ok = ~disp_struct.use_K && numel(disp_struct.terms)<=max_terms && all(cellfun(@numel,disp_struct.terms)<=max_chars);
 
+% Matrix-valued operator: also display each element of the output explicitly
 if P.dims(1)*P.dims(2)>1
     disp_struct.rows = display_rows(P,xname,out_names,max_row_chars);
 end
@@ -127,8 +130,7 @@ end
 
 function rows = display_rows(P,xname,out_names,max_chars)
 % ROWS = DISPLAY_ROWS(P,XNAME,OUT_NAMES,MAX_CHARS) constructs the terms of
-% each element of the output of the matrix-valued operator P acting on x,
-% for 'get_display'.
+% each element of the output of the matrix-valued operator P acting on x.
 %
 % INPUTS
 % - P:          'sopvar' object, with P.dims(1)*P.dims(2)>1;
@@ -146,6 +148,7 @@ function rows = display_rows(P,xname,out_names,max_chars)
 m = P.dims(1);      n = P.dims(2);
 rows = struct('terms',{},'signs',{});
 
+% Elements of x: x_1, ..., x_n if P acts on a vector-valued function
 x_names = repmat({xname},1,n);
 if n>1
     for j=1:n
@@ -155,11 +158,14 @@ if n>1
     end
 end
 
+% Terms of each row, in the order of the parameters, then the columns; no
+% rows if a kernel element is displayed by name or a row is too long
 row_terms = repmat({cell(1,0)},1,m);       row_signs = repmat({zeros(1,0)},1,m);
 for k=1:numel(P.params)
     if nnz(P.params{k})==0
         continue
     end
+    % One term per nonzero kernel element (i,j)
     [i,j] = decode_params(P,k);
     entry_idcs = unique([i,j],'rows');
     for t=1:size(entry_idcs,1)
@@ -170,6 +176,7 @@ for k=1:numel(P.params)
         row_terms{entry_idcs(t,1)}{end+1} = term_str;      row_signs{entry_idcs(t,1)}(end+1) = term_sign;
     end
 end
+% An empty row is 0
 for i=1:m
     if isempty(row_terms{i})
         row_terms{i} = {'0'};      row_signs{i} = 1;

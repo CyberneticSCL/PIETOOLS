@@ -43,6 +43,8 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 % does not scale with the number of decision variables of an 'sdopvar'.
 %
 % See also IS_CANONICAL_MULTIPLIER, CANONICAL_ADJOINT_MAP, SOPVAR, SDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - canonicalize_multiplier
@@ -69,46 +71,11 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 % authorship, and a brief description of modifications
 %
 % MMP, 08/29/2026: Initial coding
-% MMP, 09/29/2026: Pass 1 tests 'has_content' first, so an empty cell skips
-%                  the multi-index and the mask, and the mask of each
-%                  multiplier direction (a function of ZR and t only) is
-%                  built on first use and reused. Outputs bit-identical
-%                  (3788 build calls, 3000 random inputs); 3-D heatNd
-%                  1.36 -> 0.48 s per build. 'has_content' tests storage by
-%                  'stores' (nnz for sparse, find(X,1) for full), since nnz
-%                  of a full q x nC B scanned it.
-% MMP, 09/30/2026: Index conventions from the shared helpers in
-%                  sopvar/misc/conventions: gamma_of_cell for the cell
-%                  multi-index (was ind2sub + cell2mat), kron_strides,
-%                  kron_split, monomial_position_map, monomial_position (were
-%                  the local strides_of, split_index, degree_lookup, lookup,
-%                  now deleted). The Kronecker helpers were copied in five
-%                  files and two copies had diverged. Same integers in the
-%                  same order, so outputs are bit-identical; the one change
-%                  is on invalid input: a negative or non-integer exponent
-%                  in the enlarged bases raises monomial_position_map's
-%                  error instead of a MATLAB indexing error.
-% MMP, 09/30/2026: The three passes, one 167-line body of McCabe 46, are
-%                  the local functions find_noncanonical (pass 1),
-%                  enlarge_bases (pass 2) and rebuild_params (pass 3). The
-%                  primary keeps the guards and returns after pass 1 on the
-%                  normal, canonical input. Bodies moved unchanged; pass 1
-%                  takes the shared sizes as arguments, the rewrite passes
-%                  as one struct. Outputs bit-identical.
-% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
-%                  sopvar/misc/canonical_form, after what it holds (the
-%                  canonical form of the block classes), not the tool that
-%                  wrote it. The move changes no code.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/29/2026
-%                  entry condensed; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the local
-%                  HAS_CONTENT (09/29/2026, one caller) inlined into the cell
-%                  loop of find_noncanonical; its lines keep their markers.
 
 changed = false;
 
-% % % Establish the structure, and bail out on anything not fully specified;
-% % % validating the declaration is not this routine's job.
+% % % Establish the structure; a declaration that is not fully specified
+% % % is returned unchanged.
 if ~isstruct(vars) || ~isfield(vars,'in') || ~isfield(vars,'out')
     return
 end
@@ -131,9 +98,12 @@ end
 if numel(ZL)~=numel(vout) || numel(ZR)~=numel(vin) || numel(dims)<2
     return
 end
+% Positions of the shared variables in ZL and in ZR
 [~,posL] = ismember(vS3,vout);
 [~,posR] = ismember(vS3,vin);
 
+% 'sdopvar' parameters are a struct of A and B cells; one cell per
+% multi-index
 is_sdop = isstruct(params);
 if is_sdop
     if ~isfield(params,'A') || ~isfield(params,'B')
@@ -147,83 +117,70 @@ if ncell~=3^n3
     return
 end
 
+% Basis sizes and the size of vec(C)
 nL = cellfun(@numel,ZL);        NL = prod([nL,1]);
 nR = cellfun(@numel,ZR);        NR = prod([nR,1]);
 m = dims(1);        n = dims(2);
 nrow = m*NL;        nC = nrow*(n*NR);
 
-% sL = strides_of(nL);        sR = strides_of(nR);                          % MMP, 09/30/2026 (was)
-% sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
-% Shared helpers (sopvar/misc/conventions), one copy of each convention:    % MMP, 09/30/2026
-% kron_strides for the kron(Z{1},...,Z{N}) basis, first variable slowest.   % MMP, 09/30/2026
-% sz_C went with ind2sub; gamma_of_cell needs only n3.                      % MMP, 09/30/2026
-sL = kron_strides(nL);      sR = kron_strides(nR);                          % MMP, 09/30/2026
+% Strides of the kron(Z{1},...,Z{N}) bases, first variable slowest
+sL = kron_strides(nL);      sR = kron_strides(nR);
 
-% BEGIN MMP, 09/30/2026: the three passes are the local functions
-% find_noncanonical, enlarge_bases and rebuild_params below, so this reads
-% guards, detect, return; the rewrite runs only when pass 1 finds a
-% non-canonical parameter (0 of the 3788 calls of the 1-D, 2-D and 3-D
-% executive program builds, measured 09/30/2026). Their bodies moved
-% unchanged. Pass 1 runs on every construction, so it takes the sizes it
-% reads as arguments: a struct built and unpacked costs 7.3 us per call,
-% arguments 0.03 us (measured). The rewrite passes take theirs as the
-% struct 'sz', built on that path only and unpacked to the same names.
+% Pass 1 detects; passes 2 and 3 (enlarge the bases, rebuild the
+% parameters) run only when it finds a non-canonical parameter, which none
+% of the 3788 constructions of the 1-D, 2-D and 3-D executive program
+% builds met (measured). Pass 1 runs on every construction, so it takes the
+% sizes it reads as arguments (a struct built and unpacked costs 7.3 us per
+% call, arguments 0.03 us); the rewrite passes take theirs as the struct
+% 'sz', built on that path only.
 [bad,need,need_zero] = find_noncanonical(params,ZL,ZR,vin,vout,n3,posL, ...
-    posR,is_sdop,ncell,nR,NL,NR,n,nrow,nC,sL,sR);                           % MMP, 09/30/2026
+    posR,is_sdop,ncell,nR,NL,NR,n,nrow,nC,sL,sR);
 if ~any(bad)
     return
 end
 changed = true;
 sz = struct('vin',{vin},'vout',{vout},'n3',n3,'posL',posL,'posR',posR, ...
             'is_sdop',is_sdop,'ncell',ncell,'NL',NL,'NR',NR,'m',m, ...
-            'n',n,'nrow',nrow,'nC',nC,'sL',sL,'sR',sR);                     % MMP, 09/30/2026
-[ZLnew,ZRnew] = enlarge_bases(ZL,ZR,need,need_zero,sz);                     % MMP, 09/30/2026
-params = rebuild_params(params,ZL,ZR,ZLnew,ZRnew,sz);                       % MMP, 09/30/2026
+            'n',n,'nrow',nrow,'nC',nC,'sL',sL,'sR',sR);
+[ZLnew,ZRnew] = enlarge_bases(ZL,ZR,need,need_zero,sz);
+params = rebuild_params(params,ZL,ZR,ZLnew,ZRnew,sz);
 ZL = ZLnew;     ZR = ZRnew;
-% END MMP, 09/30/2026
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [bad,need,need_zero] = find_noncanonical(params,ZL,ZR,vin,vout, ...
-    n3,posL,posR,is_sdop,ncell,nR,NL,NR,n,nrow,nC,sL,sR)                    % MMP, 09/30/2026
+    n3,posL,posR,is_sdop,ncell,nR,NL,NR,n,nrow,nC,sL,sR)
 % % % Pass 1. Locate the parameters that are not canonical, and record the
 % % % left degrees that folding them will require.
-% bad(k): parameter k has content the canonical form forbids; need{r}: the  % MMP, 09/30/2026
-% left degrees of output variable r that folding needs; need_zero(t): ZR    % MMP, 09/30/2026
-% needs degree 0 in shared direction t. Reads params, writes nothing. The   % MMP, 09/30/2026
-% sizes are the primary's, under the same names.                            % MMP, 09/30/2026
+% INPUTS  params, ZL, ZR, vin, vout, and the sizes of the primary function,
+%         under the same names.
+% OUTPUT  bad(k): parameter k has content the canonical form forbids;
+%         need{r}: the left degrees of output variable r that folding
+%         needs; need_zero(t): ZR needs degree 0 in shared direction t.
+% Reads params, writes nothing.
 need = cell(1,numel(vout));
 for r = 1:numel(vout)
     need{r} = zeros(0,1);
 end
 bad = false(1,ncell);
 need_zero = false(1,n3);
-% maskR{t}: right monomials of degree 0 in shared direction t. Depends on   % MMP, 09/29/2026
-% (ZR,t) only, so built on first use and reused by every later cell.        % MMP, 09/29/2026
-maskR = cell(1,n3);                                                         % MMP, 09/29/2026
+% maskR{t}: right monomials of degree 0 in shared direction t. Depends on
+% (ZR,t) only, so built on first use and reused by every later cell.
+maskR = cell(1,n3);
 for k = 1:ncell
-    % Empty cell first: nothing stored, so nothing to fold. It then costs   % MMP, 09/29/2026
-    % one nnz per stored array, not the multi-index and the O(NR) mask.     % MMP, 09/29/2026
-%   if ~has_content(params,k,is_sdop)                                       % MMP, 11/09/2026 (was); MMP, 09/29/2026
-    % Whether parameter k stores anything at all, tested before the         % MMP, 11/09/2026; MMP, 09/29/2026
-    % position enumeration below, so that an empty or all-zero parameter    % MMP, 11/09/2026; MMP, 09/29/2026
-    % costs O(1) instead of one index per coefficient (the former local     % MMP, 11/09/2026; MMP, 09/29/2026
-    % HAS_CONTENT)                                                          % MMP, 11/09/2026
-    if is_sdop                                                              % MMP, 11/09/2026
-%       tf = nnz(params.A{k})>0 || nnz(params.B{k})>0;                      % MMP, 11/09/2026; MMP, 09/29/2026 (was)
-        tf = stores(params.A{k}) || stores(params.B{k});                    % MMP, 11/09/2026; MMP, 09/29/2026
-    else                                                                    % MMP, 11/09/2026
-%       tf = nnz(params{k})>0;                                              % MMP, 11/09/2026; MMP, 09/29/2026 (was)
-        tf = stores(params{k});                                             % MMP, 11/09/2026; MMP, 09/29/2026
-    end                                                                     % MMP, 11/09/2026
-    if ~tf                                                                  % MMP, 11/09/2026
-        continue                                                            % MMP, 09/29/2026
-    end                                                                     % MMP, 09/29/2026
-%   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
-%   [idcs{:}] = ind2sub(sz_C,k);                                            % MMP, 09/30/2026 (was)
-%   gam = cell2mat(idcs);                                                   % MMP, 09/30/2026 (was)
-    gam = gamma_of_cell(k,n3);      % multi-index of cell k, labels 1/2/3   % MMP, 09/30/2026
+    % Empty cell first: nothing stored, so nothing to fold. It then costs
+    % one nnz per stored array, not the multi-index, the O(NR) mask and one
+    % index per coefficient.
+    if is_sdop
+        tf = stores(params.A{k}) || stores(params.B{k});
+    else
+        tf = stores(params{k});
+    end
+    if ~tf
+        continue
+    end
+    gam = gamma_of_cell(k,n3);      % multi-index of cell k, labels 1/2/3
     mult_dirs = find(gam==1);
     if isempty(mult_dirs)
         continue
@@ -235,10 +192,12 @@ for k = 1:ncell
     % % % of decision variables.
     okB = true(NR,1);
     for t = mult_dirs
-        if ~isempty(maskR{t})                                               % MMP, 09/29/2026
-            okB = okB & maskR{t};                                           % MMP, 09/29/2026
-            continue                                                        % MMP, 09/29/2026
-        end                                                                 % MMP, 09/29/2026
+        if ~isempty(maskR{t})
+            okB = okB & maskR{t};
+            continue
+        end
+        % Mask of direction t on first use: degree 0 in variable p, any
+        % degree in the others, over the kron basis
         p = posR(t);
         v = (ZR{p}(:)==0);
         kk = true(1,1);
@@ -249,15 +208,15 @@ for k = 1:ncell
                 kk = kron(kk,true(nR(i),1));
             end
         end
-        maskR{t} = kk;                                                      % MMP, 09/29/2026
+        maskR{t} = kk;
         okB = okB & kk;
     end
     bBad = find(~okB)-1;
-%   if isempty(bBad) || ~has_content(params,k,is_sdop)                      % MMP, 09/29/2026 (was)
-%       continue                % nothing forbidden, or nothing stored at all % MMP, 09/29/2026 (was)
-    if isempty(bBad)                                % content tested above  % MMP, 09/29/2026
-        continue                % nothing forbidden                         % MMP, 09/29/2026
+    if isempty(bBad)                                % content tested above
+        continue                % nothing forbidden
     end
+    % Linear positions in vec(C) of the forbidden columns, and those that
+    % hold content
     [bG,jG,rG] = ndgrid(bBad,(0:n-1)',(0:nrow-1)');
     linBad = (jG(:)*NR + bG(:))*nrow + rG(:) + 1;
 
@@ -265,32 +224,33 @@ for k = 1:ncell
     if isempty(lin)
         continue
     end
+    % Record the folded left degrees a+b of every multiplier direction
     bad(k) = true;
     need_zero(mult_dirs) = true;
     row = mod(lin-1,nrow);          col = floor((lin-1)/nrow);
-%   alpha = split_index(mod(row,NL),sL);                                    % MMP, 09/30/2026 (was)
-%   beta  = split_index(mod(col,NR),sR);                                    % MMP, 09/30/2026 (was)
-    alpha = kron_split(mod(row,NL),sL);                                     % MMP, 09/30/2026
-    beta  = kron_split(mod(col,NR),sR);                                     % MMP, 09/30/2026
+    alpha = kron_split(mod(row,NL),sL);
+    beta  = kron_split(mod(col,NR),sR);
     for t = mult_dirs
         r = posL(t);
         tot = ZL{r}(alpha(:,r)+1) + ZR{posR(t)}(beta(:,posR(t))+1);
         need{r} = [need{r}; tot(:)];
     end
 end
-end                                                                         % MMP, 09/30/2026
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ZLnew,ZRnew] = enlarge_bases(ZL,ZR,need,need_zero,sz)             % MMP, 09/30/2026
+function [ZLnew,ZRnew] = enlarge_bases(ZL,ZR,need,need_zero,sz)
 % % % Pass 2. Enlarge the bases. The left basis has to hold the folded
 % % % degrees as well as the ones the integral parameters already use; the
 % % % right basis has to hold degree 0.
+% INPUTS  ZL, ZR: the bases; need, need_zero: as returned by pass 1; sz:
+%         'struct' of the sizes of the primary function.
+% OUTPUT  ZLnew, ZRnew: the enlarged bases.
 % 'union' returns a ROW when both of its arguments are rows, and a 1x1 array
-% counts as a row, so every result is forced back to a column. A row basis
-% is not merely untidy: 'UnionBasisMonomials' builds its degree matrix from
-% the orientation, and 'plus', 'minus' and 'eq' then fail outright.
-vin = sz.vin;   vout = sz.vout;     posR = sz.posR;                         % MMP, 09/30/2026
+% counts as a row, so every result is forced back to a column: monomial
+% bases are column vectors.
+vin = sz.vin;   vout = sz.vout;     posR = sz.posR;
 ZLnew = ZL;     ZRnew = ZR;
 for r = 1:numel(vout)
     if ~isempty(need{r})
@@ -300,45 +260,48 @@ for r = 1:numel(vout)
     end
     ZLnew{r} = ZLnew{r}(:);
 end
+% Degree 0 in the right basis of each shared direction that needs it
 for t = find(need_zero)
     ZRnew{posR(t)} = union(ZR{posR(t)}(:),0);
 end
 for p = 1:numel(vin)
     ZRnew{p} = ZRnew{p}(:);
 end
-end                                                                         % MMP, 09/30/2026
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function params = rebuild_params(params,ZL,ZR,ZLnew,ZRnew,sz)               % MMP, 09/30/2026
+function params = rebuild_params(params,ZL,ZR,ZLnew,ZRnew,sz)
 % % % Pass 3. Rebuild every parameter in the new bases, folding the
 % % % multiplier directions on the way. Every parameter has to be rebuilt,
 % % % not just the offending ones, because enlarging a basis moves the
 % % % positions of all the others.
+% INPUTS  params: the parameters; ZL, ZR: the old bases; ZLnew, ZRnew: the
+%         enlarged bases; sz: 'struct' of the sizes of the primary function.
+% OUTPUT  params: the canonical parameters on the new bases.
 %
 % A parameter whose size disagrees with the declared bases cannot be
 % rebuilt, and silently emptying it would discard content, so refuse. Pass 1
 % has already found a well formed parameter that needs folding, so reaching
 % this with an inconsistent sibling means the parameter array is malformed.
-% Called as params = rebuild_params(params,...), the form MATLAB can update % MMP, 09/30/2026
-% in place; each cell is replaced whole, as before.                         % MMP, 09/30/2026
-vin = sz.vin;   vout = sz.vout;     n3 = sz.n3;     posL = sz.posL;         % MMP, 09/30/2026
-posR = sz.posR;     is_sdop = sz.is_sdop;   ncell = sz.ncell;   m = sz.m;   % MMP, 09/30/2026
-n = sz.n;   NL = sz.NL;     NR = sz.NR;     nrow = sz.nrow;     nC = sz.nC; % MMP, 09/30/2026
-sL = sz.sL;     sR = sz.sR;                                                 % MMP, 09/30/2026
+% Called as params = rebuild_params(params,...), the form MATLAB can update
+% in place; each cell is replaced whole.
+vin = sz.vin;   vout = sz.vout;     n3 = sz.n3;     posL = sz.posL;
+posR = sz.posR;     is_sdop = sz.is_sdop;   ncell = sz.ncell;   m = sz.m;
+n = sz.n;   NL = sz.NL;     NR = sz.NR;     nrow = sz.nrow;     nC = sz.nC;
+sL = sz.sL;     sR = sz.sR;
+% Sizes, strides and degree lookups of the new bases
 nLn = cellfun(@numel,ZLnew);        NLn = prod([nLn,1]);
 nRn = cellfun(@numel,ZRnew);        NRn = prod([nRn,1]);
-% sLn = strides_of(nLn);              sRn = strides_of(nRn);                % MMP, 09/30/2026 (was)
-sLn = kron_strides(nLn);            sRn = kron_strides(nRn);                % MMP, 09/30/2026
+sLn = kron_strides(nLn);            sRn = kron_strides(nRn);
 nrow_n = m*NLn;     nC_n = nrow_n*(n*NRn);
 
 mapL = cell(1,numel(vout));
-% for r = 1:numel(vout),  mapL{r} = degree_lookup(ZLnew{r});   end          % MMP, 09/30/2026 (was)
-for r = 1:numel(vout),  mapL{r} = monomial_position_map(ZLnew{r});   end    % MMP, 09/30/2026
+for r = 1:numel(vout),  mapL{r} = monomial_position_map(ZLnew{r});   end
 mapR = cell(1,numel(vin));
-% for p = 1:numel(vin),   mapR{p} = degree_lookup(ZRnew{p});   end          % MMP, 09/30/2026 (was)
-for p = 1:numel(vin),   mapR{p} = monomial_position_map(ZRnew{p});   end    % MMP, 09/30/2026
+for p = 1:numel(vin),   mapR{p} = monomial_position_map(ZRnew{p});   end
 
+% Every parameter must have the declared size
 for k = 1:ncell
     if is_sdop
         ok = (isempty(params.A{k}) || numel(params.A{k})==nC) ...
@@ -352,11 +315,9 @@ for k = 1:ncell
               +"rewritten in canonical form.")
     end
 end
+% Rebuild each parameter from its nonzero positions
 for k = 1:ncell
-%   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
-%   [idcs{:}] = ind2sub(sz_C,k);                                            % MMP, 09/30/2026 (was)
-%   gam = cell2mat(idcs);                                                   % MMP, 09/30/2026 (was)
-    gam = gamma_of_cell(k,n3);                                              % MMP, 09/30/2026
+    gam = gamma_of_cell(k,n3);
     is_mult = (gam==1);
 
     lin = nonzero_positions(params,k,is_sdop,nC);
@@ -364,14 +325,15 @@ for k = 1:ncell
         params = set_param(params,k,is_sdop,[],nC_n,nrow_n);
         continue
     end
+    % Matrix entry (i0,j0) and per-variable monomial positions of each
     row = mod(lin-1,nrow);      col = floor((lin-1)/nrow);
     i0 = floor(row/NL);         aIdx = mod(row,NL);
     j0 = floor(col/NR);         bIdx = mod(col,NR);
-%   alpha = split_index(aIdx,sL);                                           % MMP, 09/30/2026 (was)
-%   beta  = split_index(bIdx,sR);                                           % MMP, 09/30/2026 (was)
-    alpha = kron_split(aIdx,sL);                                            % MMP, 09/30/2026
-    beta  = kron_split(bIdx,sR);                                            % MMP, 09/30/2026
+    alpha = kron_split(aIdx,sL);
+    beta  = kron_split(bIdx,sR);
 
+    % New left index: a multiplier direction adds the right degree to the
+    % left one
     aStar = zeros(numel(lin),1);
     for r = 1:numel(vout)
         t = find(posL==r,1);
@@ -379,9 +341,9 @@ for k = 1:ncell
         if ~isempty(t) && is_mult(t)
             deg = deg + ZR{posR(t)}(beta(:,posR(t))+1);
         end
-%       aStar = aStar + sLn(r)*lookup(mapL{r},deg);                         % MMP, 09/30/2026 (was)
-        aStar = aStar + sLn(r)*monomial_position(mapL{r},deg);              % MMP, 09/30/2026
+        aStar = aStar + sLn(r)*monomial_position(mapL{r},deg);
     end
+    % New right index: degree zero in a multiplier direction
     bStar = zeros(numel(lin),1);
     for p = 1:numel(vin)
         t = find(posR==p,1);
@@ -390,38 +352,47 @@ for k = 1:ncell
         else
             deg = ZR{p}(beta(:,p)+1);
         end
-%       bStar = bStar + sRn(p)*lookup(mapR{p},deg);                         % MMP, 09/30/2026 (was)
-        bStar = bStar + sRn(p)*monomial_position(mapR{p},deg);              % MMP, 09/30/2026
+        bStar = bStar + sRn(p)*monomial_position(mapR{p},deg);
     end
 
+    % Index map into vec(C) on the new bases; folded entries sum
     dest = (j0*NRn + bStar)*nrow_n + (i0*NLn + aStar) + 1;
     T = sparse(dest,lin,1,nC_n,nC);
     params = set_param(params,k,is_sdop,T,nC_n,nrow_n);
 end
-end                                                                         % MMP, 09/30/2026
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function tf = stores(X)                                                     % MMP, 09/29/2026
-% X has a nonzero entry. nnz is O(1) for sparse storage but scans a full    % MMP, 09/29/2026
-% array; find(X,1) stops at the first nonzero. Pass 1 now calls this for    % MMP, 09/29/2026
-% every cell, so a full q x nC B would otherwise cost O(q*nC) per cell.     % MMP, 09/29/2026
-if issparse(X),     tf = nnz(X)>0;                                          % MMP, 09/29/2026
-else,               tf = ~isempty(find(X,1));                               % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
-end                                                                         % MMP, 09/29/2026
+function tf = stores(X)
+% TF = STORES(X) is true when X has a nonzero entry. nnz is O(1) for sparse
+% storage but scans a full array; find(X,1) stops at the first nonzero.
+% Pass 1 calls this for every cell, so a full q x nC B would otherwise cost
+% O(q*nC) per cell.
+% INPUT   X: numeric array, sparse or full.
+% OUTPUT  tf: logical.
+if issparse(X),     tf = nnz(X)>0;
+else,               tf = ~isempty(find(X,1));
+end
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function tf = forbidden_content(params,k,is_sdop,nC,linBad)
-% Which of the given positions of parameter k carry any content. Only the
-% listed positions are inspected, so a canonical parameter costs
-% numel(linBad) and none of its own nonzeros.
+% TF = FORBIDDEN_CONTENT(PARAMS,K,IS_SDOP,NC,LINBAD) tells which of the
+% given positions of parameter k carry any content. Only the listed
+% positions are inspected, so a canonical parameter costs numel(linBad) and
+% none of its own nonzeros.
+% INPUTS  params: the parameters; k: cell index; is_sdop: true for 'sdopvar'
+%         parameters (A and B); nC: numel of vec(C); linBad: positions in
+%         vec(C).
+% OUTPUT  tf: numel(linBad) x 1 logical.
 
 % Indexing a vector returns the orientation of the vector it indexes, not of
 % the index, so every result is reshaped to a column before combining.
 tf = false(numel(linBad),1);
 if is_sdop
+    % Content in the constant part A or in any decision row of B
     Ak = params.A{k};       Bk = params.B{k};
     if ~isempty(Ak) && numel(Ak)==nC
         tf = tf | full(reshape(Ak(linBad)~=0,[],1));
@@ -441,10 +412,14 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lin = nonzero_positions(params,k,is_sdop,nC)
-% Linear positions within vec(C_k) that carry any content, whether through
-% the constant part or through a decision variable.
+% LIN = NONZERO_POSITIONS(PARAMS,K,IS_SDOP,NC) returns the linear positions
+% within vec(C_k) that carry any content, whether through the constant part
+% or through a decision variable.
+% INPUTS  params, k, is_sdop, nC: as for forbidden_content.
+% OUTPUT  lin: column of positions in vec(C_k), [] for no content.
 
 if is_sdop
+    % Union of the nonzeros of A and the columns of B with any nonzero
     Ak = params.A{k};       Bk = params.B{k};
     la = [];    lb = [];
     if ~isempty(Ak) && numel(Ak)==nC
@@ -468,12 +443,18 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function params = set_param(params,k,is_sdop,T,nC_n,nrow_n)
-% Apply the index map to parameter k. A parameter with no content is resized
-% to the new bases, or left empty if that is how it was stored, since callers
-% treat an empty parameter as zero.
+% PARAMS = SET_PARAM(PARAMS,K,IS_SDOP,T,NC_N,NROW_N) applies the index map T
+% to parameter k. A parameter with no content is resized to the new bases,
+% or left empty if that is how it was stored, since an empty parameter is
+% zero.
+% INPUTS  params, k, is_sdop: as for forbidden_content; T: nC_n x nC index
+%         map, [] for no content; nC_n, nrow_n: numel and rows of the new
+%         coefficient matrix.
+% OUTPUT  params: with cell k replaced.
 
 if is_sdop
     if isempty(T)
+        % No content: a resized zero, or kept empty
         if isempty(params.A{k}),    params.A{k} = [];
         else,                       params.A{k} = sparse(nC_n,1);
         end
@@ -481,6 +462,7 @@ if is_sdop
         else,                       params.B{k} = sparse(size(params.B{k},1),nC_n);
         end
     else
+        % vec(C) = A + B'*d: A maps by T, B by T'
         Ak = params.A{k};
         if isempty(Ak),     params.A{k} = sparse(nC_n,1);
         else,               params.A{k} = T*sparse(Ak(:));
@@ -491,6 +473,7 @@ if is_sdop
         end
     end
 else
+    % 'sopvar': the coefficient matrix, mapped by T on its vec
     if isempty(T)
         if isempty(params{k}),      params{k} = [];
         else,                       params{k} = sparse(nrow_n,nC_n/nrow_n);
@@ -501,12 +484,3 @@ else
 end
 
 end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Deleted: the local functions strides_of, split_index,                     % MMP, 09/30/2026
-% degree_lookup and lookup (initial coding 08/29/2026, no later stamps).    % MMP, 09/30/2026
-% Their bodies are now kron_strides, kron_split, monomial_position_map      % MMP, 09/30/2026
-% (the copy of canonical_adjoint_map, which also refuses negative and       % MMP, 09/30/2026
-% non-integer exponents) and monomial_position (this file's message) in     % MMP, 09/30/2026
-% sopvar/misc/conventions.                                                  % MMP, 09/30/2026

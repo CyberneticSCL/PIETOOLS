@@ -5,19 +5,25 @@ function Zop = zeros_copvar_sop(dims,spaces,dom)
 %   L_2^{p_1}[s^1] x ... x L_2^{p_N}[s^N]
 %                   -> L_2^{q_1}[t^1] x ... x L_2^{q_M}[t^M]
 %
-% as an M x N 'copvar', e.g. the zero D11 or the zero blocks of a
-% closed-loop PIE.
+% as an M x N 'copvar'.
 %
 % INPUT
-% - dims, spaces, dom: as for 'mat2copvar_sop' (rectangular allowed).
+% - dims:   struct with fields 'out' (M x 1) and 'in' (N x 1), the
+%           component counts, or an M x 1 array for the same spaces in and
+%           out;
+% - spaces: struct with fields 'out' (1 x M cell) and 'in' (1 x N cell) of
+%           cellstr variable names, {} being R^q, or a 1 x M cell for the
+%           same spaces in and out;
+% - dom:    nv x 2 in the order of the SORTED registry of all variables, a
+%           1 x 2 row for every variable, or a struct with fields 'vars' and
+%           'dom'.
 %
 % OUTPUT
-% - Zop:    M x N 'copvar' passing 'verify'. Every block is [] except one
-%           explicit zero block (degree 0, no content) per row and column
-%           that would otherwise have none, placed as 'lpivar_cdopvar'
-%           places it: first (i,1) for each row, then (1,j) for each column
-%           still empty. A container needs them because 'verify' and
-%           copvar(C) read a row's space off a block.
+% - Zop:    M x N 'copvar' with consistent metadata. Every block is []
+%           except one explicit zero block (degree 0, no content) per row
+%           and column that would otherwise have none: first (i,1) for each
+%           row, then (1,j) for each column still empty. A container needs
+%           them because the space of a row or column is read off a block.
 %
 % NOTES
 % Cost: O(M*N) block visits and at most M + N - 1 blocks of q_i*p_j
@@ -51,16 +57,10 @@ function Zop = zeros_copvar_sop(dims,spaces,dom)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/29/2026. Tier 1c: zero operators over given
-%                spaces, without opvar2copvar(mat2opvar(...)).
-% MMP, 09/30/2026: Read the spaces with the shared 'parse_copvar_spaces'
-%                (sopvar/misc/conventions); 'private/spaces2meta_sop', a
-%                verbatim copy of the same parser, is deleted. Same meta on
-%                every input; a non-cell space list now raises the parser's
-%                message instead of MATLAB's brace-indexing error.
+% Initial coding MMP, 09/29/2026
 
-% meta = spaces2meta_sop(dims,spaces,dom);                                  % MMP, 09/30/2026 (was)
-meta = parse_copvar_spaces(dims,spaces,dom);                                % MMP, 09/30/2026
+% Container metadata of the spaces, then the zero matrix as its blocks
+meta = parse_copvar_spaces(dims,spaces,dom);
 Zop = mat2copvar_grid(sparse(sum(meta.dim_out),sum(meta.dim_in)),meta,false);
 
 end

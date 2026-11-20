@@ -13,9 +13,8 @@ function a = kron_split(idx,stride)
 %           composite monomial idx(i), so idx(i) = a(i,:)*stride(:).
 %
 % NOTES
-% Convention (sopvar_implementation_notes.pdf Sec. 8): first variable
-% slowest; see 'kron_strides'. Integer arithmetic on doubles, exact below
-% 2^53. A position outside 0..prod(nvec)-1 is not detected: column 1 then
+% Convention: first variable slowest. Integer arithmetic on doubles, exact
+% below 2^53. A position outside 0..prod(nvec)-1 is not detected: column 1 then
 % exceeds nvec(1)-1.
 %
 % Cost: O(numel(idx)*N).
@@ -48,10 +47,9 @@ function a = kron_split(idx,stride)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/30/2026: one public form of 'split_index'
-%                  (canonicalize_multiplier, canonical_adjoint_map),
-%                  identical copies. Body verbatim.
+% Initial coding MMP, 09/30/2026
 
+% Peel off the positions, variable 1 (largest stride) first
 N = numel(stride);
 a = zeros(numel(idx),N);
 rem = idx(:);

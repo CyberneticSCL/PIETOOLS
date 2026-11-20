@@ -1,12 +1,9 @@
 function [sp,dm] = copvar_space_list(P,side)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [SP,DM] = COPVAR_SPACE_LIST(P,SIDE) lists the output (SIDE = 'out') or
-% input (SIDE = 'in') spaces of the container P in the form 'poscopvar',
-% 'lpivar_cdopvar' and 'parse_copvar_spaces' take: SP{k} the variable names
+% input (SIDE = 'in') spaces of the container P: SP{k} the variable names
 % of space k as a 1 x n cellstr in registry order (1 x 0 for R^q), DM the
-% component counts. It is the inverse of 'parse_copvar_spaces', and stands
-% in for passing an opvar's .dim (e.g. poslpivar(prog,Top.dim,...)) to the
-% legacy LPI routines.
+% component counts.
 %
 % INPUT
 % - P:      'copvar' or 'cdopvar' object;
@@ -48,18 +45,17 @@ function [sp,dm] = copvar_space_list(P,side)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/06/2026: library version of the test-folder
-%                'cx_space_list' (cx_exec, MMP 09/25/2026), same body, plus
-%                a check on SIDE (cx_space_list read any other value as
-%                'in'). cx_space_list stays, unchanged, for the frozen 2-D
-%                helpers that call it.
+% Initial coding MMP, 10/06/2026
 
+% Space masks (one row per space over the registry) and component counts
+% of the chosen side
 switch side
     case 'out',     S = P.space_out;    dm = P.dim_out(:);
     case 'in',      S = P.space_in;     dm = P.dim_in(:);
     otherwise
         error('copvar_space_list:side',"SIDE must be 'out' or 'in'.")
 end
+% Variable names of each space, in registry order
 sp = cell(1,size(S,1));
 for k = 1:size(S,1),    sp{k} = reshape(P.vars(S(k,:)),1,[]);    end
 end

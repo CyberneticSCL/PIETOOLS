@@ -5,7 +5,7 @@ function Xs = unkron(X,n)
 % separate copies of the components, with the components of the copies
 % (index i=1,...,N) interleaved, so that the output component (a-1)*N+i is
 % the component a of Xs applied to the components (b-1)*N+i, b=1,...,s of
-% the input, see also kron.
+% the input.
 %
 % INPUTS
 % - X:      r*N x s*N 'sopvar' object, from L_2^{s*N}[S1,S3] to
@@ -23,6 +23,7 @@ function Xs = unkron(X,n)
 %   the largest coefficient of each parameter of X. Otherwise, the error
 %   'sopvar:unkron:notKron' is thrown.
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - unkron (sopvar)

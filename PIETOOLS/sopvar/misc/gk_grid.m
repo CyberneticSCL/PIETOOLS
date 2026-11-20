@@ -11,7 +11,7 @@ function G = gk_grid(R,opts,lf,rf)
 % F_i G_i (one SVD of each stored coefficient matrix C_i, the block storing
 % R_i = (I kron ZL') C_i (I kron ZR)), U' = BCU, V' = -VBC, U(a) = V(a) = I by
 % RK4 with midpoints, and Pg = [0 0; U22(b)^{-1} U21(b) I]. Optionally the
-% cumulative integrals a gain construction needs,
+% cumulative integrals
 %   E_i(s) = int_a^s LF_i(t) M(t) dt,     Y_j(s) = int_a^s N(t) RF_j(t) dt,
 % are integrated alongside U and V (one augmented linear RK4 system each),
 % so they carry the RK4 accuracy rather than a quadrature of node values.
@@ -30,9 +30,8 @@ function G = gk_grid(R,opts,lf,rf)
 %          handles R0fun, Ffun (s -> [F1 F2]), Gfun (s -> [G1; -G2]).
 %
 % NOTES
-% Shared by @sopvar/inv (which fits the pointwise inverse to polynomials)
-% and getController_direct_sop (which never forms the inverse). Cost
-% O(N n^3) plus O(N n sum p_i) and O(N n sum q_j); nothing scales with q.
+% Cost O(N n^3) plus O(N n sum p_i) and O(N n sum q_j); nothing scales
+% with q.
 % A singular R0 at a node or a near-singular U22(b) is reported through
 % condR0 / rcondU22 and a warning.
 %
@@ -64,17 +63,11 @@ function G = gk_grid(R,opts,lf,rf)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/09/2026: the grid part of @sopvar/inv (same date),
-%                moved here so that the gain construction can share it.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-lines for the
-%                nested functions; code unchanged.
-% MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026: locals that are
-%                very short and called once go into the body): the nested
-%                R0_at, F_at and G_at, each one line and used once as a
-%                handle, written out as the anonymous functions R0fun, Ffun,
-%                Gfun; the nested bases stays for CB and stage.
+% Initial coding MMP, 10/09/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Options: N nodes (made odd for Simpson weights), the SVD tolerance, and
+% the optional handles
 if nargin<2 || isempty(opts),   opts = struct();    end
 if nargin<3,    lf = {};    end
 if nargin<4,    rf = {};    end
@@ -116,8 +109,7 @@ for i = 1:N
     if rcond(R0i)<eps
         % a PI operator whose multiplier is zero or singular at a point has no
         % bounded inverse on L2 (compact, or 0 in the essential spectrum); the
-        % Gohberg-Krein formulas need R0(s)^{-1} at every node. For the QT
-        % synthesis form use the xi-coordinates (map Sec. 8.2) instead.
+        % Gohberg-Krein formulas need R0(s)^{-1} at every node.
         error('gk_grid:multiplier',['The multiplier R0(s) is singular at s = %.4g (rcond %.2g): the operator ' ...
               'is not boundedly invertible on L2 and the Gohberg-Krein construction does not apply.'],sg(i),rcond(R0i));
     end
@@ -146,7 +138,7 @@ for k = 1:N-1
 end
 U = X(1:n,:,:);     V = W(:,1:n,:);
 
-% ---- Pg from U(b): the upper kernel's block decides invertibility
+% ---- Pg from U(b): the block of the upper kernel decides invertibility
 Ub = U(:,:,N);
 U21 = Ub(r1+1:n,1:r1);  U22 = Ub(r1+1:n,r1+1:n);
 if r2>0,    rc = rcond(U22);    else,   rc = 1;     end
@@ -168,26 +160,25 @@ Y = cell(1,Rr); off = n;
 for j = 1:Rr,   Y{j} = W(:,off+(1:qR(j)),:);    off = off + qR(j);  end
 w = (h/3)*[1, repmat([4 2],1,(N-3)/2), 4, 1];                              % composite Simpson, N odd
 
-% G = struct('a',a,'b',b,'m',m,'N',N,'sg',sg,'h',h,'w',w,'r1',r1,'r2',r2,'n',n,...
-%          'Pg',Pg,'rcondU22',rc,'condR0',max(condR0),'R0inv',R0inv,'M',M,'Nn',Nn,...
-%          'R0fun',@(s) R0_at(s),'Ffun',@(s) F_at(s),'Gfun',@(s) G_at(s));  % MMP, 11/09/2026 (was)
-% The evaluator handles: the multiplier R0(s) = Lb C0 Rb and the kernel     % MMP, 11/09/2026
-% factors [F1(s) F2(s)] = Lb [U1 U2], [G1(s); -G2(s)] = [V1; -V2] Rb, with  % MMP, 11/09/2026
-% Lb = I_m kron ZL(s)', Rb = I_m kron ZR(s) (the former nested R0_at, F_at, % MMP, 11/09/2026
-% G_at, written out)                                                        % MMP, 11/09/2026
+% The evaluator handles: the multiplier R0(s) = Lb C0 Rb and the kernel
+% factors [F1(s) F2(s)] = Lb [U1 U2], [G1(s); -G2(s)] = [V1; -V2] Rb, with
+% Lb = I_m kron ZL(s)', Rb = I_m kron ZR(s)
 G = struct('a',a,'b',b,'m',m,'N',N,'sg',sg,'h',h,'w',w,'r1',r1,'r2',r2,'n',n,...
            'Pg',Pg,'rcondU22',rc,'condR0',max(condR0),'R0inv',R0inv,'M',M,'Nn',Nn,...
            'R0fun',@(s) full(kron(Im,sparse(s.^zL)')*C0*kron(Im,sparse(s.^zR))), ...
            'Ffun',@(s) [full(kron(Im,sparse(s.^zL)')*U1), full(kron(Im,sparse(s.^zL)')*U2)], ...
-           'Gfun',@(s) [full(V1*kron(Im,sparse(s.^zR))); -full(V2*kron(Im,sparse(s.^zR)))]); % MMP, 11/09/2026
+           'Gfun',@(s) [full(V1*kron(Im,sparse(s.^zR))); -full(V2*kron(Im,sparse(s.^zR)))]);
 G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() makes an empty struct array
 
     function [Lb,Rb] = bases(s)
         % the monomial bases at s: Lb = I_m kron ZL(s)', Rb = I_m kron ZR(s)
+        % INPUT  s: scalar point.  OUTPUT  Lb, Rb: sparse matrices.
         Lb = kron(Im,sparse(s.^zL)');   Rb = kron(Im,sparse(s.^zR));
     end
     function [Ci,Bi] = CB(Lb,Rb,R0i)
         % C(s) = -R0(s)^{-1} [F1 F2], B(s) = [G1; -G2]
+        % INPUTS Lb, Rb: the bases at s; R0i: R0(s)^{-1}.
+        % OUTPUT Ci: m x n; Bi: n x m.
         Fm = [full(Lb*U1), full(Lb*U2)];
         Gm = [full(V1*Rb); -full(V2*Rb)];
         Ci = -R0i*Fm;   Bi = Gm;
@@ -195,6 +186,8 @@ G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() make
     function [Lmat,Rmat] = stage(s,Ci,Bi,R0i)
         % the matrices of the two augmented linear systems at s:
         % X' = Lmat*X(1:n,:) (U and the E_i), W' = W(:,1:n)*Rmat (V, the Y_j)
+        % INPUTS s: point; Ci, Bi: C(s), B(s); R0i: R0(s)^{-1}.
+        % OUTPUT Lmat: nX x n; Rmat: n x nW.
         A = Bi*Ci;
         Lmat = zeros(nX,n);     Lmat(1:n,:) = A;    off1 = n;
         for ii = 1:L
@@ -209,7 +202,10 @@ end
 
 
 function C = zero_or(C,nr,nc)
-% [] and scalar 0 are the zero-block shorthand of the class
+% C = ZERO_OR(C,NR,NC): [] and scalar 0, the zero-block shorthand of the
+% class, become the nr x nc zero; any other size than nr x nc is an error.
+% INPUTS  C: parameter; nr, nc: its size from the bases.
+% OUTPUT  C: nr x nc matrix.
 if isempty(C) || (isscalar(C) && C==0),    C = sparse(nr,nc);   end
 if ~isequal(size(C),[nr nc])
     error('gk_grid:params','A parameter is %d x %d; the bases give %d x %d.',size(C,1),size(C,2),nr,nc);
@@ -217,7 +213,10 @@ end
 end
 
 function [U,V] = factor_C(C,tol)
-% C = U V with the numerical rank: economy SVD, singular values below tol*max dropped
+% [U,V] = FACTOR_C(C,TOL): C = U V with the numerical rank: economy SVD,
+% singular values below tol*max dropped.
+% INPUTS  C: matrix; tol: relative cut.
+% OUTPUT  U: size(C,1) x r; V: r x size(C,2).
 if nnz(C)==0,   U = zeros(size(C,1),0);  V = zeros(0,size(C,2));  return,  end
 [Us,S,Vs] = svd(full(C),'econ');
 sv = diag(S);   r = find(sv>=tol*sv(1),1,'last');

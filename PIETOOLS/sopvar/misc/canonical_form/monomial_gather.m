@@ -10,19 +10,19 @@ function p = monomial_gather(Z,ord)
 %
 % OUTPUT
 % p:    prod(cellfun(@numel,Z)) x 1 gather index: new monomial j is old
-%       monomial p(j). So a coefficient's monomial axis is reordered by
-%       C_new = C_old(p,:) once p is lifted over the matrix dimension.
+%       monomial p(j). So the monomial axis of a coefficient matrix is
+%       reordered by C_new = C_old(p,:) once p is lifted over the matrix
+%       dimension.
 %
 % NOTES
 % The monomial vector is kron(Z{1},...,Z{N}) with the FIRST direction
 % outermost, so reordering the cells is a tensor transposition of that index.
 % The permutation is obtained by building the full degree table both ways and
-% matching rows, which is the construction 'UnionBasisMonomials' uses, rather
-% than by stride arithmetic: the table lives on the small (monomial) axis,
-% and a wrong stride here would be silent.
+% matching rows, rather than by stride arithmetic: the table lives on the
+% small (monomial) axis, and a wrong stride here would be silent.
 %
 % Column k of the new table describes new position k, i.e. old direction
-% ord(k); reordering the old table's columns the same way makes the two
+% ord(k); reordering the columns of the old table the same way makes the two
 % tables describe the same monomials with matching columns, differing only in
 % row order. Column reordering does not disturb row order, so the matched row
 % index is the old monomial index.
@@ -51,35 +51,19 @@ function p = monomial_gather(Z,ord)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/09/2026: split out of 'canonical_var_order' so that
-%                  '@sopvar/mtimes' can use it to align two operands stored
-%                  in different canonical variable orders.
-% MMP, 09/30/2026: The degree tables come from the shared helper
-%                  multiindex_grid(Z,'first_slowest') (sopvar/misc/
-%                  conventions); the local degree_table is deleted. It was
-%                  one of five copies of this grid, and it differed from
-%                  degbalance_core's: a ROW exponent vector widened the
-%                  table instead of lengthening it. The helper reads every
-%                  exponent vector as a list. Identical on column bases,
-%                  which the classes store (CLAUDE.md sec. 5), so p is
-%                  unchanged there.
-% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
-%                  sopvar/misc/canonical_form, after what it holds (the
-%                  canonical form of the block classes), not the tool that
-%                  wrote it. The move changes no code.
+% Initial coding MMP, 09/09/2026
 
+% No reordering: the identity permutation
 if numel(Z)<=1 || isequal(ord(:).',1:numel(Z))
     p = (1:prod([cellfun(@numel,Z),1])).';
     return
 end
 
-% Dold = degree_table(Z);                                                   % MMP, 09/30/2026 (was)
-% Dnew = degree_table(Z(ord));                                              % MMP, 09/30/2026 (was)
-% Degree tables in kron order, first direction slowest: the shared grid     % MMP, 09/30/2026
-% of sopvar/misc/conventions.                                               % MMP, 09/30/2026
-Dold = multiindex_grid(Z,'first_slowest');                                  % MMP, 09/30/2026
-Dnew = multiindex_grid(Z(ord),'first_slowest');                             % MMP, 09/30/2026
+% Degree tables in kron order, first direction slowest
+Dold = multiindex_grid(Z,'first_slowest');
+Dnew = multiindex_grid(Z(ord),'first_slowest');
 
+% Match the rows of the new table against the column-reordered old table
 [tf,p] = ismember(Dnew,Dold(:,ord),'rows');
 if ~all(tf)
     error("monomial_gather: reordering lost a monomial.")
@@ -87,8 +71,3 @@ end
 p = p(:);
 
 end
-
-
-%%
-% Deleted: the local function degree_table (initial coding 09/09/2026, no   % MMP, 09/30/2026
-% later stamps), now multiindex_grid(Z,'first_slowest').                    % MMP, 09/30/2026

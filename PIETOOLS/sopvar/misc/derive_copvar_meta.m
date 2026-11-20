@@ -1,28 +1,23 @@
 function meta = derive_copvar_meta(C,cls,okclasses)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % META = DERIVE_COPVAR_META(C,CLS,OKCLASSES) derives and validates the
-% container metadata of an M x N cell of PI operator blocks, for the
-% 'copvar' and 'cdopvar' constructors.
+% container metadata of an M x N cell of PI operator blocks.
 %
 % INPUTS
 % - C:          M x N cell of blocks; a cell holding [] is a structurally
 %               zero block;
-% - cls:        name of the calling container class, for error identifiers
-%               and messages ('copvar' or 'cdopvar');
+% - cls:        name of the container class, for error identifiers and
+%               messages ('copvar' or 'cdopvar');
 % - okclasses:  cellstr of block classes this container accepts, e.g.
 %               {'sopvar'} or {'sopvar','sdopvar'};
 %
 % OUTPUTS
 % - meta:       struct with fields vars, dom, space_out, space_in, dim_out,
-%               dim_in. The decision variable list is NOT handled here; a
-%               container that has one reconciles it itself.
+%               dim_in. The decision variable list is not part of it.
 %
 % NOTES
-% 'copvar' and 'cdopvar' duplicate their METHOD files, following how
-% @sopvar and @sdopvar are structured, but they share this routine rather
-% than duplicating it: it is the whole of the validation and the part that
-% would silently diverge, and the only thing that differs between the two
-% containers is which block classes are admitted, which is an argument.
+% The validation is the same for both container classes; only the
+% admitted block classes differ, which OKCLASSES sets.
 %
 % Cost: O(M*N) block visits. The spatial set operations run on the variable
 % registry, which has one entry per spatial direction, so they are not on a
@@ -57,14 +52,8 @@ function meta = derive_copvar_meta(C,cls,okclasses)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/17/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  derive_mopvar_meta -> derive_copvar_meta. File was
-%                  'derive_mopvar_meta.m'.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
-%                  for the local function; code unchanged.
 
+% Grid size and the occupied cells
 [M,N] = size(C);
 occ = ~cellfun(@isempty,C);       % which cells hold an operator
 
@@ -81,10 +70,9 @@ if M>0 && N>0
     end
 end
 
-% % % Block classes and matrix dimensions. 'dims' must be 1x2: 'sopvar' also
-% % % accepts a block-dims matrix (@sopvar/size sums it, @sdopvar/size
-% % % returns it raw), which would duplicate this container's role for blocks
-% % % that share a variable set. Reject it rather than support both.
+% % % Block classes and matrix dimensions. 'dims' must be 1x2: a block-dims
+% % % matrix would duplicate the role of the container grid for blocks that
+% % % share a variable set, so it is rejected.
 for i = 1:M
     for j = 1:N
         if ~occ(i,j),   continue,   end
@@ -147,6 +135,7 @@ for j = 1:N
     space_in(j,:) = ismember(vars,C{i0,j}.vars.in);
     s_j = sort(C{i0,j}.vars.in(:))';
     for i = find(occ(:,j))'
+        % Same input dimension and, as a set, the same input space
         if C{i,j}.dims(2)~=dim_in(j)
             error([cls ':colDimMismatch'],['Blocks (%d,%d) and (%d,%d) are in '...
                 'one column but have input dimensions %d and %d.'],...
@@ -160,6 +149,7 @@ for j = 1:N
     end
 end
 
+% The metadata
 meta = struct('vars',{vars},'dom',dom,'space_out',space_out,...
     'space_in',space_in,'dim_out',dim_out,'dim_in',dim_in);
 
@@ -177,6 +167,8 @@ function [names,lo,hi] = register(names,lo,hi,v,d,i,j,cls)
 %         message; cls: container class, for the identifier.
 % OUTPUT  names, lo, hi: the registry with v added.
 
+% One domain row per variable; a new name is appended, a known one must
+% keep its domain
 v = v(:)';
 if size(d,1)~=numel(v)
     error([cls ':domSizeMismatch'],...

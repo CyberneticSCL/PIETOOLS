@@ -42,17 +42,6 @@ function [Pblkdiag] = blkdiag(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial AT 01/21/2026
-% Correct order ZL and ZR, split off UnionBasisMonomials, DJ 06/08/2026
-% MMP, 09/07/2026: Compare the spatial variable lists with 'isequal'
-%                  instead of 'any(~strcmp(...))'. strcmp of two cellstr of
-%                  different length scalar-expands to an empty logical, so
-%                  the guard was false for a genuine mismatch and blocks on
-%                  different spaces were accepted, discarding a spatial
-%                  variable and retyping an L2 component as R.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
-%                  house format, step comments, stale comments removed (a
-%                  dangling criteria line in the help text, an orphaned
-%                  'matrix' remark in the class check); code unchanged.
 
 % A single operand is returned as is
 if nargin==1
@@ -73,16 +62,15 @@ if any(any(a.dom.in~=b.dom.in)) || any(any(a.dom.out~=b.dom.out))
     error('Operators being concatenated have different intervals');
 end
 
-% The variables must match. 'isequal', not 'any(~strcmp(...))': for lists   % MMP, 09/07/2026
-% of different length strcmp gives an empty logical, so {} against {'s1'}   % MMP, 09/07/2026
-% passed and an L2 component was silently retyped as R.                     % MMP, 09/07/2026
-if ~isequal(a.vars.in(:),b.vars.in(:)) || ~isequal(a.vars.out(:),b.vars.out(:)) % MMP, 09/07/2026
-%if any(~strcmp(a.vars.in, b.vars.in))|| any(~strcmp(a.vars.out, b.vars.out)) % MMP, 09/07/2026 (was)
+% The variables must match. 'isequal', not 'any(~strcmp(...))': for lists
+% of different length strcmp gives an empty logical, so {} against {'s1'}
+% would pass and an L2 component would be retyped as R.
+if ~isequal(a.vars.in(:),b.vars.in(:)) || ~isequal(a.vars.out(:),b.vars.out(:))
     error('Operators being concatenated have input/output variables');
 end
 
 % Union monomial bases Z of the two operands, with Zi = Ci*Z the embedding
-% of each operand's basis
+% of the basis of each operand
 ZL1 = a.ZL;
 ZL2 = b.ZL;
 ZR1 = a.ZR;
@@ -108,7 +96,7 @@ end
 dims = a.dims + b.dims;
 
 % Declare the operator (the constructor enforces the canonical form)
-Pblkdiag = sopvar(params, a.vars, ZL, ZR, a.dom, dims);                     % MMP, 08/29/2026
+Pblkdiag = sopvar(params, a.vars, ZL, ZR, a.dom, dims);
 
 % Remaining operands
 if nargin>2

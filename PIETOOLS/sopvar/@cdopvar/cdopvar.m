@@ -1,8 +1,8 @@
-classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar % MMP, 09/29/2026
+classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CDOPVAR  Container for PI operators between concatenated mixed L2 spaces
-% that may DEPEND ON DECISION VARIABLES. Sec. 8 of the sopvar document.
-% An M x N grid of 'sdopvar' or 'sopvar' blocks,
+% that may DEPEND ON DECISION VARIABLES. An M x N grid of 'sdopvar' or
+% 'sopvar' blocks,
 %
 %   P.C{i,j} : L_2^{p_j}[s^j] -> L_2^{q_i}[s^i],   (P*x)_i = sum_j P.C{i,j}*x_j
 %
@@ -19,17 +19,14 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 % decision-ness cannot be read off its block classes one at a time - it is a
 % property of the container, which is what this class name states.
 %
-% ROW IS OUTPUT, COLUMN IS INPUT. Sec. 8 also writes the blocks inline as
-% "P_{i,j}: L_2^{p_i}[s^i] -> L_2^{q_j}[s^j]", putting i on the input side;
-% that contradicts its own display of P acting on [x_1;...;x_M] and its
-% partition s_1^{ij} = s^j/s^i (input only), s_2^{ij} = s^i/s^j (output
-% only). The partition is the correct reading and is implemented here.
+% ROW IS OUTPUT, COLUMN IS INPUT: block (i,j) maps L_2^{p_j}[s^j] into
+% L_2^{q_i}[s^i]; its input-only variables are s_1^{ij} = s^j/s^i and its
+% output-only variables s_2^{ij} = s^i/s^j.
 %
 % CLASS properties
 % - P.C:         M x N cell of 'sdopvar' or 'sopvar'. A cell holding [] is a
 %                STRUCTURALLY ZERO block: it stores nothing and its space
-%                and dimension come from the metadata below. Sec. 8 has no
-%                convention for an absent block, but a PIE is mostly zero;
+%                and dimension come from the metadata below;
 % - P.vars:      1 x nv sorted cellstr registry of every spatial variable;
 % - P.dom:       nv x 2, dom(k,:) = [a,b] the domain of P.vars{k};
 % - P.space_out: M x nv logical, row i is the mask of s^i in P.vars;
@@ -39,15 +36,16 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 % - P.Zd:        the SINGLE decision variable list shared by every
 %                'sdopvar' block; cell(0,1) when there are none.
 %
-% Metadata placement, row and column consistency, and the Sec. 8.3.1
-% decision not to store any row- or column-synchronized representation are
-% all as documented in 'copvar'; this class differs from it only by
-% admitting 'sdopvar' blocks and by carrying P.Zd. The validation itself is
-% shared, in 'derive_copvar_meta'.
+% Every populated block in row i maps into L_2^{q_i}[s^i] and every block in
+% column j acts on L_2^{p_j}[s^j], the spaces compared as sets of names. The
+% blocks keep their own vars, dom and bases; no row- or column-synchronized
+% representation is stored. A 'dpvar' operand (P + gam, [-gam, D', Bw'*Q])
+% dispatches to the methods of this class; the product of a 'dpvar' with
+% decision variables and a 'cdopvar' is an error, as is cdopvar*cdopvar.
 %
 % DECISION VARIABLES ARE A CLASS INVARIANT. Every 'sdopvar' block carries
-% the same P.Zd; the constructor merges them when they differ. Sec. 8.1
-% calls this secondary; it is not. Zd is a cellstr of NAMES and measures
+% the same P.Zd; the constructor merges them when they differ. Zd is a
+% cellstr of NAMES and measures
 % 88-99% of a block's storage over q = 1e4..1e6. Copy-on-write shares one
 % list across blocks for free (16 blocks at q = 2e5: 0 MB extra), but blocks
 % built independently share nothing (322 MB for the same 16), and one
@@ -103,42 +101,7 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/17/2026. Split out of 'copvar', which until this
-%                date held both cases in one class, so that the containers
-%                mirror the sopvar/sdopvar pair and 'class(P)' states
-%                whether decision variables are present. 'copvar' declared
-%                ?sdopvar inferior from 09/11/2026, which was the basis for
-%                the single-class reading; that declaration is now inert
-%                there and the decision case lives here.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  derive_mopvar_meta -> derive_copvar_meta. File was
-%                  'mdopvar.m'.
-% MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar operand
-%                  (P + gam, [-gam, D', Bw'*Q]) dispatches to this class's
-%                  methods, which route it to 'dpvar_op_copvar' (legacy
-%                  @dopvar semantics). A dpvar with decision variables times
-%                  a cdopvar is refused there, as cdopvar*cdopvar is.
-%                  Before, the dpvar's own method was called and failed.
-%                  The classdef line before is the (was) line at the end of
-%                  this log.
-% MMP, 09/30/2026: 'unify_dvars' reconciles through 'merge_dvar_lists',
-%                  each block its own operand, instead of its own copy of
-%                  the rule, so one algorithm keeps the one-list invariant
-%                  for the constructor, plus, mtimes and concatenation.
-%                  Same list and blocks; where the lists differ each block
-%                  moves by the sort's row map, not by a name search.
-% MMP, 09/30/2026: The initial-coding entry calls copvar's ?sdopvar
-%                  precedence inert. That no longer holds since 09/25/2026:
-%                  @copvar/horzcat, vertcat and blkdiag rely on it to catch a
-%                  decision block among fixed operands and promote it to a
-%                  'cdopvar' (see the 09/30/2026 entry in 'copvar'). Doc only.
-% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) classdef
-%                  line moved to the end of the log, 'unify_dvars' given
-%                  INPUT/OUTPUT and its (was) comment lines removed, the
-%                  09/30/2026 notes condensed; code unchanged.
-% classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar % MMP, 09/29/2026 (was)
+% Initial coding MMP, 09/17/2026
 
     properties
         C = {};                     % M x N cell of blocks; [] = zero block
@@ -166,15 +129,20 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
             % metadata and must not repeat the O(M*N*q) Zd check.
             %
             % CDOPVAR P1 P2 declares empty containers in the caller.
+
+            % No input: an empty container
             if nargin==0
                 return
             end
+            % Command form: declare each named container in the caller
             if nargout==0 && (ischar(varargin{1}) || isstring(varargin{1}))
                 for i = 1:nargin
                     assignin('caller',char(varargin{i}),cdopvar());
                 end
                 return
             end
+            % A 'copvar' keeps its blocks and metadata, with no decision
+            % variables
             if isa(varargin{1},'copvar')
                 Q = varargin{1};
                 meta = metadata(Q);     meta.Zd = cell(0,1);
@@ -189,12 +157,15 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
             if ~iscell(C)
                 error('cdopvar:badBlocks','Blocks must be an M x N cell array.')
             end
+            % Trust the metadata if given; otherwise derive and validate it
+            % and put every block on one decision variable list
             if nargin>=2
                 meta = varargin{2};
             else
                 meta = derive_copvar_meta(C,'cdopvar',{'sopvar','sdopvar'});
                 [C,meta.Zd] = unify_dvars(C);
             end
+            % Store the blocks and the metadata
             P.C = C;
             P.vars      = meta.vars;            P.dom       = meta.dom;
             P.space_out = meta.space_out;       P.space_in  = meta.space_in;
@@ -221,28 +192,25 @@ function [C,Zd] = unify_dvars(C)
 % OUTPUT  C: the grid with every 'sdopvar' block on Zd; Zd: column cellstr,
 %         cell(0,1) when no block carries decision variables.
 %
-% Each block is its own operand of 'merge_dvar_lists', the rule of plus,    % MMP, 09/30/2026
-% mtimes and concatenation: one unique(...,'stable') over the lists in      % MMP, 09/30/2026
-% block order, the all-equal shortcut, and where the lists differ a block   % MMP, 09/30/2026
-% moves by its slice of the sort's row map, not by a name search.           % MMP, 09/30/2026
-% % % BEGIN MMP, 09/30/2026. Deleted (initial coding 09/17/2026): the
-% % % union of the blocks' Zd(:) lists and per block setdvars(B,Zd) by name
-% % % then B.Zd = Zd; 'merge_dvar_lists' makes the same assignment.
+% Each block is its own operand: one unique(...,'stable') over the lists in
+% block order; when all lists are equal the list is reused, otherwise a
+% block moves by its slice of the union's row map, not by a name search.
 
+% Blocks that carry decision variables
 dec = find(cellfun(@(b) isa(b,'sdopvar'),C(:)))';
 Zd = cell(0,1);
 if isempty(dec)
     return
 end
-% Zd(:) on a q-length column copies its pointer array (12.3 ms at           % MMP, 09/30/2026
-% q = 1.07e6, measured): reshape only a list stored as a row.               % MMP, 09/30/2026
+% Zd(:) on a q-length column copies its pointer array (12.3 ms at
+% q = 1.07e6, measured): reshape only a list stored as a row.
 lists = cell(1,numel(dec));
 for k = 1:numel(dec)
-    z = C{dec(k)}.Zd;                                                       % MMP, 09/30/2026
-    if ~iscolumn(z),    z = z(:);   end                                     % MMP, 09/30/2026
-    lists{k} = z;                                                           % MMP, 09/30/2026
+    z = C{dec(k)}.Zd;
+    if ~iscolumn(z),    z = z(:);   end
+    lists{k} = z;
 end
-[Cd,Zd] = merge_dvar_lists(C(dec),lists,1:numel(dec));                      % MMP, 09/30/2026
-C(dec) = Cd;                                                                % MMP, 09/30/2026
-% % % END MMP, 09/30/2026
+% Merge the lists and move each block onto the union
+[Cd,Zd] = merge_dvar_lists(C(dec),lists,1:numel(dec));
+C(dec) = Cd;
 end
