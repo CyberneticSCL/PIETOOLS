@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_HEAT_EQ_WITH_ODE_DAS(GUI,PARAMS)
@@ -20,23 +20,21 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the stability tests                                     % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the stability tests                                     % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Heat Equation coupled with ODE from Das (Example 2):
-% % % ODE        xo_{t} = A * xo + Bxr * x_{s}(s=a)                         % MMP, 11/19/2026 (was)
-% % ODE        xo_{t} = A * xo - Bxr * x_{s}(s=a)                           % MMP, 11/19/2026
+% % ODE        xo_{t} = A * xo - Bxr * x_{s}(s=a)                           % MMP, 11/21/2026
 % % PDE        x_{t} = lam * x + x_{ss} + Bpv * xo
 % % with BCs   x(s=a) = 0
 % %            x(s=b) = 0
 % %
 % %
 % % Parameters lam, a and b (domain) can be set.
-% % Stable for lam<pi^2                                                     % MMP, 11/19/2026 (was)
-% % Stable for lam < 9.7946. The paper (Das et al. 2018, arXiv 1812.07186,  % MMP, 11/19/2026
-% % Sec. 6.2) has +Bxr, which is stable only for lam < -5.7799 against its  % MMP, 11/19/2026
-% % claim lam < pi^2; the sign of Bxr is taken as a typo.                   % MMP, 11/19/2026
+% % Stable for lam < 9.7946. The paper (Das et al. 2018, arXiv 1812.07186,  % MMP, 11/21/2026
+% % Sec. 6.2) has +Bxr, which is stable only for lam < -5.7799 against its  % MMP, 11/21/2026
+% % claim lam < pi^2; the sign of Bxr is taken as a typo.                   % MMP, 11/21/2026
 % %---------------------------------------------------------------------% %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,20 +63,13 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/20/2022
-% MMP, 11/19/2026: the flux input of the ODE takes the sign -Bxr, in both
-%                   formats (maintainer: "probably a typo in the paper. so
-%                   reverse the sign"). With +Bxr the system is stable only
-%                   for lam < -5.7799 (Chebyshev, 56 and 72 nodes), against
-%                   the lam < pi^2 of the paper; with -Bxr, lam < 9.7946.
-% MMP, 11/19/2026: output st, the example-specific settings of the two
-%                   stability tests, and their form ('Q'), from the search
-%                   of 11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/21/2026: The GUI file PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das_GUI.mat
-%                   now stores -Bxr, as PDE_t and PDE_b: the entry of
-%                   11/19/2026 changed the code only, so GUI = 1 loaded the
-%                   +Bxr system, unstable at the default lam.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the ODE takes the input
+%   -Bxr*x_{s}(a) in place of +Bxr*x_{s}(a), in both formats and in the GUI
+%   save file (the sign of the paper is taken as a typo), so that the
+%   system is stable for lam < 9.7946; new output st, the recommended
+%   settings of the stability tests; stability_form = 'Q' set in the base
+%   workspace; help and comments revised.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -90,7 +81,7 @@ pvar s
 %%% Executive Function:
 evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
-evalin('base','stability_form = ''Q'';');  % form of the stability tests    % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability tests    % MMP, 11/21/2026
 
 % Default parameters, overridden by the assignment strings in params
 lam = pi^2-1;  a = 0;  b = 1;
@@ -115,8 +106,8 @@ PDE_b.A = [-1.2142,  1.9649,  0.2232,  0.5616;
     -0.2898,  0.7381, -1.7606,  0.8294;
     -0.9417, -5.3399, -1.0704, -0.7590];
 % PDE state to ODE dynamics
-%PDE_b.E0 = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0] * [zeros(PDE_b.n2) zeros(PDE_b.n2) eye(PDE_b.n2) zeros(PDE_b.n2)]; % MMP, 11/19/2026 (was)
-PDE_b.E0 = -[-1.5368 0;0 0.8871;1.0656 0;1.1882 0] * [zeros(PDE_b.n2) zeros(PDE_b.n2) eye(PDE_b.n2) zeros(PDE_b.n2)]; % MMP, 11/19/2026
+%PDE_b.E0 = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0] * [zeros(PDE_b.n2) zeros(PDE_b.n2) eye(PDE_b.n2) zeros(PDE_b.n2)]; % MMP, 11/21/2026 (was)
+PDE_b.E0 = -[-1.5368 0;0 0.8871;1.0656 0;1.1882 0] * [zeros(PDE_b.n2) zeros(PDE_b.n2) eye(PDE_b.n2) zeros(PDE_b.n2)]; % MMP, 11/21/2026
 
 % PDE
 % PDE dynamics
@@ -142,13 +133,12 @@ PDE_t.x{1}.term{1}.C = [-1.2142,  1.9649,  0.2232,  0.5616;
     -0.2898,  0.7381, -1.7606,  0.8294;
     -0.9417, -5.3399, -1.0704, -0.7590];
 
-% % ODE: xo_{t} = ... + Bxr * x_{s}(s=0)                                    % MMP, 11/19/2026 (was)
-% ODE: xo_{t} = ... - Bxr * x_{s}(s=0)                                      % MMP, 11/19/2026
+% ODE: xo_{t} = ... - Bxr * x_{s}(s=0)                                      % MMP, 11/21/2026
 PDE_t.x{1}.term{2}.x = 2;
 PDE_t.x{1}.term{2}.D = 1;
 PDE_t.x{1}.term{2}.loc = 0;
-%PDE_t.x{1}.term{2}.C = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];             % MMP, 11/19/2026 (was)
-PDE_t.x{1}.term{2}.C = -[-1.5368 0;0 0.8871;1.0656 0;1.1882 0];             % MMP, 11/19/2026
+%PDE_t.x{1}.term{2}.C = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];             % MMP, 11/21/2026 (was)
+PDE_t.x{1}.term{2}.C = -[-1.5368 0;0 0.8871;1.0656 0;1.1882 0];             % MMP, 11/21/2026
 
 % PDE: x_{t} = lam * x
 PDE_t.x{2}.term{1}.x = 2;
@@ -174,16 +164,16 @@ PDE_t.BC{2}.term{1}.C = eye(2);
 % command-line format
 % PDE_c=sys();
 % xo=state('ode');x=state('pde');
-% % eq_ODEPDE=[diff(xo,t) == A*xo+Bxr*subs(diff(x,s),s,a)                   % MMP, 11/19/2026 (was)
-% eq_ODEPDE=[diff(xo,t) == A*xo-Bxr*subs(diff(x,s),s,a)                     % MMP, 11/19/2026
+% % eq_ODEPDE=[diff(xo,t) == A*xo+Bxr*subs(diff(x,s),s,a)                   % MMP, 11/21/2026 (was)
+% eq_ODEPDE=[diff(xo,t) == A*xo-Bxr*subs(diff(x,s),s,a)                     % MMP, 11/21/2026
 %                         diff(x,t) == lam*x+diff(x,s,2)+Bpv*xo];
 % eq_BCs=[subs(x,s,a)==0;subs(x,s,b)==0];
 % PDE_c=addequation(PDE_c,[eq_ODEPDE;eq_BCs]);
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; Q of degree 2 in the multiplier and 1 in the integral
 % kernels)
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.sop.deg_Q{1} = [2 1 1];                                                  % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.sop.deg_Q{1} = [2 1 1];                                                  % MMP, 11/21/2026
 
 if GUI
     %%% Associated GUI save file

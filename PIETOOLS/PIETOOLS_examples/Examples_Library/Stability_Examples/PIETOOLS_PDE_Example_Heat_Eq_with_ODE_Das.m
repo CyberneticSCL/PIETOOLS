@@ -58,7 +58,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das(GUI,params)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/20/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');

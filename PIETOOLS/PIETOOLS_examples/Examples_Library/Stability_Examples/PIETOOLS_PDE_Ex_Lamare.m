@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)        % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)        % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_LAMARE(INDEX,GUI,PARAMS) returns the
@@ -22,8 +22,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)        % MM
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the test this file names, by case                       % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the test this file names, by case                       % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Lamare 2016 Ex 5 (see reference below):
@@ -58,12 +58,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)        % MM
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% MMP, 11/19/2026: Output st, the example-specific settings of each case,
-%                   and the form of its test named in the workspace
-%                   (stability_form), from the per-example search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)         % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: new output st, the
+%   recommended settings of the stability test by case; stability_form =
+%   'P' set in the base workspace; help and comments revised.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)         % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -75,7 +73,7 @@ pvar s
 %%% Executive Function:
 evalin('base','stability = 1;');
 %evalin('base','stability_dual = 1;');
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/21/2026
 
 %%%% There are several examples included here. Add a decimal to
 %%%% your example input to specify a particular set of parameters.
@@ -166,17 +164,17 @@ PDE_t.BC{1}.term{2}.x = 1;
 PDE_t.BC{1}.term{2}.loc = 1;
 PDE_t.BC{1}.term{2}.C = [on0, -Gm2; zer12', -Gm4];
 
-% Example-specific settings, by case                                        % MMP, 11/19/2026
+% Example-specific settings, by case                                        % MMP, 11/21/2026
 % (stripped tier with the 1-D storage from the multiplier only, both
 % integral s-lengths 0, and the slack lift degree at its minimum Dmin; for
 % 2.2 and 2.4 the multiplier theta-length 1)
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
-if index==2.2 || index==2.4                                                 % MMP, 11/19/2026
-    st.lpi.pos.len_sos{1} = [1;2;2];                                        % MMP, 11/19/2026
-end                                                                         % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/21/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
+if index==2.2 || index==2.4                                                 % MMP, 11/21/2026
+    st.lpi.pos.len_sos{1} = [1;2;2];                                        % MMP, 11/21/2026
+end                                                                         % MMP, 11/21/2026
 
 if GUI
     %%% Associated GUI save file

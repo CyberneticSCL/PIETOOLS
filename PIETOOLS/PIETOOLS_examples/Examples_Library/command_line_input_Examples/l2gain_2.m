@@ -29,23 +29,23 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: x_t = x_ss + s*w, as the inline comment and the user
-%   manual (Sec. 4.2) state; -x_ss declared a backward heat equation. The
-%   gain of this system is 5/24 = 0.2083 (at w = 0), not 0.3333.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the PDE reads x_t = x_ss +
+%   s*w, as its comments state (it declared -x_ss, a backward heat
+%   equation); the stated gain is 0.2083 (was 0.3333); help and comments
+%   revised.
 
 % Clear the workspace
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Define dependent variables and system variable
-%   PDE: x_{t} = x_{ss} + s*w(t)                    |                       (gamma = 0.2083) % MMP, 11/20/2026
+%   PDE: x_{t} = x_{ss} + s*w(t)                    |                       (gamma = 0.2083) % MMP, 11/21/2026
 %   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |
 %   Out: z(t) = int(x(t,s),s,0,1)                   |         
 pde_var x output z input w
 x.vars = s;     x.dom = [0,1];  
 %% Define equations
-%eq_PDE = [diff(x,t)==-diff(x,s,2)+s*w]; %   PDE: x_{t} = x_{ss} + s*w(t)   % MMP, 11/20/2026 (was)
-eq_PDE = [diff(x,t)==diff(x,s,2)+s*w]; %   PDE: x_{t} = x_{ss} + s*w(t)     % MMP, 11/20/2026
+%eq_PDE = [diff(x,t)==-diff(x,s,2)+s*w]; %   PDE: x_{t} = x_{ss} + s*w(t)   % MMP, 11/21/2026 (was)
+eq_PDE = [diff(x,t)==diff(x,s,2)+s*w]; %   PDE: x_{t} = x_{ss} + s*w(t)     % MMP, 11/21/2026
 eq_BC = [subs(x,s,0)==0;subs(diff(x,s),s,1)==0]; %   BCs: x(s=0) = 0, x_{s}(s=1) = 0
 eq_out = [z==int(x,s,[0,1])]; %   Out: z(t) = int(x(t,s),s,0,1)
 %% initialize pde system;

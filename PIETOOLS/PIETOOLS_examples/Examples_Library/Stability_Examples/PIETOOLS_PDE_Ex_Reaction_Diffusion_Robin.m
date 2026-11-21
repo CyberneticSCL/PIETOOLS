@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_REACTION_DIFFUSION_ROBIN(GUI,PARAMS)
@@ -21,8 +21,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Reaction-Diffusion Equation with Robin Boundary Conditions:
@@ -61,12 +61,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 01/13/2025
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: new output st, the
+%   recommended settings of the stability tests; stability_form = 'P' set
+%   in the base workspace; help and comments revised.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Robin(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -78,7 +76,7 @@ pvar s
 %%% Executive Function:
 evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/21/2026
 
 % Specify the parameters
 ne = 1;   lam = 1.705; %1.705
@@ -138,12 +136,12 @@ if GUI
     disp('No GUI representation available for this system.')
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; 1-D storage with upper-integral s-length 1 and
 % theta-lengths 0 (multiplier: absent), 1 (upper), 1 (lower integral))
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [0;1;1];                                            % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [0;1;1];                                            % MMP, 11/21/2026
 
 end
 

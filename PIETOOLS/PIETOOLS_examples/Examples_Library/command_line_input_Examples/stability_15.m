@@ -19,8 +19,7 @@
 %       =>                                          |
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
-%        x3_{t} = x2 - x4 -c x3                         |                   % MMP, 11/19/2026 (was)
-%        x3_{t} = x2 - x4 + x4_{ss} - c x3              |                   % MMP, 11/19/2026
+%        x3_{t} = x2 - x4 + x4_{ss} - c x3              |                   % DB, MMP, 11/21/2026
 %        x4_{t} = x3                                |
 %   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
 %        x3(0) = 0,     x1(0) = 0,                  |
@@ -52,17 +51,15 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
-% MMP, 11/19/2026: the bending term x4_{ss} (E*II*phi_{ss}) restored in
-%                   x3_t, as in PIETOOLS_PDE_Ex_Timoshenko_Beam_2.m (Peet
-%                   et al. 2019, Sec. 8.1); at c = 0 the beam is stable, not
-%                   exponentially stable (Peet, Automatica 2021, Sec. 11.1).
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
-%   params before the params loop read it.
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the script clears the
+%   workspace except a cell params of assignment strings, whose entries
+%   are evaluated after the default parameters; the bending term x4_{ss}
+%   enters the dynamics of x3; the results are named PDE and PIE (were pde
+%   and pie); help and comments revised.
 
 % Clear the workspace
-%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
-clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
+%clc; clear; clear stateNameGenerator                                       % DB, MMP, 11/21/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % DB, MMP, 11/21/2026
 pvar s t; % define independent variables
 %% Specify the parameters 
 k = 1;    aa = 1;    II = 1;    g = 1;   
@@ -79,8 +76,7 @@ end
 %        x3 = phi_{t},  x4 = phi.                   |
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
-% %        x3_{t} = x2 - x4                           |                     % MMP, 11/19/2026 (was)
-%        x3_{t} = x2 - x4 + x4_{ss}                 |                       % MMP, 11/19/2026
+%        x3_{t} = x2 - x4 + x4_{ss}                 |                       % DB, MMP, 11/21/2026
 %        x4_{t} = x3                                |
 %   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
 %        x3(0) = 0,     x1(0) = 0,                  |
@@ -90,13 +86,12 @@ x1.vars = s;    x2.vars = s;    x3.vars = s;    x4.vars = s;
 %% Define equations
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
-% %        x3_{t} = x2 - x4                           |                     % MMP, 11/19/2026 (was)
-%        x3_{t} = x2 - x4 + x4_{ss}                 |                       % MMP, 11/19/2026
+%        x3_{t} = x2 - x4 + x4_{ss}                 |                       % DB, MMP, 11/21/2026
 %        x4_{t} = x3                                |
 eq_PDE = [diff(x1,t)==diff(x2,s)-diff(x4,s); 
           diff(x2,t)==diff(x1,s);
-%         diff(x3,t)==x2-x4;                                                % MMP, 11/19/2026 (was)
-          diff(x3,t)==x2-x4+diff(x4,s,2);                                   % MMP, 11/19/2026
+%         diff(x3,t)==x2-x4;                                                % DB, MMP, 11/21/2026 (was)
+          diff(x3,t)==x2-x4+diff(x4,s,2);                                   % DB, MMP, 11/21/2026
           diff(x4,t)==x3];
 %   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
 %        x3(0) = 0,     x1(0) = 0,                  |

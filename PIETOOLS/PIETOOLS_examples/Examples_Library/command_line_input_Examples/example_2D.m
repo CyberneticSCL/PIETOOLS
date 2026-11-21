@@ -47,7 +47,9 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 01/07/2025
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: the delay of 0.5 acts
+%   on the ODE input, u1(t-0.5), in place of the boundary input u2, which
+%   enters the BC at s1 = 0 undelayed; help and comments revised.
 
 %% Clear the workspace
 clc; clear; clear stateNameGenerator

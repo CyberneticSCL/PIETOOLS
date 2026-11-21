@@ -30,7 +30,7 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 % Clear the workspace
 clc; clear; clear stateNameGenerator

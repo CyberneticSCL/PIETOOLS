@@ -35,7 +35,12 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/16/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the script does not
+%   clear the workspace (was clc; clear); the PDE reads x_t = v*x_s with
+%   v = -1 by default (was x_t = x_s); the entries of a workspace cell
+%   params of assignment strings are evaluated after the defaults, and a
+%   true workspace variable GUI loads the GUI save file; the results are
+%   named PDE and PIE (were pde and pie); help and comments revised.
 
 %clc; clear; 
 clear stateNameGenerator

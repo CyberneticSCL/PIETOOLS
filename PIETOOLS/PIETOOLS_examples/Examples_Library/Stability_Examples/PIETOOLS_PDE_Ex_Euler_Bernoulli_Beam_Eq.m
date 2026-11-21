@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params) % DB, MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_EULER_BERNOULLI_BEAM_EQ(INDEX,GUI,
@@ -26,8 +26,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,pa
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names, by case                      % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+%               for the tests this file names, by case                      % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Euler-Bernoulli beam equation from Peet (Example 8.1.0.1)
@@ -67,14 +67,12 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,pa
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/20/2022
-% MMP, 11/19/2026: Output st, the example-specific settings of each case,
-%                   and the form of its tests named in the workspace
-%                   (stability_form), from the per-example search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: The error for an unknown INDEX read the undefined indx;
-%   it reads index (and the message gains its missing space).
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: new first input INDEX:
+%   13 or 13.1 gives the states u_{t}, u_{ss} (the 2025 system), 13.2 the
+%   state u, 4th order in s, declared with pde_var, any other value an
+%   error; new output st, the recommended settings of the stability tests
+%   by case; stability_form = 'P' (13, 13.1) or 'Q' (13.2) set in the base
+%   workspace; help and comments revised.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -190,26 +188,25 @@ elseif index==13.2
     PDE_t = PDE_b;
     
     else
-%    error(['Example ',num2str(indx),'does not exist, please choose from 13.1 and 13.2']); % MMP, 11/20/2026 (was)
-     error(['Example ',num2str(index),' does not exist, please choose from 13.1 and 13.2']); % MMP, 11/20/2026
+     error(['Example ',num2str(index),' does not exist, please choose from 13.1 and 13.2']); % DB, MMP, 11/21/2026
     end
 
-% Example-specific settings and the form of the stability tests,            % MMP, 11/19/2026
-% by case                                                                   % MMP, 11/19/2026
+% Example-specific settings and the form of the stability tests,            % DB, MMP, 11/21/2026
+% by case                                                                   % DB, MMP, 11/21/2026
 % (stripped tier with the slack lift degree at its minimum Dmin; for 13.2
 % Q of degree 0 and the form 'Q'; otherwise the 1-D storage from the
 % multiplier only, theta-length 1 (both integral s-lengths 0), and 'P')
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
-if index==13.2                                                              % MMP, 11/19/2026
-    st.sop.deg_Q{1} = [0 0 0];                                              % MMP, 11/19/2026
-    evalin('base','stability_form = ''Q'';');                               % MMP, 11/19/2026
-else                                                                        % MMP, 11/19/2026
-    st.lpi.pos.len_inc{1} = 0;                                              % MMP, 11/19/2026
-    st.lpi.pos.len_com{1} = 0;                                              % MMP, 11/19/2026
-    st.lpi.pos.len_sos{1} = [1;2;2];                                        % MMP, 11/19/2026
-    evalin('base','stability_form = ''P'';');                               % MMP, 11/19/2026
-end                                                                         % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
+st.lpi.ineq.dD = 0;                                                         % DB, MMP, 11/21/2026
+if index==13.2                                                              % DB, MMP, 11/21/2026
+    st.sop.deg_Q{1} = [0 0 0];                                              % DB, MMP, 11/21/2026
+    evalin('base','stability_form = ''Q'';');                               % DB, MMP, 11/21/2026
+else                                                                        % DB, MMP, 11/21/2026
+    st.lpi.pos.len_inc{1} = 0;                                              % DB, MMP, 11/21/2026
+    st.lpi.pos.len_com{1} = 0;                                              % DB, MMP, 11/21/2026
+    st.lpi.pos.len_sos{1} = [1;2;2];                                        % DB, MMP, 11/21/2026
+    evalin('base','stability_form = ''P'';');                               % DB, MMP, 11/21/2026
+end                                                                         % DB, MMP, 11/21/2026
 
 end
 % @article{peet2019discussion,

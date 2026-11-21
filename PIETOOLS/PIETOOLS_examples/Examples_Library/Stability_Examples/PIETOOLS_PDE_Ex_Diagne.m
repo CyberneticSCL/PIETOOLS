@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diagne(GUI,params)              % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diagne(GUI,params)              % DB, MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_DIAGNE(GUI,PARAMS) returns the 3-state
@@ -20,8 +20,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diagne(GUI,params)              % MM
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+%               for the tests this file names                               % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Diagne 2012 example (see reference below): 
@@ -59,12 +59,14 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diagne(GUI,params)              % MM
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params)               % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the BCs read
+%   [x1(1); x2(0); x3(0)] = K [x1(0); x2(1); x3(1)], the incoming traces
+%   in terms of the outgoing ones, in both formats (were [x1(0); x2(1);
+%   x3(1)] = K [x1(1); x2(0); x3(0)]); Lm uses g in place of the constant
+%   10; default gains k1 = -0.5, k2 = -4.5 (were 1, 2); new output st, the
+%   recommended settings of the stability test; stability_form = 'P' set
+%   in the base workspace; help and comments revised.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params)               % DB, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -75,7 +77,7 @@ pvar s
 
 %%% Executive Function:
 evalin('base','stability = 1;')
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test     % DB, MMP, 11/21/2026
 %evalin('base','stability_dual = 1;')
 
 npars = length(params);
@@ -206,14 +208,14 @@ if GUI
     end
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % DB, MMP, 11/21/2026
 % (stripped tier; 1-D storage without the upper-integral basis operator,
 % s-length 0, and theta-lengths 1 (multiplier), 1 (lower integral); slack
 % lift degree at its minimum Dmin)
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [1;2;1];                                            % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 0;                                                  % DB, MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [1;2;1];                                            % DB, MMP, 11/21/2026
+st.lpi.ineq.dD = 0;                                                         % DB, MMP, 11/21/2026
 
 end
 % @article{diagne2012lyapunov,

@@ -42,13 +42,17 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/16/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
-%   params before the params loop read it.
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the script clears the
+%   workspace except a cell params of assignment strings, whose entries
+%   are evaluated after the default parameters; default gains k1 = -0.5,
+%   k2 = -4.5 (were 1, 2); the BCs read [x1(1); x2(0); x3(0)] = K [x1(0);
+%   x2(1); x3(1)] (were [x1(0); x2(1); x3(1)] = K [x1(1); x2(1); x3(0)]);
+%   the results are named PDE and PIE (were pde and pie); help and
+%   comments revised.
 
 % Clear the workspace
-%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
-clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
+%clc; clear; clear stateNameGenerator                                       % DB, MMP, 11/21/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % DB, MMP, 11/21/2026
 pvar s t; % define independent variables
 % Define dependent variables and system variable
 x = pde_var(3,s,[0,1]); % x = [x_+; x_-];

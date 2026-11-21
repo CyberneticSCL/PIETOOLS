@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params) % DB, MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_WAVE_EQ_DATKO_BOUNDARY_DAMPED_1(GUI,
@@ -20,8 +20,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+%               for the tests this file names                               % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Test 7.5c - Datko Boundary-Damped Wave equation (see reference below):
@@ -60,12 +60,12 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/20/2022
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the term-based format
+%   does not set the field PDE_t.PDE (an assignment of an older input
+%   format, commented out); new output st, the recommended settings of the
+%   dual stability test; stability_form = 'P' set in the base workspace;
+%   help and comments revised.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params) % DB, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -76,7 +76,7 @@ pvar s
 
 %%% Executive Function:
 evalin('base','stability_dual = 1;');
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test     % DB, MMP, 11/21/2026
 
 % Default parameters, overridden by the assignment strings in params
 k = 1;    ad = 1;
@@ -142,14 +142,14 @@ if GUI
     end
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % DB, MMP, 11/21/2026
 % (stripped tier; 1-D storage without the upper-integral basis operator,
 % s-length 0, and theta-lengths 1 (multiplier), 1 (lower integral); slack
 % lift degree at its minimum Dmin)
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [1;2;1];                                            % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 0;                                                  % DB, MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [1;2;1];                                            % DB, MMP, 11/21/2026
+st.lpi.ineq.dD = 0;                                                         % DB, MMP, 11/21/2026
 
 end
 % @article{datko1986example,

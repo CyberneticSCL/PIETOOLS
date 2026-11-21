@@ -37,19 +37,20 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
-%   params before it was read; c is computed after params, to follow lam.
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the script clears the
+%   workspace except a cell params of assignment strings, whose entries
+%   are evaluated after the default parameters, and c is computed from lam
+%   after them; default lam = 4.65 (was 4.66); the results are named PDE
+%   and PIE (were pde and pie); help and comments revised.
 
 % Clear the workspace
-%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
-clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
+%clc; clear; clear stateNameGenerator                                       % DB, MMP, 11/21/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % DB, MMP, 11/21/2026
 pvar s t; % define independent variables
 % Define dependent variables and system variables
 x = pde_var(s,[0,1]);
 %% Specify the parameters
-%lam = 4.65; a = s^3-s^2+2; b=3*s^2-2*s; c=-0.5*s^3+1.3*s^2-1.5*s+0.7+lam;  % MMP, 11/20/2026 (was)
-lam = 4.65; a = s^3-s^2+2; b=3*s^2-2*s;                                     % MMP, 11/20/2026
+lam = 4.65; a = s^3-s^2+2; b=3*s^2-2*s;                                     % DB, MMP, 11/21/2026
  if exist('params','var')
     npars = length(params);
     %%% Specify potential parameters
@@ -57,7 +58,7 @@ lam = 4.65; a = s^3-s^2+2; b=3*s^2-2*s;                                     % MM
         eval(params{j});
     end
  end
-c=-0.5*s^3+1.3*s^2-1.5*s+0.7+lam;   % c(s,lam) after params                 % MMP, 11/20/2026
+c=-0.5*s^3+1.3*s^2-1.5*s+0.7+lam;   % c(s,lam) after params                 % DB, MMP, 11/21/2026
 %% Define equations
 eq_PDE = diff(x,t)==c*x+b*diff(x,s)+a*diff(x,s,2); % 	PDE: x_{t} = a(s)*x_{ss}+b(s)*x_{s}+c(s,lam)*x
 eq_BC = [subs(x,s,0)==0;subs(diff(x,s),s,1)==0]; %  BCs: x(s=0) = 0,  x_{s}(s=1) = 0

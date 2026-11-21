@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_REACTION_DIFFUSION_EQ(GUI,PARAMS)
@@ -20,8 +20,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params)  %
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Scalable Diffusion Equation on [0,1] adapted from Ahmadi 2015:
@@ -59,12 +59,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params)  %
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: new output st, the
+%   recommended settings of the stability test; stability_form = 'P' set
+%   in the base workspace; help and comments revised.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -75,7 +73,7 @@ pvar s
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/21/2026
 
 % Specify the parameters
 ne = 1;   lam = 9.86; %9.86
@@ -127,12 +125,12 @@ if GUI
     end
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; 1-D storage from the lower-integral basis operator only,
 % theta-length 2: multiplier theta-length 0, upper-integral s-length 0)
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/21/2026
 
 end
 % @article{valmorbida2015stability,
