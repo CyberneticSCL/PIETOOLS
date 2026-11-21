@@ -9,8 +9,9 @@ function out_pie = ctranspose(in_pie)
 % in_pie.Dzw'.
 %
 % INPUT
-% - in_pie:     pie_struct class object with Tw=0 and Tu=0, and without
-%               algebraic constraint (K, Kw, and Ku without any rows);
+% - in_pie:     pie_struct class object with Tw=0 and Tu=0, a square T, and
+%               without algebraic constraint (K, Kw, and Ku without any
+%               rows);
 %
 % OUTPUT
 % - out_pie:    pie_struct class object that represents the dual of the
@@ -46,6 +47,7 @@ function out_pie = ctranspose(in_pie)
 % DJ, 10/29/2026: Update to new pie_struct structure (copvar operators, and
 %                   no dual for PIEs with an algebraic constraint);
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ (CC), 11/20/2026: Error for a non-square T;
 
 
 % The operators are copvar objects, so the PIE must be initialized, and the
@@ -62,6 +64,12 @@ end
 % Ku*u + Kw*w + K*x = 0 on the state.
 if size(in_pie.K,1)>0
     error('The dual PIE is not supported for PIEs with an algebraic constraint (K, Kw, Ku).');
+end
+% The dual state lives in the row space of T, so T must be square (T is
+% rectangular e.g. for states without dynamics)
+is_square = isequal(in_pie.T.space_out,in_pie.T.space_in) && isequal(in_pie.T.dim_out(:),in_pie.T.dim_in(:));
+if ~is_square                                                               % DJ (CC), 11/20/2026
+    error('The dual PIE is not supported for PIEs with a non-square T (e.g. with states without dynamics).');
 end
 
 out_pie = in_pie;

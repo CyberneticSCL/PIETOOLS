@@ -105,6 +105,8 @@ function PIE_lft = pielft(PIE1,PIE2)
 %                   operators of PIE2 that are swapped if the regulated
 %                   output of PIE2 is the interconnection signal;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/20/2026: Match the spaces of a PIE without spatial variables to
+%                   those of a PIE with;
 
 % % Right now, support only exactly two arguments.
 if nargin~=2
@@ -259,13 +261,17 @@ function logval = same_space(sp1,sp2)
 % - logval:     logical, true if the spaces are the same.
 %
 % DJ, 10/29/2026: Initial coding;
-nvars = size(sp1.depmat,2);
+% A PIE without spatial variables has a depmat without columns: pad with
+% false columns, as its components are finite-dimensional
+nvars = max(size(sp1.depmat,2),size(sp2.depmat,2));                         % DJ, 11/20/2026
+dep1 = [sp1.depmat,false(size(sp1.depmat,1),nvars-size(sp1.depmat,2))];
+dep2 = [sp2.depmat,false(size(sp2.depmat,1),nvars-size(sp2.depmat,2))];
 logval = true;
 for ii=1:2^nvars
     % Components depending on exactly the variables indicated by ii.
     depmat = logical(bitget(ii-1,1:nvars));
-    in1 = all(sp1.depmat==depmat,2);      
-    in2 = all(sp2.depmat==depmat,2);
+    in1 = all(dep1==depmat,2);
+    in2 = all(dep2==depmat,2);
     logval = logval && sum(sp1.dims(in1))==sum(sp2.dims(in2));
 end
 end
