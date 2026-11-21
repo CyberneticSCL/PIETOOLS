@@ -50,7 +50,8 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 %   constraint involves components with different numbers of derivatives.
 % - The expansion is not supported for equations with p_i>1 that involve
 %   inputs in T (boundary inputs), as these would require derivatives of
-%   the inputs, or for constraints involving inputs, Kw and Ku.
+%   the inputs, or for constraints involving inputs, Kw and Ku. T must be
+%   square, the i-th row being the equation of the i-th component.
 % - The maps pde2pie of the new components are those of the component they
 %   derive from, with the order of the temporal derivative increased.
 
@@ -87,7 +88,8 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % DJ, 11/02/2026: Major overhaul to support ND PIEs and algebraic
 %                   constraints;
 % MMP, 11/19/2026: Release comment pass (comment-only).
-% DJ, 11/20/2026: Use pie2pde.X (was x), and adjust pie2pde.T;
+% DJ, 11/20/2026: Use pie2pde.X (was x), and adjust pie2pde.T; error for
+%                   a non-square T;
 
 % % % Check the inputs
 if nargin<2
@@ -103,6 +105,12 @@ if ~isa(PIE,'pie_struct')
 end
 if ~PIE.is_initialized
     PIE = initialize(PIE);
+end
+% Row i of T must be the equation of component i: T square (T is
+% rectangular e.g. for states without dynamics)
+is_square = isequal(PIE.T.space_out,PIE.T.space_in) && isequal(PIE.T.dim_out(:),PIE.T.dim_in(:));
+if ~is_square                                                               % DJ, 11/20/2026
+    error("expand_tderivatives:nonsquareT","Expansion of higher-order temporal derivatives is not supported for a PIE with a non-square T (e.g. with states without dynamics).")
 end
 % One positive integer order per state component
 nb = numel(PIE.space.x.dims);

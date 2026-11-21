@@ -26,22 +26,24 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 % with dimensions and domain again determined by the input operators.
 %
 % INPUT
-% - Top:    nv x nv 'copvar' object representing the
-%           PI operator defining the left-hand side of a 5-PIE.
-%           Alternatively, a 1x3 cell {Tvop,Twop,Tuop} with all elements 
-%           'copvar' objects of dimensions 
-%           {nv x nv, nv x nw, nv x nu}, representing the left-hand
+% - Top:    np x nv 'copvar' object representing the
+%           PI operator defining the left-hand side of a 5-PIE, with
+%           np = nv unless T is rectangular (e.g. for states without
+%           dynamics).
+%           Alternatively, a 1x3 cell {Tvop,Twop,Tuop} with all elements
+%           'copvar' objects of dimensions
+%           {np x nv, np x nw, np x nu}, representing the left-hand
 %           side of a 12-PI. The operators Twop and Tuop can also be set
 %           equal to [], in which case they will default to 0 operators
 %           of suitable dimensions;
-% - Aop:    nv x nv 'copvar' object representing the state
+% - Aop:    np x nv 'copvar' object representing the state
 %           operator in both 5-PIE and 12-PIE dynamics.
-% - Bop:    nv x nw 'copvar' object representing the
+% - Bop:    np x nw 'copvar' object representing the
 %           input PI operator defining the contribution of disturbances w 
 %           to the PDE dynamics.
 %           Alternatively, a 1x2 cell {Bwop,Buop} with both elements 
 %           'copvar' objects of dimensions 
-%           {nv x nw, nv x nu}, representing the contribution of 
+%           {np x nw, np x nu}, representing the contribution of
 %           disturbances and controlled inputs to the PDE dynamics;
 %           Defaults to [], returning 0 operator(s) of suitable dimensions;
 % - Cop:    nz x nv 'copvar' object representing the

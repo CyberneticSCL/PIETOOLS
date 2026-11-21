@@ -22,7 +22,10 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %               output y. They may also be specified as opvar or opvar2d
 %               objects, which `initialize` converts to copvar objects.
 %               Operators that have not been specified are initialized as
-%               zero operators;
+%               zero operators. T, Tw, Tu, A, Bw, Bu have a row for each
+%               state with dynamics, so that T and A are rectangular if a
+%               state has none; ctranspose and expand_tderivatives then
+%               give an error;
 % - PIE.K, PIE.Kw, PIE.Ku:
 %               copvar objects representing the algebraic constraint on the
 %               fundamental state. After initialize, these have no rows if
