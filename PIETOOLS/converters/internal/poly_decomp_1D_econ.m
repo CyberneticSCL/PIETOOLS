@@ -49,11 +49,17 @@ function [Zth,H] = poly_decomp_1D_econ(Q)
 % Initial Coding:
 % 6/26/20 - MMP  -  titled poly_decomp_1D_econ
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Column monomials from the degmat (no one-argument monomials
+%                   on the path); a polynomial without variables as a constant.
 
-if ~isa(Q,'polynomial')
+% A polynomial without variables (multipoly drops s1 from A+0*s1) failed    % MMP, 11/20/2026
+% at Q.Varname(1) below; it is a constant, with H as 'double'               % MMP, 11/20/2026
+% if ~isa(Q,'polynomial')                                                   % MMP, 11/20/2026 (was)
+if ~isa(Q,'polynomial') || isempty(Q.varname)                               % MMP, 11/20/2026
     [nd md]=size(Q);
     Zth=polynomial(eye(md));
-    H = Q;
+%   H = Q;                                                                  % MMP, 11/20/2026 (was)
+    H = double(Q);                                                          % MMP, 11/20/2026
     return
 end
 if length(Q.Varname)>1
@@ -72,7 +78,12 @@ Qt=Q;
 [nd md]=size(Qt);
 bZth=[];
 for i=1:md
-    sZth{i}=monomials(Qt(:,i));
+%   sZth{i}=monomials(Qt(:,i));                                             % MMP, 11/20/2026 (was)
+    % Monomials of column i, sorted by degree, from its degmat, as the      % MMP, 11/20/2026
+    % one-argument monomials(p) of multipoly did; the monomials on the path % MMP, 11/20/2026
+    % (SOSTOOLS) needs variables and degrees ("Not enough input arguments") % MMP, 11/20/2026
+    Qi = Qt(:,i);   Nt = size(Qi.degmat,1);                                 % MMP, 11/20/2026
+    sZth{i}=polynomial(speye(Nt),sortrows(Qi.degmat),Qi.varname,[Nt 1]);    % MMP, 11/20/2026
     bZth=blkdiag(bZth,sZth{i});
     nZ(i)=length(sZth{i});
 end

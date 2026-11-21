@@ -72,9 +72,8 @@ function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % PDE.ODE.Dyu    -  matrix of dimension ny x nu                            - Effect of control input on observed output (rare)
 % PDE.ODE.Dyr    -  matrix of dimension ny x nr                            - Effect of interconnection signal r on observed outputs
 
-% ~ NOTE: The workspace is cleaned at the end of the file, but feel free to
-% exclude variables from this cleaning process if they are needed for
-% anything.
+% ~ NOTE: the variables cleared at the end of the file are local to this
+% function (the workspace of the caller is not touched).
 %
 % OUTPUT
 % PDE_out - the same PDE 'struct', with every dimension and term defined
@@ -110,6 +109,10 @@ function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % DJ - 12/29/2021: Added option to suppress (less important) warnings
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: nx from ODE.A when A is the only ODE field (the ODE was
+%                   dropped); nr from the rows of a Crp or Drb coefficient.
+% MMP, 11/20/2026: The note on the workspace cleaning: the cleared variables
+%                   are local (it read as if the caller workspace were cleaned).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Suppress warnings if desired
 suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));
@@ -152,12 +155,14 @@ list = [fieldnames(PDE.n); fieldnames(PDE.ODE); fieldnames(PDE.PDE); fieldnames(
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% nx: if any of nx, Bxu, Bxw, Bxr, Cy, Cz, Cv is defined, the rows of
-% ODE.A if defined, else the field nx, else the rows of the first defined
-% of Bxu, Bxw, Bxr or the columns of Cy, Cz, Cv
+% nx: the rows of ODE.A if defined, else the field nx, else the rows of     % MMP, 11/20/2026
+% the first defined of Bxu, Bxw, Bxr or the columns of Cy, Cz, Cv; ODE.A    % MMP, 11/20/2026
+% alone counts (it got nx = 0 and was replaced by zeros(0)); 'A' is not     % MMP, 11/20/2026
+% added to the list, which also holds the field names of PDE.PDE (A)        % MMP, 11/20/2026
 logVal = isdefined(list,{'nx';'Bxu';'Bxw';'Bxr';'Cy';'Cz';'Cv'});
 
-if ~isempty(logVal)
+% if ~isempty(logVal)                                                       % MMP, 11/20/2026 (was)
+if ~isempty(logVal) || isfield(PDE.ODE,'A')                                 % MMP, 11/20/2026
     if isfield(PDE.ODE,'A')
         PDE.n.nx = size(PDE.ODE.A,1);
     elseif logVal==2
@@ -294,10 +299,14 @@ if ~isempty(logVal)
         PDE.n.nr = size(PDE.ODE.Dzr,2);
     elseif logVal==4
         PDE.n.nr = size(PDE.ODE.Dyr,2);
+    % Crp, Drb are cells of terms: nr is the rows of a coefficient, as nBC  % MMP, 11/20/2026
+    % below (the rows of the cell array were read)                          % MMP, 11/20/2026
     elseif logVal==5   
-        PDE.n.nr = size(PDE.PDE.Crp,1);
+%       PDE.n.nr = size(PDE.PDE.Crp,1);                                     % MMP, 11/20/2026 (was)
+        PDE.n.nr = size(PDE.PDE.Crp{end}.coeff,1);                          % MMP, 11/20/2026
     elseif logVal==6
-        PDE.n.nr = size(PDE.PDE.Drb,1);
+%       PDE.n.nr = size(PDE.PDE.Drb,1);                                     % MMP, 11/20/2026 (was)
+        PDE.n.nr = size(PDE.PDE.Drb{end}.coeff,1);                          % MMP, 11/20/2026
     elseif logVal==7   
         PDE.n.nr = size(PDE.PDE.Drv,1);
     end

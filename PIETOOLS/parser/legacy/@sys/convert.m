@@ -36,6 +36,8 @@ function [params,out] = convert(obj,convertTo)
 %
 % Initial coding SS - 06/28/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: A 'pie' system returns its PIE as params (unassigned); 'ddf'
+%                   from another type is an error (no output, false message).
 
 arguments
     obj;
@@ -55,6 +57,7 @@ if strcmp(convertTo, 'pie')
         tmp = convert_PIETOOLS_DDF(obj.params,'pie');
     elseif strcmp(obj.type,'pie')
         out = obj;
+        params = obj.params;    % the PIE; params was left unassigned       % MMP, 11/20/2026
         return;
     end
     % A 'pie' system holding the PIE
@@ -73,6 +76,10 @@ elseif strcmp(convertTo,'ddf') && (strcmp(obj.type,'nds')||strcmp(obj.type,'dde'
     out.type = 'ddf';
     out.params = tmp;
     params = tmp;
+else                                                                        % MMP, 11/20/2026
+    % No DDF of another type: no output was assigned, and the message       % MMP, 11/20/2026
+    % below claimed success                                                 % MMP, 11/20/2026
+    error(['A sys object of type ''',obj.type,''' cannot be converted to a DDF.']) % MMP, 11/20/2026
 end
 
 fprintf('Conversion to %s was successful\n', convertTo);

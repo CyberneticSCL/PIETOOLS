@@ -56,6 +56,8 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 %   vars of the states in boundary terms before assigning these defaults,
 %   so without them 46 of the 47 GUI files of the example library failed.
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: eval_b: an empty coefficient text gives 1 (index error); a
+%   text that fails to evaluate is an error naming it, not 0 (see eval_b).
 
 % remove whitespaces
 % PDE_Text = regexprep(PDE_Text,'\s+','');
@@ -678,9 +680,9 @@ end
 function val = eval_b(exp)
 % VAL = EVAL_B(EXP) evaluates the coefficient text EXP of a term in the
 % polynomial variables s and theta. A trailing '*' is dropped; an empty
-% text, '+' or '*' gives 1; a text that fails with the error for
-% mismatched delimiters is evaluated with a leading '('; any other failure
-% gives 0.
+% text, '+' or '*' gives 1; a text that fails is evaluated with a leading
+% '(' (a text with an unmatched ')'); if that fails too, an error names
+% the text.
 %
 % INPUT
 % - exp:    char, the coefficient text;
@@ -690,7 +692,8 @@ function val = eval_b(exp)
 
 % Variables the text may contain
 pvar s theta;
-if strcmp(exp(end),'*')
+% if strcmp(exp(end),'*')                                                   % MMP, 11/20/2026 (was)
+if ~isempty(exp) && strcmp(exp(end),'*')    % '' errored at exp(end)        % MMP, 11/20/2026
     exp = exp(1:end-1);
 end
 if strcmp(exp,'+')||strcmp(exp,'*')||isempty(exp)
@@ -699,11 +702,23 @@ else
     try 
         val = eval(exp);
     catch err
-        if strcmp(err.message, 'Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.')
-            val = eval(['(',exp]);
-        else
-            val=0;
-        end
+        % BEGIN MMP, 11/20/2026: the retry with a leading '(' was taken only
+        % for one exact message text (mismatched delimiters; R2025b words
+        % the error of an unmatched ')' differently), and every other
+        % failure gave 0 without notice. Now every failure is retried,
+        % which succeeds only for an unmatched ')', and a failed retry is
+        % an error naming the coefficient.
+%       if strcmp(err.message, 'Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.') % MMP, 11/20/2026 (was)
+%           val = eval(['(',exp]);                                          % MMP, 11/20/2026 (was)
+%       else                                                                % MMP, 11/20/2026 (was)
+%           val=0;                                                          % MMP, 11/20/2026 (was)
+%       end                                                                 % MMP, 11/20/2026 (was)
+        try                                                                 % MMP, 11/20/2026
+            val = eval(['(',exp]);                                          % MMP, 11/20/2026
+        catch                                                               % MMP, 11/20/2026
+            error('The coefficient ''%s'' of a term could not be evaluated: %s',exp,err.message) % MMP, 11/20/2026
+        end                                                                 % MMP, 11/20/2026
+        % END MMP, 11/20/2026
     end
 end
 end

@@ -42,10 +42,9 @@ function [DDF,DDF_min,PIE] = convert_PIETOOLS_NDS(NDS,out_type)
 % OUTPUT
 %   DDF:      'struct', the DDF of the NDS (fields tau, A0, B1, B2, C1, C2,
 %             D11, D12, D21, D22, Bv, D1v, D2v, and 1 x K cells Cr, Br1,
-%             Br2, Drv, Cv; no field Cvd); the minimal DDF or the PIE
+%             Br2, Drv, Cv, Cvd); the minimal DDF or the PIE
 %             instead when out_type is 'ddf', 'ddf_min' or 'pie'.
-%   DDF_min:  'struct', the minimal DDF, the fields of DDF and the 1 x K
-%             cell Cvd.
+%   DDF_min:  'struct', the minimal DDF, with the fields of DDF.
 %   PIE:      'pie_struct', the PIE of the minimal DDF: 'copvar' operators
 %             on R^nx x L2^nr[-1,0] in s1, nr the total dimension of the
 %             delay channels.
@@ -75,6 +74,8 @@ function [DDF,DDF_min,PIE] = convert_PIETOOLS_NDS(NDS,out_type)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding: DJ, 09/29/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Help: the DDF has the field Cvd (distributed delay
+%                   kernels), now stored by convert_PIETOOLS_NDS2DDF.
 %
 
 % Check that desired conversion makes sense.

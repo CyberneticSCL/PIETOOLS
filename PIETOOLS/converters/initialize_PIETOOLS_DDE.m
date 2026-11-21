@@ -51,6 +51,7 @@ function DDE_out=initialize_PIETOOLS_DDE(DDE)
 % Initial coding MMP - 7_01_2020
 % MMP, 5_30_2021; added new data structure and made script a function
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: nw also read off B1di ('Bdi', no field, was tested).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checking to make sure the delays are defined.
@@ -293,7 +294,9 @@ end
 
 % scanning for the number of disturbance inputs
 if ~exist('nw','var')
-    if exist('B1','var')||exist('B1i','var')||exist('Bdi','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var')
+    % B1di, the field name (Bdi is none)                                    % MMP, 11/20/2026
+%   if exist('B1','var')||exist('B1i','var')||exist('Bdi','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/20/2026 (was)
+    if exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/20/2026
         % nw: columns of B1, D11 or D21, the first one defined
         if exist('B1')
             nw=size(B1,2);

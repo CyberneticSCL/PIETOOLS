@@ -11,9 +11,9 @@ function DDF=convert_PIETOOLS_NDS2DDF(NDS)
 %            C1i{i} D11i{i} D12i{i} C1ei{i};
 %            C2i{i} D21i{i} D22i{i} C2ei{i}],
 % where v = [v_x; v_z; v_y] collects the delayed terms of the x, z and y
-% equations (Bv, D1v, D2v select them). The distributed delay
-% coefficients are assembled in the local variable Cvd and not stored in
-% the DDF.
+% equations (Bv, D1v, D2v select them). The kernels Cvd{i} hold the
+% distributed delay coefficients (Adi{i}, B1di{i}, ..., C2dei{i}) in the
+% same layout.
 %
 % The formulae were defined in (12) and (15)-(16) in the paper
 % ''Representation of Networks and Systems with Delay: DDEs, DDFs, ODE-PDEs and PIEs''
@@ -34,9 +34,9 @@ function DDF=convert_PIETOOLS_NDS2DDF(NDS)
 %          z(t) = C1 x(t) + D11 w(t) + D12 u(t) + D1v v(t)
 %          y(t) = C2 x(t) + D21 w(t) + D22 u(t) + D2v v(t)
 %        r_i(t) = Cr{i} x(t) + Br1{i} w(t) + Br2{i} u(t) + Drv{i} v(t)
-%          v(t) = sum_i Cv{i} r_i(t-tau(i))
+%          v(t) = sum_i Cv{i} r_i(t-tau(i)) + sum_i int_{-tau(i)}^0 Cvd{i}(s) r_i(t+s) ds
 %             fields tau, A0, B1, B2, C1, C2, D11, D12, D21, D22 of the
-%             NDS, Bv, D1v, D2v, and 1 x K cells Cr, Br1, Br2, Drv, Cv.
+%             NDS, Bv, D1v, D2v, and 1 x K cells Cr, Br1, Br2, Drv, Cv, Cvd.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert NDS to a nominal DDF representation
@@ -74,6 +74,9 @@ function DDF=convert_PIETOOLS_NDS2DDF(NDS)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Store the distributed delay kernels in DDF.Cvd (they were
+%                   left in a local Cvd, so every distributed term was lost).
+% MMP, 11/20/2026: No delays (tau empty): an error, not an unbounded recursion.
 
 
 % re-run initialize to make sure everything is defined.
@@ -95,9 +98,11 @@ DDF.tau=NDS.tau;DDF.A0=NDS.A0;DDF.B1=NDS.B1;DDF.B2=NDS.B2;DDF.C1=NDS.C1;DDF.C2=N
 
 % The first step is to form the vertical concatenation matrices for each
 % delay, tau(i)
-% No delays: not supported; the DDE conversion below recurses.
+% No delays: not supported; an error (the DDE conversion recursed without   % MMP, 11/20/2026
+% end).                                                                     % MMP, 11/20/2026
 if nK==0
-    DDF=convert_PIETOOLS_DDE(NDS);
+%   DDF=convert_PIETOOLS_DDE(NDS);                                          % MMP, 11/20/2026 (was)
+    error('The NDS has no delays (tau is empty). Define at least one delay.') % MMP, 11/20/2026
 else
 
     nv=nx+nz+ny; nt=nx+nw+nu;
@@ -108,8 +113,9 @@ else
         DDF.Cv{i}=[NDS.Ai{i} NDS.B1i{i} NDS.B2i{i} NDS.Ei{i};
                NDS.C1i{i}  NDS.D11i{i} NDS.D12i{i} NDS.C1ei{i};
                NDS.C2i{i}  NDS.D21i{i} NDS.D22i{i} NDS.C2ei{i}];
-        % Distributed delay coefficients, in a local variable (not in DDF)
-        Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};
+        % Distributed delay kernels of [x; w; u; \dot x], layout of Cv{i}   % MMP, 11/20/2026
+%       Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};              % MMP, 11/20/2026 (was)
+        DDF.Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};          % MMP, 11/20/2026
             NDS.C1di{i}  NDS.D11di{i} NDS.D12di{i} NDS.C1dei{i};
             NDS.C2di{i}  NDS.D21di{i} NDS.D22di{i} NDS.C2dei{i}];
         % r_i in terms of x, w, u, v: \dot x = A0 x + B1 w + B2 u + v_x

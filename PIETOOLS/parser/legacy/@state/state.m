@@ -38,6 +38,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
 %
 % Initial coding SS - 02/10/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Message for 5 or more inputs (it said 3; 4 are accepted).
 
     properties
         type {mustBeMember(type,{'ode','pde','in','out'})} = 'ode';
@@ -120,7 +121,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
                     obj.statename = varargin{4};
                     obj.diff_order = zeros(1,length(varargin{3}));
                 elseif nargin>3
-                    error('State class definition only takes 3 inputs');
+%                   error('State class definition only takes 3 inputs');    % MMP, 11/20/2026 (was)
+                    error('State class definition takes at most 3 inputs (a 4th, the state name, is internal)'); % MMP, 11/20/2026
                 end
             end
         end
