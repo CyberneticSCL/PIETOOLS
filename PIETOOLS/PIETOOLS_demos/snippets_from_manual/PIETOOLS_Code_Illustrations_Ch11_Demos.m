@@ -38,7 +38,9 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/30/2024: Initial coding;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: the grids returned by
+%   PIESIM (grid, grids) are plotted directly, the physical grid being the
+%   output itself rather than its field phys; help text revised.
 
 % Clear the workspace
 clear

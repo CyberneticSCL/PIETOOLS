@@ -47,18 +47,11 @@
 % DJ, 12/22/2024: Explicitly construct stability LPI;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
-% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
-%                   executives do not support the new pie_struct;
-% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
-% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
-%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
-% MMP, 11/12/2026: POSCOPVAR takes the domain from the program (maintainer,
-%   11/12/2026: "Update demos first"); the argument repeated the domain
-%   given to LPIPROGRAM. Same programs.
-% MMP, 11/14/2026: POSCOPVAR and EYE_COPVAR_SOP read the spaces and the
-%   domain off T and P (maintainer, 11/14/2026: the calls were "too
-%   complicated"). Same programs.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: the LPI of each bisection
+%   step is declared by lpiprogram(PIE.vars,PIE.dom), P =
+%   poscopvar(prog,T,2) + 1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place
+%   of poslpivar and lpi_ineq; the predefined executive is lpiscript_sop;
+%   help text revised.
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
@@ -94,21 +87,17 @@ for iter = 1:n_iters
     % === Declare the LPI
 
     % % Initialize LPI program
-%     prog = lpiprogram_sop(T);                                             % MMP, 11/04/2026 (was)
-    prog = lpiprogram(PIE.vars,PIE.dom);                                    % MMP, 11/04/2026
+    prog = lpiprogram(PIE.vars,PIE.dom);                                    % DJ, MMP, 11/21/2026
     
     % % Declare decision variables:
     % %   P:L2-->L2,    P>0
-%   [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],2);                           % MMP, 11/12/2026 (was)
-%   [prog,P] = poscopvar(prog,1,{{'s'}},2);   % domain: that of prog        % MMP, 11/14/2026 (was)
-    [prog,P] = poscopvar(prog,T,2);         % P on the output spaces of T   % MMP, 11/14/2026
-%   P = P + 1e-4*eye_copvar_sop(1,{{'s'}},[0,1]);   % enforce P>=1e-4       % MMP, 11/14/2026 (was)
-    P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4               % MMP, 11/14/2026
+    [prog,P] = poscopvar(prog,T,2);         % P on the output spaces of T   % DJ, MMP, 11/21/2026
+    P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4               % DJ, MMP, 11/21/2026
     
     % % Set inequality constraints:
     % %   A'*P*T + T'*P*A <= 0
     Q = A'*P*T + T'*P*A;
-    prog = lpi_ineq_sop(prog,-Q);    % by default, allow Q>=0 outside domain    % DJ (CC), 10/30/2026
+    prog = lpi_ineq_sop(prog,-Q);    % by default, allow Q>=0 outside domain % DJ, MMP, 11/21/2026
     
     % % Solve and retrieve the solution
     % solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver     % DJ, 05/18/2025
@@ -117,7 +106,7 @@ for iter = 1:n_iters
     prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive
-    % prog = lpiscript_sop(PIE,'stability',settings);                       % DJ (CC), 10/29/2026
+    % prog = lpiscript_sop(PIE,'stability',settings);                       % DJ, MMP, 11/21/2026
 
     % Check if the system is stable
     is_pinf = prog.solinfo.info.pinf;       % is primal feasible?

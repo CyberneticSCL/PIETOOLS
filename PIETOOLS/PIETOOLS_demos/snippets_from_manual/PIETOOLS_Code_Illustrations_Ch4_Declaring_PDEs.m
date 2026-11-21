@@ -32,9 +32,9 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/30/2024: Initial coding;
 % DJ, 12/11/2025: Add wave equation example;
-% DJ, 11/08/2026: Sense y=X(1) instead of X(0) in 4.1.1, as X(0)=0 by the
-%                   BC made the output identically zero;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: the observed output of
+%   4.1.1 is y = X(1), in place of X(0), which the boundary condition X(0) = 0
+%   made identically zero; help text and step comments added.
 
 % Clear the workspace
 clear

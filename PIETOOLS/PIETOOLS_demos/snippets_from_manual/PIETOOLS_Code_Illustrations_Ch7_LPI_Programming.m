@@ -69,7 +69,14 @@
 % DJ, 12/28/2024: Initial coding;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 01/05/2025: Use 2D example;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the LPI is declared with
+%   'copvar' operators: the spaces of P, Z and the identities are read from
+%   T, C2, B1, C1 by copvar_space_list and declared on dom by poscopvar
+%   (multiplier term only), lpivar_cdopvar and eye_copvar_sop; D21 is put on
+%   the registry of Z; lpi_ineq_sop with like = P, dD = 2 and lpi_eq_sop
+%   replace lpi_ineq (psatz = 1) and lpi_eq; getsol_lpivar_sop,
+%   lpigetsol_sop and getObserver_sop read the solution and the gain; help
+%   text revised.
 
 % Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator;
@@ -87,18 +94,14 @@ PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + 4*x + s1*(1-s1)*(s2+1)*(3-s2)*w
 
 % Convert to PIE and extract the relevant operators.
 PIE = convert(PDE,'pie');
-% T = PIE.T;                                                               % DB, 11/04/2026 (was)
-% A = PIE.A;    C1 = PIE.C1;    C2 = PIE.C2;                                % DB, 11/04/2026 (was)
-% B1 = PIE.B1;  D11 = PIE.D11;  D21 = PIE.D21;                              % DB, 11/04/2026 (was)
-% PIEo = pie2opvar(PIE);                                                    % DB, 11/04/2026
-% T = PIEo.T;                                                               % DB, 11/04/2026
-% A = PIEo.A;    C1 = PIEo.C1;    C2 = PIEo.C2;                             % DB, 11/04/2026
-% B1 = PIEo.B1;  D11 = PIEo.D11;  D21 = PIEo.D21;                           % DB, 11/04/2026
-% The operators of the PIE are 'copvar' objects, used directly below       % DB, 11/06/2026
-T = PIE.T;                                                                  % DB, 11/06/2026
-A = PIE.A;    C1 = PIE.C1;    C2 = PIE.C2;                                  % DB, 11/06/2026
-B1 = PIE.B1;  D11 = PIE.D11;  D21 = PIE.D21;                                % DB, 11/06/2026
-dom = struct('vars',{{'s1','s2'}},'dom',[0,1;-1,1]);                        % DB, 11/06/2026
+% T = PIE.T;                                                                % DB, MMP, 11/21/2026 (was)
+% A = PIE.A;    C1 = PIE.C1;    C2 = PIE.C2;                                % DB, MMP, 11/21/2026 (was)
+% B1 = PIE.B1;  D11 = PIE.D11;  D21 = PIE.D21;                              % DB, MMP, 11/21/2026 (was)
+% The operators of the PIE are 'copvar' objects, used directly below        % DB, MMP, 11/21/2026
+T = PIE.T;                                                                  % DB, MMP, 11/21/2026
+A = PIE.A;    C1 = PIE.C1;    C2 = PIE.C2;                                  % DB, MMP, 11/21/2026
+B1 = PIE.B1;  D11 = PIE.D11;  D21 = PIE.D21;                                % DB, MMP, 11/21/2026
+dom = struct('vars',{{'s1','s2'}},'dom',[0,1;-1,1]);                        % DB, MMP, 11/21/2026
 
 
 %% 7.1 Initializing an Optimization Program
@@ -135,80 +138,80 @@ PIE.vars
 % "poscopvar" generates a positive semidefinite PI operator decision
 % variable, using monomials of degrees specified by Pdeg, and using
 % additional options opts.
-% Pdim = T.dim(:,1);                                                        % DB, 11/06/2026 (was)
-% Pdeg = 0;                                                                 % DB, 11/06/2026 (was)
-% P_opts.exclude = [1;                                                      % DB, 11/06/2026 (was)
-%                   1;1;1;                                                  % DB, 11/06/2026 (was)
-%                   1;1;1;                                                  % DB, 11/06/2026 (was)
-%                   0;1;1;1;1;1;1;1;1];                                     % DB, 11/06/2026 (was)
-% [prog,P] = poslpivar(prog,Pdim,Pdeg,P_opts);                              % DB, 11/06/2026 (was)
+% Pdim = T.dim(:,1);                                                        % DB, MMP, 11/21/2026 (was)
+% Pdeg = 0;                                                                 % DB, MMP, 11/21/2026 (was)
+% P_opts.exclude = [1;                                                      % DB, MMP, 11/21/2026 (was)
+%                   1;1;1;                                                  % DB, MMP, 11/21/2026 (was)
+%                   1;1;1;                                                  % DB, MMP, 11/21/2026 (was)
+%                   0;1;1;1;1;1;1;1;1];                                     % DB, MMP, 11/21/2026 (was)
+% [prog,P] = poslpivar(prog,Pdim,Pdeg,P_opts);                              % DB, MMP, 11/21/2026 (was)
 % NOTE: "poscopvar" only generates positive semidefinite operators. To
 % ensure strict positivity, add a positive operator eppos*I:
-% eppos = 1e-4;                                                             % DB, 11/06/2026 (was)
-% P = P +eppos*eye(size(P));                                                % DB, 11/06/2026 (was)
-% For 'copvar' objects, the spaces and dimensions of the state are read     % DB, 11/06/2026
-% from T, and "poscopvar(prog,Pdims,Pspaces,dom,Pdeg,opts)" declares P      % DB, 11/06/2026
-% on them. Here, we keep only the multiplier term (multi-index [1 1]).      % DB, 11/06/2026
-[Pspaces,Pdims] = copvar_space_list(T,'out');                               % DB, 11/06/2026
-Pdeg = 0;                                                                   % DB, 11/06/2026
-P_opts.include = {[1 1]};                                                   % DB, 11/06/2026
-[prog,P] = poscopvar(prog,Pdims,Pspaces,dom,Pdeg,P_opts);                   % DB, 11/06/2026
-eppos = 1e-4;                                                               % DB, 11/06/2026
-P = P + eppos*eye_copvar_sop(Pdims,Pspaces,dom);                            % DB, 11/06/2026
+% eppos = 1e-4;                                                             % DB, MMP, 11/21/2026 (was)
+% P = P +eppos*eye(size(P));                                                % DB, MMP, 11/21/2026 (was)
+% For 'copvar' objects, the spaces and dimensions of the state are read     % DB, MMP, 11/21/2026
+% from T, and "poscopvar(prog,Pdims,Pspaces,dom,Pdeg,opts)" declares P      % DB, MMP, 11/21/2026
+% on them. Here, we keep only the multiplier term (multi-index [1 1]).      % DB, MMP, 11/21/2026
+[Pspaces,Pdims] = copvar_space_list(T,'out');                               % DB, MMP, 11/21/2026
+Pdeg = 0;                                                                   % DB, MMP, 11/21/2026
+P_opts.include = {[1 1]};                                                   % DB, MMP, 11/21/2026
+[prog,P] = poscopvar(prog,Pdims,Pspaces,dom,Pdeg,P_opts);                   % DB, MMP, 11/21/2026
+eppos = 1e-4;                                                               % DB, MMP, 11/21/2026
+P = P + eppos*eye_copvar_sop(Pdims,Pspaces,dom);                            % DB, MMP, 11/21/2026
 
 % % 7.2.3 lpivar_cdopvar
 % "lpivar_cdopvar" generates an indefinite PI operator decision variable,
 % using monomials of degrees specified by Zdeg.
-% Zdim = C2.dim(:,[2,1]);                                                   % DB, 11/06/2026 (was)
-% Zdeg = 2;                                                                 % DB, 11/06/2026 (was)
-% [prog,Z] = lpivar(prog,Zdim,Zdeg);                                        % DB, 11/06/2026 (was)
-% For 'copvar' objects, "lpivar_cdopvar" takes the output and input spaces  % DB, 11/06/2026
-% and dimensions of Z (here those of the input and output of C2).           % DB, 11/06/2026
-[Zout_sp,Zout_dm] = copvar_space_list(C2,'in');                             % DB, 11/06/2026
-[Zin_sp,Zin_dm] = copvar_space_list(C2,'out');                              % DB, 11/06/2026
-Zdeg = 2;                                                                   % DB, 11/06/2026
-[prog,Z] = lpivar_cdopvar(prog,struct('out',Zout_dm,'in',Zin_dm), ...       % DB, 11/06/2026
-                          struct('out',{Zout_sp},'in',{Zin_sp}),dom,Zdeg);  % DB, 11/06/2026
+% Zdim = C2.dim(:,[2,1]);                                                   % DB, MMP, 11/21/2026 (was)
+% Zdeg = 2;                                                                 % DB, MMP, 11/21/2026 (was)
+% [prog,Z] = lpivar(prog,Zdim,Zdeg);                                        % DB, MMP, 11/21/2026 (was)
+% For 'copvar' objects, "lpivar_cdopvar" takes the output and input spaces  % DB, MMP, 11/21/2026
+% and dimensions of Z (here those of the input and output of C2).           % DB, MMP, 11/21/2026
+[Zout_sp,Zout_dm] = copvar_space_list(C2,'in');                             % DB, MMP, 11/21/2026
+[Zin_sp,Zin_dm] = copvar_space_list(C2,'out');                              % DB, MMP, 11/21/2026
+Zdeg = 2;                                                                   % DB, MMP, 11/21/2026
+[prog,Z] = lpivar_cdopvar(prog,struct('out',Zout_dm,'in',Zin_dm), ...       % DB, MMP, 11/21/2026
+                          struct('out',{Zout_sp},'in',{Zin_sp}),dom,Zdeg);  % DB, MMP, 11/21/2026
 
 
 %% 7.3 Imposing Constraints
 % % lpi_ineq_sop
 % We impose negativity Q<=0 using lpi_ineq_sop:
-% Iw = eye(size(B1,2));       Iz = eye(size(C1,1));                         % DB, 11/06/2026 (was)
-% Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21)'*T;                       % DB, 11/06/2026 (was)
-%      -D11,              -gam*Iz,  C1;                                     % DB, 11/06/2026 (was)
-%      -T'*(P*B1+Z*D21),  C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];           % DB, 11/06/2026 (was)
-% clear Q_opts                                                              % DB, 11/06/2026 (was)
-% Q_opts.psatz = 1;                                                         % DB, 11/06/2026 (was)
-% prog = lpi_ineq(prog,-Q,Q_opts);                                          % DB, 11/06/2026 (was)
-[Iw_sp,Iw_dm] = copvar_space_list(B1,'in');                                 % DB, 11/06/2026
-[Iz_sp,Iz_dm] = copvar_space_list(C1,'out');                                % DB, 11/06/2026
-Iw = eye_copvar_sop(Iw_dm,Iw_sp,dom);                                       % DB, 11/06/2026
-Iz = eye_copvar_sop(Iz_dm,Iz_sp,dom);                                       % DB, 11/06/2026
-D21r = on_registry_sop(D21,Z);      % D21 on the registry of Z             % DB, 11/06/2026
-Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21r)'*T;                        % DB, 11/06/2026
-     -D11,              -gam*Iz,  C1;                                       % DB, 11/06/2026
-     -T'*(P*B1+Z*D21r), C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];             % DB, 11/06/2026
-% "lpi_ineq_sop" declares a positive slack, with monomial degrees read from % DB, 11/06/2026
-% the support of Q (lift degree and weight degree raised by dD, dw = 1)      % DB, 11/06/2026
-clear Q_opts                                                                % DB, 11/06/2026
-Q_opts.like = P;    Q_opts.dD = 2;                                          % DB, 11/06/2026
-prog = lpi_ineq_sop(prog,-Q,Q_opts);                                        % DB, 11/06/2026
+% Iw = eye(size(B1,2));       Iz = eye(size(C1,1));                         % DB, MMP, 11/21/2026 (was)
+% Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21)'*T;                       % DB, MMP, 11/21/2026 (was)
+%      -D11,              -gam*Iz,  C1;                                     % DB, MMP, 11/21/2026 (was)
+%      -T'*(P*B1+Z*D21),  C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];           % DB, MMP, 11/21/2026 (was)
+% clear Q_opts                                                              % DB, MMP, 11/21/2026 (was)
+% Q_opts.psatz = 1;                                                         % DB, MMP, 11/21/2026 (was)
+% prog = lpi_ineq(prog,-Q,Q_opts);                                          % DB, MMP, 11/21/2026 (was)
+[Iw_sp,Iw_dm] = copvar_space_list(B1,'in');                                 % DB, MMP, 11/21/2026
+[Iz_sp,Iz_dm] = copvar_space_list(C1,'out');                                % DB, MMP, 11/21/2026
+Iw = eye_copvar_sop(Iw_dm,Iw_sp,dom);                                       % DB, MMP, 11/21/2026
+Iz = eye_copvar_sop(Iz_dm,Iz_sp,dom);                                       % DB, MMP, 11/21/2026
+D21r = on_registry_sop(D21,Z);      % D21 on the registry of Z              % DB, MMP, 11/21/2026
+Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21r)'*T;                        % DB, MMP, 11/21/2026
+     -D11,              -gam*Iz,  C1;                                       % DB, MMP, 11/21/2026
+     -T'*(P*B1+Z*D21r), C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];             % DB, MMP, 11/21/2026
+% "lpi_ineq_sop" declares a positive slack, with monomial degrees read from % DB, MMP, 11/21/2026
+% the support of Q (lift degree and weight degree raised by dD, dw = 1)     % DB, MMP, 11/21/2026
+clear Q_opts                                                                % DB, MMP, 11/21/2026
+Q_opts.like = P;    Q_opts.dD = 2;                                          % DB, MMP, 11/21/2026
+prog = lpi_ineq_sop(prog,-Q,Q_opts);                                        % DB, MMP, 11/21/2026
 
 % % lpi_eq_sop
 % Alternatively, we could impose negativity Q<=0 manually using lpi_eq_sop,
 % with positive slacks R1 (degree Rdeg) and R2 (degree Rdeg-1, psatz 1):
-% Rdeg = 3;                                                                 % DB, 11/06/2026 (was)
-% [prog_alt,R1] = poslpivar(prog,Q.dim(:,1),Rdeg);                          % DB, 11/06/2026 (was)
-% R_opts.psatz = 1;                                                         % DB, 11/06/2026 (was)
-% [prog_alt,R2] = poslpivar(prog_alt,Q.dim(:,1),Rdeg-1,R_opts);             % DB, 11/06/2026 (was)
-% prog_alt = lpi_eq(prog_alt,Q+R1+R2,'symmetric');                          % DB, 11/06/2026 (was)
-Rdeg = 3;                                                                   % DB, 11/06/2026
-[Q_sp,Q_dm] = copvar_space_list(Q,'out');                                   % DB, 11/06/2026
-[prog_alt,R1] = poscopvar(prog,Q_dm,Q_sp,dom,Rdeg);                         % DB, 11/06/2026
-R_opts.psatz = 1;                                                           % DB, 11/06/2026
-[prog_alt,R2] = poscopvar(prog_alt,Q_dm,Q_sp,dom,Rdeg-1,R_opts);            % DB, 11/06/2026
-prog_alt = lpi_eq_sop(prog_alt,Q+R1+R2,'symmetric');                        % DB, 11/06/2026
+% Rdeg = 3;                                                                 % DB, MMP, 11/21/2026 (was)
+% [prog_alt,R1] = poslpivar(prog,Q.dim(:,1),Rdeg);                          % DB, MMP, 11/21/2026 (was)
+% R_opts.psatz = 1;                                                         % DB, MMP, 11/21/2026 (was)
+% [prog_alt,R2] = poslpivar(prog_alt,Q.dim(:,1),Rdeg-1,R_opts);             % DB, MMP, 11/21/2026 (was)
+% prog_alt = lpi_eq(prog_alt,Q+R1+R2,'symmetric');                          % DB, MMP, 11/21/2026 (was)
+Rdeg = 3;                                                                   % DB, MMP, 11/21/2026
+[Q_sp,Q_dm] = copvar_space_list(Q,'out');                                   % DB, MMP, 11/21/2026
+[prog_alt,R1] = poscopvar(prog,Q_dm,Q_sp,dom,Rdeg);                         % DB, MMP, 11/21/2026
+R_opts.psatz = 1;                                                           % DB, MMP, 11/21/2026
+[prog_alt,R2] = poscopvar(prog_alt,Q_dm,Q_sp,dom,Rdeg-1,R_opts);            % DB, MMP, 11/21/2026
+prog_alt = lpi_eq_sop(prog_alt,Q+R1+R2,'symmetric');                        % DB, MMP, 11/21/2026
 
 
 %% 7.4 Defining an Objective Function
@@ -228,18 +231,18 @@ prog_sol = lpisolve(prog,solve_opts);
 %% 7.6 Extracting the Solution
 % Extract solved (optimal) values of the decision variable gam and decision
 % variable operators P and Z;
-% gam_val = lpigetsol(prog_sol,gam)                                         % DB, 11/06/2026 (was)
-% Pval = lpigetsol(prog_sol,P);                                             % DB, 11/06/2026 (was)
-% Zval = lpigetsol(prog_sol,Z);                                             % DB, 11/06/2026 (was)
-gam_val = double(lpigetsol_sop(prog_sol,gam))                               % DB, 11/06/2026
-Pval = getsol_lpivar_sop(prog_sol,P);                                       % DB, 11/06/2026
-Zval = getsol_lpivar_sop(prog_sol,Z);                                       % DB, 11/06/2026
+% gam_val = lpigetsol(prog_sol,gam)                                         % DB, MMP, 11/21/2026 (was)
+% Pval = lpigetsol(prog_sol,P);                                             % DB, MMP, 11/21/2026 (was)
+% Zval = lpigetsol(prog_sol,Z);                                             % DB, MMP, 11/21/2026 (was)
+gam_val = double(lpigetsol_sop(prog_sol,gam))                               % DB, MMP, 11/21/2026
+Pval = getsol_lpivar_sop(prog_sol,P);                                       % DB, MMP, 11/21/2026
+Zval = getsol_lpivar_sop(prog_sol,Z);                                       % DB, MMP, 11/21/2026
 
 % % 7.6.1 getObserver_sop
 % Compute the (optimal) observer gain operator L=P^{-1}*Z
-% Lval = getObserver(Pval,Zval);                                            % DB, 11/06/2026 (was)
-% P is separable (a multiplier plus eppos*I), so P^{-1}*Z is computed exactly % DB, 11/06/2026
-Lval = getObserver_sop(Pval,Zval);                                          % DB, 11/06/2026
+% Lval = getObserver(Pval,Zval);                                            % DB, MMP, 11/21/2026 (was)
+% P is separable (a multiplier plus eppos*I), so P^{-1}*Z is computed exactly % DB, MMP, 11/21/2026
+Lval = getObserver_sop(Pval,Zval);                                          % DB, MMP, 11/21/2026
 
 % % 7.6.2 getController_sop
 % Compute the (optimal) controller gain operator K=Z*P^{-1} 

@@ -58,21 +58,13 @@
 % DJ, 12/26/2024: Add simulation;
 % DJ, 12/28/2024: Change simulation conditions;
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
-% YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde{1,2,3} into
-% solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
-% solution.timedep.primary{1,2,3,4}
-% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
-%                   executives do not support the new pie_struct;
-% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
-% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
-%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
-% MMP, 11/12/2026: POSCOPVAR takes the domain from the program (maintainer,
-%   11/12/2026: "Update demos first"); the argument repeated the domain
-%   given to LPIPROGRAM. Same program.
-% MMP, 11/14/2026: POSCOPVAR reads the spaces and the domain off T
-%   (maintainer, 11/14/2026: the calls were "too complicated"). Same
-%   program.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: PIESIM takes
+%   uinput.ic = 0 and returns the 2D state in solution.timedep.primary{4},
+%   the output in regulated{1}; the LPI is declared by
+%   lpiprogram(PIE.vars,PIE.dom), P = poscopvar(prog,T,1) and lpi_ineq_sop
+%   with its default options, in place of poslpivar and lpi_ineq with
+%   opts.psatz = 2; lpigetsol_sop reads the solution; the predefined
+%   executive is lpiscript_sop; help text revised.
 
 % Clear the workspace and figures; print each line as it runs
 clc; clear; close all; clear stateNameGenerator
@@ -135,24 +127,21 @@ w = double(subs(uinput.w,st,tval));
 % === Declare the LPI
 
 % % Initialize LPI program
-% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
-prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % YP, DJ, MMP, 11/21/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-% [prog,P] = poscopvar(prog,1,{{'s1','s2'}},[a,b;c,d],1);                   % MMP, 11/12/2026 (was)
-% [prog,P] = poscopvar(prog,1,{{'s1','s2'}},1);   % domain: that of prog    % MMP, 11/14/2026 (was)
-[prog,P] = poscopvar(prog,T,1);         % P on the output spaces of T       % MMP, 11/14/2026
+[prog,P] = poscopvar(prog,T,1);         % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
 
 % % Set inequality constraints:
 % %   Q <= 0
 Q = [-gam,        D',      (P*B)'*T;
      D,           -gam,    C;
      T'*(P*B),    C',     (P*A)'*T+T'*(P*A)];
-prog = lpi_ineq_sop(prog,-Q);                                               % DJ (CC), 10/30/2026
+prog = lpi_ineq_sop(prog,-Q);                                               % YP, DJ, MMP, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -161,10 +150,10 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variable
-gam_val = double(lpigetsol_sop(prog_sol,gam));                              % DJ (CC), 10/30/2026
+gam_val = double(lpigetsol_sop(prog_sol,gam));                              % YP, DJ, MMP, 11/21/2026
 
 % % Alternatively, uncomment to use pre-defined executive
-% [prog, ~, gam_val] = lpiscript_sop(PIE,'l2gain','stripped');              % DJ (CC), 10/29/2026
+% [prog, ~, gam_val] = lpiscript_sop(PIE,'l2gain','stripped');              % YP, DJ, MMP, 11/21/2026
 
 
 echo off

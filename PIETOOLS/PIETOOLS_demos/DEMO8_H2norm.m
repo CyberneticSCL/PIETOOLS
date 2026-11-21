@@ -46,16 +46,11 @@
 % DJ, 12/15/2024: Match structure to that of other demos;
 % DB, 12/27/2024: Replace sys() objects by pde_var();
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
-% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
-% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
-%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
-% MMP, 11/12/2026: POSCOPVAR takes the domain from the program (maintainer,
-%   11/12/2026: "Update demos first"); the argument repeated the domain
-%   given to LPIPROGRAM. Same program.
-% MMP, 11/14/2026: POSCOPVAR reads the spaces and the domain off T' (the
-%   input spaces of T; maintainer, 11/14/2026: the calls were "too
-%   complicated"). Same program.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: the LPI is declared by
+%   lpiprogram(PIE.vars,PIE.dom), W = poscopvar(prog,T',3) and lpi_ineq_sop,
+%   with the trace of C1*W*C1' by trace_rn_sop, in place of poslpivar,
+%   lpi_ineq and trace(Aux.P); lpigetsol_sop reads the solution; help text
+%   revised.
 
 
 % Clear the workspace and figures; print each line as it runs
@@ -89,28 +84,25 @@ B1 = PIE.B1;    C1 = PIE.C1;
 % === Declare the LPI
 
 % % Initialize LPI program
-% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
-prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % DJ, MMP, 11/21/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     W:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable W>=0 with default polynomial degrees up to 3.
-% [prog,W] = poscopvar(prog,1,{{'s'}},[0,1],3);                             % MMP, 11/12/2026 (was)
-% [prog,W] = poscopvar(prog,1,{{'s'}},3);   % domain: that of prog          % MMP, 11/14/2026 (was)
-[prog,W] = poscopvar(prog,T',3);        % W on the input spaces of T        % MMP, 11/14/2026
+[prog,W] = poscopvar(prog,T',3);        % W on the input spaces of T        % DJ, MMP, 11/21/2026
 
 % % Set inequality constraints:
 % %   A W T* + T W A* + B1 B1* <= 0
 % %   gam >= trace(C1 W C1*)
 % Operator inequality Dop<=0
 Dop =  A*W*T'+T*W*A'+B1*B1';
-prog = lpi_ineq_sop(prog,-Dop);                                             % DJ (CC), 10/30/2026
+prog = lpi_ineq_sop(prog,-Dop);                                             % DJ, MMP, 11/21/2026
 % Scalar inequality gam >= trace(C1 W C1*)
 Aux = C1*W*C1';
-traceVal = trace_rn_sop(Aux);                                               % DJ (CC), 10/30/2026
-prog = lpi_ineq_sop(prog, gam-traceVal);                                    % DJ (CC), 10/30/2026
+traceVal = trace_rn_sop(Aux);                                               % DJ, MMP, 11/21/2026
+prog = lpi_ineq_sop(prog, gam-traceVal);                                    % DJ, MMP, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -119,8 +111,8 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
-gamd = sqrt(double(lpigetsol_sop(prog_sol,gam)));                           % DJ (CC), 10/30/2026
-Wc = lpigetsol_sop(prog_sol,W);                                             % DJ (CC), 10/30/2026
+gamd = sqrt(double(lpigetsol_sop(prog_sol,gam)));                           % DJ, MMP, 11/21/2026
+Wc = lpigetsol_sop(prog_sol,W);                                             % DJ, MMP, 11/21/2026
 
 
 echo off

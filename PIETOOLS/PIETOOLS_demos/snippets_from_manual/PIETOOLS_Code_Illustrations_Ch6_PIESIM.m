@@ -39,14 +39,15 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 01/01/2025: Initial coding;
-% VJ, 02/14/2026: Added Section 6.4.2 (1D Cylindrical PDE example);
-% updated section numbering accordingly;
-% YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde{1,2,3} into
-% solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
-% solution.timedep.primary{1,2,3,4}
-% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
-%                   executives do not support the new pie_struct;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, VJ, DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: Section 6.4.2
+%   added (radial heat equation, 1D PIESIM library example 39), later
+%   sections renumbered; 6.4.3 uses 2D library example 10; PIESIM takes
+%   opts.ifexact, initial values as arrays uinput.ic, boundary inputs as
+%   cells uinput.w{k}, no ndiff, and returns the physical grid itself
+%   (grid{1}, grid{2} in 2D), the states in solution.timedep.primary and
+%   final.primary, the outputs in regulated{1}; the DDE and its closed loop
+%   start from x(0) = [1,1]; lpiscript_sop computes the controller; help
+%   text revised.
 
 % Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator
@@ -351,8 +352,8 @@ xlabel('$t$','FontSize',14,'Interpreter','latex');
 %% 6.4.5 PIE Simulation
 % Synthesize an optimal controller for the DDE in PIE representation
 PIE = convert_PIETOOLS_DDE(DDE,'pie');
-%   [~, K, gam] = lpiscript(PIE,'hinf-controller','light');                 % DJ (CC), 10/29/2026 (was)
-[~, K, gam] = lpiscript_sop(PIE,'hinf-controller','light');                 % DJ (CC), 10/29/2026
+%   [~, K, gam] = lpiscript(PIE,'hinf-controller','light');                 % YP, VJ, DJ, MMP, 11/21/2026 (was)
+[~, K, gam] = lpiscript_sop(PIE,'hinf-controller','light');                 % YP, VJ, DJ, MMP, 11/21/2026
 PIE_CL = closedLoopPIE(PIE,K);
 % Declare discretization and temporal integration options
 opts.plot = 'yes';

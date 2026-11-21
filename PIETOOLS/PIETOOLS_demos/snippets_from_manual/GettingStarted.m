@@ -36,7 +36,8 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 12/15/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: the stability test runs
+%   lpiscript_sop; help text, license and authors added.
 
 %% Clear the workspace; print each line as it runs
 clc; clear;
@@ -62,8 +63,8 @@ pie = convert(pde,'pie');
 
 
 % % % Run LPI stability test for PIE, using 'veryheavy' settings
-%   [prog, Pop] = lpiscript(pie,  'stability','veryheavy');                 % DJ (CC), 10/29/2026 (was)
-[prog, Pop] = lpiscript_sop(pie,  'stability','veryheavy');                 % DJ (CC), 10/29/2026
+%   [prog, Pop] = lpiscript(pie,  'stability','veryheavy');                 % DJ, MMP, 11/21/2026 (was)
+[prog, Pop] = lpiscript_sop(pie,  'stability','veryheavy');                 % DJ, MMP, 11/21/2026
 
 %%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
