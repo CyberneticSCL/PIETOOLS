@@ -1,0 +1,38 @@
+GUI/getVarList.m	condense	comments	100	MMP:1
+GUI/isvalidPolynomial.m	condense	comments	100	MMP:1
+GUI/isvalidTerm.m	condense	comments	100	MMP:1
+GUI/parsePDEParams.m	condense	code	99	MMP:4
+PIETOOLS_DDE.m	condense	code	76	MMP:6
+PIETOOLS_DDF.m	condense	code	75	MMP:8
+PIETOOLS_PDE.m	condense	code	81	MMP:5
+converters/convert_PIETOOLS_DDE.m	condense	comments	100	MMP:1
+converters/convert_PIETOOLS_DDF.m	condense	code	44	DJ:1 MMP:2
+converters/convert_PIETOOLS_NDS.m	condense	comments	100	MMP:2
+converters/convert_PIETOOLS_PDE.m	review	code	12	DB:2 DJ:7 MMP:1
+converters/initialize_PIETOOLS_DDE.m	condense	code	99	MMP:2
+converters/initialize_PIETOOLS_DDF.m	condense	code	95	MMP:2
+converters/initialize_PIETOOLS_NDS.m	condense	code	98	MMP:2
+converters/initialize_PIETOOLS_PDE.m	condense	comments	100	MMP:1
+converters/internal/convert_PIETOOLS_NDS2DDF.m	condense	code	93	MMP:3
+converters/internal/minimize_PIETOOLS_DDE2DDF.m	condense	code	97	MMP:2
+converters/internal/poly_decomp_1D_econ.m	condense	code	88	MMP:2
+converters/legacy/2D/Compute_Tmap_PDE_2D_Separable.m	review	code	87	DJ:1 MMP:1
+converters/legacy/2D/PIETOOLS_FTC_Expansion_2D.m	condense	comments	100	MMP:1
+converters/legacy/2D/expand_PIETOOLS_PDE_BCs.m	condense	code	99	MMP:1
+converters/legacy/convert_PIETOOLS_DDE2PIE_legacy.m	condense	code	37	MMP:2
+converters/legacy/convert_PIETOOLS_PDE_batch.m	condense	code	77	MMP:2
+converters/legacy/convert_PIETOOLS_PDE_batch2terms_legacy.m	condense	code	97	MMP:2
+converters/legacy/convert_PIETOOLS_PDE_terms.m	condense	code	96	MMP:2
+converters/legacy/convert_PIETOOLS_PDE_terms_internal.m	condense	comments	100	MMP:1
+converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m	condense	code	58	MMP:2
+converters/legacy/initialize_PIETOOLS_PDE_batch.m	condense	comments	100	MMP:1
+converters/legacy/initialize_PIETOOLS_PDE_terms_legacy.m	condense	code	99	MMP:3
+converters/legacy/var_swap.m	condense	comments	100	MMP:1
+converters/minimize_PIETOOLS_DDF.m	condense	comments	100	MMP:1
+executives_sopvar/utility_functions/closedLoopPIE.m	asnew	code	18	DB:4 DJ:1 MMP:3
+lpi_programming_sopvar/lpidecvar.m	condense	comments	100	MMP:2
+lpi_programming_sopvar/lpiprogram.m	condense	code	92	DJ:1 MMP:4
+lpi_programming_sopvar/lpisetobj.m	condense	comments	100	MMP:2
+lpi_programming_sopvar/lpisolve.m	condense	code	42	MMP:1
+pietools_path_update.m	condense	code	50	MMP:2
+pietools_update.m	condense	code	100	MMP:2

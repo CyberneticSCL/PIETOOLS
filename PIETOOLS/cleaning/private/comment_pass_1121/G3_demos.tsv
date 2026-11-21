@@ -1,0 +1,18 @@
+PIETOOLS_demos/DEMO1_stability_and_simulation.m	condense	code	68	MMP:4 YP:1
+PIETOOLS_demos/DEMO2_volterra_operator_norm.m	deferred	code	60	MMP:2
+PIETOOLS_demos/DEMO3_poincare_inequality.m	condense	code	47	DJ:2 MMP:3
+PIETOOLS_demos/DEMO4_stability_parameter_bisection.m	condense	code	86	MMP:4
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m	condense	code	67	DB:1 MMP:4 YP:1
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m	condense	code	69	DB:1 MMP:5 YP:1
+PIETOOLS_demos/DEMO7_observer_based_control.m	condense	code	73	MMP:2
+PIETOOLS_demos/DEMO8_H2norm.m	condense	code	75	MMP:4
+PIETOOLS_demos/DEMO9_L2_gain_analysis.m	condense	code	82	MMP:4 YP:1
+PIETOOLS_demos/snippets_from_manual/GettingStarted.m	condense	code	90	MMP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch11_Demos.m	condense	code	96	MMP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m	condense	code	84	MMP:2 YP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch3_PI_Operators.m	asnew	code	23	DJ:1 MMP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch4_Declaring_PDEs.m	condense	code	98	DJ:1 MMP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch5_PIEs.m	condense	code	59	MMP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch6_PIESIM.m	condense	code	84	MMP:1 VJ:1 YP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m	condense	code	60	MMP:1
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch8_Declaring_PDEs.m	condense	comments	100	MMP:1
