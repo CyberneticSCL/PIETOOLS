@@ -2,6 +2,35 @@
 
 Source: the "Candidates for the maintainer" sections of the 13 ledgers of the release comment pass of 11/19–11/20/2026 (commits ece48c96..f474e7de; `lists/*_ledger.md`, `lists/resume/*_ledger.md`) and the list of user-visible error strings in `lists/B_lpi_exec_settings_ledger.md`. Status: every item was found by reading and re-read against HEAD 78641839 (after lrmultiply moved into `sopvar/@sdopvar/mtimes.m`, weightPIE into `PIESIM/PIESIM_routines/PIESIM.m`, clencurt to `cleaning/private/dead_code`); none was run or reproduced; none is fixed. Paths are relative to `PIETOOLS/`, line numbers those of HEAD. Evidence "semantics": the defect follows from MATLAB language rules at that line, whatever the data; "read": it follows from the control or data flow, not run. Author: the Initial coding line or log of the file, or `git blame` of the cited lines with the pass commits ignored; "2021b" marks code imported with PIETOOLS 2021b (12/31/2021), credited to the authors named in the file header.
 
+## Outcome of the bug-fix pass, 11/20/2026
+
+Maintainer, 11/20/2026: "fix the unfixed bugs". Records: `cleaning/private/bugfix_1120/` (BRIEF.md and the ledgers A_sopvar, B_conv, D_piesim, E_examples). Each fix was reproduced before the edit and verified after it against a reference independent of the repaired code: closed forms, exact solutions, a second conversion route, collocation outside PIETOOLS. Valid inputs are unchanged: 46 delay-system conversions and the 36 GUI files of the example library, 41 1-D and 32 2-D PIESIM examples and 5 DDE or PIE-input cases are bit-identical; test_executives_sop passes 20 of 20 checks (2-D included); the parse check passes 75 of 75 edited files. Annotation: new files (`release_new_files_1120/new_files_classified.tsv`) carry no log line or marker; existing files carry a log line "MMP, 11/20/2026", column-77 markers and (was) lines; help text is corrected in place.
+
+| Outcome | Items |
+|---|---|
+| Fixed: 52, and 3 new | C1, C3–C6, C8–C12, C14, C17, C31, C32, C35, C36, C38–C40, C46 (text), C48–C52, C55–C57, C59, C61, C74–C77, C79, C84 (beam file), C85–C87, C89, C90, C92 (header of stability_8), C93–C95, C102–C105, C107–C109; new: C112, C113, C116 |
+| Partly fixed | C53: (b) fixed; (a) held, a line of Declan (d6e76870) |
+| Held: code of Declan | the 33 items credited DJ below; C101 (`git blame -w -C`: every message line is from 3b92e68b, 11/15/2026, or 2f2af6a1, 11/16/2026, both Declan; the file headers name MMP); C58 (fe5c062a); the Saba file of C84; line 62 of stability_8 and the Das files of C92; new: C115 |
+| Held: PIESOS (Declan; @quadPoly was ndopvar code) | C63, C64, C66–C71, C73, C111 |
+| Held: 2-D settings mapping | C7, C106 |
+| Needs decision | C15, C16, with C114: parser/legacy needs the retired opvar class – port or retire the folder; C21–C23, C44 and convert_PIETOOLS_PDE_terms_internal (C46): no caller – move to cleaning/private/dead_code; C36: ODE.A overrides an explicit nx; C60: `T.I = I` in transl_mod was removed by YP on 5/2/2026 ("Fixed rescaling") – restore it (no result changed in 46 runs) or correct the help; C8 (fixed: the 2-D retry uses 'inv', the alternative method): or delete the retry, as the other synthesis executives do |
+| No change | C2, C91, C110 (decided 11/20/2026) |
+| Not reproduced | C54: subs accepts the 1 x 1 cell (Symbolic Math Toolbox) |
+
+Limit left: the symbolic integrator (opts.intScheme = 2, C52) still accepts no sampled inputs.
+
+New items found in the pass:
+
+**C112** `converters/internal/poly_decomp_1D_econ.m:75` (MMP; 2021b) – `monomials(Qt(:,i))` with one argument, while `SOSTOOLS400/monomials.m` needs two, so every 'polynomial' distributed-delay kernel errored on the minimal-DDF routes (minimize_PIETOOLS_DDE2DDF, minimize_PIETOOLS_DDF); a polynomial without variables (A + 0*s1) errored at Q.Varname(1) – FIXED: the monomials of each column from its degmat, a constant as 'double'; measured: every route matches the closed form to 1.8e-15.
+
+**C113** `converters/initialize_PIETOOLS_DDE.m:296` (MMP; 2021b) – tests exist('Bdi'), not B1di, as in C39 – FIXED: a DDE whose nw is set by B1di alone gets nw = 1 (before: a dimension error).
+
+**C114** `parser/legacy/@sys/sys.m` (SS) – declares the method convert with one output, so the second output documented in convert.m cannot be returned – with C15, C16.
+
+**C115** `EL/Stability_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das.m` (DJ) – with -Bxr (11/19) the coupled system loses stability at lam = 9.7946 (eigenvalues by Chebyshev collocation and by sine-Galerkin, outside PIETOOLS), so "stable for lam < pi^2" holds for neither sign; with +Bxr it is stable only for lam < -5.7799 – report to Declan.
+
+**C116** `CL/l2gain_2.m:40` (SS) – the comment stated gamma = 0.3333; after C75 the system is the heat equation of library case 22, whose H-infinity norm is 5/24 = 0.2083, attained at w = 0 (Chebyshev collocation, independent of PIETOOLS) – FIXED (comment).
+
 ## Summary
 
 150 ledger entries (130 candidates, 20 string entries): 8 merged as duplicates, 33 not confirmed on re-reading, 111 items below (3 entries split into several items, 2 grouped with others).
@@ -262,9 +291,9 @@ All: misleading text or message; evidence read.
 
 ## By author
 
-- **MMP**: C1, C2, C4, C6–C12, C21, C35, C36, C38–C40, C46, C60, C85–C87, C98, C101–C110.
-- **DJ** (reported to Declan, not patched): C12, C13, C18–C21, C24–C30, C33, C34, C37, C41–C43, C45, C47, C62, C65, C72, C78, C80–C84, C88, C92, C96–C101.
-- **SS**: C3–C5, C12, C15–C17, C21–C23, C31, C32, C36, C44, C46, C60, C63, C68–C71, C74–C77, C89, C91–C93.
+- **MMP**: C1, C2, C4, C6–C12, C21, C35, C36, C38–C40, C46, C60, C85–C87, C98, C102–C110, C112, C113 (C101: the file headers only; the message lines are from commits of Declan, see the outcome section).
+- **DJ** (reported to Declan, not patched): C12, C13, C18–C21, C24–C30, C33, C34, C37, C41–C43, C45, C47, C62, C65, C72, C78, C80–C84, C88, C92, C96–C101, C115.
+- **SS**: C3–C5, C12, C15–C17, C21–C23, C31, C32, C36, C44, C46, C60, C63, C68–C71, C74–C77, C89, C91–C93, C114, C116.
 - **YP**: C14, C48–C61.
 - **AT**: C1, C3, C66, C67.
 - **DB**: C41, C76, C79, C82, C84, C89, C90, C94, C95.
