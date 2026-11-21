@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_TRANSPORT_EQ_WITH_DISTURBANCE(GUI,
@@ -21,8 +21,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,pa
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Example pure transport equation 1D: 
@@ -59,12 +59,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,pa
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: third output st, the
+%   recommended settings of the H-infinity gain test; Hinf_gain_form = 'P'
+%   set in the base workspace; help revised, license added.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -76,7 +74,7 @@ pvar s
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;')
 evalin('base','Hinf_gain_dual = 1;')
-evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/19/2026
+evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/21/2026
 
 % Default state size, overridden by the assignment strings in params
 ne = 1;
@@ -152,11 +150,11 @@ if GUI
     end
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; 1-D storage with upper-integral s-length 1 and
 % theta-lengths 2 (multiplier), 2 (upper), 1 (lower integral))
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [2;2;1];                                            % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [2;2;1];                                            % MMP, 11/21/2026
 
 end

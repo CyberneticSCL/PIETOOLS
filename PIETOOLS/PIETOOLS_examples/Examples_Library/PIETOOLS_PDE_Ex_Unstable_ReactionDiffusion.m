@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_UNSTABLE_REACTIONDIFFUSION(GUI,PARAMS)
@@ -18,8 +18,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % 
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 %  PDE :        x_{t} = 3x+(s^2+0.2)x_{ss} -(s^2)/2w(t)
@@ -56,19 +56,13 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % 
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DB - 01/06/2025
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function       [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: st.sop.deg_Q removed: only the stability executive reads
-%   it, and this example names the H2 estimator synthesis.
-% MMP, 11/21/2026: A nonzero GUI raises an error, as in the _Control example:
-%                   it loaded the GUI file of the Euler-Bernoulli beam example,
-%                   another PDE, from a folder that does not hold it. The
-%                   Initial coding line of 11/20/2026 named DJ; the file is by
-%                   DB (01/06/2025).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the H2 optimal estimator synthesis; a nonzero
+%   GUI raises an error, since no GUI file exists for this example (the
+%   2025 code loaded the GUI file of the Euler-Bernoulli beam example);
+%   help revised (OUTPUT lists no PDE_b, which is not returned; no
+%   parameter can be set), license added.
+% function       [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -99,18 +93,15 @@ if GUI
     error("No GUI file associated with this example");                      % MMP, 11/21/2026
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (heavy tier; 1-D storage with upper-integral s-length 1 and theta-lengths
 % 3, 2, 1 (multiplier, upper, lower integral); free operators of degree 2;
-% no slack weight raise of the synthesis LPI; Q of degree 6 in the          % MMP, 11/20/2026 (was)
-% multiplier and 2 in the integral kernels)                                 % MMP, 11/20/2026 (was)
-% no slack weight raise of the synthesis LPI)                               % MMP, 11/20/2026
-st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/19/2026
-st.lpi.var.deg{1} = [2 2 2];                                                % MMP, 11/19/2026
-st.sop.dw_P = 0;                                                            % MMP, 11/19/2026
-%st.sop.deg_Q{1} = [6 2 2];                                                 % MMP, 11/20/2026 (was)
+% no slack weight raise of the synthesis LPI)                               % MMP, 11/21/2026
+st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/21/2026
+st.lpi.var.deg{1} = [2 2 2];                                                % MMP, 11/21/2026
+st.sop.dw_P = 0;                                                            % MMP, 11/21/2026
 
 end
 % @article{peet2019discussion,

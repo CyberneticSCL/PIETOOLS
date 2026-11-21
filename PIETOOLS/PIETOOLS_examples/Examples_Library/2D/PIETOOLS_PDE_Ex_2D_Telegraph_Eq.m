@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params)           % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params)           % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_2D_TELEGRAPH_EQ(GUI,PARAMS) returns the 2-D
@@ -17,8 +17,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params)           % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % % Telegraph equation (Holmes, 1994):
@@ -64,12 +64,11 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params)           % MM
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/20/2022
-% MMP, 11/19/2026: Output st, the recommended settings of the example, and
-%                   the form of its stability test ('Q');
-%                   no measured setting certifies it;
-%                   (maintainer: every example names its settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params)            % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the stability test; stability_form = 'Q' set in
+%   the base workspace; help revised (OUTPUT lists no PDE_b, which is not
+%   returned; coefficient C^2/(2*lam) corrected), license added.
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params)            % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -80,7 +79,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/21/2026
 %evalin('base','stability_dual = 1;');
 
 % Default parameters, overridden by the assignment strings in params
@@ -137,8 +136,8 @@ PDE_t = [diff(x1,'t')==x2;
 % PDE_t.BC{6}.term{1}.loc = [0,s2];      PDE_t.BC{8}.term{1}.loc = [1,s2];
 
 
-% Example-specific settings: the light tier                                 % MMP, 11/19/2026
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+% Example-specific settings: the light tier                                 % MMP, 11/21/2026
+st = lpisettings_sop('light');                                              % MMP, 11/21/2026
 
 % No GUI representation of this system
 if GUI~=0

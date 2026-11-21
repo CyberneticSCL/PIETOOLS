@@ -1,4 +1,4 @@
-function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % MMP, 11/17/2026
+function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % DJ, MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_HEAT_EQ_W_INTERIOR_DELAY(GUI,PARAMS) returns
@@ -18,9 +18,9 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         (optional) recommended settings (lpisettings_sop            % MMP, 11/17/2026
-%               structure) for the stability test of this example,          % MMP, 11/17/2026
-%               returned only when requested (nargout > 1).                 % MMP, 11/17/2026
+% - st:         (optional) recommended settings (lpisettings_sop            % DJ, MMP, 11/21/2026
+%               structure) for the stability test of this example,          % DJ, MMP, 11/21/2026
+%               returned only when requested (nargout > 1).                 % DJ, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Diffusive Equation with Delay in Dynamics (Caliskan 2009):
@@ -70,25 +70,12 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % MM
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 11/30/2022
-% MMP, 11/17/2026: Second output st, the settings that certify the
-%                   example (maintainer: application-specific settings
-%                   where the tiers do not); the light tier certifies it
-%                   in neither form (header);
-% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)   % MMP, 11/17/2026 (was)
-% MMP, 11/18/2026: st: the slack lift degree at its minimum and Q of
-%                   degree 2 in two variables (deg_Q), in place of the
-%                   dw_space raise of 11/17: half the variables (header);
-% MMP, 11/19/2026: st updated to the per-example search of 11/19/2026
-%                   (maintainer: no default settings): see the block;
-%                   the form of its tests named in the workspace.
-% MMP, 11/19/2026: the settings notes of the header (11/17-11/19) removed: they
-%                   recorded tests and files the user does not have, not the problem;
-% MMP, 11/19/2026: the remaining settings notes removed: they recorded tests,
-%                   not the problem;
-% MMP, 11/19/2026: the dated test records of the header removed: they
-%                   recorded tests and files the user does not have, not
-%                   the problem;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: sign of the delayed
+%   reaction term corrected to -a1*x(t-tau,s1), the PDE of the help;
+%   optional second output st, the recommended settings of the stability
+%   test; stability_form = 'Q' set in the base workspace; help revised
+%   (OUTPUT lists no PDE_b, which is not returned), license added.
+% function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)   % DJ, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -99,7 +86,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','stability = 1;');
-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+evalin('base','stability_form = ''Q'';');  % form of the stability test     % DJ, MMP, 11/21/2026
 %evalin('base','stability_dual = 1;');
 
 % Default parameters, overridden by the assignment strings in params
@@ -166,20 +153,16 @@ PDE_t = [diff(x1,'t')==c*diff(x1,s1,2)+a0*x1-a1*subs(x2,s2,tau);
 % PDE_t.BC{4}.term{1}.loc = [a,s2];   PDE_t.BC{5}.term{1}.loc = [b,s2];
 
 
-% Application-specific settings (header): the light tier, the slack         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% weight of the space of x1 (L2[s1], the first space) raised by one         % MMP, 11/18/2026 (was); MMP, 11/17/2026
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % DJ, MMP, 11/21/2026
 % (second output only; light tier; slack lift degree at its minimum Dmin;
 % Q of degree 1 in the multiplier, 2 in the integrals; slack integral
 % bases capped at total degree theta+s <= Dmax-1)
-if nargout>1                                                                % MMP, 11/17/2026
-    st = lpisettings_sop('light');                                          % MMP, 11/17/2026
-    st.lpi.ineq.dD = 0;                                                     % MMP, 11/18/2026
-%   st.sop.deg_Q{2} = 2;                                                    % MMP, 11/19/2026 (was); MMP, 11/18/2026
-    st.sop.deg_Q{2} = [1 2 2];                                              % MMP, 11/19/2026
-%    st.lpi.ineq.dw_space = [1 0];                                          % MMP, 11/18/2026 (was); MMP, 11/17/2026
-    st.lpi.ineq.cap_inc = 'auto';                                           % MMP, 11/19/2026
-end                                                                         % MMP, 11/17/2026
+if nargout>1                                                                % DJ, MMP, 11/21/2026
+    st = lpisettings_sop('light');                                          % DJ, MMP, 11/21/2026
+    st.lpi.ineq.dD = 0;                                                     % DJ, MMP, 11/21/2026
+    st.sop.deg_Q{2} = [1 2 2];                                              % DJ, MMP, 11/21/2026
+    st.lpi.ineq.cap_inc = 'auto';                                           % DJ, MMP, 11/21/2026
+end                                                                         % DJ, MMP, 11/21/2026
 
 % No GUI representation of this system
 if GUI~=0

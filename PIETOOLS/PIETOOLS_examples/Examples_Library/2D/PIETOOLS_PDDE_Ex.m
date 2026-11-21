@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDDE Examples
 % [PDE_t,ST] = PIETOOLS_PDDE_EX(GUI,PARAMS) returns the 1-D heat equation
@@ -18,8 +18,8 @@ function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % Original 1D PDE: x1_{t}(t,s1) = x1_{s1s1}(t,s1) - 20 x1(t,s1) - 4 x2(t,s1,-1) - 0.1x3(t,s1,-1) + s1(s1-\pi)w(t);
@@ -58,14 +58,12 @@ function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MM
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DB - 01/20/2025
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (H2_norm_form),
-%                   from the per-example search of 11/19/2026 (maintainer:
-%                   no default settings);
-% function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)                           % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: tau set before the params loop, so that params can change
-%   the delays; the unused pvar s t removed.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the H2 norm test; H2_norm_form = 'oco' set in
+%   the base workspace; the delays tau are set before params is evaluated,
+%   so params can change them; the unused pvar s t removed; help corrected
+%   (states x2, x3, output over [0,pi]), license added.
+% function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)                           % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -78,11 +76,11 @@ pvar s1 s2
 %%% Executive Function:
 evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
-evalin('base','H2_norm_form = ''oco'';');  % form of the H2 norm test       % MMP, 11/19/2026
+evalin('base','H2_norm_form = ''oco'';');  % form of the H2 norm test       % MMP, 11/21/2026
 
-% Delays: x2, x3 are transported at speeds 1/tau(1), 1/tau(2) over s2;      % MMP, 11/20/2026
-% set before params, which may change them                                  % MMP, 11/20/2026
-tau = [0.25;0.3];                                                           % MMP, 11/20/2026
+% Delays: x2, x3 are transported at speeds 1/tau(1), 1/tau(2) over s2;      % MMP, 11/21/2026
+% set before params, which may change them                                  % MMP, 11/21/2026
+tau = [0.25;0.3];                                                           % MMP, 11/21/2026
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -91,10 +89,8 @@ if npars~=0
     end
 end
 
-% Declare independent variables (time and space)                            % MMP, 11/20/2026 (was)
-%pvar s t                                                                   % MMP, 11/20/2026 (was)
-% Delays: x2, x3 are transported at speeds 1/tau(1), 1/tau(2) over s2       % MMP, 11/20/2026 (was)
-%tau = [0.25;0.3];                                                          % MMP, 11/20/2026 (was)
+%pvar s t                                                                   % MMP, 11/21/2026 (was)
+%tau = [0.25;0.3];                                                          % MMP, 11/21/2026 (was)
 % States x1(s1) and x2, x3(s1,s2); disturbance u ('input', the w above)
 % and regulated output y ('output', the z above)
 x1 = pde_var('state',1,s1,[0,pi]);
@@ -113,10 +109,10 @@ BC4=subs(x3,s2,0)==x1;
 output=y==int(x1,s1,[0,pi]);
 PDE_t=[PDE1;PDE2;PDE3;BC1;BC2;BC3;BC4;output];
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (light tier; slack lift degree at its minimum Dmin)
-st = lpisettings_sop('light');                                              % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st = lpisettings_sop('light');                                              % MMP, 11/21/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
 
 
 % No GUI representation of this system

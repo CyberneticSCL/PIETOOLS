@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_WAVE_EQ_BOUNDARY_ODE_CONTROL(GUI,PARAMS)
@@ -17,8 +17,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params)  
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system declared with 
 %               pde_var input format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Wave Equation with boundary control through ODE
@@ -59,12 +59,11 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params)  
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 01/13/2025
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the H-infinity optimal controller synthesis;
+%   help revised (order of the regulated outputs corrected to the code),
+%   license added.
+% function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -131,14 +130,14 @@ if GUI
     disp('No GUI representation available for this system.')
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (veryheavy tier; 1-D storage with upper-integral s-length 2 and
 % theta-lengths 3, 4, 4 (multiplier, upper, lower integral); free
 % operators of degree 3 in the multiplier and 6 in the integral kernels)
-st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [3;4;4];                                            % MMP, 11/19/2026
-st.lpi.var.deg{1} = [3 6 6];                                                % MMP, 11/19/2026
+st = lpisettings_sop('veryheavy');                                          % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [3;4;4];                                            % MMP, 11/21/2026
+st.lpi.var.deg{1} = [3 6 6];                                                % MMP, 11/21/2026
 
 end
 % @article{shivakumar2022h_,

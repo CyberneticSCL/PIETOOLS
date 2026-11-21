@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_TRANSPORT_EQ_WITH_DISTURBANCE2(GUI,PARAMS)
@@ -17,8 +17,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system using the pde_var
 %               structure.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 %  PDE :        x_{t} = x_{s} + (s-s^2)w(t)
@@ -52,13 +52,11 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DB - 01/06/2025
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Unused pvar s1 s2 removed (the PDE is in s).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the H2 norm test; H2_norm_form = 'o' set in the
+%   base workspace; the unused pvar s1 s2 removed (the PDE is in s); help
+%   revised, license added.
+% function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -66,12 +64,12 @@ root = fileparts(loc);
  clear stateNameGenerator
 % Initialize variables
 pde_struct PDE_t;
-%pvar s1 s2                                                                 % MMP, 11/20/2026 (was)
+%pvar s1 s2                                                                 % MMP, 11/21/2026 (was)
 
 %%% Executive Function:
 evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
-evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test         % MMP, 11/19/2026
+evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test         % MMP, 11/21/2026
 
 npars = length(params);
 if npars~=0
@@ -94,8 +92,8 @@ pde = [diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;    % dynamics
 PDE_t=initialize(pde);
 
 
-% Example-specific settings: the veryheavy tier                             % MMP, 11/19/2026
-st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
+% Example-specific settings: the veryheavy tier                             % MMP, 11/21/2026
+st = lpisettings_sop('veryheavy');                                          % MMP, 11/21/2026
 
 % No GUI representation of this system
 if GUI~=0

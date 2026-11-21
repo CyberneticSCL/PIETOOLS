@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_UNSTABLE_REACTIONDIFFUSION_CONTROL(GUI,PARAMS)
@@ -16,8 +16,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,par
 %
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the pde_var structure.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 %  PDE:          x_{t} = 3x+(s^2+0.2)x_{ss} +s*u(t) +s^2w(t)
@@ -52,14 +52,11 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,par
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: st.sop.deg_Q removed: only the stability executive reads
-%   it, and this example names the H2 controller synthesis.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the H2 optimal controller synthesis; help
+%   revised (control term s*u added to the PDE, as in the code), license
+%   added.
+% function [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -87,18 +84,15 @@ if GUI
         error("No GUI file associated with this example");
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (heavy tier; 1-D storage with upper-integral s-length 1 and theta-lengths
 % 3, 2, 1 (multiplier, upper, lower integral); free operators of degree 1
 % in the multiplier and 2 in the integral kernels; slack weight raise of
-% the synthesis LPI 1; Q of degree 6 in the multiplier and 2 in the         % MMP, 11/20/2026 (was)
-% integral kernels)                                                         % MMP, 11/20/2026 (was)
-% the synthesis LPI 1)                                                      % MMP, 11/20/2026
-st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
-st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/19/2026
-st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/19/2026
-st.sop.dw_P = 1;                                                            % MMP, 11/19/2026
-%st.sop.deg_Q{1} = [6 2 2];                                                 % MMP, 11/20/2026 (was)
+% the synthesis LPI 1)                                                      % MMP, 11/21/2026
+st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/21/2026
+st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/21/2026
+st.sop.dw_P = 1;                                                            % MMP, 11/21/2026
 
 end

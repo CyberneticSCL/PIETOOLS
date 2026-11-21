@@ -79,41 +79,13 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 % updated to DDE data structure 5_3_2021
-% MMP, 11/18/2026: Example-specific settings st (uncommented with the
-%                   block; PIETOOLS_DDE uses st when set) in Examples B,
-%                   p. 192 of [1], A, D, E of [2]: the degree of Q of the
-%                   direct stability form (sop.deg_Q), and no raise
-%                   passes where raises certified nothing. B reaches the
-%                   documented taumax 1.71785, E tauN 3.9144 (veryheavy
-%                   3.8957 at 1.65 times the variables); the others the
-%                   heavy threshold in 11 SDP solves (heavy: 15-29).
-%                   Measurements: cleaning/private/settings_1116/
-%                   psatz_faces_results/example_settings/EXAMPLE_SETTINGS.md;
-% MMP, 11/18/2026: PIETOOLS_DDE names the storage form 'P' for the
-%                   stability tests (stability_form; D100): at light it
-%                   reaches the thresholds of the st blocks of Examples B,
-%                   p. 192, A and D at 1.4-4.6 times fewer variables, so
-%                   their st (degrees of Q) acts only when a user sets
-%                   stability_form = 'Q'. Example E sets 'Q': its st
-%                   certifies tauN 3.9144 there, 'P' at light 1.42229.
-%                   Measurements: cleaning/private/settings_1116/
-%                   studies_1118 (D1_formP.md; DECISIONS.md D115).
-% MMP, 11/19/2026: Example-specific settings st and the forms of the tests
-%                   (stability_form, Hinf_gain_form) in every block with a
-%                   certified setting, from the per-example search of
-%                   11/19/2026 (maintainer: no default settings);
-%                   the st lines of 11/18/2026 are kept as (was) lines with
-%                   two comment levels, so they stay comments when a block
-%                   is uncommented;
-%                   the block active in this file (Example 2b, H2 norm)
-%                   carries its st uncommented;
-% MMP, 11/19/2026: the wind tunnel block (H-infinity control) sets its
-%                   regulated output z = [x1; x2; .1u] with DDE.C1, C1i,
-%                   D11, D12 in place of C0, C{1}, D1, D2, which
-%                   initialize_PIETOOLS_DDE does not read (z was 0);
-%                   the block carries its st;
-%                   its delay is the discrete delay of [5] (Ai{1}, was Adi{1});
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the active block (Example 2b
+%   of [13], H2 norm) sets st, its recommended settings; the other blocks
+%   carry, commented, their st and the form of their test (stability_form,
+%   Hinf_gain_form); the wind tunnel block sets z = [x1; x2; .1u] through
+%   DDE.C1, C1i, D11, D12 (the fields C0, C{1}, D1, D2 it set are not read,
+%   so z was 0) and its delay as the discrete delay Ai{1} of [5] (was
+%   Adi{1}); help and license added.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,9 +98,9 @@
 % DDE.tau(1)=2.0;%    h=1/DDE.tau(1);
 % % st: the light tier, with slack lift degree at its minimum; stability
 % %   form 'P' (storage <T x, P T x>)
-% st = lpisettings_sop('light');                                            % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('light');                                            % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % the analytical range is [0.2, 2.04]
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%% Distributed delay from [1], page 270
@@ -141,11 +113,11 @@
 % % st: the stripped tier, with upper-integral s-length 1; theta-lengths
 % %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
 % %   minimum; stability form 'P' (storage <T x, P T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % % [1] says the stable range is tauNmax<2
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,14 +127,11 @@
 % DDE.A0=[0 1;-2 .1];
 % DDE.Ai{1}=[0 0;1 0];
 % DDE.tau(1)=1.5;
-% % % st: Q degree [5 2 2] reaches taumax 1.71785; no raise passes          % MMP, 11/19/2026 (was)
-% % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;              % MMP, 11/19/2026 (was)
-% % st.sop.deg_Q{1} = [5 2 2];                                              % MMP, 11/19/2026 (was)
 % % st: the stripped tier, with slack lift degree at its minimum; stability
 % %   form 'P' (storage <T x, P T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % % %%%% answer - taumin=.100174
 % % %%%% answer - taumax=1.71785
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,16 +142,13 @@
 %    DDE.A0=[-2 0;0 -.9];%
 %    DDE.Ai{1}=[-1 0; -1 -1];%
 %    DDE.tau(1) = 6;
-% % % st: Q degree [3 2 2] reaches the heavy threshold; no raise passes     % MMP, 11/19/2026 (was)
-% % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;              % MMP, 11/19/2026 (was)
-% % st.sop.deg_Q{1} = [3 2 2];                                              % MMP, 11/19/2026 (was)
 % % st: the stripped tier, with theta-lengths [2;2;1] (multiplier; upper;
 % %   lower integral); slack lift degree at its minimum; stability form 'P'
 % %   (storage <T x, P T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % % %%%% [1] says stable range is tau < 6.17258
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example A from [2]
@@ -193,16 +159,13 @@
 %  DDE.A0=[0];
 %  DDE.Ai{1}=[-1];
 %  DDE.tau(1)=1.56;
-% % % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes     % MMP, 11/19/2026 (was)
-% % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;              % MMP, 11/19/2026 (was)
-% % st.sop.deg_Q{1} = [4 2 2];                                              % MMP, 11/19/2026 (was)
 % % st: the stripped tier, with theta-lengths [2;2;1] (multiplier; upper;
 % %   lower integral); slack lift degree at its minimum; stability form 'P'
 % %   (storage <T x, P T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % % %%%% answer - taumax=1.5707
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example C from [2] and from [3]
@@ -216,12 +179,12 @@
 % %   s-length 1; theta-lengths [2;1;1] (multiplier; upper; lower integral);
 % %   slack lift degree at its minimum; stability form 'P' (storage
 % %   <T x, P T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;1;1];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;1;1];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % % %%%% answer - bmax=3
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % Example D from [2]
@@ -232,16 +195,13 @@
  %  DDE.Ai{1}=[0 0; -1 0];
  %  DDE.Ai{2}=[0 0;1 0];
  %  DDE.tau(1)=tauN/2;DDE.tau(2)=tauN;
- % % % st: Q degree [4 2 2] reaches the heavy threshold; no raise passes    % MMP, 11/19/2026 (was)
- % % st = lpisettings_sop('light');  st.sop.max_raise_Q(1) = 0;             % MMP, 11/19/2026 (was)
- % % st.sop.deg_Q{1} = [4 2 2];                                             % MMP, 11/19/2026 (was)
  % % st: the stripped tier, with theta-lengths [2;2;1] (multiplier; upper;
  % %   lower integral); slack lift degree at its minimum; stability form 'P'
  % %   (storage <T x, P T x>)
- % st = lpisettings_sop('stripped');                                        % MMP, 11/19/2026
- % st.lpi.pos.len_sos{1} = [2;2;1];                                         % MMP, 11/19/2026
- % st.lpi.ineq.dD = 0;                                                      % MMP, 11/19/2026
- % stability_form = 'P';                                                    % MMP, 11/19/2026
+ % st = lpisettings_sop('stripped');                                        % MMP, 11/21/2026
+ % st.lpi.pos.len_sos{1} = [2;2;1];                                         % MMP, 11/21/2026
+ % st.lpi.ineq.dD = 0;                                                      % MMP, 11/21/2026
+ % stability_form = 'P';                                                    % MMP, 11/21/2026
 % % % %%%% answer - tauNmax=1.3722
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Example E from [2], taken from [9]
@@ -253,19 +213,17 @@
  %  DDE.A0=A-B*K*C;
  %  DDE.Ai{1}=B*K*C;
  %  DDE.tau(1)=1.1;
- % % % st: Q degree [8 6 6] certifies tauN 3.9144 (veryheavy 3.8957)        % MMP, 11/19/2026 (was)
- % % st = lpisettings_sop('light');  st.sop.deg_Q{1} = [8 6 6];             % MMP, 11/19/2026 (was)
  % % st: the veryheavy tier, with upper-integral s-length 2; theta-lengths
  % %   [2;3;4] (multiplier; upper; lower integral); slack lift degree at its
  % %   minimum; stability slack weight raise 0 in 1-D; stability form 'P'
  % %   (storage <T x, P T x>)
- % st = lpisettings_sop('veryheavy');                                       % MMP, 11/19/2026
- % st.lpi.pos.len_com{1} = 2;                                               % MMP, 11/19/2026
- % st.lpi.pos.len_sos{1} = [2;3;4];                                         % MMP, 11/19/2026
- % st.lpi.ineq.dD = 0;                                                      % MMP, 11/19/2026
- % st.sop.dw_feas = [0 2 2];                                                % MMP, 11/19/2026
- % stability_form = 'P';                                                    % MMP, 11/19/2026
- % stability_form='Q';     % overrides 'P' above                            % MMP, 11/18/2026
+ % st = lpisettings_sop('veryheavy');                                       % MMP, 11/21/2026
+ % st.lpi.pos.len_com{1} = 2;                                               % MMP, 11/21/2026
+ % st.lpi.pos.len_sos{1} = [2;3;4];                                         % MMP, 11/21/2026
+ % st.lpi.ineq.dD = 0;                                                      % MMP, 11/21/2026
+ % st.sop.dw_feas = [0 2 2];                                                % MMP, 11/21/2026
+ % stability_form = 'P';                                                    % MMP, 11/21/2026
+ % stability_form='Q';     % overrides 'P' above                            % MMP, 11/21/2026
 % % % %%%% answer - tauNmax\in [3.9,3.95]
 %
 
@@ -287,11 +245,11 @@
 % % st: the light tier, with upper-integral s-length 1; theta-lengths
 % %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
 % %   minimum; gain form 'P' (storage <T x, R T x>)
-% st = lpisettings_sop('light');                                            % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('light');                                            % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% Hinf_gain_form = 'P';                                                     % MMP, 11/21/2026
 % %%%% answer - 2 @ tau=.5
 % %%%% answer - 25.907 @ tau=1.5
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -306,9 +264,9 @@
 %     DDE.tau(1) = .846;
 % % st: the stripped tier, with slack lift degree at its minimum; gain form
 % %   'P' (storage <T x, R T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% Hinf_gain_form = 'P';                                                     % MMP, 11/21/2026
 % % %%%% answer - .2364 (tau=.846)
 % %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -324,12 +282,12 @@
    % %   s-length 3; theta-lengths [2;2;1] (multiplier; upper; lower
    % %   integral); slack weight raise 0 (dw_P); gain form 'P' (storage
    % %   <T x, R T x>)
-   % st = lpisettings_sop('stripped');                                      % MMP, 11/19/2026
-   % st.lpi.pos.len_inc{1} = 1;                                             % MMP, 11/19/2026
-   % st.lpi.pos.len_com{1} = 3;                                             % MMP, 11/19/2026
-   % st.lpi.pos.len_sos{1} = [2;2;1];                                       % MMP, 11/19/2026
-   % st.sop.dw_P = 0;                                                       % MMP, 11/19/2026
-   % Hinf_gain_form = 'P';                                                  % MMP, 11/19/2026
+   % st = lpisettings_sop('stripped');                                      % MMP, 11/21/2026
+   % st.lpi.pos.len_inc{1} = 1;                                             % MMP, 11/21/2026
+   % st.lpi.pos.len_com{1} = 3;                                             % MMP, 11/21/2026
+   % st.lpi.pos.len_sos{1} = [2;2;1];                                       % MMP, 11/21/2026
+   % st.sop.dw_P = 0;                                                       % MMP, 11/21/2026
+   % Hinf_gain_form = 'P';                                                  % MMP, 11/21/2026
 % % %%%% answer - 2.87 (tau=.846)
 % %
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -345,9 +303,9 @@
 %  DDE.tau(1)=tauN/2;DDE.tau(2)=tauN;
 % % st: the stripped tier, with slack lift degree at its minimum; gain form
 % %   'P' (storage <T x, R T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% Hinf_gain_form = 'P';                                                     % MMP, 11/21/2026
 % % % %%%% answer - gamma=4.9784
 
 
@@ -369,12 +327,12 @@
 % %   s-length 3; theta-lengths [2;3;4] (multiplier; upper; lower integral);
 % %   slack lift degree at its minimum; free operators of multiplier
 % %   degree 0, integral degree 6
-% st = lpisettings_sop('veryheavy');                                        % MMP, 11/19/2026
-% st.lpi.pos.len_inc{1} = 2;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 3;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 6 6];                                              % MMP, 11/19/2026
+% st = lpisettings_sop('veryheavy');                                        % MMP, 11/21/2026
+% st.lpi.pos.len_inc{1} = 2;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 3;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 6 6];                                              % MMP, 11/21/2026
 % %
 % % % % %%%% answer - .1000 (tau=.99)
 % % % % %%%% answer - 1.339 (tau=2)
@@ -393,11 +351,11 @@
 % % st: the stripped tier, with lower-integral s-length 1; upper-integral
 % %   s-length 1; free operators of multiplier degree 0, integral degree 2;
 % %   slack weight raise 0 (dw_P)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
-% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/21/2026
 % %%% answer - .3953
 
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -412,10 +370,10 @@
 %    DDE.tau(1) = 1;DDE.tau(2)=2;
 % % st: the stripped tier, with upper-integral s-length 0; free operators of
 % %   multiplier degree 0, integral degree 2; slack weight raise 0 (dw_P)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
-% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/21/2026
 % %%% answer - .6104
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Scalability Example from [4]
@@ -442,11 +400,11 @@
 % % st: the stripped tier, with upper-integral s-length 1; theta-lengths
 % %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
 % %   minimum; free operators of multiplier degree 0, integral degree 2
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
 % Answer [3,3] - .9630
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % %%% Spring-Mass Network delay problem
@@ -480,9 +438,9 @@
 % Hinf_control=1;
 % % st: the stripped tier, with slack lift degree at its minimum; stability
 % %   form 'P' (storage <T x, P T x>)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% stability_form = 'P';                                                     % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% stability_form = 'P';                                                     % MMP, 11/21/2026
 % % stable at h=.08, unstable at h=1
 % % for n=3: full size: d=24, reduced size: d=5 
 % % for n=5: full size: d=60, reduced size: d=9
@@ -526,11 +484,11 @@
 % % st: the veryheavy tier, with upper-integral s-length 2; theta-lengths
 % %   [2;3;4] (multiplier; upper; lower integral); free operators of
 % %   multiplier degree 2, integral degree 6; slack weight raise 1 (dw_P)
-% st = lpisettings_sop('veryheavy');                                        % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 2;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [2 6 6];                                              % MMP, 11/19/2026
-% st.sop.dw_P = 1;                                                          % MMP, 11/19/2026
+% st = lpisettings_sop('veryheavy');                                        % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 2;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [2 6 6];                                              % MMP, 11/21/2026
+% st.sop.dw_P = 1;                                                          % MMP, 11/21/2026
 % % % %gam_guess; % min in [.32 .38]
 % % % n=3 -> .4092
 % % % n=10 -> .5964
@@ -544,34 +502,34 @@
 % Hinf_control=1
 % aM=1/1.964; kM=-.0117;zM=.8;wM=6;
 % DDE.A0=[-aM 0 0; 0 0 1; 0 -wM^2 -2*zM*wM];
-% %  DDE.Adi{1}=[0 kM*aM 0; 0 0 0; 0 0 0];                                  % MMP, 11/19/2026 (was)
-%  DDE.Ai{1}=[0 kM*aM 0; 0 0 0; 0 0 0];                                     % MMP, 11/19/2026
-% % [5] has the discrete delay x2(t-tau): kappa m' + m = k theta(t-tau0),   % MMP, 11/19/2026
-% % eq. (6.7) of Mazanti, Boussaada, Niculescu, arXiv 2002.06128: hence     % MMP, 11/19/2026
-% % Ai{1}, a discrete delay, not Adi{1}, a distributed delay.               % MMP, 11/19/2026
-% % Regulated output z = [x1; x2; .1u] (DDE.C1, C1i, D11, D12). Neither     % MMP, 11/19/2026
-% % [5] nor arXiv 1806.08071 ([4]) defines z for this model; the choice     % MMP, 11/19/2026
-% % follows the examples of [4], z = [x; .1u].                              % MMP, 11/19/2026
-% %  DDE.C0=[1 0 0; 0 1 0;0 0 0]; DDE.C{1}=[0 0 0;0 0 0;0 0 0];             % MMP, 11/19/2026 (was)
-%  DDE.C1=[1 0 0; 0 1 0;0 0 0]; DDE.C1i{1}=[0 0 0;0 0 0;0 0 0];             % MMP, 11/19/2026
+% %  DDE.Adi{1}=[0 kM*aM 0; 0 0 0; 0 0 0];                                  % MMP, 11/21/2026 (was)
+%  DDE.Ai{1}=[0 kM*aM 0; 0 0 0; 0 0 0];                                     % MMP, 11/21/2026
+% % [5] has the discrete delay x2(t-tau): kappa m' + m = k theta(t-tau0),   % MMP, 11/21/2026
+% % eq. (6.7) of Mazanti, Boussaada, Niculescu, arXiv 2002.06128: hence     % MMP, 11/21/2026
+% % Ai{1}, a discrete delay, not Adi{1}, a distributed delay.               % MMP, 11/21/2026
+% % Regulated output z = [x1; x2; .1u] (DDE.C1, C1i, D11, D12). Neither     % MMP, 11/21/2026
+% % [5] nor arXiv 1806.08071 ([4]) defines z for this model; the choice     % MMP, 11/21/2026
+% % follows the examples of [4], z = [x; .1u].                              % MMP, 11/21/2026
+% %  DDE.C0=[1 0 0; 0 1 0;0 0 0]; DDE.C{1}=[0 0 0;0 0 0;0 0 0];             % MMP, 11/21/2026 (was)
+%  DDE.C1=[1 0 0; 0 1 0;0 0 0]; DDE.C1i{1}=[0 0 0;0 0 0;0 0 0];             % MMP, 11/21/2026
 %  DDE.B2=[0;0;wM^2]; %B in paper
 %  DDE.B1=[1 0;0 0;0 10]; % D in paper
 %  DDE.tau(1)=.33;
-% %  DDE.D1=[0 0;0 0;0 0];                                                  % MMP, 11/19/2026 (was)
-%  DDE.D11=[0 0;0 0;0 0];                                                   % MMP, 11/19/2026
-% %  DDE.D2=[0;0;.1];                                                       % MMP, 11/19/2026 (was)
-%  DDE.D12=[0;0;.1];                                                        % MMP, 11/19/2026
+% %  DDE.D1=[0 0;0 0;0 0];                                                  % MMP, 11/21/2026 (was)
+%  DDE.D11=[0 0;0 0;0 0];                                                   % MMP, 11/21/2026
+% %  DDE.D2=[0;0;.1];                                                       % MMP, 11/21/2026 (was)
+%  DDE.D12=[0;0;.1];                                                        % MMP, 11/21/2026
 % % st: the stripped tier, with lower-integral s-length 0; upper-integral
 % %   s-length 0; theta-lengths [1;2;2] (multiplier; upper; lower integral);
 % %   slack lift degree at its minimum; free operators of multiplier
 % %   degree 0, integral degree 2; slack weight raise 0 (dw_P)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
-% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/21/2026
 % % %  % C=[0 10]
 
 
@@ -591,13 +549,13 @@
 % %   s-length 1; theta-lengths [2;2;1] (multiplier; upper; lower integral);
 % %   slack lift degree at its minimum; free operators of multiplier
 % %   degree 0, integral degree 2; slack weight raise 0 (dw_P)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
-% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;2;1];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/21/2026
 % % % %%%% answer - .2357
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -614,11 +572,11 @@
    % %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at
    % %   its minimum; free operators of multiplier degree 0, integral
    % %   degree 2
-   % st = lpisettings_sop('stripped');                                      % MMP, 11/19/2026
-   % st.lpi.pos.len_com{1} = 1;                                             % MMP, 11/19/2026
-   % st.lpi.pos.len_sos{1} = [2;1;2];                                       % MMP, 11/19/2026
-   % st.lpi.ineq.dD = 0;                                                    % MMP, 11/19/2026
-   % st.lpi.var.deg{1} = [0 2 2];                                           % MMP, 11/19/2026
+   % st = lpisettings_sop('stripped');                                      % MMP, 11/21/2026
+   % st.lpi.pos.len_com{1} = 1;                                             % MMP, 11/21/2026
+   % st.lpi.pos.len_sos{1} = [2;1;2];                                       % MMP, 11/21/2026
+   % st.lpi.ineq.dD = 0;                                                    % MMP, 11/21/2026
+   % st.lpi.var.deg{1} = [0 2 2];                                           % MMP, 11/21/2026
 % %%%% answer - 2.327
 
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -636,12 +594,12 @@
 % %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
 % %   minimum; free operators of multiplier degree 0, integral degree 2;
 % %   slack weight raise 0 (dw_P)
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
-% st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
+% st.sop.dw_P = 0;                                                          % MMP, 11/21/2026
 % %%%% answer - 1.3501
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example 1 from [10]
@@ -656,11 +614,11 @@
 % % st: the stripped tier, with upper-integral s-length 1; theta-lengths
 % %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
 % %   minimum; free operators of multiplier degree 0, integral degree 2
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/21/2026
 
 % % %%%% answer - 1.808
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -678,9 +636,9 @@
 %    DDE.tau(1)=.3; DDE.tau(2)=.5;
 % % st: the stripped tier, with slack lift degree at its minimum; free
 % %   operators of multiplier degree 1, integral degree 2
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
-% st.lpi.var.deg{1} = [1 2 2];                                              % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% st.lpi.var.deg{1} = [1 2 2];                                              % MMP, 11/21/2026
 % %
 
 
@@ -700,9 +658,9 @@
 % DDE.tau = tau;
 % % st: the stripped tier, with theta-lengths [0;2;2] (multiplier; upper;
 % %   lower integral); slack lift degree at its minimum
-% st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
-% st.lpi.pos.len_sos{1} = [0;2;2];                                          % MMP, 11/19/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+% st = lpisettings_sop('stripped');                                         % MMP, 11/21/2026
+% st.lpi.pos.len_sos{1} = [0;2;2];                                          % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
 % % %%%% answer - 3.6724
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example 2b from [13]
@@ -728,9 +686,9 @@ DDE.C1=[1 1 1];
 DDE.tau=[pi/10 1];
 % st: the stripped tier, with theta-lengths [0;2;1] (multiplier; upper;
 %   lower integral); slack lift degree at its minimum
-st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/19/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/21/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
 % % % %%%% answer - 3.8307
 
 

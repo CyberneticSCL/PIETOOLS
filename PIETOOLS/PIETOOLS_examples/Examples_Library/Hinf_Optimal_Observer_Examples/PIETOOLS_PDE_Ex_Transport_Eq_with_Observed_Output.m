@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params)  % MMP, 11/19/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_TRANSPORT_EQ_WITH_OBSERVED_OUTPUT(GUI,
@@ -20,8 +20,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GU
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Example 1D transport:
@@ -59,12 +59,11 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GU
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: third output st, the
+%   recommended settings of the H-infinity optimal estimator synthesis;
+%   help revised (disturbance term corrected to the w(t) of the code),
+%   license added.
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -143,14 +142,14 @@ if GUI
     end
 end
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (extreme tier; 1-D storage from the multiplier only, theta-length 1;
 % free operators of degree 0 in the multiplier and 0, 2 in the integral
 % kernels (output, integration variable); no slack weight raise of the
 % synthesis LPI)
-st = lpisettings_sop('extreme');                                            % MMP, 11/19/2026
-st.lpi.pos.len_sos{1} = [1;0;0];                                            % MMP, 11/19/2026
-st.lpi.var.deg{1} = [0 2 0];                                                % MMP, 11/19/2026
-st.sop.dw_P = 0;                                                            % MMP, 11/19/2026
+st = lpisettings_sop('extreme');                                            % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [1;0;0];                                            % MMP, 11/21/2026
+st.lpi.var.deg{1} = [0 2 0];                                                % MMP, 11/21/2026
+st.sop.dw_P = 0;                                                            % MMP, 11/21/2026
 
 end

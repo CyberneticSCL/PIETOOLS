@@ -1,4 +1,4 @@
-function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params) % MMP, 11/19/2026
+function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params) % MMP, 11/21/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,ST] = PIETOOLS_PDE_EX_2D_REACTIONDIFFUSION_DDDN(GUI,PARAMS)
@@ -18,8 +18,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params) % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/19/2026
-%               for the tests this file names                               % MMP, 11/19/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+%               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
 % % Reaction-diffusion input-output-PDE with 
@@ -65,12 +65,10 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params) % MM
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/02/2024
-% MMP, 11/19/2026: Output st, the example-specific settings, and the form
-%                   of its tests named in the workspace (stability_form,
-%                   Hinf_gain_form, H2_norm_form), from the search of
-%                   11/19/2026 (maintainer: no default settings);
-% function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params)  % MMP, 11/19/2026 (was)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
+%   recommended settings of the H-infinity gain test; Hinf_gain_form = 'P'
+%   set in the base workspace; help revised, license added.
+% function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params)  % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -82,7 +80,7 @@ pvar s1 s2
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;');
-evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/19/2026
+evalin('base','Hinf_gain_form = ''P'';');  % form of the gain test          % MMP, 11/21/2026
 %evalin('base','Hinf_gain_dual = 1;');
 
 % Default parameters, overridden by the assignment strings in params
@@ -134,13 +132,13 @@ PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+w;
 % PDE_t.BC{2}.term{1}.loc = [a,s2];      PDE_t.BC{4}.term{1}.loc = [b,s2];
 
 
-% Example-specific settings                                                 % MMP, 11/19/2026
+% Example-specific settings                                                 % MMP, 11/21/2026
 % (heavy tier; storage on the 2-D space with theta-lengths [2 2] for the
 % multiplier and [1 0] for the integral, so no integral in s2; slack
 % weight raise of the gain LPI 1)
-st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
-st.lpi.pos.len_sos{2} = [2 2;1 0;0 0];                                      % MMP, 11/19/2026
-st.sop.dw_P = 1;                                                            % MMP, 11/19/2026
+st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st.lpi.pos.len_sos{2} = [2 2;1 0;0 0];                                      % MMP, 11/21/2026
+st.sop.dw_P = 1;                                                            % MMP, 11/21/2026
 
 % No GUI representation of this system
 if GUI~=0
