@@ -1,6 +1,8 @@
 function P = subsasgn(P,S)
-% P = SUBSASGN(P,S) throws an error: a 'quadPoly' object cannot be
-% modified by assignment; a new object is declared with the constructor.
+% P = SUBSASGN(P,S) is not a method of 'quadPoly': MATLAB names a method
+% after its file, so this file defines the method subsasgn_1, and an
+% assignment such as P.dim = [m,n] uses the built-in subsasgn and sets the
+% property without a check. Called as subsasgn_1(P,S), it throws an error.
 %
 % INPUT
 % - P:      'quadPoly' object;

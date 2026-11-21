@@ -43,6 +43,8 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 12/15/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: startup.m is closed in both branches; it stayed open when
+%                   it already held the line "tbxmanager restorepath".
 
 % Clear the command window and print the title.
 clc;
@@ -202,9 +204,10 @@ filestrings = fileread(p);
 pathexist = contains(filestrings,'tbxmanager restorepath');
 if ~pathexist
     fprintf(fid,'tbxmanager restorepath\n');
-    fclose(fid);
+%     fclose(fid);                                                          % MMP, 11/21/2026 (was)
     disp('File has been created.');
 end
+fclose(fid);    % also when startup.m already holds the line                % MMP, 11/21/2026
 
 % Download SeDuMi
 disp(' ');

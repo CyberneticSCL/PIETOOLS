@@ -3,8 +3,8 @@
 % path for future sessions. Don't move this file!
 %
 % INPUT
-% - none; the current folder (pwd) must be the PIETOOLS folder: the script
-%   adds pwd and all its subfolders.
+% - none; the script adds the folder of this file and all its subfolders,
+%   whatever the current folder.
 %
 % OUTPUT
 % - none; the MATLAB path of the current session is extended.
@@ -34,7 +34,11 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 01/06/2025
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Add the folder of this file, not pwd: called by name from
+%                   another folder, the script added that folder tree and no
+%                   PIETOOLS folder.
 
-% Add the current folder and all its subfolders to the path.
-current_folder = pwd; 
+% Add the folder of this file and all its subfolders to the path.           % MMP, 11/21/2026
+% current_folder = pwd;                                                     % MMP, 11/21/2026 (was)
+current_folder = fileparts(mfilename('fullpath'));                          % MMP, 11/21/2026
 addpath(genpath(current_folder));

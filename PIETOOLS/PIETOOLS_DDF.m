@@ -110,6 +110,9 @@
 %                   of 11/12/2026 (sep = 1) holds for a stock-format lpi.pos
 %                   only.
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: sosineq_on = 0 removed: no executive reads it, and as a
+%                   workspace variable it set use_sosineq of every later
+%                   settings_2d_stock call to 0.
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -269,7 +272,8 @@ examples_NDSDDF_library_PIETOOLS
 % 'stripped' sacrifices accuracy
 %
 % 'extreme' is often infeasible
-sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
+% No sosineq_on: no executive reads it; settings_2d_stock would.            % MMP, 11/21/2026
+% sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint % MMP, 11/21/2026 (was)
 % settings = lpisettings('light');                                          % MMP, 11/04/2026 (was)
 settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/04/2026
 

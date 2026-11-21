@@ -494,7 +494,7 @@ function Z = zeroKernelLike(Klike)
     d_out = quadPoly_basisSize(Klike.Zs);
     d_in  = quadPoly_basisSize(Klike.Zt);
 
-    Z = quadPoly();
+    Z = quadPoly(0);    % the constructor takes 1 or 6 inputs; properties set below
     Z.Zs = Klike.Zs; Z.ns = Klike.ns;
     Z.Zt = Klike.Zt; Z.nt = Klike.nt;
     Z.dim = [m m];

@@ -67,6 +67,9 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturban
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: The SeDuMi warning names the tier that certifies: SeDuMi
+%                   certifies the gain at light, heavy and veryheavy, not at
+%                   the settings st, which are tuned for MOSEK.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -146,7 +149,8 @@ if GUI
         disp("Failed to load data object. Incorrect structure");
     end
 end
-disp('Warning: With sedumi solver, this example requires at least settings veryheavy.')
+% disp('Warning: With sedumi solver, this example requires at least settings veryheavy.') % MMP, 11/21/2026 (was)
+disp('Warning: with SeDuMi, the settings st do not certify the gain; lpisettings_sop(''light'') does.') % MMP, 11/21/2026
 % Example-specific settings                                                 % MMP, 11/19/2026
 % (light tier; slack lift degree at its minimum Dmin; slack integral bases
 % capped at total degree theta+s <= Dmax-1)

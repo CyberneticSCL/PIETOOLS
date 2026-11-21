@@ -6,8 +6,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % 
 % disturbance w, regulated output z and measured output y, as a
 % 'pde_struct' object, and the recommended settings ST of its H2 optimal
 % estimator synthesis. It sets H2_estimator = 1 in the base workspace;
-% PARAMS is not used. With GUI = 1 it loads a GUI save file into a new
-% PIETOOLS_PDE_GUI window.
+% PARAMS is not used. A nonzero GUI raises an error (no GUI file exists
+% for this example).
 %
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
@@ -55,7 +55,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % 
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding DJ - 08/18/2022
+% Initial coding DB - 01/06/2025
 % MMP, 11/19/2026: Output st, the example-specific settings, and the form
 %                   of its tests named in the workspace (stability_form,
 %                   Hinf_gain_form, H2_norm_form), from the search of
@@ -64,6 +64,11 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % 
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % MMP, 11/20/2026: st.sop.deg_Q removed: only the stability executive reads
 %   it, and this example names the H2 estimator synthesis.
+% MMP, 11/21/2026: A nonzero GUI raises an error, as in the _Control example:
+%                   it loaded the GUI file of the Euler-Bernoulli beam example,
+%                   another PDE, from a folder that does not hold it. The
+%                   Initial coding line of 11/20/2026 named DJ; the file is by
+%                   DB (01/06/2025).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -85,12 +90,13 @@ PDE_t = [diff(x,t)==3*x+(s^2+0.2)*diff(x,s,2)-0.5*s^2*w; subs(x,s,0)==0; subs(di
          z==int(x,s,[0,1]); y==subs(x,s,1)+w];
 if GUI
     %%% Associated GUI save file
-    app = PIETOOLS_PDE_GUI;
-    load(fullfile(root,'PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq_GUI.mat'));
-    logval = app.loadData(data);
-    if logval
-        disp("Failed to load data object. Incorrect structure");
-    end
+%     app = PIETOOLS_PDE_GUI;                                               % MMP, 11/21/2026 (was)
+%     load(fullfile(root,'PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq_GUI.mat')); % MMP, 11/21/2026 (was)
+%     logval = app.loadData(data);                                          % MMP, 11/21/2026 (was)
+%     if logval                                                             % MMP, 11/21/2026 (was)
+%         disp("Failed to load data object. Incorrect structure");          % MMP, 11/21/2026 (was)
+%     end                                                                   % MMP, 11/21/2026 (was)
+    error("No GUI file associated with this example");                      % MMP, 11/21/2026
 end
 
 % Example-specific settings                                                 % MMP, 11/19/2026

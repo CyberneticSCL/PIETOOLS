@@ -69,6 +69,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,pa
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params)  % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: The warning that SeDuMi needs the settings veryheavy is
+%                   removed: SeDuMi certifies the gain at the settings st.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -146,7 +148,7 @@ if GUI
         disp("Failed to load data object. Incorrect structure");
     end
 end
-disp('Warning: With sedumi solver, this example requires at least settings veryheavy.')
+% disp('Warning: With sedumi solver, this example requires at least settings veryheavy.') % MMP, 11/21/2026 (was)
 % Example-specific settings                                                 % MMP, 11/19/2026
 % (stripped tier; 1-D storage with the basis operators a (multiplier) and
 % b (upper integral) only, pattern 'separable')

@@ -75,6 +75,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 %                   of 11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: The GUI file PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das_GUI.mat
+%                   now stores -Bxr, as PDE_t and PDE_b: the entry of
+%                   11/19/2026 changed the code only, so GUI = 1 loaded the
+%                   +Bxr system, unstable at the default lam.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
