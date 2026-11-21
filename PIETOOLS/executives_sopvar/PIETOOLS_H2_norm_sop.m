@@ -25,7 +25,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
 % boundary conditions): in 'o' and 'oco' the block of the negativity
 % condition on the state carries + K'*Z + Z'*K, with Z a free operator,
-% which vanishes on ker K; 'c' and 'cco' are posed as 'o' and 'oco'.
+% which vanishes on ker K; 'c' and 'cco', which have no term for K, are     % MMP, 11/21/2026
+% then errors, never replaced by another form.                              % MMP, 11/21/2026
 % Constraints involving the input w (Kw nonzero) are not supported.
 %
 % INPUT
@@ -103,6 +104,12 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/28/2026
+% MMP, 11/21/2026: with K, 'c' and 'cco' are errors, where they were
+%                replaced by 'o' and 'oco' without a message: each form
+%                certifies its own bound (maintainer, 11/21: "there should
+%                NEVER be a swap"). The programs of the admitted forms are
+%                unchanged. Help text before: "which vanishes on ker K; 'c'
+%                and 'cco' are posed as 'o' and 'oco'."
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -124,14 +131,19 @@ if ~any(strcmp(form,{'c','o','cco','oco'}))
     error('PIETOOLS_H2_norm_sop:form','FORM should be ''c'', ''o'', ''cco'' or ''oco''.');
 end
 % The constraint K x = 0 on the state, if any (empty for most PIEs). 'c'
-% and 'cco' have no term for it: posed as 'o' and 'oco'
+% % and 'cco' have no term for it: posed as 'o' and 'oco'                   % MMP, 11/21/2026 (was)
+% and 'cco' have no term for it: an error                                   % MMP, 11/21/2026
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
 if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_H2_norm_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
 end
-if hasK && strcmp(form,'c'),    form = 'o';     end
-if hasK && strcmp(form,'cco'),  form = 'oco';   end
+% if hasK && strcmp(form,'c'),    form = 'o';     end                       % MMP, 11/21/2026 (was)
+% if hasK && strcmp(form,'cco'),  form = 'oco';   end                       % MMP, 11/21/2026 (was)
+if hasK && any(strcmp(form,{'c','cco'}))                                    % MMP, 11/21/2026
+    error('PIETOOLS_H2_norm_sop:formK',['PIE.K is nonempty (the state satisfies K x = 0), ', ...
+        'for which form ''%s'' has no term; use ''o'' or ''oco''.'],form);  % MMP, 11/21/2026
+end                                                                         % MMP, 11/21/2026
 qform = any(strcmp(form,{'c','o'}));
 
 % Degree raise of the slacks and the margins

@@ -23,8 +23,9 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % ||T x(t)|| <= M exp(-epneg t) ||T x(0)|| for some M > 0. The forms 'FP', 'FQ' test finite
 % energy, int_0^inf ||T x(t)||^2 dt <= C ||T x(0)||^2 for some C > 0, and
 % need epneg > 0. 'Q' is posed in every dimension, eppos2 the least L2
-% margin; 'Qd' and 'FQ' exist in 1-D only, and for a PIE in two or more
-% variables are posed as 'Pd' and 'FP'. While the solver
+% margin; 'Qd' and 'FQ' with the declared storage P in 1-D, and in two or   % MMP, 11/21/2026
+% more variables as 'Q' is, with Q free of the shape of T' ('Qd': the LPI   % MMP, 11/21/2026
+% of 'Q' on the pair (T',A')) or of T ('FQ'). While the solver              % MMP, 11/21/2026
 % returns UNKNOWN or INFEASIBLE, the program is rebuilt with the degree of
 % the negativity slack raised by one, up to settings.sop.max_raise_feas (its
 % entry for the dimension of the PIE, the last entry for a higher one; or
@@ -34,7 +35,8 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % boundary conditions), and the negativity condition of 'P', 'Q', 'FP' and
 % 'FQ' carries + K'*Z + Z'*K, with Z a free operator, which vanishes on
 % ker K: the condition is imposed on ker K only. 'Pd' and 'Qd' are then
-% posed as 'P' and 'Q': without K they are not sufficient for stability.
+% errors: they test the PIE without K, which is not sufficient for stability. % MMP, 11/21/2026
+% No form is ever replaced by another.                                      % MMP, 11/21/2026
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
@@ -112,6 +114,21 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/28/2026
+% MMP, 11/21/2026: 'Qd' and 'FQ' are posed in two or more variables, in the
+%                direct form of 'Q' (Q free; for 'Qd' the LPI of 'Q' on the
+%                pair (T',A'); for 'FQ' P >= 0 and the decay term
+%                2*epneg*T'*T). They were replaced by 'Pd' and 'FP' without
+%                a message, so a request for either ran another LPI
+%                (maintainer, 11/21: a bug). 1-D unchanged. With K, 'Pd' and
+%                'Qd' are now errors in place of their replacement by 'P'
+%                and 'Q': a form certifies its own notion of stability, and
+%                the executive never poses a form other than FORM
+%                (maintainer, 11/21: "there should NEVER be a swap").
+%                Help text before: "'Qd' and
+%                'FQ' exist in 1-D only, and for a PIE in two or more
+%                variables are posed as 'Pd' and 'FP'." and "'Pd' and 'Qd'
+%                are then posed as 'P' and 'Q': without K they are not
+%                sufficient for stability."
 
 % Default settings and form, by the dimension of the PIE
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -141,15 +158,25 @@ st.sop = tl.sop;    % the options of this dimension
 if ~any(strcmp(form,{'P','Pd','Q','Qd','FP','FQ'}))
     error('PIETOOLS_stability_sop:form','FORM should be ''P'', ''Pd'', ''Q'', ''Qd'', ''FP'' or ''FQ''.');
 end
-% 'Q' is posed in every dimension; 'Qd' and 'FQ' in 1-D only
-if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end
-if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end
+% % 'Q' is posed in every dimension; 'Qd' and 'FQ' in 1-D only              % MMP, 11/21/2026 (was)
+% if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end                       % MMP, 11/21/2026 (was)
+% if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end                       % MMP, 11/21/2026 (was)
 % The constraint K x = 0 on the state, if any (empty for most PIEs)
 Km = PIE.K;     hasK = isa(Km,'copvar') && size(Km,1)>0;
 % The dual forms test the PIE without K, which is not sufficient for
-% stability: with K, 'Pd' and 'Qd' are posed as 'P' and 'Q'
-if hasK && strcmp(form,'Pd'),   form = 'P';     end
-if hasK && strcmp(form,'Qd'),   form = 'Q';     end
+% % stability: with K, 'Pd' and 'Qd' are posed as 'P' and 'Q'               % MMP, 11/21/2026 (was)
+% stability: with K, 'Pd' and 'Qd' are errors (another form would certify   % MMP, 11/21/2026
+% another notion of stability)                                              % MMP, 11/21/2026
+% if hasK && strcmp(form,'Pd'),   form = 'P';     end                       % MMP, 11/21/2026 (was)
+% if hasK && strcmp(form,'Qd'),   form = 'Q';     end                       % MMP, 11/21/2026 (was)
+if hasK && any(strcmp(form,{'Pd','Qd'}))                                    % MMP, 11/21/2026
+    error('PIETOOLS_stability_sop:formK',['PIE.K is nonempty (the state satisfies K x = 0), ', ...
+        'which the dual form ''%s'' does not test; use ''P'' or ''Q''.'],form); % MMP, 11/21/2026
+end                                                                         % MMP, 11/21/2026
+% 'Qd' and 'FQ' in two or more variables: the direct form of 'Q', Q free    % MMP, 11/21/2026
+% with the storage T'*Q (T*Q for 'Qd', the LPI of 'Q' on (T',A')); in 1-D   % MMP, 11/21/2026
+% the declared storage P with T'*Q = P (T*Q = P)                            % MMP, 11/21/2026
+dq = nv>=2 && any(strcmp(form,{'Qd','FQ'}));                                % MMP, 11/21/2026
 coercive = any(strcmp(form,{'P','Pd','FP'}));   % 'FP' sizes its slack as 'P'
 
 % Degree raise of the slack, margins of P and the decay term
@@ -159,7 +186,8 @@ if ~isempty(st.sop.dw_feas),    dwbase = st.sop.dw_feas(min(nv,end));  end
 % by construction; dw_feas, dw_P and dw_Q are allowances for slacks sized
 % like the storage, so the base is 0 and the raise loop adds (base 1 in
 % two variables gave 2 to 5 times the variables)
-if strcmp(form,'Q'),    dwbase = 0;     end
+% if strcmp(form,'Q'),    dwbase = 0;     end                               % MMP, 11/21/2026 (was)
+if strcmp(form,'Q') || dq,  dwbase = 0;     end     % every direct form     % MMP, 11/21/2026
 eppos = tl.eppos;   epneg = tl.epneg;
 if ~isempty(st.sop.eppos_stab),     eppos(:) = st.sop.eppos_stab;   end
 if ~isempty(st.sop.max_raise_feas)
@@ -167,7 +195,8 @@ if ~isempty(st.sop.max_raise_feas)
 end
 % The direct form: its own raise count and the degrees of Q; the storage
 % form keeps max_raise_feas, and lpi.var.deg stays with the synthesis LPIs
-if strcmp(form,'Q') && ~isempty(st.sop.max_raise_Q)
+% if strcmp(form,'Q') && ~isempty(st.sop.max_raise_Q)                       % MMP, 11/21/2026 (was)
+if (strcmp(form,'Q') || dq) && ~isempty(st.sop.max_raise_Q)                 % MMP, 11/21/2026
     st.sop.max_raise = st.sop.max_raise_Q;      % already the entry of this dimension
 end
 qdeg = st.sop.deg_Q;    if isempty(qdeg),   qdeg = st.lpi.var.deg;  end
@@ -181,6 +210,9 @@ end
 
 % The PIE operators, 'copvar' objects
 Tm = PIE.T;     Am = PIE.A;
+% 'Qd' in two or more variables: 'Q' on the dual pair, since (T')'*Q = T*Q  % MMP, 11/21/2026
+% and (A')'*Q + Q'*A' = A*Q + Q'*A'                                         % MMP, 11/21/2026
+if dq && strcmp(form,'Qd'),  Tm = Tm';  Am = Am';  end                      % MMP, 11/21/2026
 
 % Build and solve, raising the slack degree while the solver returns
 % UNKNOWN or INFEASIBLE
@@ -229,12 +261,16 @@ end
         % slack weight ('slack', 'both') and the first entry of deg_Q
         % ('deg', 'both'); the other forms raise the slack weight
         dws = dw;   dwq = 0;
-        if strcmp(form,'Q')
+%       if strcmp(form,'Q')                                                 % MMP, 11/21/2026 (was)
+        if strcmp(form,'Q') || dq                                           % MMP, 11/21/2026
             if strcmp(st.sop.raise_Q,'deg'),    dws = 0;    end
             if ~strcmp(st.sop.raise_Q,'slack'), dwq = dw;   end
         end
         % The positive operator P and the derivative operator Dm of FORM
-        switch form
+        % (the direct 'Qd' and 'FQ' run the code of 'Q')                    % MMP, 11/21/2026
+        fq = form;  if dq,  fq = 'Q';  end                                  % MMP, 11/21/2026
+%       switch form                                                         % MMP, 11/21/2026 (was)
+        switch fq                                                           % MMP, 11/21/2026
             case 'P'
                 [prog,Pm] = tl.storage(prog,Tm,'out');
                 if ~all(eppos==0),  Pm = Pm + tl.eye(1,eppos);  end
@@ -249,6 +285,8 @@ end
                 % The direct form: Q free with the shape of T, its degrees
                 % deg_Q (the entry for the number of variables of the PIE)
                 % on every block, the first entry raised by the ladder
+                % Also 'Qd' (T, A their adjoints, set above) and 'FQ' in    % MMP, 11/21/2026
+                % two or more variables                                     % MMP, 11/21/2026
                 q = qdeg;   if isnumeric(q),   q(1) = q(1) + dwq;   end
                 [prog,Qm] = lpivar_cdopvar(prog,Tm,q);   % deg_Q + ladder
                 % T'*Q self-adjoint; P its symmetric part, = T'*Q on the
@@ -260,9 +298,16 @@ end
                 % like P = T'*Q, the lift degree misses the support of
                 % A'*Q + Q'*A
                 o = struct('dw',dwbase+dws,'margin',st.sop.margin,'cap',tl.capfor(Pm));
-                prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o);
+%               prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026 (was)
+                if fe       % 'FQ': P >= 0, no margin                       % MMP, 11/21/2026
+                    prog = lpi_ineq_sop(prog,Pm,o);                         % MMP, 11/21/2026
+                else                                                        % MMP, 11/21/2026
+                    prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026
+                end                                                         % MMP, 11/21/2026
                 Dm = Am'*Qm + Qm'*Am;
-                if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end
+%               if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/21/2026 (was)
+                if fe,  Dm = Dm + epfac*epneg*(Tm'*Tm);     % 'FQ': decay on T'*T % MMP, 11/21/2026
+                elseif epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end         % MMP, 11/21/2026
             case 'Qd'
                 [prog,Pm] = tl.storage(prog,Tm,'out');
                 Pm = Pm + eppos(2)*(Tm*Tm');
@@ -302,7 +347,8 @@ end
             o = struct('like',Pm,'dw',dwbase+dws,'margin',st.sop.margin,'cap',tl.capfor(Dm));
             % 'Q': sized from the support of Dm itself, not like the
             % generalized storage T'*Q
-            if strcmp(form,'Q'),    o = rmfield(o,'like');  end
+%           if strcmp(form,'Q'),    o = rmfield(o,'like');  end             % MMP, 11/21/2026 (was)
+            if strcmp(form,'Q') || dq,  o = rmfield(o,'like');  end         % MMP, 11/21/2026
             [prog,Nm,li] = lpi_ineq_sop(prog,-Dm,o);
         end
         aux = struct('obj',[],'Pm',Pm,'Dm',Dm,'Nm',Nm,'li',li,'form',form);

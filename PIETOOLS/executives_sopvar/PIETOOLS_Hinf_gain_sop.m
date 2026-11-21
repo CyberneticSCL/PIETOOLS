@@ -19,8 +19,9 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %   'Pd'  R >= eppos I,
 %         [-gam I, D11, C1*R*T'; D11', -gam I, B1'; T*R*C1', B1, T*R*A' + A*R*T'] <= 0.
 %
-% 'Q' is posed as 'P' when Tw is nonzero; 'Qd' and 'Pd' require Tw = 0; in
-% two or more variables, 'Qd' is posed as 'Pd'. In 'Pd', settings without
+% 'Q', 'Qd' and 'Pd' require Tw = 0; every form is posed in every dimension. % MMP, 11/21/2026
+% A form the PIE does not admit is an error, never replaced by another      % MMP, 11/21/2026
+% (each form certifies its own bound). In 'Pd', settings without            % MMP, 11/21/2026
 % eppos give R the margin 1e-4 on R^n and 1e-6 on the space in every
 % variable, 0 on the other spaces. While the solver returns UNKNOWN or
 % INFEASIBLE, the program is rebuilt with the degree of the negativity
@@ -29,7 +30,7 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
 % boundary conditions): in 'Q' and 'P' the block of the KYP operator on the
 % state carries + K'*Z + Z'*K, with Z a free operator, which vanishes on
-% ker K; 'Qd' and 'Pd' are posed as 'Q' and 'P'.
+% ker K; 'Qd' and 'Pd', which have no term for K, are then errors.          % MMP, 11/21/2026
 % Constraints involving the input w (Kw nonzero) are not supported.
 %
 % INPUT
@@ -112,6 +113,19 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
+% MMP, 11/21/2026: a form the PIE does not admit is an error, where it was
+%                replaced by another: with K, 'Qd' and 'Pd' (were 'Q' and
+%                'P'); 'Q' with Tw nonzero (was 'P', in the label only):
+%                'Q' has no Tw terms, and the duals none for K (with K the
+%                dual stability LPI certified unstable PIEs, 11/07). 'Qd' is
+%                posed in two or more variables (was replaced by 'Pd'): its
+%                code reads the spaces of T. Each form certifies its own
+%                bound, so a replacement answered another question
+%                (maintainer, 11/21: "there should NEVER be a swap").
+%                Help text before: "'Q' is posed as 'P' when Tw is nonzero;
+%                'Qd' and 'Pd' require Tw = 0; in two or more variables,
+%                'Qd' is posed as 'Pd'. In 'Pd', settings without" and "ker
+%                K; 'Qd' and 'Pd' are posed as 'Q' and 'P'."
 
 % Default settings, form and fixed gain
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -135,22 +149,32 @@ if nv>=2 && ~Tw0 && ~(PIE.B1==0)
     error('PIETOOLS_Hinf_gain_sop:TwB','The PIE takes both the input w and its derivative dw/dt; not supported in two or more variables.');
 end
 % The constraint K x = 0 on the state, if any (empty for most PIEs). The
-% dual forms have no term for it: posed as the primal ones
+% % dual forms have no term for it: posed as the primal ones                % MMP, 11/21/2026 (was)
+% dual forms have no term for it: an error                                  % MMP, 11/21/2026
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
 if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_Hinf_gain_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
 end
-if hasK && strcmp(form,'Qd'),   form = 'Q';     end
-if hasK && strcmp(form,'Pd'),   form = 'P';     end
+% if hasK && strcmp(form,'Qd'),   form = 'Q';     end                       % MMP, 11/21/2026 (was)
+% if hasK && strcmp(form,'Pd'),   form = 'P';     end                       % MMP, 11/21/2026 (was)
+if hasK && any(strcmp(form,{'Qd','Pd'}))                                    % MMP, 11/21/2026
+    error('PIETOOLS_Hinf_gain_sop:formK',['PIE.K is nonempty (the state satisfies K x = 0), ', ...
+        'for which the dual form ''%s'' has no term; use ''Q'' or ''P''.'],form); % MMP, 11/21/2026
+end                                                                         % MMP, 11/21/2026
 switch form
     case 'Q'
-        if ~Tw0,    form = 'P';     label = [label ' -> P (Tw ~= 0)'];   end
+%       if ~Tw0,    form = 'P';     label = [label ' -> P (Tw ~= 0)'];   end % MMP, 11/21/2026 (was)
+        if ~Tw0     % 'Q' has no term for a boundary disturbance: an error  % MMP, 11/21/2026
+            error('PIETOOLS_Hinf_gain_sop:formTw',['PIE.Tw is nonzero (a disturbance at the boundary), ', ...
+                'for which form ''Q'' has no term; use ''P''.']);           % MMP, 11/21/2026
+        end                                                                 % MMP, 11/21/2026
     case {'Qd','Pd'}
         if ~Tw0
             error('PIETOOLS_Hinf_gain_sop:Tw','The dual LPIs cannot be solved for systems with disturbances at the boundary.');
         end
-        if strcmp(form,'Qd') && nv>=2,  form = 'Pd';    end     % no N-D Qd form
+%       if strcmp(form,'Qd') && nv>=2,  form = 'Pd';    end     % no N-D Qd form % MMP, 11/21/2026 (was)
+        % 'Qd' is posed in every dimension: its code reads the spaces of T  % MMP, 11/21/2026
     case 'P'
     otherwise
         error('PIETOOLS_Hinf_gain_sop:form','FORM should be ''Q'', ''Qd'', ''P'' or ''Pd''.');
