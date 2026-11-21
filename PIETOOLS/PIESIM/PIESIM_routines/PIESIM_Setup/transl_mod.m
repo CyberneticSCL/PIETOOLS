@@ -54,9 +54,9 @@ function T = transl_mod(T,I)
 %
 % Initial coding MMP, SS  - 1_29_2021
 % DJ, 12/07/2024: Remove hardcoded PI vars.
-% MMP, 11/04/2026: Accept T as a struct of its kernels (pie2piesim), as
-%   PIESIM now passes it; the body only reads and writes fields.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: T may be a 'struct' of
+%   its kernels as well as an 'opvar' (error message revised); the field
+%   T.I is no longer set to I; help and comments revised.
 
 
 if nargin==1
@@ -64,11 +64,11 @@ if nargin==1
 elseif nargin>2
     error("Incorrect number of inputs; only 2 inputs are allowed");
 end
-% if ~isa(T,'opvar')                                                        % MMP, 11/04/2026 (was)
-%     error("First argument must be a opvar class object");                 % MMP, 11/04/2026 (was)
-% A struct of kernels or an opvar: the body reads only fields               % MMP, 11/04/2026
-if ~isa(T,'opvar') && ~isstruct(T)                                          % MMP, 11/04/2026
-    error("First argument must be a struct of kernels or an opvar object"); % MMP, 11/04/2026
+% if ~isa(T,'opvar')                                                        % YP, MMP, 11/21/2026 (was)
+%     error("First argument must be a opvar class object");                 % YP, MMP, 11/21/2026 (was)
+% A struct of kernels or an opvar: the body reads only fields               % YP, MMP, 11/21/2026
+if ~isa(T,'opvar') && ~isstruct(T)                                          % YP, MMP, 11/21/2026
+    error("First argument must be a struct of kernels or an opvar object"); % YP, MMP, 11/21/2026
 end
 if length(I)~=2
     error("Second argument must be an array of length 2");

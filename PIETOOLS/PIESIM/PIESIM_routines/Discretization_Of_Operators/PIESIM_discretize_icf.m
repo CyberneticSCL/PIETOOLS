@@ -24,7 +24,7 @@
 %    finite-dimensional input, the N+1 coefficients of its spatial part
 %    for an input on [a,b]; w = 1 (u = 1) without uinput.wspace
 %    (uinput.uspace))
-% 2) B1_nonpol - contribution to PIE B1 operator arising from non-polyn0mial forcing
+% 2) B1_nonpol - contribution to PIE B1 operator arising from non-polynomial forcing
 %    ([] without uinput.Bpw_nonpol or if nw = 0)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,13 +58,10 @@
 % outputs
 % YP, 6/1/2025: Added functionality to support infinite-dimensional disturbances
 % through parser 
-% YP, 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
-% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
-% MMP, 11/05/2026: No non-polynomial forcing without disturbances (nw=0).
-%   The batch and legacy terms input checks set nw=0 when uinput.w is not
-%   given but keep uinput.Bpw_nonpol with its nw columns, so the sum
-%   Dop.B1cheb+B1_nonpol in PIESIM_discretize_all failed (incompatible sizes).
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: initial conditions read
+%   from the single list uinput.ic (ODE states first, then the PDE states),
+%   not from uinput.ic.PDE and uinput.ic.ODE; psize.n0 replaces psize.no;
+%   no non-polynomial forcing when nw = 0 (B1_nonpol = []).
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
@@ -86,7 +83,7 @@ p = repelem(0:length(psize.n)-1, psize.n);
 % var_f denotes the value of the solution variable of the fundamental
 % states.
 % Define Chebyshev coefficients of initial conditions in the same loop
-% acheb_f den0tes the Chebyshev coefficients of the fundamental states
+% acheb_f denotes the Chebyshev coefficients of the fundamental states
 % Each state vector array coefficients are arranged into a global column
 % vector
 
@@ -114,12 +111,12 @@ end
 coeff.acheb_f0=acheb_f0;
 
 
-% Discretize matrix operator for non-polyn0mial in space forcing
+% Discretize matrix operator for non-polynomial in space forcing
 
-% Bpw_nonpol multiplies w, so nw=0 means no forcing, also when uinput       % MMP, 11/05/2026
-% keeps Bpw_nonpol (nw set to 0 for lack of uinput.w).                      % MMP, 11/05/2026
-% if isfield(uinput,'Bpw_nonpol')                                           % MMP, 11/05/2026 (was)
-if isfield(uinput,'Bpw_nonpol') && nw>0                                     % MMP, 11/05/2026
+% Bpw_nonpol multiplies w, so nw=0 means no forcing, also when uinput       % YP, MMP, 11/21/2026
+% keeps Bpw_nonpol (nw set to 0 for lack of uinput.w).                      % YP, MMP, 11/21/2026
+% if isfield(uinput,'Bpw_nonpol')                                           % YP, MMP, 11/21/2026 (was)
+if isfield(uinput,'Bpw_nonpol') && nw>0                                     % YP, MMP, 11/21/2026
 B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, uinput.Bpw_nonpol, p, gridall);
 else
 B1_nonpol=[];   

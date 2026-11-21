@@ -115,11 +115,13 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % Initial coding YP  - 4_16_2024
 % DJ, 07/17/2024 - Bugfix for extraction of exact solutions;
 % DJ, 01/01/2025 - Change plot specifications;
-% YP, 01/07/2026 - Enable plotting at time=0;
-% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde{1,2,3} into
-% solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
-% solution.timedep.primary{1,2,3,4}
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: solution fields ode, pde
+%   replaced by primary{1,2,3,4} (ODE states; states of s1, of s2, of
+%   (s1,s2)), and observed, regulated are cells with the finite-dimensional
+%   outputs in {1}; psize fields n0, nr0, no0 (were no, nro, noo); grid is a
+%   2x1 cell of the grids in s1 and s2; opts.ifexact replaces
+%   uinput.ifexact; at tf = 0 the final states are plotted (was no plot);
+%   titles show solution.tf; error plot with color bar, font size 22.
 
 syms sx sy;
 

@@ -6,6 +6,9 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding unknown
+% YP, 11/21/2026: Changes since PIETOOLS 2025: spectral-to-nodal transform
+%   of N x M data with N ~= M corrected (the second transform keeps M
+%   values, was N).
 
 function B=fcgltran2d(A,direction)
 % 2D Fast Chebyshev Transform  

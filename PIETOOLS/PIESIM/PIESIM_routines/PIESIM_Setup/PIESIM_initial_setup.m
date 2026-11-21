@@ -64,15 +64,15 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 9_18_2021
-% YP 12/31/2025 - changed disturbance and control inputs specifications to function handles (for
-% both symbolic and double)
-% YP 1/22/2026 - added differentiation of disturbances and control inputs
-% to support inhomogeneous boudnary inputs in 2D
-% YP 2/6/2026 - added corner values for inhomogeneous boudnary inputs in 2D
-% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: 2-D corner values of samples [t; w]: length(w==1) is nonzero
-%   for any input, so [t; w] was scaled, time row included; now row 2 only.
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: new input PIE and output
+%   psize; initial conditions read from the single list uinput.ic (ODE
+%   states first), not uinput.ic.PDE; the temporal part of a separable input
+%   becomes a function handle of t (sym through matlabFunction, constant,
+%   or 2 x m samples [t; w] through a cubic spline, zero outside the sample
+%   times), a non-separable input stays sym; in 2D, corner values of
+%   boundary inputs become finite-dimensional inputs placed first (psize.nw,
+%   nw0, nu, nu0 updated) and the spatial parts of the inputs are
+%   differentiated as the states they enter.
 
 function [uinput,psize]=PIESIM_initial_setup(uinput,psize,PIE,type)
 % Symbolic time and space variables
@@ -177,7 +177,7 @@ end % for i=1:psize.nw
 
 for i=1:idx_shift
     % Do the substitution for corner values
-  % If idx is n0t equal to i, input i must correspond to a corner value
+  % If idx is not equal to i, input i must correspond to a corner value
   idx = find(w_tab(:,1)==w_tab(i,1),1,'last');
   % Determine which variables to use for corner values
   is_bval = logical(w_tab(idx,3:4)-w_tab(i,3:4));
@@ -186,12 +186,10 @@ for i=1:idx_shift
   if (uinput.wsep{idx_parent}) % corner value correponds to a separable disturbance
   corner_value=double(subs(uinput.wspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
   uinput.wspace{i}=[];
-% if (length(uinput.w{i}==1))                                               % MMP, 11/20/2026 (was)
-  if (length(uinput.w{i})==1)  % sym or constant; else samples [t; w]       % MMP, 11/20/2026
+  if (length(uinput.w{i})==1)  % sym or constant; else samples [t; w]       % YP, MMP, 11/21/2026
   uinput.w{i}=corner_value*uinput.w{i};
   else
-% uinput.w{i}(1,:)=corner_value*uinput.w{i}(1,:);                           % MMP, 11/20/2026 (was)
-  uinput.w{i}(2,:)=corner_value*uinput.w{i}(2,:);  % row 1: the times       % MMP, 11/20/2026
+  uinput.w{i}(2,:)=corner_value*uinput.w{i}(2,:);  % row 1: the times       % YP, MMP, 11/21/2026
   end
   else %corner value correponds to a non-separable disturbance
   uinput.w{i}=subs(uinput.w{i},sym_array(is_bval),PIE.dom(is_bval,1));
@@ -244,7 +242,7 @@ end % for i=1:psize.nu
 
 for i=1:idx_shift
     % Do the substitution for corner values
-  % If idx is n0t equal to i, input i must correspond to a corner value
+  % If idx is not equal to i, input i must correspond to a corner value
   idx = find(u_tab(:,1)==u_tab(i,1),1,'last');
   % Determine which variables to use for corner values
   is_bval = logical(u_tab(idx,3:4)-u_tab(i,3:4));
@@ -253,12 +251,10 @@ for i=1:idx_shift
   if (uinput.usep{idx_parent}) % corner value correponds to a separable disturbance
   corner_value=double(subs(uinput.uspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
   uinput.uspace{i}=[];
-% if (length(uinput.u{i}==1))                                               % MMP, 11/20/2026 (was)
-  if (length(uinput.u{i})==1)  % sym or constant; else samples [t; u]       % MMP, 11/20/2026
+  if (length(uinput.u{i})==1)  % sym or constant; else samples [t; u]       % YP, MMP, 11/21/2026
   uinput.u{i}=corner_value*uinput.u{i};
   else
-% uinput.u{i}(1,:)=corner_value*uinput.u{i}(1,:);                           % MMP, 11/20/2026 (was)
-  uinput.u{i}(2,:)=corner_value*uinput.u{i}(2,:);  % row 1: the times       % MMP, 11/20/2026
+  uinput.u{i}(2,:)=corner_value*uinput.u{i}(2,:);  % row 1: the times       % YP, MMP, 11/21/2026
   end
   else %corner value correponds to a non-separable disturbance
   uinput.u{i}=subs(uinput.u{i},sym_array(is_bval),PIE.dom(is_bval,1));
@@ -268,7 +264,7 @@ end % i=1:idx_shift
 
 end % 2D case
 
-end % if n0t PIE
+end % if not PIE
 
 % Setup function handles to boundary inputs and their temporal derivatives
 

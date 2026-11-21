@@ -20,7 +20,7 @@
 %    ('struct' with field tf, the final time)
 % uinput   - user-defined boundary inputs
 %    ('struct' with fields w, wdot, u, udot, the temporal parts of the
-%    inputs, indexed as arrays and symbolic in st)
+%    inputs, cells of function handles of t)
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
 %    ('struct' with fields acheb_f0, w, u)
 % Dop - discretized PIE operators
@@ -60,9 +60,10 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 5_26_2021
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Inputs are handles of t (YP 12/31/2025), evaluated at st;
-%   psize.no (no such field) not read; solcoeff.w, .u returned, as by BDF.
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: the inputs w, wdot, u,
+%   udot are cells of function handles of t, evaluated at st in the
+%   convolution integrals; Dop.Tcheb_inv replaces Dop.Mcheb_inv; psize.no
+%   is not read; solcoeff.w, solcoeff.u are returned.
 
 function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
         % st: time variable of the inputs; tt: upper limit of the
@@ -71,8 +72,8 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
 
         nw=psize.nw;
         nu=psize.nu;
-%       no=psize.no;                                                        % MMP, 11/20/2026 (was)
-        % (unused, and psize has no field 'no')                             % MMP, 11/20/2026
+%       no=psize.no;                                                        % YP, MMP, 11/21/2026 (was)
+        % (unused, and psize has no field 'no')                             % YP, MMP, 11/21/2026
         tf=opts.tf;
         
         % Discretized operators, eigendecomposition and initial
@@ -101,9 +102,9 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
     % Contribution to inhomogeneous term due to boundary disturbances  
              if (isempty(B1cheb)==0&any(B1cheb,'all')~=0)
              for i=1:size(uinput.w,2);      
-             % w{i}, wdot{i}, u{i}, udot{i}: handles of t, evaluated at st  % MMP, 11/20/2026
-%            intsym=int(exp(lambda*(tt-st))*uinput.w(i),st,[0,tt]);         % MMP, 11/20/2026 (was)
-             intsym=int(exp(lambda*(tt-st))*uinput.w{i}(st),st,[0,tt]);     % MMP, 11/20/2026
+             % w{i}, wdot{i}, u{i}, udot{i}: handles of t, evaluated at st  % YP, MMP, 11/21/2026
+%            intsym=int(exp(lambda*(tt-st))*uinput.w(i),st,[0,tt]);         % YP, MMP, 11/21/2026 (was)
+             intsym=int(exp(lambda*(tt-st))*uinput.w{i}(st),st,[0,tt]);     % YP, MMP, 11/21/2026
              wvec(i,1)=double(subs(intsym,tt,tf));
              end        
              end 
@@ -111,8 +112,8 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
     % Contribution to inhomogeneous term due to time derivative of boundary disturbances             
              if (isempty(Twcheb)==0&any(Twcheb,'all')~=0)
              for i=1:size(uinput.wdot,2);      
-%            intsym=int(exp(lambda*(tt-st))*uinput.wdot(i),st,[0,tt]);      % MMP, 11/20/2026 (was)
-             intsym=int(exp(lambda*(tt-st))*uinput.wdot{i}(st),st,[0,tt]);  % MMP, 11/20/2026
+%            intsym=int(exp(lambda*(tt-st))*uinput.wdot(i),st,[0,tt]);      % YP, MMP, 11/21/2026 (was)
+             intsym=int(exp(lambda*(tt-st))*uinput.wdot{i}(st),st,[0,tt]);  % YP, MMP, 11/21/2026
              wdotvec(i,1)=double(subs(intsym,tt,tf));
              end 
              end
@@ -131,8 +132,8 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
     % Contribution to inhomogeneous term due to boundary inputs  
              if (isempty(B2cheb)==0&any(B2cheb,'all')~=0)
              for i=1:size(uinput.u,2);      
-%            intsym=int(exp(lambda*(tt-st))*uinput.u(i),st,[0,tt]);         % MMP, 11/20/2026 (was)
-             intsym=int(exp(lambda*(tt-st))*uinput.u{i}(st),st,[0,tt]);     % MMP, 11/20/2026
+%            intsym=int(exp(lambda*(tt-st))*uinput.u(i),st,[0,tt]);         % YP, MMP, 11/21/2026 (was)
+             intsym=int(exp(lambda*(tt-st))*uinput.u{i}(st),st,[0,tt]);     % YP, MMP, 11/21/2026
              uvec(i,1)=double(subs(intsym,tt,tf));
              end        
              end 
@@ -140,8 +141,8 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
     % Contribution to inhomogeneous term due to time derivative of boundary inputs             
              if (isempty(Tucheb)==0&any(Tucheb,'all')~=0)
              for i=1:size(uinput.udot,2);      
-%            intsym=int(exp(lambda*(tt-st))*uinput.udot(i),st,[0,tt]);      % MMP, 11/20/2026 (was)
-             intsym=int(exp(lambda*(tt-st))*uinput.udot{i}(st),st,[0,tt]);  % MMP, 11/20/2026
+%            intsym=int(exp(lambda*(tt-st))*uinput.udot(i),st,[0,tt]);      % YP, MMP, 11/21/2026 (was)
+             intsym=int(exp(lambda*(tt-st))*uinput.udot{i}(st),st,[0,tt]);  % YP, MMP, 11/21/2026
              udotvec(i,1)=double(subs(intsym,tt,tf));
              end 
              end
@@ -175,6 +176,6 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
         exp_lambda=exp(diag(D*tf));
         solcoeff.final=V*diag(exp_lambda)/V*acheb_f0+V*addition_symbolic;
         solcoeff.tf=tf;
-        solcoeff.w=coeff.w;  % input coefficients, read by                  % MMP, 11/20/2026
-        solcoeff.u=coeff.u;  % PIESIM_transform_to_solution                 % MMP, 11/20/2026
+        solcoeff.w=coeff.w;  % spatial coefficients of the inputs, for      % YP, MMP, 11/21/2026
+        solcoeff.u=coeff.u;  % the reconstruction of the solution           % YP, MMP, 11/21/2026
         

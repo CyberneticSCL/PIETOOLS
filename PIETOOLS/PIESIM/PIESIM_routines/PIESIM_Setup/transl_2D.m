@@ -56,8 +56,8 @@ function T = transl_2D(T,I)
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove dependence on hardcoded variables in call to
 %                   "transl_1D" and "transl_3PI".
-% YP, 4/7/2026 - redefined rescaled operator domain
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments
+%   revised.
 
 % Original domain [ax,bx]x[ay,by], new domain [cx,dx]x[cy,dy]
 I_init = T.I;

@@ -66,8 +66,12 @@
 %                   which Rop is defined to the discretization subroutines,
 %                   in case these variables are not equal to (s1,s2) and
 %                   (s1_dum,s2_dum);
-% YP, 1/27/2026: Added suport for infinite-dimensional outputs
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output A_nonsquare
+%   renamed A_2PDEstate; flag 1 now marks state-to-output and flag 2
+%   input-to-state operators (swapped); outputs may be infinite-dimensional
+%   – every row block is discretized when its kernel is nonempty, output
+%   rows with degree of smoothness zero; N is [N_x, N_y] and each 2-D state
+%   has its own [p_x; p_y].
 
 function [A, A_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(Rop, psize, flag)
 

@@ -59,9 +59,12 @@
 % DJ, 12/16/2024: Correct limits of for loop j=1:size(acheb);
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
-% YP, 1/25/2026: Fixed construction of a non-squre matrix for the 2D state
-% reconstruction
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output A_nonsquare
+%   renamed A_2PDEstate (ns*prod(N+1) rows, not truncated); N is [N_x, N_y]
+%   and p is a 2 x ns array [p_x; p_y]; R is evaluated on deg+2
+%   Chebyshev-Gauss-Lobatto nodes per direction (deg the maximal degree of
+%   R), its coefficients padded to (N_x+1) x (N_y+1); A is A_2PDEstate with
+%   the rows of each state truncated by p.
 
 function [A, A_2PDEstate]=PIESIM_Poly2Mat_cheb_2D(N, Rop, var1, p)
 
@@ -113,8 +116,6 @@ for k=1:no
 for j=1:length(acheb)                                                     
 Alocal(j,k)=acheb(j);
 end
-
-% YP 1/25/2026
 
 end % k loop
 

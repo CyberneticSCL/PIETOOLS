@@ -50,8 +50,9 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg.
 %                 Remove redundant variables;
-% YP 1/31/2026: Made if for square operators, truncation is done on assembled operators
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: input csize and output
+%   Abig removed; A is the square (N+1)x(N+1) matrix (was its first csize
+%   columns); help and comments revised.
 
 function A=PIESIM_integral_projection1D(N, Rcheb, lim)
 

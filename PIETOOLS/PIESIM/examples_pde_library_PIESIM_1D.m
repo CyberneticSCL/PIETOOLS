@@ -55,10 +55,14 @@
 % terms format
 % DJ, 12/19/2024: Change variable s --> s1;
 % VJ, 11/22/2025: added cylindrical coordinates examples (examples 39-41)
-% YP, 12/29/2025: Changed distirbance format to cell array to accommodate
-% disturbances in a symbolic and a double array format
-% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: initial conditions in
+%   the single list uinput.ic (was uinput.ic.PDE, uinput.ic.ODE); a
+%   disturbance or control input may be a sym in st or a 2 x m data array
+%   [t; value] in a cell (example 2 uses data arrays; the alternative form
+%   is commented in the examples); the cylindrical examples 39-40
+%   (variable substitution) removed, 41-43 (weighted) renumbered 39-41,
+%   with uinput.weight only (uinput.weighted removed); example 1 on the
+%   domain [0.2,0.9] (was [-1,1]).
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
@@ -2889,7 +2893,7 @@ C = [-2/5, -5/4, 3/2, 1/3, 1/40];
 % However, the left-hand side of the PDE can not be entered in the weighted
 % form. Instead, the left-hand side operators acting on the derivatives of
 % x_f, u and w need to be weighted. This is accomplished intrinsically in
-% PIESIM via weigthPIE routine. The user needs to specify the weight under the uinput.weight
+% PIESIM. The user needs to specify the weight under the uinput.weight
 % (power of the r term, here weight=1)
 
 case 39
@@ -2935,7 +2939,7 @@ case 39
 % However, the left-hand side of the PDE can not be entered in the weighted
 % form. Instead, the left-hand side operators acting on the derivatives of
 % x_f, u and w need to be weighted. This is accomplished intrinsically in
-% PIESIM via weigthPIE routine. The user needs to specify the weight under the uinput.weight
+% PIESIM. The user needs to specify the weight under the uinput.weight
 % (power of the r term, here weight=1)
 
 case 40
@@ -2985,7 +2989,7 @@ case 40
 % However, the left-hand side of the PDE can not be entered in the weighted
 % form. Instead, the left-hand side operators acting on the derivatives of
 % x_f, u and w need to be weighted. This is accomplished intrinsically in
-% PIESIM via weigthPIE routine. The user needs to specify the weight under the uinput.weight
+% PIESIM. The user needs to specify the weight under the uinput.weight
 % (power of the r term, here weight=2)
 
 case 41

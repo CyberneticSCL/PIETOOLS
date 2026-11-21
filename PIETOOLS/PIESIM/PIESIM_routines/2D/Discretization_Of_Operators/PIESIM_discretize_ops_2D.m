@@ -49,7 +49,12 @@
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 04_16_2024
 % YP 06/26/2025 - modified support for T0 operator with new pie_struct
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output fields renamed –
+%   Mcheb_inv to Tcheb_inv, Mcheb_nonsquare, Tucheb_nonsquare,
+%   Twcheb_nonsquare to Tcheb_2PDEstate, Tucheb_2PDEstate, Twcheb_2PDEstate;
+%   the optional map is PIE.misc.Tmap, output Tchebmap_2PDEstate (was
+%   PIE.misc.T0, Mcheb0_nonsquare); C1, C2 discretized with flag 1 and
+%   Tu, Tw, B1, B2 with flag 2 (were 2 and 1); help and comments revised.
 
 function Dop=PIESIM_discretize_ops_2D(PIE, psize);
 

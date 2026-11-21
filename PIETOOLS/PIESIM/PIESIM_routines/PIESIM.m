@@ -165,18 +165,14 @@
 % Batch format and old terms format can still be used, in which case
 % opts.type is PDE_t or PDE_b.
 % VJ 11/16/2025 - added support for cylindrical coordinate examples
-% YP 1/22/2026 - passing u_tab, w_tab to initial setup
-% DJ, 10/29/2026: Convert 'pie_struct' to the old format (opvar/opvar2d)
-% using pie2opvar, so that the PIE can be handled as before;
-% MMP, 11/04/2026: Convert 'pie_struct' with pie2piesim, to structs of the
-% kernels that the discretization reads, instead of opvar/opvar2d objects
-% (pie2opvar): PIESIM needs no operator class. Replaces the conversion of
-% DJ, 10/29/2026;
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: weightPIE, called only here, is a local function at the
-% end of this file; PIESIM_Setup/weightPIE.m (YP 1/7/2026) is deleted.
-% Code and help text unchanged; the license block of the deleted file is
-% not repeated (maintainer, 11/20/2026: fold one-caller helpers).
+% YP, DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: output time removed;
+%   grid is the primary-state grid, an (N+1)x1 array in 1D, a 2x1 cell
+%   {x grid; y grid} in 2D; a 'pie_struct' PIE is converted to structs of
+%   its kernels (no operator class); infinite-dimensional inputs and outputs
+%   are no longer an error; a field uinput.weight = k multiplies T, Tu, Tw
+%   by s^k (new local function weightPIE; error with ODE states; maps in
+%   PIE.misc.Tmap, Tumap, Twmap; was uinput.weighted, with T, Tw, B2 and
+%   PIE.misc.T0, Tu, Tw); in 2D the weight is ignored with a warning.
 
 function [solution, grid]=PIESIM(varargin)
 
@@ -195,9 +191,8 @@ function [solution, grid]=PIESIM(varargin)
         
         % Convert PDE to PIE
         PIE = convert_PIETOOLS_PDE(PDE,'pie');
-        % Convert pie_struct to structs of its kernels, as used below       % MMP, 11/04/2026
-%       if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % MMP, 11/04/2026 (was); DJ, 10/29/2026
-        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % MMP, 11/04/2026
+        % Convert pie_struct to structs of its kernels, as used below       % YP, DJ, MMP, 11/21/2026
+        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % YP, DJ, MMP, 11/21/2026
 
     elseif strcmp(opts.type,'DDE')
         DDE=varargin{1};
@@ -206,18 +201,16 @@ function [solution, grid]=PIESIM(varargin)
         DDE = initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
         DDF = convert_PIETOOLS_DDE(DDE,'ddf');
         PIE = convert_PIETOOLS_DDF(DDF,'pie');
-        % Convert pie_struct to structs of its kernels, as used below       % MMP, 11/04/2026
-%       if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % MMP, 11/04/2026 (was); DJ, 10/29/2026
-        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % MMP, 11/04/2026
+        % Convert pie_struct to structs of its kernels, as used below       % YP, DJ, MMP, 11/21/2026
+        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % YP, DJ, MMP, 11/21/2026
 
         % Check the inputs and define problem size
         [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
    
     elseif strcmp(opts.type,'PIE')
         PIE=varargin{1};
-        % Convert pie_struct to structs of its kernels, as used below       % MMP, 11/04/2026
-%       if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % MMP, 11/04/2026 (was); DJ, 10/29/2026
-        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % MMP, 11/04/2026
+        % Convert pie_struct to structs of its kernels, as used below       % YP, DJ, MMP, 11/21/2026
+        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % YP, DJ, MMP, 11/21/2026
         % Check the inputs and define problem size
         [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
     end  
@@ -289,8 +282,7 @@ end
 
 end
 
-% MMP, 11/20/2026: BEGIN local function weightPIE, moved unchanged from
-% PIESIM_Setup/weightPIE.m (one caller: PIESIM above)
+% YP, DJ, MMP, 11/21/2026: BEGIN local function weightPIE
 function PIE = weightPIE(PIE,k)
 % Multiplies the left-hand side of the PIE equation by s^k and modifies the
 % corresponding T, Tu, Tw and mapping operators.
@@ -338,4 +330,4 @@ pvar s1;
             PIE.(op{1}) = X;
         end
 end
-% MMP, 11/20/2026: END local function weightPIE
+% YP, DJ, MMP, 11/21/2026: END local function weightPIE

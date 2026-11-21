@@ -129,12 +129,14 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding - YP, 4/16/2024
-% YP, 12/31/2025 - Modified treatment of disturbances and control inputs
-% YP, 1/27/2026 - Added support for infinite-dimensional outputs in 2D
-% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde{1,2,3} into
-% solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
-% solution.timedep.primary{1,2,3,4}
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: input grid renamed
+%   gridall; solution fields ode, pde replaced by primary{1,2,3,4} (ODE
+%   states; states of s1, of s2, of (s1,s2)), and observed, regulated are
+%   cells {1,2,3,4} likewise (outputs of s1, s2, (s1,s2) in physical space);
+%   uinput.w, uinput.u are cells, a non-separable input has its spatial
+%   coefficients recomputed at each time; Dop fields *_2PDEstate (or
+%   *map_2PDEstate) replace *_nonsquare; psize.n0 replaces psize.no; N is
+%   [N_x, N_y].
 
 %----------------------------------------   
 % We first transform the final solution, since it is available for all

@@ -44,10 +44,12 @@
 % Initial coding YP  - 5_29_2021
 % YP - Added 2D functionality - 4_16_2024
 
-% YP 12/21/2025 - (1) moved options before example setup, (2) pass options to examples for
-% generating data array disturbance, (3) moved uinput.ifexact to
-% opts.ifexact
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: options are set before
+%   the example (opts.ifexact replaces uinput.ifexact); dim other than 1 or
+%   2 is an error; examples 1-41 in 1D (was 1-38) and 1-32 in 2D (was
+%   1-19); defaults example 41, tf = 0.1, dt = 1e-3 (were 1, 1.6, 0.02); a
+%   PIE is simulated without the argument ndiff; the PDE case also stores
+%   grid.
 
 clear all;
 clc

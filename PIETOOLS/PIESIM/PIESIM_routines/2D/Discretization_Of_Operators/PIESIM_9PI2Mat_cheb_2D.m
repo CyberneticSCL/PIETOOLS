@@ -70,9 +70,12 @@
 % DJ, 12/16/2024: Remove redundant variables, and add var1 and var2 as the
 %                   actual variables in which Rop is defined, to pass to
 %                   e.g. PIESIM_9PI2Mat_cheb_opint_discretize
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Terms initialized to zero, so that an empty kernel adds
-%   nothing; the sum read them unassigned (or from the previous block).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output A_nonsquare
+%   renamed A_2PDEstate, input p renamed prow; N is [N_x, N_y], and prow,
+%   pcol are 2 x (number of states) arrays [p_x; p_y]; each block is built
+%   on the full grid of prod(N+1) coefficients, then its columns are
+%   truncated by pcol (A_2PDEstate) and its rows by prow (A); a term with
+%   an empty kernel adds zero.
 function [A, A_2PDEstate]=PIESIM_9PI2Mat_cheb_2D(N,Rop,var1,var2,prow,pcol)
 
 % pcol = prow if not given
@@ -106,11 +109,11 @@ ns_col=size(pcol,2);
 for i=1:ns_row
      for j=1:ns_col
 
-         % MMP, 11/20/2026: BEGIN each term zero unless its kernel is given
+         % YP, MMP, 11/21/2026: BEGIN each term zero unless its kernel is given
          [A_opmult,A_opint_block_x1,A_opint_block_x2,A_opint_block_y1, ...
           A_opint_block_y2,A_opint_block_11,A_opint_block_12, ...
           A_opint_block_21,A_opint_block_22]=deal(zeros(prod(N+1)));
-         % MMP, 11/20/2026: END
+         % YP, MMP, 11/21/2026: END each term zero unless its kernel is given
 % Treatment of mutliplicative operator (opmult stands for multiplicative)
         if (~isempty(R00))
          A_opmult=PIESIM_9PI_opmult_discretize_2D(N,R00(i,j),var1);

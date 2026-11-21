@@ -51,9 +51,9 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 04/16/2024
-% 2/12/2026: YP - modified grids handling to account for different degree
-% of differentiability and number of grid points
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output grid removed;
+%   N is [N_x, N_y], and gridall.x{i}, gridall.y{i} hold N_x-i+2 and N_y-i+2
+%   nodes; help and comments revised.
 
 function gridall=PIESIM_discretize_domain_2D(uinput,psize);
 

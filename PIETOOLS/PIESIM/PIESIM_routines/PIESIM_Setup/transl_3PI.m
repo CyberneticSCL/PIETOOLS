@@ -58,7 +58,7 @@ function R = transl_3PI(R,a,b,c,d,var1,var2,dir)
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove dependence on hardcoded variables; now pass
 %                   variables defining Rop as additional inputs.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 % Extract primary and dummy variables defining Rop.                         % DJ, 12/16/2024
 s1 = var1(1);   s1_dum = var2(1);

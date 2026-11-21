@@ -51,7 +51,9 @@
 % Initial coding YP  - 6_30_2022
 % YP -  added support for an arbitary variable name - 04_16_2024
 % DJ, 12/16/2024: Make sure variable to substitute matches that of Rop;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output A_nonsquare
+%   renamed A_2PDEstate; p may be a row or column vector; help and comments
+%   revised.
 
 function [A, A_2PDEstate]=PIESIM_Poly2Mat_cheb(N, Rop, p)
 

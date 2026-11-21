@@ -73,7 +73,7 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 6_1_2021
 % YP 6/16/2022 - Separated inputs check for batch and terms format
-% of PDE. Enhanced the input check for terms format. Terms format has n0w
+% of PDE. Enhanced the input check for terms format. Terms format has now
 % its own structure ('PDT'), while batch format has 'PDE' structure.
 % Renamed uinput.B21_nonpol to uinput.Bpw_nonpol
 % DJ, 10/10/2022 - Update to new terms format. The function can still
@@ -83,20 +83,14 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 % DJ, 12/16/2024: Change default variables to (s1,s1_dum) in ODE case;
 % DJ, 12/28/2024: Add spatial domain to "uinput" in 2D case;
 % YP, 06/03/2025: Fixed sensing of observed and regulated outputs during coupling with PIE
-% YP, 12/29/2025: Updated disturbance and control input check
-% YP, 1/27/2026: Added support for infinite-dimensional outputs in 2D
-% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
-% MMP, 11/04/2026: Operator sizes from the field dim, not size(): PIESIM.m
-%   passes each operator as a struct of its kernels (pie2piesim), whose
-%   size() is 1 x 1. For an opvar both give the same numbers.
-% MMP, 11/04/2026: DDE input with more initial conditions than states:
-%   keep the first n0+nx, the count the elseif tests; the removal
-%   read ns, which only the PDE branch defines (Unrecognized function or
-%   variable 'ns', e.g. a 2-state DDE with the 3 initial conditions of
-%   PIETOOLS_DDE.m).
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: nux of a PIE tested w_tab, now u_tab; the 2-D default ic and
-%   the DDE and legacy-terms exact counts read unset n, ns or vector psize.n.
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: new output opts
+%   (opts.ifexact replaces uinput.ifexact; opts.N scalar in 1D, 1x2 in 2D);
+%   psize fields n0, nr0, no0 replace no, nro, noo; new fields nw0, nwx,
+%   nwy, nw2 (likewise nu, nr, no) count the inputs and outputs by domain;
+%   in 2D psize.n is the matrix by orders in x and y; initial conditions in
+%   the single list uinput.ic, missing ones zero (default zero, was
+%   sinusoidal), extra ones dropped; inputs are checked and split into
+%   temporal and spatial parts; DDE and PIE sizes are read from field dim.
 
 syms st sx sy;
 structure=varargin{1};
@@ -316,8 +310,7 @@ end
         elseif (PDE.dim==2)
             uinput.ic(n0+1:n0+nx)=0;
             uinput.ic(n0+nx+1:n0+nx+ny)=0;
-%           uinput.ic(n0+nx+ny+1:n0+n)=0;                                   % MMP, 11/20/2026 (was)
-            uinput.ic(n0+nx+ny+1:n0+ns)=0;  % n unset; ns = nx+ny+n2        % MMP, 11/20/2026
+            uinput.ic(n0+nx+ny+1:n0+ns)=0;  % n unset; ns = nx+ny+n2        % YP, MMP, 11/21/2026
         end
    
     else
@@ -416,11 +409,11 @@ elseif (opts.type=='DDE')
 
     % Define problem size for discretization
     psize.dim = 1;      % DDE is 1D
-%   psize.nu=size(PIE.Tu,2);                                                % MMP, 11/04/2026 (was)
-%   psize.nw=size(PIE.Tw,2);                                                % MMP, 11/04/2026 (was)
-    % Sizes from dim: an operator is a struct of its kernels                % MMP, 11/04/2026
-    psize.nu=sum(PIE.Tu.dim(:,2));                                          % MMP, 11/04/2026
-    psize.nw=sum(PIE.Tw.dim(:,2));                                          % MMP, 11/04/2026
+%   psize.nu=size(PIE.Tu,2);                                                % YP, MMP, 11/21/2026 (was)
+%   psize.nw=size(PIE.Tw,2);                                                % YP, MMP, 11/21/2026 (was)
+    % Sizes from dim: an operator is a struct of its kernels                % YP, MMP, 11/21/2026
+    psize.nu=sum(PIE.Tu.dim(:,2));                                          % YP, MMP, 11/21/2026
+    psize.nw=sum(PIE.Tw.dim(:,2));                                          % YP, MMP, 11/21/2026
     psize.n0=PIE.T.dim(1,1);
     nx = PIE.T.dim(2,1);
     psize.N=opts.N;
@@ -429,16 +422,14 @@ elseif (opts.type=='DDE')
     % Size of finite-dimensional and infinite-dimensional outputs
     psize.nr0 = size(PIE.C1.Q1,1);
     psize.no0 = size(PIE.C2.Q1,1); 
-%   psize.nrx = size(PIE.C1,1)-psize.nr0;                                   % MMP, 11/04/2026 (was)
-%   psize.nox = size(PIE.C2,1)-psize.no0;                                   % MMP, 11/04/2026 (was)
-    % Sizes from dim: an operator is a struct of its kernels                % MMP, 11/04/2026
-    psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % MMP, 11/04/2026
-    psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % MMP, 11/04/2026
+    % Sizes from dim: an operator is a struct of its kernels                % YP, MMP, 11/21/2026
+    psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % YP, MMP, 11/21/2026
+    psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % YP, MMP, 11/21/2026
 
-%   psize.nu=size(PIE.Tu,2); % number of disturbances                       % MMP, 11/04/2026 (was)
-%   psize.nw=size(PIE.Tw,2); % number of control inputs                     % MMP, 11/04/2026 (was)
-    psize.nu=sum(PIE.Tu.dim(:,2)); % number of disturbances                 % MMP, 11/04/2026
-    psize.nw=sum(PIE.Tw.dim(:,2)); % number of control inputs               % MMP, 11/04/2026
+%   psize.nu=size(PIE.Tu,2); % number of disturbances                       % YP, MMP, 11/21/2026 (was)
+%   psize.nw=size(PIE.Tw,2); % number of control inputs                     % YP, MMP, 11/21/2026 (was)
+    psize.nu=sum(PIE.Tu.dim(:,2)); % number of disturbances                 % YP, MMP, 11/21/2026
+    psize.nw=sum(PIE.Tw.dim(:,2)); % number of control inputs               % YP, MMP, 11/21/2026
 
     % Check if the problem size is defined correctly
     if length(opts.N)>1
@@ -509,8 +500,7 @@ elseif (opts.type=='DDE')
     elseif(length(uinput.ic)>n0+nx)
          disp('Warning: Number of initial conditions on DDE states is greater than the number of DDE states');
          disp('Extra initial conditions will be ignored');
-%        uinput.ic(n0+ns+1:length(uinput.ic))=[];                           % MMP, 11/04/2026 (was)
-         uinput.ic(n0+nx+1:length(uinput.ic))=[];  % keep n0+nx             % MMP, 11/04/2026
+         uinput.ic(n0+nx+1:length(uinput.ic))=[];  % keep n0+nx             % YP, MMP, 11/21/2026
     end
 
         % ODE initial conditions must be constants (else zero)
@@ -530,8 +520,7 @@ elseif (opts.type=='DDE')
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
             opts.ifexact=false;
-%       elseif (size(uinput.exact,2)~=psize.n0+ns)                          % MMP, 11/20/2026 (was)
-        elseif (size(uinput.exact,2)~=psize.n0+nx)  % ns: PDE branch only   % MMP, 11/20/2026
+        elseif (size(uinput.exact,2)~=psize.n0+nx)  % ns: PDE branch only   % YP, MMP, 11/21/2026
             disp('Warning: number of exact solutions provided does not match the number of PDE states');
             disp('Defaulting opts.ifexact to false');
             opts.ifexact=false;
@@ -577,16 +566,14 @@ elseif (opts.type=='PIE')
     %------------------------
     psize.nr0 = size(PIE.C1.Q1,1);
     psize.no0 = size(PIE.C2.Q1,1); 
-%   psize.nrx = size(PIE.C1,1)-psize.nr0;                                   % MMP, 11/04/2026 (was)
-%   psize.nox = size(PIE.C2,1)-psize.no0;                                   % MMP, 11/04/2026 (was)
-    % Sizes from dim: an operator is a struct of its kernels                % MMP, 11/04/2026
-    psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % MMP, 11/04/2026
-    psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % MMP, 11/04/2026
+    % Sizes from dim: an operator is a struct of its kernels                % YP, MMP, 11/21/2026
+    psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % YP, MMP, 11/21/2026
+    psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % YP, MMP, 11/21/2026
 
-%   psize.nu=size(PIE.Tu,2); % number of disturbances                       % MMP, 11/04/2026 (was)
-%   psize.nw=size(PIE.Tw,2); % number of control inputs                     % MMP, 11/04/2026 (was)
-    psize.nu=sum(PIE.Tu.dim(:,2)); % number of disturbances                 % MMP, 11/04/2026
-    psize.nw=sum(PIE.Tw.dim(:,2)); % number of control inputs               % MMP, 11/04/2026
+%   psize.nu=size(PIE.Tu,2); % number of disturbances                       % YP, MMP, 11/21/2026 (was)
+%   psize.nw=size(PIE.Tw,2); % number of control inputs                     % YP, MMP, 11/21/2026 (was)
+    psize.nu=sum(PIE.Tu.dim(:,2)); % number of disturbances                 % YP, MMP, 11/21/2026
+    psize.nw=sum(PIE.Tw.dim(:,2)); % number of control inputs               % YP, MMP, 11/21/2026
 
     % Determine which disturbances vary in either x, y, or both
 
@@ -609,8 +596,7 @@ elseif (opts.type=='PIE')
     psize.nw0 = psize.nw-(psize.nwx+psize.nwy+psize.nw2);
 
     % Control inputs likewise
-%   if ~isempty(PIE.w_tab)                                                  % MMP, 11/20/2026 (was)
-    if ~isempty(PIE.u_tab)   % u_tab: the control inputs                    % MMP, 11/20/2026
+    if ~isempty(PIE.u_tab)   % u_tab: the control inputs                    % YP, MMP, 11/21/2026
     psize.nux = sum(PIE.u_tab(:,3) == 1);
     else
     psize.nux=0;
@@ -1087,8 +1073,7 @@ ns = sum(psize.n);
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
             opts.ifexact=false;
-%       elseif (size(uinput.exact,2)~=psize.n0+psize.n)                     % MMP, 11/20/2026 (was)
-        elseif (size(uinput.exact,2)~=psize.n0+ns)  % psize.n is a vector   % MMP, 11/20/2026
+        elseif (size(uinput.exact,2)~=psize.n0+ns)  % psize.n is a vector   % YP, MMP, 11/21/2026
             disp('Warning: number of exact solutions provided does not match the number of PDE states');
             disp('Defaulting opts.ifexact to false');
             opts.ifexact=false;

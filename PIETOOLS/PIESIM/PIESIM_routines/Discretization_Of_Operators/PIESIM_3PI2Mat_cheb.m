@@ -56,7 +56,10 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 6_28_2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output A_nonsquare
+%   renamed A_2PDEstate; the multiplier and integral terms are discretized
+%   as (N+1)x(N+1) matrices, then truncated to the resolved columns
+%   (A_2PDEstate) and rows (A); p, pcol may be row or column vectors.
 function [A, A_2PDEstate]=PIESIM_3PI2Mat_cheb(varargin)
 
 % Inputs; pcol = p if not given

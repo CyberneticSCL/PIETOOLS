@@ -51,11 +51,14 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  04_16_2024
-% YP, 1/7/2026: Changed the notaiton of ic.PDE to ic.PIE for PIE simulation
-% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: nu assigned; coeff.u read it unassigned, an error for every
-%   2-D simulation with control inputs.
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: initial conditions read
+%   from the single list uinput.ic (ODE states first, then the states of x,
+%   of y, of (x,y)), not from uinput.ic.PDE and uinput.ic.ODE; psize.n0
+%   replaces psize.no; N is [N_x, N_y] and each 2-D state has its own
+%   [p_x; p_y]; uinput.wspace is a cell, and a disturbance that does not
+%   separate (uinput.wsep{k} false) takes w at t=0 as its spatial part;
+%   control-input coefficients: loops over nuy, nu2 (were nwy, nw2), row
+%   count prod(N+1)*nu2 (was (N+1)^2^nu2), nu assigned (was unassigned).
 
 function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
 
@@ -65,7 +68,7 @@ syms sx sy st;
 
 n0=psize.n0;
 nw=psize.nw;
-nu=psize.nu;  % number of control inputs, read by coeff.u below             % MMP, 11/20/2026
+nu=psize.nu;  % number of control inputs, read by coeff.u below             % YP, MMP, 11/21/2026
 a=uinput.dom(1,1);
 b=uinput.dom(1,2);
 c=uinput.dom(2,1);

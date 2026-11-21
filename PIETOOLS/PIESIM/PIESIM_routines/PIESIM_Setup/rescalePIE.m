@@ -55,9 +55,9 @@ function PIE = rescalePIE(PIE,I)
 % YP 6/16/2022 - Separated PDE LHS operator (T) from the state map operator
 % (Tmap)
 % YP 6/26/2025 - modified support for Tmap operator with new pie_struct.
-% YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
-% YP 4/7/2026 - Redefined rescaled domain
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: the maps PIE.misc.Tmap,
+%   Tumap, Twmap are translated (were PIE.misc.T0, Tu, Tw); help and
+%   comments revised.
 
 % Default interval [-1,1]
 if nargin==1

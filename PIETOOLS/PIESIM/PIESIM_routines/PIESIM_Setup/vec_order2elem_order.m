@@ -27,7 +27,7 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding DJ - 8_1_2024
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 function elem_order = vec_order2elem_order(vecs_order,vec_sizes)
 % ELEM_ORDER = VEC_ORDER2ELEM_ORDER(VECS_ORDER,VEC_SIZES) takes a list of

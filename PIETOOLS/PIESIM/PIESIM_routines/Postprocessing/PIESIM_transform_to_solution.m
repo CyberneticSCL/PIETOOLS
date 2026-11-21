@@ -95,17 +95,16 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 9_19_2021
 % YP, 6/16/2022 - Added reconstruction of observed and regulated outputs.
-% Added a support of case when LHS PDE operator is n0t the same as the
-% state map operator. n0te: input arguments changed.
-% YP, 12/31/2025 - Modified treatment of disturbances and control inputs, added support for
-% cylindrical coordinates (weighted method), added support for
-% infinite-dimensional outputs;
-% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde into
-% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
-% solution.timedep.primary{1,2}
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Diverged (NaN) solution: the test read ns (unset since
-%   ns became nx), and timedep.primary{2} was written as timepde.pde.
+% Added a support of case when LHS PDE operator is not the same as the
+% state map operator. note: input arguments changed.
+% VJ, YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: input grid removed;
+%   solution fields ode, pde replaced by primary{1,2}, and observed,
+%   regulated are cells {1,2} (finite-dimensional outputs; outputs of s in
+%   physical space); the input terms enter through Dop.Tucheb_2PDEstate,
+%   Twcheb_2PDEstate (or their map versions) with uinput.w, uinput.u cells
+%   of function handles of t; Dop.Tcheb_2PDEstate (or Tchebmap_2PDEstate)
+%   replaces Mcheb_nonsquare; psize fields n0, nr0, no0, nrx, nox; for a
+%   diverged (NaN) solution timedep.primary{2} is empty (was timepde.pde).
 
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
@@ -196,8 +195,8 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      end
      else
          solution.final.primary{1}=[];
-%        if (ns>0)                                                          % MMP, 11/20/2026 (was)
-         if (nx>0)  % nx, the number of PDE states (ns unset)               % MMP, 11/20/2026
+%        if (ns>0)                                                          % VJ, YP, MMP, 11/21/2026 (was)
+         if (nx>0)  % nx, the number of PDE states (ns unset)               % VJ, YP, MMP, 11/21/2026
              solution.final.primary{2}=[];
          end
      end
@@ -270,8 +269,8 @@ end % if (psize.no0+psize.nox>0)
         end % if (~isnaan)
      
 %----------------------------------------   
-% We n0w transform time-dependent solution, which is available for BDF
-% scheme only (opts.IntScheme=1) and at final time n0t equal to 0
+% We now transform time-dependent solution, which is available for BDF
+% scheme only (opts.IntScheme=1) and at final time not equal to 0
 %----------------------------------------
           
 if (opts.intScheme==1 & solution.tf~=0)
@@ -328,8 +327,8 @@ if (opts.intScheme==1 & solution.tf~=0)
       % and disturbances 
      end % for n=1:ns
      else
-%    solution.timepde.pde=[];                                               % MMP, 11/20/2026 (was)
-     solution.timedep.primary{2}=[];  % as final.primary{2} above           % MMP, 11/20/2026
+%    solution.timepde.pde=[];                                               % VJ, YP, MMP, 11/21/2026 (was)
+     solution.timedep.primary{2}=[];  % as final.primary{2} above           % VJ, YP, MMP, 11/21/2026
      end % ~isnan(acheb_p)
 
 %   Reconstruction of regulated outputs

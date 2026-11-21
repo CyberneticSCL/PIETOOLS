@@ -53,9 +53,12 @@
 % YP, 6/16/2022 - updated to include terms format and added more examples in
 % terms format
 % DJ, 01/04/2024: Use pde_var to declare examples
-% YP, 2/15/2026: Added examples with inhomogeneous boundary conditions
-% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: initial conditions in
+%   the single list uinput.ic (was uinput.ic.PDE, uinput.ic.x); 32 examples
+%   (was 19): new example 2 (inhomogeneous Dirichlet-Dirichlet), example 5
+%   (2025 example 2 with inhomogeneous Dirichlet-Neumann conditions), and
+%   examples 21-32 (boundary forcing, transport, vortex advection); the
+%   2025 examples 5-19 are 6-20.
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_2D(example)

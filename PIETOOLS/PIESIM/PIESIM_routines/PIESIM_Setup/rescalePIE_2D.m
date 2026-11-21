@@ -53,9 +53,10 @@ function PIE = rescalePIE_2D(PIE,I)
 %
 % Initial coding YP  - 06_23_2022
 % YP 6/26/2025 - modified support for Tmap operator with new pie_struct
-% YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
-% YP 4/7/2026 - redefined rescaled domain 
-% MMP, 11/19/2026: Release comment pass (comment-only). 
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: a given domain I is
+%   used (was replaced by the default whenever nargin < 3); more than 2
+%   inputs is an error; the maps PIE.misc.Tmap, Tumap, Twmap are translated
+%   (was PIE.misc.T0); help and comments revised.
 
 
 % Default domain [-1,1]^2

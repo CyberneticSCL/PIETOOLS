@@ -44,7 +44,8 @@
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 11_27_2021
 % DJ, 12/16/2024: Remove redundant variables.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: input gridall renamed
+%   grid; help and comments revised.
 
 function A=PIESIM_NonPoly2Mat_cheb(N, Rop, p, grid)
 

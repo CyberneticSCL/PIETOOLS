@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE with implicit
 % backward-difference formula (BDF) - unconditionally stable for diffusive
-% problems, occasionally n0t stable for hyperbolic problems
+% problems, occasionally not stable for hyperbolic problems
 % The discretized PIE a_t = Atotal*a + f(t), Atotal = inv(T)*A,
 % f = inv(T)*(B1*w - Tw*w_t + B2*u - Tu*u_t), advances by
 %   (alpha_0*I - dt*Atotal)*a^n = -sum_{j=1}^{k} alpha_j*a^{n-j} + dt*f(t_n),
@@ -40,7 +40,7 @@
 % 4) solcoeff.timedep.ode -
 % time-dependent Chebyshev coefficients of the ODE states of PIE system for
 % output (for ODE states, Chebyshev coefficients are equal to the solution
-% of the states, since the ODE states are n0t spatially dependent)
+% of the states, since the ODE states are not spatially dependent)
 % 5) solcoeff.timedep.pde -
 % time-dependent Chebyshev coefficients of the PDE states of PIE system for output 
 % (for PDE states, an inverse Fourier transform needs to be performed to recover physical solution from its )
@@ -79,10 +79,11 @@
 % YP 8_18_2024 - added support for spatially-variant multiple disturbances
 % across multiple states (thrugh coeff.u, coeff.w)
 % Added solcoeff,u, solcoeff.w to solcoeff structure
-% YP 12/31/2025 - modified the treatment of disturbances and control inputs via functon
-% handles
-% YP 2/12/2026 - added handling of Non-separable disturbances
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: new input gridall;
+%   uinput.w, wdot, u, udot are cells of function handles of t for separable
+%   inputs; a non-separable input (2D) enters through the coefficients of
+%   its spatial profile, recomputed at each step; Dop.Tcheb_inv replaces
+%   Dop.Mcheb_inv; psize.n0 replaces psize.no.
 
 function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop)
 % Time variable of the non-separable inputs
@@ -152,7 +153,7 @@ A_impl_4=eye(Nsize)*bdf4(1)-dt*Atotal;
 A_inv_impl_4=inv(A_impl_4);
 end
 
-% achebi den0tes Chebyshev coefficients on the fundamental states computed with
+% achebi denotes Chebyshev coefficients on the fundamental states computed with
 % (implicit) BDF method
 
 achebi=acheb_f0;
@@ -272,7 +273,7 @@ t=0;
      end
     
     % Time advancement for first several time steps needs to be done with
-    % lower order schemes since n0t en0ugh previous solutions are yet
+    % lower order schemes since not enough previous solutions are yet
     % available
     
     

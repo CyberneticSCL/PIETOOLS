@@ -89,12 +89,12 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % DJ, 01/01/2025 - Change plot specifications;
 % YP, 06/02/2025 - Made modifications so that final plots are produced at a
 % zero final time (tf=0);
-% YP, 01/02/2026 - Updated plotting to distinguish between finite- and
-% infinite-dimensinal outputs;
-% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde into
-% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
-% solution.timedep.primary{1,2}
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: solution fields ode, pde
+%   replaced by primary{1,2}, and observed, regulated are cells with the
+%   finite-dimensional outputs in {1}; psize fields n0, nr0, no0 (were no,
+%   nro, noo); grid is the array of grid points (was grid.phys);
+%   opts.ifexact replaces uinput.ifexact; printed values name the
+%   finite-dimensional outputs.
 
 syms sx;
 

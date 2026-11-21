@@ -59,9 +59,12 @@
 % YP - added functionality to support infinite-dimensional disturbances
 % through parser - 6_1_2025
 % YP 06/26/2025 - modified support for T0 operator with new pie_struct
-% YP 1/6/2026 - modified Tu, Tw operators to allow reconstruction of disturbance-to-state
-% maps, added support for Tumap and Twmap operators (needed for cylindrical coordinates) 
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output fields renamed –
+%   Mcheb_inv to Tcheb_inv, Mcheb_nonsquare to Tcheb_2PDEstate; new fields
+%   Tucheb_2PDEstate, Twcheb_2PDEstate; the optional maps are PIE.misc.Tmap,
+%   Tumap, Twmap, outputs Tchebmap_2PDEstate, Tuchebmap_2PDEstate,
+%   Twchebmap_2PDEstate (were PIE.misc.T0, Tu, Tw, outputs
+%   Mcheb0_nonsquare, Tucheb0, Twcheb0); help and comments revised.
 
 function Dop=PIESIM_discretize_ops(PIE, psize);
 

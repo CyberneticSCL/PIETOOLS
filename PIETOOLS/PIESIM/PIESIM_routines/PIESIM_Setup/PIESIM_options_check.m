@@ -62,7 +62,11 @@ function [opts, uinput]=PIESIM_options_check(varinput)
 % Added a clause -  "If piesize is not found, default to last argument" -
 % 6/16/2022
 % Update to account for new terms format - DJ, 10/10/2022.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: ifexact is an option
+%   (opts.ifexact, default false), not a field of uinput; a PIE no longer
+%   needs the argument ndiff (opts.piesize removed; the piesize clause of
+%   6/16/2022 no longer applies); tf < dt with tf ~= 0 resets tf to 0 with
+%   a warning.
 
 
 % Number of arguments passed

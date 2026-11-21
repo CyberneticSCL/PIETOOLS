@@ -47,7 +47,9 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or Y. Peet at ypeet@asu.edu
 % Initial coding YP  - 4_16_2024
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: N is [N_x, N_y], each
+%   state block has prod(N-p+1) rows; the function line carries the file
+%   name (was PIESIM_NonPOLy2Mat_cheb_2D); help and comments revised.
 function A=PIESIM_NonPoly2Mat_cheb_2D(N, Rop, p, gridall)
 syms sx sy
 ns=size(p,2);
