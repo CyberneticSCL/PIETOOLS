@@ -7,8 +7,9 @@
 % Chebyshev nodes cos(pi*k/(maxdeg+1)), k = 0,...,maxdeg+1, and transformed
 % to the coefficients Rcheb(j+1,m+1) of T_j(s) T_m(theta), T_k the
 % Chebyshev polynomials. A kernel in one variable is taken as a function
-% of s if the name of that variable has at most 2 characters, else of
-% theta, and is replicated along the other.
+% of theta if the name of that variable ends in '_dum' (pie2piesim names
+% the dummy variable of s as s_dum), else of s, and is replicated along
+% the other.
 %
 % Inputs:
 % R - compnent PI operator to be discretized
@@ -58,7 +59,8 @@ if isa(R,'polynomial')
         % One variable present
             Re=subs(R,R.varname,chebgrid);
             var=cell2mat(R.varname);
-            if (length(var)<=2)
+            % s, unless var is the dummy variable (name ending in '_dum')
+            if ~endsWith(var,'_dum')
                 Reval=repmat(Re',1,maxdeg+2);
             else
                 Reval=repmat(Re,maxdeg+2,1);

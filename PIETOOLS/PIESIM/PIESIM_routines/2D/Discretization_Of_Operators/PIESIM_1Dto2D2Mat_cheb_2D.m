@@ -88,6 +88,9 @@ end
   for i=1:ns_row
      for j=1:ns_col        
 
+% Each term zero unless its kernel is given
+   [A_opmult,A_opint_block_1,A_opint_block_2]=deal(zeros(prod(N+1),Ncol+1));
+
 % Treatment of mutliplicative operator (opmult stands for multiplicative)
 
    if (~isempty(R0)) 

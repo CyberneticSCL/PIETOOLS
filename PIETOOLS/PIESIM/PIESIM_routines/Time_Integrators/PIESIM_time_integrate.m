@@ -75,6 +75,8 @@
 % YP 6/16/2022 - added stability check
 % YP 2/12/2026 - passing grid for general non-separable distrubances
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: The BDF2 fallback passes gridall, the fifth argument of
+%   PIESIM_int_bdf since YP 2/12/2026 (Dop was unset inside).
 
 function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, gridall, Dop)
 N=psize.N;
@@ -104,6 +106,7 @@ switch opts.intScheme
              dt=1e-3;
              opts.Nsteps=floor(opts.tf/dt);
              opts.dt=opts.tf/opts.Nsteps;
-             solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop);
+%            solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop);      % MMP, 11/20/2026 (was)
+             solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop); % MMP, 11/20/2026
          end
  end

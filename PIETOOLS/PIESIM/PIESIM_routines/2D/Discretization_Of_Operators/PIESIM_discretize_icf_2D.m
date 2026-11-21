@@ -54,6 +54,8 @@
 % YP, 1/7/2026: Changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: nu assigned; coeff.u read it unassigned, an error for every
+%   2-D simulation with control inputs.
 
 function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
 
@@ -63,6 +65,7 @@ syms sx sy st;
 
 n0=psize.n0;
 nw=psize.nw;
+nu=psize.nu;  % number of control inputs, read by coeff.u below             % MMP, 11/20/2026
 a=uinput.dom(1,1);
 b=uinput.dom(1,2);
 c=uinput.dom(2,1);

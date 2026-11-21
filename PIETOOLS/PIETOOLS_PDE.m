@@ -9,8 +9,11 @@ close all; clc; clear; clear stateNameGenerator
 % Step 3: Run an analysis or control script
 % Step 4: Run PIESIM
 
-% This program determines stability, hinf-norm and designs hinf-optimal
-% observer of a linear coupled ODE-PDE which is defined in the format given below.
+% % This program determines stability, hinf-norm and designs hinf-optimal   % MMP, 11/20/2026 (was)
+% % observer of a linear coupled ODE-PDE which is defined in the format given below. % MMP, 11/20/2026 (was)
+% This script declares a linear coupled ODE-PDE (Step 1), converts it to    % MMP, 11/20/2026
+% a PIE (Step 2), runs the executive uncommented in Step 3 (none by         % MMP, 11/20/2026
+% default), and simulates it with PIESIM (Step 4).                          % MMP, 11/20/2026
 %
 % INPUT
 % - none; Step 1 takes the PDE from the example library (example 17), the
@@ -72,6 +75,8 @@ close all; clc; clear; clear stateNameGenerator
 %                   of that kind; PIESIM 2-D library examples 19 and 20
 %                   stopped.
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Step 4b, 2-D: primary{2} and primary{4} of the 1 x 4 cell (it
+%                   read 3 subscripts), on the s1 grid grid{1}; description fixed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -243,7 +248,8 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
     if PIE.dim ~=2
     pde_sol = solution.timedep.primary{2};
     else
-        solution.timedep.pde{1,2,3}=solution.timedep.primary{2,3,4};
+%       solution.timedep.pde{1,2,3}=solution.timedep.primary{2,3,4};        % MMP, 11/20/2026 (was)
+        solution.timedep.pde=solution.timedep.primary([2,4]);  % s1, 2-D    % MMP, 11/20/2026
         if ~isempty(solution.timedep.pde{1})
     n=size(solution.timedep.pde{1});
     n1=n(2);
@@ -251,19 +257,22 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
         end
         if (length(solution.timedep.pde)==2)
         if ~isempty(solution.timedep.pde{2})
-    k=floor(length(grid)/2)+1;
+%   k=floor(length(grid)/2)+1;                                              % MMP, 11/20/2026 (was)
+    k=floor(length(grid{2})/2)+1;  % middle node of the s2 grid             % MMP, 11/20/2026
     n=size(solution.timedep.pde{2});
     pde_sol(1:n(1),n1+1:n1+n(3),1:n(4)) = solution.timedep.pde{2}(1:n(1),k,1:n(3),1:n(4));
         end
         end
     end
+    if iscell(grid), sgrid=grid{1}; else, sgrid=grid(:,1); end  % s1 grid   % MMP, 11/20/2026
     % One surface plot over (t,s) per state component
     t = repmat(t,size(pde_sol,1),1);
     figure;
     for i=1:size(pde_sol,2)
         Z = squeeze(pde_sol(:,i,:));
         ax(i)=subplot(size(pde_sol,2),1,i);
-        surf(t,grid(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+%       surf(t,grid(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row'); % MMP, 11/20/2026 (was)
+        surf(t,sgrid,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row'); % MMP, 11/20/2026
         h=colorbar ;
         colormap jet
         box on

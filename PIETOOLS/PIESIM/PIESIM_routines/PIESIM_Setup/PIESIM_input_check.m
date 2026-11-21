@@ -95,6 +95,8 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 %   variable 'ns', e.g. a 2-state DDE with the 3 initial conditions of
 %   PIETOOLS_DDE.m).
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: nux of a PIE tested w_tab, now u_tab; the 2-D default ic and
+%   the DDE and legacy-terms exact counts read unset n, ns or vector psize.n.
 
 syms st sx sy;
 structure=varargin{1};
@@ -314,7 +316,8 @@ end
         elseif (PDE.dim==2)
             uinput.ic(n0+1:n0+nx)=0;
             uinput.ic(n0+nx+1:n0+nx+ny)=0;
-            uinput.ic(n0+nx+ny+1:n0+n)=0;
+%           uinput.ic(n0+nx+ny+1:n0+n)=0;                                   % MMP, 11/20/2026 (was)
+            uinput.ic(n0+nx+ny+1:n0+ns)=0;  % n unset; ns = nx+ny+n2        % MMP, 11/20/2026
         end
    
     else
@@ -527,7 +530,8 @@ elseif (opts.type=='DDE')
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
             opts.ifexact=false;
-        elseif (size(uinput.exact,2)~=psize.n0+ns)
+%       elseif (size(uinput.exact,2)~=psize.n0+ns)                          % MMP, 11/20/2026 (was)
+        elseif (size(uinput.exact,2)~=psize.n0+nx)  % ns: PDE branch only   % MMP, 11/20/2026
             disp('Warning: number of exact solutions provided does not match the number of PDE states');
             disp('Defaulting opts.ifexact to false');
             opts.ifexact=false;
@@ -605,7 +609,8 @@ elseif (opts.type=='PIE')
     psize.nw0 = psize.nw-(psize.nwx+psize.nwy+psize.nw2);
 
     % Control inputs likewise
-    if ~isempty(PIE.w_tab)   
+%   if ~isempty(PIE.w_tab)                                                  % MMP, 11/20/2026 (was)
+    if ~isempty(PIE.u_tab)   % u_tab: the control inputs                    % MMP, 11/20/2026
     psize.nux = sum(PIE.u_tab(:,3) == 1);
     else
     psize.nux=0;
@@ -1082,7 +1087,8 @@ ns = sum(psize.n);
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting opts.ifexact to false');
             opts.ifexact=false;
-        elseif (size(uinput.exact,2)~=psize.n0+psize.n)
+%       elseif (size(uinput.exact,2)~=psize.n0+psize.n)                     % MMP, 11/20/2026 (was)
+        elseif (size(uinput.exact,2)~=psize.n0+ns)  % psize.n is a vector   % MMP, 11/20/2026
             disp('Warning: number of exact solutions provided does not match the number of PDE states');
             disp('Defaulting opts.ifexact to false');
             opts.ifexact=false;

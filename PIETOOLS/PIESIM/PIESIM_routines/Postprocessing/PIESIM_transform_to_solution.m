@@ -104,6 +104,8 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
 % solution.timedep.primary{1,2}
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Diverged (NaN) solution: the test read ns (unset since
+%   ns became nx), and timedep.primary{2} was written as timepde.pde.
 
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
@@ -194,7 +196,8 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      end
      else
          solution.final.primary{1}=[];
-         if (ns>0) 
+%        if (ns>0)                                                          % MMP, 11/20/2026 (was)
+         if (nx>0)  % nx, the number of PDE states (ns unset)               % MMP, 11/20/2026
              solution.final.primary{2}=[];
          end
      end
@@ -325,7 +328,8 @@ if (opts.intScheme==1 & solution.tf~=0)
       % and disturbances 
      end % for n=1:ns
      else
-     solution.timepde.pde=[];
+%    solution.timepde.pde=[];                                               % MMP, 11/20/2026 (was)
+     solution.timedep.primary{2}=[];  % as final.primary{2} above           % MMP, 11/20/2026
      end % ~isnan(acheb_p)
 
 %   Reconstruction of regulated outputs

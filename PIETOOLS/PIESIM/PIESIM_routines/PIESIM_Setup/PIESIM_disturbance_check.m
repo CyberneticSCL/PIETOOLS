@@ -54,8 +54,6 @@ function uinput = PIESIM_disturbance_check(varargin)
 % Symbolic time and space variables of the input expressions
 syms st sx sy;
 
-nargin=length(varargin);
-
 % Problem structure, user inputs and problem size
 structure=varargin{1};
 uinput=varargin{2};

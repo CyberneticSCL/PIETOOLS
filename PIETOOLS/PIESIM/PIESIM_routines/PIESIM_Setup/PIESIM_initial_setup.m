@@ -71,6 +71,8 @@
 % YP 2/6/2026 - added corner values for inhomogeneous boudnary inputs in 2D
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: 2-D corner values of samples [t; w]: length(w==1) is nonzero
+%   for any input, so [t; w] was scaled, time row included; now row 2 only.
 
 function [uinput,psize]=PIESIM_initial_setup(uinput,psize,PIE,type)
 % Symbolic time and space variables
@@ -184,10 +186,12 @@ for i=1:idx_shift
   if (uinput.wsep{idx_parent}) % corner value correponds to a separable disturbance
   corner_value=double(subs(uinput.wspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
   uinput.wspace{i}=[];
-  if (length(uinput.w{i}==1))
+% if (length(uinput.w{i}==1))                                               % MMP, 11/20/2026 (was)
+  if (length(uinput.w{i})==1)  % sym or constant; else samples [t; w]       % MMP, 11/20/2026
   uinput.w{i}=corner_value*uinput.w{i};
   else
-  uinput.w{i}(1,:)=corner_value*uinput.w{i}(1,:);
+% uinput.w{i}(1,:)=corner_value*uinput.w{i}(1,:);                           % MMP, 11/20/2026 (was)
+  uinput.w{i}(2,:)=corner_value*uinput.w{i}(2,:);  % row 1: the times       % MMP, 11/20/2026
   end
   else %corner value correponds to a non-separable disturbance
   uinput.w{i}=subs(uinput.w{i},sym_array(is_bval),PIE.dom(is_bval,1));
@@ -249,10 +253,12 @@ for i=1:idx_shift
   if (uinput.usep{idx_parent}) % corner value correponds to a separable disturbance
   corner_value=double(subs(uinput.uspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
   uinput.uspace{i}=[];
-  if (length(uinput.u{i}==1))
+% if (length(uinput.u{i}==1))                                               % MMP, 11/20/2026 (was)
+  if (length(uinput.u{i})==1)  % sym or constant; else samples [t; u]       % MMP, 11/20/2026
   uinput.u{i}=corner_value*uinput.u{i};
   else
-  uinput.u{i}(1,:)=corner_value*uinput.u{i}(1,:);
+% uinput.u{i}(1,:)=corner_value*uinput.u{i}(1,:);                           % MMP, 11/20/2026 (was)
+  uinput.u{i}(2,:)=corner_value*uinput.u{i}(2,:);  % row 1: the times       % MMP, 11/20/2026
   end
   else %corner value correponds to a non-separable disturbance
   uinput.u{i}=subs(uinput.u{i},sym_array(is_bval),PIE.dom(is_bval,1));
