@@ -43,7 +43,7 @@
 % Initial coding DB - 05/31/2026
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+clc; clearvars -except params; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Specify the parameters
 k = 1;
@@ -60,7 +60,7 @@ x1.vars = s;    x2.vars = s;
 %% Define equations
 eq_PDE = [diff(x1,t,1)==diff(x2,s,1); 
                   diff(x2,t,1)==diff(x1,s,1);];
-eq_BC = [subs(x2,s,0)==0;subs(x1,s,1)+k*subs(x2,s,1)==0;] 
+eq_BC = [subs(x2,s,0)==0;subs(x1,s,1)+k*subs(x2,s,1)==0;];
 %% initialize pde system;
 PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie

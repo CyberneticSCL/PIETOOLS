@@ -47,7 +47,7 @@
 % Initial coding DB - 05/31/2026
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+clc; clearvars -except params; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Specify parameters
 k = 1;    ad = 1;

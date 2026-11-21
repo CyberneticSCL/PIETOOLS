@@ -1,4 +1,4 @@
-% 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        (stable for lam < pi^2 = 9.8696)
+% 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        (stable only for lam < -5.7799, so unstable at lam = pi^2-1)
 %   PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo      | lam = pi^2-1                  Das 2018 [7] (Example 2)
 %   BCs:  x(s=a) = 0,     x(s=b) = 0                | A, Bxr, and Bpv fixed
 %
@@ -36,9 +36,12 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
+%   params before it was read; line 1 gives the stability range as coded.
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
 pvar s t; % define independent variables
 % Define dependent variables and system variable
 x=pde_var(4); X = pde_var(2,s,[0,1]);

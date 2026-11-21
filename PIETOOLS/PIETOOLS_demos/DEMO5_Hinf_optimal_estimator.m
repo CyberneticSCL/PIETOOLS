@@ -87,6 +87,7 @@
 %   in DEMO1 and DEMO6: P acts in T'*P*T, and Z = P*L maps y to the state,
 %   as C2' does. SPACES is no longer needed. Same program.
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: opts.method='qp' ends in ';' (it printed opts).
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -157,7 +158,8 @@ gam_val = double(lpigetsol_sop(prog_sol,gam));                              % DJ
 Pval = lpigetsol_sop(prog_sol,P);                                           % DJ (CC), 10/30/2026
 Zval = lpigetsol_sop(prog_sol,Z);                                           % DJ (CC), 10/30/2026
 % Build optimal observer operator L
-opts.method='qp'
+%opts.method='qp'                                                           % MMP, 11/20/2026 (was)
+opts.method='qp';                                                           % MMP, 11/20/2026
 [Lval,~,~] = getObserver_sop(Pval,Zval,opts);                                    % DJ (CC), 10/30/2026
 
 % % Construct the closed-loop PIE system

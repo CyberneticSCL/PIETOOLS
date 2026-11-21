@@ -65,6 +65,8 @@
 % DJ, 11/06/2026: Use BVP instead of PDE
 % DJ, 11/11/2026: Use `convert` to solve the BVP;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: The unused st = settings_sopvar_heavy is removed; it was
+%   never passed to lpiprogram, which takes its default tier.
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
@@ -96,8 +98,8 @@ H1op = diff(H2op,s);                % (H1op*x_{ss}) = x_{s}
 % =============================================
 % === Declare the LPI
 
-% Settings structure of the heavy tier, stored in st
-st = settings_sopvar_heavy;
+% Settings structure of the heavy tier, stored in st                        % MMP, 11/20/2026 (was)
+%st = settings_sopvar_heavy;                                                % MMP, 11/20/2026 (was)
 
 % % Initialize LPI program
 prob = lpiprogram(H2op.vars,H2op.dom);

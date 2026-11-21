@@ -73,6 +73,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,pa
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params)  % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: The error for an unknown INDEX read the undefined indx;
+%   it reads index (and the message gains its missing space).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -188,7 +190,8 @@ elseif index==13.2
     PDE_t = PDE_b;
     
     else
-     error(['Example ',num2str(indx),'does not exist, please choose from 13.1 and 13.2']);
+%    error(['Example ',num2str(indx),'does not exist, please choose from 13.1 and 13.2']); % MMP, 11/20/2026 (was)
+     error(['Example ',num2str(index),' does not exist, please choose from 13.1 and 13.2']); % MMP, 11/20/2026
     end
 
 % Example-specific settings and the form of the stability tests,            % MMP, 11/19/2026

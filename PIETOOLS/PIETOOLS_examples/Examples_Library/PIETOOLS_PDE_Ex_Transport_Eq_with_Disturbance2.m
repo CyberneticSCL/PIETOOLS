@@ -58,6 +58,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %                   11/19/2026 (maintainer: no default settings);
 % function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)  % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: Unused pvar s1 s2 removed (the PDE is in s).
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -65,7 +66,7 @@ root = fileparts(loc);
  clear stateNameGenerator
 % Initialize variables
 pde_struct PDE_t;
-pvar s1 s2
+%pvar s1 s2                                                                 % MMP, 11/20/2026 (was)
 
 %%% Executive Function:
 evalin('base','H2_norm = 1;');

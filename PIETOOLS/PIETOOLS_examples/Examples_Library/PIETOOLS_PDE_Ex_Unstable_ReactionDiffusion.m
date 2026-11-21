@@ -62,6 +62,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % 
 %                   11/19/2026 (maintainer: no default settings);
 % function       [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params)  % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: st.sop.deg_Q removed: only the stability executive reads
+%   it, and this example names the H2 estimator synthesis.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -94,14 +96,15 @@ end
 % Example-specific settings                                                 % MMP, 11/19/2026
 % (heavy tier; 1-D storage with upper-integral s-length 1 and theta-lengths
 % 3, 2, 1 (multiplier, upper, lower integral); free operators of degree 2;
-% no slack weight raise of the synthesis LPI; Q of degree 6 in the
-% multiplier and 2 in the integral kernels)
+% no slack weight raise of the synthesis LPI; Q of degree 6 in the          % MMP, 11/20/2026 (was)
+% multiplier and 2 in the integral kernels)                                 % MMP, 11/20/2026 (was)
+% no slack weight raise of the synthesis LPI)                               % MMP, 11/20/2026
 st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
 st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
 st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/19/2026
 st.lpi.var.deg{1} = [2 2 2];                                                % MMP, 11/19/2026
 st.sop.dw_P = 0;                                                            % MMP, 11/19/2026
-st.sop.deg_Q{1} = [6 2 2];                                                  % MMP, 11/19/2026
+%st.sop.deg_Q{1} = [6 2 2];                                                 % MMP, 11/20/2026 (was)
 
 end
 % @article{peet2019discussion,

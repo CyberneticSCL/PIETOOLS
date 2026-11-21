@@ -35,7 +35,7 @@
 % Initial coding DB - 06/19/2026
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+clc; clearvars -except params; clear stateNameGenerator
 pvar s t; % define independent variables
 %   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
 %             - gam*w_{ttss} + delt w_{tttt}             |

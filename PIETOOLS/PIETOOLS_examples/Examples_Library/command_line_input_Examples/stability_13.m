@@ -39,9 +39,12 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
+%   params before it was read; eq_PDE ends in ';' (it was printed).
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
 pvar s t; % define independent variables
 % Define dependent variables and system variable
 x1=pde_var(s,[0,1]); x2=pde_var(s,[0,1]); 
@@ -56,7 +59,8 @@ if exist('params','var')
 end
 %% Define equations
 eq_PDE = [diff(x1,t,1)==-c*diff(x2,s,2); % PDE        x1_{t} = -c * x2_{ss}
-                   diff(x2,t,1)==diff(x1,s,2);]%           x2_{t} = x1_{ss}
+%                  diff(x2,t,1)==diff(x1,s,2);]%           x2_{t} = x1_{ss} % MMP, 11/20/2026 (was)
+                   diff(x2,t,1)==diff(x1,s,2);];%           x2_{t} = x1_{ss} % MMP, 11/20/2026
 eq_BC = [subs(x1,s,0)==0;subs(diff(x1,s,1),s,0)==0;% with BCs   x1(0) = 0, x1_{s}(0) = 0, 
          subs(x2,s,1)==0;subs(diff(x2,s,1),s,1)==0];  % x2(1) = 0, x2_{s}(1) = 0
 %% initialize pde system; PIE states (u_{tss},u_{ssss})

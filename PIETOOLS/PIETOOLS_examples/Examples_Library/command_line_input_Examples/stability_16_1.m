@@ -36,7 +36,7 @@
 % Initial coding DB - 05/31/2026
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+clc; clearvars -except params; clear stateNameGenerator
 pvar s t; % define independent variables
 %
 %   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
@@ -83,7 +83,7 @@ eq_BC = [ subs(x1,s,0)==0; subs(x2,s,0)==0;
                 subs(diff(x4,s,1),s,0)+int(x3,s,0,1)==0;% x4_{s}(s=0) + int_0^1 x3 ds = 0
                 subs(diff(x4,s,3),s,0)-subs(diff(x3,s,1),s,0)+subs(diff(x4,s,1),s,0)==0; % x4_{sss}(s=0) - x3_{s}(s=0) + x4_{s}(s=0) = 0
                 subs(diff(x4,s,2),s,1)- subs(x3,s,1)==0;   % x4_{ss}(s=1) - x3(s=1) = 0
-                subs(diff(x4,s,3),s,1)-gam*subs(diff(x3,s,1),s,1)] % x4_{sss}(s=1) - gam*x3_{s}(s=1)
+                subs(diff(x4,s,3),s,1)-gam*subs(diff(x3,s,1),s,1)==0]; % x4_{sss}(s=1) - gam*x3_{s}(s=1) = 0
 %% initialize pde system;
 PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie

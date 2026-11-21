@@ -57,9 +57,12 @@
 %                   et al. 2019, Sec. 8.1); at c = 0 the beam is stable, not
 %                   exponentially stable (Peet, Automatica 2021, Sec. 11.1).
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
+%   params before the params loop read it.
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
 pvar s t; % define independent variables
 %% Specify the parameters 
 k = 1;    aa = 1;    II = 1;    g = 1;   

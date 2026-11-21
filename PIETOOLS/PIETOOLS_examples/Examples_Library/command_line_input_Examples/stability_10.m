@@ -8,7 +8,7 @@
 %
 %   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = -2                (stable for k=-2)            
 %   PDE: x_{t} = x_{ss}                             |                               Tang 2011 [13]
-%   BCs: x(s=0) = xo,    x(s=1) = k*xo              |                           (PDE stable )
+%   BCs: x(s=0) = -xo,   x(s=1) = k*xo              |                           (PDE stable )
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - stability_10
@@ -37,9 +37,12 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
+%   params before it was read; help: x(s=0) = -xo, as the code declares.
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
 pvar s t; % define independent variables
 % Define dependent variables and system variable
 x=pde_var(); X = pde_var(s,[0,1]);

@@ -105,10 +105,10 @@ fprintf('\nState-feedback LPI feasible for alpha = %.3f; Psol and Zsol extracted
 
 %% Controller reconstruction using quadratic programming
 [Ksop,Kop,info] = getController_sop(Psol,Zsol, struct('method', 'qp'));
-% Residual err = Z - K*P; the printed value is the first parameter of the
-% first block of err*err'
+% Residual err = Z - K*P, a map L2 -> R^ne: ||err||^2 is the 2-norm of the
+% ne x ne matrix err*err'
 err = Zsol - Ksop*Psol; norm_err = err*err';
 
-fprintf('\nThe controller is reconstructed. ||Z - KP|| = %.3e\n', full(norm_err.C{1}.params{1}))
+fprintf('\nThe controller is reconstructed. ||Z - KP|| = %.3e\n', sqrt(norm(full(norm_err.C{1}.params{1}))))
 
  

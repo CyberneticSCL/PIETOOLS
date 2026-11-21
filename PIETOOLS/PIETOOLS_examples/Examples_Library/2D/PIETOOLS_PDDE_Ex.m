@@ -7,8 +7,7 @@ function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MM
 % recommended settings ST of its H2 norm test. It sets H2_norm = 1,
 % H2_norm_dual = 1 and H2_norm_form = 'oco' (dual form 'cco') in the base
 % workspace; a nonzero GUI prints that no GUI representation exists. The
-% delays tau are set after PARAMS is evaluated, so PARAMS does not change
-% them.
+% delays tau are set before PARAMS is evaluated, so PARAMS can change them.
 %
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
@@ -65,6 +64,8 @@ function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MM
 %                   no default settings);
 % function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)                           % MMP, 11/19/2026 (was)
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: tau set before the params loop, so that params can change
+%   the delays; the unused pvar s t removed.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -79,6 +80,9 @@ evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
 evalin('base','H2_norm_form = ''oco'';');  % form of the H2 norm test       % MMP, 11/19/2026
 
+% Delays: x2, x3 are transported at speeds 1/tau(1), 1/tau(2) over s2;      % MMP, 11/20/2026
+% set before params, which may change them                                  % MMP, 11/20/2026
+tau = [0.25;0.3];                                                           % MMP, 11/20/2026
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -87,10 +91,10 @@ if npars~=0
     end
 end
 
-% Declare independent variables (time and space)
-pvar s t
-% Delays: x2, x3 are transported at speeds 1/tau(1), 1/tau(2) over s2
-tau = [0.25;0.3];
+% Declare independent variables (time and space)                            % MMP, 11/20/2026 (was)
+%pvar s t                                                                   % MMP, 11/20/2026 (was)
+% Delays: x2, x3 are transported at speeds 1/tau(1), 1/tau(2) over s2       % MMP, 11/20/2026 (was)
+%tau = [0.25;0.3];                                                          % MMP, 11/20/2026 (was)
 % States x1(s1) and x2, x3(s1,s2); disturbance u ('input', the w above)
 % and regulated output y ('output', the z above)
 x1 = pde_var('state',1,s1,[0,pi]);

@@ -38,14 +38,18 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS - 11/17/2022
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/20/2026: clearvars -except params replaces clear, which deleted
+%   params before it was read; R = 2,9 (it set R = 2) is R = 2.9.
 
 % Clear the workspace
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator                                       % MMP, 11/20/2026 (was)
+clc; clearvars -except params; clear stateNameGenerator                     % MMP, 11/20/2026
 pvar s t; % define independent variables
 % Define dependent variables and system variable    
 x=pde_var(2,s,[0,1]); 
 %% Specify the parameters
-R = 2,9;Cm = [1, 1.5; 5, 0.2];
+%R = 2,9;Cm = [1, 1.5; 5, 0.2];                                             % MMP, 11/20/2026 (was)
+R = 2.9;Cm = [1, 1.5; 5, 0.2];                                              % MMP, 11/20/2026
 if exist('params','var')
     npars = length(params);
     %%% Specify potential parameters

@@ -217,7 +217,7 @@ end
 if ~ok
     warning('LPI not certified (pinf=%d dinf=%d numerr=%d).',pinf,dinf,nerr);
 end
-fprintf('Hinf_OFcontrol_demo12: gam = %.8g (certified: %d, dw = %d)\n',gam,ok,dw);
+fprintf('Hinf_OFcontrol_demo13: gam = %.8g (certified: %d, dw = %d)\n',gam,ok,dw);
 %% controller structure with the solved variables   
 % getsol_lpivar_sop(prog,X) needs the operator variable X itself, not its name,
 % so the variables are listed next to their names.
