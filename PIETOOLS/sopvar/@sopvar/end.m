@@ -45,6 +45,8 @@ if n ==1
     out = sza(1)*sza(2);
 elseif n==2
     out = size(a,k);
+else
+    error('sopvar:endIndex','A sopvar is indexed as P(I,J), or P(I) for one row or column.')
 end
 
 end

@@ -81,9 +81,7 @@ cl.relres = g('relres',NaN);    cl.eta = g('eta',NaN);
 % Value of the objective; NaN when it cannot be read back
 if nargin>=2 && ~isempty(obj)
     try
-        if isa(obj,'dpvar') || isa(obj,'polynomial'),   cl.obj = double(lpigetsol_sop(prog,obj));
-        else,                                           cl.obj = double(lpigetsol_sop(prog,obj));
-        end
+        cl.obj = double(lpigetsol_sop(prog,obj));       % a 'dpvar', 'polynomial' or name
     catch
         cl.obj = NaN;
     end

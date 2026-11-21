@@ -284,7 +284,7 @@ end
 if ~isscalar(options.psatz) || ~ismember(options.psatz,[0,1,3:2*nv+2])
     error("'psatz' should be 0, 1, or a face code 2d+1 / 2d+2 with d "...
           +"in 1..nv, here nv = "+num2str(nv)+"; 2 is "...
-          +"poslpivar_2d's ball, not the box.")
+          +"a ball weight, not supported (1 is the box product).")
 end
 % Double from here on: an integer class passes the check above, and then
 % floor((psatz-1)/2) rounds in integer arithmetic and picks the wrong face.

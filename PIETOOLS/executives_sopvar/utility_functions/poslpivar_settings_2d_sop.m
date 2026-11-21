@@ -124,7 +124,7 @@ switch role
         % use_sosineq (an SOS inequality in place of the equality) is not
         % supported
         if S.use_sosineq
-            error('poslpivar_settings_2d_sop:sosineq','use_sosineq selects lpi_ineq_2d, which has no container counterpart.');
+            error('poslpivar_settings_2d_sop:sosineq','use_sosineq = 1 (an SOS inequality in place of the slack) is not supported; set use_sosineq = 0.');
         end
         % The exclusions and separations the structure of X allows; P0,
         % then one term per psatz entry in use, with the same exclusions and

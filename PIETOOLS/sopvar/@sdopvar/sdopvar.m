@@ -61,7 +61,8 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar
     % where K_alpha represents kernel for multiplier/integral operator
     % specified by alpha index
     % params.A has column vectors
-    % Zd is a vector of decision variables, sorted (all monomial degrees 1)
+    % Zd is a vector of decision variables, in the order given, not sorted
+    % (all monomial degrees 1)
     %
     % CONSTRUCTOR P = sdopvar(params,vars,Zd,ZL,ZR,dom,dims)
     %

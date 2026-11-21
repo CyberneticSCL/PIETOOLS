@@ -52,7 +52,9 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %               form ('ctrl'), gam, gam_lpi (equal to gam), nv;
 %               P, Z, W    as the outputs;
 %               G          'copvar' object, the gain K; inv  'struct', the
-%                          diagnostics of the computation of K;
+%                          diagnostics of the computation of K (output INFO
+%                          of GETCONTROLLER_SOP, method 'qp': the field qp;
+%                          no inverse of P is formed);
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
 %                          the last raise and the loop history, the slack
 %                          mode, its degrees and terms, the size of the SDP,

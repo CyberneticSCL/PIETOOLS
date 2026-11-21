@@ -128,7 +128,7 @@ d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',t
            'dw_feas',[],'max_raise_feas',[],'eppos_stab',[],'cap_delta',[], ...
            'deg_Q',[],'max_raise_Q',[],'raise_Q','slack');
 % Check ST
-if ~isstruct(st),   error('exec_sop_settings:st','ST should be a settings struct (lpisettings).');   end
+if ~isstruct(st),   error('exec_sop_settings:st','ST should be a settings struct (lpisettings_sop).');   end
 % Stock-format fields: an error naming the replacement
 old = {'dd1','dd12','options1','options12','override1','ddZ','dd2','dd3', ...
        'options2','options3','override2','sosineq_on'};
@@ -136,13 +136,13 @@ new = [repmat({'use lpi.pos'},1,5),{'use lpi.var.deg{1}'}, ...
        repmat({'use sop.stock (LPISETTINGS_STOCK_SOP)'},1,5), ...
        {'remove it: the container executives pose no sosineq'}];
 for k = find(isfield(st,old))
-    error('exec_sop_settings:retired',['settings.%s was retired on 11/12/2026;'...
+    error('exec_sop_settings:retired',['settings.%s was retired;'...
           ' %s.'],old{k},new{k});
 end
 if isfield(st,'settings_nd') && isstruct(st.settings_nd) && ...
         any(isfield(st.settings_nd,{'LF_int','LF_mult','Zop_deg'}))
     error('exec_sop_settings:retired',['settings_nd.LF_int, LF_mult and Zop_deg were '...
-          'retired on 11/12/2026; use entry 3 of lpi.pos and lpi.var.'])
+          'retired; use entry 3 of lpi.pos and lpi.var.'])
 end
 % lpi.pos and lpi.var, the operators of the LPIs: those of 'light' where
 % missing
@@ -157,7 +157,7 @@ end
 if isfield(st.lpi.pos,'len_com') && any(isfield(st.lpi.pos,{'mult','int','joint','sep'}))
     error('exec_sop_settings:row',['lpi.pos is a storage row (len_com): its fields ' ...
           'mult, int, joint, sep are not read; set len_inc, len_com, len_sos and cap ' ...
-          '(settings report 11/16/2026, Sec. 5).'])
+          '(see lpisettings_sop).'])
 end
 % Each missing or empty field of ST.sop: its default
 if ~isfield(st,'sop') || isempty(st.sop),   st.sop = struct();     end

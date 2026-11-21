@@ -228,7 +228,6 @@ function e = entry(X,i,k)
 % INPUT  X: double or 'polynomial' matrix, possibly empty; i, k: double.
 % OUTPUT e: double or 'polynomial' scalar, or [].
 if isempty(X),  e = [];  return,   end
-if isa(X,'double'),     e = X(i,k);     return,     end
 e = X(i,k);
 end
 

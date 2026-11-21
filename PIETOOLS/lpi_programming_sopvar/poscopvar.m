@@ -255,7 +255,7 @@ end
 if ~isscalar(ps) || ~ismember(ps,[0,1,3:2*nv+2])
     error("'psatz' should be 0, 1, or a face code 2d+1 / 2d+2 with d "...
           +"in 1..nv, here nv = "+num2str(nv)+"; 2 is "...
-          +"poslpivar_2d's ball, not the box.")
+          +"a ball weight, not supported (1 is the box product).")
 end
 % Declare Q and build Pop
 [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,options);

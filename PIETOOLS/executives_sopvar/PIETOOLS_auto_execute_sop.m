@@ -188,12 +188,12 @@ if exist('H2_norm_form','var') && ~isempty(H2_norm_form),  hform = H2_norm_form;
 
 % Run each executive, assigning its outputs in the base workspace
 for j=1:length(exec)
-if strcmpi(exec{j},'PIE2PDEstability')
+if strcmpi(exec{j},'PIE2PDEstability') || strcmpi(exec{j},'stability')
     % Stability in the form sform; the dual appends 'd' to it
     outval = '[prog_stability, P_stability, info_stability]';
     infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,''')'];
     msg_out = '';
-elseif strcmpi(exec{j},'PIE2PDEstability_dual')
+elseif strcmpi(exec{j},'PIE2PDEstability_dual') || strcmpi(exec{j},'stability_dual')
     outval = '[prog_stability_d, P_stability_d, info_stability_d]';
     infun = ['PIETOOLS_stability_sop(PIE,settings,''',sform,'d'')'];
     msg_out = '';

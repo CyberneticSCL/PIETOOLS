@@ -1514,8 +1514,6 @@ X = reshape(A,size(L,2),size(R,1));
 Y = L*X*R;  % (R^T\otimes L)*A = vec(L*X*R), X = reshape(A)
 Aout = Y(:);
 
-Bout = sparse(size(B,1),size(L,1)*size(R,2));
-
 % Decision part, one row vec(X_i)' of B per variable: the rows map by the
 % transpose, B*(R kron L')
 LRkron = kron(R, L');

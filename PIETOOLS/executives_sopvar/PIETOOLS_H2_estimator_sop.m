@@ -59,7 +59,9 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %               form ('est'), gam, gam_lpi (equal to gam), nv;
 %               P, Z, W    as the outputs;
 %               G          'copvar' object, the gain L; inv  'struct', the
-%                          diagnostics of the computation of L;
+%                          diagnostics of the computation of L (output INFO
+%                          of GETOBSERVER_SOP, method 'qp': the field qp;
+%                          no inverse of P is formed);
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
 %                          the last raise and the loop history, the slack
 %                          mode, its degrees and terms, the size of the SDP,

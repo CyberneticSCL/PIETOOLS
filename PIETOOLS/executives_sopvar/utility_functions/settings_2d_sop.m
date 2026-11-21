@@ -71,7 +71,7 @@ elseif isfield(st,'settings_2d')
     S = st.settings_2d;
     if isfield(st,'sos_opts'),  S.sos_opts = st.sos_opts;   end
 else
-    error('settings_2d_sop:st','ST should be an lpisettings struct (field settings_2d) or a 2-D settings struct.');
+    error('settings_2d_sop:st','ST should be a struct of LPI settings (field settings_2d) or a 2-D settings struct.');
 end
 % Margins: the default when absent, a scalar repeated on the four spaces, a
 % column; the decay rate 0 when absent

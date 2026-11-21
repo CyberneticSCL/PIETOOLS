@@ -46,20 +46,8 @@ function At = ctranspose(A)
 %
 % Initial coding MMP, SS  - 1_16_2026
 
-% Swap the roles of the input-only and output-only variables (these
-% assignments are superseded by the constructor call at the end)
-At = A;
-At.vars_S2 = A.vars_S1;  % input S1 vars become output vars S2
-At.vars_S1 = A.vars_S2;  % output S2 vars become input vars S1
-At.dom_2 = A.dom_1;  % input S1 doms become output S2 doms
-At.dom_1 = A.dom_2;  % output S2 doms become input S1 doms
-
-At.dims = A.dims';       % matrix dimension is transposed
-
 % Number of shared variables, one cell direction each
 nvars3 = numel(A.vars_S3);
-S3Var = A.vars_S3;
-S3Vardummy = strrep(S3Var,'s','t');
 
 % Cell alpha of A becomes cell -alpha of At: with the stored labels
 % {1,2,3} for {0,1,-1}, the lower (2) and upper (3) integrals exchange in

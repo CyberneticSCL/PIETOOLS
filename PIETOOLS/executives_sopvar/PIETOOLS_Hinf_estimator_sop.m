@@ -15,7 +15,8 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %
 % with P a positive operator, Z a free operator, and, in one or two spatial
 % variables, L the gain of bounded degree that minimizes ||P*L - Z||^2, an
-% approximation of P^{-1}*Z. While the solver returns UNKNOWN or
+% approximation of P^{-1}*Z (in two variables, should that computation
+% fail, L = P^{-1}*Z for a separable P). While the solver returns UNKNOWN or
 % INFEASIBLE, the program is rebuilt with the degree of the negativity
 % slack raised by one, up to settings.sop.max_raise times. If PIE.K is
 % nonempty, the PIE state satisfies K x = 0 (e.g. periodic boundary
@@ -67,7 +68,10 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %               K          'cdopvar' object, the LPI operator;
 %               G          'copvar' object, the gain L (one or two
 %                          variables; [] otherwise); inv  'struct', the
-%                          diagnostics of the computation of L;
+%                          diagnostics of the computation of L (output INFO
+%                          of GETOBSERVER_SOP: for the method 'qp' the field
+%                          qp, no inverse of P being formed; for the 2-D
+%                          fallback 'inv' the data of the inverse);
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
 %                          the last raise and the loop history, the slack
 %                          mode, its degrees and terms, the size of the SDP,
@@ -157,12 +161,12 @@ try
     if nv==1,   [Gc,~,iinv] = getObserver_sop(Psol,Zsol);   L = Gc;
     elseif nv==2
         % 2-D: the gain of the default method 'qp'; after an error, the
-        % same computation with the method 'qp' named
+        % other method, 'inv' (the inverse of a separable P)
         try
             [Gc,~,iinv] = getObserver_sop(Psol,Zsol);
         catch ME2
-            if st.sop.verbose,  fprintf('  [%s] gain extraction: %s; least squares (qp).\n',label,ME2.message);  end
-            [Gc,~,iinv] = getObserver_sop(Psol,Zsol,struct('method','qp'));
+            if st.sop.verbose,  fprintf('  [%s] gain extraction: %s; inverse (inv).\n',label,ME2.message);  end
+            [Gc,~,iinv] = getObserver_sop(Psol,Zsol,struct('method','inv'));
         end
         L = Gc;
     elseif st.sop.verbose                   % no N-D gain extraction
