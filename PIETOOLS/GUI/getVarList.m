@@ -43,7 +43,7 @@ function varList = getVarList(list, type)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP, SS, DJ (PIETOOLS 2021b; in the repository since 12/31/2021)
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 % The list must be a GUI uitable
 if ~isa(list, 'matlab.ui.control.Table')

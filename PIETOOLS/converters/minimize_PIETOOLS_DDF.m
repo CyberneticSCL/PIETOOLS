@@ -71,7 +71,7 @@ function DDF_out=minimize_PIETOOLS_DDF(DDF)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

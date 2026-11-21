@@ -52,9 +52,9 @@ function DDF_out=initialize_PIETOOLS_DDF(DDF)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 % MMP, 5_30_2021; added new data structure and made script a function
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: nx from B1 without 'var' (an error); the 14 size checks by
-%                   isequal (if size(X)~=[r,c] passed with one dimension wrong).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: nx can be read off B1; a
+%   coefficient with either dimension wrong throws the size error; help and
+%   comments revised.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -117,8 +117,8 @@ if ~exist('nx','var')
         if exist('A0','var')
             nx=size(A0,1);
         elseif exist('B1','var')
-%           nx=size(B1,1,'var');                                            % MMP, 11/20/2026 (was)
-            nx=size(B1,1);  % 'var' is no dimension argument (an error)     % MMP, 11/20/2026
+%           nx=size(B1,1,'var');                                            % MMP, 11/21/2026 (was)
+            nx=size(B1,1);                                                  % MMP, 11/21/2026
         elseif exist('B2','var')
             nx=size(B2,1);
         elseif exist('Bv','var')
@@ -346,21 +346,20 @@ end
 
 for i=1:nK
     % Cr{i}, Br1{i}: zero where undefined or empty, else size checked
-    % (nr{i} x nx, nr{i} x nw) by isequal: if size(X)~=[r,c] is true only   % MMP, 11/20/2026
-    % when both dimensions differ                                           % MMP, 11/20/2026
+    % (nr{i} x nx, nr{i} x nw) in both dimensions                           % MMP, 11/21/2026
     if lcr<i||isempty(Cr{i})
         Cr{i}=zeros(nr{i},nx);
         disp(['Cr{',int2str(i),'} undefined, defaulting to 0'])
-%   elseif size(Cr{i})~=[nr{i},nx]                                          % MMP, 11/20/2026 (was)
-    elseif ~isequal(size(Cr{i}),[nr{i},nx])                                 % MMP, 11/20/2026
+%   elseif size(Cr{i})~=[nr{i},nx]                                          % MMP, 11/21/2026 (was)
+    elseif ~isequal(size(Cr{i}),[nr{i},nx])                                 % MMP, 11/21/2026
         error(['error in size of Cr',int2str(i)])
     end
     
     if lbr1<i||isempty(Br1{i})
         Br1{i}=zeros(nr{i},nw);
         disp(['Br1{',int2str(i),'} undefined, defaulting to 0'])
-%   elseif size(Br1{i})~=[nr{i},nw]                                         % MMP, 11/20/2026 (was)
-    elseif ~isequal(size(Br1{i}),[nr{i},nw])                                % MMP, 11/20/2026
+%   elseif size(Br1{i})~=[nr{i},nw]                                         % MMP, 11/21/2026 (was)
+    elseif ~isequal(size(Br1{i}),[nr{i},nw])                                % MMP, 11/21/2026
         error(['error in size of Br1',int2str(i)])
     end
     
@@ -368,16 +367,16 @@ for i=1:nK
     if lbr2<i||isempty(Br2{i})
         Br2{i}=zeros(nr{i},nu);
         disp(['Br2{',int2str(i),'} undefined, defaulting to 0'])
-%   elseif size(Br2{i})~=[nr{i},nu]                                         % MMP, 11/20/2026 (was)
-    elseif ~isequal(size(Br2{i}),[nr{i},nu])                                % MMP, 11/20/2026
+%   elseif size(Br2{i})~=[nr{i},nu]                                         % MMP, 11/21/2026 (was)
+    elseif ~isequal(size(Br2{i}),[nr{i},nu])                                % MMP, 11/21/2026
         error(['error in size of Br2',int2str(i)])
     end
     
     if ldrv<i||isempty(Drv{i})
         Drv{i}=zeros(nr{i},nv);
         disp(['Drv{',int2str(i),'} undefined, defaulting to 0'])
-%   elseif size(Drv{i})~=[nr{i},nv]                                         % MMP, 11/20/2026 (was)
-    elseif ~isequal(size(Drv{i}),[nr{i},nv])                                % MMP, 11/20/2026
+%   elseif size(Drv{i})~=[nr{i},nv]                                         % MMP, 11/21/2026 (was)
+    elseif ~isequal(size(Drv{i}),[nr{i},nv])                                % MMP, 11/21/2026
         error(['error in size of Drv',int2str(i)])
     end
     
@@ -387,19 +386,19 @@ end
 
 for i=1:nK
     % Cv{i}, Cvd{i}: zero where undefined or empty, else size checked
-    % (nv x nr{i}) by isequal, as in Group 2                                % MMP, 11/20/2026
+    % (nv x nr{i}) in both dimensions                                       % MMP, 11/21/2026
     if lcv<i||isempty(Cv{i})
         Cv{i}=zeros(nv,nr{i});
         disp(['Cv{',int2str(i),'} undefined, defaulting to 0'])
-%   elseif size(Cv{i})~=[nv,nr{i}]                                          % MMP, 11/20/2026 (was)
-    elseif ~isequal(size(Cv{i}),[nv,nr{i}])                                 % MMP, 11/20/2026
+%   elseif size(Cv{i})~=[nv,nr{i}]                                          % MMP, 11/21/2026 (was)
+    elseif ~isequal(size(Cv{i}),[nv,nr{i}])                                 % MMP, 11/21/2026
         error(['error in size of Cv',int2str(i)])
     end
     if lcvd<i||isempty(Cvd{i})
         Cvd{i}=zeros(nv,nr{i});
         disp(['Cvd{',int2str(i),'} undefined, defaulting to 0'])
-%   elseif size(Cvd{i})~=[nv,nr{i}]                                         % MMP, 11/20/2026 (was)
-    elseif ~isequal(size(Cvd{i}),[nv,nr{i}])                                % MMP, 11/20/2026
+%   elseif size(Cvd{i})~=[nv,nr{i}]                                         % MMP, 11/21/2026 (was)
+    elseif ~isequal(size(Cvd{i}),[nv,nr{i}])                                % MMP, 11/21/2026
         error(['error in size of Cvd',int2str(i)])
     end
 end
@@ -408,13 +407,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%% Group 4 %%%%%%%%%%%%%%%%%%%%%%%
 
 
-% C1: zero if undefined, else size checked (nz x nx) by isequal, as in      % MMP, 11/20/2026
-% Group 2                                                                   % MMP, 11/20/2026
+% C1: zero if undefined, else size checked (nz x nx) in both dimensions     % MMP, 11/21/2026
 if ~exist('C1','var')
     C1=zeros(nz,nx);
     disp('C1 undefined, defaulting to 0')
-% elseif size(C1)~=[nz,nx]                                                  % MMP, 11/20/2026 (was)
-elseif ~isequal(size(C1),[nz,nx])                                           % MMP, 11/20/2026
+% elseif size(C1)~=[nz,nx]                                                  % MMP, 11/21/2026 (was)
+elseif ~isequal(size(C1),[nz,nx])                                           % MMP, 11/21/2026
     error(['error in size of C1'])
 end
 
@@ -422,8 +420,8 @@ end
 if ~exist('D11','var')
     D11=zeros(nz,nw);
     disp('D11 undefined, defaulting to 0')
-% elseif size(D11)~=[nz,nw]                                                 % MMP, 11/20/2026 (was)
-elseif ~isequal(size(D11),[nz,nw])                                          % MMP, 11/20/2026
+% elseif size(D11)~=[nz,nw]                                                 % MMP, 11/21/2026 (was)
+elseif ~isequal(size(D11),[nz,nw])                                          % MMP, 11/21/2026
     error(['error in size of D11'])
 end
 
@@ -431,8 +429,8 @@ end
 if ~exist('D12','var')
     D12=zeros(nz,nu);
     disp('D12 undefined, defaulting to 0')
-% elseif size(D12)~=[nz,nu]                                                 % MMP, 11/20/2026 (was)
-elseif ~isequal(size(D12),[nz,nu])                                          % MMP, 11/20/2026
+% elseif size(D12)~=[nz,nu]                                                 % MMP, 11/21/2026 (was)
+elseif ~isequal(size(D12),[nz,nu])                                          % MMP, 11/21/2026
     error(['error in size of D12'])
 end
 
@@ -440,8 +438,8 @@ end
 if ~exist('D1v','var')
     D1v=zeros(nz,nv);
     disp('D1v undefined, defaulting to 0')
-% elseif size(D1v)~=[nz,nv]                                                 % MMP, 11/20/2026 (was)
-elseif ~isequal(size(D1v),[nz,nv])                                          % MMP, 11/20/2026
+% elseif size(D1v)~=[nz,nv]                                                 % MMP, 11/21/2026 (was)
+elseif ~isequal(size(D1v),[nz,nv])                                          % MMP, 11/21/2026
     error(['error in size of D1v'])
 end
 
@@ -451,13 +449,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%% Group 5 %%%%%%%%%%%%%%%%%%%%%%%
 
 
-% C2: zero if undefined, else size checked (ny x nx) by isequal, as in      % MMP, 11/20/2026
-% Group 2                                                                   % MMP, 11/20/2026
+% C2: zero if undefined, else size checked (ny x nx) in both dimensions     % MMP, 11/21/2026
 if ~exist('C2','var')
     C2=zeros(ny,nx);
     disp('C2 undefined, defaulting to 0')
-% elseif size(C2)~=[ny,nx]                                                  % MMP, 11/20/2026 (was)
-elseif ~isequal(size(C2),[ny,nx])                                           % MMP, 11/20/2026
+% elseif size(C2)~=[ny,nx]                                                  % MMP, 11/21/2026 (was)
+elseif ~isequal(size(C2),[ny,nx])                                           % MMP, 11/21/2026
     error(['error in size of C2'])
 end
 
@@ -465,8 +462,8 @@ end
 if ~exist('D21','var')
     D21=zeros(ny,nw);
     disp('D21 undefined, defaulting to 0')
-% elseif size(D21)~=[ny,nw]                                                 % MMP, 11/20/2026 (was)
-elseif ~isequal(size(D21),[ny,nw])                                          % MMP, 11/20/2026
+% elseif size(D21)~=[ny,nw]                                                 % MMP, 11/21/2026 (was)
+elseif ~isequal(size(D21),[ny,nw])                                          % MMP, 11/21/2026
     error(['error in size of D21'])
 end
 
@@ -474,8 +471,8 @@ end
 if ~exist('D22','var')
     D22=zeros(ny,nu);
     disp('D22 undefined, defaulting to 0')
-% elseif size(D22)~=[ny,nu]                                                 % MMP, 11/20/2026 (was)
-elseif ~isequal(size(D22),[ny,nu])                                          % MMP, 11/20/2026
+% elseif size(D22)~=[ny,nu]                                                 % MMP, 11/21/2026 (was)
+elseif ~isequal(size(D22),[ny,nu])                                          % MMP, 11/21/2026
     error(['error in size of D22'])
 end
 
@@ -483,8 +480,8 @@ end
 if ~exist('D2v','var')
     D2v=zeros(ny,nv);
     disp('D2v undefined, defaulting to 0')
-% elseif size(D2v)~=[ny,nv]                                                 % MMP, 11/20/2026 (was)
-elseif ~isequal(size(D2v),[ny,nv])                                          % MMP, 11/20/2026
+% elseif size(D2v)~=[ny,nv]                                                 % MMP, 11/21/2026 (was)
+elseif ~isequal(size(D2v),[ny,nv])                                          % MMP, 11/21/2026
     error(['error in size of D2v'])
 end
 

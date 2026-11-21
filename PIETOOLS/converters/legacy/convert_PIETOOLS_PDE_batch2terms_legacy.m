@@ -98,18 +98,11 @@ PDE=initialize_PIETOOLS_PDE_batch(PDE_batch);
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding SS  - 5_30_2021
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
-% MMP, 11/05/2026: Two corrections; the terms PIE of a batch PDE now equals
-%   the PIE of convert_PIETOOLS_PDE_batch (51 batch PDEs, before: 11 differ).
-%   (1) The coefficients are rewritten in s1, s1_dum. The entry of DJ,
-%   12/07/2024 set PDE.vars to s1, s1_dum but left the coefficients in the
-%   variable INITIALIZE_PIETOOLS_PDE_batch reads off them (s in the example
-%   library), which the terms converter does not integrate over: B21 = s
-%   acted as B21 = 1. (2) E0, C10, C20 act on the boundary values in the
-%   batch order [x1(a) x1(b) x2(a) x2(b) x2s(a) x2s(b)]; the boundary values
-%   in r (Drb) are [x1(a) x2(a) x2s(a) x1(b) x2(b) x2s(b)], so their columns
-%   are permuted (B is split by location, derivative and state, and was
-%   already correct).
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the batch coefficients are
+%   rewritten in s1, s1_dum; the columns of E0, C10 and C20 are reordered
+%   from the batch order of the boundary values, [x1(a) x1(b) x2(a) x2(b)
+%   x2s(a) x2s(b)], to [x1(a) x2(a) x2s(a) x1(b) x2(b) x2s(b)]; help and
+%   comments revised.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Test for domain (mandatory variables)
@@ -157,24 +150,20 @@ nz = PDE_out.n.nz;  ny = PDE_out.n.ny;  nv = PDE_out.n.nv;
 % the dimensions
 pvar s1 s1_dum;                                                             % DJ, 12/07/2024
 
-% % % BEGIN MMP, 11/05/2026: new code (header entry, correction 1). The
-% % % coefficients are polynomials in PDE.vars, the variables
-% % % INITIALIZE_PIETOOLS_PDE_batch read off them; rewrite them in s1, s1_dum,
-% % % the variables of the terms format.
+% MMP, 11/21/2026: BEGIN the coefficients, polynomials in PDE.vars, in s1, s1_dum
 vb = PDE.vars;
 for f = fieldnames(PDE)'
     if isa(PDE.(f{1}),'polynomial')
         PDE.(f{1}) = subs(subs(PDE.(f{1}),vb(1),s1),vb(2),s1_dum);
     end
 end
-% % % END MMP, 11/05/2026
+% MMP, 11/21/2026: END the coefficients, polynomials in PDE.vars, in s1, s1_dum
 PDE.vars = [s1,s1_dum];
 
-% % % BEGIN MMP, 11/05/2026: new code (header entry, correction 2). Columns of
-% % % E0, C10, C20 in batch order -> the order of the boundary values in r
+% MMP, 11/21/2026: BEGIN columns of E0, C10, C20: batch order -> order in r
 pb = [1:n1, 2*n1+(1:n2), 2*n1+2*n2+(1:n2), ...
       n1+(1:n1), 2*n1+n2+(1:n2), 2*n1+3*n2+(1:n2)];
-% % % END MMP, 11/05/2026
+% MMP, 11/21/2026: END columns of E0, C10, C20: batch order -> order in r
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % First place ODE related parameters in correct places
@@ -182,18 +171,18 @@ pb = [1:n1, 2*n1+(1:n2), 2*n1+2*n2+(1:n2), ...
 PDE_out.ODE.A = PDE.A;
 PDE_out.ODE.Bxw = PDE.B11;
 PDE_out.ODE.Bxu = PDE.B12;
-% PDE_out.ODE.Bxr = [PDE.E0 eye(nx) zeros(nx,nz) zeros(nx,ny)];             % MMP, 11/05/2026 (was)
-PDE_out.ODE.Bxr = [PDE.E0(:,pb) eye(nx) zeros(nx,nz) zeros(nx,ny)];         % MMP, 11/05/2026
+% PDE_out.ODE.Bxr = [PDE.E0 eye(nx) zeros(nx,nz) zeros(nx,ny)];             % MMP, 11/21/2026 (was)
+PDE_out.ODE.Bxr = [PDE.E0(:,pb) eye(nx) zeros(nx,nz) zeros(nx,ny)];         % MMP, 11/21/2026
 PDE_out.ODE.Cz = PDE.C1;
 PDE_out.ODE.Dzw = PDE.D11;
 PDE_out.ODE.Dzu = PDE.D12;
-% PDE_out.ODE.Dzr = [PDE.C10 zeros(nz,nx) eye(nz) zeros(nz,ny)];            % MMP, 11/05/2026 (was)
-PDE_out.ODE.Dzr = [PDE.C10(:,pb) zeros(nz,nx) eye(nz) zeros(nz,ny)];        % MMP, 11/05/2026
+% PDE_out.ODE.Dzr = [PDE.C10 zeros(nz,nx) eye(nz) zeros(nz,ny)];            % MMP, 11/21/2026 (was)
+PDE_out.ODE.Dzr = [PDE.C10(:,pb) zeros(nz,nx) eye(nz) zeros(nz,ny)];        % MMP, 11/21/2026
 PDE_out.ODE.Cy = PDE.C2;
 PDE_out.ODE.Dyw = PDE.D21;
 PDE_out.ODE.Dyu = PDE.D22;
-% PDE_out.ODE.Dyr = [PDE.C20 zeros(ny,nx) zeros(ny,nz) eye(ny)];            % MMP, 11/05/2026 (was)
-PDE_out.ODE.Dyr = [PDE.C20(:,pb) zeros(ny,nx) zeros(ny,nz) eye(ny)];        % MMP, 11/05/2026
+% PDE_out.ODE.Dyr = [PDE.C20 zeros(ny,nx) zeros(ny,nz) eye(ny)];            % MMP, 11/21/2026 (was)
+PDE_out.ODE.Dyr = [PDE.C20(:,pb) zeros(ny,nx) zeros(ny,nz) eye(ny)];        % MMP, 11/21/2026
 PDE_out.ODE.Cv = [eye(nx); zeros(nw,nx); zeros(nu,nx)];
 PDE_out.ODE.Dvw = [zeros(nx,nw); eye(nw); zeros(nu,nw)];
 PDE_out.ODE.Dvu = [zeros(nx,nu); zeros(nw,nu); eye(nu)];

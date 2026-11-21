@@ -7,7 +7,7 @@
 %   whatever the current folder.
 %
 % OUTPUT
-% - none; the MATLAB path of the current session is extended.
+% - none; the current MATLAB path is extended.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2026 PIETOOLS Team
@@ -33,10 +33,9 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 01/06/2025
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/21/2026: Add the folder of this file, not pwd: called by name from
-%                   another folder, the script added that folder tree and no
-%                   PIETOOLS folder.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: adds the folder of this file
+%   and its subfolders to the path, not the current folder; help and comments
+%   revised.
 
 % Add the folder of this file and all its subfolders to the path.           % MMP, 11/21/2026
 % current_folder = pwd;                                                     % MMP, 11/21/2026 (was)

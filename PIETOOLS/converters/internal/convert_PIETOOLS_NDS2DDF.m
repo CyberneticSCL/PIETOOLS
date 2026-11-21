@@ -73,10 +73,9 @@ function DDF=convert_PIETOOLS_NDS2DDF(NDS)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Store the distributed delay kernels in DDF.Cvd (they were
-%                   left in a local Cvd, so every distributed term was lost).
-% MMP, 11/20/2026: No delays (tau empty): an error, not an unbounded recursion.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the distributed delay kernels
+%   are stored in the field Cvd of the output; an NDS without delays (tau
+%   empty) throws an error; help and comments revised.
 
 
 % re-run initialize to make sure everything is defined.
@@ -98,11 +97,10 @@ DDF.tau=NDS.tau;DDF.A0=NDS.A0;DDF.B1=NDS.B1;DDF.B2=NDS.B2;DDF.C1=NDS.C1;DDF.C2=N
 
 % The first step is to form the vertical concatenation matrices for each
 % delay, tau(i)
-% No delays: not supported; an error (the DDE conversion recursed without   % MMP, 11/20/2026
-% end).                                                                     % MMP, 11/20/2026
+% No delays: not supported, an error                                        % MMP, 11/21/2026
 if nK==0
-%   DDF=convert_PIETOOLS_DDE(NDS);                                          % MMP, 11/20/2026 (was)
-    error('The NDS has no delays (tau is empty). Define at least one delay.') % MMP, 11/20/2026
+%   DDF=convert_PIETOOLS_DDE(NDS);                                          % MMP, 11/21/2026 (was)
+    error('The NDS has no delays (tau is empty). Define at least one delay.') % MMP, 11/21/2026
 else
 
     nv=nx+nz+ny; nt=nx+nw+nu;
@@ -113,9 +111,9 @@ else
         DDF.Cv{i}=[NDS.Ai{i} NDS.B1i{i} NDS.B2i{i} NDS.Ei{i};
                NDS.C1i{i}  NDS.D11i{i} NDS.D12i{i} NDS.C1ei{i};
                NDS.C2i{i}  NDS.D21i{i} NDS.D22i{i} NDS.C2ei{i}];
-        % Distributed delay kernels of [x; w; u; \dot x], layout of Cv{i}   % MMP, 11/20/2026
-%       Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};              % MMP, 11/20/2026 (was)
-        DDF.Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};          % MMP, 11/20/2026
+        % Distributed delay kernels of [x; w; u; \dot x], layout of Cv{i}   % MMP, 11/21/2026
+%       Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};              % MMP, 11/21/2026 (was)
+        DDF.Cvd{i}=[NDS.Adi{i} NDS.B1di{i} NDS.B2di{i} NDS.Edi{i};          % MMP, 11/21/2026
             NDS.C1di{i}  NDS.D11di{i} NDS.D12di{i} NDS.C1dei{i};
             NDS.C2di{i}  NDS.D21di{i} NDS.D22di{i} NDS.C2dei{i}];
         % r_i in terms of x, w, u, v: \dot x = A0 x + B1 w + B2 u + v_x

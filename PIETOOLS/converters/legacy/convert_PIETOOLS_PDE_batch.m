@@ -66,22 +66,13 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 % DJ, 12/16/2024: Output PIE as 'pie_struct' object;
 % DJ, 02/21/2025: Allow spatial variables to be declared in PDE structure;
-% MMP, 11/04/2026: The PIE operators are 'copvar' containers built by
-%   PI4_COPVAR_SOP instead of 'opvar' objects, so the batch format converts
-%   without the opvar class (removal of the opvar classes; the batch format
-%   is kept, maintainer 11/04/2026). Each operator was a slice of
-%   Ptop = Apop*Phfop or of Tbigop. A row slice of a product is the row
-%   slice of the left factor times the right factor, and a column slice
-%   the left factor times the column slice of the right factor, so each is
-%   now one product of a row slice of Apop and a column slice of Phfop
-%   (or one column slice of Tbigop), each built from the rows or columns
-%   of the matrices above; op_slice and the opvar products are gone.
-%   PI4_COPVAR_SOP builds the blocks OP2COPVAR_SOP built from the opvar
-%   slices in INITIALIZE. The PIE is initialized here, as the pde_struct
-%   converter does. The dummy variable is VAR1 with '_dum' appended, the
-%   name PI4_COPVAR_SOP and INITIALIZE use. This supersedes the entry of
-%   DJ, 09/29/2021 (the zero filling of empty opvar parameters).
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the twelve operators of the
+%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects: each
+%   is the product of a row slice of Apop and a column slice of Phfop (new
+%   local function mult_or_zero: the zero operator for an empty channel), or
+%   a column slice of Tbigop; the dummy variable is the spatial variable
+%   with '_dum'; the PIE is initialized; the opvar code, the zero filling of
+%   DJ, 09/29/2021 included, is commented out; help and comments revised.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined parameters to zero.
@@ -221,8 +212,7 @@ Q2b=[B21 B22 E Exx];
  R0b=[A0 A1 A2];
  R1b=Rxx1; R2b=Rxx2;
 
-% % % BEGIN MMP, 11/04/2026: the opvar Apop is commented out; its row slices
-% % % are built as 'copvar' containers below, after Phf (header entry).
+% MMP, 11/21/2026: BEGIN the opvar Apop, commented out
 % %%% At this point, we can construct the primal dynamics opvar
 % opvar Apop;
 % Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = var1; Apop.var2 = var2; Apop.I = X;
@@ -232,7 +222,7 @@ Q2b=[B21 B22 E Exx];
 % Apop.R.R0=R0b;
 % Apop.R.R1=R1b;
 % Apop.R.R2=R2b;
-% % % END MMP, 11/04/2026
+% MMP, 11/21/2026: END the opvar Apop, commented out
 
 
 %%%%%%%%%%%%%%%%%%%% Converting Lambda1 X  %%%%%%%%%%%%%%%%%%%%%%%
@@ -308,10 +298,7 @@ R0hf=Ib1*[I0 z01 z02;z10 z11 z12; z20 z21 z22]+Ib2*[z00 z01 z02;z10 I1 z12; z20 
 R1hf=Ib1*R1f+diff(Ib2*R1f+diff(Ib3*R1f,var1),var1);
 R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,var1),var1);
 
-% % % BEGIN MMP, 11/04/2026: the opvars Phfop, Ptop and Tbigop, the op_slice
-% % % partition and the zero filling of DJ, 09/29/2021 are commented out down
-% % % to the END marker; the operators are built as 'copvar' containers after
-% % % it (header entry).
+% MMP, 11/21/2026: BEGIN the opvars Phfop, Ptop, Tbigop and their slices, commented out
 % %%% We now construct the Phfop
 % opvar Phfop;
 % Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = var1; Phfop.var2 = var2; Phfop.I = X;
@@ -363,16 +350,15 @@ R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,var1),var1);
 %
 % %nx1 = nx; nx2 = np;
 %
-% % DJ 09/29/2021: fill in empty parameters with appropriate zeros
+% DJ 09/29/2021: fill in empty parameters with appropriate zeros
 % opnames = {'Top','TB1op','TB2op','Aop','B1op','B2op','C1op','D11op','D12op','C2op','D21op','D22op'};
 % for j=1:length(opnames)
 %     op = opnames{j};
 %     eval([op,'.dim=',op,'.dim;'])
 % end
-% % % END MMP, 11/04/2026 (code commented out)
+% MMP, 11/21/2026: END the opvars Phfop, Ptop, Tbigop and their slices, commented out
 
-% % % BEGIN MMP, 11/04/2026: the operators as 'copvar' containers (header
-% % % entry); everything from here to the END marker is new.
+% MMP, 11/21/2026: BEGIN the operators as 'copvar' containers
 % The dummy variable of the operators is VAR1 with '_dum'. A different
 % dummy (PDE.vars) is renamed in the kernels that hold it.
 vdum = pvar([var1.varname{1},'_dum']);
@@ -412,23 +398,23 @@ Aop   = mult_or_zero(Ax,Px,[nx nx; np np],pi4);
 TB1op = pi4(zeros(nx,nw),[],Q2f(:,cw),{[],[],[]},[nx nw; np 0]);
 TB2op = pi4(zeros(nx,nu),[],Q2f(:,cu),{[],[],[]},[nx nu; np 0]);
 Top   = pi4(eye(nx),zeros(nx,np),Q2f(:,cx),{R0f,R1f,R2f},[nx nx; np np]);
-% % % END MMP, 11/04/2026
+% MMP, 11/21/2026: END the operators as 'copvar' containers
 
 %remove temporary opvars
 %clear Apop Phfop Tbigop;
 pie_struct PIE_out;                                                         % DJ, 12/16/2024
-% PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];                    % MMP, 11/04/2026 (was)
-PIE_out.dom = X;   PIE_out.vars = [var1,var2];  % Top has no var1, var2     % MMP, 11/04/2026
+% PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];                    % MMP, 11/21/2026 (was)
+PIE_out.dom = X;   PIE_out.vars = [var1,var2];                              % MMP, 11/21/2026
 PIE_out.T = Top;   PIE_out.Tw = TB1op;  PIE_out.Tu = TB2op;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
-% Spaces and maps from the copvar operators                                 % MMP, 11/04/2026
-PIE_out = initialize(PIE_out);                                              % MMP, 11/04/2026
+% Spaces and maps from the copvar operators                                 % MMP, 11/21/2026
+PIE_out = initialize(PIE_out);                                              % MMP, 11/21/2026
 end
 
 
-% % % BEGIN MMP, 11/04/2026: new local function MULT_OR_ZERO (header entry)
+% MMP, 11/21/2026: BEGIN new local function mult_or_zero
 function Pop = mult_or_zero(L,R,dims,pi4)
 % POP = MULT_OR_ZERO(L,R,DIMS,PI4) returns the product L*R of two 'copvar'
 % containers, or the zero operator of dimensions DIMS when the product has
@@ -449,7 +435,7 @@ else
     Pop = L*R;
 end
 end
-% % % END MMP, 11/04/2026
+% MMP, 11/21/2026: END new local function mult_or_zero
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System Definition:
 % \dot [xo(t) ]  =A xo(t)+ E0 [x_2(a) + int(Ea(s) [x_1(t,s)] ds,a,b) + int(Eb(s) [x_2s(t,s)] ds,a,b) + int(Ec(s)[x_2ss(t,s)] ds,a,b) + [B11] w(t) + [B12] u(t)

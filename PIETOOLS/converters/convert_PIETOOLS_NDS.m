@@ -73,9 +73,7 @@ function [DDF,DDF_min,PIE] = convert_PIETOOLS_NDS(NDS,out_type)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding: DJ, 09/29/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Help: the DDF has the field Cvd (distributed delay
-%                   kernels), now stored by convert_PIETOOLS_NDS2DDF.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 %
 
 % Check that desired conversion makes sense.

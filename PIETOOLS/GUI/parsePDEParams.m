@@ -44,20 +44,12 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP, SS, DJ (PIETOOLS 2021b; in the repository since 12/31/2021)
-% MMP, 11/05/2026: The loop over differentiability orders runs to the
-%   largest order, max(Xvals(:,1)), instead of max(Xvals): Xvals has two
-%   columns, so with two or more PDE states max(Xvals) is a row and R2025b
-%   rejects it as a colon operand (33 of the 47 GUI files of the example
-%   library failed to parse). Earlier releases used its first element,
-%   max(Xvals(:,1)), so the result there is unchanged.
-% MMP, 11/08/2026: Each PDE state gets the global variable and domain
-%   (PDE_struct.vars, PDE_struct.dom), the values initialize assigns to a
-%   state without them. Since c47e093a (11/07/2026) initialize reads the
-%   vars of the states in boundary terms before assigning these defaults,
-%   so without them 46 of the 47 GUI files of the example library failed.
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: eval_b: an empty coefficient text gives 1 (index error); a
-%   text that fails to evaluate is an error naming it, not 0 (see eval_b).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the loop over the orders of
+%   differentiability runs to max(Xvals(:,1)), so two or more PDE states
+%   parse; each PDE state gets the variables and domain of the PDE
+%   (PDE_struct.vars, PDE_struct.dom); an empty coefficient text gives 1,
+%   and a coefficient text that fails to evaluate, also with a leading '(',
+%   throws an error naming it; help and comments revised.
 
 % remove whitespaces
 % PDE_Text = regexprep(PDE_Text,'\s+','');
@@ -83,8 +75,8 @@ end
 % the X states of that order
 Xvals = cell2mat(varlist(contains(varlist(:,1),'X'),2));
 Xvals = [Xvals zeros(size(Xvals))];
-% for i=0:max(Xvals)                                                        % MMP, 11/05/2026 (was)
-for i=0:max(Xvals(:,1))     % the orders are column 1                       % MMP, 11/05/2026
+% for i=0:max(Xvals)                                                        % MMP, 11/21/2026 (was)
+for i=0:max(Xvals(:,1))     % the orders are column 1                       % MMP, 11/21/2026
     Xvals(Xvals(:,1)==i,2) = (1:length(Xvals(Xvals(:,1)==i,2)))';
 end
 
@@ -144,8 +136,8 @@ end
 diffvals = varlist(contains(varlist(:,1),'X'),2);
 for i=no+1:no+sum(n_pde)
     PDE_struct.x{i}.diff = diffvals{i-no};
-    PDE_struct.x{i}.vars = PDE_struct.vars;     % defaults of initialize,   % MMP, 11/08/2026
-    PDE_struct.x{i}.dom = PDE_struct.dom;       % set before it reads them  % MMP, 11/08/2026
+    PDE_struct.x{i}.vars = PDE_struct.vars;     % defaults of initialize,   % MMP, 11/21/2026
+    PDE_struct.x{i}.dom = PDE_struct.dom;       % set before it reads them  % MMP, 11/21/2026
 end
 
 
@@ -692,8 +684,8 @@ function val = eval_b(exp)
 
 % Variables the text may contain
 pvar s theta;
-% if strcmp(exp(end),'*')                                                   % MMP, 11/20/2026 (was)
-if ~isempty(exp) && strcmp(exp(end),'*')    % '' errored at exp(end)        % MMP, 11/20/2026
+% if strcmp(exp(end),'*')                                                   % MMP, 11/21/2026 (was)
+if ~isempty(exp) && strcmp(exp(end),'*')    % empty text: no exp(end)       % MMP, 11/21/2026
     exp = exp(1:end-1);
 end
 if strcmp(exp,'+')||strcmp(exp,'*')||isempty(exp)
@@ -702,23 +694,18 @@ else
     try 
         val = eval(exp);
     catch err
-        % BEGIN MMP, 11/20/2026: the retry with a leading '(' was taken only
-        % for one exact message text (mismatched delimiters; R2025b words
-        % the error of an unmatched ')' differently), and every other
-        % failure gave 0 without notice. Now every failure is retried,
-        % which succeeds only for an unmatched ')', and a failed retry is
-        % an error naming the coefficient.
-%       if strcmp(err.message, 'Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.') % MMP, 11/20/2026 (was)
-%           val = eval(['(',exp]);                                          % MMP, 11/20/2026 (was)
-%       else                                                                % MMP, 11/20/2026 (was)
-%           val=0;                                                          % MMP, 11/20/2026 (was)
-%       end                                                                 % MMP, 11/20/2026 (was)
-        try                                                                 % MMP, 11/20/2026
-            val = eval(['(',exp]);                                          % MMP, 11/20/2026
-        catch                                                               % MMP, 11/20/2026
-            error('The coefficient ''%s'' of a term could not be evaluated: %s',exp,err.message) % MMP, 11/20/2026
-        end                                                                 % MMP, 11/20/2026
-        % END MMP, 11/20/2026
+        % MMP, 11/21/2026: BEGIN retry with a leading '(', else an error
+%       if strcmp(err.message, 'Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.') % MMP, 11/21/2026 (was)
+%           val = eval(['(',exp]);                                          % MMP, 11/21/2026 (was)
+%       else                                                                % MMP, 11/21/2026 (was)
+%           val=0;                                                          % MMP, 11/21/2026 (was)
+%       end                                                                 % MMP, 11/21/2026 (was)
+        try                                                                 % MMP, 11/21/2026
+            val = eval(['(',exp]);                                          % MMP, 11/21/2026
+        catch                                                               % MMP, 11/21/2026
+            error('The coefficient ''%s'' of a term could not be evaluated: %s',exp,err.message) % MMP, 11/21/2026
+        end                                                                 % MMP, 11/21/2026
+        % MMP, 11/21/2026: END retry with a leading '(', else an error
     end
 end
 end

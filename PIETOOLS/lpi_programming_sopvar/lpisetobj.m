@@ -44,11 +44,7 @@ function prog = lpisetobj(prog,obj)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/19/2024
-% MMP - 11/04/2026: Moved from lpi_programming/ to lpi_programming_sopvar/,
-%   code unchanged: it references no operator class and serves both
-%   operator families, while lpi_programming/ is retired with the opvar
-%   classes.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
 % Check that the inputs make sense.
 if ~isa(prog,'struct')

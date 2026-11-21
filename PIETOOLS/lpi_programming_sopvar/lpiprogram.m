@@ -72,46 +72,28 @@ function prog = lpiprogram(varargin)
 % Initial coding DJ - 10/13/2024
 % DJ, 11/30/2024: Introduce separate input for dummy variables;
 % DJ, 01/23/2025: Allow dummy variables to be specified as empty array;
-% MMP, 10/01/2026: Allow any number of spatial variables: the cap of 2 is
-%   removed, since nothing below depends on the number. The legacy operator
-%   routines still take 1 or 2 variables: for 3, lpivar and poslpivar stop
-%   with "Error setting property 'I' of class 'dopvar'" (measured); the
-%   container routines take any N. This removes the reason for the fork
-%   'lpi_programming_sopvar/lpiprogram_sop', now an adapter calling this.
-%   Also: the dummy variables' ispvar check tested 'vartab' again, and no
-%   spatial variables failed the vector test and then dom(:,2); now zero
-%   variables give dom = zeros(0,2). Valid inputs give the same program.
-% MMP, 11/04/2026: Moved from lpi_programming/ to lpi_programming_sopvar/,
-%   code unchanged: it references no operator class and declares the
-%   program of both operator families, while lpi_programming/ is retired
-%   with the opvar classes. The adapter 'lpiprogram_sop' named in the
-%   10/01/2026 entry is retired the same day (cleaning/private/dead_code).
-% DJ, 11/06/2026: Allow variable names to be specified as cellstr;
-% MMP, 11/12/2026: Optional last input SETTINGS, a settings structure or a
-%   tier name, stored in prog.settings by LPISETSETTINGS (default light):
-%   LPI_INEQ_SOP and LPISOLVE take from it the options a call does not give
-%   (maintainer, 11/12/2026: "Settings on the program"). The inputs are
-%   parsed by position, so SETTINGS is taken off the end first; the former
-%   signature lpiprogram(vartab,dumvartab,dom,decvartab,freevartab) and its
-%   body move, unchanged, to the local function DECLARE_PROGRAM, whose
-%   three recursive calls now call it directly.
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, DJ, 11/21/2026: Changes since PIETOOLS 2025: optional last input
+%   SETTINGS (a settings structure or a tier name, default 'light'), stored
+%   in prog.settings, the other inputs declared by the new local function
+%   declare_program; any number of spatial variables, also none; variable
+%   names as cellstr accepted; each dummy variable is checked to be a
+%   polynomial variable; help and comments revised.
 
-% % % SETTINGS: a 'struct' or text as the last input (no other input is     % MMP, 11/12/2026
-% either), stored in PROG; the inputs before it declare the program.        % MMP, 11/12/2026
-st = [];                                                                    % MMP, 11/12/2026
-if nargin>=2,   st = varargin{end};     end                                 % MMP, 11/12/2026
-if isstruct(st) || ischar(st) || isstring(st),  varargin(end) = [];         % MMP, 11/12/2026
-else,                                           st = [];                    % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
-prog = lpisetsettings(declare_program(varargin{:}),st);                     % MMP, 11/12/2026
-end                                                                         % MMP, 11/12/2026
+% % % SETTINGS: a 'struct' or text as the last input (no other input is     % MMP, DJ, 11/21/2026
+% either), stored in PROG; the inputs before it declare the program.        % MMP, DJ, 11/21/2026
+st = [];                                                                    % MMP, DJ, 11/21/2026
+if nargin>=2,   st = varargin{end};     end                                 % MMP, DJ, 11/21/2026
+if isstruct(st) || ischar(st) || isstring(st),  varargin(end) = [];         % MMP, DJ, 11/21/2026
+else,                                           st = [];                    % MMP, DJ, 11/21/2026
+end                                                                         % MMP, DJ, 11/21/2026
+prog = lpisetsettings(declare_program(varargin{:}),st);                     % MMP, DJ, 11/21/2026
+end                                                                         % MMP, DJ, 11/21/2026
 
 
-function prog = declare_program(vartab,dumvartab,dom,decvartab,freevartab)  % MMP, 11/12/2026
-% PROG = DECLARE_PROGRAM(VARTAB,DUMVARTAB,DOM,DECVARTAB,FREEVARTAB)         % MMP, 11/12/2026
-% declares the program of LPIPROGRAM from the inputs before SETTINGS.       % MMP, 11/12/2026
-% INPUT, OUTPUT: as LPIPROGRAM, without SETTINGS and prog.settings.         % MMP, 11/12/2026
+function prog = declare_program(vartab,dumvartab,dom,decvartab,freevartab)  % MMP, DJ, 11/21/2026
+% PROG = DECLARE_PROGRAM(VARTAB,DUMVARTAB,DOM,DECVARTAB,FREEVARTAB)         % MMP, DJ, 11/21/2026
+% declares the program of LPIPROGRAM from the inputs before SETTINGS.       % MMP, DJ, 11/21/2026
+% INPUT, OUTPUT: as LPIPROGRAM, without SETTINGS and prog.settings.         % MMP, DJ, 11/21/2026
 
 % % % Process the inputs
 % % First, check if the second argument corresponds to dummy variables or a
@@ -137,17 +119,17 @@ elseif nargin>=2 && nargin<=4 && isnumeric(dumvartab)
             freevartab = decvartab;
             decvartab = dom;
             dom = dumvartab;
-%           prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab,freevartab); % MMP, 11/12/2026 (was)
-            prog = declare_program(vartab,dumvartab_tmp,dom,decvartab,freevartab); % MMP, 11/12/2026
+%           prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab,freevartab); % MMP, DJ, 11/21/2026 (was)
+            prog = declare_program(vartab,dumvartab_tmp,dom,decvartab,freevartab); % MMP, DJ, 11/21/2026
         elseif nargin==3
             decvartab = dom;
             dom = dumvartab;
-%           prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab);          % MMP, 11/12/2026 (was)
-            prog = declare_program(vartab,dumvartab_tmp,dom,decvartab);     % MMP, 11/12/2026
+%           prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab);          % MMP, DJ, 11/21/2026 (was)
+            prog = declare_program(vartab,dumvartab_tmp,dom,decvartab);     % MMP, DJ, 11/21/2026
         else
             dom = dumvartab;
-%           prog = lpiprogram(vartab,dumvartab_tmp,dom);                    % MMP, 11/12/2026 (was)
-            prog = declare_program(vartab,dumvartab_tmp,dom);               % MMP, 11/12/2026
+%           prog = lpiprogram(vartab,dumvartab_tmp,dom);                    % MMP, DJ, 11/21/2026 (was)
+            prog = declare_program(vartab,dumvartab_tmp,dom);               % MMP, DJ, 11/21/2026
         end
         return
     end
@@ -156,21 +138,21 @@ end
 % % Check that the spatial variables are properly specified.
 if isempty(vartab)
     vartab = polynomial(zeros(0,1));
-elseif iscellstr(vartab)                                                    % DJ, 11/06/2026
+elseif iscellstr(vartab)                                                    % MMP, DJ, 11/21/2026
     vartab = polynomial(vartab);
 elseif ~isa(vartab,'polynomial')
     error("Spatial variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
 elseif ~ispvar(vartab)
     error("Each element of the array of spatial variables should correspond to a single polynomial variable.")
 end
-% if prod(size(vartab))~=max(size(vartab))                                  % MMP, 10/01/2026 (was)
-if ~isempty(vartab) && prod(size(vartab))~=max(size(vartab))  % 0 x 1 is a column % MMP, 10/01/2026
+% if prod(size(vartab))~=max(size(vartab))                                  % MMP, DJ, 11/21/2026 (was)
+if ~isempty(vartab) && prod(size(vartab))~=max(size(vartab))  % 0 x 1 is a column % MMP, DJ, 11/21/2026
     error("Spatial variables in the LPI optimization program should be specified as nx1 array.")
 end
 vartab = vartab(:);
-% if size(vartab,1)>2                                                       % MMP, 10/01/2026 (was)
-%     error('LPI programs involving more than 2 spatial variables are currently not supported.') % MMP, 10/01/2026 (was)
-% end                                                                       % MMP, 10/01/2026 (was)
+% if size(vartab,1)>2                                                       % MMP, DJ, 11/21/2026 (was)
+%     error('LPI programs involving more than 2 spatial variables are currently not supported.') % MMP, DJ, 11/21/2026 (was)
+% end                                                                       % MMP, DJ, 11/21/2026 (was)
 
 % % Check that the dummy varaibles are properly specified.
 if isempty(dumvartab)                                                       % DJ, 01/23/2025
@@ -189,8 +171,8 @@ if isempty(dumvartab)                                                       % DJ
 else
     if ~isa(dumvartab,'polynomial')
         error("Dummy variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
-%   elseif ~ispvar(vartab)                                                  % MMP, 10/01/2026 (was)
-    elseif ~ispvar(dumvartab)                                               % MMP, 10/01/2026
+%   elseif ~ispvar(vartab)                                                  % MMP, DJ, 11/21/2026 (was)
+    elseif ~ispvar(dumvartab)                                               % MMP, DJ, 11/21/2026
         error("Each element of the array of dummy variables should correspond to a single polynomial variable.")
     end
     dumvartab = dumvartab(:);
@@ -203,8 +185,8 @@ end
 if nargin<=2
     error("No domain has been specified for the spatial variables.")
 elseif isempty(dom) && isempty(vartab)
-%   dom = zeros(0,1);                                                       % MMP, 10/01/2026 (was)
-    dom = zeros(0,2);       % n x 2 for n = 0, so dom(:,2) below is valid   % MMP, 10/01/2026
+%   dom = zeros(0,1);                                                       % MMP, DJ, 11/21/2026 (was)
+    dom = zeros(0,2);       % n x 2 for n = 0, so dom(:,2) below is valid   % MMP, DJ, 11/21/2026
 elseif ~isa(dom,'double') && ~(isa(dom,'polynomial') && isdouble(dom))
     error("Spatial domain should be specified as nx2 array of type 'double'.")
 elseif size(dom,2)~=2

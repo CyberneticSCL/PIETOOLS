@@ -125,7 +125,9 @@ function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/09/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, MMP, 11/21/2026: Changes since PIETOOLS 2025: a BC with an input that
+%   varies in space throws the error "Conversion to PIE is not supported for
+%   the proposed PDE."; help and comments revised.
 %
 
 

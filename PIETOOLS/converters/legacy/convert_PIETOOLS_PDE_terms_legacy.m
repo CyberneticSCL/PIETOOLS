@@ -73,23 +73,13 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 % DJ, 09/29/2021: correction at the end to fill in empty parameters with
 % appropriate zeros;
 % DJ, 12/16/2024: Output PIE as 'pie_struct' object;
-% MMP, 11/05/2026: The PIE operators are 'copvar' containers built by
-%   PI4_COPVAR_SOP instead of 'opvar' objects, so the legacy terms format
-%   converts without the opvar class (removal of the opvar classes; 22
-%   PIESIM 1-D examples and the GUI use this format). Each operator was a
-%   slice of TbigO or TbigP, TbigP = M*Vop_out_extended and TbigO =
-%   Aop_ODE_sliced + Aop_ODE(:,r)*TbigP(r,:), with M = Aop_PDE*TDop +
-%   Bop_PDE_sliced + Bop_PDE(:,X_b)*TBVop. A row slice of a product is the
-%   row slice of the left factor times the right factor, and a column slice
-%   the left factor times the column slice of the right factor, so each
-%   operator is now P0 + L*M*V: P0 a block of the ODE matrices, L the rows
-%   [Bxr, I], Dzr or Dyr, V the columns [Cv, I], Dvw or Dvu, all built from
-%   the matrices above. The LHS operators keep their components (Thatop and
-%   the Q2 of Tvop*Vop_out). The opvar products, slices and concatenations
-%   are gone; the PIE is initialized here, as the batch and pde_struct
-%   converters do. This supersedes the entry of DJ, 09/29/2021 (the zero
-%   filling of empty opvar parameters).
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the twelve operators of the
+%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects: each
+%   is P0 + L*M*V, with M the PDE subsystem, P0 a block of the ODE matrices,
+%   L = [Bxr, I], Dzr or Dyr, and V = [Cv, I], Dvw or Dvu (new local function
+%   pie_op: the zero operator for an empty channel); the PIE is initialized;
+%   the opvar code, the zero filling of DJ, 09/29/2021 included, is
+%   commented out; help and comments revised.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
@@ -173,8 +163,7 @@ end
 % Ebv: coefficients of v in the BCs
 Ebv = PDE.BC.Ebv;
 
-% % % BEGIN MMP, 11/05/2026: the empty opvars of the PIE are commented out;
-% % % the operators are built as 'copvar' containers below (header entry).
+% MMP, 11/21/2026: BEGIN the empty opvars of the PIE, commented out
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % first construct all opvars needed for PIE
 % opvar Top Twop Tuop; %LHS opvars
@@ -203,7 +192,7 @@ Ebv = PDE.BC.Ebv;
 % D21op.dim = [ny nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum; D21op.I = X;
 %
 % D22op.dim = [ny nu; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum; D22op.I = X;
-% % % END MMP, 11/05/2026 (code commented out)
+% MMP, 11/21/2026: END the empty opvars of the PIE, commented out
 
 
 % Next we construct T, U1, U2, Q, K, L1
@@ -271,8 +260,7 @@ else % do SVD
 end
 
 if ~singularET
-    % % % BEGIN MMP, 11/05/2026: the opvar construction of the PIE operators is
-    % % % commented out (header entry); the containers are built below.
+    % MMP, 11/21/2026: BEGIN the opvar construction of the operators, commented out
 %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     % next we initialize intermdiate opvars that will be used in the script
 %     % X = Thatop Xhat + Tvop v
@@ -365,10 +353,9 @@ if ~singularET
 %     Top = Thatop;
 %     tmp = tmp.Q2;
 %     Top.P = eye(no);    Top.Q2 = tmp(1:np,1:no);
-    % % % END MMP, 11/05/2026 (code commented out)
+    % MMP, 11/21/2026: END the opvar construction of the operators, commented out
 
-    % % % BEGIN MMP, 11/05/2026: the operators as 'copvar' containers (header
-    % % % entry); everything from here to the END marker is new.
+    % MMP, 11/21/2026: BEGIN the operators as 'copvar' containers
     pi4 = @(P,Q1,Q2,R,dims) pi4_copvar_sop(P,Q1,Q2,R,dims,s1,s1_dum,X);
     O = PDE.ODE;
     % The PDE subsystem [r; X_t] = M*[v; x_f], M = Aop_PDE*TDop
@@ -410,7 +397,7 @@ if ~singularET
     Top  = pi4(eye(no),zeros(no,np),Q2T(:,1:no),{G0,RT+L1,RT},[no no; np np]);
     Twop = pi4(zeros(no,nw),[],Q2T(:,no+(1:nw)),{[],[],[]},[no nw; np 0]);
     Tuop = pi4(zeros(no,nu),[],Q2T(:,no+nw+(1:nu)),{[],[],[]},[no nu; np 0]);
-    % % % END MMP, 11/05/2026
+    % MMP, 11/21/2026: END the operators as 'copvar' containers
 else
 % do nothing
 % fill the singular case formulae
@@ -421,25 +408,24 @@ end
 
 %nx1 = no; nx2 = np;
 
-% % % BEGIN MMP, 11/05/2026: opvar zero filling commented out (header entry);
-% % % PI4_COPVAR_SOP states every block from its dimensions.
-% % DJ 09/29/2021: fill in empty parameters with appropriate zeros
+% MMP, 11/21/2026: BEGIN the zero filling of DJ, 09/29/2021, commented out
+% DJ 09/29/2021: fill in empty parameters with appropriate zeros
 % opnames = {'Top','Twop','Tuop','Aop','B1op','B2op','C1op','D11op','D12op','C2op','D21op','D22op'};
 % for j=1:length(opnames)
 %     op = opnames{j};
 %     eval([op,'.dim=',op,'.dim;'])
 % end
-% % % END MMP, 11/05/2026 (code commented out)
+% MMP, 11/21/2026: END the zero filling of DJ, 09/29/2021, commented out
 
 pie_struct PIE_out;                                                         % DJ, 12/16/2024
-% PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];                    % MMP, 11/05/2026 (was)
-PIE_out.dom = X;   PIE_out.vars = [s1,s1_dum];  % Top has no var1, var2     % MMP, 11/05/2026
+% PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];                    % MMP, 11/21/2026 (was)
+PIE_out.dom = X;   PIE_out.vars = [s1,s1_dum];                              % MMP, 11/21/2026
 PIE_out.T = Top;   PIE_out.Tw = Twop;   PIE_out.Tu = Tuop;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
-% Spaces and maps from the copvar operators                                 % MMP, 11/05/2026
-PIE_out = initialize(PIE_out);                                              % MMP, 11/05/2026
+% Spaces and maps from the copvar operators                                 % MMP, 11/21/2026
+PIE_out = initialize(PIE_out);                                              % MMP, 11/21/2026
 
 % %remove temporary opvars
 % clear TbigO TbigP Bop_PDE Bop_PDE_sliced Vop_out Vop_out_extended
@@ -454,7 +440,7 @@ PIE_out = initialize(PIE_out);                                              % MM
 end
 
 
-% % % BEGIN MMP, 11/05/2026: new local function PIE_OP (header entry)
+% MMP, 11/21/2026: BEGIN new local function pie_op
 function Pop = pie_op(P0,L,MV,dims,pi4)
 % POP = PIE_OP(P0,L,MV,DIMS,PI4) returns the PIE operator P0 + L*MV, or the
 % zero operator of dimensions DIMS when it has no output or no input space
@@ -475,4 +461,4 @@ else
     Pop = pi4(P0,[],[],{[],[],[]},dims) + L*MV;
 end
 end
-% % % END MMP, 11/05/2026
+% MMP, 11/21/2026: END new local function pie_op

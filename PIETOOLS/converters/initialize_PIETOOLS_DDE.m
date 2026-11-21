@@ -50,8 +50,8 @@ function DDE_out=initialize_PIETOOLS_DDE(DDE)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP - 7_01_2020
 % MMP, 5_30_2021; added new data structure and made script a function
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: nw also read off B1di ('Bdi', no field, was tested).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: the number of disturbances nw
+%   is also read off B1di; help and comments revised.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checking to make sure the delays are defined.
@@ -294,9 +294,9 @@ end
 
 % scanning for the number of disturbance inputs
 if ~exist('nw','var')
-    % B1di, the field name (Bdi is none)                                    % MMP, 11/20/2026
-%   if exist('B1','var')||exist('B1i','var')||exist('Bdi','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/20/2026 (was)
-    if exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/20/2026
+    % Any disturbance coefficient defined, B1di included                    % MMP, 11/21/2026
+%   if exist('B1','var')||exist('B1i','var')||exist('Bdi','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/21/2026 (was)
+    if exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/21/2026
         % nw: columns of B1, D11 or D21, the first one defined
         if exist('B1')
             nw=size(B1,2);

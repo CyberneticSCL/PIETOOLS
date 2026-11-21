@@ -16,7 +16,7 @@
 %   existing installation or into the chosen folder, the Toolbox Manager
 %   (tbxmanager, in PIETOOLS/tbxmanager unless already installed) and
 %   SeDuMi are installed, the line "tbxmanager restorepath" is added to
-%   startup.m, and the path with PIETOOLS is saved for future sessions.
+%   startup.m, and the MATLAB path with PIETOOLS is saved.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2026 PIETOOLS Team
@@ -42,9 +42,9 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 12/15/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/21/2026: startup.m is closed in both branches; it stayed open when
-%                   it already held the line "tbxmanager restorepath".
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: startup.m is closed also when
+%   it already holds the line "tbxmanager restorepath"; help and comments
+%   revised.
 
 % Clear the command window and print the title.
 clc;

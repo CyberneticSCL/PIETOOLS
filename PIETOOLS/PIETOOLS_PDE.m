@@ -9,11 +9,9 @@ close all; clc; clear; clear stateNameGenerator
 % Step 3: Run an analysis or control script
 % Step 4: Run PIESIM
 
-% % This program determines stability, hinf-norm and designs hinf-optimal   % MMP, 11/20/2026 (was)
-% % observer of a linear coupled ODE-PDE which is defined in the format given below. % MMP, 11/20/2026 (was)
-% This script declares a linear coupled ODE-PDE (Step 1), converts it to    % MMP, 11/20/2026
-% a PIE (Step 2), runs the executive uncommented in Step 3 (none by         % MMP, 11/20/2026
-% default), and simulates it with PIESIM (Step 4).                          % MMP, 11/20/2026
+% This script declares a linear coupled ODE-PDE (Step 1), converts it to
+% a PIE (Step 2), runs the executive uncommented in Step 3 (none by
+% default), and simulates it with PIESIM (Step 4).
 %
 % INPUT
 % - none; Step 1 takes the PDE from the example library (example 17), the
@@ -49,34 +47,15 @@ close all; clc; clear; clear stateNameGenerator
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding PIETOOLS Team (PIETOOLS 2021b; in the repository since 12/31/2021)
-% MMP, 11/04/2026: Step 4 sizes the initial conditions from PIE.space.x,
-%                   the size and spatial dependence of each PIE state
-%                   component. It read the sizes of PIE.T.P and R.R0 (1-D),
-%                   R00, Rxx, Ryy and R22 (2-D), fields of opvar and
-%                   opvar2d. PIE.T is a copvar, without these fields, for
-%                   every PDE format except the legacy terms format, so
-%                   Step 4 stopped on all other formats. The legacy format
-%                   returns an uninitialized PIE (opvar operators,
-%                   PIE.space empty): a copy is initialized first, as
-%                   PIESIM does, and PIE itself is unchanged.
-% MMP, 11/05/2026: Step 3 names the container executives (PIETOOLS_*_sop),
-%                   lpiscript_sop, PIETOOLS_auto_execute_sop and
-%                   lpisettings_sop: the stock executives stop on the
-%                   copvar PIEs the converters return. With an estimator,
-%                   the closed-loop simulation appended the zero initial
-%                   estimate to uinput.ic.ODE and uinput.ic.PDE, fields of
-%                   a format PIESIM no longer reads; uinput.ic is one
-%                   vector (Step 4), and the zeros now follow each kind of
-%                   space in it.
-% MMP, 11/05/2026: For PIESIM(PDE,...), Step 4 lays the initial conditions
-%                   out in the order of PDE.x_tab, the order in which
-%                   PIESIM reads them for a pde_struct. By kind, a state
-%                   declared after one of another kind received the entry
-%                   of that kind; PIESIM 2-D library examples 19 and 20
-%                   stopped.
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: Step 4b, 2-D: primary{2} and primary{4} of the 1 x 4 cell (it
-%                   read 3 subscripts), on the s1 grid grid{1}; description fixed.
+% YP, MMP, DB, 11/21/2026: Changes since PIETOOLS 2025: Step 1 loads library
+%   example 17; Step 3 takes the 'heavy' settings of the container
+%   executives and lists these executives; Step 4 passes the initial
+%   conditions as one vector uinput.ic, sized from PIE.space (for PIESIM of
+%   a pde_struct, in the order of PDE.x_tab), with a zero initial estimate
+%   per kind of space for an estimator, and calls PIESIM without ndiff;
+%   Step 4b plots the PIESIM output fields primary and grid, in 2-D the
+%   states in s1 and in (s1,s2) at the middle node in s2; help and comments
+%   revised.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,8 +100,8 @@ PIE = convert_PIETOOLS_PDE(PDE);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
-% settings = lpisettings('heavy');                                          % MMP, 11/05/2026 (was)
-settings = lpisettings_sop('heavy');  % tiers of the container executives   % MMP, 11/05/2026
+% settings = lpisettings('heavy');                                          % YP, MMP, DB, 11/21/2026 (was)
+settings = lpisettings_sop('heavy');  % tiers of the container executives   % YP, MMP, DB, 11/21/2026
 settings.eppos = 1e-2;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -131,37 +110,36 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or 'sdpt3'
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
-% PIETOOLS_auto_execute                                                     % MMP, 11/05/2026 (was)
-% PIETOOLS_auto_execute_sop                                                 % MMP, 11/05/2026
+% PIETOOLS_auto_execute                                                     % YP, MMP, DB, 11/21/2026 (was)
+% PIETOOLS_auto_execute_sop                                                 % YP, MMP, DB, 11/21/2026
 
 % % --- Manually run desired executives ---
-% The container executives (PIETOOLS_*_sop) take the copvar PIE that        % MMP, 11/05/2026
-% convert_PIETOOLS_PDE returns; the stock executives stop on it. Each       % MMP, 11/05/2026
-% returns the outputs of the stock executive in the same order, then an     % MMP, 11/05/2026
-% info struct; the third argument is the form ('Q', 'Qd': PIE2PDE forms;    % MMP, 11/05/2026
-% 'o', 'c': observability and controllability H2 norms).                    % MMP, 11/05/2026
-% [prog,P] = lpiscript(PIE,'hinf-observer',settings);                       % MMP, 11/05/2026 (was)
-% [prog,P] = lpiscript_sop(PIE,'hinf-observer',settings);                   % MMP, 11/05/2026
-% [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                      % MMP, 11/05/2026 (was)
-% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                     % MMP, 11/05/2026
-% [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);                 % MMP, 11/05/2026 (was)
-% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                    % MMP, 11/05/2026
-% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                      % MMP, 11/05/2026 (was)
-% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');              % MMP, 11/05/2026
-% [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);                 % MMP, 11/05/2026 (was)
-% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');             % MMP, 11/05/2026
-% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);     % MMP, 11/05/2026 (was)
-% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings); % MMP, 11/05/2026
-% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings); % MMP, 11/05/2026 (was)
-% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);  % MMP, 11/05/2026
-% [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);                     % MMP, 11/05/2026 (was)
-% [prog, Wo, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'o');               % MMP, 11/05/2026
-% [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);                     % MMP, 11/05/2026 (was)
-% [prog, Wc, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'c');               % MMP, 11/05/2026
-% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,settings);    % MMP, 11/05/2026 (was)
-% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control_sop(PIE,settings);  % MMP, 11/05/2026
-% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,settings);  % MMP, 11/05/2026 (was)
-% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator_sop(PIE,settings);  % MMP, 11/05/2026
+% The container executives (PIETOOLS_*_sop) take the copvar PIE that        % YP, MMP, DB, 11/21/2026
+% convert_PIETOOLS_PDE returns and return the outputs named, then an info   % YP, MMP, DB, 11/21/2026
+% struct; the third argument is the form ('Q', 'Qd': PIE2PDE forms; 'o',    % YP, MMP, DB, 11/21/2026
+% 'c': observability and controllability H2 norms).                         % YP, MMP, DB, 11/21/2026
+% [prog,P] = lpiscript(PIE,'hinf-observer',settings);                       % YP, MMP, DB, 11/21/2026 (was)
+% [prog,P] = lpiscript_sop(PIE,'hinf-observer',settings);                   % YP, MMP, DB, 11/21/2026
+% [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                      % YP, MMP, DB, 11/21/2026 (was)
+% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                     % YP, MMP, DB, 11/21/2026
+% [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);                 % YP, MMP, DB, 11/21/2026 (was)
+% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                    % YP, MMP, DB, 11/21/2026
+% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                      % YP, MMP, DB, 11/21/2026 (was)
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');              % YP, MMP, DB, 11/21/2026
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);                 % YP, MMP, DB, 11/21/2026 (was)
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');             % YP, MMP, DB, 11/21/2026
+% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);     % YP, MMP, DB, 11/21/2026 (was)
+% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings); % YP, MMP, DB, 11/21/2026 (was)
+% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);                     % YP, MMP, DB, 11/21/2026 (was)
+% [prog, Wo, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'o');               % YP, MMP, DB, 11/21/2026
+% [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);                     % YP, MMP, DB, 11/21/2026 (was)
+% [prog, Wc, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'c');               % YP, MMP, DB, 11/21/2026
+% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,settings);    % YP, MMP, DB, 11/21/2026 (was)
+% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,settings); % YP, MMP, DB, 11/21/2026 (was)
+% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
 
 % % Construct the closed-loop PIE representation, if applicable
 if exist('K_control','var')
@@ -180,44 +158,35 @@ opts.tf=10;
 opts.dt = 0.05;
 opts.plot='yes';
 % Declare initial conditions for PIE state
-% Component sizes and spatial dependence of the PIE state, from PIE.space;  % MMP, 11/04/2026
-% a copvar T has no fields P, R.R0 (opvar), R00, Rxx, Ryy, R22 (opvar2d).   % MMP, 11/04/2026
-% The legacy terms format returns an uninitialized PIE (opvar operators,    % MMP, 11/04/2026
-% no PIE.space); a copy is initialized, as PIESIM does, and PIE is kept.    % MMP, 11/04/2026
-PIE_init = PIE;                                                             % MMP, 11/04/2026
-if ~PIE_init.is_initialized,    PIE_init = initialize(PIE_init);    end     % MMP, 11/04/2026
-xdims = PIE_init.space.x.dims;  xdep = PIE_init.space.x.depmat;             % MMP, 11/04/2026
+% Component sizes and spatial dependence of the PIE state, from PIE.space;  % YP, MMP, DB, 11/21/2026
+% an uninitialized PIE (legacy terms format) is initialized in a copy       % YP, MMP, DB, 11/21/2026
+PIE_init = PIE;                                                             % YP, MMP, DB, 11/21/2026
+if ~PIE_init.is_initialized,    PIE_init = initialize(PIE_init);    end     % YP, MMP, DB, 11/21/2026
+xdims = PIE_init.space.x.dims;  xdep = PIE_init.space.x.depmat;             % YP, MMP, DB, 11/21/2026
 if PIE.dim<=1
     syms sx
-%   uinput.ic = [ones(1,size(PIE.T.P,1)),ones(1,size(PIE.T.R.R0,1))*sin(sym(pi)*sx)];  % MMP, 11/04/2026 (was)
-    uinput.ic = [ones(1,sum(xdims(~any(xdep,2)))),ones(1,sum(xdims(any(xdep,2))))*sin(sym(pi)*sx)];  % MMP, 11/04/2026
+    uinput.ic = [ones(1,sum(xdims(~any(xdep,2)))),ones(1,sum(xdims(any(xdep,2))))*sin(sym(pi)*sx)]; % YP, MMP, DB, 11/21/2026
 else
     syms sx sy
-%   uinput.ic = ones(1,size(PIE.T.R00,1));                                  % MMP, 11/04/2026 (was)
-%   uinput.ic = [uinput.ic,ones(1,size(PIE.T.Rxx{1},1))*sin(sym(pi)*sx)];   % MMP, 11/04/2026 (was)
-%   uinput.ic = [uinput.ic,ones(1,size(PIE.T.Ryy{1},1))*sin(sym(pi)*sy)];   % MMP, 11/04/2026 (was)
-%   uinput.ic = [uinput.ic,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/04/2026 (was)
-    uinput.ic = ones(1,sum(xdims(~any(xdep,2))));                           % MMP, 11/04/2026
-    uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & ~xdep(:,2))))*sin(sym(pi)*sx)];  % MMP, 11/04/2026
-    uinput.ic = [uinput.ic,ones(1,sum(xdims(~xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sy)];  % MMP, 11/04/2026
-    uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/04/2026
+    uinput.ic = ones(1,sum(xdims(~any(xdep,2))));                           % YP, MMP, DB, 11/21/2026
+    uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & ~xdep(:,2))))*sin(sym(pi)*sx)]; % YP, MMP, DB, 11/21/2026
+    uinput.ic = [uinput.ic,ones(1,sum(xdims(~xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sy)]; % YP, MMP, DB, 11/21/2026
+    uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sx)*sin(sym(pi)*sy)]; % YP, MMP, DB, 11/21/2026
 end
-% PIESIM(PDE,...) below reads one entry per scalar state component of the   % MMP, 11/05/2026
-% PDE, in the order of PDE.x_tab. Laid out by kind, an entry reached a state  % MMP, 11/05/2026
-% of another kind unless the states were declared by kind. The same entries % MMP, 11/05/2026
-% in x_tab order: size in column 2, dependence on each variable in columns  % MMP, 11/05/2026
-% 3:2+dim. The other PDE formats list the R states first, and the PIE paths % MMP, 11/05/2026
-% read by kind, so they keep the layout above.                              % MMP, 11/05/2026
-if isa(PDE,'pde_struct') && ~exist('PIE_CL','var')                          % MMP, 11/05/2026
-    PDE_init = PDE;                                                         % MMP, 11/05/2026
-    if ~PDE_init.is_initialized,    PDE_init = initialize(PDE_init,true);   end  % MMP, 11/05/2026
-    syms sx sy                                                              % MMP, 11/05/2026
-    % The entry of each kind 1-4: R, L2[s1], L2[s2], L2[s1,s2]              % MMP, 11/05/2026
-    ic_kind = [sym(1),sin(sym(pi)*sx),sin(sym(pi)*sy),sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/05/2026
-    nd = min(PDE_init.dim,2);   dep = false(size(PDE_init.x_tab,1),2);      % MMP, 11/05/2026
-    dep(:,1:nd) = PDE_init.x_tab(:,3:2+nd)~=0;                              % MMP, 11/05/2026
-    uinput.ic = ic_kind(repelem(1+dep(:,1)+2*dep(:,2),PDE_init.x_tab(:,2)));  % MMP, 11/05/2026
-end                                                                         % MMP, 11/05/2026
+% PIESIM(PDE,...) below reads one entry per scalar state component of the   % YP, MMP, DB, 11/21/2026
+% PDE, in the order of PDE.x_tab (size in column 2, dependence on each      % YP, MMP, DB, 11/21/2026
+% variable in columns 3:2+dim); the other PDE formats and the PIE keep the  % YP, MMP, DB, 11/21/2026
+% layout above, by kind                                                     % YP, MMP, DB, 11/21/2026
+if isa(PDE,'pde_struct') && ~exist('PIE_CL','var')                          % YP, MMP, DB, 11/21/2026
+    PDE_init = PDE;                                                         % YP, MMP, DB, 11/21/2026
+    if ~PDE_init.is_initialized,    PDE_init = initialize(PDE_init,true);   end % YP, MMP, DB, 11/21/2026
+    syms sx sy                                                              % YP, MMP, DB, 11/21/2026
+    % The entry of each kind 1-4: R, L2[s1], L2[s2], L2[s1,s2]              % YP, MMP, DB, 11/21/2026
+    ic_kind = [sym(1),sin(sym(pi)*sx),sin(sym(pi)*sy),sin(sym(pi)*sx)*sin(sym(pi)*sy)]; % YP, MMP, DB, 11/21/2026
+    nd = min(PDE_init.dim,2);   dep = false(size(PDE_init.x_tab,1),2);      % YP, MMP, DB, 11/21/2026
+    dep(:,1:nd) = PDE_init.x_tab(:,3:2+nd)~=0;                              % YP, MMP, DB, 11/21/2026
+    uinput.ic = ic_kind(repelem(1+dep(:,1)+2*dep(:,2),PDE_init.x_tab(:,2))); % YP, MMP, DB, 11/21/2026
+end                                                                         % YP, MMP, DB, 11/21/2026
 
 if ~exist('PIE_CL','var')
     % Simulate the open-loop PDE solution in PDE representation
@@ -248,8 +217,7 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
     if PIE.dim ~=2
     pde_sol = solution.timedep.primary{2};
     else
-%       solution.timedep.pde{1,2,3}=solution.timedep.primary{2,3,4};        % MMP, 11/20/2026 (was)
-        solution.timedep.pde=solution.timedep.primary([2,4]);  % s1, 2-D    % MMP, 11/20/2026
+        solution.timedep.pde=solution.timedep.primary([2,4]);  % s1, 2-D    % YP, MMP, DB, 11/21/2026
         if ~isempty(solution.timedep.pde{1})
     n=size(solution.timedep.pde{1});
     n1=n(2);
@@ -257,22 +225,20 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
         end
         if (length(solution.timedep.pde)==2)
         if ~isempty(solution.timedep.pde{2})
-%   k=floor(length(grid)/2)+1;                                              % MMP, 11/20/2026 (was)
-    k=floor(length(grid{2})/2)+1;  % middle node of the s2 grid             % MMP, 11/20/2026
+    k=floor(length(grid{2})/2)+1;  % middle node of the s2 grid             % YP, MMP, DB, 11/21/2026
     n=size(solution.timedep.pde{2});
     pde_sol(1:n(1),n1+1:n1+n(3),1:n(4)) = solution.timedep.pde{2}(1:n(1),k,1:n(3),1:n(4));
         end
         end
     end
-    if iscell(grid), sgrid=grid{1}; else, sgrid=grid(:,1); end  % s1 grid   % MMP, 11/20/2026
+    if iscell(grid), sgrid=grid{1}; else, sgrid=grid(:,1); end  % s1 grid   % YP, MMP, DB, 11/21/2026
     % One surface plot over (t,s) per state component
     t = repmat(t,size(pde_sol,1),1);
     figure;
     for i=1:size(pde_sol,2)
         Z = squeeze(pde_sol(:,i,:));
         ax(i)=subplot(size(pde_sol,2),1,i);
-%       surf(t,grid(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row'); % MMP, 11/20/2026 (was)
-        surf(t,sgrid,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row'); % MMP, 11/20/2026
+        surf(t,sgrid,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row'); % YP, MMP, DB, 11/21/2026
         h=colorbar ;
         colormap jet
         box on
@@ -306,15 +272,15 @@ if exist('PIE_CL','var')
     % applicable
     if exist('L_estimator','var')
         % Set initial estimate of state to 0.
-%       uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];                    % MMP, 11/05/2026 (was)
-%       uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];                    % MMP, 11/05/2026 (was)
-        % uinput.ic is one vector, the kinds of space in turn (Step 4); in  % MMP, 11/05/2026
-        % each kind the closed-loop state [x;xhat] has x, then xhat.        % MMP, 11/05/2026
-        kinds = 1 + any(xdep,2);                            % R, L2         % MMP, 11/05/2026
-        if PIE.dim>1,   kinds = 1 + xdep(:,1) + 2*xdep(:,2);    end         % MMP, 11/05/2026
-        ick = mat2cell(uinput.ic,1,accumarray(kinds,xdims,[2+2*(PIE.dim>1),1])');  % MMP, 11/05/2026
-        uinput.ic = [ick; cellfun(@(c) 0*c,ick,'UniformOutput',false)];     % MMP, 11/05/2026
-        uinput.ic = [uinput.ic{:}];                                         % MMP, 11/05/2026
+%       uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];                    % YP, MMP, DB, 11/21/2026 (was)
+%       uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];                    % YP, MMP, DB, 11/21/2026 (was)
+        % uinput.ic is one vector, the kinds of space in turn (Step 4); in  % YP, MMP, DB, 11/21/2026
+        % each kind the closed-loop state [x;xhat] has x, then xhat.        % YP, MMP, DB, 11/21/2026
+        kinds = 1 + any(xdep,2);                            % R, L2         % YP, MMP, DB, 11/21/2026
+        if PIE.dim>1,   kinds = 1 + xdep(:,1) + 2*xdep(:,2);    end         % YP, MMP, DB, 11/21/2026
+        ick = mat2cell(uinput.ic,1,accumarray(kinds,xdims,[2+2*(PIE.dim>1),1])'); % YP, MMP, DB, 11/21/2026
+        uinput.ic = [ick; cellfun(@(c) 0*c,ick,'UniformOutput',false)];     % YP, MMP, DB, 11/21/2026
+        uinput.ic = [uinput.ic{:}];                                         % YP, MMP, DB, 11/21/2026
     end
 
     % Simulate the closed-loop response

@@ -108,11 +108,9 @@ function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % SS - 6/1/2021; modified initA, initCrp etc to allow for repeated terms
 % DJ - 12/29/2021: Added option to suppress (less important) warnings
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: nx from ODE.A when A is the only ODE field (the ODE was
-%                   dropped); nr from the rows of a Crp or Drb coefficient.
-% MMP, 11/20/2026: The note on the workspace cleaning: the cleared variables
-%                   are local (it read as if the caller workspace were cleaned).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: nx is read off ODE.A also when
+%   A is the only ODE field; nr is read off the rows of a Crp or Drb
+%   coefficient, not of the cell of terms; help and comments revised.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Suppress warnings if desired
 suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));
@@ -155,14 +153,14 @@ list = [fieldnames(PDE.n); fieldnames(PDE.ODE); fieldnames(PDE.PDE); fieldnames(
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% nx: the rows of ODE.A if defined, else the field nx, else the rows of     % MMP, 11/20/2026
-% the first defined of Bxu, Bxw, Bxr or the columns of Cy, Cz, Cv; ODE.A    % MMP, 11/20/2026
-% alone counts (it got nx = 0 and was replaced by zeros(0)); 'A' is not     % MMP, 11/20/2026
-% added to the list, which also holds the field names of PDE.PDE (A)        % MMP, 11/20/2026
+% nx: the rows of ODE.A if defined (also as the only ODE field), else the   % MMP, 11/21/2026
+% field nx, else the rows of the first defined of Bxu, Bxw, Bxr or the      % MMP, 11/21/2026
+% columns of Cy, Cz, Cv; 'A' is not added to the list, which also holds     % MMP, 11/21/2026
+% the field names of PDE.PDE (A)                                            % MMP, 11/21/2026
 logVal = isdefined(list,{'nx';'Bxu';'Bxw';'Bxr';'Cy';'Cz';'Cv'});
 
-% if ~isempty(logVal)                                                       % MMP, 11/20/2026 (was)
-if ~isempty(logVal) || isfield(PDE.ODE,'A')                                 % MMP, 11/20/2026
+% if ~isempty(logVal)                                                       % MMP, 11/21/2026 (was)
+if ~isempty(logVal) || isfield(PDE.ODE,'A')                                 % MMP, 11/21/2026
     if isfield(PDE.ODE,'A')
         PDE.n.nx = size(PDE.ODE.A,1);
     elseif logVal==2
@@ -299,14 +297,14 @@ if ~isempty(logVal)
         PDE.n.nr = size(PDE.ODE.Dzr,2);
     elseif logVal==4
         PDE.n.nr = size(PDE.ODE.Dyr,2);
-    % Crp, Drb are cells of terms: nr is the rows of a coefficient, as nBC  % MMP, 11/20/2026
-    % below (the rows of the cell array were read)                          % MMP, 11/20/2026
+    % Crp, Drb are cells of terms: nr is the rows of a coefficient, as nBC  % MMP, 11/21/2026
+    % below                                                                 % MMP, 11/21/2026
     elseif logVal==5   
-%       PDE.n.nr = size(PDE.PDE.Crp,1);                                     % MMP, 11/20/2026 (was)
-        PDE.n.nr = size(PDE.PDE.Crp{end}.coeff,1);                          % MMP, 11/20/2026
+%       PDE.n.nr = size(PDE.PDE.Crp,1);                                     % MMP, 11/21/2026 (was)
+        PDE.n.nr = size(PDE.PDE.Crp{end}.coeff,1);                          % MMP, 11/21/2026
     elseif logVal==6
-%       PDE.n.nr = size(PDE.PDE.Drb,1);                                     % MMP, 11/20/2026 (was)
-        PDE.n.nr = size(PDE.PDE.Drb{end}.coeff,1);                          % MMP, 11/20/2026
+%       PDE.n.nr = size(PDE.PDE.Drb,1);                                     % MMP, 11/21/2026 (was)
+        PDE.n.nr = size(PDE.PDE.Drb{end}.coeff,1);                          % MMP, 11/21/2026
     elseif logVal==7   
         PDE.n.nr = size(PDE.PDE.Drv,1);
     end

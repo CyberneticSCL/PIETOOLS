@@ -66,7 +66,7 @@ function [DDF,PIE] = convert_PIETOOLS_DDE(DDE,out_type)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding: DJ, 09/29/2022
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 %
 
 % Check that desired conversion makes sense.

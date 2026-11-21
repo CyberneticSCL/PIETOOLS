@@ -53,9 +53,11 @@ function NDS_out=initialize_PIETOOLS_NDS(NDS)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 % MMP, 5_30_2021; added new data structure and made script a function
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: A0 defaulted and checked; dimensions read off Ei, Edi, C1ei,
-%                   C1dei, C2ei, C2dei, B1di (unreached); field names in errors.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: A0 is set to zero when
+%   undefined and its size is checked; nx is also read off Ei, Edi, nw off
+%   B1di, nz off C1ei, C1dei, and ny off C2ei, C2dei; the errors for an
+%   element without a matching delay name the field (C1ei, C2ei, Edi, C1dei,
+%   C2dei); help and comments revised.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,29 +167,29 @@ if exist('Ei','var')&&(numel(Ei)>nK)
 end
 
 if exist('C1ei','var')&&(numel(C1ei)>nK)
-%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/20/2026 (was)
-    error('You have defined an element of C1ei for which there is no matching value of delay.') % MMP, 11/20/2026
+%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/21/2026 (was)
+    error('You have defined an element of C1ei for which there is no matching value of delay.') % MMP, 11/21/2026
 end
 
 if exist('C2ei','var')&&(numel(C2ei)>nK)
-%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/20/2026 (was)
-    error('You have defined an element of C2ei for which there is no matching value of delay.') % MMP, 11/20/2026
+%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/21/2026 (was)
+    error('You have defined an element of C2ei for which there is no matching value of delay.') % MMP, 11/21/2026
 end
 
 
 if exist('Edi','var')&&(numel(Edi)>nK)
-%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/20/2026 (was)
-    error('You have defined an element of Edi for which there is no matching value of delay.') % MMP, 11/20/2026
+%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/21/2026 (was)
+    error('You have defined an element of Edi for which there is no matching value of delay.') % MMP, 11/21/2026
 end
 
 if exist('C1dei','var')&&(numel(C1dei)>nK)
-%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/20/2026 (was)
-    error('You have defined an element of C1dei for which there is no matching value of delay.') % MMP, 11/20/2026
+%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/21/2026 (was)
+    error('You have defined an element of C1dei for which there is no matching value of delay.') % MMP, 11/21/2026
 end
 
 if exist('C2dei','var')&&(numel(C2dei)>nK)
-%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/20/2026 (was)
-    error('You have defined an element of C2dei for which there is no matching value of delay.') % MMP, 11/20/2026
+%   error('You have defined an element of Ei for which there is no matching value of delay.') % MMP, 11/21/2026 (was)
+    error('You have defined an element of C2dei for which there is no matching value of delay.') % MMP, 11/21/2026
 end
 %%%%%%%%%%% End New for NDS %%%%%%%%%%%%%%%%%%%%%%
 
@@ -203,9 +205,9 @@ nstates=0;noregs=0;nomeas=0;now=0;nou=0; % toggles to determine if no states, in
 
 % scanning for the number of states
 if ~exist('nx','var')
-    % Ei, Edi included, else their branches below are never reached         % MMP, 11/20/2026
-%   if exist('A0','var')||exist('Ai','var')||exist('Adi','var')||exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('B2','var')||exist('B2i','var')||exist('B2di','var') % MMP, 11/20/2026 (was)
-    if exist('A0','var')||exist('Ai','var')||exist('Adi','var')||exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('B2','var')||exist('B2i','var')||exist('B2di','var')||exist('Ei','var')||exist('Edi','var') % MMP, 11/20/2026
+    % Any state-equation coefficient defined, Ei and Edi included           % MMP, 11/21/2026
+%   if exist('A0','var')||exist('Ai','var')||exist('Adi','var')||exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('B2','var')||exist('B2i','var')||exist('B2di','var') % MMP, 11/21/2026 (was)
+    if exist('A0','var')||exist('Ai','var')||exist('Adi','var')||exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('B2','var')||exist('B2i','var')||exist('B2di','var')||exist('Ei','var')||exist('Edi','var') % MMP, 11/21/2026
         % nx: rows of A0, B1 or B2, the first one defined
         if exist('A0','var')
             nx=size(A0,1);
@@ -213,8 +215,8 @@ if ~exist('nx','var')
             nx=size(B1,1);
         elseif exist('B2','var')
             nx=size(B2,1);
-        % else rows of the last element of Ai, B1i, B2i, Adi, B1di, B2di,   % MMP, 11/20/2026
-        % Ei or Edi                                                         % MMP, 11/20/2026
+        % else rows of the last element of Ai, B1i, B2i, Adi, B1di, B2di,   % MMP, 11/21/2026
+        % Ei or Edi                                                         % MMP, 11/21/2026
         elseif exist('Ai','var')
             nx=size(Ai{numel(Ai)},1);
         elseif exist('B1i','var')
@@ -240,14 +242,13 @@ if ~exist('nx','var')
     end
 end
 
-% A0: zero if undefined, else size checked (nx x nx), as in                 % MMP, 11/20/2026
-% initialize_PIETOOLS_DDE; without it NDS_out.A0=A0 failed on a missing A0  % MMP, 11/20/2026
-if ~exist('A0','var')                                                       % MMP, 11/20/2026
-    A0=zeros(nx,nx);                                                        % MMP, 11/20/2026
-    disp('A0 undefined, defaulting to 0')                                   % MMP, 11/20/2026
-elseif (size(A0,1)~=nx)||(size(A0,2)~=nx)                                   % MMP, 11/20/2026
-    error('The dimensions of A0 are inconsistent with the detected number of states') % MMP, 11/20/2026
-end                                                                         % MMP, 11/20/2026
+% A0: zero if undefined, else size checked (nx x nx)                        % MMP, 11/21/2026
+if ~exist('A0','var')                                                       % MMP, 11/21/2026
+    A0=zeros(nx,nx);                                                        % MMP, 11/21/2026
+    disp('A0 undefined, defaulting to 0')                                   % MMP, 11/21/2026
+elseif (size(A0,1)~=nx)||(size(A0,2)~=nx)                                   % MMP, 11/21/2026
+    error('The dimensions of A0 are inconsistent with the detected number of states') % MMP, 11/21/2026
+end                                                                         % MMP, 11/21/2026
 
 
 % Ai{i}, i = 1..nK: zero where undefined or empty, else size checked (nx x nx)
@@ -371,9 +372,9 @@ end
 
 % scanning for the number of disturbance inputs
 if ~exist('nw','var')
-    % B1di, the field name (Bdi is none)                                    % MMP, 11/20/2026
-%   if exist('B1','var')||exist('B1i','var')||exist('Bdi','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/20/2026 (was)
-    if exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/20/2026
+    % Any disturbance coefficient defined, B1di included                    % MMP, 11/21/2026
+%   if exist('B1','var')||exist('B1i','var')||exist('Bdi','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/21/2026 (was)
+    if exist('B1','var')||exist('B1i','var')||exist('B1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var') % MMP, 11/21/2026
         % nw: columns of B1, D11 or D21, the first one defined
         if exist('B1')
             nw=size(B1,2);
@@ -436,9 +437,9 @@ end
 
 % scanning for the number of regulated outputs
 if ~exist('nz','var')
-    % C1ei, C1dei included, else their branches below are never reached     % MMP, 11/20/2026
-%   if exist('C1','var')||exist('C1i','var')||exist('C1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D12','var')||exist('D12i','var')||exist('D12di','var') % MMP, 11/20/2026 (was)
-    if exist('C1','var')||exist('C1i','var')||exist('C1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D12','var')||exist('D12i','var')||exist('D12di','var')||exist('C1ei','var')||exist('C1dei','var') % MMP, 11/20/2026
+    % Any regulated-output coefficient defined, C1ei and C1dei included     % MMP, 11/21/2026
+%   if exist('C1','var')||exist('C1i','var')||exist('C1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D12','var')||exist('D12i','var')||exist('D12di','var') % MMP, 11/21/2026 (was)
+    if exist('C1','var')||exist('C1i','var')||exist('C1di','var')||exist('D11','var')||exist('D11i','var')||exist('D11di','var')||exist('D12','var')||exist('D12i','var')||exist('D12di','var')||exist('C1ei','var')||exist('C1dei','var') % MMP, 11/21/2026
         % nz: rows of C1, D11 or D12, the first one defined
         if exist('C1','var')
             nz=size(C1,1);
@@ -446,8 +447,8 @@ if ~exist('nz','var')
             nz=size(D11,1);
         elseif exist('D12','var')
             nz=size(D12,1);
-        % else rows of the last element of C1i, D11i, D12i, C1di, D11di,    % MMP, 11/20/2026
-        % D12di, C1ei or C1dei                                              % MMP, 11/20/2026
+        % else rows of the last element of C1i, D11i, D12i, C1di, D11di,    % MMP, 11/21/2026
+        % D12di, C1ei or C1dei                                              % MMP, 11/21/2026
         elseif exist('C1i','var')
             nz=size(C1i{numel(C1i)},1);
         elseif exist('D11i','var')
@@ -475,9 +476,9 @@ end
 
 % scanning for the number of sensed outputs
 if ~exist('ny','var')
-    % C2ei, C2dei included, else their branches below are never reached     % MMP, 11/20/2026
-%   if exist('C2','var')||exist('C2i','var')||exist('C2di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var')||exist('D22','var')||exist('D22i','var')||exist('D22di','var') % MMP, 11/20/2026 (was)
-    if exist('C2','var')||exist('C2i','var')||exist('C2di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var')||exist('D22','var')||exist('D22i','var')||exist('D22di','var')||exist('C2ei','var')||exist('C2dei','var') % MMP, 11/20/2026
+    % Any sensed-output coefficient defined, C2ei and C2dei included        % MMP, 11/21/2026
+%   if exist('C2','var')||exist('C2i','var')||exist('C2di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var')||exist('D22','var')||exist('D22i','var')||exist('D22di','var') % MMP, 11/21/2026 (was)
+    if exist('C2','var')||exist('C2i','var')||exist('C2di','var')||exist('D21','var')||exist('D21i','var')||exist('D21di','var')||exist('D22','var')||exist('D22i','var')||exist('D22di','var')||exist('C2ei','var')||exist('C2dei','var') % MMP, 11/21/2026
         % ny: rows of C2, D21 or D22, the first one defined
         if exist('C2','var')
             ny=size(C2,1);
@@ -485,8 +486,8 @@ if ~exist('ny','var')
             ny=size(D21,1);
         elseif exist('D22','var')
             ny=size(D22,1);
-        % else rows of the last element of C2i, D21i, D22i, C2di, D21di,    % MMP, 11/20/2026
-        % D22di, C2ei or C2dei                                              % MMP, 11/20/2026
+        % else rows of the last element of C2i, D21i, D22i, C2di, D21di,    % MMP, 11/21/2026
+        % D22di, C2ei or C2dei                                              % MMP, 11/21/2026
         elseif exist('C2i','var')
             ny=size(C2i{numel(C2i)},1);
         elseif exist('D21i','var')
@@ -500,11 +501,11 @@ if ~exist('ny','var')
         elseif exist('D22di','var')
             ny=size(D22di{numel(D22di)},1);
         elseif exist('C2ei','var')
-%           nz=size(C2ei{numel(C2ei)},1);                                   % MMP, 11/20/2026 (was)
-            ny=size(C2ei{numel(C2ei)},1);                                   % MMP, 11/20/2026
+%           nz=size(C2ei{numel(C2ei)},1);                                   % MMP, 11/21/2026 (was)
+            ny=size(C2ei{numel(C2ei)},1);                                   % MMP, 11/21/2026
         elseif exist('C2dei','var')
-%           nz=size(C2dei{numel(C2dei)},1);                                 % MMP, 11/20/2026 (was)
-            ny=size(C2dei{numel(C2dei)},1);                                 % MMP, 11/20/2026
+%           nz=size(C2dei{numel(C2dei)},1);                                 % MMP, 11/21/2026 (was)
+            ny=size(C2dei{numel(C2dei)},1);                                 % MMP, 11/21/2026
         end
     else
         % No sensed-output coefficient: ny = 0

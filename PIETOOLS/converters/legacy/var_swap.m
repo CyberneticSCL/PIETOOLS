@@ -33,7 +33,7 @@ function b = var_swap(a,old,new)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % 6/23/2013: MMP Coding.
 % 09/26/2021: Added call to dpvar version
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 
   if isempty(a)
       b=a;

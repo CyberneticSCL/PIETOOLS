@@ -45,7 +45,7 @@ function PDE_out=initialize_PIETOOLS_PDE_batch(PDE)
 %  'isdefined' 
 % DJ - 12/29/2021: Added option to suppress (less important) warnings
 % DJ, 02/21/2025: Check spatial variables that appear in PDE parameters;
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Suppress warnings if desired
 suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));

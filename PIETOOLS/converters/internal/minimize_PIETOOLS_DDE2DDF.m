@@ -64,8 +64,9 @@ function DDF_out=minimize_PIETOOLS_DDE2DDF(DDE)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MP - 10_01_2020
 %  MP - 5_30_2021; converted script to function format
-% MMP, 11/19/2026: Release comment pass (comment-only).
-% MMP, 11/20/2026: No delays (tau empty): an error, not an unbounded recursion.
+% MMP, 11/21/2026: Changes since PIETOOLS 2025: a DDE without delays (tau
+%   empty) or with a delay without coefficients throws an error; help and
+%   comments revised.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDE to a minimal DDF representation
@@ -99,11 +100,10 @@ ny=size(DDE.C2,1);  % number of sensed outputs
 
 % The first step is to form the vertical concatenation matrices for each
 % delay, tau(i)
-% No delays: not supported; an error, since convert_PIETOOLS_DDE calls      % MMP, 11/20/2026
-% this function again (unbounded recursion).                                % MMP, 11/20/2026
+% No delays: not supported, an error                                        % MMP, 11/21/2026
 if nK==0
-%   DDE=convert_PIETOOLS_DDE(DDE);                                          % MMP, 11/20/2026 (was)
-    error('The DDE has no delays (tau is empty). Define at least one delay.') % MMP, 11/20/2026
+%   DDE=convert_PIETOOLS_DDE(DDE);                                          % MMP, 11/21/2026 (was)
+    error('The DDE has no delays (tau is empty). Define at least one delay.') % MMP, 11/21/2026
 else
     % First: tau, A0, B1, B2, C1, D11, D12, C2, D21, D22 are unchanged from the DDE
     DDF.tau=DDE.tau;DDF.A0=DDE.A0;DDF.B1=DDE.B1;DDF.B2=DDE.B2;DDF.C1=DDE.C1;DDF.C2=DDE.C2;DDF.D11=DDE.D11;DDF.D12=DDE.D12;DDF.D21=DDE.D21;DDF.D22=DDE.D22;
