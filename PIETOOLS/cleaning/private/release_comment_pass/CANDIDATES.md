@@ -31,6 +31,36 @@ New items found in the pass:
 
 **C116** `CL/l2gain_2.m:40` (SS) – the comment stated gamma = 0.3333; after C75 the system is the heat equation of library case 22, whose H-infinity norm is 5/24 = 0.2083, attained at w = 0 (Chebyshev collocation, independent of PIETOOLS) – FIXED (comment).
 
+## Report for Declan, 11/21/2026
+
+Maintainer, 11/21/2026: "draft the report for Declan". Draft: `cleaning/private/bugfix_1120/DECLAN_REPORT.md` – 35 items in code of Declan and 10 PIESOS items of other authors, each located on fa0deda4, its author traced with `git blame -w -C -C -M` and `git log -S`, and reproduced unless marked "by reading"; ledgers and brief in `cleaning/private/bugfix_1120/declan/`, every reproduction rerun by the coordinator with the same output.
+
+Out of the hold after the author tracing (fixable here): C13 (SS, adf9f3f9; Declan added the header only), C25 (2021b install script), C24 for `PIETOOLS_DDF.m:272` (2021b text), C81 (DB, 9efb8fff; the header "Initial coding DJ" is C120), C98 (DB, 7e551368, both files), C115 (the claim is 2021b text; -Bxr is 99f7dff5, MMP, 11/19/2026; the sign question went into the report as C92).
+
+Corrections to the items: C80 is an error on a reachable path, not a silent wrong result; C68 is a silent wrong result; C81 fails at load for GUI = 1; C53(a) comes from d6d2d88e, not from the merge d6e76870; C58 from d00ccc83, 770742f5 and fe5c062a; C101 warns once per session, not at each access.
+
+**C117** `PIESOS/polyopvar/@tensopvar/initialize.m:62-64` (DJ, 6fd03c15) – converts factors of the retired classes opvar and opvar2d; the branch never runs – in the report.
+
+**C118** `sopvar/@sopvar/inv_1D.m:497` (SS, 0992dfd0), local zeroKernelLike – calls quadPoly() with no input, which errors ("quadPoly must have 1 or 6 inputs, nothing else.", measured), on the branch of zero kernels (not run).
+
+**C119** `PIESOS/polyopvar/@quadPoly/subsasgn_1.m:2-10` (MMP, 8e335783, release comment pass) – the help says that assignment throws an error; the overload is inactive and assignment succeeds (C69).
+
+**C120** `EL/PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion.m`, header line "Initial coding DJ - 08/18/2022" (MMP, 978570e9, release comment pass) – the file is by DB (9efb8fff, 2025-01-06).
+
+**C121** `EL/Stability_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das_GUI.mat` (2021b) – stores +Bxr, while the code uses -Bxr since 99f7dff5 (MMP, 11/19/2026): GUI = 1 loads the system that is unstable at the default lam – with C92.
+
+Fixed 11/21/2026 (maintainer: "Fix them"), each reproduced before the edit and checked after it:
+- C13 `pietools_path_update.m`: adds the folder of the file. Called by name from a user folder it now adds the 89 PIETOOLS entries that it adds from the PIETOOLS folder or with run, and not the user folder (before: the user folder and its subfolder, no PIETOOLS folder).
+- C24, the line of `PIETOOLS_DDF.m`: sosineq_on removed (kept as a (was) line).
+- C25 `pietools_update.m`: startup.m closed in both branches (stubbed copy: no handle open afterwards; before: one).
+- C81, C120 `EL/PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion.m`: GUI = 1 raises "No GUI file associated with this example", as the _Control example (before: load error); help corrected; Initial coding DB - 01/06/2025.
+- C98: the Parabolic example prints no warning (SeDuMi certifies gam = 23.7312 at its st; MOSEK 23.7285); the reaction-diffusion example names the tier that certifies with SeDuMi (light 8.2133, heavy 8.2140, veryheavy 8.2094 certified; its st, tuned for MOSEK: 6.238, not certified; MOSEK at st 8.2156).
+- C115, C121: the GUI file stores -Bxr (data.eqns{5-8}, nothing else changed); the PIE of the GUI route equals the PIE of the code to 3.4e-6 (lam rounded to 8.8696 in the file) and differs from the +Bxr PIE by 2.67.
+- C118 `sopvar/@sopvar/inv_1D.m:497`: quadPoly(0); kernels with an empty basis reach the branch and give M^{-1} = -1 and zero kernels, as zero kernels give on the general path (before: "quadPoly must have 1 or 6 inputs").
+- C119: the help of subsasgn_1.m states that the file is not a method subsasgn and that assignment is unchecked.
+
+The report entry C92 records the decision of 11/19/2026 (the sign of the paper is a typo; -Bxr) instead of asking for one.
+
 ## Summary
 
 150 ledger entries (130 candidates, 20 string entries): 8 merged as duplicates, 33 not confirmed on re-reading, 111 items below (3 entries split into several items, 2 grouped with others).
