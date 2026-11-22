@@ -26,6 +26,10 @@ function pielr_path()
 %   "To be safe, move the files in testing folder a private subfolder."), off
 %   the path, so they leave `need`: zero copies would stop every caller. The
 %   11/08 entry no longer applies.
+% CC, 11/22/2026: pielr_certify, pielr_certify_pos, pielr_tensor and
+%   build_stab_2d_st2 retired to orphaned_file/private/ (maintainer:
+%   "port or retire" the opvar2d certify code); they leave `own`, where
+%   zero copies would stop every caller.
 %
 % ---------------------------------------------------------------------------
 % EDIT THIS if PIETOOLS is not already on your MATLAB path:
@@ -96,9 +100,11 @@ need = {'pde_var','lpiprogram','lpi_eq_sop','lpi_ineq_sop', ...
         'lpivar_cdopvar','getsol_lpivar_sop','lpisolve', ...
         'exec_pie_sop','exec_sop_settings','exec_tools_sop', ...
         'lpisettings_sop','monomials','sortrows_integerTable'};             % MMP, 11/09/2026
-own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...
-        'set2d_deg','nb_rd2d','build_stab_2d_st2', ...
-        'pielr_solve','pielr_private'};                                     % MMP, 11/08/2026
+% own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...
+%         'set2d_deg','nb_rd2d','build_stab_2d_st2', ...
+%         'pielr_solve','pielr_private'};                                   % CC, 11/22/2026 (was); MMP, 11/08/2026
+% the retired certify files are off the path (header, 11/22/2026)           % CC, 11/22/2026
+own  = {'set2d_deg','nb_rd2d','pielr_solve','pielr_private'};               % CC, 11/22/2026
 % The new entry points join the shadow assert for the same reason the old ones % CC, 09/23/2026
 % are in it: a second copy on the path (an agent worktree, a stale scratch     % CC, 09/23/2026
 % folder) silently changes which code a benchmark measures, and a benchmark    % CC, 09/23/2026

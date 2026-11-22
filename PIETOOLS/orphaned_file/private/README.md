@@ -39,3 +39,22 @@ Moved with `mv`, so the git index still lists the original paths; `mv` back rest
   - Its term-based format lacks the derivative on the PDE term of the ODE, so its ODE input is x(a),
     which the BC sets to 0, and its ODE is decoupled from the heat equation.
   - With GUI = 1 it loads `PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das_GUI.mat`, which does not exist.
+
+## Moved 11/22/2026
+
+- **Low-rank 2-D certify family**, into `PIETOOLS_demos/lowrank_2d_stability/` here, with the same
+  path (maintainer, 11/22/2026: "port or retire"; retired by the low-rank session, CC):
+  `pielr_certify.m`, `pielr_certify_pos.m`, `pielr_tensor.m`, `build_stab_2d_st2.m`, `face_n1.mat`,
+  `demo_lowrank_2d.m`, `demo_your_system.m`, `demo_poincare_2d.m`, and from `private/`
+  `opcheck_2d.m`, `opcheck_pos2d.m`, `pielr_evalgram.m`, `restrict_solve_pos.m`, `sed_ref_pos.m`,
+  `nb_2d.m`, `nb_monoms.m`.
+  - They build and check `opvar2d` programs (`poslpivar_2d`, `lpi_eq_2d`, `lpigetsol`,
+    `clean_opvar`, `get_eq_opts_2D`), which left the path on 11/08/2026, so each stopped at its first
+    call to them (audit §2).
+  - What they added over `pielr_solve`: a stored face (`face_n1.mat`, in `opvar2d` Gram coordinates)
+    lifted to n states by `pielr_tensor`, and the low-rank certificate of a given 2-D positive operator
+    (`pielr_certify_pos`). Face transfer was abandoned on 09/20/2026. A port would need the face
+    regenerated in the container Gram layout and a container gate for the positive-operator case.
+  - 2-D stability stays available through `pielr_solve` (container builders). The live files edited
+    with this move: `pielr_path.m` (assert list), `private/restrict_solve.m` (the adapter is
+    required), `private/pielr_evalop.m` (two unreachable `opvar` branches deleted).

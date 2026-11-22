@@ -13,6 +13,10 @@ function X = pielr_evalop(prog,X)                                           % CC
 % sparse path and keeps the two from drifting.
 %
 % An already-substituted object (opvar / opvar2d / double) passes through.
+%
+% CC, 11/22/2026: the dopvar and dopvar2d branches deleted (unreachable since
+%   the opvar classes left the path, f83486c8; pielr_evalgram retired with
+%   pielr_certify, maintainer: "port or retire"). Containers and dpvar remain.
 
 % BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
 % no decision variable; a 'cdopvar' or 'sdopvar' is substituted by
@@ -33,34 +37,15 @@ end
 dtab = prog.decvartable;
 RRx  = prog.solinfo.RRx;
 
-if isa(X,'dopvar2d')
-    X = pielr_evalgram(prog,X);   return
-end
+% BEGIN CC, 11/22/2026: deleted, both CC 09/23/2026: the dopvar2d branch
+% (pielr_evalgram, retired to orphaned_file/private/) and the 1-D dopvar
+% branch (an opvar() filled leaf by leaf through pielr_evaldp). Their
+% classes left the path (f83486c8): isa is false, neither was reachable.
 if isa(X,'dpvar')
     % scalar / matrix decision variable with no operator structure
     X = pielr_evaldp(X,dtab,RRx);  return
 end
-if ~isa(X,'dopvar')
-    error('pielr_evalop:input', ...
-          'cannot substitute into an object of class %s',class(X));
-end
-% ---- 1-D dopvar: the 6 leaves P, Q1, Q2, R.R0, R.R1, R.R2 ----------------
-% Enumeration taken from the dopvar classdef properties (P, Q1, Q2, R struct
-% of three); pielr_maxop asserts the count on the result, so a class that
-% grows a parameter fails loudly instead of being silently skipped.
-%
-% A fresh opvar is populated cell by cell rather than opvar(X)'d: unlike
-% opvar2d, the 1-D constructor does not accept a dopvar (it reads a char
-% argument list and errors with "Input must be strings").  This mirrors
-% getsol_lpivar, which builds its result the same way and for the same reason.
-Y = opvar();
-Y.I = X.I;   Y.var1 = X.var1;   Y.var2 = X.var2;   Y.dim = X.dim;
-Y.P  = pielr_evaldp(X.P ,dtab,RRx);
-Y.Q1 = pielr_evaldp(X.Q1,dtab,RRx);
-Y.Q2 = pielr_evaldp(X.Q2,dtab,RRx);
-Y.R.R0 = pielr_evaldp(X.R.R0,dtab,RRx);
-Y.R.R1 = pielr_evaldp(X.R.R1,dtab,RRx);
-Y.R.R2 = pielr_evaldp(X.R.R2,dtab,RRx);
-Y.P = double(Y.P);                % getsol_lpivar's own last line
-X = Y;
+error('pielr_evalop:input', ...
+      'cannot substitute into an object of class %s',class(X));
+% END CC, 11/22/2026
 end

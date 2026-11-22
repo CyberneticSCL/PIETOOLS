@@ -79,6 +79,10 @@ function [R,q,info] = restrict_solve(prog,H,P,Atf,bf,V,use_sdp,adp)         % CC
 %          equality residual, decides.
 % MMP, 11/09/2026: Inlining pass (maintainer, 11/09/2026): the one-line
 %          local getf inlined at the SeDuMi iteration count.
+% CC, 11/22/2026: ADP is required. Its absence selected opcheck_2d, the
+%          opvar2d gate of pielr_certify, both retired to orphaned_file/private/
+%          (maintainer: "port or retire"); every live caller (pielr_discover,
+%          pielr_refine) passes an adapter.
 
 if nargin<7 || isempty(use_sdp), use_sdp = false; end                       % CC, 09/20/2026
 % adp: a pielr_lpi adapter.  Supplying one selects pielr_opcheck (which takes  % CC, 09/23/2026
@@ -238,7 +242,10 @@ q = xfull/P.nb0;                                                            % CC
 % The gate is the ADAPTER's when one is supplied; opcheck_2d otherwise, so     % CC, 09/23/2026
 % the legacy 2-D stability path through pielr_certify is unchanged.            % CC, 09/23/2026
 if isempty(adp)                                                             % CC, 09/23/2026
-    R = opcheck_2d(prog,H,P,q);
+%   R = opcheck_2d(prog,H,P,q);                                             % CC, 11/22/2026 (was)
+    % opcheck_2d retired with pielr_certify (header, 11/22/2026)            % CC, 11/22/2026
+    error('restrict_solve:adapter', ...
+          'restrict_solve needs an LPI adapter (pielr_lpi).');              % CC, 11/22/2026
 else                                                                        % CC, 09/23/2026
     R = pielr_opcheck(prog,H,P,q,adp);                                      % CC, 09/23/2026
 end                                                                         % CC, 09/23/2026
