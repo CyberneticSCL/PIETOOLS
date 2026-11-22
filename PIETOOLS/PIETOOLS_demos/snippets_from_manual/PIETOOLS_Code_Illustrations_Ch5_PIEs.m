@@ -43,6 +43,7 @@
 %   dom = [0,1], the constant and polynomial blocks included (B1 of PIE2;
 %   A, Tu, B1, D12, D22 of PIE3), in place of opvar objects, scalars and
 %   polynomials; help text revised.
+% DJ, 11/21/2026: In 5.5.3-5.5.4, T has R1 = -s_dum, R2 = -s; B1 acts on w;
 
 % Clear the workspace
 clear
@@ -137,7 +138,7 @@ PIE2.B1
 
 % A = 0.5;    Tu = 1;     B1 = s*(2-s);                                     % DB, MMP, 11/21/2026 (was)
 % D12 = 1;    D22 = 1;                                                      % DB, MMP, 11/21/2026 (was)
-T = pi4_copvar_sop([],[],[],{[],-s,-s_dum},[0 0;1 1],s,s_dum,dom);          % DB, MMP, 11/21/2026
+T = pi4_copvar_sop([],[],[],{[],-s_dum,-s},[0 0;1 1],s,s_dum,dom);          % DJ, 11/21/2026
 C1 = pi4_copvar_sop([],0.5*s^2-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);      % DB, MMP, 11/21/2026
 C2 = pi4_copvar_sop([],-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);             % DB, MMP, 11/21/2026
 
@@ -147,8 +148,9 @@ B1 = pi4_copvar_sop([],[],s*(2-s),{[],[],[]},[0 1;1 0],s,s_dum,dom);        % DB
 D12 = pi4_copvar_sop(1,[],[],{[],[],[]},[1 1;0 0],s,s_dum,dom);             % DB, MMP, 11/21/2026
 D22 = D12;                                                                  % DB, MMP, 11/21/2026
 
-% PIE d/dt (T*v + Tu*u) = A*v + 0*w + B1*u,  z = C1*v + D12*u,  y = C2*v + D22*u
-PIE3 = piess({T,0,Tu},A,{0,B1},{C1;C2},{0,D12;0,D22});
+% PIE d/dt (T*v + Tu*u) = A*v + B1*w + 0*u,  z = C1*v + D12*u,  y = C2*v + D22*u
+% PIE3 = piess({T,0,Tu},A,{0,B1},{C1;C2},{0,D12;0,D22});                    % DJ, 11/21/2026 (was)
+PIE3 = piess({T,0,Tu},A,{B1,0},{C1;C2},{0,D12;0,D22});                      % DJ, 11/21/2026
 
 %% 5.5.4 Taking Interconnections of PIEs
 % Impose the feedback law u(t)=K*v(t)
@@ -170,7 +172,7 @@ PIE3_CL2 = closedLoopPIE(PIE3,L,'observer')
 % T.R.R1 = -s;        T.R.R2 = -theta;                                      % DB, MMP, 11/21/2026 (was)
 % A.R.R0 = 0.5;       A.R.R1 = -s*(1-s)*theta;    A.R.R2 = A.R.R1;          % DB, MMP, 11/21/2026 (was)
 % C1.Q1 = 0.5*s^2-s;                                                        % DB, MMP, 11/21/2026 (was)
-T = pi4_copvar_sop([],[],[],{[],-s,-s_dum},[0 0;1 1],s,s_dum,dom);          % DB, MMP, 11/21/2026
+T = pi4_copvar_sop([],[],[],{[],-s_dum,-s},[0 0;1 1],s,s_dum,dom);          % DJ, 11/21/2026
 A = pi4_copvar_sop([],[],[],{0.5,-s*(1-s)*s_dum,-s*(1-s)*s_dum},[0 0;1 1],s,s_dum,dom); % DB, MMP, 11/21/2026
 C1 = pi4_copvar_sop([],0.5*s^2-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);      % DB, MMP, 11/21/2026
 PIE3_est = piess(T,A,{[],-L},{C1;K})

@@ -69,6 +69,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params) % 
 %   tests; stability_form = 'Q' set in the base workspace; help and
 %   comments revised.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params) % DB, MMP, 11/21/2026 (was)
+% DJ, 11/21/2026: c computed after params, so an override of lam applies;
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -86,7 +87,6 @@ evalin('base','stability_form = ''Q'';');  % form of the stability test     % DB
 ne = 1; lam = 4.65;
 a = s^3 - s^2 + 2;
 b = 3*s^2 - 2*s;
-c = -0.5*s^3 + 1.3*s^2 - 1.5*s + 0.7 + lam;
  
 npars = length(params);
 if npars~=0
@@ -95,6 +95,8 @@ if npars~=0
         eval(params{j});
     end
 end
+% c(s,lam) after params, so that an override of lam applies
+c = -0.5*s^3 + 1.3*s^2 - 1.5*s + 0.7 + lam;                                 % DJ, 11/21/2026
 
 
 % Construct the PDE.

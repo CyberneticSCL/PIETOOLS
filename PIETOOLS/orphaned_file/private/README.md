@@ -30,6 +30,12 @@ Moved with `mv`, so the git index still lists the original paths; `mv` back rest
   - `PIETOOLS_PDE_Example_Transport_Eq.m`: library case 1 mirrored, x_t = x_s with the BC at s = 1.
     Its GUI file stays in `Stability_Examples/`, because `stability_1.m` loads it.
 
-`PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das.m` stays in `Stability_Examples/`, because it does not
-duplicate case 8. It lacks the derivative on the PDE term of the ODE, so its ODE input is x(a), which
-the BC sets to 0. Its ODE is therefore decoupled from the heat equation.
+## Moved 11/21/2026
+
+- **Predecessor of library case 8**, from `Stability_Examples/` (maintainer, 11/21/2026):
+  `PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das.m`.
+  - Its batch format is case 8 with the sign +Bxr of the paper, corrected to −Bxr in the library
+    file; with +Bxr the system is unstable at its default lam = pi^2 − 1.
+  - Its term-based format lacks the derivative on the PDE term of the ODE, so its ODE input is x(a),
+    which the BC sets to 0, and its ODE is decoupled from the heat equation.
+  - With GUI = 1 it loads `PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das_GUI.mat`, which does not exist.

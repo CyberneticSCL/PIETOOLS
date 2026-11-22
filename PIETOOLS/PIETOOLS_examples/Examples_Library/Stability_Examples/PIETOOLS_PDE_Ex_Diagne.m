@@ -67,6 +67,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diagne(GUI,params)              % DB
 %   recommended settings of the stability test; stability_form = 'P' set
 %   in the base workspace; help and comments revised.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params)               % DB, MMP, 11/21/2026 (was)
+% DJ, 11/21/2026: Overrides in params apply to Hs, Vs, Bs, g and Cf;
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -80,18 +81,18 @@ evalin('base','stability = 1;')
 evalin('base','stability_form = ''P'';');  % form of the stability test     % DB, MMP, 11/21/2026
 %evalin('base','stability_dual = 1;')
 
-npars = length(params);
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Default Parameters
+Hs = 1;       Vs = 1;     Bs = 0.1;
+g = 10;       Cf = 1;
+% Overrides in params, before the quantities derived from the defaults
+npars = length(params);                                                     % DJ, 11/21/2026
 if npars~=0
     %%% Specify potential parameters
     for j=1:npars
         eval(params{j});
     end
 end
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% Default Parameters
-Hs = 1;       Vs = 1;     Bs = 0.1;
-g = 10;       Cf = 1;
 
  % Characteristic speeds Lm and source matrix Mm of the linearized model
  Lm = diag(sort(eig([Vs,Hs,0;g,Vs,g;0,1*Vs^2,0])));
