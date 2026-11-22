@@ -49,6 +49,17 @@ function Test_piesos_tensor_gram()
 %    (case_certification_mixed): (int x^2)^2 + 0.1 int x^4 is certified by
 %    piesos_ineq with otype=3 alone, negative functionals and
 %    int x^4 - (int x^2)^2 are not.
+%  - regions of integration (opts.intmat, case_*_regions): V at random
+%    decision variables against the sum over the regions of the integrand
+%    integrated by polynomial int/subs over each region (explicit rows,
+%    with a delta, N = 1 and 2); the presets with the same P in each
+%    region against the whole domain plus the orderings with ties, built
+%    from the ranks of the copies (not from piesos_quadvar); errors; the
+%    option otype used for ZopL and ZopR; and the embedding inequality
+%    (int z^2)(int x^2) - int z^4 >= 0, z(s) = int_0^s x, certified with
+%    otype 3 and the triangles ('all'), not over the square ('full'); psatz
+%    on the faces of a region (case_psatz_regions): int int_{s_2<s_1}
+%    (s_1-s_2) x(s_1)^2 x(s_2)^2 certified with psatz, not without.
 % The programs of case_certification are solved by SeDuMi: for exact squares
 % (boundary of the PSD cone) it may report numerr=1, with pinf=dinf=0, so
 % only pinf, dinf are used.
@@ -86,6 +97,19 @@ function Test_piesos_tensor_gram()
 %                        optional ZopR and domain, integrating over all
 %                        copies; case_guards: ZopL, ZopR of different type
 %                        are accepted, an SOS Pmat then fails on degrees;
+% DJ (CC), 11/19/2026: Regions (opts.intmat) and option otype:
+%                        case_values_regions, case_values_presets_regions,
+%                        case_errors_regions, case_otype_regions,
+%                        case_certification_regions;
+% DJ (CC), 11/20/2026: Default otype 3 of piesos_sosvar: otype 1 explicit
+%                        where the pointwise cone is meant, and the products
+%                        certified by default (case_certification);
+% DJ (CC), 11/20/2026: case_values_factor_orders: both orders of a monomial
+%                        (dmonomials 'full'), pointwise rows of one order
+%                        (opts.unique of piesos_quadvar);
+% DJ (CC), 11/20/2026: Default otype of piesos_ineq 'auto' (was 3): the
+%                        checks of otype 3 in case_certification pass it
+%                        (for p1*<x,x> + 0.1 int x^4 'auto' gives otype 1);
 
 % NOTES
 % - A scalar degs.in applies to the first factor of a monomial only: the
@@ -104,7 +128,10 @@ tests = {@case_values_scalar, @case_values_pointwise, @case_values_N2, ...
          @case_values_two_states, @case_values_vector, @case_values_mixed, ...
          @case_values_pmat, @case_certification, @case_certification_pmat, ...
          @case_guards, @case_monopmat_otype, @case_values_mixed_otype, ...      % DJ (CC), 11/19/2026
-         @case_certification_mixed};                                        % DJ (CC), 11/19/2026
+         @case_certification_mixed, @case_values_regions, ...
+         @case_values_presets_regions, @case_errors_regions, ...
+         @case_otype_regions, @case_certification_regions, @case_psatz_regions, ... % DJ (CC), 11/19/2026
+         @case_values_factor_orders};                                       % DJ (CC), 11/20/2026
 nfail = 0;
 for i=1:numel(tests)
     tstart = tic;
@@ -167,8 +194,9 @@ check_V(V,Pmat,xv,@(b,c,i,j) double(i==j),prod(Ifac),'N=1, scalar degs.in=1 (fir
 end
 
 function case_values_pointwise()
-% The default (pointwise) basis is unchanged: rows (A_a x)(s)*(A_b x)(s), P=I:
-% V = sum_ab int ((A_a x)(A_b x))^2 ds, a single integral
+% The pointwise basis (otype 1, the default before 11/20/2026) is unchanged:
+% rows (A_a x)(s)*(A_b x)(s), P=I: V = sum_ab int ((A_a x)(A_b x))^2 ds, a
+% single integral
 pvar s
 x = polyopvar('x',s,[0,1]);
 xv = 1+2*s-s^2;
@@ -179,7 +207,7 @@ for a=1:3
         orc = orc+int_sq(A{a}*A{b},s);
     end
 end
-[V,Pmat] = declare(x,dmonomials(x,2),struct('degs',struct('in',[0;0],'out',0)));
+[V,Pmat] = declare(x,dmonomials(x,2),struct('degs',struct('in',[0;0],'out',0),'otype',1));    % DJ (CC), 11/20/2026
 check_V(V,Pmat,xv,@(b,c,i,j) double(i==j),orc,'pointwise, d=0, P=I');
 % and it differs from the tensor-product value (the squares of the integrals)
 ints = cellfun(@(a) int_sq(a,s),A);
@@ -287,9 +315,14 @@ q = innerprod(x,x);                         % <x,x>
 x2 = x.*x;      x4 = innerprod(x2,x2);      % int x^4
 Z2 = dmonomials(x,2);
 topts = struct('degs',struct('in',[0;0],'out',0),'otype',[2,2]);
-% f = (int x^2)^2 + 0.1 int x^4: not in the cone of piesos_ineq, but f-gt is
+% f = (int x^2)^2 + 0.1 int x^4: not in the cone of piesos_ineq with otype 1,
+% but f-gt is, and f is in the cone of otype 3 (also chosen by the default
+% otype 'auto' of piesos_ineq for this f)
 f = q*q+0.1*x4;
-assert(~is_feasible(piesos_ineq(piesos_program(x),f)),'(int x^2)^2 + 0.1 int x^4 must be infeasible in piesos_ineq');
+o1 = struct('otype',1);                                                     % DJ (CC), 11/20/2026
+o3 = struct('otype',3);                                                     % DJ (CC), 11/20/2026
+assert(~is_feasible(piesos_ineq(piesos_program(x),f,o1)),'(int x^2)^2 + 0.1 int x^4 must be infeasible in piesos_ineq, otype 1');   % DJ (CC), 11/20/2026
+assert(is_feasible(piesos_ineq(piesos_program(x),f,o3)),'(int x^2)^2 + 0.1 int x^4 must be feasible in piesos_ineq, otype 3');     % DJ (CC), 11/20/2026
 [prog,gt] = piesos_sosvar(piesos_program(x),Z2,topts);
 assert(is_feasible(piesos_ineq(prog,f-gt)),'(int x^2)^2 + 0.1 int x^4 - gt must be feasible');
 % negative functionals
@@ -304,7 +337,8 @@ assert(~is_feasible(piesos_ineq(prog,x4-q*q-gt)),'int x^4 - (int x^2)^2 is not c
 y = polyopvar({'y'},2,{'s'},[0,1],true(1,1));
 yy = otimes(y,y,2);     y2 = y.*y;
 fy = innerprod(yy,yy)+0.1*innerprod(y2,ones(2),y2);
-assert(~is_feasible(piesos_ineq(piesos_program(y),fy)),'vector: (int |y|^2)^2 + 0.1 int |y|^4 must be infeasible in piesos_ineq');
+assert(~is_feasible(piesos_ineq(piesos_program(y),fy,o1)),'vector: (int |y|^2)^2 + 0.1 int |y|^4 must be infeasible in piesos_ineq, otype 1');   % DJ (CC), 11/20/2026
+assert(is_feasible(piesos_ineq(piesos_program(y),fy,o3)),'vector: (int |y|^2)^2 + 0.1 int |y|^4 must be feasible in piesos_ineq, otype 3');     % DJ (CC), 11/20/2026
 [prog,gt] = piesos_sosvar(piesos_program(y),dmonomials(y,2),topts);
 assert(is_feasible(piesos_ineq(prog,fy-gt)),'vector: (int |y|^2)^2 + 0.1 int |y|^4 - gt must be feasible');
 % multiplier p1 = <Zop*x,P*Zop*x> with lower and upper integral rows, P fixed
@@ -324,9 +358,12 @@ for P = {[1 1;1 1],[1 -1;-1 1]}
             [prog,gt] = piesos_sosvar(prog,Z2,topts);
             F = F-gt;
         end
-        ok = is_feasible(piesos_ineq(prog,F));
+        ok = is_feasible(piesos_ineq(prog,F,o1));                          % DJ (CC), 11/20/2026
         % p1*<x,x> in the pointwise cone only for the moment (int x)^2, in the sum of the cones always
         assert(ok==(is_moment || use_gt),sprintf('p1*<x,x> + 0.1 int x^4 with P=%s, gt=%d: feasible=%d',mat2str(Pv),use_gt,ok));
+        % and always in the cone of otype 3 (tensor rows (A x)(s_1)*x(s_2))  % DJ (CC), 11/20/2026
+        ok = is_feasible(piesos_ineq(prog,F,o3));                           % DJ (CC), 11/20/2026
+        assert(ok,sprintf('p1*<x,x> + 0.1 int x^4 with P=%s, gt=%d, otype 3: infeasible',mat2str(Pv),use_gt));    % DJ (CC), 11/20/2026
     end
 end
 end
@@ -356,7 +393,8 @@ for c=1:size(specs,1)
     opts = struct('degs',struct('in',[0;0],'out',specs{c,2}),'otype',[2,2]);
     if specs{c,3}>0,    opts.psatz = specs{c,3};    end
     [prog,gt,Pm] = piesos_sosvar(piesos_program(x),Z2,opts);
-    [ok,prog_sol] = is_feasible(piesos_ineq(prog,specs{c,1}-gt));
+    % otype 1 in piesos_ineq, so that only gt can certify the products
+    [ok,prog_sol] = is_feasible(piesos_ineq(prog,specs{c,1}-gt,struct('otype',1)));    % DJ (CC), 11/20/2026
     msg = sprintf('weights case %d (degs.out=%s, psatz=%d): feasible=%d, expected %d',c,mat2str(specs{c,2}),specs{c,3},ok,specs{c,4});
     assert(ok==specs{c,4},msg);
     if ok && specs{c,3}>0
@@ -370,7 +408,7 @@ for c=1:size(specs,1)
     end
 end
 % the products are not in the pointwise cone
-assert(~is_feasible(piesos_ineq(piesos_program(x),f1)),'(int s^2 x^2)(int x^2) + 0.1 int x^4 must be infeasible in piesos_ineq');
+assert(~is_feasible(piesos_ineq(piesos_program(x),f1,struct('otype',1))),'(int s^2 x^2)(int x^2) + 0.1 int x^4 must be infeasible in piesos_ineq');    % DJ (CC), 11/20/2026
 end
 
 function case_guards()
@@ -386,7 +424,7 @@ assert_err(@() piesos_sosvar(prog,Z2,struct('degs',struct('in',[0;0],'out',-1),'
 % ZopL, ZopR of different type are accepted (mixed otype), but an SOS Pmat
 % needs the same basis on both sides: rows in two copies on the left, one
 % on the right
-assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'L',struct('otype',[2,2]),'R',struct())),'Degrees of the primary variables');    % DJ (CC), 11/19/2026
+assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'L',struct('otype',[2,2]),'R',struct('otype',1))),'Degrees of the primary variables');    % DJ (CC), 11/20/2026
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',[2,2;2,2])),'q x 1 or q x 2 array');    % DJ (CC), 11/19/2026
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',4)),'or 3 for both');    % DJ (CC), 11/19/2026
 assert_err(@() piesos_sosvar(prog,Z2,struct('degs',d0,'otype',[1,1])),'Pointwise product of the input');
@@ -498,8 +536,176 @@ for c=1:size(specs,1)
 end
 end
 
+% DJ (CC), 11/19/2026: start. Cases for regions of integration (opts.intmat).
+function case_values_regions()
+% Explicit regions, a Pmat each, at random decision variable values: the
+% lower triangle, the diagonal (delta) and the upper triangle for N = 1;
+% for N = 2, two rows per variable (4 regions, k the linear index of the
+% rows (k1,k2)), with a delta in r. otype 3, so that the pointwise rows (in
+% copy 1) meet each region differently
+pvar s r
+x = polyopvar('x',s,[0,1]);
+X = struct('x',1+2*s-s^2);
+im = [0,3,0,1; 0,3,1,1; 0,3,1,3];
+opts = struct('degs',struct('in',[0;0],'out',1),'otype',3,'intmat',{{im}});
+[~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x),dmonomials(x,2),opts);
+assert(isequal(size(regions_of(Pmat)),[3,1]),'N=1: %d regions, expected 3',numel(regions_of(Pmat)));
+check_V_regions(V,Pmat,Zop,dmonomials(x,2),X,{im},'N=1, lower, diagonal, upper',61);
+x2 = polyopvar('x',[s;r],[0,1;0,2]);
+X2 = struct('x',1+s+2*s*r-r^2);
+ims = {[0,3,0,1; 0,3,1,3], [0,3,1,1; 0,3,0,1]};
+opts = struct('degs',struct('in',zeros(2,2),'out',[1 0]),'otype',3,'exclude',[0;1;1],'intmat',{ims});
+[~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x2),dmonomials(x2,2),opts);
+assert(isequal(size(regions_of(Pmat)),[2,2]),'N=2: %s regions, expected [2 2]',mat2str(size(regions_of(Pmat))));
+check_V_regions(V,Pmat,Zop,dmonomials(x2,2),X2,ims,'N=2, 2 x 2 regions',62);
+end
+
+function case_values_presets_regions()
+% The presets, with the same constant P in each region: V equals the
+% integral over the whole domain for 'full' and 'steps' (the strict
+% orderings partition it), plus the orderings with ties but not all copies
+% tied for 'all' (int_cells, from the ranks of the copies). Region counts
+% d!, F(d)-1 (F(3) = 13). Degree 2 with integral rows, degree 3 with
+% multiplier rows, and N = 2 with a preset per variable
+pvar s r
+x = polyopvar('x',s,[0,1]);
+X = struct('x',1+2*s-s^2);
+specs = {2,[0;0],[0;0;0],{'full','steps','all'},[1,2,2]; ...
+         3,[0;0;0],[0;1;1],{'full','steps','all'},[1,6,12]};
+for c=1:size(specs,1)
+    Z = dmonomials(x,specs{c,1});
+    for p=1:3
+        opts = struct('degs',struct('in',specs{c,2},'out',0),'otype',3,'exclude',specs{c,3},'intmat',specs{c,4}{p});
+        [~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x),Z,opts);
+        label = sprintf('degree %d, %s',specs{c,1},specs{c,4}{p});
+        assert(numel(regions_of(Pmat))==specs{c,5}(p),'%s: %d regions, expected %d',label,numel(regions_of(Pmat)),specs{c,5}(p));
+        assert(iscell(Pmat{1})==(p>1),'%s: a single Pmat only for the whole domain',label);
+        check_V_presets(V,Pmat,Zop,Z,X,specs{c,4}(p),label,70+10*c+p);
+    end
+end
+x2 = polyopvar('x',[s;r],[0,1;0,2]);
+X2 = struct('x',1+s+2*s*r-r^2);
+pre = {'all','steps'};
+opts = struct('degs',struct('in',zeros(2,2),'out',0),'otype',3,'exclude',[0;1;1],'intmat',{pre});
+[~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x2),dmonomials(x2,2),opts);
+assert(isequal(size(regions_of(Pmat)),[2,2]),'N=2: %s regions, expected [2 2]',mat2str(size(regions_of(Pmat))));
+check_V_presets(V,Pmat,Zop,dmonomials(x2,2),X2,pre,'N=2, all and steps',90);
+end
+
+function case_errors_regions()
+pvar s
+x = polyopvar('x',s,[0,1]);
+Z = dmonomials(x,2);        prog = piesos_program(x);
+o = @(im) struct('degs',struct('in',[0;0],'out',0),'otype',3,'intmat',{im});
+assert_err(@() piesos_sosvar(prog,Z,o('tri')),'Presets');
+assert_err(@() piesos_sosvar(prog,Z,o({'all','all'})),'1 x N cell');
+assert_err(@() piesos_sosvar(prog,Z,o([2,3,0,3])),'copies 1,...,j-1');    % s_1 bounded by s_2
+assert_err(@() piesos_sosvar(prog,Z,o([0,3])),'q x 4');
+assert_err(@() piesos_sosvar(prog,Z,o(zeros(0,4))),'q x 4');
+assert_err(@() piesos_sosvar(prog,Z,o([0,3,0,4])),'q x 4');
+end
+
+function case_otype_regions()
+% opts.otype is used for ZopL and ZopR, unless opts.L or opts.R specify it
+pvar s
+x = polyopvar('x',s,[0,1]);
+Z = dmonomials(x,2);
+d0 = struct('in',[0;0],'out',0);
+[~,~,~,ZopL,ZopR] = piesos_quadvar(piesos_program(x),Z,[],struct('degs',d0,'otype',3));
+assert(isequal(full(ZopL.depmat.out(:)),[1;2]) && isequal(full(ZopR.depmat.out(:)),[1;2]),'otype 3 for both');
+[~,~,~,ZopL,ZopR] = piesos_quadvar(piesos_program(x),Z,[],struct('degs',d0,'otype',3,'L',struct('otype',2),'R',struct()));
+assert(isequal(full(ZopL.depmat.out(:)),2) && isequal(full(ZopR.depmat.out(:)),[1;2]),'otype 2 for L, 3 for R');
+end
+
+function case_certification_regions()
+% (int z^2)(int x^2) - int z^4 >= 0 for x = z_s, z(0) = 0 (the embedding step
+% of README_TODOs): a lower and an upper triangle Gram of otype 3 certify it,
+% the square does not; also through piesos_ineq
+pvar s t
+zv = pde_var(s,[0,1]);
+PDE = [diff(zv,t)==diff(zv,s)+zv*zv; subs(zv,s,0)==0];     % nonlinear: PIESOS form
+PIE = convert(PDE,'silent');
+x = PIE.x;      z = PIE.T*x;
+f = innerprod(z,z)*innerprod(x,x) - innerprod(z.*z,z.*z);
+d0 = struct('in',[0;0],'out',0);
+for im = {'full','all'}
+    prog = piesos_program(x);
+    [prog,V] = piesos_sosvar(prog,dmonomials(x,2),struct('degs',d0,'otype',3,'intmat',im{1}));
+    ok = is_feasible(piesos_eq(prog,f-V));
+    assert(ok==strcmp(im{1},'all'),'embedding inequality, intmat %s: feasible=%d',im{1},ok);
+end
+ok = is_feasible(piesos_ineq(piesos_program(x),f,struct('otype',3,'intmat','all','degs',d0)));
+assert(ok,'embedding inequality through piesos_ineq with intmat all: infeasible');
+end
+
+function case_psatz_regions()
+% psatz on the faces of a region: on the triangle s_2<=s_1, P = s_1-s_2 is
+% nonnegative (not on the square), so int int_{s_2<s_1} (s_1-s_2)
+% x(s_1)^2 x(s_2)^2 is certified with psatz 1 (s_1-s_2 is a face), not
+% without; a constant P stays certified with psatz (the products of the
+% faces sum to (b-a)^2). Multiplier rows, otype 2. Also V at random
+% decision variables against the direct evaluation, with psatz 1
+pvar s s_1 s_2
+x = polyopvar('x',s,[0,1]);
+X = struct('x',1+2*s-s^2);
+Z = dmonomials(x,2);
+u = otimes(x,x,2);      Cop4 = otimes(u.C.ops{1,1},u.C.ops{1,1},[1,2]);
+f1 = innerprod(u,u);    f1.C.ops{1} = int(Cop4,s_1-s_2,[s_1;s_2],[0,1;0,s_1]);
+f0 = innerprod(u,u);    f0.C.ops{1} = int(Cop4,[],[s_1;s_2],[0,1;0,s_1]);
+o = struct('degs',struct('in',[0;0],'out',1),'otype',[2,2],'exclude',[0;1;1],'intmat',[0,3,0,1]);
+% f, psatz, expected feasibility
+specs = {f1,0,false; f1,1,true; f0,1,true};
+for c=1:size(specs,1)
+    oc = o;
+    if specs{c,2}>0,    oc.psatz = specs{c,2};      end
+    [prog,V] = piesos_sosvar(piesos_program(x),Z,oc);
+    ok = is_feasible(piesos_eq(prog,specs{c,1}-V));
+    assert(ok==specs{c,3},'psatz on the triangle, case %d: feasible=%d, expected %d',c,ok,specs{c,3});
+end
+o.psatz = 1;    o.intmat = 'all';
+[~,V,Pmat,Zop] = piesos_sosvar(piesos_program(x),Z,o);
+check_V_regions(V,Pmat,Zop,Z,X,{[0,3,0,1;0,3,1,3]},'triangles with psatz 1',95);
+end
+% DJ (CC), 11/19/2026: end.
+
 
 %% ---- helpers ----------------------------------------------------------
+
+function case_values_factor_orders()                                        % DJ (CC), 11/20/2026
+% A basis with both orders of a monomial of two states, x1 o x2 and
+% x2 o x1 (dmonomials with 'full'), otype 3: by default (opts.unique) the
+% pointwise rows of x1 o x2 only (blocks: pointwise and tensor of x1 o x2,
+% tensor of x2 o x1), with unique=false those of both (4 blocks). V at
+% random decision variables against <Zop*z,Pmat*Zop*z>, each block applied
+% to the factors of its entry in their order (apply_side), over the square
+% and over the regions 'all'. With otype 1, the entry x2 o x1 is left out;
+% a monomial of a single state has one order only
+pvar s
+xs = polyopvar({'x1','x2'},[1;1],{'s'},[0,1],true(2,1));
+X = struct('x1',1+2*s-s^2,'x2',s+3*s^3);
+Z = dmonomials(xs,[1 1],'full');
+assert(isequal(sortrows(full(Z.Z)),[1 2;2 1]),'dmonomials full: the basis must be x1 o x2 and x2 o x1.');
+for c = {{[0;0],[0;0;0]},{[1;1],[1;0;1]}}
+    opts = struct('degs',struct('in',c{1}{1},'out',1),'otype',3,'exclude',c{1}{2});
+    label = sprintf('x1 o x2, x2 o x1, otype 3, degs.in %s',mat2str(c{1}{1}));
+    [~,V,Pmat,Zop] = piesos_sosvar(piesos_program(xs),Z,opts);
+    assert(isequal(size(Pmat),[3,3]),'%s: Pmat has %s blocks, expected [3 3].',label,mat2str(size(Pmat)));
+    check_V_random(V,Pmat,Zop,Z,X,[label,', unique'],81);
+    opts.unique = false;
+    [~,V,Pmat,Zop] = piesos_sosvar(piesos_program(xs),Z,opts);
+    assert(isequal(size(Pmat),[4,4]),'%s, not unique: Pmat has %s blocks, expected [4 4].',label,mat2str(size(Pmat)));
+    check_V_random(V,Pmat,Zop,Z,X,[label,', not unique'],82);
+end
+opts = struct('degs',struct('in',[0;0],'out',0),'otype',3,'intmat','all');
+[~,V,Pmat,Zop] = piesos_sosvar(piesos_program(xs),Z,opts);
+check_V_presets(V,Pmat,Zop,Z,X,'all','x1 o x2, x2 o x1, otype 3, regions all',83);
+% otype 1: x2 o x1 has no rows left, and is left out
+[~,~,Pmat,Zop] = piesos_sosvar(piesos_program(xs),Z,struct('degs',0,'otype',1));
+assert(isequal(size(Pmat),[1,1]) && size(Zop.ops,2)==1,'otype 1: Pmat must have 1 block, for x1 o x2 only.');
+% a single state: one order
+Z11 = dmonomials(xs,[2 0],'full');
+assert(size(Z11.Z,1)==1,'x1 o x1 has a single order.');
+end
 
 function I = int_sq(f,s)
 % int_0^1 f(s)^2 ds
@@ -629,6 +835,150 @@ orc = double(F);
 assert(abs(orc)>1e-6,'%s: the value %g is too small to test.',label,orc);
 assert(abs(val-orc)<=1e-8*abs(orc),'%s: V=%.10g, direct evaluation=%.10g (relative error %.2e)',label,val,orc,abs(val-orc)/abs(orc));
 end
+
+% DJ (CC), 11/19/2026: start. Helpers for regions of integration.
+function check_V_regions(V,Pmat,Zop,Z,X,regions,label,seed)
+% V at random decision variable values against the sum over the regions k
+% of <Zop*z,Pmat{k}*Zop*z>, integrated over region k (rows (k1,...,kN) of
+% regions{1},...,regions{N}, k the linear index) by int_rows
+rng(seed);
+Preg = regions_of(Pmat);
+d0map = rand_dvars([Preg{:}]);
+nreg = [cellfun(@(A) size(A,1),regions),1];
+rows = cell(1,numel(nreg));
+orc = 0;
+Y = apply_side(Zop,Z,X);
+for k=1:prod(nreg)
+    [rows{:}] = ind2sub(nreg,k);
+    P = cellfun(@(Pb) eval_dpvar_at(Pb,d0map),Preg{k},'UniformOutput',false);
+    Prows = cell(size(P,1),1);
+    for b=1:size(P,1),  Prows{b} = horzcat(P{b,:});    end
+    F = Y.'*vertcat(Prows{:})*Y;
+    [F,cps,dom] = copies_of(F,Zop);
+    for i=1:numel(cps)
+        F = int_rows(F,cps{i},dom(i,:),regions{i}(rows{i},:));
+    end
+    orc = orc + double(F);
+end
+compare(eval_V(V,d0map,X),orc,label);
+end
+
+function check_V_presets(V,Pmat,Zop,Z,X,presets,label,seed)
+% V with the same random constant P in each region against <Zop*z,P*Zop*z>
+% integrated over the cells of the preset of each variable (int_cells)
+rng(seed);
+Preg = regions_of(Pmat);
+n = sum(cellfun(@(Pb) size(Pb,1),Preg{1}(:,1)));
+T = randn(n);       T = T+T.';
+d0map = containers.Map('KeyType','char','ValueType','any');
+for k=1:numel(Preg)
+    m = gram_values(Preg{k},blocks4(T,Preg{k}));
+    for key=keys(m),    d0map(key{1}) = m(key{1});  end
+end
+Y = apply_side(Zop,Z,X);
+[F,cps,dom] = copies_of(Y.'*T*Y,Zop);
+if ~iscell(presets),    presets = repmat({presets},1,numel(cps));   end
+for i=1:numel(cps)
+    F = int_cells(F,cps{i},dom(i,:),presets{i});
+end
+compare(eval_V(V,d0map,X),double(F),label);
+end
+
+function F = int_rows(F,cps,dom,row)
+% F integrated over the region ROW (intmat of an 'intop') of the copies CPS
+% on DOM, the last copy first: copy j at copy p for [p,p], else over
+% [L,U], with 0 for dom(1), d+1 for dom(2) and p for copy p
+d = numel(cps);
+lim = [{dom(1)},arrayfun(@(j) cps(j),1:d,'UniformOutput',false),{dom(2)}];
+for j=d:-1:1
+    if row(2*j-1)==row(2*j)
+        F = subs(F,cps(j),lim{row(2*j)+1});
+    else
+        F = int(F,cps(j),lim{row(2*j-1)+1},lim{row(2*j)+1});
+    end
+end
+end
+
+function G = int_cells(F,cps,dom,preset)
+% F integrated over the regions of a preset, built independently of
+% piesos_quadvar: the whole domain (the strict orderings partition it),
+% plus for 'all' each ordering with ties but not all copies tied, from the
+% dense ranks r of the copies (copy j in group r(j), groups increasing):
+% the copies of group m set to u_m, over dom(1) <= u_1 <= ... <= u_k <= dom(2)
+d = numel(cps);
+G = F;
+for j=1:d,  G = int(G,cps(j),dom(1),dom(2));    end
+if ~strcmp(preset,'all'),   return;     end
+idx = cell(1,d);    [idx{:}] = ndgrid(1:d);
+R = reshape(cat(d+1,idx{:}),[],d);
+for t=1:size(R,1)
+    k = max(R(t,:));
+    if k<2 || k>d-1 || ~isequal(unique(R(t,:)),1:k),    continue;   end
+    u = polynomial(arrayfun(@(m) sprintf('u_%d',m),1:k,'UniformOutput',false));
+    H = subs(F,cps,reshape(u(R(t,:)),d,1));
+    for m=1:k-1,    H = int(H,u(m),dom(1),u(m+1));  end
+    G = G + int(H,u(k),dom(1),dom(2));
+end
+end
+
+function [F,cps,dom] = copies_of(F,Zop)
+% The copies of each output variable of Zop (the copies in all block rows),
+% with the bare name of a pointwise output in F renamed to its copy 1
+vars = Zop.vars.out;        dom = Zop.dom.out;
+ncop = full(max(Zop.depmat.out,[],1));
+cps = cell(1,numel(vars));
+for i=1:numel(vars)
+    cps{i} = get_tensorvars(vars{i},ncop(i),{'full','pvar'});
+    if ismember(vars{i},F.varname)
+        F = subs(F,polynomial(vars(i)),cps{i}(1));
+    end
+end
+end
+
+function P = regions_of(Pmat)
+% The Pmat of each region, as a cell, also for a single Pmat (whole domain)
+if iscell(Pmat{1}),     P = Pmat;
+else,                   P = {Pmat};
+end
+end
+
+function d0map = rand_dvars(Pmat)
+names = cell(0,1);
+for k=1:numel(Pmat)
+    names = [names;Pmat{k}.dvarname(:)];                                    %#ok<AGROW>
+end
+names = unique(names,'stable');
+d0map = containers.Map(names,num2cell(0.5+rand(numel(names),1)));
+end
+
+function target = blocks4(T,Pmat)
+% the blocks of T as target(b,c,i,j), for gram_values
+szs = cellfun(@(Pb) size(Pb,1),Pmat(:,1));      cs = [0;cumsum(szs)];
+nb = numel(szs);    target = zeros(nb,nb,max(szs),max(szs));
+for b=1:nb
+    for c=1:nb
+        target(b,c,1:szs(b),1:szs(c)) = T(cs(b)+1:cs(b+1),cs(c)+1:cs(c+1));
+    end
+end
+end
+
+function val = eval_V(V,d0map,X)
+% V at the decision variable values d0map and the states X
+Vn = V;     ops = V.C.ops;
+for k=1:numel(ops)
+    if isa(ops{1,k},'intop'),   ops{1,k} = eval_intop_dpvar(ops{1,k},d0map);   end
+end
+Vn.C.ops = ops;     Vn.C.chkval = true;
+xv = cell(numel(Vn.varname),1);
+for k=1:numel(xv),  xv{k} = X.(Vn.varname{k});     end
+val = double(eval_polyopvar(Vn,xv));
+end
+
+function compare(val,orc,label)
+assert(abs(orc)>1e-6,'%s: the value %g is too small to test.',label,orc);
+assert(abs(val-orc)<=1e-8*abs(orc),'%s: V=%.10g, direct evaluation=%.10g (relative error %.2e)',label,val,orc,abs(val-orc)/abs(orc));
+end
+% DJ (CC), 11/19/2026: end.
 
 function Y = apply_side(Zop,Z,X)
 % Zop applied to the entries of a monomial basis Z (identity coefficients): block

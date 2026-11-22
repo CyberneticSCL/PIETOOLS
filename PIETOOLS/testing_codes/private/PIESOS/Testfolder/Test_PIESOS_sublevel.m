@@ -23,6 +23,7 @@
 %     before running the script.
 %
 % DJ (CC), 11/10/2026: Initial coding;
+% DJ (CC), 11/21/2026: PIESOS_sublevel no longer takes the PIE;
 
 clear stateNameGenerator
 pvar s t
@@ -44,7 +45,7 @@ cases = {
     'same, h = x2^2',          1 - N1 - 2*N2,       N2,     1;
     'g = {3-x1^2, 1.5-x2^2}',  {3 - N1, 1.5 - N2},  [],     1.5};
 for k=1:size(cases,1)
-    [~,info] = PIESOS_sublevel(PIE,V,cases{k,2},cases{k,3},st);
+    [~,info] = PIESOS_sublevel(V,cases{k,2},cases{k,3},st);                 % DJ (CC), 11/21/2026
     if ~info.feasible || abs(info.c-cases{k,4})>tol*cases{k,4}
         error("Test_PIESOS_sublevel: ODE case '%s': c=%g, expected %g.",cases{k,1},info.c,cases{k,4})
     end
@@ -54,7 +55,7 @@ x = pde_var('state',1,[],[]);
 evalc('PIE1 = convert(initialize(diff(x,t)==-x-x^3),{''silent''});');
 u1 = PIE1.T*PIE1.x;
 N = weighted_sobolev_norm(u1,{1});
-[~,info] = PIESOS_sublevel(PIE1,N+N*N,1-N,[],st);
+[~,info] = PIESOS_sublevel(N+N*N,1-N,[],st);                                % DJ (CC), 11/21/2026
 if ~info.feasible || abs(info.c-1)>tol
     error("Test_PIESOS_sublevel: quartic V: c=%g, expected 1.",info.c)
 end
@@ -66,19 +67,19 @@ evalc('PIE = convert(initialize([diff(x,t)==diff(x,s,2)+x^2; subs(diff(x,s),s,0)
 u = PIE.T*PIE.x;
 Nxs = weighted_sobolev_norm(u,{[0,1]});
 lam1 = pi^2/4;
-[~,info] = PIESOS_sublevel(PIE,Nxs,1-weighted_sobolev_norm(u,{[1,1]}),[],st);
+[~,info] = PIESOS_sublevel(Nxs,1-weighted_sobolev_norm(u,{[1,1]}),[],st);   % DJ (CC), 11/21/2026
 if ~info.feasible || abs(info.c-lam1/(1+lam1))>tol
     error("Test_PIESOS_sublevel: Poincare constant: c=%g, expected %g.",info.c,lam1/(1+lam1))
 end
-[~,info] = PIESOS_sublevel(PIE,Nxs,1-Nxs,[],st);
+[~,info] = PIESOS_sublevel(Nxs,1-Nxs,[],st);                                % DJ (CC), 11/21/2026
 if ~info.feasible || abs(info.c-1)>tol
     error("Test_PIESOS_sublevel: V=N: c=%g, expected 1.",info.c)
 end
 
 % % Invalid inputs
-bad = {@() PIESOS_sublevel(PIE,Nxs,-1-Nxs,[],st),  "g(0)<0";
-       @() PIESOS_sublevel(PIE,Nxs+1,1-Nxs,[],st), "V(0)~=0";
-       @() PIESOS_sublevel(PIE,Nxs,{},[],st),      "empty g"};
+bad = {@() PIESOS_sublevel(Nxs,-1-Nxs,[],st),      "g(0)<0";                % DJ (CC), 11/21/2026
+       @() PIESOS_sublevel(Nxs+1,1-Nxs,[],st),     "V(0)~=0";               % DJ (CC), 11/21/2026
+       @() PIESOS_sublevel(Nxs,{},[],st),          "empty g"};              % DJ (CC), 11/21/2026
 for k=1:size(bad,1)
     refused = false;
     try
@@ -107,7 +108,7 @@ if ~skip_executive
         error("Test_PIESOS_sublevel: the local executive did not verify R=%g.",R)
     end
     u = PIE.T*PIE.x;
-    [~,info] = PIESOS_sublevel(PIE,info_loc.V,R^2-weighted_sobolev_norm(u,{[0,1]}),[],st);
+    [~,info] = PIESOS_sublevel(info_loc.V,R^2-weighted_sobolev_norm(u,{[0,1]}),[],st); % DJ (CC), 11/21/2026
     if ~info.feasible || info.c<R^2*(1-1e-3) || info.c>info_loc.C*R^2
         error("Test_PIESOS_sublevel: heat equation with feedback: c=%g, expected between %g and %g.",info.c,R^2*(1-1e-3),info_loc.C*R^2)
     end

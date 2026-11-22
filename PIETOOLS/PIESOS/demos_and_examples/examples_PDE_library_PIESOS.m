@@ -81,6 +81,7 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/08/2026: Initial coding;
+% DJ, 11/22/2026: Local stability test for example 13;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -445,26 +446,47 @@ settings.simplify = false;              % solver stalls (numerr=2) if simplified
 %% Wave equation with boundary feedback
 % 	PDE:    z_{tt} = z_{ss} - 2*mu*z_{t} + a*z + z^3            s in [0,1]
 %   BCs:    z(s=0) = 0;     z_{s}(s=1) = -k*z(s=1);
-% Written in the states z and y = z_{t}:
-% 	PDE:    z_{t} = y;
-%           y_{t} = z_{ss} - 2*mu*y + a*z + z^3;
+% Written in the states y = z_{t} and z, with the boundary conditions of z
+% also imposed on y:
+% 	PDE:    y_{t} = z_{ss} - 2*mu*y + a*z + z^3;
+%           z_{t} = y;
+%   BCs:    y(s=0) = 0;     y_{s}(s=1) = -k*y(s=1);
 % The linearization is exponentially stable iff a < lambda_1, the smallest
-% eigenvalue of -d^2/ds^2 under the boundary conditions. The other 
-% equilibria have energy ||z_{s}|| >= 1.8 for a=5, k=3, which bounds the 
-% radius of any region of attraction in the energy norm 
+% eigenvalue of -d^2/ds^2 under the boundary conditions. 
 % ||z_{s}||^2 + ||y||^2.
+% Local stability can be verified on the ball of radius 1.4 in the energy
+% norm, ||z_{s}||^2 + ||y||^2, at decay rate 0; solutions with energy below 
+% 0.66 remain in the ball. Simulation finds a diverging solution at 1.35.
 
 mu = 2;                 % damping
 a = 5;                  % reaction parameter
 k = 3;                  % gain of the boundary feedback
 [mu,a,k] = set_params({'mu','a','k'},{mu,a,k},params);
 
-z = pde_var(s,[0,1]);
 y = pde_var(s,[0,1]);
-PDE = [diff(z,t)==y;
-        diff(y,t)==diff(z,s,2)-2*mu*y+a*z+z^3;
+z = pde_var(s,[0,1]);
+PDE = [diff(y,t)==diff(z,s,2)-2*mu*y+a*z+z^3;
+        diff(z,t)==y;
+        subs(y,s,0)==0;
+        subs(diff(y,s),s,1)+k*subs(y,s,1)==0;
         subs(z,s,0)==0;
         subs(diff(z,s),s,1)+k*subs(z,s,1)==0];
+
+% Modified settings for the local test
+use_exec = 'local';     % executive to use
+rad = 1.4;              % radius of the ball
+alpha = {1,[0,1]};      % weights of the norm: ||y||^2 + ||z_{s}||^2
+lambda = 0;             % decay rate
+LF_form = 'pie';        % form of the Lyapunov functional
+settings.LF.C = 4.5;                    % C fixed, not minimized
+settings.mult.mon_deg = [1,1];          % degree of the kernels of p2
+settings.sos.otype = 3;                 % pointwise and tensor products
+settings.sos.intmat = 'all';            % all regions of integration
+settings.sos.psatz = [0,0,0];           % no psatz multipliers
+% Specify particular monomial degrees for kernels to balance complexity and
+% accuracy
+mon_deg_sos3 = struct('in',{{3,[1;1],3,[1;1],[1;1],[1;1]}},'out',1);
+settings.sos.mon_deg = {NaN,NaN,mon_deg_sos3};
 
 %--------------------------------------------------------------------------
 end

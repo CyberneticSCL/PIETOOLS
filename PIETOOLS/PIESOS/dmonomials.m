@@ -1,6 +1,6 @@
-function Z = dmonomials(vartab,degs)
-% Z = DMONOMIALS(VARTAB,DEGS) constructs a vector of distributed monomials
-% of degrees DEGS in the variables VARTAB.
+function Z = dmonomials(vartab,degs,opts)
+% Z = DMONOMIALS(VARTAB,DEGS,OPTS) constructs a vector of distributed
+% monomials of degrees DEGS in the variables VARTAB.
 %
 % INPUTS
 % - vartab: 'polyopvar' object, specifying the variables in which to
@@ -10,6 +10,11 @@ function Z = dmonomials(vartab,degs)
 % - degs:   n x 1 array specifying the cumulative degrees of the monomials
 %           to be included in the vector, or n x q array specifying the
 %           degree of each monomial in each of the q variables;
+% - opts:   (optional) char, 'full' to also return each monomial of
+%           different variables in each other order of its factors that
+%           depend on spatial variables, e.g. both y o z and z o y. Factors
+%           without spatial variables (e.g. ODE states) keep their place.
+%           Defaults to '', including only one of y o z or z o y;
 %
 % OUTPUTS
 % - Z:      m x 1 'polyopvar' object representing a vector of all
@@ -23,6 +28,15 @@ function Z = dmonomials(vartab,degs)
 % - A monomial has the same degree in all entries of a variable. For a
 %   variable y of size n, the monomial of degree d is the single vector
 %   y o ... o y of size n^d.
+% - The orders of 'full' are different functions, (z o y)(s1,s2) =
+%   z(s1)y(s2) and (y o z)(s1,s2) = y(s1)z(s2), but with the same pointwise
+%   product z(s)y(s). A tensor-product basis operator (otype 2 in
+%   `piesos_quadvar`) gives different rows on each, so that an SOS
+%   functional does not depend on the order of the variables;
+%   `piesos_quadvar` uses the pointwise product of only one of them
+%   (opts.unique). A factor without spatial variables has no copy, so its
+%   place does not change the rows: x o xo and xo o x (xo an ODE state)
+%   give the same rows, so 'full' returns only the first.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,10 +65,16 @@ function Z = dmonomials(vartab,degs)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/22/2026: Option 'full': monomials in each order of their factors;
 
 % Check that the variables are specified as 'polyopvar'
 if ~isa(vartab,'polyopvar')
     error("Variables to appear in distributed monomials must be specified as object of type 'polyopvar'.")
+end
+% Each monomial once by default, in all orders of its factors for 'full'
+is_full = nargin>=3 && ~isempty(opts);
+if is_full && ~strcmp(opts,'full')
+    error("Option must be specified as 'full'.")
 end
 
 % Check that the degrees make sense
@@ -110,6 +130,8 @@ vars_i = cell(1,nvars);
 for j=find(any(degmat,1))
     vars_i{j} = vartab{j,:};
 end
+% Keep track of which variables are distributed (vary in space)
+is_spatial = any(full(vartab.C.depmat.out),2).';
 
 % Declare the distributed monomial basis
 Z = [];
@@ -121,12 +143,25 @@ for i=1:size(degmat,1)
         continue
     end
     Zvals_i = Zvals(i,Zvals(i,:)>0);
-    Z_i = vars_i{Zvals_i(1)};
-    for j=Zvals_i(2:end)
-        % Take tensor product of the states to compute the monomials
-        Z_i = otimes(Z_i,vars_i{j},2);
+    % The orders of the factors: that of the variables, and for 'full'
+    % each other distinct order of the factors with spatial variables,
+    % after it, the other factors in their place
+    ords = Zvals_i;
+    idcs_sp = find(is_spatial(Zvals_i));
+    if is_full && numel(idcs_sp)>=2
+        ords_sp = unique(perms(Zvals_i(idcs_sp)),'rows');
+        ords_sp = ords_sp(~ismember(ords_sp,Zvals_i(idcs_sp),'rows'),:);
+        ords = repmat(Zvals_i,size(ords_sp,1)+1,1);
+        ords(2:end,idcs_sp) = ords_sp;
     end
-    Z = [Z; Z_i];
+    for k=1:size(ords,1)
+        Z_i = vars_i{ords(k,1)};
+        for j=ords(k,2:end)
+            % Take tensor product of the states to compute the monomials
+            Z_i = otimes(Z_i,vars_i{j},2);
+        end
+        Z = [Z; Z_i];
+    end
 end
 
 end

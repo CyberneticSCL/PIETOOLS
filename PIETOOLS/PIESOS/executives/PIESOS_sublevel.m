@@ -1,10 +1,10 @@
-function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
+function [prog_sol,info] = PIESOS_sublevel(V,g,h,settings)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [PROG_SOL,INFO] = PIESOS_sublevel(PIE,V,G,H,SETTINGS) finds the largest
+% [PROG_SOL,INFO] = PIESOS_sublevel(V,G,H,SETTINGS) finds the largest
 % sublevel set {V <= c} of the functional V that lies in the semialgebraic
 % set
 %   {g_i(x) >= 0, i=1,...,ng,  h_j(x) = 0, j=1,...,nh}
-% of the PIE state x=PIE.x, in the sense that
+% of the state x of V (e.g. the PIE state x=PIE.x), in the sense that
 %   V(x) <= c, h_j(x) = 0 for all j     implies     g_i(x) >= 0 for all i.
 % The equality constraints h_j describe the states considered (for example,
 % the ball N(u) <= R^2 is g = R^2 - N(u), without h). If V is a Lyapunov
@@ -20,9 +20,8 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 % largest sublevel set has c = min_i c_i.
 %
 % INPUT
-% - PIE:        'npie_struct' object representing the PIE. A 'pde_struct'
-%               object is converted to a PIE;
-% - V:          'polyopvar' object in the PIE state x=PIE.x with V(0)=0;
+% - V:          'polyopvar' object in the state x (e.g. the PIE state
+%               x=PIE.x) with V(0)=0;
 % - g:          scalar 'polyopvar' object in x, or cell of such objects,
 %               defining the inequalities g_i >= 0, with g_i(0) >= 0. The
 %               constant term is allowed, e.g. g = R^2 - N(u) for a norm N
@@ -65,6 +64,7 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 %   {g >= 0, h = 0}. This is not checked here.
 % - For radius of the region of attraction in a norm N with V <= C*N on the
 %   ball, use sqrt(c/C).
+% - The states of g and h must be states of V.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -93,39 +93,38 @@ function [prog_sol,info] = PIESOS_sublevel(PIE,V,g,h,settings)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/10/2026: Initial coding;
+% DJ, 11/22/2026: Pass settings sos.otype and sos.intmat;
 
 t_start = tic;
 
 % Check the inputs
-if nargin<4 || isempty(h)
+if nargin<3 || isempty(h)
     h = {};
 end
-if nargin<5 || isempty(settings)
+if nargin<4 || isempty(settings)
     settings = PIESOS_settings();
 end
-% A PDE is converted to a PIE; a single g or h is put in a cell
-if isa(PIE,'pde_struct')
-    PIE = convert(PIE,'silent');
-end
+% A single g or h is put in a cell
 if isa(g,'polyopvar')
     g = {g};
 end
 if isa(h,'polyopvar')
     h = {h};
 end
-% Classes of PIE, V, g (nonempty) and h
-if ~isa(PIE,'npie_struct')
-    error("The PIE must be specified as 'npie_struct' (or 'pde_struct') object.")
-elseif ~isa(V,'polyopvar')
+% Classes of V, g (nonempty) and h; the states of g and h are those of V
+if ~isa(V,'polyopvar')
     error("The functional V must be specified as 'polyopvar' object.")
 elseif ~iscell(g) || isempty(g) || ~iscell(h) || ~all(cellfun(@(f) isa(f,'polyopvar'),[g(:);h(:)]))
     error("g and h must be specified as 'polyopvar' objects, or cells of 'polyopvar' objects (g nonempty).")
+elseif ~all(cellfun(@(f) all(ismember(f.varname,V.varname)),[g(:);h(:)]))
+    error("The states of g and h must be states of V.")
 end
 ng = numel(g);
 nh = numel(h);
 
+% The state x of the SOS programs: the states of V
+x = V.vartab;
 % The values at x=0 of V, g_i, h_j
-x = PIE.x;
 x0 = arrayfun(@(d) zeros(d,1),V.dims.in,'UniformOutput',false);
 a = zeros(ng,1);
 for i=1:ng
@@ -140,6 +139,11 @@ end
 % Options of the SOS constraint: entry 3 (the derivative condition) of
 % the SOS settings
 sos_opts = struct();
+sos_opts.otype = settings.sos.otype;
+% Regions of integration (settings of before 11/20/2026 have none)
+if isfield(settings.sos,'intmat')
+    sos_opts.intmat = settings.sos.intmat;
+end
 if settings.sos.psatz(3)>0
     sos_opts.psatz = settings.sos.psatz(3);
 end

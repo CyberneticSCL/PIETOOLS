@@ -57,7 +57,21 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           places is an error). If only one of L and R is specified, it
 %           is used for both. The fields 'exclude', 'sep', and 'otype' of
 %           opts are used for each operator for which L or R does not
-%           specify them;
+%           specify them (see `piesos_quadopvar`);
+%   otype:  (optional) type of output of ZopL and ZopR: 1 for a pointwise
+%           product, 2 for a tensor product, 3 for both (see `monopmat`),
+%           used for both operators unless opts.L or opts.R specify it;
+%  intmat:  (optional) regions of integration of the copies si_1,...,si_di
+%           of the output variables, a 1 x N cell of qi x 2*di arrays or
+%           presets 'full' (default), 'steps', 'all', see
+%           `piesos_quadopvar`. V sums a Gram form over each of the
+%           q1*...*qN combinations of regions, each with its own Pmat;
+%  unique:  (optional) logical, true to use the pointwise product (otype 1,
+%           or the pointwise part of otype 3) for only one of the entries
+%           that are monomials of the same factors in different orders,
+%           e.g. z o y and y o z (`dmonomials` with 'full'), as their
+%           pointwise products are the same function, see NOTES. Defaults
+%           to true;
 %
 % OUTPUTS
 % - prog:   PIESOS program structure with the decision variables defining
@@ -68,7 +82,9 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % - Pmat:   nL x nR cell, with element Pmat{i,j} an mi x nj 'dpvar' object
 %           in the primary variables, coupling the ith block row of ZopL
 %           and the jth block row of ZopR, i.e. entry i of ZL and entry j
-%           of ZR;
+%           of ZR, see `piesos_quadopvar`. With regions other than the
+%           whole domain (opts.intmat), a q1 x ... x qN cell of such
+%           cells, Pmat{k1,...,kN} for rows k1,...,kN of the regions;
 % - ZopL/ZopR:  'tensopmat' objects representing the bases of operators on
 %           the entries of ZL and ZR (block i acts on the output of row i
 %           of ZL.C);
@@ -87,8 +103,14 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %   have the same size, and its states depend on the same variables.
 % - The states in ZL and ZR are matched by name, and must have the same
 %   size and domain in both.
-% - If Pmat is symmetric, ZL=ZR, and ZopL=ZopR, only the upper triangle of 
-%   Pmat is used to compute V. 
+% - If Pmat is symmetric, ZL=ZR, and ZopL=ZopR, only the upper triangle of
+%   Pmat is used to compute V.
+% - For full generality, a basis should include distributed monomials in
+%   all orders, e.g. both y o z and z o y. For pointwise products
+%   (otype=1), however, y o z and z o y involve the same elements (perhaps
+%   in different order). The 'unique' option get's rid of these duplicate
+%   elements in the otype=1 and otype=3 case, but can be turned of if
+%   desired.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_quadvar
@@ -116,6 +138,9 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/22/2026: Options 'intmat' (regions of integration) and 'unique'
+%                   (pointwise products once per set of factors); regions
+%                   passed to 'int' as rows of the intmat;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -222,6 +247,67 @@ if (only_degsL || ~isfield(opts,'L')) && (only_degsR || ~isfield(opts,'R'))
     end
 end
 
+% The pointwise product once for monomials of the same factors in other
+% orders (opts.unique, see NOTES): an entry whose factors appear in an
+% earlier entry gets otype 2 instead of 3, or is left out for otype 1
+if ~isfield(opts,'unique') || opts.unique
+    for side = 'LR'
+        if side=='L'
+            Zs = ZL;    cols = colsL;
+        else
+            Zs = ZR;    cols = colsR;
+        end
+        otype = 1;
+        if isfield(opts,'otype')
+            otype = opts.otype;
+        end
+        if isfield(opts,side) && isfield(opts.(side),'otype')
+            otype = opts.(side).otype;
+        end
+        otype = otype(:,1);
+        if isscalar(otype)
+            otype = repmat(otype,numel(cols),1);
+        end
+        [otype_new,is_kept] = pointwise_once(Zs.Z,Zs.C,cols,otype);
+        if isequal(otype_new,otype) && all(is_kept)
+            continue        % no entries of the same factors in other orders
+        end
+        if ~all(is_kept)
+            % Options given per entry would no longer match the entries
+            has_cells = iscell(degs) || (isstruct(degs) && ...
+                any(cellfun(@(f) ~isnumeric(degs.(f)),fieldnames(degs))));
+            for fname = {'exclude','sep'}
+                has_cells = has_cells || (isfield(opts,fname{1}) && iscell(opts.(fname{1}))) || ...
+                    (isfield(opts,side) && isfield(opts.(side),fname{1}) && iscell(opts.(side).(fname{1})));
+            end
+            if has_cells
+                error("An entry of otype 1 with the same factors as another (opts.unique) cannot be left out with options given per entry: set opts.unique=false, or remove it from the basis.")
+            end
+            % Block rows ({}): '()' would index inside the coefficients, which
+            % fails for Kronecker products, e.g. with an ODE factor
+            Zs = Zs{find(is_kept),:};   % numeric indices: polyopvar      %#ok<FNDSB>
+            [dims_s,depmat_s,cols] = coefficient_blocks(Zs.C,side);
+            if side=='L'
+                ZL = Zs;    CL = Zs.C;  dimsL = dims_s;     depmatL = depmat_s;     colsL = cols;
+            else
+                ZR = Zs;    CR = Zs.C;  dimsR = dims_s;     depmatR = depmat_s;     colsR = cols;
+            end
+        end
+        % Both opts.L and opts.R, as piesos_quadopvar uses one given alone
+        % for both, and fills fields not given from opts
+        if isfield(opts,'L') && ~isfield(opts,'R')
+            opts.R = opts.L;
+        elseif isfield(opts,'R') && ~isfield(opts,'L')
+            opts.L = opts.R;
+        elseif ~isfield(opts,'L')
+            opts.L = struct();
+            opts.R = struct();
+        end
+        opts.(side).otype = otype_new(is_kept);
+    end
+    is_eqZLR = is_eqZLR && isequal(ZL,ZR);
+end
+
 % Extract the domains. The operators act on the output of the coefficients,
 % the output spaces of the rows of CL, CR
 dims = struct('R',dimsR,'L',dimsL);
@@ -235,8 +321,13 @@ end
 
 % Declare a basis of operators on this domain, and a matrix Pmat(s) in the
 % primary variables (nL x nR cell, a block row for each entry of ZL and
-% a block column for each of ZR), so that Pop = ZopL'*Pmat*ZopR;
-[prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs,opts);
+% a block column for each of ZR), so that Pop = ZopL'*Pmat*ZopR; or one
+% Pmat for each region of opts.intmat, Pregs{k}
+[prog,Pmat,ZopL,ZopR,intmat] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs,opts);
+Pregs = Pmat;
+if ~iscell(Pmat{1})
+    Pregs = {Pmat};     % the whole domain
+end
 
 % The terms of the pairs of entries (ridx,cidx) and (cidx,ridx) are equal
 % if Pmat is symmetric and the same entries and operators appear on the
@@ -245,8 +336,8 @@ is_sym = (isfield(opts,'pos') && opts.pos) || (isfield(opts,'sym') && opts.sym);
 is_sym = is_sym && is_eqZLR && isequal(ZopL,ZopR);
 % The block rows of ZopL, ZopR (of Pmat), and the entry of ZL, ZR on
 % which each acts (its only nonempty block): entry i for block row i, or
-% two block rows for an entry of otype 3
-[nZL,nZR] = size(Pmat);
+% two block rows for an entry of otype 3 (see piesos_quadopvar)
+[nZL,nZR] = size(Pregs{1});
 [~,blk_idcsL] = max(~cellfun(@isempty,ZopL.ops),[],2);
 [~,blk_idcsR] = max(~cellfun(@isempty,ZopR.ops),[],2);
 if is_sym
@@ -295,13 +386,14 @@ nZ_lin = size(Z_lin,1);
 % Initialize an empty coefficient operator acting on the new basis
 Kcell = num2cell(zeros(1,nZ_lin));
 
-% The copies si_j, j=1,...,ncop(i), of the output variables si and their
-% domains. V integrates over all of them.
-ncop = full(max([ZopL.depmat.out;ZopR.depmat.out],[],1));
-vars_int = cell(1,0);       dom_int = zeros(0,2);
-for i=1:numel(ncop)
-    vars_int = [vars_int,get_tensorvars(ZopL.vars.out{i},ncop(i),'full')];
-    dom_int = [dom_int;repmat(ZopL.dom.out(i,:),ncop(i),1)];
+% Regions: for Pregs{k}, a row of intmat{i} for each output variable i,
+% the region of all its copies over which V integrates
+nreg = [cellfun(@(A) size(A,1),intmat),1];
+Q = numel(Pregs);
+intmat_reg = cell(1,Q);     rows = cell(1,numel(nreg));
+for k=1:Q
+    [rows{:}] = ind2sub([nreg,1],k);  % nreg=1 without output variables
+    intmat_reg{k} = cellfun(@(A,r) A(r,:),intmat,rows(1:end-1),'UniformOutput',false);
 end
 
 % Determine the operator acting on each of the distributed monomials
@@ -315,18 +407,24 @@ for t=1:size(terms,1)
         % the input dim. The factors are ordered as the monomial [ZL(a),ZR(b)] in
         % Z_full. For symmetric Pmat, (cidx,ridx) and (ridx,cidx) give the same term
         % m, n: row counts of the block rows ridx of ZopL and cidx of ZopR
-        m = size(ZopL.ops{ridx,blk_idcsL(ridx)},1);
-        n = size(ZopR.ops{cidx,blk_idcsR(cidx)},1);
-        Wij = Pmat{ridx,cidx}(:).';             % Pij(1:end) as a row
-        if is_sym && cidx>ridx
-            Wij = 2*Wij;
+        m = size(ZopL.ops{ridx,blk_idcsL(ridx)},1);                         % DJ, 11/19/2026
+        n = size(ZopR.ops{cidx,blk_idcsR(cidx)},1);                         % DJ, 11/19/2026
+        % Pij(1:end) as a row, for each region
+        Wij = cell(1,Q);
+        for k=1:Q
+            Wij{k} = Pregs{k}{ridx,cidx}(:).';
+            if is_sym && cidx>ridx
+                Wij{k} = 2*Wij{k};
+            end
         end
     end
-    Kij = int(otimes(repmat(PL.ops{ridx,terms(t,3)},n,1),repelem(PR.ops{cidx,terms(t,4)},m,1),[1,2]),Wij,vars_int,dom_int);
+    Cop = otimes(repmat(PL.ops{ridx,terms(t,3)},n,1),repelem(PR.ops{cidx,terms(t,4)},m,1),[1,2]);
 
-    % Match the obtained kernel with the correct distributed monomial
+    % Add the terms of all regions to the correct distributed monomial
     mon_idx = old2new_idcs(t);
-    Kcell{mon_idx} = Kcell{mon_idx} + Kij;
+    for k=1:Q
+        Kcell{mon_idx} = Kcell{mon_idx} + int(Cop,Wij{k},intmat_reg{k});
+    end
 end
 
 % Declare the coefficient matrix defining V
@@ -457,6 +555,70 @@ elseif isa(T,'sopvar')
         end
     end
     T = sopvar(params,T.vars,T.ZL,T.ZR,T.dom,T.dims);
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function [otype,is_kept] = pointwise_once(Zmat,C,cols,otype)
+% [OTYPE,IS_KEPT] = POINTWISE_ONCE(ZMAT,C,COLS,OTYPE) keeps the pointwise
+% product (otype 1, or the pointwise part of otype 3) of only one of the
+% entries of a basis that are monomials of the same factors in different
+% orders, e.g. z o y and y o z, whose pointwise products are the same
+% function (opts.unique of piesos_quadvar). The entry in the order of the
+% states keeps it, else the first.
+%
+% INPUTS
+% - Zmat:   nZ x dmax array, row j the states of the factors of monomial j
+%           (zeros after the last factor), the field Z of the basis;
+% - C:      nr x nZ 'tensopmat', the coefficients of the basis;
+% - cols:   nr x 1 cell, cols{i} the monomials of entry i (see
+%           coefficient_blocks);
+% - otype:  nr x 1 array, the type of output of each entry: 1 pointwise,
+%           2 tensor product, 3 both;
+%
+% OUTPUTS
+% - otype:  nr x 1 array, with 3 replaced by 2 for an entry whose pointwise
+%           product is that of an entry kept before it;
+% - is_kept: nr x 1 logical, false for such an entry of otype 1, which has
+%           no rows left;
+
+nr = numel(cols);
+% The states of an entry that is a single monomial with identity
+% coefficient and two or more factors, sorted; empty for other entries
+fctrs_sorted = cell(nr,1);
+for i=1:nr
+    if isscalar(cols{i})
+        fctrs = nonzeros(Zmat(cols{i},:)).';
+        if numel(fctrs)>1 && is_id_op(C.ops{i,cols{i}})
+            fctrs_sorted{i} = sort(fctrs);
+        end
+    end
+end
+is_kept = true(nr,1);
+is_done = cellfun(@isempty,fctrs_sorted);
+for i=find(~is_done).'
+    if is_done(i)
+        continue
+    end
+    % The entries of the same factors, those in the order of the states first
+    grp = find(cellfun(@(f) isequal(f,fctrs_sorted{i}),fctrs_sorted));
+    is_ordered = arrayfun(@(k) issorted(nonzeros(Zmat(cols{k},:))),grp);
+    grp = [grp(is_ordered);grp(~is_ordered)];
+    has_pointwise = false;
+    for k=grp.'
+        if has_pointwise && otype(k)==3
+            otype(k) = 2;
+        elseif has_pointwise && otype(k)==1
+            is_kept(k) = false;
+        elseif otype(k)~=2
+            has_pointwise = true;
+        end
+    end
+    is_done(grp) = true;
 end
 
 end

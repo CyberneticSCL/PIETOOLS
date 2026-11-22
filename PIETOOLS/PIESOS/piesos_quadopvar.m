@@ -1,6 +1,6 @@
-function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs,opts)
-% [PROG,PMAT,ZOPL,ZOPR] = PIESOS_QUADOPVAR(PROG,DIMS,VARS,DOM,DEPMAT,
-% DEGS,OPTS) declares an operator variable of the form
+function [prog,Pmat,ZopL,ZopR,intmat] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs,opts)
+% [PROG,PMAT,ZOPL,ZOPR,INTMAT] = PIESOS_QUADOPVAR(PROG,DIMS,VARS,DOM,
+% DEPMAT,DEGS,OPTS) declares an operator variable of the form
 %   Pop = ZOPL'*PMAT*ZOPR
 % where PMAT(s) is a polynomial or SOS function in primary variables s,
 % and ZOPL and ZOPR are bases of tensor-PI operators, acting on the
@@ -88,8 +88,13 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %           variables on which some state depends. For gj of order qi,
 %           the degree in si of the basis monomials of Pmat is reduced by
 %           ceil(qi/2), so that the degree of Pmat in si does not exceed
-%           twice its degree in degs.out;
-% exclude, sep, otype:  options of the operators ZopL and ZopR, used for
+%           twice its degree in degs.out. On a region other than the whole
+%           domain (opts.intmat), the multipliers are instead, for each
+%           group of k copies related by the limits of the region, the
+%           products of total order k*qi of the faces of the group, e.g.
+%           of s_2-a, s_1-s_2 and b-s_1 on the triangle s_2<=s_1;
+% exclude, sep, otype:  options of the operators ZopL and ZopR, see the
+%           `monopmat` function for how these can be specified, used for
 %           each operator for which the option is not specified in opts.L
 %           or opts.R: 'exclude' a 3^N3 logical array (or a 3 x 1 array,
 %           or a 1 x q cell, one per block) of the multiplier, lower and
@@ -104,6 +109,17 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %           specifying separate options for the operators ZopL and ZopR.
 %           If only one of L, R is specified, it is used for both. Fields
 %           that are not specified are taken from opts;
+%  intmat:  (optional) regions of integration of Pmat: a 1 x N cell, for
+%           the N output variables si, with element i a qi x 2*di array,
+%           a row per region of the copies si_1,...,si_di, as the field
+%           intmat of an 'intop' (0 for ai, di+1 for bi, j for si_j, [j,j]
+%           for a Dirac delta at si_j), the limits of si_j only ai, bi and
+%           si_1,...,si_(j-1). A Pmat is declared for each of the
+%           q1*...*qN combinations of rows. Element i may also be a preset:
+%           'full' (the whole domain), 'steps' (each strict ordering of
+%           the copies), or 'all' (each ordering, with ties, except all
+%           copies tied, the pointwise product of otype 1). A single preset
+%           is used for all variables. Defaults to 'full';
 %
 % OUTPUTS
 % - prog:   'struct' specifying the PIESOS program with the matrix
@@ -119,12 +135,17 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %           (opts.pos, an SOS matrix). With psatz multipliers g_k,
 %           Pmat = sum_k g_k*Pmat_k, where Pmat_k is of the form
 %           Zs'*Qk*Zs, with Qk >= 0 and Zs a basis of monomials in the
-%           primary variables;
+%           primary variables. With regions other than the whole domain
+%           (opts.intmat), a q1 x ... x qN cell of such p x q cells, with
+%           Pmat{k1,...,kN} for rows k1,...,kN of intmat, each with its own
+%           decision variables (and psatz terms);
 % - ZopL/ZopR:  rtot x (m or n) 'tensopmat' object representing a basis of
 %           operators of specified degrees on the declared function space,
 %           where m/n = sum(dims.L/R) and where rtot depends on the
 %           selected monomial degrees. The kernels of the operators
 %           depend only on the dummy variables;
+% - intmat: 1 x N cell, the regions of opts.intmat, with presets replaced
+%           by their rows;
 %
 % NOTES
 % - For dims, vars, dom, depmat and degs, if specified as an array, or if
@@ -158,7 +179,11 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %   block row acting on that block (one block row if the block has a single
 %   factor, for which the two coincide), so that Pmat also
 %   has cross terms between the two types of products.
-%   ZopL and ZopR may also have a different otype. 
+%   ZopL and ZopR may also have a different otype.
+% - The presets of opts.intmat contain no region twice. For a basis that
+%   is symmetric in the copies (of a single state, with the same degrees
+%   in each factor), regions that differ only by a permutation of the
+%   copies other than si_1 give the same terms, so fewer may be specified.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_quadopvar
@@ -186,6 +211,8 @@ function [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/22/2026: Option 'intmat' (a Pmat per region of integration);
+%                   tensor output from the built blocks;
 
 % Check that the inputs are appropriate
 % ZopL acts on the space (L.dims,L.vars,L.dom,L.depmat), ZopR on that of R
@@ -314,27 +341,6 @@ for fname = {'exclude','sep','otype'}
         R.opts.(fname{1}) = opts.(fname{1});
     end
 end
-% A tensor-product output of Zop (otype(1)=2, or 3 for both) maps to
-% several copies of the primary variables, which are then the variables of
-% Pmat, Zs and psatz. The type of the output of each block is otype(:,1)
-% for an array with 2 columns, and otype otherwise, and
-% ZopL and ZopR may have different types
-is_tens = false;
-for k=1:2
-    if k==1,    S = L;
-    else,       S = R;
-    end
-    if isfield(S.opts,'otype')
-        otype_out = S.opts.otype;
-        if size(otype_out,2)==2
-            otype_out = otype_out(:,1);
-        end
-        is_tens = is_tens || any(otype_out(:)>=2);
-    end
-end
-if is_tens && psatz_is_log
-    error("This case is currently not supported: psatz must be specified as numeric (1 x N array of orders) for otype(1)=2.")
-end
 
 % Split the degrees of the primary (output) and dummy (input) variables, so
 % that Zop has kernels in the dummy variables only, and the degrees of the
@@ -387,6 +393,33 @@ L.nfac = max([full(ZopL.depmat.out),ones(numel(ridcs),1)],[],2);
 [ridcs,cidcs] = find(~cellfun(@isempty,ZopR.ops));
 R.blk_idcs(ridcs,1) = cidcs;
 R.nfac = max([full(ZopR.depmat.out),ones(numel(ridcs),1)],[],2);
+% A tensor-product block row (otype(1)=2) maps to several copies of the
+% primary variables, which are then the variables of Pmat, Zs and psatz.
+% Taken from the block rows, not opts.otype (as by DJ, 11/19/2026, before
+% Zop was built): for otype 3, monopmat gives a block of one factor a
+% single row of otype 1, whose Pmat is in si, not si_1
+is_tens = any(cellfun(@(K) ~isempty(K) && K.otype(1)==2,[ZopL.ops(:);ZopR.ops(:)]));
+if is_tens && psatz_is_log
+    error("This case is currently not supported: psatz must be specified as numeric (1 x N array of orders) for otype(1)=2.")
+end
+
+% Regions of integration (opts.intmat): rows for the ncop(i) copies of each
+% output variable, the most of any block row; a Pmat for each combination
+ncop = full(max([ZopL.depmat.out;ZopR.depmat.out],[],1));
+intmat = 'full';
+if isfield(opts,'intmat')
+    intmat = opts.intmat;
+end
+if ~iscell(intmat)
+    intmat = repmat({intmat},1,numel(ncop));
+elseif numel(intmat)~=numel(ncop)
+    error("Option 'intmat' must be a 1 x N cell, for the N output variables.")
+end
+for i=1:numel(ncop)
+    intmat{i} = get_intmat(intmat{i},ncop(i));
+end
+nreg = [cellfun(@(A) size(A,1),intmat),1];
+is_full = all(cellfun(@(A,d) isequal(A,repmat([0,d+1],1,d)),intmat,num2cell(ncop)));
 
 % The primary variables of Pmat: the output variables, or for otype(1)=2
 % their copies, with the degrees of the monomials of Zs in each of them.
@@ -442,40 +475,75 @@ elseif is_sym
     sos_opt = {'sym'};
 end
 
+% The psatz multipliers of each region, g_reg{r}: for the whole domain,
+% the products of the multipliers g_psatz of the primary variables; for
+% other regions, the products of the faces of the region (region_psatz)
+nP = prod(nreg);
+g_reg = cell([nreg,1]);
+if is_full
+    g_reg{1} = {1};         % no psatz multiplier: g=1 (also covers N=0)
+    lidcs = find(vars_P.psatz);         % linear indices of the terms
+    if any(vars_P.npsatz>1)
+        g_reg{1} = cell(1,numel(lidcs));
+        for t=1:numel(lidcs)
+            % Determine order of psatz associated with index lidx
+            idcs = num2cell(ones(1,Np+1));
+            [idcs{:}] = ind2sub([vars_P.npsatz,1],lidcs(t));
+            idcs = cell2mat(idcs(1:Np));
+            % Form the psatz multiplier in all variables, once for all blocks
+            g_reg{1}{t} = 1;
+            for i=1:Np
+                g_reg{1}{t} = g_reg{1}{t}*g_psatz{i}{idcs(i)};
+            end
+        end
+    end
+else
+    [~,loc] = ismember(ZopL.vars.out,out.vars);     % npsatz follows out.vars
+    rows = cell(1,numel(nreg));
+    for r=1:nP
+        [rows{:}] = ind2sub(nreg,r);
+        g_reg{r} = {1};
+        for i=find(ncop>0)
+            cps = get_tensorvars(ZopL.vars.out{i},ncop(i),{'full','pvar'});
+            g_i = region_psatz(intmat{i}(rows{i},:),cps,ZopL.dom.out(i,:),npsatz(loc(i))-1);
+            [idcs1,idcs2] = ndgrid(1:numel(g_reg{r}),1:numel(g_i));
+            g_reg{r} = arrayfun(@(k1,k2) g_reg{r}{k1}*g_i{k2},idcs1(:).',idcs2(:).','UniformOutput',false);
+        end
+    end
+end
+
 % For each psatz term, declare an SOS matrix acting on the operator basis,
 % so that Pop = ZopL'*(sum_k g_k*Pmat_k)*ZopR, for Pmat_k = ZsL'*Qk*ZsR, Qk>=0.
 % The matrix Pmat_k is a p x q cell, a block for each pair of rows in ZopL.ops
-% and ZopR.ops.
-if all(vars_P.npsatz==1)
-    % No psatz multiplier: single term with g=1 (also covers N=0)
-    [prog,Pmat] = sosquadvar(prog,ZsL,ZsR,PdimL,PdimR,sos_opt{:});
-else
-    lidcs = find(vars_P.psatz);        % linear indices of the terms
-    Pmat_terms = cell(1,numel(lidcs));
-    g_terms = cell(1,numel(lidcs));
-    for t=1:numel(lidcs)
+% and ZopR.ops. One such Pmat for each region, Pmat{r}
+Pmat = cell([nreg,1]);
+for r=1:nP
+    g_terms = g_reg{r};
+    if isequal(g_terms,{1})
+        % No psatz multiplier: Q general, symmetric or positive semidefinite
+        [prog,Pmat{r}] = sosquadvar(prog,ZsL,ZsR,PdimL,PdimR,sos_opt{:});
+        continue
+    end
+    Pmat_terms = cell(1,numel(g_terms));
+    for t=1:numel(g_terms)
         % Declare an SOS matrix
         [prog,Pmat_terms{t}] = sosquadvar(prog,ZsL,ZsR,PdimL,PdimR,'pos');
-        % Determine order of psatz associated with index lidx
-        idcs = num2cell(ones(1,Np+1));
-        [idcs{:}] = ind2sub([vars_P.npsatz,1],lidcs(t));
-        idcs = cell2mat(idcs(1:Np));
-        % Form the psatz multiplier in all variables, once for all blocks
-        g_terms{t} = 1;
-        for i=1:Np
-            g_terms{t} = g_terms{t}*g_psatz{i}{idcs(i)};
-        end
     end
     % Add the terms to the full nonnegative matrix variable, for each block
     % in a single product [g_1*I,...,g_T*I]*[Pmat_1;...;Pmat_T].
     q = numel(PdimL);       % psatz requires opts.pos, so p=q
-    Pmat = cell(q,q);
-    for l=1:numel(Pmat)
-        row_l = mod(l-1,q)+1;       % block row of Pmat{l}
+    Pmat{r} = cell(q,q);
+    for l=1:q^2
+        row_l = mod(l-1,q)+1;       % block row of Pmat{r}{l}
         Pstack = cellfun(@(P) P{l},Pmat_terms,'UniformOutput',false);
         Gstack = cellfun(@(g) g*speye(PdimL(row_l)),g_terms,'UniformOutput',false);
-        Pmat{l} = horzcat(Gstack{:})*vertcat(Pstack{:});
+        Pmat{r}{l} = horzcat(Gstack{:})*vertcat(Pstack{:});
     end
+end
+
+% A single Pmat for the whole domain
+if is_full
+    Pmat = Pmat{1};
 end
 
 end
@@ -847,6 +915,153 @@ for i=1:q
         error("Degrees of the output variables must be specified as a 1 x M array or cell, for M variables on which the state depends.")
     end
     degs_out{i} = cellfun(@(a)a(:),degval,'UniformOutput',false);
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function intmat = get_intmat(spec,d)
+% INTMAT = GET_INTMAT(SPEC,D) returns the regions SPEC of the copies
+% s_1,...,s_D of a variable as the intmat of an 'intop', a row per region,
+% checking a given array, or building a preset (see opts.intmat).
+%
+% INPUTS
+% - spec:   q x 2*D array of integers, with the limits of s_j among 0 (a),
+%           D+1 (b) and 1,...,j-1 (s_1,...,s_(j-1)), or a preset 'full',
+%           'steps' or 'all';
+% - d:      the number of copies D;
+%
+% OUTPUTS
+% - intmat: q x 2*D array, a row per region;
+
+if isnumeric(spec)
+    lim_max = repelem(0:d-1,2);     % the last copy in the limits of each copy
+    if isempty(spec) || size(spec,2)~=2*d || any(spec~=round(spec) | spec<0 | spec>d+1 | (spec>lim_max & spec<=d),'all')
+        error("Regions of %d copies must be specified as q x %d array, with the limits of copy j among 0 (a), %d (b) and the copies 1,...,j-1.",d,2*d,d+1)
+    end
+    intmat = spec;
+    return
+elseif ~(ischar(spec) || isstring(spec)) || ~ismember(spec,{'full','steps','all'})
+    error("Presets of option 'intmat' are 'full', 'steps' and 'all'.")
+end
+intmat = repmat([0,d+1],1,d);
+if strcmp(spec,'full') || d<=1
+    return
+end
+% Insert the copies one at a time. An ordering of s_1,...,s_(j-1) is stored
+% as ords{k}, the first copy of each group of tied copies, in increasing
+% order, with ntie(k) ties; s_j enters between two groups (or at an end),
+% or joins a group (a tie, the Dirac delta [o,o])
+ords = {1};     ntie = 0;
+for j=2:d
+    rows = zeros(0,2*d);    ords_new = cell(1,0);   ntie_new = zeros(1,0);
+    for k=1:numel(ords)
+        o = ords{k};        lims = [0,o,d+1];
+        for p=1:numel(o)+1
+            rows(end+1,:) = intmat(k,:);                                    %#ok<AGROW>
+            rows(end,2*j-1:2*j) = lims([p,p+1]);
+            ords_new{end+1} = [o(1:p-1),j,o(p:end)];                        %#ok<AGROW>
+            ntie_new(end+1) = ntie(k);                                      %#ok<AGROW>
+        end
+        for p=1:numel(o)
+            rows(end+1,:) = intmat(k,:);                                    %#ok<AGROW>
+            rows(end,2*j-1:2*j) = o([p,p]);
+            ords_new{end+1} = o;                                            %#ok<AGROW>
+            ntie_new(end+1) = ntie(k)+1;                                    %#ok<AGROW>
+        end
+    end
+    intmat = rows;      ords = ords_new;        ntie = ntie_new;
+end
+% Strict orderings only, or all orderings except all copies tied (d-1 ties)
+if strcmp(spec,'steps')
+    intmat = intmat(ntie==0,:);
+else
+    intmat = intmat(ntie<d-1,:);
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function g = region_psatz(introw,var_cps,dom,q)
+% G = REGION_PSATZ(INTROW,VAR_CPS,DOM,Q) returns the psatz multipliers of a
+% region of the copies of a variable: for each group of k copies related by
+% the limits of the region, the products of total order k*q of the faces of
+% the group, and the products of these over the groups. The faces are the
+% differences y-x of values x<y with no value between them, among a, b and
+% the copies (a tied copy taking the value of its target). A copy over
+% [a,b] is a group by itself, with faces s-a and b-s, as on the whole
+% domain; the lower triangle s_2<=s_1 is one group, with faces s_2-a,
+% s_1-s_2 and b-s_1.
+%
+% INPUTS
+% - introw:  1 x 2*d array, a region of the d copies, a row of opts.intmat;
+% - var_cps: d x 1 'polynomial', the copies s_1,...,s_d;
+% - dom:     1 x 2 array [a,b], the domain of the variable;
+% - q:       nonnegative integer, the order of psatz (in each copy);
+%
+% OUTPUTS
+% - g:       1 x T cell of the multipliers, nonnegative on the region ({1}
+%            for q=0);
+
+g = {1};
+if q==0
+    return
+end
+% Values (nodes): a (1), the copies s_1,...,s_d (2,...,d+1), b (d+2). A
+% tied copy takes the node of its target, an earlier copy
+d = numel(var_cps);     n = d+2;
+L = introw(1:2:end)+1;     U = introw(2:2:end)+1;
+node = 1:n;
+for j=find(L==U)
+    node(j+1) = node(L(j));
+end
+% lt(x,y): x<y on the region, from a<s_j<b and the limits of the copies
+lt = false(n);      lt(1,2:n) = true;       lt(1:n-1,n) = true;
+for j=find(L~=U)
+    lt(node(L(j)),j+1) = true;      lt(j+1,node(U(j))) = true;
+end
+for k=1:n
+    lt = lt | (double(lt)*double(lt))>0;
+end
+is_used = false(1,n);   is_used([1,node(2:n-1),n]) = true;
+lt(~is_used,:) = false;     lt(:,~is_used) = false;     lt(logical(eye(n))) = false;
+% Faces: x<y with no value between them
+[xs,ys] = find(lt & ~((double(lt)*double(lt))>0));
+vals = [{dom(1)},arrayfun(@(j) var_cps(j),1:d,'UniformOutput',false),{dom(2)}];
+% Groups of copies, connected by faces between two copies
+grp = 1:n;
+is_cc = xs>1 & xs<n & ys>1 & ys<n;
+for k=1:n
+    for f=find(is_cc).'
+        grp([xs(f),ys(f)]) = min(grp([xs(f),ys(f)]));
+    end
+end
+free = find(is_used(2:n-1))+1;
+for c=unique(grp(free))
+    C = free(grp(free)==c);
+    faces = find(ismember(xs,C) | ismember(ys,C));
+    % Exponents of the faces with total order k*q, for k copies in the group
+    m = numel(C)*q;     E = zeros(1,0);
+    for f=1:numel(faces)
+        E = [repelem(E,m+1,1),repmat((0:m)',size(E,1),1)];
+        E = E(sum(E,2)<=m,:);
+    end
+    E = E(sum(E,2)==m,:);
+    g_c = cell(1,size(E,1));
+    for e=1:size(E,1)
+        g_c{e} = 1;
+        for f=find(E(e,:)>0)
+            g_c{e} = g_c{e}*(vals{ys(faces(f))}-vals{xs(faces(f))})^E(e,f);
+        end
+    end
+    [idcs1,idcs2] = ndgrid(1:numel(g),1:numel(g_c));
+    g = arrayfun(@(k1,k2) g{k1}*g_c{k2},idcs1(:).',idcs2(:).','UniformOutput',false);
 end
 
 end

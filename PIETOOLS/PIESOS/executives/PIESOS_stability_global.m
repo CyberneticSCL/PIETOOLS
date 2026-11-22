@@ -25,8 +25,9 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 %   ||x_pde(t)|| <= sqrt(C/eppos)*exp(-lambda*t)*||u(0)||.
 %
 % INPUT
-% - PIE:        'npie_struct' object representing the PIE. A 'pde_struct'
-%               object is converted to a PIE;
+% - PIE:        'npie_struct' object representing the PIE, without
+%               algebraic constraints (K, Kw, Ku without rows). A
+%               'pde_struct' object is converted to a PIE;
 % - lambda:     (optional) nonnegative scalar, the decay rate. Defaults
 %               to 0, testing stability;
 % - LF_form:    (optional) 'pie' or 'pde', the form of the Lyapunov
@@ -93,7 +94,9 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ (CC), 11/09/2026: Initial coding;
+% DJ, 11/09/2026: Initial coding;
+% DJ, 11/22/2026: Pass settings otype and intmat; sos.mon_deg may be a
+%                   cell of degrees per constraint;
 
 t_start = tic;
 
@@ -117,6 +120,8 @@ eppos = LF.eppos;
 C_set = LF.C;
 if ~isa(PIE,'npie_struct')
     error("The PIE must be specified as 'npie_struct' (or 'pde_struct') object.")
+elseif any(cellfun(@(n) isa(PIE.(n),'tensopmat') && size(PIE.(n).ops,1)>0,{'K','Kw','Ku'}))
+    error("The global stability test is not supported for PIEs with algebraic constraints.")
 elseif ~isscalar(lambda) || lambda<0
     error("The decay rate must be a nonnegative scalar.")
 elseif ~ismember(states,{'pie','pde'})
@@ -171,6 +176,11 @@ else
     Popts.exclude = LF.exclude;
 end
 Popts.sep = LF.sep;
+Popts.otype = LF.otype;
+% Regions of integration (settings of before 11/20/2026 have none)
+if isfield(LF,'intmat')
+    Popts.intmat = LF.intmat;
+end
 if LF.psatz>0
     Popts.psatz = LF.psatz;
 end
@@ -207,10 +217,20 @@ sos = settings.sos;
 for c=1:size(cons,1)
     k = cons{c,2};
     sos_opts = struct();
+    sos_opts.otype = sos.otype;
+    if isfield(sos,'intmat')
+        sos_opts.intmat = sos.intmat;
+    end
     if sos.psatz(k)>0
         sos_opts.psatz = sos.psatz(k);
     end
-    if ~isnan(sos.mon_deg(k))
+    if iscell(sos.mon_deg)
+        % Degrees per constraint as given (e.g. a struct with per-block
+        % degs.in, [d;d] for the blocks of two factors), NaN for the default
+        if ~(isnumeric(sos.mon_deg{k}) && isscalar(sos.mon_deg{k}) && isnan(sos.mon_deg{k}))
+            sos_opts.degs = sos.mon_deg{k};
+        end
+    elseif ~isnan(sos.mon_deg(k))
         sos_opts.degs = sos.mon_deg(k);
     end
     if sos.use_ineq
@@ -223,6 +243,12 @@ for c=1:size(cons,1)
         Z_degmat = Z_degmat(sum(Z_degmat,2)>0,:);
         sos_opts.exclude = sos.exclude;
         sos_opts.exclude(1) = sos.exclude(1) && ~has_ode;
+        % otype 'auto' from the structure of the polynomial, as piesos_ineq
+        % does (piesos_sosvar has no polynomial to choose it from)
+        if ~isnumeric(sos_opts.otype)
+            [~,auto_opts] = get_ineq_opts(clean_poly(cons{c,1}),struct('otype',sos_opts.otype));
+            sos_opts.otype = auto_opts.otype;
+        end
         [prog,W] = piesos_sosvar(prog,dmonomials(x,Z_degmat),sos_opts);
         prog = piesos_eq(prog,cons{c,1}-W);
     end

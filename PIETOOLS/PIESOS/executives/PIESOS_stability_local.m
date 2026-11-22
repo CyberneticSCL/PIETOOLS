@@ -23,7 +23,8 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 % containing u(0) lies in the ball, and V decays along solutions.
 %
 % INPUT
-% - PIE:        'npie_struct' object representing the PIE. A 'pde_struct'
+% - PIE:        'npie_struct' object representing the PIE, without
+%               algebraic constraints (K, Kw, Ku without rows). A 'pde_struct'
 %               object is converted to a PIE. Coupled systems, with several PDE
 %               states (possibly vector-valued, or ODE states), are
 %               supported;
@@ -112,6 +113,8 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, CR, 11/09/2026: Initial coding, based on LocalStability_v2 by CR;
+% DJ, 11/22/2026: Pass settings otype and intmat; sos.mon_deg and
+%                   sos.exclude may be cells per constraint;
 
 t_start = tic;
 
@@ -140,6 +143,8 @@ eppos = LF.eppos;
 C_set = LF.C;
 if ~isa(PIE,'npie_struct')
     error("The PIE must be specified as 'npie_struct' (or 'pde_struct') object.")
+elseif any(cellfun(@(n) isa(PIE.(n),'tensopmat') && size(PIE.(n).ops,1)>0,{'K','Kw','Ku'}))
+    error("The local stability test is not supported for PIEs with algebraic constraints.")
 elseif ~isscalar(r) || r<=0
     error("The radius of the ball must be a positive scalar.")
 elseif ~isscalar(lambda) || lambda<0
@@ -233,6 +238,11 @@ else
     Popts.exclude = LF.exclude;
 end
 Popts.sep = LF.sep;
+Popts.otype = LF.otype;
+% Regions of integration (settings of before 11/20/2026 have none)
+if isfield(LF,'intmat')
+    Popts.intmat = LF.intmat;
+end
 if LF.psatz>0
     Popts.psatz = LF.psatz;
 end
@@ -270,6 +280,10 @@ for k=1:2
         mult_opts.degs = mult.mon_deg(k);
         mult_opts.exclude = mult.exclude;
         mult_opts.exclude(1) = mult.exclude(1) && ~has_ode;
+        mult_opts.otype = mult.otype;
+        if isfield(mult,'intmat')
+            mult_opts.intmat = mult.intmat;
+        end
         if mult.psatz(k)>0
             mult_opts.psatz = mult.psatz(k);
         end
@@ -284,11 +298,26 @@ sos = settings.sos;
 for c=1:size(cons,1)
     k = cons{c,2};
     sos_opts = struct();
+    sos_opts.otype = sos.otype;
+    if isfield(sos,'intmat')
+        sos_opts.intmat = sos.intmat;
+    end
     if sos.psatz(k)>0
         sos_opts.psatz = sos.psatz(k);
     end
-    if ~isnan(sos.mon_deg(k))
+    if iscell(sos.mon_deg)
+        % Degrees per constraint as given (e.g. a struct with per-block
+        % degs.in, [d;d] for the blocks of two factors), NaN for the default
+        if ~(isnumeric(sos.mon_deg{k}) && isscalar(sos.mon_deg{k}) && isnan(sos.mon_deg{k}))
+            sos_opts.degs = sos.mon_deg{k};
+        end
+    elseif ~isnan(sos.mon_deg(k))
         sos_opts.degs = sos.mon_deg(k);
+    end
+    % Terms per constraint as given (e.g. per block of the basis, with
+    % degrees per block in sos.mon_deg), [] to let piesos_ineq choose
+    if iscell(sos.exclude) && ~isempty(sos.exclude{k})
+        sos_opts.exclude = sos.exclude{k};
     end
     if sos.use_ineq
         prog = piesos_ineq(prog,cons{c,1},sos_opts);
@@ -298,8 +327,17 @@ for c=1:size(cons,1)
         [~,idcs_x] = ismember(x.varname,cons{c,1}.varname);
         Z_degmat = unique(floor(cons{c,1}.degmat(:,idcs_x)./2),'rows');
         Z_degmat = Z_degmat(sum(Z_degmat,2)>0,:);
+        if iscell(sos.exclude)
+            error("sos.exclude as a cell requires sos.use_ineq=true.")
+        end
         sos_opts.exclude = sos.exclude;
         sos_opts.exclude(1) = sos.exclude(1) && ~has_ode;
+        % otype 'auto' from the structure of the polynomial, as piesos_ineq
+        % does (piesos_sosvar has no polynomial to choose it from)
+        if ~isnumeric(sos_opts.otype)
+            [~,auto_opts] = get_ineq_opts(clean_poly(cons{c,1}),struct('otype',sos_opts.otype));
+            sos_opts.otype = auto_opts.otype;
+        end
         [prog,W] = piesos_sosvar(prog,dmonomials(x,Z_degmat),sos_opts);
         prog = piesos_eq(prog,cons{c,1}-W);
     end
