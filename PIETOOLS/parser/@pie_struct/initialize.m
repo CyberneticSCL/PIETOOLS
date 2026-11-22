@@ -22,10 +22,9 @@ function PIE = initialize(PIE)
 % - A PIE without dynamics, e.g. from a boundary value problem, only has
 %   the operators T, Tw, Tu and K, Kw, Ku specified (K without rows if
 %   there is no constraint), and none of A, Bw, Bu, Cz, Dzw, Dzu, Cy, Dyw,
-%   Dyu. Then, A is not mandatory.
-% - The output (row) spaces of T, Tw, Tu, A, Bw, Bu must match, but need
-%   not match the components of x (the columns): T and A are rectangular
-%   for a PDE with states without dynamics, or a BVP.
+%   Dyu. Then, A is not mandatory, and the output (row) spaces of T, Tw, Tu,
+%   those of x_pde=T*x+Tw*w+Tu*u, need not match the input (column) spaces,
+%   the components of x, which are those of the columns of T and K.
 % - Operators specified as 'opvar' or 'opvar2d' objects are converted to
 %   'copvar' objects, which do not involve dummy variables. Dummy variables
 %   of the operators are first renamed to follow the convention of the PIE,
@@ -87,8 +86,6 @@ function PIE = initialize(PIE)
 %                   specified), as converted from a BVP;
 % DJ, 11/18/2026: Account for updated `size` function.
 % MMP, 11/19/2026: Release comment pass (comment-only).
-% DJ (CC), 11/20/2026: Allow rectangular T and A: rows in their own space,
-%                   no symmetric-space check on T;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -97,8 +94,7 @@ opnames = {'T', 'Tw', 'Tu';                                                 % DJ
            'Cz','Dzw','Dzu';
            'Cy','Dyw','Dyu';
            'K', 'Kw', 'Ku'};
-% The rows of T, Tw, Tu, A, Bw, Bu share a space 'p', which need not be x
-row_type = {'p';'p';'z';'y';'k'};                                           % DJ (CC), 11/20/2026
+row_type = {'x';'x';'z';'y';'k'};
 col_type = {'x','w','u'};
 is_unset = @(P) isnumeric(P) && isempty(P);
 % If one of the operators for the constraint has rows, any of the others
@@ -115,6 +111,9 @@ end
 % that need not match x.
 is_BVP = all(all(cellfun(@(n) is_unset(PIE.(n)),opnames(2:4,:)))) &&...
             any(cellfun(@(n) ~is_unset(PIE.(n)),opnames(5,:)));
+if is_BVP
+    row_type{1} = 'p';
+end
 
 % % % Establish the spatial variables and domain of the PIE.
 % The state operator T is mandatory, and determines the variables.
@@ -221,6 +220,14 @@ for ii=1:numel(opnames)
             error(['The spaces of the operator ',fname,' do not match those of the operator ',spaces.(obj).name,', as suggested for the ',obj,' components.'])
         end
     end
+end
+% The operator T should be a map between symmetric spaces. We know its
+% output spaces match those of x, so check its input spaces.
+[~,loc] = ismember(PIE.T.vars,vnames);
+depmat = false(size(PIE.T.space_in,1),nvars);
+depmat(:,loc) = logical(PIE.T.space_in);
+if ~isequal(pie_space_canon(depmat,PIE.T.dim_in),pie_space_canon(spaces.x.depmat,spaces.x.dims))
+    error("PIE.T operator must be a map between symmetric spaces");
 end
 % Components for which no operators were specified have no spaces.
 for obj = fieldnames(spaces)'

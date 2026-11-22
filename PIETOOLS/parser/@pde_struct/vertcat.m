@@ -45,6 +45,8 @@ function [PDE_out] = vertcat(varargin)
 % DJ, 08/22/2025: Allow concatenation with multiple zeros, [0;0;x];
 % DJ, 10/28/2026: Fix error for conflicting equations;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/21/2026: Keep an equation declared zero (is_zero, e.g. d/dt x=0),
+%                   which has no terms;
 
 
 % % % Process the inputs
@@ -145,22 +147,28 @@ else
     % % terms defining the associated equation.
     PDE_out = PDE_1;
     eq_types = {'x';'y';'z'};
+    % An equation is specified if it has terms, or is declared zero
+    % (is_zero, e.g. d/dt x = 0, which has no terms)
+    has_eq = @(eq) (isfield(eq,'term') && ~isempty(eq.term)) || (isfield(eq,'is_zero') && eq.is_zero);   % DJ, 11/21/2026
     for kk=1:numel(eq_types)
         % % Since PDE_out is initialized as PDE_1, make sure to add
         % % equations from PDE_2, where appropriate.
         obj = eq_types{kk};
         for ii=1:numel(PDE_out.(obj))
-            if ~isfield(PDE_2.(obj){ii},'term') || isempty(PDE_2.(obj){ii}.term)
+            if ~has_eq(PDE_2.(obj){ii})                                     % DJ, 11/21/2026
                 % PDE_2 does not specify an equation for this object
                 % --> stick with the equation from PDE_1.
                 continue
-            elseif ~isfield(PDE_1.(obj){ii},'term') || isempty(PDE_1.(obj){ii}.term)
+            elseif ~has_eq(PDE_1.(obj){ii})                                 % DJ, 11/21/2026
                 % PDE 1 does not specify an equation for this object, but
                 % PDE 2 does
                 % --> copy equation from PDE_2.
                 PDE_out.(obj){ii}.term = PDE_2.(obj){ii}.term;
                 if isfield(PDE_2.(obj){ii},'tdiff')
                     PDE_out.(obj){ii}.tdiff = PDE_2.(obj){ii}.tdiff;
+                end
+                if isfield(PDE_2.(obj){ii},'is_zero')                       % DJ, 11/21/2026
+                    PDE_out.(obj){ii}.is_zero = PDE_2.(obj){ii}.is_zero;
                 end
             else
                 % Both PDE structures specify an equation for this object,

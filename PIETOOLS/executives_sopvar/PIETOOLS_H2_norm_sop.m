@@ -22,20 +22,15 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % returns UNKNOWN or INFEASIBLE, the program is rebuilt with the degree of
 % the slacks raised by one, up to settings.sop.max_raise times.
 %
-% If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
-% boundary conditions): in 'o' and 'oco' the block of the negativity
-% condition on the state carries + K'*Z + Z'*K, with Z a free operator,
-% which vanishes on ker K; 'c' and 'cco', which have no term for K, are     % MMP, 11/21/2026
-% then errors, never replaced by another form.                              % MMP, 11/21/2026
-% Constraints involving the input w (Kw nonzero) are not supported.
+% PIEs with an algebraic constraint (K, Kw or Ku with rows, e.g. from
+% periodic boundary conditions) are not supported.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
 %             variables, initialized when its T is not yet a 'copvar'
 %             object; T, A, B1 and C1 'copvar' objects; Tw zero or absent
-%             (no disturbance at the boundary); K a 'copvar' object (the
-%             constraint K x = 0 on the state) or empty; its other
-%             operators are not used;
+%             (no disturbance at the boundary); K, Kw, Ku empty or without
+%             rows; its other operators are not used;
 % - settings: (optional) 'struct' of LPI settings:
 %               lpi.pos   the storage row of R (of W in 'cco', 'oco'), in
 %                         every dimension; settings_2d (optional) the
@@ -110,6 +105,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                NEVER be a swap"). The programs of the admitted forms are
 %                unchanged. Help text before: "which vanishes on ker K; 'c'
 %                and 'cco' are posed as 'o' and 'oco'."
+% DJ, 11/21/2026: Error for a PIE with an algebraic constraint (K, Kw, Ku
+%                with rows);
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -134,6 +131,10 @@ end
 % % and 'cco' have no term for it: posed as 'o' and 'oco'                   % MMP, 11/21/2026 (was)
 % and 'cco' have no term for it: an error                                   % MMP, 11/21/2026
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+% PIEs with an algebraic constraint (K, Kw, Ku with rows) are not supported
+if any(cellfun(@(n) isa(PIE.(n),'copvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
+    error('PIETOOLS_H2_norm_sop:algebraicConstraint','The H2 norm LPI is not supported for PIEs with algebraic constraints.');
+end
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
 if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_H2_norm_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');

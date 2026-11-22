@@ -27,19 +27,16 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % INFEASIBLE, the program is rebuilt with the degree of the negativity
 % slack raised by one, up to settings.sop.max_raise times.
 %
-% If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
-% boundary conditions): in 'Q' and 'P' the block of the KYP operator on the
-% state carries + K'*Z + Z'*K, with Z a free operator, which vanishes on
-% ker K; 'Qd' and 'Pd', which have no term for K, are then errors.          % MMP, 11/21/2026
-% Constraints involving the input w (Kw nonzero) are not supported.
+% PIEs with an algebraic constraint (K, Kw or Ku with rows, e.g. from
+% periodic boundary conditions) are not supported.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
 %             variables, initialized when its T is not yet a 'copvar'
 %             object; T, Tw, A, B1, C1 and D11 'copvar' objects (Tw may be
-%             absent), and K a 'copvar' object (the constraint K x = 0 on
-%             the state) or empty; its other operators are not used; in two
-%             or more variables, Tw and B1 not both nonzero;
+%             absent), and K, Kw, Ku empty or without rows; its other
+%             operators are not used; in two or more variables, Tw and B1
+%             not both nonzero;
 % - settings: (optional) 'struct' of LPI settings:
 %               lpi.pos   the storage row of R, in every dimension;
 %                         settings_2d (optional) the 16-basis 2-D degrees,
@@ -126,6 +123,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %                'Qd' and 'Pd' require Tw = 0; in two or more variables,
 %                'Qd' is posed as 'Pd'. In 'Pd', settings without" and "ker
 %                K; 'Qd' and 'Pd' are posed as 'Q' and 'P'."
+% DJ, 11/21/2026: Error for a PIE with an algebraic constraint (K, Kw, Ku
+%                with rows);
 
 % Default settings, form and fixed gain
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -152,6 +151,10 @@ end
 % % dual forms have no term for it: posed as the primal ones                % MMP, 11/21/2026 (was)
 % dual forms have no term for it: an error                                  % MMP, 11/21/2026
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+% PIEs with an algebraic constraint (K, Kw, Ku with rows) are not supported
+if any(cellfun(@(n) isa(PIE.(n),'copvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
+    error('PIETOOLS_Hinf_gain_sop:algebraicConstraint','The H-infinity gain LPI is not supported for PIEs with algebraic constraints.');
+end
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
 if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_Hinf_gain_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');

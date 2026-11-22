@@ -345,6 +345,10 @@ for g=1:numel(PDEs)
         if strcmp(ME.identifier,'compose_Tmaps:inputsRankDeficient') && any(dec.w_idcs{g}>nw0)
             error('convert_PIETOOLS_BVP:sourceRankDeficient',"Boundary conditions with a state of lower dimension along a rank-deficient (e.g. periodic) direction are not supported.")
         end
+        % The only inputs of the group are lifted states of lower dimension
+        if strcmp(ME.identifier,'compose_Tmaps:inputsConstrained') && any(dec.w_idcs{g}>nw0) && ~any(dec.w_idcs{g}<=nw0) && isempty(dec.u_idcs{g})
+            error('convert_PIETOOLS_BVP:sourceConstrained',"Boundary conditions with a state of lower dimension (e.g. an ODE state) are not supported if there are more conditions than the order of the states.")
+        end
         rethrow(ME)
     end
 end

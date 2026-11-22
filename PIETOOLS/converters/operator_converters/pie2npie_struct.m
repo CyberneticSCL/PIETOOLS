@@ -7,8 +7,7 @@ function PIE_out = pie2npie_struct(PIE_in)
 % INPUTS
 % - PIE_in:     'pie_struct' object representing a linear PIE in any
 %               number of spatial variables, with the operators as
-%               'copvar' objects (it is initialized if it is not yet), and
-%               a square T;
+%               'copvar' objects (it is initialized if it is not yet);
 %
 % OUTPUTS
 % - PIE_out:    'npie_struct' representing the same PIE as the input,
@@ -57,13 +56,6 @@ function PIE_out = pie2npie_struct(PIE_in)
 % Initialize the PIE if needed
 if ~PIE_in.is_initialized
     PIE_in = initialize(PIE_in);
-end
-% The rows of T, Tw, Tu, f, Bw, Bu of an 'npie_struct' are in the space of
-% the state x, so T must be square (T is rectangular e.g. for states
-% without dynamics)
-is_square = isequal(PIE_in.T.space_out,PIE_in.T.space_in) && isequal(PIE_in.T.dim_out(:),PIE_in.T.dim_in(:));
-if ~is_square
-    error("pie2npie_struct:nonsquareT","Conversion to 'npie_struct' is not supported for a PIE with a non-square T (e.g. with states without dynamics).")
 end
 obj_types = {'x','w','u','y','z'};
 vnames = PIE_in.space.vars;     

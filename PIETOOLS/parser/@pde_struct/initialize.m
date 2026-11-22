@@ -105,7 +105,8 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 %                   equation is not declared zero), no equation is assumed
 %                   to exist for this state, and tdiff is set to nan. The
 %                   state is then constrained only by the BCs, and the PDE
-%                   cannot be converted to a PIE.
+%                   cannot be converted to a PIE. This is allowed only if
+%                   no state has an equation (a boundary value problem).
 %
 % - PDE.x{i}.term:  A cell with each element defining a term in
 %   (mandatory)     the (differential) equation associated to the
@@ -231,8 +232,6 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % DJ, 11/08/2026: Bugfix in case a state depends on all spatial variables
 %                   but lists them in incorrect order;
 % MMP, 11/19/2026: Release comment pass (comment-only).
-% DJ, 11/20/2026: Accept a condition 0=F(s) varying on the whole domain, as
-%                   an algebraic constraint;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -592,6 +591,14 @@ end
 % % % specified are assigned the associated default value.
 
 [PDE,diff_tab,is_nonlinear_x] = check_terms(PDE,'x',diff_tab,suppress_summary);
+% Every state of a PDE with dynamics needs a differential equation: states
+% without one (tdiff=nan, algebraic states) are not supported. A PDE in
+% which no state has an equation is a boundary value problem.
+x_noeq = cellfun(@(xi) isnan(xi.tdiff),PDE.x);
+if any(x_noeq) && ~all(x_noeq)
+    error(['No differential equation has been specified for state component(s) x{',strjoin(arrayfun(@num2str,find(x_noeq(:)'),'UniformOutput',false),'}, x{'),'}.',...
+            ' States without dynamics (algebraic constraints) are not supported: each state needs a differential equation.'])
+end
 [PDE,diff_tab,is_nonlinear_z] = check_terms(PDE,'z',diff_tab,suppress_summary);
 [PDE,diff_tab,is_nonlinear_y] = check_terms(PDE,'y',diff_tab,suppress_summary);
 

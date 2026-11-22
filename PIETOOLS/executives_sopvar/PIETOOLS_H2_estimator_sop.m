@@ -19,18 +19,15 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % bounded degree that minimizes ||P*L - Z||^2, an approximation of
 % P^{-1}*Z. While the solver returns UNKNOWN or INFEASIBLE, the program is
 % rebuilt with the degree of the slacks raised by one, up to
-% settings.sop.max_raise times. If PIE.K is nonempty, the PIE state
-% satisfies K x = 0 (e.g. periodic boundary conditions), and the block of
-% the negativity condition on the state carries + K'*Z_K + Z_K'*K, with
-% Z_K a free operator, which vanishes on ker K.
-% Constraints involving the input w (Kw nonzero) are not supported.
+% settings.sop.max_raise times. PIEs with an algebraic constraint (K, Kw or
+% Ku with rows, e.g. from periodic boundary conditions) are not supported.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in one spatial variable,
 %             initialized when its T is not yet a 'copvar' object; T, A,
 %             B1, C1, C2 and D21 'copvar' objects; Tw and D11 zero or
-%             absent; K a 'copvar' object (the constraint K x = 0 on the
-%             state) or empty; its other operators are not used; a PIE in
+%             absent; K, Kw, Ku empty or without rows; its other
+%             operators are not used; a PIE in
 %             two or more variables is an error;
 % - settings: (optional) 'struct' of LPI settings:
 %               lpi.pos   the storage row of P;
@@ -95,6 +92,8 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
+% DJ, 11/21/2026: Error for a PIE with an algebraic constraint (K, Kw, Ku
+%                with rows);
 
 % Default settings; check the PIE
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -119,6 +118,10 @@ eppos = tl.eppos;
 Tm = PIE.T;     Am = PIE.A;
 % The constraint K x = 0 on the state, if any (empty for most PIEs)
 Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+% PIEs with an algebraic constraint (K, Kw, Ku with rows) are not supported
+if any(cellfun(@(n) isa(PIE.(n),'copvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
+    error('PIETOOLS_H2_estimator_sop:algebraicConstraint','The H2 estimator synthesis LPI is not supported for PIEs with algebraic constraints.');
+end
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
 if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_H2_estimator_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
