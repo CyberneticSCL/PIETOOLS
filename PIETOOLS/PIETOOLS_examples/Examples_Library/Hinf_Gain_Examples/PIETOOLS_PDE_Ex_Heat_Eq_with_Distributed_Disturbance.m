@@ -66,6 +66,11 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance
 %   frequency 0 with the disturbance s*w (steady state x = s/2 - s^3/6);
 %   license added.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params) % MMP, 11/21/2026 (was)
+% MMP, 11/22/2026: st with the multiplier basis operator alone (the lower
+%   integral removed, len_inc{1} = 0) and the slack lift degree at its tier
+%   value (dD = 0 removed): the smallest setting found that certifies the
+%   gain bound under an acceptance that also bounds the residual of the
+%   solve.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -142,12 +147,14 @@ if GUI
 end
 
 % Example-specific settings                                                 % MMP, 11/21/2026
-% (stripped tier; 1-D storage without the upper-integral basis operator,
-% s-length 0, and theta-lengths 2 (multiplier), 1 (lower integral); slack
-% lift degree at its minimum Dmin)
+% (stripped tier; 1-D storage with the multiplier basis operator            % MMP, 11/22/2026
+% alone: both integral basis operators at s-length 0, theta-length          % MMP, 11/22/2026
+% 2 for the multiplier; slack lift degree one above its minimum             % MMP, 11/22/2026
+% Dmin)                                                                     % MMP, 11/22/2026
 st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/22/2026
 st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [2;1;1];                                            % MMP, 11/21/2026
-st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
+% st.lpi.ineq.dD = 0;                                                       % MMP, 11/22/2026 (was)
 
 end

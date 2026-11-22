@@ -69,6 +69,9 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params)  % MM
 %   set in the base workspace; help revised (stated gain for k = 0.5
 %   corrected from 2 to 0.8419), license added.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params)   % MMP, 11/21/2026 (was)
+% MMP, 11/22/2026: st with theta-length 1 for the upper-integral basis
+%   operator, the smallest setting found that certifies both gain bounds
+%   under an acceptance that also bounds the residual of the solve.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -151,8 +154,10 @@ if GUI
 end
 
 % Example-specific settings                                                 % MMP, 11/21/2026
-% (stripped tier; slack lift degree at its minimum Dmin)
+% (stripped tier; theta-length 1 for the upper-integral basis               % MMP, 11/22/2026
+% operator; slack lift degree at its minimum Dmin)                          % MMP, 11/22/2026
 st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st.lpi.pos.len_sos{1} = [2;1;2];                                            % MMP, 11/22/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
 
 end

@@ -65,6 +65,10 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP - 11/17/2026
+% MMP, 11/22/2026: st without the slack weight raise of the feasibility
+%   passes on the spaces in one and two variables: the smallest setting
+%   found that certifies stability under an acceptance that also bounds the
+%   residual of the solve.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -105,9 +109,12 @@ end
 
 
 % Example-specific settings: the light tier, with the 2-D storage built by
-% the 16-basis construction of the 'light' level (settings_2d)
+% the 16-basis construction of the 'light' level (settings_2d), and no      % MMP, 11/22/2026
+% slack weight raise of the feasibility passes on the spaces in one         % MMP, 11/22/2026
+% and two variables                                                         % MMP, 11/22/2026
 st = lpisettings_sop('light');
 st.settings_2d = settings_2d_stock('light');
+st.sop.dw_feas = [0 0 1];                                                   % MMP, 11/22/2026
 
 % No GUI representation of this system
 if GUI~=0

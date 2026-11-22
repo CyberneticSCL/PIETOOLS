@@ -86,6 +86,10 @@
 %   DDE.C1, C1i, D11, D12 (the fields C0, C{1}, D1, D2 it set are not read,
 %   so z was 0) and its delay as the discrete delay Ai{1} of [5] (was
 %   Adi{1}); help and license added.
+% MMP, 11/22/2026: H-infinity gain Example 1 (unsourced): st with the
+%   lower-integral s-length 1 and the slack lift degree at its tier value,
+%   the smallest setting found that certifies both gain bounds under an
+%   acceptance that also bounds the residual of the solve.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -242,13 +246,14 @@
 %  DDE.C1=[1];
 %  DDE.D11=[1];
 %  DDE.tau(1)=1.5;
-% % st: the light tier, with upper-integral s-length 1; theta-lengths
-% %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
-% %   minimum; gain form 'P' (storage <T x, R T x>)
+% % st: the light tier, with lower- and upper-integral s-lengths 1;         % MMP, 11/22/2026
+% %   theta-lengths [2;1;2] (multiplier; upper; lower integral);            % MMP, 11/22/2026
+% %   gain form 'P' (storage <T x, R T x>)                                  % MMP, 11/22/2026
 % st = lpisettings_sop('light');                                            % MMP, 11/21/2026
+% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/22/2026
 % st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/21/2026
 % st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/21/2026
-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026
+% % st.lpi.ineq.dD = 0;                                                     % MMP, 11/22/2026 (was)
 % Hinf_gain_form = 'P';                                                     % MMP, 11/21/2026
 % %%%% answer - 2 @ tau=.5
 % %%%% answer - 25.907 @ tau=1.5

@@ -65,6 +65,9 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params) %
 %   recommended settings of the stability tests; stability_form = 'P' set
 %   in the base workspace; help and comments revised.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params) % MMP, 11/21/2026 (was)
+% MMP, 11/22/2026: st with the upper-integral basis operator at s-length 1,
+%   the smallest storage found that certifies both stability tests under an
+%   acceptance that also bounds the residual of the solve.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -136,8 +139,10 @@ if GUI
 end
 
 % Example-specific settings                                                 % MMP, 11/21/2026
-% (light tier; slack lift degree at its minimum Dmin)
+% (light tier; upper-integral basis operator at s-length 1;                 % MMP, 11/22/2026
+% slack lift degree at its minimum Dmin)                                    % MMP, 11/22/2026
 st = lpisettings_sop('light');                                              % MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
+st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/22/2026
 
 end

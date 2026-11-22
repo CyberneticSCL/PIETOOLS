@@ -74,6 +74,11 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,pa
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP - 11/17/2026
+% MMP, 11/22/2026: st with Q of degree 1 in every direction, slack weights
+%   in the directions a space does not own, and the slack integral bases
+%   capped at degree Dmax-1: the smallest setting found that certifies
+%   stability under an acceptance that also bounds the residual of the
+%   solve.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -110,11 +115,15 @@ PDE_t = [diff(z,'t')==v;
          subs(y,s2,0)==z];
 
 
-% Example-specific settings (second output only): the light tier, with
+% Example-specific settings (second output only): the light tier, with      % MMP, 11/22/2026
+% the changes below                                                         % MMP, 11/22/2026
 if nargout>1
     st = lpisettings_sop('light');
     st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
-    st.sop.deg_Q{2} = [2 1 1];      % Q of degree 2 (multiplier), 1 (integrals)
+%   st.sop.deg_Q{2} = [2 1 1];      % Q of degree 2 (multiplier), 1 (integrals) % MMP, 11/22/2026 (was)
+    st.sop.deg_Q{2} = [1 1 1];      % Q of degree 1 in every direction      % MMP, 11/22/2026
+    st.lpi.ineq.wcross = 1;         % slack weights in unowned directions   % MMP, 11/22/2026
+    st.lpi.ineq.cap_inc = 'auto';   % slack integral bases, degree Dmax-1   % MMP, 11/22/2026
 end
 
 % No GUI representation of this system

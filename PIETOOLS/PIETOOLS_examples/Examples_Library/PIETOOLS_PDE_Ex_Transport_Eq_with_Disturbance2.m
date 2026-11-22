@@ -5,8 +5,9 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 % returns the transport equation below, with distributed disturbance
 % (s-s^2)*w and integral output z, as an initialized 'pde_struct' object,
 % and the recommended settings ST of its H2 norm test. It sets H2_norm =
-% 1, H2_norm_dual = 1 and H2_norm_form = 'o' (dual form 'c') in the base
-% workspace; a nonzero GUI prints that no GUI representation exists.
+% 1, H2_norm_dual = 1 and H2_norm_form = 'oco' (dual form 'cco')            % MMP, 11/22/2026
+% in the base workspace; a nonzero GUI prints that no GUI                   % MMP, 11/22/2026
+% representation exists.                                                    % MMP, 11/22/2026
 %
 % INPUT
 % - GUI:        Binary index {0,1} indicating whether or not a GUI
@@ -57,6 +58,10 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %   base workspace; the unused pvar s1 s2 removed (the PDE is in s); help
 %   revised, license added.
 % function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params) % MMP, 11/21/2026 (was)
+% MMP, 11/22/2026: H2 norm test in the coercive form 'oco' (dual 'cco'): in
+%   the form 'c' the dual test certified the bound at no setting tried
+%   under an acceptance that also bounds the residual of the solve. st: the
+%   smallest storage found that certifies both tests.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -69,7 +74,8 @@ pde_struct PDE_t;
 %%% Executive Function:
 evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
-evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test         % MMP, 11/21/2026
+% evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test       % MMP, 11/22/2026 (was)
+evalin('base','H2_norm_form = ''oco'';');  % coercive, dual 'cco'           % MMP, 11/22/2026
 
 npars = length(params);
 if npars~=0
@@ -93,7 +99,14 @@ PDE_t=initialize(pde);
 
 
 % Example-specific settings: the veryheavy tier                             % MMP, 11/21/2026
+% (no multiplier basis operator; s-lengths 3 (lower integral) and           % MMP, 11/22/2026
+% 2 (upper integral), theta-lengths 2; slack lift degree at its             % MMP, 11/22/2026
+% minimum Dmin)                                                             % MMP, 11/22/2026
 st = lpisettings_sop('veryheavy');                                          % MMP, 11/21/2026
+st.lpi.pos.len_inc{1} = 3;                                                  % MMP, 11/22/2026
+st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/22/2026
+st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/22/2026
+st.lpi.ineq.dD = 0;                                                         % MMP, 11/22/2026
 
 % No GUI representation of this system
 if GUI~=0
