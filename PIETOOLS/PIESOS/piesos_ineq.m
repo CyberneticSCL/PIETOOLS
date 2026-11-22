@@ -39,9 +39,7 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %
 % NOTES
 % - If F is a 'dpvar', 'polynomial', or 'double' object, F>=0 is
-%   enforced using `sosineq`, and if F is an 'opvar', 'opvar2d', 'dopvar',
-%   or 'dopvar2d' object, using `lpi_ineq`. In these cases, only the
-%   output PROG is returned.
+%   enforced using `sosineq`, and only the output PROG is returned.         % MMP, 11/22/2026
 %
 % - A monomial in the basis for g (Z) cannot mix states that depend on
 %   different spatial variables, e.g. x1(s1)*x2(s1,s2). Such monomials
@@ -117,6 +115,8 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% MMP, 11/22/2026: the branch for F of the retired classes opvar, opvar2d,
+%   dopvar and dopvar2d removed (maintainer, 11/22/2026).
 
 % % Check the inputs
 % Check the program structure
@@ -131,13 +131,7 @@ if isa(f,'dpvar') || isa(f,'polynomial') || isa(f,'double')
     end
     prog = sosineq(prog,f);
     return
-elseif isa(f,'dopvar') || isa(f,'dopvar2d') || isa(f,'opvar') || isa(f,'opvar2d')
-    % Enforce positivity of operator variables using lpi_ineq
-    if nargout>1
-        error("Multiple output arguments is not supported in this case.")
-    end
-    prog = lpi_ineq(prog,f);
-    return
+% (branch for the retired dopvar, dopvar2d, opvar and opvar2d removed)      % MMP, 11/22/2026
 elseif ~isa(f,'polyopvar')
     error("Distributed polynomial functional must be specified as object of type 'polyopvar'.")
 elseif f.is_adjoint

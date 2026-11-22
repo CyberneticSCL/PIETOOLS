@@ -49,6 +49,8 @@ function dvar_sol = piesos_getsol(prog,dvar)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% MMP, 11/22/2026: the branches for the retired classes opvar, opvar2d,
+%   nopvar, dopvar, dopvar2d and ndopvar removed (maintainer, 11/22/2026).
 
 % Check that the program structure is properly specified.
 if ~isa(prog,'struct')
@@ -82,25 +84,20 @@ elseif isa(dvar,'cell')
     for k=1:numel(dvar)
         dvar_sol{k} = piesos_getsol(prog,dvar{k});
     end
-elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') ||...
-        isa(dvar,'opvar') || isa(dvar,'opvar2d') || isa(dvar,'nopvar')
+elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial')        % MMP, 11/22/2026
     % The variable is not really a variable at all;
     dvar_sol = dvar;
 elseif isa(dvar,'dpvar') || ischar(dvar)
     % The variable is some decision variable, or linear combination of
     % decision variables.
     dvar_sol = sosgetsol(prog,dvar);
-elseif isa(dvar,'dopvar') || isa(dvar,'dopvar2d')
-    % The variable is a PI operator decision variable.
-    dvar_sol = getsol_lpivar(prog,dvar);
+% (branches for the retired dopvar, dopvar2d and ndopvar removed)           % MMP, 11/22/2026
 elseif isa(dvar,'intop')
     % The variable is a functional operator
     % Solve the kernels, and declare the functional in terms of these
     dvar_sol = intop(piesos_getsol(prog,kernels(dvar)),dvar.intmat,dvar.vars,dvar.dom);
-elseif isa(dvar,'ndopvar')
-    error("Decision variables of type 'ndopvar' are currently not supported.")
 else
-    error("Variable of which to extract the solution should be specified as object of type 'polyopvar', 'dpvar' or 'dopvar'.")
+    error("Variable of which to extract the solution should be specified as object of type 'polyopvar' or 'dpvar'.")  % MMP, 11/22/2026
 end
 
 end

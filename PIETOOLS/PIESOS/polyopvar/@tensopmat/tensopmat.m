@@ -80,6 +80,8 @@ classdef (InferiorClasses={?tensopvar,?sopvar,?dpvar,?polynomial})tensopmat
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% MMP, 11/22/2026: the branches for the retired classes opvar and opvar2d
+%   removed (maintainer, 11/22/2026).
 
 properties
     ops = cell(0,0);
@@ -150,8 +152,7 @@ methods
             for j=1:numel(Cop)
                 if isempty(Cop{j})
                     continue
-                elseif isa(Cop{j},'opvar') || isa(Cop{j},'opvar2d')
-                    Cop{j} = sopvar2tensopvar(opvar2sopvar(Cop{j}));
+                % (branch for the retired opvar and opvar2d removed)        % MMP, 11/22/2026
                 elseif isa(Cop{j},'sopvar') || isa(Cop{j},'cell')
                     Cop{j} = sopvar2tensopvar(Cop{j});
                 elseif ~isa(Cop{j},'tensopvar') && ~isa(Cop{j},'intop') && ~is_native_op(Cop{j})
@@ -175,8 +176,7 @@ methods
             % Fill in and check the remaining fields
             obj = initialize(obj);
         % A single operator of another class: converted, then stored as one block
-        elseif isa(Cop,'opvar') || isa(Cop,'opvar2d')
-            obj = tensopmat(opvar2sopvar(Cop));
+        % (branch for the retired opvar and opvar2d removed)                % MMP, 11/22/2026
         elseif isa(Cop,'sopvar')
             obj = tensopmat(sopvar2tensopvar(Cop));
         % 'tensopvar' or 'intop': the only block, with its function spaces

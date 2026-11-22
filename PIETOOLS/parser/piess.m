@@ -121,6 +121,9 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %                   the operators of a pie_struct. The construction from
 %                   'opvar' and 'opvar2d' operators moved to piess_opvar;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/22/2026: the branch for opvar and opvar2d operators without a
+%                   copvar operator removed (maintainer, 11/22/2026;
+%                   the opvar classes are retired).
 
 
 % % % Process the inputs
@@ -316,14 +319,10 @@ elseif ~is_op(Dyuop)                                                        % DJ
     error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
 end
 
-% % % opvar operators, and no copvar: piess_opvar.                          % DJ (CC), 10/30/2026
+% % % The operators, and which of them are copvar objects (the branch for   % MMP, 11/22/2026
+% opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)       % MMP, 11/22/2026
 Pops = {Top,Twop,Tuop; Aop,Bwop,Buop; Czop,Dzwop,Dzuop; Cyop,Dywop,Dyuop};  % DJ (CC), 10/30/2026
 is_cop = cellfun(@(P) isa(P,'copvar'),Pops);                                % DJ (CC), 10/30/2026
-is_opv = cellfun(@(P) isa(P,'opvar') || isa(P,'opvar2d'),Pops);             % DJ (CC), 10/30/2026
-if any(is_opv(:)) && ~any(is_cop(:))                                        % DJ (CC), 10/30/2026
-    PIE = piess_opvar(Pops);                                                % DJ (CC), 10/30/2026
-    return                                                                  % DJ (CC), 10/30/2026
-end                                                                         % DJ (CC), 10/30/2026
 
 % % % BEGIN construction from copvar operators, DJ (CC), 10/30/2026
 % The construction from opvar operators that was here (DJ, 12/20/2024 -

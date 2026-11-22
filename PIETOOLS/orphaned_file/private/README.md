@@ -42,6 +42,36 @@ Moved with `mv`, so the git index still lists the original paths; `mv` back rest
 
 ## Moved 11/22/2026
 
+- **Periodic-BC map**, from `converters/internal/` (maintainer, 11/22/2026: "move to orphaned code"):
+  `compute_PIETOOLS_PDE_periodic_map.m` (DB, 10/28/2026).
+  - It builds its three operators as `opvar` objects (`opvar()` for Fop, Tx and Kop). That class has
+    been retired since 11/08/2026, so the file stops at its first `opvar()` call.
+  - Its only caller is `converters/legacy/convert_PIETOOLS_PDE_2D.m` (line 502). That file belongs to a
+    legacy 2-D converter group that nothing outside the group calls (audit of 11/22/2026,
+    `cleaning/private/dependency_audit_1122/AUDIT.md`, §2).
+- **Converters from the opvar classes**, from `converters/operator_converters/` (maintainer,
+  11/22/2026: move the branches that run only for opvar inputs to orphaned code): `opvar2copvar.m`
+  (MMP, 09/19/2026), `opvar2sopvar.m` and `opvar2d2sopvar.m` (DJ, 05/27/2026), `dopvar2sdopvar.m`
+  (DJ, 10/05/2026).
+  - Each converts an object of a class retired on 11/08/2026.
+  - Their callers were the branches below and each other. The one call left is in the legacy 2-D
+    converter group (`convert_PIETOOLS_PDE_nonlinear_2D.m`, three `opvar2sopvar` calls).
+- **Branches for opvar inputs**, removed from seven live files on the same instruction. The files as
+  they were before the removal are in `opvar_branches_1122/` here, with the path below `PIETOOLS/`
+  (`@X` written `X_class`, so that no copy can define a class):
+  - `converters/operator_converters/op2copvar_sop.m`: the conversion of opvar, dopvar and opvar2d. It
+    now returns a container as is and errors for any other class.
+  - `parser/piess.m`: the call of `piess_opvar` when the operators are opvar objects and none is a
+    copvar.
+  - `PIESOS/piesos_getsol.m`: the branches for dopvar, dopvar2d (`getsol_lpivar`) and ndopvar, and the
+    opvar, opvar2d and nopvar terms of the pass-through condition.
+  - `PIESOS/piesos_ineq.m`: the branch that sent an opvar-class F to `lpi_ineq`.
+  - `PIESOS/polyopvar/@tensopmat/tensopmat.m` (two branches), `@tensopmat/initialize.m` and
+    `@tensopvar/initialize.m` (one each): the conversion of opvar and opvar2d blocks by
+    `opvar2sopvar`.
+  - Checked on 11/22/2026 by running DEMO1, DEMO2, DEMO7, the Ch5 snippet, the three PIESOS demos
+    and six tensopmat and tensopvar tests on HEAD and on the edited tree. All 13 run, and their output
+    is the same apart from solver times.
 - **Low-rank 2-D certify family**, into `PIETOOLS_demos/lowrank_2d_stability/` here, with the same
   path (maintainer, 11/22/2026: "port or retire"; retired by the low-rank session, CC):
   `pielr_certify.m`, `pielr_certify_pos.m`, `pielr_tensor.m`, `build_stab_2d_st2.m`, `face_n1.mat`,

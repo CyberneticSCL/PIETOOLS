@@ -44,6 +44,8 @@ function Cop = initialize(Cop)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% MMP, 11/22/2026: the branch for the retired classes opvar and opvar2d
+%   removed (maintainer, 11/22/2026).
 
 
 % Extract the dimensions and domains of the factors defining the tensor-PI
@@ -59,10 +61,8 @@ for i=1:K
     for j=1:d
         % Check that the operator is of appropriate type
         op_ij = Cop.ops{i,j};
-        if isa(op_ij,'opvar') || isa(op_ij,'opvar2d')
-            op_ij = opvar2sopvar(op_ij);
-            Cop.ops{i,j} = op_ij;
-        elseif ~isa(op_ij,'sopvar') && ~isa(op_ij,'tensopvar') && ~isa(op_ij,'intop')
+        % (branch for the retired opvar and opvar2d removed)                % MMP, 11/22/2026
+        if ~isa(op_ij,'sopvar') && ~isa(op_ij,'tensopvar') && ~isa(op_ij,'intop')  % MMP, 11/22/2026
             error("Factors in tensor-PI operator must be of type 'sopvar'.")
         end
 
