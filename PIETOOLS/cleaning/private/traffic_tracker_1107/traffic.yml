@@ -1,0 +1,61 @@
+# Records repository traffic (views, clones, referrers, pages, release
+# downloads, stars) once a day on the branch 'traffic-data', beyond the
+# 14 days GitHub retains. See traffic-data/README.md for the totals.
+#
+# Requires the repository secret TRAFFIC_TOKEN: a fine-grained personal
+# access token, resource owner CyberneticSCL, access to this repository
+# only, repository permission 'Administration: Read-only'. The workflow
+# GITHUB_TOKEN cannot read the traffic API. When the token expires the run
+# fails; replace the secret within 14 days to lose no data.
+name: Traffic record
+
+on:
+  schedule:
+    - cron: '23 5 * * *'           # daily, 05:23 UTC
+  workflow_dispatch:               # manual run from the Actions tab
+
+permissions:
+  contents: write                  # push to traffic-data
+
+concurrency:
+  group: traffic-record            # one writer to traffic-data at a time
+
+jobs:
+  record:
+    if: github.repository == 'CyberneticSCL/PIETOOLS'  # forks lack the secret
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The recorder script only; partial clone, no toolbox files.
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github
+
+      # First run: create traffic-data as an empty orphan branch.
+      - name: Create traffic-data if absent
+        run: |
+          git ls-remote --exit-code --heads origin traffic-data && exit 0
+          c=$(git -c user.name='github-actions[bot]' \
+                  -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+                  commit-tree "$(git mktree </dev/null)" -m 'Start traffic record')
+          git push origin "$c:refs/heads/traffic-data"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: traffic-data
+          path: data
+
+      - name: Record traffic
+        env:
+          TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+        run: python3 .github/scripts/traffic.py data
+
+      - name: Commit and push the record
+        working-directory: data
+        run: |
+          git add -A
+          git diff --cached --quiet && exit 0
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -q -m "Traffic record $(date -u +%F)"
+          git push origin HEAD:traffic-data

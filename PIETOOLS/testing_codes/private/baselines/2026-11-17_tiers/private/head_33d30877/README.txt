@@ -1,0 +1,1 @@
+HEAD reference run of the library pass (D91, 11/17/2026 22:00): the same harness on the worktree C:/wt1117 at 33d30877 (light and heavy, 158 rows each). Copied here 11/22/2026 before the worktree is closed out. MMP.
