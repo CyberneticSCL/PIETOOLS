@@ -1,0 +1,998 @@
+BCs_test	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/Sim/BCs_test.m
+Bench_copvar_vs_legacy	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/Testfolder/Bench_copvar_vs_legacy.m
+Burgers1D	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/Sim/Burgers1D.m
+Burgers_global_newLyap	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Burgers_global_newLyap.m
+CombineDecisionBasis	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class_private/CombineDecisionBasis.m
+DDE01	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE01.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE01.m
+DDE02	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE02.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE02.m
+DDE03	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE03.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE03.m
+DDE04	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE04.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE04.m
+DDE05	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE05.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE05.m
+DDE06	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE06.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE06.m
+DDE07	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE07.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE07.m
+DDE08	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE08.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE08.m
+DDE09	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE09.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE09.m
+DDE10	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE10.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE10.m
+DDE11	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE11.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE11.m
+DDE12	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE12.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE12.m
+DDE13	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE13.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE13.m
+DDE14	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE14.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE14.m
+DDE15	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE15.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE15.m
+DDE16	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE16.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE16.m
+DDE17	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE17.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE17.m
+DDE18	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE18.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE18.m
+DDE19	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE19.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE19.m
+DDE20	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE20.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE20.m
+DDE21	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE21.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE21.m
+DDE22	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE22.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE22.m
+DDE23	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE23.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE23.m
+DDE24	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE24.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE24.m
+DDE25	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE25.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE25.m
+DDE26	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE26.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE26.m
+DDE_RAND	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDE_RAND.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDE_RAND.m
+DDF01	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDF01.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDF01.m
+DDF02	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDF02.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDF02.m
+DDF03	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/DDF03.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/DDF03.m
+DMB_test	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Tests/DMB_test.m
+Fisher1D	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/Sim/Fisher1D.m
+Heat1D	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/Sim/Heat1D.m
+Heat_Eq_Sobolev_Stability	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/Heat_Eq_Sobolev_Stability.m
+L2_Fisher	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/L2_Fisher.m
+LocalStability	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/LocalStability.m
+LocalStability_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/LocalStability_v2.m
+LocalStability_wave	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/LocalStability_wave.m
+MatrixMultiply	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class_private/MatrixMultiply.m
+NDS01	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS01.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS01.m
+NDS02	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS02.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS02.m
+NDS03	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS03.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS03.m
+NDS04	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS04.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS04.m
+NDS05	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS05.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS05.m
+NDS06	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS06.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS06.m
+NDS07	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS07.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS07.m
+NDS08	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS08.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS08.m
+NDS09	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS09.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS09.m
+NDS10	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS10.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS10.m
+NDS11	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS11.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS11.m
+NDS12	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS12.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS12.m
+NDS_FRAG	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/blocks/NDS_FRAG.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/blocks/NDS_FRAG.m
+PIESOS_Burgers	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/PIESOS_Burgers.m
+PIESOS_Burgers_Local	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Burgers_Local.m
+PIESOS_Burgers_Local_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Burgers_Local_v2.m
+PIESOS_Burgers_coupled	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/PIESOS_Burgers_coupled.m
+PIESOS_Fisher	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/PIESOS_Fisher.m
+PIESOS_Fishers_Local	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Fishers_Local.m
+PIESOS_Fishers_Local_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Fishers_Local_v2.m
+PIESOS_Heat_Local	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Heat_Local.m
+PIESOS_Heat_Local_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Heat_Local_v2.m
+PIESOS_Heat_SobolevEnergy	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/PIESOS_Heat_SobolevEnergy.m
+PIESOS_KSE	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/PIESOS_KSE.m
+PIESOS_KleinGordon	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/PIESOS_KleinGordon.m
+PIESOS_Wave_Local_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/PIESOS_Wave_Local_v2.m
+PIETOOLS_FEPDEstability	PIETOOLS/cleaning/private/executives/PIETOOLS_FEPDEstability.m
+PIETOOLS_FEPDEstability_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_FEPDEstability_2D.m
+PIETOOLS_FEPIE2PDEstability	PIETOOLS/cleaning/private/executives/PIETOOLS_FEPIE2PDEstability.m
+PIETOOLS_FEPIE2PDEstability_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_FEPIE2PDEstability_2D.m
+PIETOOLS_H2_control	PIETOOLS/cleaning/private/executives/PIETOOLS_H2_control.m
+PIETOOLS_H2_estimator	PIETOOLS/cleaning/private/executives/PIETOOLS_H2_estimator.m
+PIETOOLS_H2_norm_2D_c	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_H2_norm_2D_c.m
+PIETOOLS_H2_norm_2D_c_non_coercive	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_H2_norm_2D_c_non_coercive.m
+PIETOOLS_H2_norm_2D_o	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_H2_norm_2D_o.m
+PIETOOLS_H2_norm_2D_o_non_coercive	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_H2_norm_2D_o_non_coercive.m
+PIETOOLS_H2_norm_c	PIETOOLS/cleaning/private/executives/PIETOOLS_H2_norm_c.m
+PIETOOLS_H2_norm_c_coercive	PIETOOLS/cleaning/private/executives/PIETOOLS_H2_norm_c_coercive.m
+PIETOOLS_H2_norm_o	PIETOOLS/cleaning/private/executives/PIETOOLS_H2_norm_o.m
+PIETOOLS_H2_norm_o_coercive	PIETOOLS/cleaning/private/executives/PIETOOLS_H2_norm_o_coercive.m
+PIETOOLS_Hinf_control	PIETOOLS/cleaning/private/executives/PIETOOLS_Hinf_control.m
+PIETOOLS_Hinf_estimator	PIETOOLS/cleaning/private/executives/PIETOOLS_Hinf_estimator.m
+PIETOOLS_Hinf_estimator_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_Hinf_estimator_2D.m
+PIETOOLS_Hinf_gain	PIETOOLS/cleaning/private/executives/PIETOOLS_Hinf_gain.m
+PIETOOLS_Hinf_gain_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_Hinf_gain_2D.m
+PIETOOLS_Hinf_gain_2D_non_coercive	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_Hinf_gain_2D_non_coercive.m
+PIETOOLS_Hinf_gain_coercive	PIETOOLS/cleaning/private/executives/PIETOOLS_Hinf_gain_coercive.m
+PIETOOLS_Hinf_gain_dual	PIETOOLS/cleaning/private/executives/PIETOOLS_Hinf_gain_dual.m
+PIETOOLS_Hinf_gain_dual_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_Hinf_gain_dual_2D.m
+PIETOOLS_Hinf_gain_dual_coercive	PIETOOLS/cleaning/private/executives/PIETOOLS_Hinf_gain_dual_coercive.m
+PIETOOLS_PDE_Ex_Timoshenko_Beam_3	PIETOOLS/orphaned_file/private/PIETOOLS_PDE_Ex_Timoshenko_Beam_3.m
+PIETOOLS_PDE_Example_Diagne	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Example_Diagne.m
+PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das	PIETOOLS/orphaned_file/private/PIETOOLS_PDE_Example_Heat_Eq_with_ODE_Das.m
+PIETOOLS_PDE_Example_Lamare	PIETOOLS/orphaned_file/private/PIETOOLS_PDE_Example_Lamare.m
+PIETOOLS_PDE_Example_Saba	PIETOOLS/orphaned_file/private/PIETOOLS_PDE_Example_Saba.m
+PIETOOLS_PDE_Example_Transport_Eq	PIETOOLS/orphaned_file/private/PIETOOLS_PDE_Example_Transport_Eq.m
+PIETOOLS_PDEstability	PIETOOLS/cleaning/private/executives/PIETOOLS_PDEstability.m
+PIETOOLS_PDEstability_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_PDEstability_2D.m
+PIETOOLS_PDEstability_dual	PIETOOLS/cleaning/private/executives/PIETOOLS_PDEstability_dual.m
+PIETOOLS_PDEstability_dual_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_PDEstability_dual_2D.m
+PIETOOLS_PIE2PDEstability	PIETOOLS/cleaning/private/executives/PIETOOLS_PIE2PDEstability.m
+PIETOOLS_PIE2PDEstability_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_PIE2PDEstability_2D.m
+PIETOOLS_PIE2PDEstability_dual	PIETOOLS/cleaning/private/executives/PIETOOLS_PIE2PDEstability_dual.m
+PIETOOLS_PIE2PDEstability_dual_2D	PIETOOLS/cleaning/private/executives/2D/PIETOOLS_PIE2PDEstability_dual_2D.m
+PIETOOLS_auto_execute	PIETOOLS/cleaning/private/executives/PIETOOLS_auto_execute.m
+PIETOOLS_well_posedness	PIETOOLS/cleaning/private/executives/PIETOOLS_well_posedness.m
+SOS_DP_test	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Tests/SOS_DP_test.m
+Sim_PDE	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Examples/Sim/Sim_PDE.m
+Sobolev_Fisher	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Sobolev_Fisher.m
+Sobolev_Heat	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Sobolev_Heat.m
+Test_Conversion_Linear	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIESOS/Examples/Linear_Examples/Test_Conversion_Linear.m
+Test_Liediff	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_Liediff.m
+Test_Linear_Examples	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/Test_Linear_Examples.m
+Test_Linear_Examples_1D	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/Test_Linear_Examples_1D.m
+Test_Linear_Examples_2D	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/Test_Linear_Examples_2D.m
+Test_Linear_Examples_DDE	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/Test_Linear_Examples_DDE.m
+Test_LocalStability_v2	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder_Claude/Test_LocalStability_v2.m
+Test_PIESOS_sublevel	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_PIESOS_sublevel.m
+Test_SOS_DP_v2	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder_Claude/Test_SOS_DP_v2.m
+Test_Weighted_Sobolev_Norm	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder_Claude/Test_Weighted_Sobolev_Norm.m
+Test_apply_intop_N0	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_apply_intop_N0.m
+Test_apply_sopvar_1d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_apply_sopvar_1d.m
+Test_apply_sopvar_2d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_apply_sopvar_2d.m
+Test_cdopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_cdopvar.m
+Test_cg_copvar_nd	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/Test_cg_copvar_nd.m
+Test_cg_sopvar_nd	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/Test_cg_sopvar_nd.m
+Test_common_intmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_common_intmat.m
+Test_convert_PDE_nonlinear_varnames	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_convert_PDE_nonlinear_varnames.m
+Test_copvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_copvar.m
+Test_copvar_converters	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/Testfolder/Test_copvar_converters.m
+Test_copvar_inv	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/Testfolder/Test_copvar_inv.m
+Test_ctranspose_sopvar_2d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_ctranspose_sopvar_2d.m
+Test_expand_delays_nonlinear	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_expand_delays_nonlinear.m
+Test_find_common_idcs	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_find_common_idcs.m
+Test_functions_nopvar_ndopvar_AT	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/Test_functions_nopvar_ndopvar_AT.m
+Test_get_tensorvars	PIETOOLS/testing_codes/private/PIESOS/Testfolder/misc/Test_get_tensorvars.m
+Test_innerprod_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder/Test_innerprod_v2.m
+Test_int2sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_int2sopvar.m
+Test_int_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_int_sopvar.m
+Test_intop_cat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_cat.m
+Test_intop_clean_op	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_clean_op.m
+Test_intop_combine_terms	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_combine_terms.m
+Test_intop_construction_order	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_construction_order.m
+Test_intop_diff	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_diff.m
+Test_intop_dims	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_dims.m
+Test_intop_dpvar_ops	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_dpvar_ops.m
+Test_intop_isvalid_boundary	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_isvalid_boundary.m
+Test_intop_minus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_minus.m
+Test_intop_mtimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_mtimes.m
+Test_intop_mtimes_tensopvar	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_mtimes_tensopvar.m
+Test_intop_ordered_intmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_ordered_intmat.m
+Test_intop_otimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_otimes.m
+Test_intop_plus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_plus.m
+Test_intop_reorder_states	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_reorder_states.m
+Test_intop_reorder_vars	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_reorder_vars.m
+Test_intop_subsref	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_subsref.m
+Test_intop_times	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_times.m
+Test_intop_uminus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_uminus.m
+Test_intop_unique_intmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_intop_unique_intmat.m
+Test_is_id_op	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_is_id_op.m
+Test_mat2sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_mat2sopvar.m
+Test_monopmat	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_monopmat.m
+Test_mtimes_id_bypass	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_mtimes_id_bypass.m
+Test_mtimes_ndopvar	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/Test_mtimes_ndopvar.m
+Test_mtimes_ndopvar2d	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/Test_mtimes_ndopvar2d.m
+Test_mtimes_ndopvar_ND	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/Test_mtimes_ndopvar_ND.m
+Test_mtimes_nopvar_regression	PIETOOLS/cleaning/private/definitely/PIETOOLS/ndopvar/Testfolder/ndopvar/claude_tests/Test_mtimes_nopvar_regression.m
+Test_mtimes_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar.m
+Test_mtimes_sopvar_1d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar_1d.m
+Test_mtimes_sopvar_2d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/Test_mtimes_sopvar_2d.m
+Test_ndopvar_to_sdopvar_conversion	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/Testfolder/converters/Test_ndopvar_to_sdopvar_conversion.m
+Test_npie_expand_tderivatives	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_npie_expand_tderivatives.m
+Test_otimes_params	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_otimes_params.m
+Test_piesos_LF	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_LF.m
+Test_piesos_eq	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_eq.m
+Test_piesos_ineq	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_ineq.m
+Test_piesos_intopvar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_intopvar.m
+Test_piesos_lpivar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_lpivar.m
+Test_piesos_ode_states	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_ode_states.m
+Test_piesos_polyvar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_polyvar.m
+Test_piesos_poslpivar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_poslpivar.m
+Test_piesos_program	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_program.m
+Test_piesos_quadopvar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_quadopvar.m
+Test_piesos_quadvar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_quadvar.m
+Test_piesos_sosvar	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_sosvar.m
+Test_piesos_tensor_gram	PIETOOLS/testing_codes/private/PIESOS/sosprogramming/Testfolder/Test_piesos_tensor_gram.m
+Test_plus_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_plus_sopvar.m
+Test_polyopvar_arith	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_arith.m
+Test_polyopvar_class	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_class.m
+Test_polyopvar_clean_poly	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_clean_poly.m
+Test_polyopvar_combine_factors	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_combine_factors.m
+Test_polyopvar_combine_terms	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_combine_terms.m
+Test_polyopvar_common_basis	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_common_basis.m
+Test_polyopvar_construction_order	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_construction_order.m
+Test_polyopvar_constructor	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_constructor.m
+Test_polyopvar_diff	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_diff.m
+Test_polyopvar_dmonomials	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_dmonomials.m
+Test_polyopvar_dpvar_coeffs	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_dpvar_coeffs.m
+Test_polyopvar_equal	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder_Claude/Test_polyopvar_equal.m
+Test_polyopvar_horzcat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_horzcat.m
+Test_polyopvar_initialize	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_initialize.m
+Test_polyopvar_innerprod	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_innerprod.m
+Test_polyopvar_multiplier_factors	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_multiplier_factors.m
+Test_polyopvar_native_blocks	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_native_blocks.m
+Test_polyopvar_otimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_otimes.m
+Test_polyopvar_remove_unused_states	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_remove_unused_states.m
+Test_polyopvar_repmat_repelem	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_repmat_repelem.m
+Test_polyopvar_size	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_size.m
+Test_polyopvar_sosquadvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder/Test_polyopvar_sosquadvar.m
+Test_polyopvar_subs	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_subs.m
+Test_polyopvar_subsasgn	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_subsasgn.m
+Test_polyopvar_subsref	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_subsref.m
+Test_polyopvar_times	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_times.m
+Test_polyopvar_times_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder/Test_polyopvar_times_v2.m
+Test_polyopvar_varname_column	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_varname_column.m
+Test_polyopvar_vector_states	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_vector_states.m
+Test_polyopvar_vertcat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/Test_polyopvar_vertcat.m
+Test_qp_copvar_nd	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_qp_copvar_nd.m
+Test_quad2lin_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Testfolder/Test_quad2lin_v2.m
+Test_quadPoly_common_vars	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/Testfolder/Test_quadPoly_common_vars.m
+Test_quadPoly_mtimes	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/Testfolder/Test_quadPoly_mtimes.m
+Test_quadPoly_set_vars	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/Testfolder/Test_quadPoly_set_vars.m
+Test_quad_expand	PIETOOLS/testing_codes/private/PIESOS/Testfolder/Test_quad_expand.m
+Test_remove_badints_fuzz	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/Test_remove_badints_fuzz.m
+Test_repelem_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_repelem_sopvar.m
+Test_repmat_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_repmat_sopvar.m
+Test_sopvar_clean_op	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/Test_sopvar_clean_op.m
+Test_sopvar_diff	PIETOOLS/testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m
+Test_tensopmat_cat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_cat.m
+Test_tensopmat_clean_op	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_clean_op.m
+Test_tensopmat_common_vars	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_common_vars.m
+Test_tensopmat_diff	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_diff.m
+Test_tensopmat_initialize	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_initialize.m
+Test_tensopmat_is_id_op	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_is_id_op.m
+Test_tensopmat_isvalid	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_isvalid.m
+Test_tensopmat_mtimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_mtimes.m
+Test_tensopmat_native_blocks	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_native_blocks.m
+Test_tensopmat_native_cost	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_native_cost.m
+Test_tensopmat_native_random	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_native_random.m
+Test_tensopmat_otimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_otimes.m
+Test_tensopmat_plus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_plus.m
+Test_tensopmat_repelem	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_repelem.m
+Test_tensopmat_repmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_repmat.m
+Test_tensopmat_size	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_size.m
+Test_tensopmat_subsasgn	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_subsasgn.m
+Test_tensopmat_subsref	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_subsref.m
+Test_tensopmat_times	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/Test_tensopmat_times.m
+Test_tensopvar2polynomial	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar2polynomial.m
+Test_tensopvar_apply_op	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_apply_op.m
+Test_tensopvar_cat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_cat.m
+Test_tensopvar_class	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_class.m
+Test_tensopvar_clean_op	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_clean_op.m
+Test_tensopvar_combine_factors	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_combine_factors.m
+Test_tensopvar_diff	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_diff.m
+Test_tensopvar_dims	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_dims.m
+Test_tensopvar_eq	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_eq.m
+Test_tensopvar_int	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_int.m
+Test_tensopvar_int_weights	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_int_weights.m
+Test_tensopvar_isvalid	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_isvalid.m
+Test_tensopvar_kron	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_kron.m
+Test_tensopvar_minus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_minus.m
+Test_tensopvar_mtimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_mtimes.m
+Test_tensopvar_otimes	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_otimes.m
+Test_tensopvar_plus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_plus.m
+Test_tensopvar_reorder_vars	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_reorder_vars.m
+Test_tensopvar_subsasgn	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_subsasgn.m
+Test_tensopvar_subsref	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_subsref.m
+Test_tensopvar_times	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_times.m
+Test_tensopvar_uminus	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/Test_tensopvar_uminus.m
+V3_Liediff	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/V3_Liediff.m
+V3_Liediff_test	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Tests/V3_Liediff_test.m
+WSB_test	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Tests/WSB_test.m
+Wave_Sobolev	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/Wave_Sobolev.m
+Weighted_Sobolev_Norm	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Weighted_Sobolev_Norm.m
+ab_2d	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/ab/ab_2d.m
+ab_bisect	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/ab/ab_bisect.m
+ab_dde	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/ab/ab_dde.m
+ab_dde_fix	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/ab/ab_dde_fix.m
+analyze_class_ops	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m
+apply_nopvar_poly	PIETOOLS/cleaning/private/definitely/PIETOOLS/ndopvar/Testfolder/ndopvar/claude_tests/apply_nopvar_poly.m
+apply_nopvar_quad	PIETOOLS/cleaning/private/definitely/PIETOOLS/ndopvar/Testfolder/ndopvar/claude_tests/apply_nopvar_quad.m
+apply_opvar	PIETOOLS/cleaning/private/opvar/2D/apply_opvar.m
+assemble_copvar_blocks	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/private_files/assemble_copvar_blocks.m
+bc_operators_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/bc_operators_sopvar.m
+bench_build	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/perf_mtimes_tensopvar/bench_build.m
+bench_class_ops	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m
+bench_getsol_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m
+bench_lpi_degree	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m
+bench_lpi_eq_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/bench_lpi_eq_sop.m
+bench_run	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/perf_mtimes_tensopvar/bench_run.m
+bis_dump	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/bis_dump.m
+bl_b_fisher	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_fisher.m
+bl_b_io1	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_io1.m
+bl_b_io2	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_io2.m
+bl_b_stab1	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab1.m
+bl_b_stab2	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab2.m
+bl_b_syn1	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_syn1.m
+bl_big	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_big.m
+bl_bisdump	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_bisdump.m
+bl_cases	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_cases.m
+bl_check	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_check.m
+bl_fixtest	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/bl_fixtest.m
+bl_h2ctrl	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/bl_h2ctrl.m
+bl_h2probe	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/bl_h2probe.m
+bl_lambda	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_lambda.m
+bl_reduce	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_reduce.m
+bl_regime	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_regime.m
+bl_run	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_run.m
+bl_scale	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_scale.m
+bl_settings	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_settings.m
+bl_sop	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m
+bl_suites	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_suites.m
+bl_verify	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_verify.m
+blkdiag_legacy	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/blkdiag_legacy.m PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/blkdiag_legacy.m
+blockcheck	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/blockcheck.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/blockcheck.m
+build_stab_st	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m
+canonicalize	PIETOOLS/orphaned_file/private/@copvar/canonicalize.m PIETOOLS/orphaned_file/private/@mopvar/canonicalize.m
+census1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/census1d.m
+census2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/census2d.m
+cg_copvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/cg_copvar.m
+cg_copvar_pd	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/cg_copvar_pd.m
+cg_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/cg_sopvar.m
+cg_sopvar_pd	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/cg_sopvar_pd.m
+change_dec_var	PIETOOLS/orphaned_file/private/ndopvar/misc/ndopvar/change_dec_var.m
+change_degree	PIETOOLS/orphaned_file/private/ndopvar/misc/ndopvar/change_degree.m
+checkdeg_lpi_eq_2d	PIETOOLS/cleaning/private/lpi_programming/2D/checkdeg_lpi_eq_2d.m
+clean	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/quadPoly_class/incompleteFunctions/clean.m PIETOOLS/cleaning/private/opvar/opvar_class/clean.m
+clean_ndopvar	PIETOOLS/orphaned_file/private/ndopvar/@ndopvar/clean_ndopvar.m
+clean_opvar	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/clean_opvar.m PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/clean_opvar.m
+clencurt	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESIM/PIESIM_routines/Third_Party_Supporting_Files/clencurt.m
+closedLoopPIE_OF_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/executives_sopvar/utility_functions/closedLoopPIE_OF_sop.m
+coeff2poly	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/Testfolder/coeff2poly.m
+commat	PIETOOLS/orphaned_file/private/ndopvar/misc/ndopvar/commat.m
+convert_PIETOOLS_PDE_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/convert_PIETOOLS_PDE_sopvar.m
+copvar2nopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/copvar_class/copvar2nopvar.m
+copvar2opvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/copvar_class/copvar2opvar.m
+copvar2opvar2d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/copvar_class/copvar2opvar2d.m
+ctl_check	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/ctl_check.m
+ctranspose_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class/ctranspose_old.m
+ctranspose_test	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/ctranspose_test.m
+cu_hinf_gam	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/cu_hinf_gam.m
+cuadmm_linear_psatz	PIETOOLS/orphaned_file/private/cuadmm_linear_psatz.m
+cuadmm_private	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_private.m
+cuadmm_shadow	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m
+cuimport	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/cuimport.m
+cuimport_test	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/cuimport_test.m
+cx_H2_control	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_control.m
+cx_H2_estimator	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_estimator.m
+cx_H2_norm_2D_c	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_norm_2D_c.m
+cx_H2_norm_2D_o	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_norm_2D_o.m
+cx_H2_norm_c	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_norm_c.m
+cx_H2_norm_c_coercive	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_norm_c_coercive.m
+cx_H2_norm_o	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_norm_o.m
+cx_H2_norm_o_coercive	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_norm_o_coercive.m
+cx_Hinf_control	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_control.m
+cx_Hinf_estimator	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_estimator.m
+cx_Hinf_gain	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain.m
+cx_Hinf_gain_2D	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain_2D.m
+cx_Hinf_gain_2D_non_coercive	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain_2D_non_coercive.m
+cx_Hinf_gain_coercive	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain_coercive.m
+cx_Hinf_gain_dual	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain_dual.m
+cx_Hinf_gain_dual_2D	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain_dual_2D.m
+cx_Hinf_gain_dual_coercive	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_Hinf_gain_dual_coercive.m
+cx_PDEstability	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PDEstability.m
+cx_PDEstability_dual	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PDEstability_dual.m
+cx_PIE2PDEstability	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m
+cx_PIE2PDEstability_dual	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability_dual.m
+cx_bisect	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_bisect.m
+cx_cases_h2	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_cases_h2.m
+cx_cases_hinf	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_cases_hinf.m
+cx_cases_stability	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_cases_stability.m
+cx_compare	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_compare.m
+cx_h2_pos2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_h2_pos2d.m
+cx_h2_set2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_h2_set2d.m
+cx_h2_struct2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_h2_struct2d.m
+cx_h2_trace	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_h2_trace.m
+cx_hinf_2dpos	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_2dpos.m
+cx_hinf_capture	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_capture.m
+cx_hinf_eqopts2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_eqopts2d.m
+cx_hinf_lf2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_lf2d.m
+cx_hinf_op2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_op2d.m
+cx_hinf_qdeg2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_qdeg2d.m
+cx_hinf_set2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_set2d.m
+cx_hinf_slack2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_slack2d.m
+cx_hinf_struct2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_hinf_struct2d.m
+cx_on_registry	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_on_registry.m
+cx_plant	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_plant.m
+cx_resid	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_resid.m
+cx_run_1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_run_1d.m
+cx_settings	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_settings.m
+cx_shape	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_shape.m
+cx_solve	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_solve.m
+cx_space_list	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_space_list.m
+cx_stability_2D	PIETOOLS/cleaning/private/definitely/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m
+cx_stability_check	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_check.m
+cx_stability_dual_2D	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_dual_2D.m
+cx_stability_eq_opts_2D	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_eq_opts_2D.m
+cx_stability_pos2d	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_pos2d.m
+cx_stability_thresh	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_thresh.m
+cx_stock_capture	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stock_capture.m
+cx_stock_pinned	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stock_pinned.m
+cx_well_posedness	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_well_posedness.m
+d2_size	PIETOOLS/cleaning/private/settings_1116/d2/d2_size.m
+d2_size2	PIETOOLS/cleaning/private/settings_1116/d2/d2_size2.m
+d2_size3	PIETOOLS/cleaning/private/settings_1116/d2/d2_size3.m
+das_threshold	PIETOOLS/cleaning/private/example_settings_1119/litcheck_1119/das_threshold.m
+das_variants	PIETOOLS/cleaning/private/example_settings_1119/litcheck_1119/das_variants.m
+dbg2	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/dbg2.m
+dbg_build32	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/dbg_build32.m
+degmap	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/degmap.m
+diag_amt	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/diag_amt.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/diag_amt.m
+diag_deg	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/diag_deg.m
+diff_opvar	PIETOOLS/cleaning/private/opvar/diff_opvar.m
+dopvar	PIETOOLS/cleaning/private/opvar/dopvar_class/dopvar.m
+dopvar2d	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/dopvar2d.m
+dopvar2d2ndopvar	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/converters/dopvar2d2ndopvar.m
+dopvar2ndopvar	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/converters/dopvar2ndopvar.m
+dopvar2opvar	PIETOOLS/cleaning/private/opvar/dopvar2opvar.m
+dopvar2opvar2d	PIETOOLS/cleaning/private/opvar/2D/dopvar2opvar2d.m
+dump1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/dump1d.m
+dumpcfgs	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/dumpcfgs.m
+dup_res	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/private/dup_res.m
+e2e_heat3d_stability	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/e2e_heat3d_stability.m
+e2e_hinf_gain_1d	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m
+e2e_stability_1d	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/e2e_stability_1d.m
+e2e_stability_2d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/lpi_programming_sopvar/tests/e2e_stability_2d.m
+eval_dpvar_at	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/eval_dpvar_at.m
+eval_intop_dpvar	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/eval_intop_dpvar.m
+eval_poly_at	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/eval_poly_at.m
+eval_polyopvar	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/eval_polyopvar.m
+ex_search	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/ex_search.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/ex_search.m
+example_of_leftshiftmonomials_AT	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/Testfolder/example_of_leftshiftmonomials_AT.m
+examples_PDE_library_PIETOOLS_nouinput	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/Linear_Examples/examples_PDE_library_PIETOOLS_nouinput.m
+export_scaling_csv	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/export_scaling_csv.m
+fill_empty_C	PIETOOLS/cleaning/private/definitely/PIETOOLS/ndopvar/misc/ndopvar/claude/fill_empty_C.m
+fisher_dump	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/fisher_dump.m
+fisher_ladder	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/fisher_ladder.m
+fisher_prog	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/fisher_prog.m
+fisher_t1	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/fisher_t1.m
+fisher_time	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/fisher_time.m
+fixednorm	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/fixednorm.m
+ftc_expansion_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/ftc_expansion_sopvar.m
+gate1d	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/gate1d.m
+gate_popcheck	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/gate_popcheck.m
+gatecmp	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/gatecmp.m
+gaterank	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/gaterank.m
+gaterank2	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/gaterank2.m
+gatexfer	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/gatexfer.m
+gaussleg	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/gaussleg.m
+genplant	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/genplant.m
+getController	PIETOOLS/cleaning/private/executives/utility_functions/getController.m
+getController_direct_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/executives_sopvar/utility_functions/getController_direct_sop.m
+getDifferentiability	PIETOOLS/orphaned_file/private/getDifferentiability.m
+getObserver	PIETOOLS/cleaning/private/executives/utility_functions/getObserver.m
+getObserver_2D	PIETOOLS/cleaning/private/executives/utility_functions/getObserver_2D.m
+getPDEstructure_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/GUI/getPDEstructure_old.m
+get_eq_opts_2D	PIETOOLS/cleaning/private/executives/utility_functions/get_eq_opts_2D.m
+get_lpivar_degs	PIETOOLS/cleaning/private/executives/utility_functions/get_lpivar_degs.m
+get_quadratic_form	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/converters/get_quadratic_form.m
+getdeg	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/getdeg.m PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/getdeg.m
+getprop	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/getprop.m PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/getprop.m
+getsol_lpivar	PIETOOLS/cleaning/private/lpi_programming/getsol_lpivar.m
+getsol_lpivar_2d	PIETOOLS/cleaning/private/lpi_programming/2D/getsol_lpivar_2d.m
+hd_build	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/hd_build.m PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/hd_build.m
+hd_l1v	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/hd_l1v.m PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/hd_l1v.m
+hd_qform	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m
+hd_solve	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/hd_solve.m PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/hd_solve.m
+head_light_tier	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/ab/head_light_tier.m
+heatNd_bisect	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_bisect.m
+heatNd_bisect_check	PIETOOLS/cleaning/private/heatNd_poincare_1110/heatNd_bisect_check.m
+heatNd_bisect_probe7	PIETOOLS/cleaning/private/heatNd_poincare_1110/heatNd_bisect_probe7.m
+heatNd_ladder	PIETOOLS/orphaned_file/private/heatNd_ladder.m
+heatNd_lindep	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lindep.m
+heatNd_lpi	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m
+heatNd_path	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_path.m
+heatNd_pie	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_pie.m
+heatNd_poincare	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare.m
+heatNd_poincare_ops	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare_ops.m
+heatNd_poincare_validate	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare_validate.m
+heatNd_sdp	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_sdp.m
+heatNd_solve	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_solve.m
+heatNd_tailor	PIETOOLS/orphaned_file/private/heatNd_tailor.m
+heatNd_validate	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_validate.m
+hinf_bisect	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/hinf_bisect.m
+hinf_dump	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/hinf_dump.m
+hinf_gain_1d_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/hinf_gain_1d_sop.m
+hinf_ref	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/hinf_ref.m
+hinf_tailor_1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/slack_sizing/hinf_tailor_1d.m
+hinf_tailor_2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/slack_sizing/hinf_tailor_2d.m
+horzcat_legacy	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/horzcat_legacy.m PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/horzcat_legacy.m
+hw_probe	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/hw_probe.m
+hw_repro	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/hw_repro.m
+id_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/executives/id_sopvar.m
+inh_2d_sys	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_2d_sys.m
+inh_fd	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_fd.m
+inh_fdmax	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_fdmax.m
+inh_run_1A	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_1A.m
+inh_run_1B	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_1B.m
+inh_run_1C	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_1C.m
+inh_run_2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_2.m
+inh_run_3	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_3.m
+inh_run_4	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_4.m
+inh_run_5	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_run_5.m
+inh_sys	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/inh_sys.m
+initialize_PIETOOLS_PIE	PIETOOLS/orphaned_file/private/initialize_PIETOOLS_PIE.m
+innerprod_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/innerprod_v2.m
+int_2b	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/int_2b.m
+int_semisep_AT_v1	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/retired/int_semisep_AT_v1.m
+int_semisep_AT_v2_wrapper	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/retired/int_semisep_AT_v2_wrapper.m
+int_semisep_local_mtimes	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/retired/int_semisep_local_mtimes.m
+intmat2int_order	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/intmat2int_order.m
+intop_eval_kernel	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/intop_eval_kernel.m
+inv_opvar	PIETOOLS/cleaning/private/opvar/inv_opvar.m PIETOOLS/orphaned_file/private/inv_opvar.m
+inv_opvar2d_separable	PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/inv_opvar2d_separable.m PIETOOLS/orphaned_file/private/inv_opvar2d_separable.m
+inv_opvar_2	PIETOOLS/cleaning/private/opvar/inv_opvar_2.m PIETOOLS/orphaned_file/private/inv_opvar_2.m
+inv_opvar_new	PIETOOLS/cleaning/private/dead_code/PIETOOLS/opvar/inv_opvar_new.m
+inv_opvar_old	PIETOOLS/cleaning/private/opvar/inv_opvar_old.m PIETOOLS/orphaned_file/private/inv_opvar_old.m
+is_separable	PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/is_separable.m
+is_valid_intmat_bruteforce	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/is_valid_intmat_bruteforce.m
+isempty_dopvar	PIETOOLS/cleaning/private/opvar/dopvar_class/isempty_dopvar.m
+isempty_opvar	PIETOOLS/cleaning/private/opvar/opvar_class/isempty_opvar.m
+jp_wave_plate_rates	PIETOOLS/orphaned_file/private/jp_wave_plate_rates.m
+kernel_degree_test	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/Tests/kernel_degree_test.m
+kronI	PIETOOLS/orphaned_file/private/ndopvar/@ndopvar/kronI.m PIETOOLS/orphaned_file/private/ndopvar/@nopvar/kronI.m
+lb_blocks	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_blocks.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_blocks.m
+lb_build_catalog	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_build_catalog.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_build_catalog.m
+lb_build_system	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_build_system.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_build_system.m
+lb_catalog_add	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/lb_catalog_add.m PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/lb_catalog_add.m
+lb_check_case7	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_check_case7.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_check_case7.m
+lb_crash_check	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_crash_check.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_crash_check.m
+lb_ddeq4	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/lb_ddeq4.m PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/lb_ddeq4.m
+lb_diag	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_diag.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_diag.m
+lb_estimate	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_estimate.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_estimate.m
+lb_eval_block	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_eval_block.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_eval_block.m
+lb_exec	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_exec.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_exec.m
+lb_fp	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_fp.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_fp.m
+lb_full	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_full.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_full.m
+lb_full_sop	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_full_sop.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_full_sop.m
+lb_meta	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_meta.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_meta.m
+lb_pie_ab	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_pie_ab.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_pie_ab.m
+lb_rerun_5356	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/lb_rerun_5356.m PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/lb_rerun_5356.m
+lb_run	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_run.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_run.m
+lb_settings_check	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_settings_check.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_settings_check.m
+lb_setup	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_setup.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_setup.m
+lb_sop_plan	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_sop_plan.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_sop_plan.m
+lb_tiers_1117	PIETOOLS/testing_codes/private/baselines/2026-11-17_tiers/private/lb_tiers_1117.m PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/lb_tiers_1117.m
+lb_toggles	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_toggles.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_toggles.m
+lb_validate	PIETOOLS/testing_codes/private/baselines/2026-10-28_example_library/private/lb_validate.m PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_validate.m
+leftPermuteVec	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/leftPermuteVec.m
+leftShiftMonomials_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/leftShiftMonomials_old.m
+leftshiftMonomoials_AT	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/leftshiftMonomoials_AT.m
+leftshiftMonomoials_ATv2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/Testfolder/leftshiftMonomoials_ATv2.m
+legacy_PDEstability	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m
+legacy_PDEstability_2D	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m
+legval	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/legval.m
+libcheck	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/libcheck.m
+localcoef	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/localcoef.m
+lpi_eq	PIETOOLS/cleaning/private/lpi_programming/lpi_eq.m
+lpi_eq_2d	PIETOOLS/cleaning/private/lpi_programming/2D/lpi_eq_2d.m
+lpi_eq_ndopvar	PIETOOLS/orphaned_file/private/ndopvar/lpis_ndopvar/lpi_eq_ndopvar.m
+lpi_ineq	PIETOOLS/cleaning/private/lpi_programming/lpi_ineq.m
+lpi_ineq_2d	PIETOOLS/cleaning/private/lpi_programming/2D/lpi_ineq_2d.m
+lpi_resid	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/lpi_resid.m
+lpigetsol	PIETOOLS/cleaning/private/lpi_programming/lpigetsol.m
+lpiprogram_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/lpiprogram_sop.m
+lpiscript	PIETOOLS/cleaning/private/lpi_programming/lpiscript.m
+lpisettings	PIETOOLS/cleaning/private/settings/lpisettings.m
+lpivar	PIETOOLS/cleaning/private/lpi_programming/lpivar.m
+lpivar_2d	PIETOOLS/cleaning/private/lpi_programming/2D/lpivar_2d.m
+lrmultiply_batch	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/lrmultiply_batch.m
+lu	PIETOOLS/cleaning/private/opvar/opvar_class/lu.m
+mapAlphaBetaToGamma	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/mapAlphaBetaToGamma.m
+mat2opvar	PIETOOLS/cleaning/private/opvar/mat2opvar.m
+matchdeg	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/matchdeg.m
+mincap_dual	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/mincap_dual.m
+minus_decparam	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/minus_decparam.m
+mixed_domain_colloc	PIETOOLS/testing_codes/private/converters/tests/mixed_domain/mixed_domain_colloc.m
+mixed_domain_systems	PIETOOLS/testing_codes/private/converters/tests/mixed_domain/mixed_domain_systems.m
+mldivide	PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/mldivide.m
+monomial_outer	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/monomial_outer.m
+monomial_shift_left	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/monomial_shift_left.m
+monomial_shift_right	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/monomial_shift_right.m
+monomialdiff	PIETOOLS/cleaning/private/opvar/monomialdiff.m PIETOOLS/orphaned_file/private/monomialdiff.m
+mopvar	PIETOOLS/orphaned_file/private/@mopvar/canonicalize.m PIETOOLS/orphaned_file/private/@mopvar/mopvar.m
+mosekopt	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/stub_mosek/mosekopt.m
+mrdivide_poly	PIETOOLS/cleaning/private/opvar/2D/mrdivide_poly.m PIETOOLS/orphaned_file/private/mrdivide_poly.m
+mtimes_AT	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/mtimes_AT.m PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/retired/mtimes_AT.m
+mtimes_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/quadPoly_class/mtimes_old.m
+mtimestest	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class/mtimestest.m
+multprobe	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/multprobe.m
+mx_bisect	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_bisect.m
+mx_c1_exact	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_c1_exact.m
+mx_exec	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_exec.m
+mx_exec2	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_exec2.m
+mx_exec3	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_exec3.m
+mx_exec4	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_exec4.m
+mx_frozen_path	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_frozen_path.m
+mx_piesim_eig	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_piesim_eig.m
+mx_piesim_eig2	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_piesim_eig2.m
+mx_sys	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_sys.m
+mx_sys2	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_sys2.m
+mx_sys3	PIETOOLS/testing_codes/private/baselines/2026-11-12_mixed_domain/private/mx_sys3.m
+ndopvar	PIETOOLS/orphaned_file/private/ndopvar/@ndopvar/blkdiag.m PIETOOLS/orphaned_file/private/ndopvar/@ndopvar/clean_ndopvar.m
+ndopvar2dopvar	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/converters/ndopvar2dopvar.m
+ndopvar2sdopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters/operator_converters/ndopvar2sdopvar.m
+ndopvar2tensopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/ndopvar2tensopvar.m
+nopvar	PIETOOLS/orphaned_file/private/ndopvar/@nopvar/blkdiag.m PIETOOLS/orphaned_file/private/ndopvar/@nopvar/ctranspose.m
+nopvar2copvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters/operator_converters/nopvar2copvar.m
+nopvar2sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters/operator_converters/nopvar2sopvar.m
+normgen	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/normgen.m
+odegen	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/odegen.m
+odeprobe	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/odeprobe.m
+op2gal	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/op2gal.m
+opcheck	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/opcheck.m
+opcheck_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/private/opcheck_sop.m
+opgram	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/opgram.m
+opnorm_pi	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/opnorm_pi.m
+opvar	PIETOOLS/cleaning/private/opvar/opvar_class/opvar.m
+opvar2d	PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/opvar2d.m
+opvar2d2copvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/converters/operator_converters/opvar2d2copvar.m
+opvar2d2multiplier	PIETOOLS/cleaning/private/opvar/2D/opvar2d2multiplier.m
+opvar2d2opvar	PIETOOLS/cleaning/private/opvar/2D/opvar2d2opvar.m
+opvar2dopvar	PIETOOLS/cleaning/private/opvar/opvar2dopvar.m
+opvar2dopvar2d	PIETOOLS/cleaning/private/opvar/2D/opvar2dopvar2d.m
+opvar2logical	PIETOOLS/cleaning/private/opvar/opvar2logical.m
+opvar2opvar2d	PIETOOLS/cleaning/private/opvar/2D/opvar2opvar2d.m
+opvar_postest	PIETOOLS/cleaning/private/opvar/opvar_postest.m PIETOOLS/orphaned_file/private/opvar_postest.m
+opvar_postest_2d	PIETOOLS/cleaning/private/opvar/2D/opvar_postest_2d.m
+p0_apply	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_apply.m
+p0_classes	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_classes.m
+p0_compare	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_compare.m
+p0_errstr	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_errstr.m
+p0_evalpoly	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_evalpoly.m
+p0_f1	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f1.m
+p0_f2	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m
+p0_f2cmp	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2cmp.m
+p0_f2perm	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2perm.m
+p0_f3	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f3.m
+p0_f4one	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f4one.m
+p0_infonote	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_infonote.m
+p0_path	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_path.m
+p0_probe	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_probe.m
+p0_randpoly	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_randpoly.m
+p0_vars	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_vars.m
+parsePDEParams_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/GUI/parsePDEParams_old.m
+pc_diag2c	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag2c.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diag2c.m
+pc_diag2m	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag2m.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag2m.m
+pc_diag38	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag38.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diag38.m
+pc_diag41	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag41.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag41.m
+pc_diag41b	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag41b.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag41b.m
+pc_diag44	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag44.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag44.m
+pc_diag44e	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag44e.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag44e.m
+pc_diag44f	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag44f.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag44f.m
+pc_diag44g	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_late/pc_diag44g.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diag44g.m
+pc_diag44h	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_late/pc_diag44h.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diag44h.m
+pc_diag44i	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_late/pc_diag44i.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diag44i.m
+pc_diag56	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag56.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diag56.m
+pc_diag56t	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag56t.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diag56t.m
+pc_diag69	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag69.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diag69.m
+pc_diag69m	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag69m.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag69m.m
+pc_diag69s	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_late/pc_diag69s.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diag69s.m
+pc_diag70	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diag70.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diag70.m
+pc_diag70p	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_late/pc_diag70p.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diag70p.m
+pc_diag70s	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_late/pc_diag70s.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diag70s.m
+pc_diagpd	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diagpd.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diagpd.m
+pc_diagrd	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diagrd.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_diagrd.m
+pc_diagsed	PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de_sedumi/pc_diagsed.m
+pc_diagx3	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_diagx3.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_diagx3.m
+pc_fe	PIETOOLS/cleaning/private/problem_cases_1120/results/fe_17d68747/pc_fe.m
+pc_post	PIETOOLS/cleaning/private/problem_cases_1120/results/post_17d68747/pc_post.m
+pc_run	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_run.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_run.m
+pc_sanity	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/pc_sanity.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_sanity.m
+pc_swapfix	PIETOOLS/cleaning/private/stability_form_swap_1121/pc_swapfix.m
+pc_swapfix2	PIETOOLS/cleaning/private/stability_form_swap_1121/pc_swapfix2.m
+pc_swapsurvey	PIETOOLS/cleaning/private/stability_form_swap_1121/pc_swapsurvey.m
+pc_witness	PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/pc_witness.m PIETOOLS/cleaning/private/problem_cases_1120/results/f474e7de/pc_witness.m
+pde_operators_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/pde_operators_sopvar.m
+perdir	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/perdir.m
+periodic_map_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/periodic_map_sopvar.m
+pf_box	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_box.m
+pf_cfg	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_cfg.m
+pf_check_fam	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_check_fam.m
+pf_cone	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_cone.m
+pf_dmax	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_dmax.m
+pf_est48	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_est48.m
+pf_exec	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_exec.m
+pf_exec_m	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_exec_m.m
+pf_exec_row	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_exec_row.m
+pf_fixed	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_fixed.m
+pf_heat	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_heat.m
+pf_hinf	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_hinf.m
+pf_lib	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_lib.m
+pf_pinned	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_pinned.m
+pf_pinned_pde	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_pinned_pde.m
+pf_poinc	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_poinc.m
+pf_pos_sep	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_pos_sep.m
+pf_probe	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_probe.m
+pf_qdirect	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_qdirect.m
+pf_qdirect_pie	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/inhom/pf_qdirect_pie.m
+pf_row_storage	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_row_storage.m
+pf_rows	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_rows.m
+pf_run_c01	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c01.m
+pf_run_c1b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c1b.m
+pf_run_c2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c2.m
+pf_run_c2b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c2b.m
+pf_run_c2c	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c2c.m
+pf_run_c2d	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c2d.m
+pf_run_c2e	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c2e.m
+pf_run_c2f	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c2f.m
+pf_run_c3	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c3.m
+pf_run_c3b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c3b.m
+pf_run_c4	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c4.m
+pf_run_c4b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c4b.m
+pf_run_c5	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c5.m
+pf_run_c5b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c5b.m
+pf_run_c5c	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c5c.m
+pf_run_c6	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c6.m
+pf_run_c6b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c6b.m
+pf_run_c7	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c7.m
+pf_run_c7b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_run_c7b.m
+pf_run_chk	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_chk.m
+pf_run_chk2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_chk2.m
+pf_run_cone	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_cone.m
+pf_run_fixed	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_fixed.m
+pf_run_m1	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m1.m
+pf_run_m10	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m10.m
+pf_run_m2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m2.m
+pf_run_m3	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m3.m
+pf_run_m4	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m4.m
+pf_run_m5	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m5.m
+pf_run_m6	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m6.m
+pf_run_m7	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m7.m
+pf_run_m8	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m8.m
+pf_run_m9	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_m9.m
+pf_run_next	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_next.m
+pf_run_next2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_next2.m
+pf_run_next3	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_next3.m
+pf_run_next4	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_next4.m
+pf_run_p2_fin2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p2_fin2.m
+pf_run_p2_fin2b	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p2_fin2b.m
+pf_run_p2_lib	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p2_lib.m
+pf_run_p2_mixed	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p2_mixed.m
+pf_run_p2_mixed2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p2_mixed2.m
+pf_run_p3_cap	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p3_cap.m
+pf_run_p3_cap2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p3_cap2.m
+pf_run_p3_heavy	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p3_heavy.m
+pf_run_p3_rows0	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_p3_rows0.m
+pf_run_poinc	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_poinc.m
+pf_run_poinc2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_poinc2.m
+pf_run_q	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_q.m
+pf_run_qd	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_qd.m
+pf_run_qd2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_qd2.m
+pf_run_t0	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_t0.m
+pf_run_t1	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_t1.m
+pf_run_t2	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_t2.m
+pf_run_t3	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_run_t3.m
+pf_setup	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_setup.m PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_setup.m
+pf_setup_sol	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/sol/pf_setup_sol.m
+pf_sol_c5c	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/sol/pf_sol_c5c.m
+pf_sol_check	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/sol/pf_sol_check.m
+pf_terms	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/harness/pf_terms.m
+pf_termsets	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_termsets.m
+pf_termsets3	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/pf_termsets3.m
+pgridval	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/pgridval.m
+pi_blk_kernels	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/pi_blk_kernels.m
+pi_dpvar_eval	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/pi_dpvar_eval.m
+pi_gamma_index	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/pi_gamma_index.m
+pi_kernel_pairing	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/pi_kernel_pairing.m
+pi_monom_vector	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/pi_monom_vector.m
+pi_ndopvar_kernels	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/converters/claude/pi_ndopvar_kernels.m
+pi_poly_grid	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/pi_poly_grid.m
+pi_sdopvar_kernels	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/pi_sdopvar_kernels.m
+pie2opvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters/operator_converters/pie2opvar.m
+pie_test_utils	PIETOOLS/testing_codes/private/converters/tests/pie_test_utils.m
+pielr_bench	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench.m
+pielr_bench_cases	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench_cases.m
+pielr_bench_diff	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench_diff.m
+pielr_face_encode	PIETOOLS/orphaned_file/private/pielr_face_encode.m
+piess_opvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters/piess_opvar.m
+plot_scaling	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m
+plus_decparam	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/plus_decparam.m
+plus_decparam_batch	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/plus_decparam_batch.m
+poinc1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/poinc1d.m
+poinc2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/poinc2d.m
+poly_decomp_1D	PIETOOLS/orphaned_file/private/poly_decomp_1D.m
+poly_opvar2d	PIETOOLS/cleaning/private/opvar/2D/poly_opvar2d.m
+polyeval2	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/polyeval2.m
+polyopvar_sosquadvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/polyopvar_sosquadvar.m
+polyopvar_times_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/polyopvar_times_v2.m
+polys2sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/polyopvar/polys2sopvar.m
+poslpivar	PIETOOLS/cleaning/private/lpi_programming/poslpivar.m
+poslpivar_2d	PIETOOLS/cleaning/private/lpi_programming/2D/poslpivar_2d.m
+possopvar	PIETOOLS/orphaned_file/private/possopvar.m
+post_shift	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/post_shift.m
+post_verify	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/post_verify.m
+probe_m	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/probe_m.m
+probe_psatz	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/probe_psatz.m
+psatz1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/psatz1d.m
+psatz2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/psatz2d.m
+psatzdeg	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/psatzdeg.m
+psatzgrid	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/psatzgrid.m
+psz_blocks	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/psz_blocks.m
+psz_reach	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/psz_reach.m
+q_contains_p	PIETOOLS/cleaning/private/settings_rerun_1121/q_contains_p.m
+quad2lin_term_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/quad2lin_term_v2.m
+quad2lin_v2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/LocalStability/quad2lin_v2.m
+randOpvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class/randOpvar.m
+rand_cdopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/rand_cdopvar.m
+rand_copvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/rand_copvar.m
+rand_dpvar	PIETOOLS/testing_codes/private/misc/rand_dpvar.m
+rand_intop	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/rand_intop.m
+rand_ndopvar	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/rand_ndopvar.m
+rand_opvar	PIETOOLS/cleaning/private/opvar/rand_opvar.m
+rand_opvar2d	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/rand_opvar2d.m
+rand_poly	PIETOOLS/testing_codes/private/misc/rand_poly.m
+rand_polyopvar	PIETOOLS/testing_codes/private/PIESOS/Testfolder/polyopvar/rand_polyopvar.m
+rand_sdopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/rand_sdopvar.m PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/rand_sdopvar.m
+rand_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/rand_sopvar.m
+rand_tensopmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopmat/rand_tensopmat.m
+rand_tensopvar	PIETOOLS/testing_codes/private/PIESOS/Testfolder/tensopvar/rand_tensopvar.m
+rand_ties_intmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/rand_ties_intmat.m
+rand_valid_intmat	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/rand_valid_intmat.m
+rd_pie_lam	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/rd_pie_lam.m
+rearrangeCoef_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/retired/rearrangeCoef_old.m
+regen_face	PIETOOLS/orphaned_file/private/regen_face.m
+regress_lpieq	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/regress_lpieq.m
+remove_badints	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/remove_badints.m
+restrict_solve_1d	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/restrict_solve_1d.m
+rightshiftMonomials_AT	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/rightshiftMonomials_AT.m
+rightshiftMonomials_ATv2	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/Testfolder/rightshiftMonomials_ATv2.m
+route_row_exec_tools_sop	PIETOOLS/cleaning/private/settings_1116/psatz_faces_results/mixed_domain/harness/route_row_exec_tools_sop.m
+run_fisher	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/run_fisher.m
+run_regression_1d	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/run_regression_1d.m
+same_val_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/private/same_val_sop.m
+scalar	PIETOOLS/orphaned_file/private/ndopvar/@ndopvar/scalar.m PIETOOLS/orphaned_file/private/ndopvar/@nopvar/scalar.m
+scalar_test	PIETOOLS/orphaned_file/private/ndopvar/Testfolder/ndopvar/scalar_test.m
+sdopvar2dopvar	PIETOOLS/orphaned_file/private/sdopvar2dopvar.m
+sdopvar2ndopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sdopvar_class/sdopvar2ndopvar.m
+sdpshape	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/sdpshape.m
+search2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/search2d.m
+set2d_psatz4	PIETOOLS/orphaned_file/private/set2d_psatz4.m
+settings_PIETOOLS_custom	PIETOOLS/cleaning/private/settings/settings_PIETOOLS_custom.m
+settings_PIETOOLS_custom_2D	PIETOOLS/cleaning/private/settings/2D/settings_PIETOOLS_custom_2D.m
+settings_PIETOOLS_extreme	PIETOOLS/cleaning/private/settings/settings_PIETOOLS_extreme.m
+settings_PIETOOLS_extreme_2D	PIETOOLS/cleaning/private/settings/2D/settings_PIETOOLS_extreme_2D.m
+settings_PIETOOLS_heavy	PIETOOLS/cleaning/private/settings/settings_PIETOOLS_heavy.m
+settings_PIETOOLS_heavy_2D	PIETOOLS/cleaning/private/settings/2D/settings_PIETOOLS_heavy_2D.m
+settings_PIETOOLS_light	PIETOOLS/cleaning/private/settings/settings_PIETOOLS_light.m
+settings_PIETOOLS_light_2D	PIETOOLS/cleaning/private/settings/2D/settings_PIETOOLS_light_2D.m
+settings_PIETOOLS_stripped	PIETOOLS/cleaning/private/settings/settings_PIETOOLS_stripped.m
+settings_PIETOOLS_stripped_2D	PIETOOLS/cleaning/private/settings/2D/settings_PIETOOLS_stripped_2D.m
+settings_PIETOOLS_veryheavy	PIETOOLS/cleaning/private/settings/settings_PIETOOLS_veryheavy.m
+settings_PIETOOLS_veryheavy_2D	PIETOOLS/cleaning/private/settings/2D/settings_PIETOOLS_veryheavy_2D.m
+shapemap1d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/shapemap1d.m
+shapemap2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/shapemap2d.m
+show	PIETOOLS/cleaning/private/opvar/show.m
+slot101	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/slot101.m
+sol55	PIETOOLS/cleaning/private/example_settings_1119/sol55/sol55.m
+sol56	PIETOOLS/cleaning/private/problem_cases_1120/sol_drafts/sol56.m
+sopquadvar	PIETOOLS/orphaned_file/private/sopquadvar.m
+sopvar2nopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/sopvar2nopvar.m
+sopvar2opvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/sopvar_class/sopvar2opvar.m
+sopvar2opvar2d	PIETOOLS/cleaning/private/dead_code/PIETOOLS/testing_codes/private_files/sopvar/Testfolder/sdopvar/sopvar2opvar2d.m
+sopvar_from_kernels	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/private_files/sopvar_from_kernels.m
+sopvar_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class/sopvar_old.m
+sopvar_rows	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/private_files/sopvar_rows.m
+space_layout	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/private_files/space_layout.m
+split_ints	PIETOOLS/testing_codes/private/PIESOS/Testfolder/intop/split_ints.m
+st_d2size	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/st_d2size.m
+st_d2solve	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/st_d2solve.m
+st_merge_tests	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/st_merge_tests.m
+st_patch	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/st_patch.m
+st_run	PIETOOLS/cleaning/private/problem_cases_1120/results/41c9210c/st_run.m PIETOOLS/cleaning/private/problem_cases_1120/results/aad9606c/st_run.m
+stab_mirror	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m
+stability_16	PIETOOLS/orphaned_file/private/stability_16.m
+stability_16_2	PIETOOLS/orphaned_file/private/stability_16_2.m
+stability_1d_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/stability_1d_sop.m
+stability_2d_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/stability_2d_sop.m
+subs_OLD	PIETOOLS/cleaning/private/dead_code/PIETOOLS/ndopvar/quadPoly_class/subs_OLD.m
+subs_dvar_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/misc/subs_dvar_sop.m
+subs_op	PIETOOLS/cleaning/private/opvar/subs_op.m
+subs_vars_op	PIETOOLS/cleaning/private/opvar/subs_vars_op.m
+subsref_obsolete	PIETOOLS/cleaning/private/dead_code/PIETOOLS/opvar/opvar_class/subsref_obsolete.m
+suite_impact	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/suite_impact.m
+syntax_check	PIETOOLS/cleaning/private/release_comment_pass/syntax_check.m
+t0_path	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t0_path.m
+t10_eppos	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t10_eppos.m
+t11_dup2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t11_dup2d.m
+t12_2dfeas	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t12_2dfeas.m
+t13_mosek	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t13_mosek.m
+t14_cvt	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t14_cvt.m
+t1_solvers	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t1_solvers.m
+t1d_bm	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_bm.m
+t1d_build	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_build.m
+t1d_codelines	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_codelines.m
+t1d_corefiles	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_corefiles.m
+t1d_ipm	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_ipm.m
+t1d_ownnames	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_ownnames.m
+t1d_path	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_path.m
+t1d_set	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_set.m
+t1d_subfun	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_subfun.m
+t1d_whichcore	PIETOOLS/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/t1d_whichcore.m
+t2_smoke	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t2_smoke.m
+t3_galerkin	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t3_galerkin.m
+t4_mirror	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t4_mirror.m
+t5_opnorm	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t5_opnorm.m
+t6_sep	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t6_sep.m
+t7_sepdiag	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t7_sepdiag.m
+t8_sepfeas	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t8_sepfeas.m
+t9_sepsplit	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/t9_sepsplit.m
+termCompose	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/termCompose.m
+termCompose_old	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class_private/termCompose_old.m
+test	PIETOOLS/testing_codes/private/PIESOS/polyopvar/quadPoly_class/test/test.m
+test_canonical_multiplier	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m
+test_compose_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/test_compose_sopvar.m
+test_container_method_parity	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_container_method_parity.m
+test_container_plus_batch	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_container_plus_batch.m
+test_convert_PIETOOLS_PDE_periodic	PIETOOLS/testing_codes/private/converters/tests/test_convert_PIETOOLS_PDE_periodic.m
+test_convert_PIETOOLS_PDE_periodic_higher_order	PIETOOLS/testing_codes/private/converters/tests/test_convert_PIETOOLS_PDE_periodic_higher_order.m
+test_convert_PIETOOLS_PDE_static_constraint	PIETOOLS/testing_codes/private/converters/tests/test_convert_PIETOOLS_PDE_static_constraint.m
+test_copquadvar_faces	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/test_copquadvar_faces.m
+test_copvar2opvar2d_order	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_copvar2opvar2d_order.m
+test_copvar_blockops	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_copvar_blockops.m
+test_copvar_kyp	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_copvar_kyp.m
+test_copvar_registry	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_copvar_registry.m
+test_copvar_silent_fixes	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_copvar_silent_fixes.m
+test_dopvar2sdopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_dopvar2sdopvar.m
+test_dpvar2sdvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_dpvar2sdvar.m
+test_dpvar_hinf_chain_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m
+test_dpvar_ops_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m
+test_dpvars2sdvars	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_dpvars2sdvars.m
+test_endtoend_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_endtoend_sop.m
+test_examples_FI_library	PIETOOLS/testing_codes/private/PIETOOLS_examples/test_examples_FI_library.m
+test_executives_sop	PIETOOLS/testing_codes/private/executives_sopvar/tests/test_executives_sop.m
+test_getsol_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m
+test_heatNd_lpi	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_lpi.m
+test_heatNd_pie	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m
+test_heatNd_poincare	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_poincare.m
+test_index_maps	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_index_maps.m
+test_leftshift_monomials_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/Testfolder/test_leftshift_monomials_sopvar.m
+test_lpi_eq_ndopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/ndopvar/Testfolder/ndopvar/claude_tests/test_lpi_eq_ndopvar.m
+test_lpi_eq_ndopvar_endtoend	PIETOOLS/cleaning/private/definitely/PIETOOLS/ndopvar/Testfolder/ndopvar/claude_tests/test_lpi_eq_ndopvar_endtoend.m
+test_lpi_eq_sdopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_lpi_eq_sdopvar.m
+test_lpi_eq_sdopvar_endtoend	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_lpi_eq_sdopvar_endtoend.m
+test_lpi_eq_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m
+test_lpi_ineq_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m
+test_lpi_soseq	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_lpi_soseq.m
+test_lpiprogram_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/tests/test_lpiprogram_sop.m
+test_lpivar_cdopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_lpivar_cdopvar.m
+test_lpivar_cdopvar_stability	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_lpivar_cdopvar_stability.m
+test_mincap_dual	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_mincap_dual.m
+test_mixed_domain_pde	PIETOOLS/testing_codes/private/converters/tests/mixed_domain/test_mixed_domain_pde.m
+test_ndopvar_sdopvar_converters	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/converters/claude/test_ndopvar_sdopvar_converters.m
+test_opvar2copvar_rect	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_opvar2copvar_rect.m
+test_opvar2d2copvar_zero	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_opvar2d2copvar_zero.m
+test_poscopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_poscopvar.m
+test_poscopvar_direct	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_poscopvar_direct.m
+test_poscopvar_lift	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_poscopvar_lift.m
+test_poscopvar_stability	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_poscopvar_stability.m
+test_poscopvar_vs_poslpivar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_poscopvar_vs_poslpivar.m
+test_poscopvar_vs_poslpivar_2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_poscopvar_vs_poslpivar_2d.m
+test_possopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_possopvar.m
+test_possopvar_integration	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_possopvar_integration.m
+test_possopvar_vs_poslpivar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_possopvar_vs_poslpivar.m
+test_script	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sdopvar_class/test_script.m PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/private_files/dead_code/sopvar_class/test_script.m
+test_sdopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/sdopvar/test_sdopvar.m
+test_sdopvar2dopvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_sdopvar2dopvar.m
+test_sdopvar_tier2	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_sdopvar_tier2.m
+test_sdvar2dpvar	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_sdvar2dpvar.m
+test_settings_prog_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m
+test_sopquadvar_faces	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_sopquadvar_faces.m
+test_sopvar2nopvar_guard	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_sopvar2nopvar_guard.m
+test_sopvar_AT_bug	PIETOOLS/cleaning/private/dead_code/PIETOOLS/sopvar/Testfolder/sdopvar/test_sopvar_AT_bug.m
+test_sopvar_kron	PIETOOLS/testing_codes/private/sopvar/Testfolder/test_sopvar_kron.m
+test_sopvar_mtimes_ctranspose	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_sopvar_mtimes_ctranspose.m
+test_space_parser	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_space_parser.m
+test_subs_sopvar	PIETOOLS/testing_codes/private/sopvar/Testfolder/test_subs_sopvar.m
+test_tier1_fixes_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_tier1_fixes_sop.m
+test_translators_sop	PIETOOLS/testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m
+tmap_separable_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/tmap_separable_sopvar.m
+tmap_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/tmap_sopvar.m
+trace_sopvar	PIETOOLS/cleaning/private/dead_code/PIETOOLS/converters_sopvar/private_files/trace_sopvar.m
+transfer2d	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/transfer2d.m
+transfer_function_test	PIETOOLS/testing_codes/private/PIESOS/polyopvar/quadPoly_class/test/transfer_function_test.m
+transl	PIETOOLS/cleaning/private/opvar/dopvar_class/transl.m PIETOOLS/cleaning/private/opvar/opvar_class/transl.m
+twosided_export	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/twosided_export.m
+val_post	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/val_post.m
+vda_B	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m
+vda_E	PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m
+verify_final	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/verify_final.m
+verify_patch	PIETOOLS/cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/verify_patch.m
+vertcat_legacy	PIETOOLS/cleaning/private/opvar/2D/dopvar2d_class/vertcat_legacy.m PIETOOLS/cleaning/private/opvar/2D/opvar2d_class/vertcat_legacy.m
+volterra_norm_sop	PIETOOLS/cleaning/private/dead_code/PIETOOLS/lpi_programming_sopvar/examples/volterra_norm_sop.m
+volterra_tailor	PIETOOLS/cleaning/private/definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/slack_sizing/volterra_tailor.m
