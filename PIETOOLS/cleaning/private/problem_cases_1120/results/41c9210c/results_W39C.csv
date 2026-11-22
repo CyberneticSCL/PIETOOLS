@@ -1,0 +1,2 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:39,P,A,light,"st.settings_2d = settings_2d_stock('heavy'); st.lpi.ineq.dD = 0",certified,1.015,0,0,0,335601,10572,60.7,"",optimal,4.39e-08

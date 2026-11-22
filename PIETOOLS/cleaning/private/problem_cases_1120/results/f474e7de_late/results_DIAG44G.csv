@@ -1,0 +1,13 @@
+variant,mu,status,fr,numerr,exst,eta,ndec,m,sec,maxre
+44min,0.45,certified,0.9964,0,optimal,3.36e-11,2520,286,1.8,2.12178
+riemann,0.45,certified,1.002,0,optimal,7.68e-10,2520,258,0.7,-0.228291
+44min,0.48,certified,0.9949,0,optimal,9.98e-11,2520,286,0.6,2.10543
+riemann,0.48,certified,1.002,0,optimal,7.31e-10,2520,258,0.6,-0.193584
+44min,0.49,certified,0.999,0,optimal,1.99e-10,2520,286,0.6,2.09998
+riemann,0.49,certified,0.9994,0,optimal,1.81e-11,2520,258,0.5,-0.182302
+44min,0.55,infeasible,-1,0,infeasible,1,9000,470,1.8,4.23843
+riemann,0.55,infeasible,-1,0,infeasible,1,9000,459,1.7,-0.117175
+44min,0.6,infeasible,-1,0,infeasible,1,9000,470,1.7,8.3979
+riemann,0.6,infeasible,-1,0,infeasible,1,9000,459,1.5,-0.0656841
+x3min,0.45,certified,0.9993,0,optimal,6.77e-10,9000,280,1.0,NaN
+x3min,0.55,infeasible,-1,0,infeasible,1,17748,362,1.1,NaN

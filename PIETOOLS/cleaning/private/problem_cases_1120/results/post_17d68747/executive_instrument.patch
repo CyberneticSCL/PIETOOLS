@@ -1,0 +1,24 @@
+diff --git a/PIETOOLS/executives_sopvar/PIETOOLS_H2_norm_sop.m b/PIETOOLS/executives_sopvar/PIETOOLS_H2_norm_sop.m
+index 158656fd..0664b352 100644
+--- a/PIETOOLS/executives_sopvar/PIETOOLS_H2_norm_sop.m
++++ b/PIETOOLS/executives_sopvar/PIETOOLS_H2_norm_sop.m
+@@ -167,6 +167,7 @@ end
+ info = exec_info_sop(prog,aux,st,label);
+ info.form = form;   info.gam = gam;  info.gam_lpi = gam_lpi;    info.nv = nv;
+ info.W = W;     info.R = R;     info.Q = Q;
++info.aux = aux;     % wt1121v instrument (a posteriori check): the internals of the last pass
+ 
+ % Numerical witness (1-D): the H2 norm of the discretized PIE
+ info.witness = [];  info.h2_num = NaN;  info.gap = NaN;
+diff --git a/PIETOOLS/executives_sopvar/PIETOOLS_stability_sop.m b/PIETOOLS/executives_sopvar/PIETOOLS_stability_sop.m
+index 29c2620a..b0b191ff 100644
+--- a/PIETOOLS/executives_sopvar/PIETOOLS_stability_sop.m
++++ b/PIETOOLS/executives_sopvar/PIETOOLS_stability_sop.m
+@@ -200,6 +200,7 @@ end
+ info = exec_info_sop(prog,aux,st,label);
+ info.form = form;   info.epneg = epneg;     info.eppos = eppos;     info.nv = nv;
+ info.storage = Psol;    info.D = aux.Dm;    info.N = aux.Nm;
++info.aux = aux;     % wt1121v instrument (a posteriori check): the internals of the last pass
+ 
+ % Numerical witness (1-D): the spectrum of the discretized pencil (A,T)
+ info.witness = [];  info.maxre = NaN;

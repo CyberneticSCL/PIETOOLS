@@ -1,0 +1,2 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+69mix2,Q,"st.lpi.ineq.dD = 0; st.sos_opts.solver = 'sedumi'",error: LB_SIZE ndv=1926185 m=45866 above the gate (ndv 2e+06; m 45000): not solved,NaN,NaN,,NaN,NaN,NaN,NaN

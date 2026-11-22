@@ -1,0 +1,11 @@
+key,kind,form,tier,mods,best
+PDE:9/stability_dual,stab,Pd,light,"examplest",1
+PDE:8/stability_dual,stab,Qd,light,"examplest",1
+PDE:9,bisect,P,light,"examplest",-0.00024414062
+PDE:28,value,Q,light,"examplest",1.0000321
+PDE:22,value,P,light,"examplest",0.20833335
+PDE:15,stab,Qd,light,"examplest",1
+PDE:27,value,Q,light,"examplest",1.000016
+PDE:21/Hinf_gain_dual,value,Pd,light,"examplest",0.84187724
+PDE:13.2,stab,P,light,"examplest",1
+PDE:13.2/stability_dual,stab,Pd,light,"examplest",1

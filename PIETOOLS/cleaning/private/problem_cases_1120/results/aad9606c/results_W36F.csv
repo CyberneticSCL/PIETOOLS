@@ -1,0 +1,12 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 2e-3",unknown,1.896,0,0,0,52880,5643,7.9,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 5e-3",unknown,1.851,0,0,0,52880,5643,5.9,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-2",unknown,0.3581,0,0,0,52880,5643,6.1,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 3e-2",unknown,1.648,0,0,0,380880,10827,34.5,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-1",certified,0.9648,0,0,0,380880,10827,53.0,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.eppos = 1e-2",unknown,1.683,0,0,0,52880,5643,5.1,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.sop.deg_Q{2} = [1 1 1]",certified,1.098,0,0,0,52880,5643,4.7,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.lpi.ineq.psatz{2} = 'none'",unknown,0.5074,0,0,0,42384,5643,5.9,""
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.lpi.ineq.cap_inc = 'auto'",certified,1.098,0,0,0,52880,5643,6.1,""
+PDE:36,Q,A,stripped,"st.lpi.ineq.dD = 0; st.epneg = 1e-3",certified,1.098,0,0,0,52880,5643,6.4,""
+PDE:36,Q,A,light,"st.epneg = 1e-3",unknown,1.588,0,0,0,1775200,25947,518.2,""

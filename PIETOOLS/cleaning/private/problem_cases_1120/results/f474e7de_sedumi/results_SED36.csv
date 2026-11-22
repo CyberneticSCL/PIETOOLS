@@ -1,0 +1,2 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.sos_opts.solver = 'sedumi'",inaccurate,0.765,0,0,2,380880,10827,244.7,"",unknown,3.01e-05

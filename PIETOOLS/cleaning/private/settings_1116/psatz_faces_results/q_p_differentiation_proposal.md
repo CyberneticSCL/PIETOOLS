@@ -63,3 +63,5 @@ Differentiations proposed beyond the degree entries:
 3. heavy at [5 3 3] and veryheavy at [7 7 7] on the 1-D rows: cost against today's values.
 4. The 2-D fallback on PDE 36, 38, 39 light: 'Q' then 'P' (settings_2d_stock(light) or the
    row) and the cost of the second solve.
+
+- Correction 11/21/2026 (cleaning/private/stability_form_swap_1121/AUDIT.md): on C:/wt1117 (33d30877) PIETOOLS_stability_sop solved form 'P' for a 'Q' request on a PIE in two or more variables, so the HEAD side of D91 and D93 and "the storage form of HEAD" for PDE 39 (933,696 variables) are 'P' results; the comparisons are direct 'Q' against 'P'. History above left as written.

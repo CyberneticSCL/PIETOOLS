@@ -1,0 +1,4 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:55,P,A,stripped,"st.lpi.ineq.cap_inc = [2 2 2]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=7340048 m=105717 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:55,P,A,stripped,"st.lpi.ineq.cap_inc = [3 3 3]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=7340048 m=105717 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:55,P,A,stripped,"st.lpi.ineq.cap_inc = [4 4 4]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=7340048 m=105717 above the gate (ndv 2e+06; m 45000): not solved",,NaN

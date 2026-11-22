@@ -1,0 +1,61 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN W2D 20-Nov-2026 12:15:20
+## lpisettings_sop: C:\wt1120\PIETOOLS\settings_sopvar\lpisettings_sop.m
+
+##### PDE:70 Q A  [light st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2; st.lpi.ineq.cap_inc = 'auto']  20-Nov-2026 12:15:22
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+[Warning: A copvar has no field 'dim'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future versions.] 
+[> In indexing (line 121)
+In indexing (line 59)
+In lb_build_system (line 70)
+In diag_amt (line 71)
+In pc_run (line 120)] 
+
+S = 
+
+  struct with fields:
+
+         lpi: [11 struct]
+         sop: [11 struct]
+       eppos: 1.0000e-04
+       epneg: 0
+    sos_opts: [11 struct]
+
+ - lpi_ineq_sop: 857232 decision variables in the certificate (Gram blocks [684 312 312 312 312], sized from the operator); 859584 in the program.
+ - lpi_ineq_sop: 1156201 decision variables in the certificate (Gram blocks [795 362 362 362 362], sized from the operator); 2015785 in the program.
+Size: 2015785    35390
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+ERROR: MATLAB error Exit Status: 0xffffffff

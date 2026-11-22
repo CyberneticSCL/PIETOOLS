@@ -1,0 +1,3 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+69mix2,Q,"st.lpi.ineq.dD = 0",certified,0.7223,0,optimal,4.27e-08,267060,23714,101.9
+69mix2,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",unknown,10.71,0,optimal,7.47e-08,266756,23501,107.3

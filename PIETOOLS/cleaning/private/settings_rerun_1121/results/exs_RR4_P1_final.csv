@@ -1,0 +1,14 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+PDE:36,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.lpi.ineq.psatz{2} = 'none'; st.sop.deg_Q{2} = [0 1 1];",52880,5643,42308,5607,29,"converged",post,NaN,NaN
+PDE:39,P,light,"st.lpi.ineq.dD = 0; st.settings_2d = <struct>;",334656,10129,334656,10129,40,"build budget",direct,334656,10129
+PDE:50,oco,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:50/H2_norm_dual,cco,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:53,P,light,"st.lpi.pos.len_sos{3} = [0 1 1;2 2 2;0 0 0]; st.lpi.ineq.dD = 0;",911425,41951,584704,40237,26,"row time",direct,584704,40237
+PDE:54,P,light,"st.lpi.pos.len_com{3} = [0 1 1]; st.lpi.pos.len_sos{3} = [1 1 1;1 1 1;0 0 0]; st.lpi.pos.patterns{2} = 'uniform'; st.lpi.ineq.wmin = 0; st.sop.dw_P = 1; st.sop.max_raise_feas = [1 1 0]; st.sop.max_raise = 0; st.sop.deg_Q{1} = [2 2 2]; st.sop.max_raise_Q = [1 1 0]; st.sop.keepdual = false; st.sop.witness = false; st.sos_opts.solver = '';",1835012,26429,1835009,26428,40,"build budget",direct,1835009,26428
+PDE:55,P,light,"",NaN,NaN,NaN,NaN,2,"no start certified",,NaN,NaN
+PDE:56,Q,light,"",NaN,NaN,NaN,NaN,2,"no start certified",,NaN,NaN
+PDE:57,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [1 1 1]; st.sos_opts.solver = '';",23121,2344,19840,1912,40,"build budget",direct,19840,1912
+PDE:62,P,light,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{2} = [1 1;1 2;0 0]; st.sos_opts.solver = '';",83269,2496,83269,2496,40,"build budget",direct,83269,2496
+PDE:63,Q,light,"st.lpi.ineq.cap_inc = 'auto'; st.sos_opts.solver = '';",149054,4490,149054,4490,40,"build budget",direct,149054,4490
+PDE:65,P,light,"st.sop.dw_feas = [0 0 1]; st.sos_opts.solver = ''; st.settings_2d = <struct>;",1635656,18182,250280,9162,40,"build budget",direct,250280,9162
+PDE:72,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.sop.deg_Q{2} = 2; st.sos_opts.solver = '';",256948,6314,256948,6314,38,"converged",direct,256948,6314

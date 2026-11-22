@@ -1,0 +1,24 @@
+key,kind,form,tier,mods,best
+PDE:36,stab,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",1
+PDE:36,stab,Q,light,"examplest",1
+PDE:39,stab,Q,light,"",1
+PDE:39,stab,P,light,"st.settings_2d = settings_2d_stock('light'); st.lpi.ineq.dD = 0",1
+PDE:39,stab,Q,light,"examplest",1
+PDE:50,value,oco,light,"examplest",1
+PDE:50/H2_norm_dual,value,cco,light,"examplest",1
+PDE:53,stab,P,light,"",1
+PDE:53,stab,P,heavy,"",1
+PDE:53,stab,P,light,"examplest",1
+PDE:54,stab,P,light,"",1
+PDE:54,stab,P,heavy,"",1
+PDE:54,stab,P,light,"examplest",1
+PDE:55,stab,P,light,"",1
+PDE:55,stab,P,heavy,"",1
+PDE:55,stab,P,light,"examplest",1
+PDE:56,stab,Q,light,"st.lpi.ineq.dD = 0",1
+PDE:56,stab,Q,light,"examplest",1
+PDE:57,stab,Q,light,"examplest",1
+PDE:62,stab,P,light,"examplest",1
+PDE:63,stab,Q,light,"examplest",1
+PDE:65,stab,P,light,"examplest",1
+PDE:72,stab,Q,light,"examplest",1

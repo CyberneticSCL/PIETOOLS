@@ -1,0 +1,2320 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_swapfix2 (line 14)] 
+## PC_SWAPFIX2 g2 21-Nov-2026 01:58:07
+## C:\wt1121u\PIETOOLS\executives_sopvar\PIETOOLS_Hinf_gain_sop.m
+## C:\wt1121u\PIETOOLS\executives_sopvar\PIETOOLS_H2_norm_sop.m
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (2) in variables (s);
+
+Encountered 1 exogenous input: 
+ w(t),    of size 1;
+
+Encountered 1 regulated output: 
+ z(t),    of size 1;
+
+Encountered 2 boundary conditions: 
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--           x() d
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+The PIE state must satisfy PIE.K*xf = 0.
+The states are defined by PIE.pde2pie.x.C.
+
+ --- Conversion to PIE was successful --- 
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (2) in variables (s);
+
+Encountered 1 exogenous input: 
+ w(t),    of size 1;
+
+Encountered 1 regulated output: 
+ z(t),    of size 1;
+
+Encountered 2 boundary conditions: 
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (2) in variables (s);
+
+Encountered 1 exogenous input: 
+ w(t),    of size 1;
+
+Encountered 1 regulated output: 
+ z(t),    of size 1;
+
+Encountered 2 boundary conditions: 
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+Encountered 1 state component: 
+ x(t,s1,s2),    of size 1, differentiable up to order (2,2) in variables (s1,s2);
+
+Encountered 1 exogenous input: 
+ w(t),    of size 1;
+
+Encountered 1 regulated output: 
+ z(t),    of size 1;
+
+Encountered 4 boundary conditions: 
+ F(t,s2) = 0,   of size 1;
+ F(t,s2) = 0,   of size 1;
+ F(t,s1) = 0,   of size 1;
+ F(t,s1) = 0,   of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+##### SWAP2 periodic PIETOOLS_Hinf_gain Qd  21-Nov-2026 01:58:11
+##### SWAP2 periodic PIETOOLS_Hinf_gain Qd: error gam NaN ndec NaN m NaN; warning [] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which the dual form 'Qd' has no term; use 'Q' or 'P'.
+
+##### SWAP2 periodic PIETOOLS_Hinf_gain Pd  21-Nov-2026 01:58:11
+##### SWAP2 periodic PIETOOLS_Hinf_gain Pd: error gam NaN ndec NaN m NaN; warning [] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which the dual form 'Pd' has no term; use 'Q' or 'P'.
+
+##### SWAP2 periodic PIETOOLS_H2_norm_c c  21-Nov-2026 01:58:11
+##### SWAP2 periodic PIETOOLS_H2_norm_c c: error gam NaN ndec NaN m NaN; warning [] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which form 'c' has no term; use 'o' or 'oco'.
+
+##### SWAP2 periodic PIETOOLS_H2_norm_c cco  21-Nov-2026 01:58:11
+##### SWAP2 periodic PIETOOLS_H2_norm_c cco: error gam NaN ndec NaN m NaN; warning [] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which form 'cco' has no term; use 'o' or 'oco'.
+
+##### SWAP2 boundary PIETOOLS_Hinf_gain Q  21-Nov-2026 01:58:11
+##### SWAP2 boundary PIETOOLS_Hinf_gain Q: error gam NaN ndec NaN m NaN; warning [] ERROR PIE.Tw is nonzero (a disturbance at the boundary), for which form 'Q' has no term; use 'P'.
+
+##### SWAP2 heat2d PIETOOLS_Hinf_gain Qd  21-Nov-2026 01:58:11
+ - lpi_ineq_sop: 47636 decision variables in the certificate (Gram blocks [194 50 50 50 50], sized from opts.like); 48343 in the program.
+Size: 48344   2025
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 2025            
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 82              
+  Matrix variables       : 7 (scalarized: 24341)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 1715            
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 4                 conic                  : 3               
+Optimizer  - Semi-definite variables: 6                 scalarized             : 24340           
+Factor     - setup time             : 0.10            
+Factor     - dense det. time        : 0.04              GP order time          : 0.00            
+Factor     - nonzeros before factor : 1.40e+06          after factor           : 1.40e+06        
+Factor     - dense dim.             : 0                 flops                  : 3.62e+09        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   3.8e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.12  
+1   8.4e-01  2.2e-01  1.3e-01  1.60e+00   8.173055355e-01   9.885226122e-01   2.2e-01  0.25  
+2   1.6e-01  4.4e-02  3.0e-02  8.81e-02   2.527362057e+00   2.892099157e+00   4.4e-02  0.32  
+3   3.4e-02  8.9e-03  6.8e-03  -1.16e-01  5.078010594e+00   5.609496538e+00   8.9e-03  0.39  
+4   4.5e-03  1.2e-03  1.2e-03  -2.55e-01  1.109736969e+01   1.205708841e+01   1.2e-03  0.47  
+5   8.8e-04  2.3e-04  3.3e-04  -4.88e-01  2.198421715e+01   2.398839125e+01   2.3e-04  0.54  
+6   1.1e-04  3.0e-05  5.0e-05  -2.47e-01  4.288158632e+01   4.570481787e+01   3.0e-05  0.62  
+7   1.4e-05  3.8e-06  9.8e-06  -3.48e-01  8.230381706e+01   8.880899513e+01   3.8e-06  0.69  
+8   2.2e-06  5.9e-07  2.1e-06  -3.83e-01  1.521474230e+02   1.653337213e+02   5.9e-07  0.77  
+9   3.5e-07  9.4e-08  4.5e-07  -3.49e-01  2.805056482e+02   3.037771525e+02   9.4e-08  0.85  
+10  6.5e-08  1.7e-08  1.1e-07  -3.43e-01  4.987471859e+02   5.396983533e+02   1.7e-08  0.92  
+11  4.6e-08  3.5e-09  2.9e-08  -3.43e-01  8.649075456e+02   9.345607494e+02   3.5e-09  0.99  
+12  1.0e-08  7.5e-10  7.8e-09  -3.35e-01  1.487542377e+03   1.600889212e+03   7.4e-10  1.06  
+13  2.4e-09  2.0e-10  2.4e-09  -3.47e-01  2.494986738e+03   2.686974122e+03   1.7e-10  1.13  
+14  5.6e-10  5.1e-11  7.2e-10  -3.44e-01  4.045875078e+03   4.363594432e+03   4.1e-11  1.20  
+15  6.6e-11  4.4e-11  1.1e-10  -3.38e-01  7.576686183e+03   8.143621986e+03   4.7e-12  1.27  
+16  1.0e-11  5.2e-11  2.2e-11  -3.39e-01  1.360553385e+04   1.454383193e+04   7.3e-13  1.34  
+17  3.0e-12  2.7e-11  8.6e-12  -3.46e-01  2.138297703e+04   2.299338521e+04   2.1e-13  1.43  
+18  1.5e-12  1.0e-11  4.8e-12  -2.83e-01  2.809696869e+04   3.013840896e+04   1.1e-13  1.50  
+19  5.9e-13  1.8e-11  2.2e-12  -2.73e-01  3.952371450e+04   4.223990354e+04   4.2e-14  1.58  
+20  2.9e-13  3.0e-11  1.2e-12  -3.07e-01  5.131027081e+04   5.488759166e+04   2.1e-14  1.66  
+21  9.7e-14  9.1e-12  4.9e-13  -2.79e-01  7.655916583e+04   8.144344015e+04   7.0e-15  1.74  
+22  2.9e-14  1.8e-11  1.8e-13  -2.65e-01  1.178608787e+05   1.250150343e+05   2.1e-15  1.82  
+23  8.9e-15  2.2e-11  7.1e-14  -3.12e-01  1.849515287e+05   1.977969649e+05   6.3e-16  1.89  
+24  8.9e-15  2.2e-11  7.1e-14  -3.12e-01  1.849515287e+05   1.977969649e+05   6.3e-16  2.27  
+Optimizer terminated. Time: 2.41    
+
+
+Interior-point solution summary
+  Problem status  : UNKNOWN
+  Solution status : UNKNOWN
+  Primal.  obj: 1.8495152870e+05    nrm: 2e+05    Viol.  con: 5e-05    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 1.9779696487e+05    nrm: 4e+10    Viol.  con: 0e+00    var: 8e-06    barvar: 5e-02  
+Optimizer summary
+  Optimizer                 -                        time: 2.41    
+    Interior-point          - iterations : 25        time: 2.41    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 0.00013727
+ 
+       cpusec: 2.4104
+         iter: 25
+    feasratio: -0.3123
+         dinf: 0
+         pinf: 0
+       numerr: 2
+       relres: 1.3727e-04
+          eta: 5.6081e-11
+
+  [Hinf_gain_sop Qd] dw 0: unknown (divergent), residual 1.4e-04, eta 5.6e-11, objective 184951.53, 48343 decision variables, 2025 rows, build 1.6 s, solve 2.5 s
+ - lpi_ineq_sop: 338900 decision variables in the certificate (Gram blocks [434 194 194 194 194], sized from opts.like); 339607 in the program.
+Size: 339608    3848
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 3848            
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 82              
+  Matrix variables       : 7 (scalarized: 170381)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 3549            
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 4                 conic                  : 3               
+Optimizer  - Semi-definite variables: 6                 scalarized             : 170380          
+Factor     - setup time             : 0.56            
+Factor     - dense det. time        : 0.19              GP order time          : 0.00            
+Factor     - nonzeros before factor : 6.15e+06          after factor           : 6.15e+06        
+Factor     - dense dim.             : 0                 flops                  : 6.70e+10        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   5.9e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.73  
+1   1.6e+00  2.7e-01  1.6e-01  1.77e+00   6.420080679e-01   7.983908285e-01   2.7e-01  1.55  
+2   3.9e-01  6.7e-02  4.3e-02  1.31e-01   2.008573779e+00   2.313848324e+00   6.7e-02  2.01  
+3   7.5e-02  1.3e-02  8.5e-03  -1.29e-02  4.034162401e+00   4.429223443e+00   1.3e-02  2.48  
+4   1.3e-02  2.2e-03  1.9e-03  -2.47e-01  7.921079477e+00   8.619502882e+00   2.2e-03  2.99  
+5   3.2e-03  5.3e-04  5.8e-04  -3.24e-01  1.362554969e+01   1.478438119e+01   5.3e-04  3.47  
+6   4.6e-04  7.8e-05  1.1e-04  -3.46e-01  2.897104636e+01   3.113367813e+01   7.8e-05  3.95  
+7   1.0e-04  1.7e-05  3.5e-05  -4.27e-01  4.912911649e+01   5.324999605e+01   1.7e-05  4.41  
+8   1.2e-05  2.0e-06  5.0e-06  -2.94e-01  9.867383276e+01   1.051835594e+02   2.0e-06  5.19  
+9   1.6e-06  2.7e-07  1.1e-06  -4.32e-01  1.923740316e+02   2.085193438e+02   2.8e-07  5.67  
+10  2.1e-07  3.4e-08  1.6e-07  -2.42e-01  3.481711968e+02   3.704741258e+02   3.9e-08  6.14  
+11  3.3e-08  3.8e-09  2.4e-08  -3.25e-01  6.535701677e+02   6.972774123e+02   4.1e-09  6.94  
+12  5.6e-09  6.6e-10  4.7e-09  -3.82e-01  1.252180703e+03   1.340250390e+03   5.8e-10  7.39  
+13  2.8e-09  6.2e-10  1.1e-09  -3.92e-01  2.275299393e+03   2.447341709e+03   9.5e-11  7.85  
+14  1.4e-09  2.2e-09  2.0e-10  -3.14e-01  4.057352805e+03   4.329812502e+03   1.4e-11  8.34  
+15  8.2e-10  3.8e-09  4.9e-11  -3.37e-01  7.208215609e+03   7.701787801e+03   2.5e-12  8.80  
+16  4.9e-10  6.2e-09  1.2e-11  -3.09e-01  1.201147647e+04   1.279979505e+04   5.0e-13  9.27  
+17  2.8e-10  1.8e-08  2.4e-12  -3.22e-01  2.247471680e+04   2.387207587e+04   7.6e-14  9.75  
+18  1.5e-10  4.2e-08  4.6e-13  -3.27e-01  4.329794031e+04   4.585028981e+04   1.1e-14  10.22 
+19  3.7e-11  3.7e-08  1.5e-13  -3.41e-01  7.150427105e+04   7.606258709e+04   2.6e-15  10.86 
+20  3.7e-11  3.7e-08  1.5e-13  -3.41e-01  7.150427105e+04   7.606258709e+04   2.6e-15  12.38 
+Optimizer terminated. Time: 13.29   
+
+
+Interior-point solution summary
+  Problem status  : UNKNOWN
+  Solution status : UNKNOWN
+  Primal.  obj: 7.1504271048e+04    nrm: 7e+04    Viol.  con: 9e-03    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 7.6062587088e+04    nrm: 2e+10    Viol.  con: 0e+00    var: 2e-06    barvar: 2e+01  
+Optimizer summary
+  Optimizer                 -                        time: 13.29   
+    Interior-point          - iterations : 21        time: 13.29   
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 0.017257
+ 
+       cpusec: 13.2930
+         iter: 21
+    feasratio: -0.3415
+         dinf: 0
+         pinf: 0
+       numerr: 2
+       relres: 0.0173
+          eta: 7.5536e-08
+
+  [Hinf_gain_sop Qd] dw 1: unknown (divergent), residual 1.7e-02, eta 7.6e-08, objective 71504.271, 339607 decision variables, 3848 rows, build 1.3 s, solve 13.5 s
+  [Hinf_gain_sop Qd] unknown: gamma 71504.271 (certified upper bound: 0); numerical lower bound NaN at omega NaN; gap NaN; dual alignment NaN
+##### SWAP2 heat2d PIETOOLS_Hinf_gain Qd: unknown gam 71504.271 ndec 339607 m 3848; warning [] 
+
+##### SWAP2 dirichlet PIETOOLS_Hinf_gain Q  21-Nov-2026 01:58:30
+ - lpi_ineq_sop: 785 decision variables in the certificate (Gram blocks [23 16], sized from opts.like); 929 in the program.
+Size: 930  146
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 146             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 44              
+  Matrix variables       : 4 (scalarized: 468)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 1
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 96              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 17                conic                  : 16              
+Optimizer  - Semi-definite variables: 3                 scalarized             : 467             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 3186              after factor           : 3188            
+Factor     - dense dim.             : 0                 flops                  : 5.00e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   1.8e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   4.3e-01  2.4e-01  7.5e-02  1.42e+00   2.660637907e-01   1.767346140e-01   2.4e-01  0.03  
+2   1.3e-01  7.3e-02  1.0e-02  1.67e+00   1.309618920e-01   1.102077835e-01   7.3e-02  0.03  
+3   3.5e-02  2.0e-02  1.4e-03  1.36e+00   1.147589508e-01   1.103249572e-01   2.0e-02  0.03  
+4   6.2e-03  3.6e-03  1.1e-04  1.10e+00   1.121499474e-01   1.114120856e-01   3.6e-03  0.03  
+5   2.0e-03  1.1e-03  2.2e-05  8.63e-01   1.119659128e-01   1.117601827e-01   1.1e-03  0.03  
+6   8.0e-04  4.6e-04  7.4e-06  5.28e-01   1.100603816e-01   1.100053737e-01   4.6e-04  0.03  
+7   2.3e-04  1.3e-04  1.4e-06  6.61e-01   1.087415942e-01   1.087390840e-01   1.3e-04  0.03  
+8   9.3e-05  5.3e-05  4.0e-07  7.28e-01   1.080245637e-01   1.080282967e-01   5.3e-05  0.03  
+9   4.0e-05  2.3e-05  1.2e-07  8.96e-01   1.076861595e-01   1.076884296e-01   2.3e-05  0.03  
+10  2.5e-05  1.4e-05  6.8e-08  6.14e-01   1.075222821e-01   1.075271617e-01   1.4e-05  0.03  
+11  6.9e-06  4.0e-06  1.1e-08  8.66e-01   1.073253980e-01   1.073270932e-01   4.0e-06  0.03  
+12  2.5e-06  1.4e-06  2.8e-09  6.73e-01   1.072313876e-01   1.072330976e-01   1.4e-06  0.03  
+13  7.8e-07  4.5e-07  5.6e-10  8.35e-01   1.071885901e-01   1.071893478e-01   4.5e-07  0.03  
+14  3.0e-07  1.7e-07  1.6e-10  7.03e-01   1.071671889e-01   1.071677143e-01   1.7e-07  0.03  
+15  8.8e-08  5.0e-08  2.9e-11  8.44e-01   1.071568426e-01   1.071570466e-01   5.0e-08  0.03  
+16  4.0e-08  2.2e-08  9.9e-12  7.43e-01   1.071527336e-01   1.071528654e-01   2.2e-08  0.03  
+17  1.2e-08  6.7e-09  1.7e-12  8.93e-01   1.071504569e-01   1.071505020e-01   6.7e-09  0.03  
+18  7.3e-09  2.9e-09  5.5e-13  8.01e-01   1.071495856e-01   1.071496125e-01   2.9e-09  0.04  
+19  2.6e-09  3.1e-09  9.4e-14  9.30e-01   1.071491594e-01   1.071491683e-01   8.6e-10  0.04  
+Optimizer terminated. Time: 0.04    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 1.0714915943e-01    nrm: 2e+01    Viol.  con: 2e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 1.0714916828e-01    nrm: 2e+01    Viol.  con: 0e+00    var: 3e-09    barvar: 1e-08  
+Optimizer summary
+  Optimizer                 -                        time: 0.04    
+    Interior-point          - iterations : 19        time: 0.04    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 3.4702e-08
+ 
+       cpusec: 0.0362
+         iter: 19
+    feasratio: 0.9300
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 3.4702e-08
+          eta: 1.9526e-10
+
+  [Hinf_gain_sop Q] dw 0: optimal, residual 3.5e-08, eta 2.0e-10, objective 0.075765897, 929 decision variables, 146 rows, build 0.6 s, solve 0.0 s
+  [Hinf_gain_sop Q] optimal: gamma 0.075765897 (certified upper bound: 1); numerical lower bound 0.075765685 at omega 1.738e-07; gap 2.79e-06; dual alignment 1.000
+##### SWAP2 dirichlet PIETOOLS_Hinf_gain Q: certified gam 0.075765897 ndec 929 m 146; warning [] 
+
+##### SWAP2 dirichlet PIETOOLS_Hinf_gain Qd  21-Nov-2026 01:58:31
+ - lpi_ineq_sop: 785 decision variables in the certificate (Gram blocks [23 16], sized from opts.like); 929 in the program.
+Size: 930  148
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 148             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 44              
+  Matrix variables       : 4 (scalarized: 468)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 1
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 96              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 17                conic                  : 16              
+Optimizer  - Semi-definite variables: 3                 scalarized             : 467             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 3240              after factor           : 3242            
+Factor     - dense dim.             : 0                 flops                  : 5.05e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.0e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   6.1e-01  3.0e-01  2.4e-01  6.52e-01   6.812362533e-01   8.800444856e-01   3.0e-01  0.00  
+2   1.2e-01  5.9e-02  1.6e-02  1.13e+00   4.752485089e-01   4.740604440e-01   5.9e-02  0.00  
+3   2.6e-02  1.3e-02  2.1e-03  7.35e-01   2.968012914e-01   3.049150076e-01   1.3e-02  0.00  
+4   6.6e-03  3.3e-03  4.0e-04  5.32e-01   1.953466950e-01   2.035377805e-01   3.3e-03  0.00  
+5   2.2e-03  1.1e-03  9.9e-05  5.94e-01   1.552769588e-01   1.607782624e-01   1.1e-03  0.01  
+6   5.5e-04  2.7e-04  2.1e-05  3.72e-01   1.136670820e-01   1.181932950e-01   2.7e-04  0.01  
+7   1.7e-04  8.6e-05  4.3e-06  7.03e-01   1.009803601e-01   1.030271949e-01   8.6e-05  0.01  
+8   8.0e-05  4.0e-05  1.9e-06  4.13e-01   9.163406438e-02   9.349502558e-02   4.0e-05  0.01  
+9   1.9e-05  9.3e-06  2.3e-07  7.64e-01   8.579609756e-02   8.633678606e-02   9.3e-06  0.01  
+10  5.3e-06  2.7e-06  5.0e-08  5.83e-01   8.190320225e-02   8.222310906e-02   2.7e-06  0.01  
+11  1.4e-06  7.0e-07  9.4e-09  6.43e-01   7.998548755e-02   8.015363989e-02   7.0e-07  0.01  
+12  4.7e-07  2.4e-07  3.2e-09  1.92e-01   7.808070684e-02   7.825195463e-02   2.4e-07  0.01  
+13  1.3e-07  6.3e-08  5.0e-10  5.57e-01   7.694790361e-02   7.701021031e-02   6.3e-08  0.01  
+14  4.1e-08  2.0e-08  1.1e-10  5.68e-01   7.644974561e-02   7.648007218e-02   2.0e-08  0.01  
+15  1.1e-08  5.3e-09  1.8e-11  7.60e-01   7.621943549e-02   7.623103994e-02   5.3e-09  0.01  
+16  3.8e-09  1.9e-09  5.8e-12  4.52e-01   7.609672933e-02   7.610586249e-02   1.9e-09  0.01  
+17  1.0e-09  5.1e-10  1.1e-12  5.68e-01   7.601713847e-02   7.602155282e-02   5.1e-10  0.01  
+18  3.6e-10  1.7e-09  3.4e-13  3.72e-01   7.596793959e-02   7.597153385e-02   1.8e-10  0.01  
+19  1.0e-10  4.6e-09  7.1e-14  5.38e-01   7.593415774e-02   7.593599272e-02   5.2e-11  0.01  
+20  4.5e-11  1.5e-07  2.4e-14  4.64e-01   7.591805681e-02   7.591917916e-02   2.2e-11  0.02  
+21  3.1e-11  5.0e-08  2.6e-15  8.45e-01   7.590738177e-02   7.590766998e-02   4.9e-12  0.02  
+22  1.5e-10  2.6e-06  2.6e-15  8.15e-01   7.590729021e-02   7.590757399e-02   4.8e-12  0.02  
+23  1.6e-10  2.7e-06  2.5e-15  1.03e+00   7.590724326e-02   7.590752438e-02   4.8e-12  0.02  
+24  7.5e-11  1.9e-06  5.1e-16  7.49e-01   7.590375802e-02   7.590388621e-02   1.4e-12  0.02  
+25  1.3e-10  1.5e-06  4.9e-16  9.94e-01   7.590368386e-02   7.590380752e-02   1.4e-12  0.02  
+26  1.3e-10  1.4e-06  4.9e-16  1.01e+00   7.590367930e-02   7.590380269e-02   1.4e-12  0.03  
+27  1.4e-10  8.8e-06  4.9e-16  9.68e-01   7.590367817e-02   7.590380149e-02   1.4e-12  0.03  
+28  1.4e-10  1.9e-05  4.9e-16  1.01e+00   7.590367760e-02   7.590380089e-02   1.4e-12  0.03  
+29  1.4e-10  2.1e-06  4.9e-16  9.67e-01   7.590367732e-02   7.590380059e-02   1.4e-12  0.03  
+30  1.4e-10  6.3e-06  4.9e-16  9.68e-01   7.590367702e-02   7.590380028e-02   1.4e-12  0.03  
+31  1.4e-10  4.1e-06  4.9e-16  9.66e-01   7.590367699e-02   7.590380024e-02   1.4e-12  0.04  
+32  1.4e-10  3.8e-06  4.9e-16  9.65e-01   7.590367697e-02   7.590380022e-02   1.4e-12  0.04  
+33  1.4e-10  3.8e-06  4.9e-16  9.65e-01   7.590367697e-02   7.590380022e-02   1.4e-12  0.04  
+34  1.4e-10  3.8e-06  4.9e-16  9.65e-01   7.590367697e-02   7.590380022e-02   1.4e-12  0.05  
+Optimizer terminated. Time: 0.05    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 7.5903676968e-02    nrm: 9e+02    Viol.  con: 4e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 7.5903800221e-02    nrm: 7e+02    Viol.  con: 0e+00    var: 4e-10    barvar: 2e-10  
+Optimizer summary
+  Optimizer                 -                        time: 0.05    
+    Interior-point          - iterations : 35        time: 0.05    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 7.0553e-08
+ 
+       cpusec: 0.0482
+         iter: 35
+    feasratio: 0.9653
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 7.0553e-08
+          eta: 3.0066e-11
+
+  [Hinf_gain_sop Qd] dw 0: optimal, residual 7.1e-08, eta 3.0e-11, objective 0.075903677, 929 decision variables, 148 rows, build 0.2 s, solve 0.1 s
+  [Hinf_gain_sop Qd] optimal: gamma 0.075903677 (certified upper bound: 1); numerical lower bound 0.075765685 at omega 1.738e-07; gap 1.82e-03; dual alignment NaN
+##### SWAP2 dirichlet PIETOOLS_Hinf_gain Qd: certified gam 0.075903677 ndec 929 m 148; warning [] 
+
+##### SWAP2 dirichlet PIETOOLS_H2_norm_c c  21-Nov-2026 01:58:31
+ - lpi_ineq_sop: 709 decision variables in the certificate (Gram blocks [22 15], sized from opts.like); 854 in the program.
+ - lpi_ineq_sop: 709 decision variables in the certificate (Gram blocks [22 15], sized from opts.like); 1563 in the program.
+Size: 1565   192
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 192             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 44              
+  Matrix variables       : 8 (scalarized: 804)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 1
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 140             
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 19                conic                  : 16              
+Optimizer  - Semi-definite variables: 5                 scalarized             : 801             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 4899              after factor           : 5002            
+Factor     - dense dim.             : 0                 flops                  : 8.57e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.0e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   6.3e-01  3.2e-01  2.2e-01  7.60e-01   7.223899712e-01   8.162999985e-01   3.2e-01  0.00  
+2   2.0e-01  9.8e-02  3.1e-02  1.39e+00   4.561360699e-01   4.645654617e-01   9.8e-02  0.00  
+3   5.3e-02  2.6e-02  4.8e-03  9.35e-01   3.590721197e-01   3.649403406e-01   2.6e-02  0.00  
+4   2.1e-02  1.0e-02  1.3e-03  7.86e-01   3.019479577e-01   3.062355712e-01   1.0e-02  0.00  
+5   8.9e-03  4.4e-03  4.0e-04  7.58e-01   2.630464264e-01   2.653900447e-01   4.4e-03  0.00  
+6   2.7e-03  1.4e-03  7.7e-05  8.05e-01   2.412415360e-01   2.424654258e-01   1.4e-03  0.01  
+7   1.2e-03  6.1e-04  2.9e-05  5.48e-01   2.240219742e-01   2.251764997e-01   6.1e-04  0.01  
+8   4.6e-04  2.3e-04  8.0e-06  6.84e-01   2.139990721e-01   2.146618259e-01   2.3e-04  0.01  
+9   1.8e-04  9.2e-05  2.5e-06  5.52e-01   2.031296107e-01   2.036064861e-01   9.2e-05  0.01  
+10  6.0e-05  3.0e-05  5.6e-07  7.13e-01   1.975674244e-01   1.978104325e-01   3.0e-05  0.01  
+11  2.5e-05  1.3e-05  2.1e-07  5.01e-01   1.932061917e-01   1.934164162e-01   1.3e-05  0.01  
+12  9.7e-06  4.8e-06  6.3e-08  5.39e-01   1.903030316e-01   1.904414161e-01   4.8e-06  0.01  
+13  4.7e-06  2.4e-06  2.9e-08  3.50e-01   1.878509360e-01   1.879861094e-01   2.4e-06  0.01  
+14  1.8e-06  8.9e-07  7.9e-09  6.09e-01   1.860292073e-01   1.860988774e-01   8.9e-07  0.01  
+15  9.8e-07  4.9e-07  4.7e-09  2.83e-01   1.848629503e-01   1.849456216e-01   4.9e-07  0.01  
+16  2.4e-07  1.2e-07  8.2e-10  4.29e-01   1.830935366e-01   1.831382075e-01   1.2e-07  0.01  
+17  8.6e-08  4.3e-08  2.4e-10  4.67e-01   1.822897989e-01   1.823197394e-01   4.3e-08  0.02  
+18  3.2e-08  1.6e-08  7.5e-11  4.82e-01   1.817789754e-01   1.818007371e-01   1.6e-08  0.02  
+19  1.7e-08  8.3e-09  3.5e-11  3.69e-01   1.814279762e-01   1.814453442e-01   8.2e-09  0.02  
+20  7.4e-09  3.9e-09  1.3e-11  4.36e-01   1.811572048e-01   1.811688090e-01   3.8e-09  0.02  
+21  2.2e-09  1.7e-09  2.3e-12  7.86e-01   1.809581320e-01   1.809621143e-01   1.1e-09  0.02  
+22  6.6e-10  9.3e-10  4.0e-13  8.13e-01   1.808730140e-01   1.808744993e-01   3.2e-10  0.02  
+23  6.6e-10  9.3e-10  4.0e-13  8.13e-01   1.808730140e-01   1.808744993e-01   3.2e-10  0.02  
+24  6.6e-10  9.3e-10  4.0e-13  8.13e-01   1.808730140e-01   1.808744993e-01   3.2e-10  0.03  
+Optimizer terminated. Time: 0.03    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 1.8087301396e-01    nrm: 4e+02    Viol.  con: 5e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 1.8087449933e-01    nrm: 8e+02    Viol.  con: 0e+00    var: 2e-08    barvar: 7e-08  
+Optimizer summary
+  Optimizer                 -                        time: 0.03    
+    Interior-point          - iterations : 25        time: 0.03    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1.8511e-07
+ 
+       cpusec: 0.0315
+         iter: 25
+    feasratio: 0.8125
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 1.8511e-07
+          eta: 5.9997e-11
+
+  [H2_norm_sop c] dw 0: optimal, residual 1.9e-07, eta 6.0e-11, objective 0.18087301, 1563 decision variables, 192 rows, build 0.4 s, solve 0.1 s
+  [H2_norm_sop c] optimal: value 0.18087301 (LPI objective 0.18087301); numerical H2 norm 0.17902546; gap 1.03e-02
+##### SWAP2 dirichlet PIETOOLS_H2_norm_c c: certified gam 0.18087301 ndec 1563 m 192; warning [] 
+
+## PC_SWAPFIX2 g2 DONE 21-Nov-2026 01:58:32
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_swapfix (line 21)] 
+## PC_SWAPFIX k 21-Nov-2026 01:58:35
+## executive: C:\wt1121u\PIETOOLS\executives_sopvar\PIETOOLS_stability_sop.m
+##### SWAP periodic heat Pd: error; PIE.K is nonempty (the state satisfies K x = 0), which the dual form 'Pd' does not test; use 'P' or 'Q'.
+##### SWAP periodic heat Qd: error; PIE.K is nonempty (the state satisfies K x = 0), which the dual form 'Qd' does not test; use 'P' or 'Q'.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_swapsurvey (line 16)] 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+[Warning: A copvar has no field 'dim'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future
+versions.] 
+[> In indexing (line 117)
+In indexing (line 62)
+In lb_build_system (line 70)
+In pc_swapsurvey (line 39)] 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--          x(t)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--          x(t)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--          x(t)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (4) in variables (s);
+
+Encountered 4 boundary conditions: 
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--         (/s)x(t,s)
+   xf(t,s)   <--   (/t)(/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Warning: With sedumi solver, this example requires at least settings veryheavy.
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Warning: With sedumi solver, this example requires at least settings veryheavy.
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)        <--                  x(t)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+Delayed states or inputs were encountered:
+ --- Running "expand_delays" to remove the delays --- 
+
+Added 1 state components: 
+   x(t,ntau_2)  := u(t+ntau_2);
+
+Variable s1 has been merged with variable ntau_2.
+
+All spatial variables have been rescaled to exist on the interval [-1,1].
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--         (/s)ýx(t,s)
+   xf(t,s)   <--           (/t)u(t+s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)        <--                  x(t)
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s)     <--          (/s)x(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--          x(t)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (1) in variables (s);
+
+Encountered 1 exogenous input: 
+ w(t),    of size 1;
+
+Encountered 1 regulated output: 
+ z(t),    of size 1;
+
+Encountered 1 boundary condition: 
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--          (/s)x(t,s,s)
+   xf(t,s,s)  <--          (/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Ai undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+
+DDE = 
+
+  struct with fields:
+
+    A0: -2
+    Ai: {[2.9900]  [-1]}
+
+Adi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+Hinf_gain =
+
+     1
+
+
+Hinf_gain_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+Hinf_gain =
+
+     1
+
+
+Hinf_gain_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+Hinf_gain =
+
+     1
+
+
+Hinf_gain_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+Hinf_gain =
+
+     1
+
+
+Hinf_gain_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+A0 undefined, defaulting to 0
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Adi undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+
+stability =
+
+     1
+
+
+stability_dual =
+
+     1
+
+Adi undefined, defaulting to 0
+Edi undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B1i undefined, defaulting to 0
+B1di undefined, defaulting to 0
+B2 undefined, defaulting to 0
+B2i undefined, defaulting to 0
+B2di undefined, defaulting to 0
+C1 undefined, defaulting to 0
+C1i undefined, defaulting to 0
+C1di undefined, defaulting to 0
+C1ei undefined, defaulting to 0
+C1dei undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D11i undefined, defaulting to 0
+D11di undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D12i undefined, defaulting to 0
+D12di undefined, defaulting to 0
+C2 undefined, defaulting to 0
+C2i undefined, defaulting to 0
+C2di undefined, defaulting to 0
+C2ei undefined, defaulting to 0
+C2dei undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D21i undefined, defaulting to 0
+D21di undefined, defaulting to 0
+22 undefined, defaulting to 0
+D22i undefined, defaulting to 0
+D22di undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+[Warning: No state dynamics detected. There are no states] 
+[> In initialize_PIETOOLS_DDF (line 129)
+In lb_build_system (line 63)
+In pc_swapsurvey (line 39)] 
+No regulated output channel detected
+No measured output channel detected
+No disturbance channels detected
+No control input channels detected
+A0 undefined, defaulting to 0
+B1 undefined, defaulting to 0
+B2 undefined, defaulting to 0
+Bv undefined, defaulting to 0
+Cr{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Cr{2} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Cvd{1} undefined, defaulting to 0
+Cvd{2} undefined, defaulting to 0
+C1 undefined, defaulting to 0
+D11 undefined, defaulting to 0
+D12 undefined, defaulting to 0
+D1v undefined, defaulting to 0
+C2 undefined, defaulting to 0
+D21 undefined, defaulting to 0
+D22 undefined, defaulting to 0
+D2v undefined, defaulting to 0
+Cr{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Cr{2} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+Cr{1} undefined, defaulting to 0
+Br1{1} undefined, defaulting to 0
+Br2{1} undefined, defaulting to 0
+Cr{2} undefined, defaulting to 0
+Br1{2} undefined, defaulting to 0
+Br2{2} undefined, defaulting to 0
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)    <--          (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)x(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s)     <--                  x(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)x(t,s)
+   xf(t,s)     <--          (/s)x(t,s)
+   xf(t,s,s)  <--          (/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)        <--                   x() d
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s)     <--          (/s)ý x(s,) d
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+The PIE state must satisfy PIE.K*xf = 0.
+The states are defined by PIE.pde2pie.x.C.
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)        <--                  F*x
+   xf(t,s)     <--          (/s)ýF*x
+   xf(t,s)     <--          (/s)ýF*x
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+The PIE state must satisfy PIE.K*xf = 0.
+The states are defined by PIE.pde2pie.x.C.
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)x(t,s)
+   xf(t,s,s)  <--          (/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)     <--                  x(t)
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+## PC_SWAPSURVEY DONE 21-Nov-2026 01:59:11: 166 rows

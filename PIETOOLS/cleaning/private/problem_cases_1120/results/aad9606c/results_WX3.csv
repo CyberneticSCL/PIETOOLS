@@ -1,0 +1,10 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:X3,Q,A,light,"st.sop.deg_Q{1} = [8 8 8]",infeasible,-1,1,0,0,28150,1167,16.4,""
+PDE:X3,Q,A,light,"st.sop.deg_Q{2} = 2",infeasible,-1,1,0,0,85383,2028,12.8,""
+PDE:X3,Q,A,light,"st.sop.deg_Q{1} = [8 4 4]; st.sop.deg_Q{2} = 2",infeasible,-1,1,0,0,85383,2028,11.4,""
+PDE:X3,Q,A,light,"st.eppos = 1e-2",infeasible,-1,1,0,0,28150,1167,10.0,""
+PDE:X3,Q,A,light,"st.epneg = 1e-3",infeasible,-1,1,0,0,28150,1167,10.2,""
+PDE:X3,Q,A,light,"st.sos_opts.solver = 'sdpt3'",nosolinfo,NaN,1,1,0,28150,1167,21.8,""
+PDE:X3,P,A,light,"st.settings_2d = settings_2d_stock('light')",infeasible,-1,1,0,0,31350,635,7.8,""
+PDE:X3,P,A,light,"st.eppos = 1e-2",infeasible,-0.9998,0,0,2,32406,669,7.3,""
+PDE:X3,P,A,heavy,"",infeasible,-0.9999,0,0,2,114686,1155,18.3,""

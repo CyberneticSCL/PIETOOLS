@@ -1,0 +1,9 @@
+variant,mu,form,status,fr,numerr,exst,eta,ndec,m,sec
+example,0.375,Q,infeasible,-1,0,infeasible,1,28150,1172,10.1
+example,0.375,P,infeasible,-0.9892,2,unknown,7.51e-10,32406,669,5.1
+riemann,0.375,Q,certified,1.018,0,optimal,8.52e-10,5214,454,1.1
+riemann,0.375,P,certified,0.999,0,optimal,8.51e-10,9000,270,0.6
+example,0.4,Q,infeasible,-1,0,infeasible,1,28150,1167,9.3
+example,0.4,P,infeasible,-0.9998,2,unknown,1.02e-09,32406,669,9.1
+riemann,0.4,Q,certified,1.013,0,optimal,3.56e-09,5214,454,0.9
+riemann,0.4,P,certified,0.9969,0,optimal,6.88e-10,9000,270,0.8

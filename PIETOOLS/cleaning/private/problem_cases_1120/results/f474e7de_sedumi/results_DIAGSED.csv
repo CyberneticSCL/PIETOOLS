@@ -1,0 +1,6 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+44min,Pd,"",inaccurate,0.9829,1,inaccurate,2.46e-09,2520,286,2.8
+44min,Pd,"st.epneg = 1e-1",inaccurate,0.9991,1,inaccurate,1.18e-09,2520,315,1.2
+x3min,Pd,"",inaccurate,1.004,1,inaccurate,5.56e-10,9000,280,1.5
+x3min,Pd,"st.epneg = 1e-2",inaccurate,0.9922,1,inaccurate,5.55e-10,9000,291,1.2
+70mix,Q,"st.lpi.ineq.dD = 0",inaccurate,0.9841,1,inaccurate,5.27e-07,187116,14833,507.5

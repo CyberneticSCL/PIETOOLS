@@ -1,0 +1,10 @@
+system,exec,form,status,exst,gam,ndec,m,sec,warning
+periodic,PIETOOLS_Hinf_gain,Qd,certified,optimal,1,1045,182,2.3,"[MATLAB:nearlySingularMatrix] Matrix is close to singular or badly scaled. Results may be inaccurate. RCOND =  3.280952e-20."
+periodic,PIETOOLS_Hinf_gain,Pd,certified,optimal,1,1297,91,0.8,"[MATLAB:nearlySingularMatrix] Matrix is close to singular or badly scaled. Results may be inaccurate. RCOND =  3.280952e-20."
+periodic,PIETOOLS_H2_norm_c,c,certified,optimal,0.70710678,1751,233,0.7,"[MATLAB:nearlySingularMatrix] Matrix is close to singular or badly scaled. Results may be inaccurate. RCOND =  3.225532e-20."
+periodic,PIETOOLS_H2_norm_c,cco,certified,optimal,0.70710678,1113,70,0.6,"[MATLAB:nearlySingularMatrix] Matrix is close to singular or badly scaled. Results may be inaccurate. RCOND =  3.225532e-20."
+boundary,PIETOOLS_Hinf_gain,Q,unknown,unknown,1.2089642,1801,93,0.8,"[PIETOOLS_Hinf_gain_sop:form] PIE.Tw is nonzero: form 'Q' is posed as 'P'."
+heat2d,PIETOOLS_Hinf_gain,Qd,unknown,unknown,4750.7195,759814,5214,72.9,"[PIETOOLS_Hinf_gain_sop:form] Form 'Qd' is posed as 'Pd' for a PIE in two or more variables."
+dirichlet,PIETOOLS_Hinf_gain,Q,certified,optimal,0.075765897,929,146,0.2,"[] "
+dirichlet,PIETOOLS_Hinf_gain,Qd,certified,optimal,0.075903677,929,148,0.2,"[] "
+dirichlet,PIETOOLS_H2_norm_c,c,certified,optimal,0.18087301,1563,192,0.2,"[] "

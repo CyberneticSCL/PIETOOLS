@@ -1,0 +1,2 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason
+PDE:36,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 0.001;",52880,5643,52880,5643,38,"converged"

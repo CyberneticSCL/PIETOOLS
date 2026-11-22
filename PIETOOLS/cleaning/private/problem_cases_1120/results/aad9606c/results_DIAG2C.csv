@@ -1,0 +1,7 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+70neu,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",unknown,1.753,0,optimal,2.78e-10,380804,10625,50.0
+70neu,Q,"st.lpi.ineq.dD = 0",certified,1.226,0,optimal,2.9e-10,380880,10660,48.2
+70damp,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",infeasible,-0.9999,2,unknown,2.18e-08,429524,11125,69.2
+70damp,Q,"st.lpi.ineq.dD = 0",infeasible,-0.9994,2,unknown,8.33e-08,429600,11143,53.4
+69dec,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",certified,0.8883,0,optimal,3.15e-10,928729,24863,324.6
+69dec,Q,"st.lpi.ineq.dD = 0",certified,0.9082,0,optimal,9.83e-11,928900,24934,283.5

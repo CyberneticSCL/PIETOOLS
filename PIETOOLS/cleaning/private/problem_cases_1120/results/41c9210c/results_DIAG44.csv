@@ -1,0 +1,14 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+example,Q,"",infeasible,-0.9996,2,unknown,2.16e-09,93828,3648,25.9
+example,P,"",infeasible,-0.9998,2,unknown,2.28e-09,16419,891,11.3
+example,Q,"st.epneg = 1e-3",infeasible,-1,2,unknown,5.29e-09,93828,3648,22.6
+example,Q,"st.eppos = 1e-2",infeasible,-1,2,unknown,2.7e-09,93828,3648,24.7
+orders,,,"build error: The boundary conditions have inputs; but along s there are more conditions than the order of the states; inputs are only supported if there are no such conditions."
+minimal,Q,"",infeasible,-1,0,infeasible,1,42323,1790,5.5
+minimal,P,"",infeasible,-1,0,infeasible,1,9000,472,2.2
+minimal,Q,"st.epneg = 1e-3",infeasible,-1,0,infeasible,1,42323,1790,5.9
+minimal,Q,"st.eppos = 1e-2",infeasible,-1,0,infeasible,1,42323,1790,5.9
+riemann,Q,"",certified,0.9953,0,optimal,3.12e-11,12564,1169,1.4
+riemann,P,"",certified,1.001,0,optimal,4.82e-11,2520,258,0.7
+riemann,Q,"st.epneg = 1e-3",certified,0.9931,0,optimal,1.6e-09,12564,1169,1.4
+riemann,Q,"st.eppos = 1e-2",certified,0.9953,0,optimal,3.12e-11,12564,1169,1.2

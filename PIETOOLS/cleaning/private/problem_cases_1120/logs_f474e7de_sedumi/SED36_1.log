@@ -1,0 +1,149 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN SED36 20-Nov-2026 15:09:01
+## lpisettings_sop: C:\wt1120e\PIETOOLS\settings_sopvar\lpisettings_sop.m
+
+##### PDE:36 Q A  [light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.sos_opts.solver = 'sedumi']  20-Nov-2026 15:09:02
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+[Warning: A copvar has no field 'dim'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future versions.] 
+[> In indexing (line 117)
+In indexing (line 62)
+In lb_build_system (line 70)
+In diag_amt (line 71)
+In pc_run (line 213)] 
+
+S = 
+
+  struct with fields:
+
+         lpi: [11 struct]
+         sop: [11 struct]
+       eppos: 1.0000e-04
+       epneg: 1.0000e-03
+    sos_opts: [11 struct]
+
+ - lpi_ineq_sop: 20480 decision variables in the certificate (Gram blocks [128 32 32 32 32], sized from the operator); 20880 in the program.
+ - lpi_ineq_sop: 32000 decision variables in the certificate (Gram blocks [160 40 40 40 40], sized from the operator); 52880 in the program.
+Size: 52880   5643
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 400 free variables in a quadratic cone
+eqs m = 5643, order n = 579, dim = 52882, blocks = 12
+nnz(A) = 195914 + 0, nnz(ADA) = 25305997, nnz(L) = 12655820
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.90E-01 0.000
+  1 :   1.71E-01 6.28E-02 0.000 0.3311 0.9000 0.9000   0.57  1  1  4.5E+00
+  2 :   2.18E-01 2.43E-02 0.000 0.3864 0.9000 0.9000   0.42  1  1  2.3E+00
+  3 :   2.52E-01 8.71E-03 0.000 0.3592 0.9000 0.9000   0.27  1  1  1.2E+00
+  4 :   2.20E-01 2.56E-03 0.000 0.2937 0.9000 0.9000   0.24  1  1  5.6E-01
+  5 :   1.91E-01 9.41E-04 0.000 0.3679 0.9000 0.9000   0.22  1  1  3.0E-01
+  6 :   1.54E-01 4.44E-04 0.000 0.4712 0.9000 0.9000   0.31  1  1  1.9E-01
+  7 :   2.30E-01 1.57E-04 0.000 0.3542 0.9000 0.9000  -0.03  1  1  1.3E-01
+  8 :   2.17E-01 6.00E-05 0.000 0.3818 0.9000 0.9000  -0.11  1  2  7.9E-02
+  9 :   1.44E-01 2.60E-05 0.000 0.4326 0.9000 0.9000   0.28  1  2  4.3E-02
+ 10 :   8.79E-02 1.09E-05 0.000 0.4189 0.9000 0.9000   0.50  2  4  2.2E-02
+Run into numerical problems.
+
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+ 10     54.1   2.7e-02   5.2e-05   2.0e+01   1.5e+06
+Failed: no sensible solution/direction found.
+
+Detailed timing (sec)
+   Pre          IPM          Post
+4.580E-01    4.116E+01    1.400E-02    
+Max-norms: ||b||=2.812500e-01, ||c|| = 0,
+Cholesky |add|=0, |skip| = 2886, ||L.L|| = 6.36121e+07.
+ 
+Residual norm: 0.97322
+ 
+         iter: 10
+    feasratio: 0.4988
+         pinf: 0
+         dinf: 0
+       numerr: 2
+       timing: [0.4580 41.1560 0.0140]
+      wallsec: 41.6280
+       cpusec: 55.7656
+       relres: 0.9732
+          eta: 0.0412
+
+  [stability_sop Q] dw 0: unknown (divergent), residual 9.7e-01, eta 4.1e-02, objective NaN, 52880 decision variables, 5643 rows, build 2.0 s, solve 41.7 s
+ - lpi_ineq_sop: 148480 decision variables in the certificate (Gram blocks [288 128 128 128 128], sized from the operator); 148880 in the program.
+ - lpi_ineq_sop: 232000 decision variables in the certificate (Gram blocks [360 160 160 160 160], sized from the operator); 380880 in the program.
+Size: 380880   10827
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 400 free variables in a quadratic cone
+eqs m = 10827, order n = 1803, dim = 380882, blocks = 12
+nnz(A) = 1211756 + 0, nnz(ADA) = 59720461, nnz(L) = 29865644
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.12E-01 0.000
+  1 :   7.79E-02 4.45E-02 0.000 0.3956 0.9000 0.9000   0.78  1  1  6.6E+00
+  2 :   9.46E-02 1.71E-02 0.000 0.3842 0.9000 0.9000   0.67  1  1  3.0E+00
+  3 :   1.03E-01 6.91E-03 0.000 0.4040 0.9000 0.9000   0.53  1  1  1.6E+00
+  4 :   9.91E-02 2.35E-03 0.000 0.3397 0.9000 0.9000   0.37  1  1  7.5E-01
+  5 :   8.84E-02 7.59E-04 0.000 0.3236 0.9000 0.9000   0.30  1  1  3.6E-01
+  6 :   7.84E-02 2.98E-04 0.000 0.3930 0.9000 0.9000   0.20  1  1  2.0E-01
+  7 :   6.49E-02 1.40E-04 0.000 0.4703 0.9000 0.9000   0.22  1  1  1.3E-01
+  8 :   4.50E-02 5.87E-05 0.000 0.4181 0.9000 0.9000   0.37  1  1  6.8E-02
+  9 :   2.26E-02 2.40E-05 0.000 0.4085 0.9000 0.9000   0.65  2  2  3.1E-02
+ 10 :   1.14E-02 1.01E-05 0.000 0.4234 0.9000 0.9067   0.77  2  2  1.5E-02
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 10    245.8   8.2  0.0000000000e+00  1.1434828602e-02
+|Ax-b| =   8.9e-02, [Ay-c]_+ =   8.3E-04, |x|=  5.9e+02, |y|=  6.6e+06
+No sensible solution found.
+
+Detailed timing (sec)
+   Pre          IPM          Post
+9.190E-01    1.982E+02    3.499E-02    
+Max-norms: ||b||=2.812500e-01, ||c|| = 0,
+Cholesky |add|=1, |skip| = 3870, ||L.L|| = 6.80402e+06.
+ 
+Residual norm: 0.089148
+ 
+         iter: 10
+    feasratio: 0.7650
+         pinf: 0
+         dinf: 0
+       numerr: 2
+       timing: [0.9190 198.1690 0.0350]
+      wallsec: 199.1230
+       cpusec: 247.5781
+       relres: 0.0891
+          eta: 3.0145e-05
+
+  [stability_sop Q] dw 1: unknown (divergent), residual 8.9e-02, eta 3.0e-05, objective NaN, 380880 decision variables, 10827 rows, build 1.8 s, solve 199.2 s
+  [stability_sop Q] unknown: certificate at epneg 0.001: 0; numerical spectrum max Re NaN
+##### PDE:36 Q A: inaccurate fr 0.765 ndec 380880
+## DIAG_AMT SED36 DONE 20-Nov-2026 15:13:09

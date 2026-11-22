@@ -1,0 +1,10 @@
+key,kind,form,tier,mods,best
+PDE:50/H2_norm_dual,value,cco,stripped,"",0.9
+PDE:50/H2_norm_dual,value,cco,stripped,"st.lpi.ineq.wcross = 1",0.9
+PDE:50/H2_norm_dual,value,cco,stripped,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1",0.9
+PDE:50/H2_norm_dual,value,cco,stripped,"st.eppos = 1e-2; st.lpi.ineq.dD = 0",0.9
+PDE:50/H2_norm_dual,value,cco,light,"st.lpi.ineq.cap_inc = 'auto'",0.9
+PDE:50/H2_norm_dual,value,c,light,"st.lpi.ineq.wcross = 1",0.9
+PDE:50/H2_norm_dual,value,c,heavy,"st.lpi.ineq.dD = 0",0.9
+PDE:50/H2_norm_dual,value,c,light,"st.eppos = 1e-2",0.9
+PDE:50/H2_norm_dual,value,cco,light,"st.lpi.ineq.dD = 0; st.eppos = 1e-2",0.9

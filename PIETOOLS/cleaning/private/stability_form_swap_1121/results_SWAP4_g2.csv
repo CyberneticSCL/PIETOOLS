@@ -1,0 +1,10 @@
+system,exec,form,status,exst,gam,ndec,m,sec,warning
+periodic,PIETOOLS_Hinf_gain,Qd,error,,NaN,NaN,NaN,0.0,"[] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which the dual form 'Qd' has no term; use 'Q' or 'P'."
+periodic,PIETOOLS_Hinf_gain,Pd,error,,NaN,NaN,NaN,0.0,"[] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which the dual form 'Pd' has no term; use 'Q' or 'P'."
+periodic,PIETOOLS_H2_norm_c,c,error,,NaN,NaN,NaN,0.0,"[] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which form 'c' has no term; use 'o' or 'oco'."
+periodic,PIETOOLS_H2_norm_c,cco,error,,NaN,NaN,NaN,0.0,"[] ERROR PIE.K is nonempty (the state satisfies K x = 0), for which form 'cco' has no term; use 'o' or 'oco'."
+boundary,PIETOOLS_Hinf_gain,Q,error,,NaN,NaN,NaN,0.0,"[] ERROR PIE.Tw is nonzero (a disturbance at the boundary), for which form 'Q' has no term; use 'P'."
+heat2d,PIETOOLS_Hinf_gain,Qd,unknown,unknown,71504.271,339607,3848,19.1,"[] "
+dirichlet,PIETOOLS_Hinf_gain,Q,certified,optimal,0.075765897,929,146,0.9,"[] "
+dirichlet,PIETOOLS_Hinf_gain,Qd,certified,optimal,0.075903677,929,148,0.3,"[] "
+dirichlet,PIETOOLS_H2_norm_c,c,certified,optimal,0.18087301,1563,192,0.6,"[] "

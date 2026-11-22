@@ -1,0 +1,18 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+PDE:33,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'none'; st.sop.deg_Q{2} = 0; st.sos_opts.solver = '';",89,56,89,56,10,"converged",direct,89,56
+PDE:34,Q>Qd,light,"st.lpi.pos.len_com{3} = [1 1 1]; st.lpi.pos.len_sos{3} = [1 1 1;1 1 1;0 0 0]; st.lpi.pos.patterns{2} = 'uniform'; st.lpi.ineq.wmin = 0; st.sop.dw_P = 1; st.sop.max_raise_feas = [1 1 0]; st.sop.max_raise = 0; st.sop.deg_Q{1} = [2 2 2]; st.sop.deg_Q{2} = [0 1 1]; st.sop.max_raise_Q = [1 1 0]; st.sop.keepdual = false; st.sop.witness = false; st.sos_opts.solver = '';",72081,3281,72081,3281,40,"build budget",direct,72081,3281
+PDE:35,Q>Pd,light,"",NaN,NaN,NaN,NaN,3,"no start certified",,NaN,NaN
+PDE:37,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [1 0 0]; st.sos_opts.solver = '';",11040,837,11040,837,27,"converged",direct,11040,837
+PDE:38,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'none'; st.sop.deg_Q{2} = [0 1 1]; st.sop.max_raise_Q = [2 0 0]; st.sos_opts.solver = '';",380804,10791,42308,5607,33,"converged",post,380804,10791
+PDE:40,Q>Qd,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.sos_opts.solver = '';",8518,844,8518,844,19,"converged",direct,8518,844
+PDE:42,Q>Qd,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1];",69915,4215,43065,2477,40,"build budget",direct,43065,2477
+PDE:43,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [1 2 2]; st.sop.max_raise_Q = [2 0 0]; st.sos_opts.solver = '';",1008600,10390,196425,6108,40,"build budget",post,1008600,10390
+PDE:57,Q>Qd,light,"",NaN,NaN,NaN,NaN,3,"no start certified",,NaN,NaN
+PDE:58,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'none'; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [1 2 2]; st.sop.max_raise_Q = [2 0 0]; st.sos_opts.solver = '';",586772,11172,150400,6366,39,"converged",post,586772,11172
+PDE:59,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'none'; st.sop.deg_Q{2} = 0; st.sop.max_raise_Q = [2 2 0]; st.sop.raise_Q = 'deg'; st.sos_opts.solver = '';",136,80,136,80,10,"converged",direct,136,80
+PDE:60,Q>Qd,light,"st.lpi.pos.len_com{3} = [1 1 1]; st.lpi.pos.len_sos{3} = [1 1 1;1 1 1;0 0 0]; st.lpi.pos.patterns{2} = 'uniform'; st.lpi.ineq.dD = 0; st.lpi.ineq.wmin = 0; st.lpi.ineq.psatz{2} = 'none'; st.lpi.ineq.cap_inc = 'auto'; st.sop.dw_P = 1; st.sop.max_raise_feas = [1 1 0]; st.sop.max_raise = 0; st.sop.deg_Q{1} = [2 2 2]; st.sop.deg_Q{2} = [2 1 1]; st.sop.max_raise_Q = [1 1 0]; st.sop.keepdual = false; st.sop.witness = false; st.sos_opts.solver = '';",552,142,552,142,26,"converged",direct,552,142
+PDE:61,Q>Qd,light,"",NaN,NaN,NaN,NaN,3,"no start certified",,NaN,NaN
+PDE:62,Q>Pd,light,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_com{2} = [2 0]; st.lpi.pos.len_sos{1} = [1;2;2]; st.lpi.pos.len_sos{2} = [1 1;1 2;0 0]; st.sos_opts.solver = '';",427249,4576,101428,2236,40,"build budget",post,NaN,NaN
+PDE:63,Q>Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [1 0 0]; st.sop.max_raise_Q = [2 0 0]; st.sos_opts.solver = '';",652407,6176,32268,1486,35,"converged",post,NaN,NaN
+PDE:64,Q>Qd,light,"st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{2} = [2 0 0];",288400,13915,219044,10057,40,"build budget",direct,219044,10057
+PDE:66,Q>Qd,heavy,"st.sop.deg_Q{2} = [0 2 2];",210361,7390,210281,7390,40,"build budget",direct,210281,7390

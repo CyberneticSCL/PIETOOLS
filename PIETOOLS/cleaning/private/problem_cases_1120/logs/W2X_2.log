@@ -1,0 +1,138 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN W2X 20-Nov-2026 08:28:38
+## lpisettings_sop: C:\wt1120\PIETOOLS\settings_sopvar\lpisettings_sop.m
+
+##### PDE:56 P A  [light st.lpi.ineq.dD = 0; st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1]  20-Nov-2026 08:28:40
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)    <--          (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)x(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+S = 
+
+  struct with fields:
+
+         lpi: [11 struct]
+         sop: [11 struct]
+       eppos: 1.0000e-04
+       epneg: 0
+    sos_opts: [11 struct]
+
+ - lpi_ineq_sop: 458752 decision variables in the certificate (Gram blocks [256 256 256 256 256 256 256], sized from opts.like); 471977 in the program.
+Size: 471977   21480
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 21480           
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 0               
+  Matrix variables       : 8 (scalarized: 236942)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 12335           
+Optimizer  - Cones                  : 0               
+Optimizer  - Scalar variables       : 0                 conic                  : 0               
+Optimizer  - Semi-definite variables: 8                 scalarized             : 236942          
+Factor     - setup time             : 3.76            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 5.83e+07          after factor           : 5.83e+07        
+Factor     - dense dim.             : 0                 flops                  : 4.32e+11        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   1.1e+01  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  4.57  
+1   2.5e+00  2.2e-01  1.1e-01  9.61e-01   0.000000000e+00   5.138916791e-03   2.2e-01  11.07 
+2   5.6e-01  5.0e-02  1.3e-02  9.37e-01   0.000000000e+00   1.296085704e-02   5.0e-02  14.67 
+3   1.0e-01  9.2e-03  2.2e-03  5.32e-01   0.000000000e+00   3.721970892e-02   9.2e-03  18.51 
+4   1.2e-02  1.1e-03  8.1e-04  -5.16e-01  0.000000000e+00   5.160274446e-01   1.1e-03  22.63 
+5   1.6e-03  1.4e-04  3.2e-04  -1.08e+00  0.000000000e+00   5.205248326e+00   1.4e-04  26.77 
+6   4.9e-04  4.4e-05  1.7e-04  -1.08e+00  0.000000000e+00   1.503651250e+01   4.4e-05  30.37 
+7   7.7e-05  6.9e-06  7.1e-05  -9.91e-01  0.000000000e+00   1.059109375e+02   6.9e-06  34.00 
+8   2.4e-06  2.2e-07  1.2e-05  -1.05e+00  0.000000000e+00   3.088892159e+03   2.2e-07  37.58 
+9   2.3e-10  2.0e-11  8.3e-08  -1.00e+00  0.000000000e+00   1.676232899e+07   2.6e-11  41.55 
+10  5.4e-18  1.9e-13  6.5e-10  -1.00e+00  0.000000000e+00   7.174893885e+14   6.3e-19  45.50 
+11  5.9e-29  5.1e-14  6.5e-04  -1.00e+00  0.000000000e+00   3.475294248e+28   1.2e-32  49.22 
+12  4.4e-29  1.1e-13  7.5e-04  -1.00e+00  0.000000000e+00   4.633725664e+28   9.1e-33  53.22 
+13  3.9e-29  4.0e-13  8.0e-04  -1.00e+00  0.000000000e+00   5.295686473e+28   7.9e-33  57.20 
+14  3.8e-29  2.2e-13  0.0e+00  -1.00e+00  0.000000000e+00   5.379744989e+28   7.8e-33  61.32 
+15  1.1e-40  5.3e-14  0.0e+00  -1.00e+00  0.000000000e+00   1.592668237e+40   2.6e-44  64.36 
+16  1.1e-40  5.3e-14  0.0e+00  -1.00e+00  0.000000000e+00   1.592668237e+40   2.6e-44  67.81 
+17  1.1e-40  5.3e-14  0.0e+00  -1.00e+00  0.000000000e+00   1.592668237e+40   2.6e-44  71.17 
+Optimizer terminated. Time: 74.58   
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_INFEASIBLE
+  Solution status : PRIMAL_INFEASIBLE_CER
+  Dual.    obj: 2.5757008956e-02    nrm: 9e+01    Viol.  con: 0e+00    barvar: 1e-13  
+Optimizer summary
+  Optimizer                 -                        time: 74.58   
+    Interior-point          - iterations : 18        time: 74.57   
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1
+ 
+       cpusec: 74.5754
+         iter: 18
+    feasratio: -1
+         dinf: 0
+         pinf: 1
+       numerr: 0
+       relres: 1
+          eta: 1
+
+  [stability_sop P] dw 0: infeasible, residual 1.0e+00, eta 1.0e+00, objective NaN, 471977 decision variables, 21480 rows, build 20.4 s, solve 76.2 s
+  [stability_sop P] infeasible: certificate at epneg 0: 0; numerical spectrum max Re NaN
+##### PDE:56 P A: infeasible fr -1 ndec 471977
+## DIAG_AMT W2X DONE 20-Nov-2026 08:30:20

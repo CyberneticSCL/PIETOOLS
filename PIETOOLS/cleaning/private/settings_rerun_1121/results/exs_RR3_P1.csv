@@ -1,0 +1,64 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+04:12:47,PDE:36,0,start1 Q light st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1,start,unknown,optimal,1.82e-08,0.375,1,52880,5643,NaN,9.1,post passes: stage 2 certified fr 1.12 exst optimal eta 5.9e-09 ndec 252480 m 6724; D entries below 1.6e-12 zeroed (largest 1.2e-12 of 0.0016); slack of the solve (first: infeasible fr -1 eta 1); then the support of D one degree up; slack entries [20480 232000] (solve: 32000)
+04:12:49,PDE:36,1,degQ1.1,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:12:51,PDE:36,2,degQ1.2,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:12:52,PDE:36,3,degQ1.3,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:12:54,PDE:36,4,psatz1,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:12:55,PDE:36,5,wmin1,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:12:56,PDE:36,6,raiseQ1,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:13:05,PDE:36,7,degQ2.1,not smaller,error,,NaN,NaN,NaN,380804,10791,NaN,NaN,LB_SIZE ndv=380804 m=10791 above the gate (ndv 52879; m 45000): not solved
+04:13:11,PDE:36,8,degQ2.2,not smaller,error,,NaN,NaN,NaN,380624,10031,NaN,NaN,LB_SIZE ndv=380624 m=10031 above the gate (ndv 52879; m 45000): not solved
+04:13:20,PDE:36,9,degQ2.3,not smaller,error,,NaN,NaN,NaN,380624,9803,NaN,NaN,LB_SIZE ndv=380624 m=9803 above the gate (ndv 52879; m 45000): not solved
+04:13:29,PDE:36,10,psatz2,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,5.3,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 52879; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:13:30,PDE:36,11,wmin2,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:13:31,PDE:36,12,raiseQ2,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:13:32,PDE:36,13,capinc,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 52879; m 45000): not solved
+04:13:41,PDE:36,14,t:degQ+1.1+psatz2,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,5.4,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 52879; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:13:50,PDE:36,15,t:degQ+1.2+psatz2,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,5.7,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 52879; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:13:58,PDE:36,16,t:degQ+1.3+psatz2,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,5.1,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 52879; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:14:03,PDE:36,17,t:degQ+2.1+psatz2,kept,certified,optimal,3.36e-08,0.74,1,42468,5679,NaN,4.7,
+04:14:11,PDE:36,18,degQ2.1,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,5.1,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 42467; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:14:16,PDE:36,19,degQ2.2,not smaller,error,,NaN,NaN,NaN,212740,10053,NaN,NaN,LB_SIZE ndv=212740 m=10053 above the gate (ndv 42467; m 45000): not solved
+04:14:21,PDE:36,20,degQ2.3,not smaller,error,,NaN,NaN,NaN,212740,9825,NaN,NaN,LB_SIZE ndv=212740 m=9825 above the gate (ndv 42467; m 45000): not solved
+04:14:23,PDE:36,21,t:dD++degQ2.1,not smaller,error,,NaN,NaN,NaN,196240,13167,NaN,NaN,LB_SIZE ndv=196240 m=13167 above the gate (ndv 42467; m 45000): not solved
+04:14:24,PDE:36,22,t:dD++degQ2.2,not smaller,error,,NaN,NaN,NaN,196036,12393,NaN,NaN,LB_SIZE ndv=196036 m=12393 above the gate (ndv 42467; m 45000): not solved
+04:14:25,PDE:36,23,t:dD++degQ2.3,not smaller,error,,NaN,NaN,NaN,196036,12165,NaN,NaN,LB_SIZE ndv=196036 m=12165 above the gate (ndv 42467; m 45000): not solved
+04:14:34,PDE:36,24,t:wmin+1+degQ2.1,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,5.5,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 42467; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:14:39,PDE:36,25,t:wmin+1+degQ2.2,not smaller,error,,NaN,NaN,NaN,212740,10053,NaN,NaN,LB_SIZE ndv=212740 m=10053 above the gate (ndv 42467; m 45000): not solved
+04:14:45,PDE:36,26,t:wmin+1+degQ2.3,not smaller,error,,NaN,NaN,NaN,212740,9825,NaN,NaN,LB_SIZE ndv=212740 m=9825 above the gate (ndv 42467; m 45000): not solved
+04:14:55,PDE:36,27,t:raiseQ+1+degQ2.1,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,6.5,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 42467; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:15:01,PDE:36,28,t:raiseQ+1+degQ2.2,not smaller,error,,NaN,NaN,NaN,212740,10053,NaN,NaN,LB_SIZE ndv=212740 m=10053 above the gate (ndv 42467; m 45000): not solved
+04:15:08,PDE:36,29,t:raiseQ+1+degQ2.3,not smaller,error,,NaN,NaN,NaN,212740,9825,NaN,NaN,LB_SIZE ndv=212740 m=9825 above the gate (ndv 42467; m 45000): not solved
+04:15:10,PDE:36,30,t:psatz+2+degQ2.1,not smaller,error,,NaN,NaN,NaN,52880,5643,NaN,NaN,LB_SIZE ndv=52880 m=5643 above the gate (ndv 42467; m 45000): not solved
+04:15:11,PDE:36,31,t:psatz+2+degQ2.2,not smaller,error,,NaN,NaN,NaN,52676,4869,NaN,NaN,LB_SIZE ndv=52676 m=4869 above the gate (ndv 42467; m 45000): not solved
+04:15:12,PDE:36,32,t:psatz+2+degQ2.3,not smaller,error,,NaN,NaN,NaN,52676,4641,NaN,NaN,LB_SIZE ndv=52676 m=4641 above the gate (ndv 42467; m 45000): not solved
+04:15:22,PDE:36,33,t:wmin+2+degQ2.1,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,6.4,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 42467; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:15:29,PDE:36,34,t:wmin+2+degQ2.2,not smaller,error,,NaN,NaN,NaN,212740,10053,NaN,NaN,LB_SIZE ndv=212740 m=10053 above the gate (ndv 42467; m 45000): not solved
+04:15:36,PDE:36,35,t:wmin+2+degQ2.3,not smaller,error,,NaN,NaN,NaN,212740,9825,NaN,NaN,LB_SIZE ndv=212740 m=9825 above the gate (ndv 42467; m 45000): not solved
+04:15:46,PDE:36,36,t:raiseQ+2+degQ2.1,not smaller,unknown,optimal,7.27e-08,9.14,1,42384,5643,NaN,6.5,post fails: stage 2 unknown fr 0.614 exst optimal eta 7.5e-09 ndec 41984 m 4036; D entries below 4.5e-13 zeroed (largest 3.5e-13 of 0.00045); slack of the solve (support of D one degree up: LB_SIZE ndv=145984 m=6724 above the gate (ndv 42467; m 45000): not solved); slack entries [16384 25600] (solve: 25600)
+04:15:53,PDE:36,37,t:raiseQ+2+degQ2.2,not smaller,error,,NaN,NaN,NaN,212740,10053,NaN,NaN,LB_SIZE ndv=212740 m=10053 above the gate (ndv 42467; m 45000): not solved
+04:16:00,PDE:36,38,t:raiseQ+2+degQ2.3,not smaller,error,,NaN,NaN,NaN,212740,9825,NaN,NaN,LB_SIZE ndv=212740 m=9825 above the gate (ndv 42467; m 45000): not solved
+04:30:04,PDE:39,0,start1 Q light ,start fails,unknown,optimal,2.39e-09,7.14,1,648900,30721,NaN,400.9,post fails: stage 2 infeasible fr -1 exst optimal eta 1 ndec 648000 m 27216; D entries below 1.5e-11 zeroed (largest 1.2e-11 of 0.015); slack of the solve (support of D one degree up: LB_SIZE ndv=3240000 m=43512 above the gate (ndv 2e+06; m 45000): not solved); slack entries [233280 414720] (solve: 414720)
+04:41:35,PDE:39,0,start1 Q light ,start fails,unknown,optimal,2.39e-09,7.14,1,648900,30721,NaN,277.8,post fails: stage 2 infeasible fr -1 exst optimal eta 1 ndec 648000 m 27216; D entries below 1.5e-11 zeroed (largest 1.2e-11 of 0.015); slack of the solve (support of D one degree up: LB_SIZE ndv=3240000 m=43512 above the gate (ndv 2e+06; m 45000): not solved); slack entries [233280 414720] (solve: 414720)
+04:42:58,PDE:39,0,start2 P light st.settings_2d = settings_2d_stock('light'); st.lpi.ineq.dD = 0,start,certified,optimal,4.9e-09,1.12,2,334656,10129,NaN,83.5,
+04:43:12,PDE:39,1,d21.1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:43:26,PDE:39,2,d11.1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:43:39,PDE:39,3,d31.1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:43:52,PDE:39,4,d31.2,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:44:05,PDE:39,5,d31.3,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:44:18,PDE:39,6,pat1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:44:31,PDE:39,7,psatz1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:44:45,PDE:39,8,wmin1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:44:59,PDE:39,9,raisefeas1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:45:12,PDE:39,10,d22.1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:45:25,PDE:39,11,d22.2,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:45:38,PDE:39,12,d32.1,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:45:51,PDE:39,13,d32.2,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:46:03,PDE:39,14,d32.4,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:46:16,PDE:39,15,d32.5,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:46:28,PDE:39,16,pat2,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:47:34,PDE:39,17,psatz2,fails,infeasible,infeasible,1,-1,2,187200,10129,NaN,65.8,
+04:48:03,PDE:39,18,wmin2,not smaller,error,,NaN,NaN,NaN,334656,10129,NaN,NaN,LB_SIZE ndv=334656 m=10129 above the gate (ndv 334655; m 45000): not solved
+04:48:15,PDE:39,19,dwfeas2,fails,infeasible,infeasible,1,-1,2,46656,4527,NaN,12.3,
+04:48:25,PDE:39,20,raisefeas2,fails,infeasible,infeasible,1,-1,1,46656,4527,NaN,10.1,
+04:48:28,PDE:39,21,capinc,fails,infeasible,infeasible,1,-1,2,1296,1014,NaN,3.1,

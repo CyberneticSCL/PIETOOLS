@@ -1,0 +1,2 @@
+key,kind,form,tier,mods,best
+PDE:56,stab,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.sop.deg_Q{3} = [1 2 2]",

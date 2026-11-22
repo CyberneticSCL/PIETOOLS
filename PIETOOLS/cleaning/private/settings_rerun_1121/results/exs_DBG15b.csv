@@ -1,0 +1,2 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+03:20:56,PDE:15,0,start1 Qd light examplest,start fails,certified,optimal,6.01e-07,0.97,1,74593,6765,NaN,13.4,

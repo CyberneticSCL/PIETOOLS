@@ -507,3 +507,5 @@ and g6_d2q_1846993.out ('@@ H3Q', '@@ D2Q' lines, '## ... DONE'); results in gap
 - 04:20 (11/18) Studies handed to the Sister session (D110, HANDOFF_1118.md): A D2 and the 3-D
   cap, B tier degrees, C extreme, D the 'P' option mechanism, E the pass gaps, F the report pdf;
   its first deliverable is a plan. The Fable session keeps the running Opus agent and relays.
+
+- Correction 11/21/2026 (cleaning/private/stability_form_swap_1121/AUDIT.md): on C:/wt1117 (33d30877) PIETOOLS_stability_sop solved form 'P' for a 'Q' request on a PIE in two or more variables, so the HEAD side of D91 and D93 and "the storage form of HEAD" for PDE 39 (933,696 variables) are 'P' results; the comparisons are direct 'Q' against 'P'. History above left as written.

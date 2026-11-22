@@ -1,0 +1,4 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+PDE:36,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.lpi.ineq.psatz{2} = 'none'; st.sop.deg_Q{2} = [2 1 1];",52880,5643,42468,5679,39,"converged",direct,42468,5679
+PDE:39,Q,light,"st.lpi.ineq.dD = 0;",648900,30721,316548,16099,40,"build budget",post,NaN,NaN
+PDE:50,oco,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN

@@ -1,0 +1,38 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+DDE:DDE18,Q,veryheavy,"st.lpi.pos.len_com{1} = 2; st.lpi.pos.len_sos{1} = [2;3;4]; st.lpi.var.deg{1} = [2 6 6]; st.sop.dw_P = 1;",51580,1699,51580,1699,21,"converged",direct,51580,1699
+PDE:31,Q,light,"st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_com{2} = [3 3]; st.lpi.pos.len_sos{1} = [4;4;3]; st.lpi.pos.len_sos{2} = [2 2;3 3;0 0]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [1 2 6]; st.lpi.var.deg{2} = 2; st.sop.dw_feas = [1 2 2]; st.sop.dw_P = 0; st.sop.max_raise_feas = [3 3 0]; st.sop.max_raise = [2 2 0]; st.sop.cap_delta = [NaN NaN 2]; st.sop.deg_Q{1} = [6 6 6]; st.sop.deg_Q{2} = 2; st.sop.max_raise_Q = [3 3 0]; st.sop.N_cheb = 32; st.sop.nfreq = 480; st.sos_opts.solver = '';",8369,389,8369,389,20,"converged",direct,8369,389
+DDE:DDE20,Q,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;2;1]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;",217,58,217,58,9,"converged",direct,217,58
+PDE:32,Q,light,"st.lpi.pos.len_inc{1} = 4; st.lpi.pos.len_com{2} = [3 3]; st.lpi.pos.len_sos{1} = [3;4;4]; st.lpi.pos.len_sos{2} = [2 2;3 3;0 0]; st.lpi.var.deg{1} = [3 6 6]; st.lpi.var.deg{2} = 2; st.sop.dw_feas = [1 2 2]; st.sop.dw_P = 2; st.sop.max_raise_feas = [3 3 0]; st.sop.max_raise = [2 2 0]; st.sop.cap_delta = [NaN NaN 2]; st.sop.deg_Q{1} = [6 6 6]; st.sop.deg_Q{2} = 2; st.sop.max_raise_Q = [3 3 0]; st.sop.N_cheb = 32; st.sop.nfreq = 480; st.sos_opts.solver = '';",29227,672,29227,672,21,"converged",direct,29227,672
+PDE:48,Q,light,"st.lpi.pos.len_sos{1} = [3;2;2]; st.lpi.pos.len_sos{2} = [2 2;2 2;0 0]; st.lpi.var.deg{1} = [4 2 2]; st.lpi.var.deg{2} = 2; st.sop.dw_feas = [1 2 2]; st.sop.dw_P = 2; st.sop.max_raise_feas = [2 2 0]; st.sop.cap_delta = [NaN NaN 1]; st.sop.deg_Q{2} = 2; st.sop.max_raise_Q = [2 2 0]; st.sos_opts.solver = '';",768159,5493,768159,5493,40,"build budget",direct,768159,5493
+DDE:DDE14,Q,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;",811,133,811,133,16,"converged",direct,811,133
+DDE:DDE24,Q,stripped,"st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [1 2 2];",5953,606,5953,606,13,"converged",direct,5953,606
+DDE:DDE11/Hinf_gain_dual,Pd,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_sos{1} = [2;2;1]; st.sop.dw_P = 0;",732,96,732,96,33,"converged",direct,732,96
+PDE:49,o,light,"st.lpi.pos.len_inc{1} = 3; st.lpi.pos.len_com{2} = [3 3]; st.lpi.pos.len_sos{1} = [0;2;1]; st.lpi.pos.len_sos{2} = [2 2;3 3;0 0]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [6 6 6]; st.lpi.var.deg{2} = 2; st.sop.dw_feas = [1 2 2]; st.sop.dw_P = 2; st.sop.max_raise_feas = [3 3 0]; st.sop.max_raise = [2 2 0]; st.sop.cap_delta = [NaN NaN 2]; st.sop.deg_Q{1} = [6 6 6]; st.sop.deg_Q{2} = 2; st.sop.max_raise_Q = [3 3 0]; st.sop.N_cheb = 32; st.sop.nfreq = 480; st.sos_opts.solver = '';",11847,579,1331,160,40,"build budget",direct,1331,160
+NDSDDF:NDS11,P,stripped,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [3;2;2]; st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto';",68,18,57,20,14,"converged",direct,57,20
+DDE:DDE10/Hinf_gain_dual,Qd,stripped,"st.lpi.ineq.dD = 0;",2429,479,2429,479,7,"converged",direct,2429,479
+PDE:9/stability_dual,Pd,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+DDE:DDE26,o,stripped,"st.lpi.pos.len_sos{1} = [0;2;1]; st.lpi.ineq.dD = 0;",24672,4620,24672,4620,24,"converged",direct,24672,4620
+DDE:DDE25/H2_norm_dual,c,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_sos{1} = [0;1;2];",865,160,658,132,40,"build budget",direct,658,132
+DDE:DDE22,Q,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;",2717,460,2717,460,9,"converged",direct,2717,460
+PDE:8/stability_dual,Qd,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:52,Q,light,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [3;2;1]; st.lpi.pos.len_sos{2} = [2 2;2 2;0 0]; st.lpi.var.deg{1} = [1 2 2]; st.lpi.var.deg{2} = 2; st.sop.dw_feas = [1 2 2]; st.sop.dw_P = 1; st.sop.max_raise_feas = [2 2 0]; st.sop.cap_delta = [NaN NaN 1]; st.sop.deg_Q{2} = 2; st.sop.max_raise_Q = [2 2 0]; st.sos_opts.solver = '';",2471,142,2471,142,27,"converged",direct,2471,142
+PDE:30,Q,light,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [3;2;1]; st.lpi.ineq.cap_inc = 'auto'; st.lpi.var.deg{1} = [0 2 2]; st.sos_opts.solver = '';",579,73,579,73,16,"converged",direct,579,73
+NDSDDF:NDS11/stability_dual,Pd,stripped,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.ineq.dD = 0;",68,18,68,18,16,"converged",direct,68,18
+DDE:DDE25,o,stripped,"st.lpi.pos.len_sos{1} = [0;2;2]; st.lpi.ineq.dD = 0;",865,161,865,161,24,"converged",direct,865,161
+DDE:DDE13,Q,veryheavy,"st.lpi.pos.len_inc{1} = 2; st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_sos{1} = [2;3;4]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 6 6];",11759,443,11759,443,10,"converged",direct,11759,443
+DDE:DDE10,Q,stripped,"st.lpi.ineq.dD = 0;",2429,487,2429,487,7,"converged",direct,2429,487
+DDE:DDE09,Q,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:9,P,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:49/H2_norm_dual,c,light,"st.lpi.pos.len_inc{1} = 3; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_com{2} = [3 3]; st.lpi.pos.len_sos{1} = [0;4;3]; st.lpi.pos.len_sos{2} = [2 2;3 3;0 0]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [6 6 6]; st.lpi.var.deg{2} = 2; st.sop.dw_feas = [1 2 2]; st.sop.dw_P = 2; st.sop.max_raise_feas = [3 3 0]; st.sop.max_raise = [2 2 0]; st.sop.cap_delta = [NaN NaN 2]; st.sop.deg_Q{1} = [6 6 6]; st.sop.deg_Q{2} = 2; st.sop.max_raise_Q = [3 3 0]; st.sop.N_cheb = 32; st.sop.nfreq = 480; st.sos_opts.solver = '';",11847,579,2507,296,35,"converged",direct,2507,296
+PDE:28,Q,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:22,P,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+DDE:DDE23,Q,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2];",3057,352,3057,352,9,"converged",direct,3057,352
+PDE:15,Qd,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+NDSDDF:DDF03,Q,light,"st.lpi.var.deg{1} = [0 2 2];",5669,369,5661,369,27,"converged",direct,5661,369
+DDE:DDE15,Q,stripped,"st.lpi.pos.len_com{1} = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;",1425,212,1425,212,16,"converged",direct,1425,212
+DDE:DDE11,P,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_sos{1} = [3;1;1]; st.lpi.ineq.cap_inc = 'auto'; st.sop.dw_P = 0;",732,95,596,79,40,"build budget",direct,596,79
+PDE:41,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{1} = [4 1 2]; st.sop.max_raise_Q = [0 1 0]; st.sos_opts.solver = '';",19776,797,2200,301,27,"converged",post,NaN,NaN
+PDE:27,Q,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:21/Hinf_gain_dual,Pd,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:13.2,P,light,"",NaN,NaN,NaN,NaN,0,"error: PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq returns no settings.",,NaN,NaN
+PDE:13.2/stability_dual,Pd,light,"",NaN,NaN,NaN,NaN,0,"error: PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq returns no settings.",,NaN,NaN

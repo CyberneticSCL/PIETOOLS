@@ -1,0 +1,146 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m
+index 53440b1c..d9e7c6d3 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m
+@@ -69,6 +69,12 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance
+ %                   11/19/2026 (maintainer: no default settings);
+ % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params)  % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: st with the multiplier basis operator alone (the lower
++%                   integral removed, len_inc{1} = 0) and the slack lift
++%                   degree at its tier value (dD = 0 removed): the
++%                   smallest setting found that certifies the gain bound
++%                   under an acceptance that also bounds the residual of
++%                   the solve;
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+ loc = mfilename('fullpath');
+@@ -145,12 +151,14 @@ if GUI
+ end
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+-% (stripped tier; 1-D storage without the upper-integral basis operator,
+-% s-length 0, and theta-lengths 2 (multiplier), 1 (lower integral); slack
+-% lift degree at its minimum Dmin)
++% (stripped tier; 1-D storage with the multiplier basis operator            % MMP, 11/21/2026
++% alone: both integral basis operators at s-length 0, theta-length          % MMP, 11/21/2026
++% 2 for the multiplier; slack lift degree one above its minimum             % MMP, 11/21/2026
++% Dmin)                                                                     % MMP, 11/21/2026
+ st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
++st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/21/2026
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [2;1;1];                                            % MMP, 11/19/2026
+-st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++% st.lpi.ineq.dD = 0;                                                       % MMP, 11/21/2026 (was)
+ 
+ end
+\ No newline at end of file
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped.m
+index 718d2a8b..6b167752 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped.m
+@@ -70,6 +70,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params)  % MM
+ %                   11/19/2026 (maintainer: no default settings);
+ % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params)   % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: st with theta-length 1 for the upper-integral basis
++%                   operator, the smallest setting found that certifies
++%                   both gain bounds under an acceptance that also bounds
++%                   the residual of the solve;
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+ loc = mfilename('fullpath');
+@@ -152,8 +156,10 @@ if GUI
+ end
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+-% (stripped tier; slack lift degree at its minimum Dmin)
++% (stripped tier; theta-length 1 for the upper-integral basis               % MMP, 11/21/2026
++% operator; slack lift degree at its minimum Dmin)                          % MMP, 11/21/2026
+ st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
++st.lpi.pos.len_sos{1} = [2;1;2];                                            % MMP, 11/21/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
+ 
+ end
+\ No newline at end of file
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2.m
+index 2d9dd764..084b7782 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2.m
+@@ -5,8 +5,9 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
+ % returns the transport equation below, with distributed disturbance
+ % (s-s^2)*w and integral output z, as an initialized 'pde_struct' object,
+ % and the recommended settings ST of its H2 norm test. It sets H2_norm =
+-% 1, H2_norm_dual = 1 and H2_norm_form = 'o' (dual form 'c') in the base
+-% workspace; a nonzero GUI prints that no GUI representation exists.
++% 1, H2_norm_dual = 1 and H2_norm_form = 'oco' (dual form 'cco')            % MMP, 11/21/2026
++% in the base workspace; a nonzero GUI prints that no GUI                   % MMP, 11/21/2026
++% representation exists.                                                    % MMP, 11/21/2026
+ %
+ % INPUT
+ % - GUI:        Binary index {0,1} indicating whether or not a GUI
+@@ -58,6 +59,11 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
+ %                   11/19/2026 (maintainer: no default settings);
+ % function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)  % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: H2 norm test in the coercive form 'oco' (dual 'cco'):
++%                   in the form 'c' the dual test certified the bound at
++%                   no setting tried under an acceptance that also bounds
++%                   the residual of the solve. st: the smallest storage
++%                   found that certifies both tests;
+ % MMP, 11/20/2026: Unused pvar s1 s2 removed (the PDE is in s).
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+@@ -71,7 +77,8 @@ pde_struct PDE_t;
+ %%% Executive Function:
+ evalin('base','H2_norm = 1;');
+ evalin('base','H2_norm_dual = 1;');
+-evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test         % MMP, 11/19/2026
++% evalin('base','H2_norm_form = ''o'';');  % form of the H2 norm test       % MMP, 11/21/2026 (was)
++evalin('base','H2_norm_form = ''oco'';');  % coercive, dual 'cco'           % MMP, 11/21/2026
+ 
+ npars = length(params);
+ if npars~=0
+@@ -95,7 +102,14 @@ PDE_t=initialize(pde);
+ 
+ 
+ % Example-specific settings: the veryheavy tier                             % MMP, 11/19/2026
++% (no multiplier basis operator; s-lengths 3 (lower integral) and           % MMP, 11/21/2026
++% 2 (upper integral), theta-lengths 2; slack lift degree at its             % MMP, 11/21/2026
++% minimum Dmin)                                                             % MMP, 11/21/2026
+ st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
++st.lpi.pos.len_inc{1} = 3;                                                  % MMP, 11/21/2026
++st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/21/2026
++st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/21/2026
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
+ 
+ % No GUI representation of this system
+ if GUI~=0
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC.m
+index cbfa7f0a..93689fbb 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC.m
+@@ -67,6 +67,10 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params)
+ %                   11/19/2026 (maintainer: no default settings);
+ % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params)  % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: st with the upper-integral basis operator at s-length
++%                   1, the smallest storage found that certifies both
++%                   stability tests under an acceptance that also bounds
++%                   the residual of the solve;
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+ loc = mfilename('fullpath');
+@@ -138,8 +142,10 @@ if GUI
+ end
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+-% (light tier; slack lift degree at its minimum Dmin)
++% (light tier; upper-integral basis operator at s-length 1;                 % MMP, 11/21/2026
++% slack lift degree at its minimum Dmin)                                    % MMP, 11/21/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
+ 
+ end
+\ No newline at end of file

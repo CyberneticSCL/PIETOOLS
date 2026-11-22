@@ -1,0 +1,94 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN W55C 20-Nov-2026 12:56:31
+## lpisettings_sop: C:\wt1120\PIETOOLS\settings_sopvar\lpisettings_sop.m
+
+##### PDE:55 P A  [stripped st.lpi.ineq.cap_inc = [2 2 2]]  20-Nov-2026 12:56:33
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+S = 
+
+  struct with fields:
+
+         lpi: [11 struct]
+         sop: [11 struct]
+       eppos: 1.0000e-04
+       epneg: 0
+    sos_opts: [11 struct]
+
+ - lpi_ineq_sop: 7340032 decision variables in the certificate (Gram blocks [1024 1024 1024 1024 1024 1024 1024], sized from opts.like); 7340048 in the program.
+##### PDE:55 P A: error fr NaN ndec NaN
+
+##### PDE:55 P A  [stripped st.lpi.ineq.cap_inc = [3 3 3]]  20-Nov-2026 12:58:08
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+S = 
+
+  struct with fields:
+
+         lpi: [11 struct]
+         sop: [11 struct]
+       eppos: 1.0000e-04
+       epneg: 0
+    sos_opts: [11 struct]
+
+ - lpi_ineq_sop: 7340032 decision variables in the certificate (Gram blocks [1024 1024 1024 1024 1024 1024 1024], sized from opts.like); 7340048 in the program.
+##### PDE:55 P A: error fr NaN ndec NaN
+
+##### PDE:55 P A  [stripped st.lpi.ineq.cap_inc = [4 4 4]]  20-Nov-2026 12:58:51
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+   xf(t,s,s,s)  <--  (/s)ý(/s)ý(/s)ýx(t,s,s,s)
+
+ --- Conversion to PIE was successful --- 
+
+S = 
+
+  struct with fields:
+
+         lpi: [11 struct]
+         sop: [11 struct]
+       eppos: 1.0000e-04
+       epneg: 0
+    sos_opts: [11 struct]
+
+ - lpi_ineq_sop: 7340032 decision variables in the certificate (Gram blocks [1024 1024 1024 1024 1024 1024 1024], sized from opts.like); 7340048 in the program.
+##### PDE:55 P A: error fr NaN ndec NaN
+## DIAG_AMT W55C DONE 20-Nov-2026 12:59:32

@@ -28,6 +28,9 @@ function r = lb_exec(exec, PIE, S)
 %     The 1-D executives print no verdict; the same criterion is applied.
 %   - For MOSEK, sossolve sets feasratio = MSK_DINF_INTPNT_OPT_STATUS,
 %     pinf/dinf from prosta, numerr 2 (prosta UNKNOWN) or 1 (solsta UNKNOWN).
+%   - MMP, 11/21/2026: with appdata LB_KEEP_LAST true (sop path), appdata
+%     LB_LAST holds the last solve - fn, form, prog, info, PIE, S - for
+%     post_verify, which reads the operators of the solve with getsol.
 
 t0 = tic;
 gam = NaN;
@@ -66,8 +69,17 @@ if startsWith(exec,'sop:')
     % Every output, so the executive verdict (info.status, eta of the last
     % pass) is recorded beside the harness gate; info is the last output.
     outs = cell(1,nargout(fn));
+    % LB_KEEP_LAST true: keep the solve for an a posteriori check (ex_search, % MMP, 11/21/2026
+    % post_verify, which reads its operators by getsol): the program, info, % MMP, 11/21/2026
+    % the form, the PIE and the settings, in appdata LB_LAST                % MMP, 11/21/2026
+    keep = isappdata(0,'LB_KEEP_LAST') && isequal(getappdata(0,'LB_KEEP_LAST'),true); % MMP, 11/21/2026
+    if isappdata(0,'LB_LAST'),  rmappdata(0,'LB_LAST');  end                % MMP, 11/21/2026
     [outs{:}] = feval(fn, PIE, S, args{:});
     prog = outs{1};     info_ex = outs{end};
+    if keep                                                                 % MMP, 11/21/2026
+        setappdata(0,'LB_LAST',struct('fn',fn,'form',{args},'prog',prog,'info',info_ex, ...
+            'PIE',PIE,'S',S));                                              % MMP, 11/21/2026
+    end                                                                     % MMP, 11/21/2026
     if ~strcmp(fn,'PIETOOLS_stability_sop'),  gam = outs{3};  end
     r.exst = '';    r.eta = NaN;    r.passes = NaN;
     if isstruct(info_ex) && isfield(info_ex,'status'),  r.exst = info_ex.status;  end

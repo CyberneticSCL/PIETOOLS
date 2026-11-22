@@ -1,0 +1,22 @@
+key,kind,form,tier,mods,best
+DDE:DDE09,value,Q,light,"",25.907746
+DDE:DDE09,value,P,light,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0",25.907746
+DDE:DDE09,value,P,light,"",25.907746
+DDE:DDE09,value,Q,heavy,"",25.907746
+DDE:DDE09,value,P,heavy,"",25.907746
+PDE:49/H2_norm_dual,value,c,light,"",0.10157588
+PDE:49/H2_norm_dual,value,cco,light,"examplest",0.10157588
+PDE:49/H2_norm_dual,value,cco,light,"",0.10157588
+PDE:49/H2_norm_dual,value,c,heavy,"",0.10157588
+PDE:49/H2_norm_dual,value,cco,heavy,"",0.10157588
+PDE:15,stab,Qd>Q,light,"examplest",1
+PDE:15,stab,Qd,veryheavy,"",1
+PDE:15,stab,Qd>FQ,light,"examplest",1
+PDE:15,stab,Qd>FP,light,"examplest",1
+PDE:41,stab,Q,light,"",1
+PDE:41,stab,P,light,"examplest",1
+PDE:41,stab,P,light,"",1
+PDE:41,stab,Q,heavy,"",1
+PDE:41,stab,P,heavy,"",1
+PDE:41,stab,Q>FQ,light,"examplest",1
+PDE:41,stab,Q>FP,light,"examplest",1

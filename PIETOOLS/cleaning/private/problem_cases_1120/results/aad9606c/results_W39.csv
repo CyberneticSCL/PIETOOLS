@@ -1,0 +1,9 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1; st.eppos = 1e-3",unknown,3.301,0,0,0,316737,16103,60.8,"",optimal,1.26e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1; st.eppos = 1e-2",unknown,2.636,0,0,0,316737,16103,59.4,"",optimal,1.27e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1; st.eppos = 1e-1",unknown,2.636,0,0,0,316737,16103,45.1,"",optimal,1.34e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1; st.epneg = 1e-4",unknown,2.619,0,0,0,316737,16103,49.4,"",optimal,1.3e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1; st.epneg = 1e-3",unknown,2.62,0,0,0,316737,16103,47.4,"",optimal,1.3e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 1 1]; st.lpi.ineq.wcross = 1; st.lpi.ineq.psatz{2} = 'faces1'",unknown,2.637,0,0,0,316737,16103,55.6,"",optimal,1.32e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 1 1]; st.lpi.ineq.wcross = 1",unknown,3.509,0,0,0,316548,16099,46.2,"",optimal,1.8e-08
+PDE:39,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [2 2 1]; st.lpi.ineq.wcross = 1; st.lpi.ineq.cap_inc = 'auto'",unknown,7.26,0,0,0,1313577,40377,643.3,"",optimal,1.78e-07

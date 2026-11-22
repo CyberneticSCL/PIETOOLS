@@ -1,0 +1,78 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN SED69 20-Nov-2026 15:13:23
+## lpisettings_sop: C:\wt1120e\PIETOOLS\settings_sopvar\lpisettings_sop.m
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--          (/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 92480 decision variables in the certificate (Gram blocks [272 68 68 68 68], sized from the operator); 94080 in the program.
+ - lpi_ineq_sop: 172980 decision variables in the certificate (Gram blocks [372 93 93 93 93], sized from the operator); 267060 in the program.
+Size: 267060   23714
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 1600 free variables in a quadratic cone
+eqs m = 23714, order n = 1291, dim = 267062, blocks = 12
+nnz(A) = 818229 + 0, nnz(ADA) = 321798064, nnz(L) = 160910889
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            9.31E-02 0.000
+  1 :   2.84E-01 4.26E-02 0.000 0.4577 0.9000 0.9000   0.33  1  1  6.8E+00
+  2 :   2.27E-01 1.59E-02 0.000 0.3721 0.9000 0.9000   0.29  7  3  3.2E+00
+  3 :   9.72E-02 5.97E-03 0.000 0.3766 0.9000 0.9039   0.64  2  2  1.3E+00
+Run into numerical problems.
+
+iter seconds  |Ax|    [Ay]_+     |x|       |y|
+  3   1307.2   5.8e+00   4.9e-02   3.3e+01   2.6e+10
+Failed: no sensible solution/direction found.
+
+Detailed timing (sec)
+   Pre          IPM          Post
+4.529E+00    4.417E+02    3.300E-02    
+Max-norms: ||b||=1.336306e-01, ||c|| = 0,
+Cholesky |add|=9, |skip| = 13556, ||L.L|| = 3.71239e+14.
+ 
+Residual norm: 5.894
+ 
+         iter: 3
+    feasratio: 0.6358
+         pinf: 0
+         dinf: 0
+       numerr: 2
+       timing: [4.5290 441.6920 0.0330]
+      wallsec: 446.2540
+       cpusec: 1.3154e+03
+       relres: 5.8940
+          eta: 0.0594
+
+  [stability_sop Q] dw 0: unknown (divergent), residual 5.9e+00, eta 5.9e-02, objective NaN, 267060 decision variables, 23714 rows, build 6.4 s, solve 446.4 s
+ - lpi_ineq_sop: 670480 decision variables in the certificate (Gram blocks [612 272 272 272 272], sized from the operator); 672080 in the program.
+ - lpi_ineq_sop: 1254105 decision variables in the certificate (Gram blocks [837 372 372 372 372], sized from the operator); 1926185 in the program.
+##### DIAG69M 69mix2 Q [st.lpi.ineq.dD = 0; st.sos_opts.solver = 'sedumi']: error: LB_SIZE ndv=1926185 m=45866 above the gate (ndv 2e+06; m 45000): not solved fr NaN exst  ndec NaN
+## DIAG69M DONE 20-Nov-2026 15:21:10

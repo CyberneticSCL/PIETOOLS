@@ -1,0 +1,8 @@
+id,file,executive,status,value,ndv,m,seconds,source,note
+9,PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC,stability,optimal,NaN,187,38,5.5,st,""
+9,PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC,stability_dual,optimal,NaN,187,36,5.5,st,""
+21,PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped,Hinf_gain,optimal,0.8419069,1257,144,3.3,st,""
+21,PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped,Hinf_gain_dual,optimal,0.84222715,1257,146,3.3,st,""
+22,PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance,Hinf_gain,optimal,0.20843359,301,40,1.2,st,""
+49,PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2,H2_norm,optimal,0.10157878,1001,56,2.2,st,""
+49,PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2,H2_norm_dual,optimal,0.10158193,1001,56,2.3,st,""

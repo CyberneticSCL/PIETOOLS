@@ -1,0 +1,46 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
+index 1b2e9b5d..c529e34c 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
+@@ -5,7 +5,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)           % MM
+ % linearized 2-D isentropic compressible Navier-Stokes equations below
+ % (states x1 = v1, x2 = v2, x3 = p) as a 'pde_struct' object, and the
+ % recommended settings ST of its stability test. It sets stability = 1 and
+-% stability_form = 'Q' (generalized storage T'Q) in the base workspace; a
++% stability_form = 'P' (storage <T x, P T x>) in the base workspace; a      % MMP, 11/21/2026
+ % nonzero GUI prints that no GUI representation exists.
+ %
+ % INPUT
+@@ -65,6 +65,10 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)           % MM
+ %                   (maintainer: every example names its settings);
+ % function [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)            % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: stability form 'P' with the 2-D storage of the 'light'
++%                   level (settings_2d) and the slack lift degree at its
++%                   minimum: in the form 'Q' no setting tried certifies
++%                   stability, and this setting certifies it in 'P';
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+ loc = mfilename('fullpath');
+@@ -75,7 +79,8 @@ pvar s1 s2
+ 
+ %%% Executive Function:
+ evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++% evalin('base','stability_form = ''Q'';');  % form of the stability test   % MMP, 11/21/2026 (was)
++evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/21/2026
+ %evalin('base','stability_dual = 1;');
+ 
+ % Default parameters, overridden by the assignment strings in params
+@@ -180,7 +185,11 @@ PDE_t = [diff(x1,'t')==-s2*diff(x1,s1)-x2-(1/M^2)*diff(x3,s1)+nu*(diff(x1,s1,2)+
+ 
+ 
+ % Example-specific settings: the light tier                                 % MMP, 11/19/2026
++% (2-D storage of the 'light' level, settings_2d; slack lift degree         % MMP, 11/21/2026
++% at its minimum Dmin)                                                      % MMP, 11/21/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.settings_2d = settings_2d_stock('light');                                % MMP, 11/21/2026
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
+ 
+ % No GUI representation of this system
+ if GUI~=0

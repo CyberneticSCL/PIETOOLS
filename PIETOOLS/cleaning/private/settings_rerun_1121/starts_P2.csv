@@ -1,0 +1,38 @@
+key,kind,form,tier,mods,best
+DDE:DDE18,value,Q,veryheavy,"st.lpi.pos.len_com{1} = 2; st.lpi.pos.len_sos{1} = [2;3;4]; st.lpi.var.deg{1} = [2 6 6]; st.sop.dw_P = 1",0.33479387
+PDE:31,value,Q,light,"examplest",0.00021688438
+DDE:DDE20,value,Q,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;2;1]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0",0.23570226
+PDE:32,value,Q,light,"examplest",0.51759587
+PDE:48,value,Q,light,"examplest",0.0039726464
+DDE:DDE14,value,Q,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0",0.39528477
+DDE:DDE24,value,Q,stripped,"st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [1 2 2]",1.0439637
+DDE:DDE11/Hinf_gain_dual,value,Pd,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_sos{1} = [2;2;1]; st.sop.dw_P = 0",2.8666078
+PDE:49,value,o,light,"examplest",0.10157583
+NDSDDF:NDS11,stab,P,stripped,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.ineq.dD = 0",1
+DDE:DDE10/Hinf_gain_dual,value,Qd,stripped,"st.lpi.ineq.dD = 0",0.23644327
+PDE:9/stability_dual,stab,Pd,light,"examplest",1
+DDE:DDE26,value,o,stripped,"st.lpi.pos.len_sos{1} = [0;2;1]; st.lpi.ineq.dD = 0",3.8299402
+DDE:DDE25/H2_norm_dual,value,c,stripped,"st.lpi.pos.len_sos{1} = [0;2;2]; st.lpi.ineq.dD = 0",3.6723796
+DDE:DDE22,value,Q,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0",1.3500949
+PDE:8/stability_dual,stab,Qd,light,"examplest",1
+PDE:52,value,Q,light,"examplest",1.0899562
+PDE:30,value,Q,light,"examplest",0.6499404
+NDSDDF:NDS11/stability_dual,stab,Pd,stripped,"st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.ineq.dD = 0",1
+DDE:DDE25,value,o,stripped,"st.lpi.pos.len_sos{1} = [0;2;2]; st.lpi.ineq.dD = 0",3.6723753
+DDE:DDE13,value,Q,veryheavy,"st.lpi.pos.len_inc{1} = 2; st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_sos{1} = [2;3;4]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 6 6]",1.3411163
+DDE:DDE10,value,Q,stripped,"st.lpi.ineq.dD = 0",0.23644308
+DDE:DDE09,value,Q,light,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0",25.907746
+PDE:9,bisect,P,light,"examplest",-0.00024414062
+PDE:49/H2_norm_dual,value,c,light,"examplest",0.10157588
+PDE:28,value,Q,light,"examplest",1.0000321
+PDE:22,value,P,light,"examplest",0.20833335
+DDE:DDE23,value,Q,stripped,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]",1.8080604
+PDE:15,stab,Qd,light,"examplest",1
+NDSDDF:DDF03,value,Q,light,"",1
+DDE:DDE15,value,Q,stripped,"st.lpi.pos.len_com{1} = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0",0.61043352
+DDE:DDE11,value,P,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 3; st.lpi.pos.len_sos{1} = [2;2;1]; st.sop.dw_P = 0",2.8666078
+PDE:41,stab,Q,light,"examplest",1
+PDE:27,value,Q,light,"examplest",1.000016
+PDE:21/Hinf_gain_dual,value,Pd,light,"examplest",0.84187724
+PDE:13.2,stab,Q,light,"examplest",1
+PDE:13.2/stability_dual,stab,Qd,light,"examplest",1

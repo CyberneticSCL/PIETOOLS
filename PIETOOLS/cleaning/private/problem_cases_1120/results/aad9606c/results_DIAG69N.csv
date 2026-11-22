@@ -1,0 +1,6 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+69mix2,Q,"st.lpi.ineq.dD = 0; st.eppos = 1e-3",certified,0.7225,0,optimal,4.28e-08,267060,23714,110.3
+69mix2,Q,"st.lpi.ineq.dD = 0; st.eppos = 1e-2",certified,0.7226,0,optimal,4.31e-08,267060,23714,102.9
+69mix2,Q,"stripped: st.lpi.ineq.dD = 0",certified,0.7223,0,optimal,4.27e-08,267060,23714,99.8
+69mix2,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'",certified,0.7223,0,optimal,4.27e-08,267060,23714,98.1
+69mix2,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1",certified,0.7223,0,optimal,4.27e-08,267060,23714,97.5

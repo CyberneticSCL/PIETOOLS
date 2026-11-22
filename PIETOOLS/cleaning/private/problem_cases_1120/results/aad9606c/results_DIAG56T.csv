@@ -1,0 +1,7 @@
+system,f,tau,mods,status,fr,numerr,exst,eta,ndec,m,sec
+43,0.5,0.517363,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto",infeasible,-1,0,infeasible,1,50991,2081,6.6
+43,0.75,0.776045,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto",infeasible,-1,0,infeasible,1,50991,2081,3.8
+43,0.9,0.931253,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto",infeasible,-1,0,infeasible,1,50991,2081,3.9
+56,0.25,0.258682,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,840156,33338,206.5
+56,0.5,0.517363,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,840156,33338,171.9
+56,0.75,0.776045,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,840156,33338,193.5

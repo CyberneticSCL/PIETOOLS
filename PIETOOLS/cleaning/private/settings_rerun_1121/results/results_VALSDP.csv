@@ -1,0 +1,4 @@
+row,simplify,dK,dRR,dAt,db,dx,ok_captured,ok_rebuilt,fr_captured,fr_rebuilt,eta_captured,eta_rebuilt
+R36,0,0,0,0,3.69e-21,0,1,1,1.121,1.121,1.02e-08,1.02e-08
+R40,0,0,0,0,0,0,1,1,1.024,1.024,1.74e-08,1.74e-08
+H50,0,0,0,0,3.37e-17,0,0,0,-1,-1,2.92e-06,0.323

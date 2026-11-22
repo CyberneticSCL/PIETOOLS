@@ -1,0 +1,9 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gam,gate,note
+PDE:43,FQ,light,"",,infeasible,-1,1,0,0,infeasible,1,428185,4626,47.5,NaN,0,""
+PDE:43,FQ,light,"st.lpi.ineq.dD = 0",,infeasible,-1,1,0,0,infeasible,1,91145,2019,6.4,NaN,0,""
+PDE:43,FP,light,"",,infeasible,-1,1,0,0,infeasible,1,428185,4626,34.2,NaN,0,""
+PDE:43,FP,light,"st.lpi.ineq.dD = 0",,infeasible,-1,1,0,0,infeasible,1,91145,2019,5.0,NaN,0,""
+PDE:43,FQ,heavy,"",,error,NaN,NaN,NaN,NaN,,NaN,NaN,NaN,189.9,NaN,0,"LB_SIZE ndv=3497665 m=10706 above the gate (ndv 2e+06; m 45000): not solved"
+PDE:43,FP,heavy,"",,error,NaN,NaN,NaN,NaN,,NaN,NaN,NaN,226.7,NaN,0,"LB_SIZE ndv=3497665 m=10706 above the gate (ndv 2e+06; m 45000): not solved"
+PDE:56,FP,stripped,"st.lpi.ineq.dD = 0",,infeasible,-1,1,0,0,infeasible,1,258409,10447,36.1,NaN,0,""
+PDE:56,FP,stripped,"st.lpi.ineq.dD = 0",0.51736,infeasible,-1,1,0,0,infeasible,1,258409,10450,31.1,NaN,0,""

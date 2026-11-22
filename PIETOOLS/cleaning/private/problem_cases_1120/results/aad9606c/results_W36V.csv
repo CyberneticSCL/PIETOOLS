@@ -1,0 +1,8 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3",certified,1.098,0,0,0,52880,5643,6.7,"",optimal,1.35e-08
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.sop.deg_Q{2} = [0 1 1]",certified,1.189,0,0,0,380804,10791,40.0,"",optimal,2.37e-08
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; ",unknown,0.3749,0,0,0,52880,5643,6.2,"",optimal,1.82e-08
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-4",unknown,7.017,0,0,0,52880,5643,7.7,"",optimal,1.46e-08
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 2e-3",unknown,1.896,0,0,0,52880,5643,6.4,"",optimal,1.66e-08
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 5e-3",unknown,1.851,0,0,0,52880,5643,6.4,"",optimal,1.68e-08
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3; st.sop.deg_Q{2} = [0 1 1]",unknown,1.524,0,0,0,52804,5607,7.1,"",optimal,6.95e-07

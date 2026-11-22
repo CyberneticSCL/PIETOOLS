@@ -1,0 +1,3 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:39,P,A,light,"st.settings_2d = settings_2d_stock('light'); st.lpi.ineq.dD = 0",certified,1.12,0,0,0,334656,10129,51.8,"",optimal,4.9e-09
+PDE:36,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3",certified,1.098,0,0,0,52880,5643,4.4,"",optimal,1.35e-08

@@ -1,0 +1,17 @@
+check,status,fr,exst,eta,ndec,residue_zeroed,slack_ndec
+a span of Q (deg_Q [4 2 2]),,,,,,0,
+b margin, Q slack,unknown,2.042,optimal,5.74e-09,6400,0,3256
+c -D, Q slack,unknown,1.548,optimal,2.47e-08,13284,0,6723
+c -D, P slack (control),certified,0.8447,optimal,3.44e-09,320,0,172
+b margin eppos2/10, Q slack,unknown,2.209,optimal,2.19e-08,6400,0,3256
+b margin 0, Q slack,unknown,2.208,optimal,2.35e-08,6400,0,3256
+b control T'*T, Q slack,certified,1.035,optimal,2.68e-08,6400,0,3256
+b control I, Q slack,certified,1,optimal,7.28e-05,6400,1,3256
+b margin, slack from its own support,infeasible,-1,unknown,7.16e-05,288,0,288
+c -D, slack from its own support,infeasible,-1,optimal,1,288,0,288
+c -D, slack like sym(T'*Q), dw 0,certified,0.9717,optimal,4.72e-10,1280,0,1280
+c -D, slack like sym(T'*Q), dw 1,unknown,1.579,optimal,3.22e-08,3328,0,3328
+c -D, slack like sym(T'*Q), dw 2,certified,1.159,optimal,1.34e-09,6400,0,6400
+b margin, slack like sym(T'*Q), dw 0,unknown,1.689,optimal,2.21e-08,1280,0,1280
+b margin, slack like sym(T'*Q), dw 1,unknown,1.947,optimal,1.61e-08,3328,0,3328
+b margin, slack like sym(T'*Q), dw 2,unknown,2.042,optimal,5.74e-09,6400,0,6400

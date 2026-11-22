@@ -1,0 +1,7 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+heat1d,P,"st.lpi.ineq.dD = 0",certified,1.027,0,optimal,1.25e-09,180,32,1.1
+heat1d,Pd,"st.lpi.ineq.dD = 0",certified,1.027,0,optimal,1.25e-09,180,32,0.5
+heat2d,P,"st.lpi.ineq.dD = 0",certified,1.096,0,optimal,5.37e-10,5745,513,0.8
+heat2d,Pd,"st.lpi.ineq.dD = 0",certified,1.096,0,optimal,5.37e-10,5745,513,0.5
+rd2d,P,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,37745,1174,2.2
+rd2d,Pd,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,37745,1174,1.9

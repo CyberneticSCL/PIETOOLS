@@ -1,0 +1,7 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+43lib,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto; st.sop.deg_Q{2} = [1 2 2]",certified,0.9984,0,optimal,2.92e-09,132609,5086,11.9
+43lib,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto",infeasible,-1,0,infeasible,1,50991,2081,5.4
+43thin,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto; st.sop.deg_Q{2} = [1 2 2]",certified,0.9973,0,optimal,1.19e-10,174209,4919,10.8
+43thin,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto",infeasible,-1,0,infeasible,1,75470,2141,5.7
+56thin,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto; st.sop.deg_Q{3} = [1 2 2]",error: LB_SIZE ndv=12781675 m=101520 above the gate (ndv 2e+06; m 45000): not solved,NaN,NaN,,NaN,NaN,NaN,NaN
+56thin,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto",infeasible,-1,0,infeasible,1,1587084,32521,421.9

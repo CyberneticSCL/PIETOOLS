@@ -1,0 +1,14 @@
+--- C:/wt1121v/PIETOOLS/SOSTOOLS400/sossolve.m	2026-11-21 01:11:05.879611600 -0700
++++ C:/wt1121v/PIETOOLS/testing_codes/private/baselines/2026-11-18_studies/private/post/sossolve.m	2026-11-21 01:11:24.665677700 -0700
+@@ -737,6 +737,11 @@
+ rn = full(sqrt(sum(At.^2,1)))';     bb = abs(full(b));                      % MMP, 10/30/2026
+ on = rn>1e-12*max(rn) | bb>1e-12*max(bb);                                   % MMP, 10/30/2026
+ info.eta = max([0; abs(r(on))./(rn(on)*max(abs(x))+bb(on)+realmin)]);      % MMP, 10/30/2026
++% Debug copy (wt1121v): keep the SDP data of this solve in appdata SOS_SDP
++% when SOS_KEEP_SDP is true: At, b (normalized), K, x, bscl, RR.
++if isappdata(0,'SOS_KEEP_SDP') && isequal(getappdata(0,'SOS_KEEP_SDP'),true)
++    setappdata(0,'SOS_SDP',struct('At',At,'b',b,'K',K,'x',x,'bscl',bscl,'RR',RR));
++end
+ % Undo the b normalization applied before the solve.  Only the primal scales;
+ % the dual solves A'*y+z = c, which never saw b.
+ %   sos.solinfo.x = x;                                                      % MMP, 09/12/2026 (was)

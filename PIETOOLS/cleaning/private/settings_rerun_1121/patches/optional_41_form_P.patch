@@ -1,0 +1,50 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
+index 0ad6c9aa..307f7b31 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
+@@ -6,7 +6,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,param
+ % input u(t-tau) at s1 = 1, as a 'pde_struct' object (the delay kept as a
+ % delay; the transport form below is the alternative branch of the code),
+ % and the recommended settings ST of its stability test. It sets
+-% stability = 1 and stability_form = 'Q' (generalized storage T'Q) in the
++% stability = 1 and stability_form = 'P' (storage <T x, P T x>) in the      % MMP, 11/21/2026
+ % base workspace; a nonzero GUI prints that no GUI representation exists.
+ %
+ % INPUT
+@@ -73,6 +73,12 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,param
+ %                   (maintainer: every example names its settings);
+ % function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params) % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: stability form 'P' and a reduced storage (s-length 0
++%                   for the upper integral, theta-lengths [1;2;0]): the
++%                   form 'Q' certified at no setting tried; with this st
++%                   the storage passes when fixed and its slack sought
++%                   again, while the executive alone reports the status
++%                   unknown;
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+ loc = mfilename('fullpath');
+@@ -83,7 +89,8 @@ pvar s1 s2 t
+ 
+ %%% Executive Function:
+ evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++% evalin('base','stability_form = ''Q'';');  % form of the stability test   % MMP, 11/21/2026 (was)
++evalin('base','stability_form = ''P'';');  % form of the stability test     % MMP, 11/21/2026
+ %evalin('base','stability_dual = 1;');
+ 
+ % Default parameters, overridden by the assignment strings in params
+@@ -168,7 +175,13 @@ else
+ end
+ 
+ % Example-specific settings: the light tier                                 % MMP, 11/19/2026
++% (upper-integral s-length 0; theta-lengths [1;2;0] (multiplier;            % MMP, 11/21/2026
++% upper; lower integral); at most one raise of the feasibility              % MMP, 11/21/2026
++% passes)                                                                   % MMP, 11/21/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/21/2026
++st.lpi.pos.len_sos{1} = [1;2;0];                                            % MMP, 11/21/2026
++st.sop.max_raise_feas = [1 1 0];                                            % MMP, 11/21/2026
+ 
+ % No GUI representation of this system
+ if GUI~=0

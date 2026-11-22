@@ -1,0 +1,5 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:56,P,A,stripped,"",infeasible,-1,1,0,0,828713,18732,224.2,"",infeasible,1
+PDE:56,Q,A,stripped,"st.lpi.ineq.cap_inc = 'auto'",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=2524300 m=51558 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:56,Q,A,light,"st.lpi.ineq.dD = 0; st.eppos = 1e-2",infeasible,-1,1,0,0,840156,33352,185.4,"",infeasible,1
+PDE:56,Q,A,light,"st.lpi.ineq.dD = 0; st.epneg = 1e-3",infeasible,-1,1,0,0,840156,34648,158.9,"",infeasible,1.16

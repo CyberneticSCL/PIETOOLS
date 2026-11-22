@@ -1,0 +1,76 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 5)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN WITNESS 20-Nov-2026 12:07:36
+## lpisettings_sop: C:\wt1120\PIETOOLS\settings_sopvar\lpisettings_sop.m
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+##### WITNESS dw1 N 12: ok 1 maxre 0.910573 
+##### WITNESS dw1 N 24: ok 1 maxre 2.36471 
+##### WITNESS dw1 N 48: ok 1 maxre 4.98743 
+##### WITNESS dw1 N 96: ok 1 maxre 10.1153 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+##### WITNESS 69pos N 12: ok 1 maxre 1.42226 
+##### WITNESS 69pos N 24: ok 1 maxre 0.844317 
+##### WITNESS 69pos N 48: ok 1 maxre 1.08173 
+##### WITNESS 69pos N 96: ok 1 maxre 0.907214 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+##### WITNESS 44min N 12: ok 1 maxre 0.743442 
+##### WITNESS 44min N 24: ok 1 maxre 2.14907 
+##### WITNESS 44min N 48: ok 1 maxre 4.76654 
+##### WITNESS 44min N 96: ok 1 maxre 9.90059 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+##### WITNESS 68 N 12: ok 1 maxre -0.158617 
+##### WITNESS 68 N 24: ok 1 maxre -0.109839 
+##### WITNESS 68 N 48: ok 1 maxre -0.0759723 
+##### WITNESS 68 N 96: ok 1 maxre -0.0529733 
+## WITNESS DONE 20-Nov-2026 12:07:43

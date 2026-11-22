@@ -1,0 +1,9 @@
+variant,form,status,fr,numerr,exst,eta,ndec,m,sec
+as is,Q,unknown,0.3402,0,optimal,1.95e-10,2496,199,2.7
+as is,P,unknown,0.008176,2,unknown,1.47e-12,7888,161,1.2
+flux,Q,certified,0.9961,0,optimal,4.58e-10,2496,199,0.6
+flux,P,certified,0.9794,0,optimal,1.46e-09,4000,127,0.4
+decoupled,Q,certified,1.005,0,optimal,4.78e-10,2496,197,0.6
+decoupled,P,certified,1.013,0,optimal,1.13e-09,4000,124,0.4
+example,Q,unknown,0.0775,2,unknown,5.14e-10,19776,797,3.0
+example,P,unknown,-0.09693,2,unknown,6.05e-15,4000,217,1.3

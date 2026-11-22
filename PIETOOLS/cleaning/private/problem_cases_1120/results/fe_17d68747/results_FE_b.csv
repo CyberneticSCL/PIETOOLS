@@ -1,0 +1,5 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gam,gate,note
+PDE:50/H2_norm_dual,cco,stripped,"st.lpi.ineq.dD = 0; st.eppos = 0; st.lpi.ineq.cap_inc = auto",,error,NaN,NaN,NaN,NaN,,NaN,NaN,NaN,3.5,NaN,0,"Undefined function 'PIETOOLS_H2_norm_c' for input arguments of type 'pie_struct'."
+PDE:50/H2_norm_dual,cco,stripped,"st.lpi.ineq.dD = 0; st.eppos = 0",,error,NaN,NaN,NaN,NaN,,NaN,NaN,NaN,1.5,NaN,0,"Undefined function 'PIETOOLS_H2_norm_c' for input arguments of type 'pie_struct'."
+PDE:55,FP,stripped,"st.lpi.ineq.dD = 0",,infeasible,-1,1,0,0,infeasible,1,114704,8669,25.5,NaN,0,""
+PDE:50/H2_norm_dual,cco,light,"st.lpi.ineq.dD = 0; st.eppos = 0",,error,NaN,NaN,NaN,NaN,,NaN,NaN,NaN,1.4,NaN,0,"Undefined function 'PIETOOLS_H2_norm_c' for input arguments of type 'pie_struct'."

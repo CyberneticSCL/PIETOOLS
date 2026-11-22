@@ -1,0 +1,7 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]; st.lpi.ineq.cap_inc = 'auto'",infeasible,-1,1,0,0,457225,13354,76.7,"",infeasible,1
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]; st.lpi.ineq.cap_inc = 'auto'",infeasible,-1,1,0,0,1005289,25932,283.8,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",infeasible,-1,1,0,0,457225,13354,62.3,"",infeasible,1
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",infeasible,-1,1,0,0,1005289,25932,292.8,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 2 2]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=2015105 m=34675 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 2 2]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=4455909 m=70343 above the gate (ndv 2e+06; m 45000): not solved",,NaN

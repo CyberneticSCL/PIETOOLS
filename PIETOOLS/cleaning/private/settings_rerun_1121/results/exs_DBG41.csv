@@ -1,0 +1,2 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:20:06,PDE:41,0,start1 Q light examplest,start fails,unknown,unknown,5.14e-10,0.0775,3,19776,797,NaN,3.0,post fails: stage 2 infeasible fr -1 exst optimal eta 1 ndec 19684 m 667; P margin: residual of the solve 7e-10; eppos2 0.0001; residual of the solve 5e-09; largest D 2; slack of the solve (first: infeasible fr -1 eta 1; residue [0 0]); then the support of D one degree up; slack entries [3256 6723] (solve: 13284)

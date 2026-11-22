@@ -1,0 +1,4 @@
+id,file,executive,status,value,ndv,m,seconds,source,note
+57,PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman,stability,optimal,NaN,19840,1912,10.3,st,""
+65,PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair,stability,optimal,NaN,250280,9162,80.4,st,""
+39,PIETOOLS_PDE_Ex_2D_NS_Antonelli,stability,optimal,NaN,334656,10129,74.1,st,""

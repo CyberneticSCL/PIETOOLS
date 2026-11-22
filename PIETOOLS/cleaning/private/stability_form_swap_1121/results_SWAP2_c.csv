@@ -1,0 +1,4 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gate,note
+PDE:40,Qd,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",-0.5,infeasible,-1,1,0,0,infeasible,1,49846,1790,6.4,0,""
+PDE:40,FQ,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.epneg = 1",-0.5,infeasible,-1,1,0,0,infeasible,0.0384,90118,1950,7.0,0,""
+PDE:40,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",-0.5,infeasible,-1,1,0,0,infeasible,0.0461,49846,1790,4.6,0,""

@@ -1,0 +1,71 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m
+index d1210677..bb60fe14 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m
+@@ -58,8 +58,10 @@ root = fileparts(loc);
+ pvar s
+ 
+ %%% Executive Function:
+-evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++%evalin('base','stability = 1;');                                           % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_dual = 1;');                                       % MMP, 11/20/2026 (worktree test)
++%evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026  % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_form = ''P'';');                                   % MMP, 11/20/2026 (worktree test)
+ %evalin('base','stability_dual = 1;');
+ 
+ k = 1;
+@@ -76,21 +78,30 @@ end
+ % % % Construct the PDE.
+ %%% pde_var input format
+ clear stateNameGenerator
+-x1 = pde_var();
+-x2 = pde_var(s,[0,1]);
+-x3 = pde_var(s,[0,1],2);       % x3 must be 2nd order differentiable wrt s1
+-x4 = pde_var(s,[0,1]);
+-x5 = pde_var(s,[0,1]);
+-PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);
+-         diff(x2,'t')==x3;
+-         diff(x3,'t')==diff(x2,s,2);
+-         diff(x4,'t')==-(1/tau)*diff(x4,s);
+-         diff(x5,'t')==-(1/tau)*diff(x5,s);
+-         subs([x2;x3],s,0)==0;
+-         x1==-k*(1-mu)*subs(x2,s,1)-k*mu*subs(x4,s,1);
+-         subs(diff(x2,s),s,1)==-k*(1-mu)*subs(x3,s,1)-k*mu*subs(x5,s,1);
+-         subs(x4,s,0)==subs(x2,s,1);
+-         subs(x5,s,0)==subs(x3,s,1)];
++%x1 = pde_var();                                                            % MMP, 11/20/2026 (worktree test, was)
++%x2 = pde_var(s,[0,1]);                                                     % MMP, 11/20/2026 (worktree test, was)
++%x3 = pde_var(s,[0,1],2);       % x3 must be 2nd order differentiable wrt s1  % MMP, 11/20/2026 (worktree test, was)
++%x4 = pde_var(s,[0,1]);                                                     % MMP, 11/20/2026 (worktree test, was)
++%x5 = pde_var(s,[0,1]);                                                     % MMP, 11/20/2026 (worktree test, was)
++%PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);                               % MMP, 11/20/2026 (worktree test, was)
++%         diff(x2,'t')==x3;                                                 % MMP, 11/20/2026 (worktree test, was)
++%         diff(x3,'t')==diff(x2,s,2);                                       % MMP, 11/20/2026 (worktree test, was)
++%         diff(x4,'t')==-(1/tau)*diff(x4,s);                                % MMP, 11/20/2026 (worktree test, was)
++%         diff(x5,'t')==-(1/tau)*diff(x5,s);                                % MMP, 11/20/2026 (worktree test, was)
++%         subs([x2;x3],s,0)==0;                                             % MMP, 11/20/2026 (worktree test, was)
++%         x1==-k*(1-mu)*subs(x2,s,1)-k*mu*subs(x4,s,1);                     % MMP, 11/20/2026 (worktree test, was)
++%         subs(diff(x2,s),s,1)==-k*(1-mu)*subs(x3,s,1)-k*mu*subs(x5,s,1);   % MMP, 11/20/2026 (worktree test, was)
++%         subs(x4,s,0)==subs(x2,s,1);                                       % MMP, 11/20/2026 (worktree test, was)
++%         subs(x5,s,0)==subs(x3,s,1)];                                      % MMP, 11/20/2026 (worktree test, was)
++u = pde_var(s,[0,1],2);                                                     % MMP, 11/20/2026 (worktree test)
++v = pde_var(s,[0,1],1);                                                     % MMP, 11/20/2026 (worktree test)
++z = pde_var(s,[0,1],1);                                                     % MMP, 11/20/2026 (worktree test)
++PDE_t = [diff(u,'t')==v;                                                    % MMP, 11/20/2026 (worktree test)
++         diff(v,'t')==diff(u,s,2);                                          % MMP, 11/20/2026 (worktree test)
++         diff(z,'t')==-(1/tau)*diff(z,s);                                   % MMP, 11/20/2026 (worktree test)
++         subs(u,s,0)==0;          subs(v,s,0)==0;                           % MMP, 11/20/2026 (worktree test)
++         subs(diff(u,s),s,1)==-k*(1-mu)*subs(v,s,1)-k*mu*subs(z,s,1);       % MMP, 11/20/2026 (worktree test)
++         subs(z,s,0)==subs(v,s,1)];                                         % MMP, 11/20/2026 (worktree test)
+ 
+ 
+ % %%% Term-based input format
+@@ -153,6 +164,7 @@ PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);
+                                 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.epneg = 1e-1;                                                            % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')

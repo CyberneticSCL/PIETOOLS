@@ -1,0 +1,2 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+PDE:40,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.sos_opts.solver = '';",8518,844,8518,844,4,"build budget",direct,8518,844

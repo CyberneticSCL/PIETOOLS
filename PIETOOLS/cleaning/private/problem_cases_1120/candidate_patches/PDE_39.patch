@@ -1,0 +1,23 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
+index 5268b5be..78485472 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
+@@ -43,7 +43,8 @@ pvar s1 s2
+ 
+ %%% Executive Function:
+ evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++%evalin('base','stability_form = ''Q'';');                                  % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_form = ''P'';');                                   % MMP, 11/20/2026 (worktree test)
+ %evalin('base','stability_dual = 1;');
+ 
+ M = 0.1;  lam = 1;  nu = 1;
+@@ -148,6 +149,8 @@ PDE_t = [diff(x1,'t')==-s2*diff(x1,s1)-x2-(1/M^2)*diff(x3,s1)+nu*(diff(x1,s1,2)+
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.settings_2d = settings_2d_stock('light');                                % MMP, 11/20/2026 (worktree test)
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')

@@ -1,0 +1,9 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note
+PDE:X3,Q,A,light,"st.lpi.ineq.wcross = 1; st.epneg = 1e-3",infeasible,-1,1,0,0,58915,1267,16.0,""
+PDE:X3,Q,A,light,"st.lpi.ineq.wcross = 1; st.lpi.ineq.dD = 0; st.epneg = 1e-3",infeasible,-1,1,0,0,46527,1111,13.1,""
+PDE:X3,Q,A,light,"st.lpi.ineq.wcross = 1; st.sop.deg_Q{1} = [8 8 8]",infeasible,-1,1,0,0,58915,1267,11.1,""
+PDE:X3,Q,A,light,"st.lpi.ineq.wcross = 1; st.sop.deg_Q{2} = 2",infeasible,-1,1,0,0,168135,2156,19.0,""
+PDE:X3,P,A,light,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1; st.epneg = 1e-3",unknown,-0.4969,0,0,2,60246,735,10.9,""
+PDE:X3,P,A,light,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1; st.eppos = 1e-2",infeasible,-0.9997,0,0,2,60246,725,8.7,""
+PDE:39,Q,A,light,"st.lpi.ineq.wcross = 1; st.lpi.ineq.dD = 0; st.epneg = 1e-3",unknown,6.673,0,0,0,316548,16099,61.8,""
+PDE:39,Q,A,light,"st.lpi.ineq.wcross = 1; st.lpi.ineq.dD = 0; st.epneg = 1e-2",unknown,2.395,0,0,0,316548,16099,42.9,""

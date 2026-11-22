@@ -1,0 +1,3 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gate,note
+periodic_heat,Pd,light,"",,optimal,,,,,,,,,1.8,,"posed P; K rows 1; warning [PIETOOLS_stability_sop:form] PIE.K is nonempty: form 'Pd' is posed as 'P'."
+periodic_heat,Qd,light,"",,optimal,,,,,,,,,1.3,,"posed Q; K rows 1; warning [PIETOOLS_stability_sop:form] PIE.K is nonempty: form 'Qd' is posed as 'Q'."

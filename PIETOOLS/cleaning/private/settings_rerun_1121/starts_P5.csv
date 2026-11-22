@@ -1,0 +1,5 @@
+key,kind,form,tier,mods,best
+DDE:DDE09,value,P,light,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0",25.907746
+DDE:DDE09/Hinf_gain_dual,value,Pd,light,"st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0",25.907747
+DDE:DDE10,value,P,stripped,"st.lpi.ineq.dD = 0",0.23644308
+DDE:DDE10/Hinf_gain_dual,value,Pd,stripped,"st.lpi.ineq.dD = 0",0.23644327

@@ -1,0 +1,21 @@
+form,tier,mods,status,fr,numerr,exst,eta,ndec,m,sec
+Q,light,"",unknown,0.3402,0,optimal,1.95e-10,2496,199,2.1
+Q,stripped,"",unknown,0.3402,0,optimal,1.95e-10,2496,199,0.6
+Q,heavy,"",unknown,-0.1359,2,unknown,3.02e-11,30220,509,2.2
+Q,veryheavy,"",unknown,-0.2035,2,unknown,3.64e-10,51680,611,2.4
+Q,light,"st.epneg = 1e-3",certified,1.034,0,optimal,8.78e-11,2496,199,0.4
+Q,light,"st.epneg = 1e-2",certified,1.009,0,optimal,2.25e-10,2496,199,0.3
+Q,light,"st.eppos = 1e-2",certified,1.185,0,optimal,1.96e-10,2496,199,0.4
+Q,light,"st.lpi.ineq.dD = 0",unknown,0.4511,0,optimal,4.26e-10,4128,198,0.7
+Q,light,"st.lpi.ineq.dD = 2",certified,0.9328,0,optimal,2.71e-10,3900,263,0.4
+Q,light,"st.sop.deg_Q{1} = [6 2 2]",unknown,0.3402,0,optimal,1.95e-10,2496,199,0.5
+Q,light,"st.sop.deg_Q{1} = [8 8 8]",unknown,0.3402,0,optimal,1.95e-10,2496,199,0.4
+Q,light,"st.sop.deg_Q{1} = [2 2 2]",unknown,0.3402,0,optimal,1.95e-10,2496,199,0.4
+Q,light,"st.epneg = 1e-3; st.lpi.ineq.dD = 0",unknown,0.6042,0,optimal,6.69e-10,4128,198,0.8
+P,light,"",unknown,0.008176,2,unknown,1.47e-12,7888,161,1.0
+P,stripped,"",unknown,0.008176,2,unknown,1.47e-12,7888,161,0.7
+P,heavy,"",unknown,-0.01094,2,unknown,1.3e-13,28276,281,2.0
+P,veryheavy,"",unknown,-0.2293,2,unknown,1.69e-12,139984,605,8.4
+P,light,"st.epneg = 1e-3",unknown,-0.01363,2,unknown,5.08e-13,7888,161,0.8
+P,light,"st.eppos = 1e-2",unknown,0.004779,2,unknown,1.43e-13,7888,161,0.7
+P,light,"st.lpi.ineq.dD = 0",unknown,0.01348,2,unknown,4e-12,3728,126,0.6

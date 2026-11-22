@@ -1,0 +1,4 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gam,gate,note
+PDE:50/H2_norm_dual,cco,stripped,"st.lpi.ineq.dD = 0; st.eppos = 0; st.lpi.ineq.cap_inc = auto",,infeasible,-1,1,0,0,infeasible,0.000518,16337,1417,10.9,3.295416,0,""
+PDE:50/H2_norm_dual,cco,stripped,"st.lpi.ineq.dD = 0; st.eppos = 0",,infeasible,-1,1,0,0,infeasible,0.000497,96417,3929,10.4,3.3659933,0,""
+PDE:50/H2_norm_dual,cco,light,"st.lpi.ineq.dD = 0; st.eppos = 0",,infeasible,-1,1,0,0,infeasible,0.000356,1660065,12446,484.1,3.9763197,0,""

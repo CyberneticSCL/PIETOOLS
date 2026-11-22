@@ -1,0 +1,3 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+69mix2,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",infeasible,-1,0,infeasible,1,843604,28339,318.7
+69mix2,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [1 0 0]",infeasible,-1,0,infeasible,1,1924841,40459,819.2

@@ -1,0 +1,10 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gate,note
+PDE:40,Q,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",,certified,0.9612,0,0,0,optimal,6.24e-11,8518,844,2.9,1,""
+PDE:40,Qd,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",,certified,1.019,0,0,0,optimal,1.47e-10,8518,844,1.0,1,""
+PDE:40,Pd,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0",,unknown,0.2143,0,0,0,optimal,6.21e-12,6057,530,0.9,0,""
+PDE:40,FQ,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.epneg = 1",,certified,1.005,0,0,0,optimal,7.75e-10,13366,908,0.8,1,""
+PDE:40,FP,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.epneg = 1",,unknown,0.6488,0,0,0,optimal,6.64e-11,38601,1163,2.7,0,""
+PDE:43,Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto; st.sop.deg_Q{2} = [1 2 2]",,certified,1.085,0,0,0,optimal,1.96e-08,1008600,10390,52.8,1,""
+PDE:43,Qd,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto; st.sop.deg_Q{2} = [1 2 2]",1.1382,infeasible,-1,0,0,2,unknown,5.63e-09,1008600,10390,80.8,0,""
+PDE:43,FQ,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = auto; st.sop.deg_Q{2} = [1 2 2]; st.epneg = 1",,unknown,-0.8629,0,0,0,optimal,1.05e-09,132609,5086,6.2,0,""
+PDE:56,FQ,stripped,"st.lpi.ineq.dD = 0; st.epneg = 1",,infeasible,-1,1,0,0,infeasible,1,840156,33352,147.7,0,""

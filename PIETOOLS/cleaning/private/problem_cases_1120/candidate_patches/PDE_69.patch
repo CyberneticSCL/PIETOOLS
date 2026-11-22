@@ -1,0 +1,50 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m
+index 7520cd6e..562aaf01 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m
+@@ -68,20 +68,35 @@ end
+ % % % Construct the PDE.
+ %%% pde_var input
+ clear stateNameGenerator
+-u = pde_var([s1;s2],[0,1;0,1],[2;2]);
+-v = pde_var([s1;s2],[0,1;0,1],[1;2]);           % 1st order in s1, 2nd in s2
+-w = pde_var([s1;s2],[0,1;0,1],[2;2]);
+-PDE_t = [diff(u,'t')==v;
+-         diff(v,'t')==diff(u,s1,2)+diff(u,s2,2);
+-         diff(w,'t')==diff(w,s1,2)+diff(w,s2,2);
+-         subs(u,s1,1)==0;           subs(diff(u,s1),s1,0)==-subs(diff(w,s1),s1,0);
+-         subs(v,s1,1)==0;
+-         subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);
+-         subs([u;v;w],s2,0)==0;     subs([u;v;w],s2,1)==0];
++%u = pde_var([s1;s2],[0,1;0,1],[2;2]);                                      % MMP, 11/20/2026 (worktree test, was)
++%v = pde_var([s1;s2],[0,1;0,1],[1;2]);           % 1st order in s1, 2nd in s2  % MMP, 11/20/2026 (worktree test, was)
++%w = pde_var([s1;s2],[0,1;0,1],[2;2]);                                      % MMP, 11/20/2026 (worktree test, was)
++%PDE_t = [diff(u,'t')==v;                                                   % MMP, 11/20/2026 (worktree test, was)
++%         diff(v,'t')==diff(u,s1,2)+diff(u,s2,2);                           % MMP, 11/20/2026 (worktree test, was)
++%         diff(w,'t')==diff(w,s1,2)+diff(w,s2,2);                           % MMP, 11/20/2026 (worktree test, was)
++%         subs(u,s1,1)==0;           subs(diff(u,s1),s1,0)==-subs(diff(w,s1),s1,0);  % MMP, 11/20/2026 (worktree test, was)
++%         subs(v,s1,1)==0;                                                  % MMP, 11/20/2026 (worktree test, was)
++%         subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);            % MMP, 11/20/2026 (worktree test, was)
++%         subs([u;v;w],s2,0)==0;     subs([u;v;w],s2,1)==0];                % MMP, 11/20/2026 (worktree test, was)
++u = pde_var([s1;s2],[0,1;0,1],[0;2]);                                       % MMP, 11/20/2026 (worktree test)
++e1 = pde_var([s1;s2],[0,1;0,1],[1;2]);                                      % MMP, 11/20/2026 (worktree test)
++v = pde_var([s1;s2],[0,1;0,1],[1;2]);                                       % MMP, 11/20/2026 (worktree test)
++w = pde_var([s1;s2],[0,1;0,1],[2;2]);                                       % MMP, 11/20/2026 (worktree test)
++PDE_t = [diff(u,'t')==v;                                                    % MMP, 11/20/2026 (worktree test)
++         diff(v,'t')==diff(e1,s1)+diff(u,s2,2);                             % MMP, 11/20/2026 (worktree test)
++         diff(e1,'t')==diff(v,s1);                                          % MMP, 11/20/2026 (worktree test)
++         diff(w,'t')==diff(w,s1,2)+diff(w,s2,2);                            % MMP, 11/20/2026 (worktree test)
++         subs(u,s2,0)==0;           subs(u,s2,1)==0;                        % MMP, 11/20/2026 (worktree test)
++         subs(e1,s1,0)==-subs(diff(w,s1),s1,0);                             % MMP, 11/20/2026 (worktree test)
++         subs(e1,s2,0)==0;          subs(e1,s2,1)==0;                       % MMP, 11/20/2026 (worktree test)
++         subs(v,s1,1)==0;           subs(v,s2,0)==0;     subs(v,s2,1)==0;   % MMP, 11/20/2026 (worktree test)
++         subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);             % MMP, 11/20/2026 (worktree test)
++         subs(w,s2,0)==0;           subs(w,s2,1)==0];                       % MMP, 11/20/2026 (worktree test)
+ 
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')

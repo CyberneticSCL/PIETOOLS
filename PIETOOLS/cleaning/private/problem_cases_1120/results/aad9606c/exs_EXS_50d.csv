@@ -1,0 +1,10 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:49:27,PDE:50/H2_norm_dual,0,start1 cco stripped ,start fails,infeasible,infeasible,0.0127,-1,1,404021,9709,0.62940188,66.7,
+05:50:48,PDE:50/H2_norm_dual,0,start2 cco stripped st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,0.0141,-1,1,423137,9865,0.58008223,81.2,
+05:52:14,PDE:50/H2_norm_dual,0,start3 cco stripped st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1,start fails,infeasible,infeasible,0.0141,-1,1,423137,9865,0.58008223,86.1,
+05:52:24,PDE:50/H2_norm_dual,0,start4 cco stripped st.eppos = 1e-2; st.lpi.ineq.dD = 0,start fails,infeasible,infeasible,0.000855,-1,1,96417,3929,3.3667069,9.9,
+05:52:35,PDE:50/H2_norm_dual,0,start5 cco light st.lpi.ineq.cap_inc = 'auto',start fails,infeasible,infeasible,0.742,-1,2,60645,2143,0.044122518,11.5,
+05:58:00,PDE:50/H2_norm_dual,0,start6 c light st.lpi.ineq.wcross = 1,start fails,error,,NaN,NaN,NaN,6.03269e+06,55881,NaN,NaN,LB_SIZE ndv=6032693 m=55881 above the gate (ndv 2e+06; m 45000): not solved
+06:02:04,PDE:50/H2_norm_dual,0,start7 c heavy st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,5.20997e+06,46835,NaN,NaN,LB_SIZE ndv=5209966 m=46835 above the gate (ndv 2e+06; m 45000): not solved
+06:06:17,PDE:50/H2_norm_dual,0,start8 c light st.eppos = 1e-2,start fails,error,,NaN,NaN,NaN,5.89616e+06,55535,NaN,NaN,LB_SIZE ndv=5896165 m=55535 above the gate (ndv 2e+06; m 45000): not solved
+06:12:49,PDE:50/H2_norm_dual,0,start9 cco light st.lpi.ineq.dD = 0; st.eppos = 1e-2,start fails,infeasible,infeasible,0.000518,-1,2,1.66006e+06,12446,3.9752716,391.7,

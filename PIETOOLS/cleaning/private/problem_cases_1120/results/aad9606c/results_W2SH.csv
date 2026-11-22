@@ -1,0 +1,8 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:69,P,A,light,"st.settings_2d = settings_2d_stock('heavy'); st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,1337841,18426,521.9,"",infeasible,1
+PDE:70,P,A,light,"st.settings_2d = settings_2d_stock('heavy'); st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,686608,9895,103.7,"",infeasible,1
+PDE:39,P,A,light,"st.settings_2d = settings_2d_stock('light'); st.lpi.ineq.dD = 0",certified,1.12,0,0,0,334656,10129,63.6,"",optimal,4.9e-09
+PDE:69,P,A,light,"st.settings_2d = settings_2d_stock('heavy')",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=6766641 m=46040 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:70,P,A,light,"st.settings_2d = settings_2d_stock('heavy')",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=3312720 m=23507 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:69,P,A,light,"st.settings_2d = settings_2d_stock('veryheavy'); st.lpi.ineq.dD = 0",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=6773220 m=46725 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:70,P,A,light,"st.settings_2d = settings_2d_stock('veryheavy'); st.lpi.ineq.dD = 0",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=5598880 m=31144 above the gate (ndv 2e+06; m 45000): not solved",,NaN

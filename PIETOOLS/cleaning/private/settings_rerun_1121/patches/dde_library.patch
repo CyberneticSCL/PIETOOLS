@@ -1,0 +1,35 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m b/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m
+index 2ee9216b..c5485723 100644
+--- a/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m
++++ b/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m
+@@ -114,6 +114,11 @@
+ %                   the block carries its st;
+ %                   its delay is the discrete delay of [5] (Ai{1}, was Adi{1});
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: H-infinity gain Example 1 (unsourced): st with the
++%                   lower-integral s-length 1 and the slack lift degree at
++%                   its tier value, the smallest setting found that
++%                   certifies both gain bounds under an acceptance that
++%                   also bounds the residual of the solve;
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -284,13 +289,14 @@
+ %  DDE.C1=[1];
+ %  DDE.D11=[1];
+ %  DDE.tau(1)=1.5;
+-% % st: the light tier, with upper-integral s-length 1; theta-lengths
+-% %   [2;1;2] (multiplier; upper; lower integral); slack lift degree at its
+-% %   minimum; gain form 'P' (storage <T x, R T x>)
++% % st: the light tier, with lower- and upper-integral s-lengths 1;         % MMP, 11/21/2026
++% %   theta-lengths [2;1;2] (multiplier; upper; lower integral);            % MMP, 11/21/2026
++% %   gain form 'P' (storage <T x, R T x>)                                  % MMP, 11/21/2026
+ % st = lpisettings_sop('light');                                            % MMP, 11/19/2026
++% st.lpi.pos.len_inc{1} = 1;                                                % MMP, 11/21/2026
+ % st.lpi.pos.len_com{1} = 1;                                                % MMP, 11/19/2026
+ % st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+-% st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
++% % st.lpi.ineq.dD = 0;                                                     % MMP, 11/21/2026 (was)
+ % Hinf_gain_form = 'P';                                                     % MMP, 11/19/2026
+ % %%%% answer - 2 @ tau=.5
+ % %%%% answer - 25.907 @ tau=1.5

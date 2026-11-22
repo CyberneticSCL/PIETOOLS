@@ -1,0 +1,4 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+14:29:27,PDE:50/H2_norm_dual,0,start1 c light st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto',start fails,unknown,unknown,3.11e-06,-0.193,2,242485,24571,508.0421,16.4,
+14:32:18,PDE:50/H2_norm_dual,0,start2 c light st.lpi.ineq.dD = 0,start fails,unknown,unknown,6.69e-08,-0.298,2,1.58544e+06,34947,305.53925,171.6,
+14:35:19,PDE:50/H2_norm_dual,0,start3 c heavy st.lpi.ineq.dD = 0,start fails,error,,NaN,NaN,NaN,5.20997e+06,46835,NaN,NaN,LB_SIZE ndv=5209966 m=46835 above the gate (ndv 2e+06; m 45000): not solved

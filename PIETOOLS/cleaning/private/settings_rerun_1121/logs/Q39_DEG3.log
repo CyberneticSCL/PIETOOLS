@@ -1,0 +1,42 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 43)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In q39deg3 (line 7)] 
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)(/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+[Warning: A copvar has no field 'dim'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future versions.] 
+[> In indexing (line 117)
+In indexing (line 62)
+In lb_build_system (line 70)
+In q39deg3 (line 11)] 
+ - lpi_ineq_sop: 13050000 decision variables in the certificate (Gram blocks [2700 1200 1200 1200 1200], sized from the operator); 13061664 in the program.
+ - lpi_ineq_sop: 18792000 decision variables in the certificate (Gram blocks [3240 1440 1440 1440 1440], sized from the operator); 31853664 in the program.
+## Q light, deg_Q{2} = 3: error LB_SIZE ndv=31853664 m=237369 above the gate (ndv 2e+06, m 45000): not solved
+ - lpi_ineq_sop: 5345280 decision variables in the certificate (Gram blocks [1728 768 768 768 768], sized from the operator); 5356944 in the program.
+ - lpi_ineq_sop: 16588800 decision variables in the certificate (Gram blocks [2880 1440 1440 1440 1440], sized from the operator); 21945744 in the program.
+## Q light, deg_Q{2} = 3, dD 0: error LB_SIZE ndv=21945744 m=164247 above the gate (ndv 2e+06, m 45000): not solved

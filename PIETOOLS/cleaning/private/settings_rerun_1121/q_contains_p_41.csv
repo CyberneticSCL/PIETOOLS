@@ -1,0 +1,5 @@
+check,status,fr,exst,eta,ndec,residue_zeroed,slack_ndec
+a span of Q (deg_Q [4 2 2]),,,,,,0,
+b margin, Q slack,unknown,2.042,optimal,5.74e-09,6400,0,3256
+c -D, Q slack,unknown,1.548,optimal,2.47e-08,13284,0,6723
+c -D, P slack (control),certified,0.8447,optimal,3.44e-09,320,0,172

@@ -1,0 +1,331 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_run (line 30)] 
+## PC_RUN DIAGSED 20-Nov-2026 14:59:37
+## lpisettings_sop: C:\wt1120e\PIETOOLS\settings_sopvar\lpisettings_sop.m
+## sedumi: C:\YALMIP\yalmip_install\tbxmanager\toolboxes\sedumi\1.3\pcwin64\sedumi_1_3_pcwin64\sedumi.m
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 1620 decision variables in the certificate (Gram blocks [36 18], sized from opts.like); 2520 in the program.
+Size: 2520   286
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 286, order n = 85, dim = 2521, blocks = 4
+nnz(A) = 8272 + 0, nnz(ADA) = 79276, nnz(L) = 39781
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            5.87E-01 0.000
+  1 :   8.23E-02 1.88E-01 0.000 0.3198 0.9000 0.9000   0.86  1  1  2.6E+00
+  2 :   5.47E-02 6.03E-02 0.000 0.3209 0.9000 0.9000   0.75  1  1  9.5E-01
+  3 :   1.06E-02 1.75E-02 0.000 0.2898 0.9000 0.9000   0.95  1  1  2.7E-01
+  4 :   6.53E-04 5.03E-03 0.000 0.2881 0.9000 0.9000   1.11  1  1  7.3E-02
+  5 :   1.60E-04 1.24E-03 0.000 0.2465 0.9000 0.9000   1.17  1  1  1.7E-02
+  6 :   4.00E-05 2.40E-04 0.000 0.1931 0.9000 0.9000   1.03  1  1  3.2E-03
+  7 :   4.44E-06 2.05E-05 0.000 0.0857 0.9900 0.9696   1.00  1  1  2.9E-04
+  8 :   7.62E-07 3.77E-06 0.000 0.1836 0.9005 0.9000   1.00  1  1  5.3E-05
+  9 :   1.69E-07 8.44E-07 0.000 0.2240 0.9000 0.8293   1.00  1  2  1.2E-05
+ 10 :   1.70E-08 7.76E-08 0.373 0.0919 0.9900 0.9437   1.00  1  2  1.1E-06
+ 11 :   2.45E-09 6.85E-09 0.481 0.0883 0.9900 0.9610   0.98  3  5  9.6E-08
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 11      0.5  12.4  0.0000000000e+00  2.4515631119e-09
+|Ax-b| =   1.8e-07, [Ay-c]_+ =   1.2E-08, |x|=  2.1e+01, |y|=  9.5e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+2.610E-01    5.520E-01    3.100E-02    
+Max-norms: ||b||=6.696495e-01, ||c|| = 0,
+Cholesky |add|=20, |skip| = 21, ||L.L|| = 1.24022e+07.
+ 
+Residual norm: 1.7577e-07
+ 
+         iter: 11
+    feasratio: 0.9829
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.2610 0.5520 0.0310]
+      wallsec: 0.8440
+       cpusec: 0.5156
+       relres: 1.7577e-07
+          eta: 2.4608e-09
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.8e-07, eta 2.5e-09, objective NaN, 2520 decision variables, 286 rows, build 1.4 s, solve 1.0 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re 2.14907
+##### DIAGSED 44min Pd []: inaccurate fr 0.983 exst inaccurate ndec 2520
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 1620 decision variables in the certificate (Gram blocks [36 18], sized from opts.like); 2520 in the program.
+Size: 2520   315
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 315, order n = 85, dim = 2521, blocks = 4
+nnz(A) = 13971 + 0, nnz(ADA) = 96265, nnz(L) = 48290
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            4.97E-01 0.000
+  1 :   1.32E-01 1.60E-01 0.000 0.3222 0.9000 0.9000   0.77  1  1  2.5E+00
+  2 :   8.22E-02 5.18E-02 0.000 0.3232 0.9000 0.9000   0.68  1  1  9.3E-01
+  3 :   2.07E-02 1.54E-02 0.000 0.2975 0.9000 0.9000   0.92  1  1  2.8E-01
+  4 :   5.31E-03 5.34E-03 0.000 0.3465 0.9000 0.9000   1.03  1  1  9.4E-02
+  5 :   2.15E-04 1.73E-03 0.000 0.3247 0.9000 0.9000   1.19  1  1  2.7E-02
+  6 :   5.15E-05 4.74E-04 0.000 0.2736 0.9000 0.9000   1.29  1  1  6.6E-03
+  7 :   1.44E-05 9.72E-05 0.000 0.2049 0.9000 0.9000   1.05  1  1  1.3E-03
+  8 :   3.79E-06 2.43E-05 0.000 0.2501 0.9000 0.9000   1.00  1  1  3.3E-04
+  9 :   8.09E-07 6.77E-06 0.000 0.2786 0.9000 0.9001   1.00  1  1  9.2E-05
+ 10 :   1.56E-07 1.94E-06 0.000 0.2862 0.9010 0.9000   1.00  1  2  2.7E-05
+ 11 :   2.79E-08 5.55E-07 0.000 0.2862 0.9010 0.9000   1.00  2  2  7.6E-06
+ 12 :   4.11E-09 1.58E-07 0.000 0.2849 0.9003 0.9000   1.00  2  7  2.2E-06
+ 13 :   3.74E-10 4.56E-08 0.000 0.2882 0.9000 0.9000   1.00  3  4  6.3E-07
+ 14 :  -3.91E-11 1.33E-08 0.000 0.2922 0.9000 0.9001   1.00  8 13  2.2E-07
+ 15 :  -3.90E-11 3.89E-09 0.000 0.2925 0.9002 0.9000   1.00 17 33  9.0E-08
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      0.9  15.0  0.0000000000e+00 -3.9040145527e-11
+|Ax-b| =   1.0e-07, [Ay-c]_+ =   7.5E-09, |x|=  2.3e+01, |y|=  6.8e+04
+
+Detailed timing (sec)
+   Pre          IPM          Post
+8.006E-03    2.620E-01    2.002E-03    
+Max-norms: ||b||=6.275749e-01, ||c|| = 0,
+Cholesky |add|=33, |skip| = 25, ||L.L|| = 1.80919e+07.
+ 
+Residual norm: 1.0485e-07
+ 
+         iter: 15
+    feasratio: 0.9991
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0080 0.2620 0.0020]
+      wallsec: 0.2720
+       cpusec: 0.8750
+       relres: 1.0485e-07
+          eta: 1.1804e-09
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.0e-07, eta 1.2e-09, objective NaN, 2520 decision variables, 315 rows, build 0.8 s, solve 0.3 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0.1: 1; numerical spectrum max Re 2.14907
+##### DIAGSED 44min Pd [st.epneg = 1e-1]: inaccurate fr 0.999 exst inaccurate ndec 2520
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 8100 decision variables in the certificate (Gram blocks [54 36 36 36 36], sized from opts.like); 9000 in the program.
+Size: 9000   280
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 280, order n = 229, dim = 9001, blocks = 7
+nnz(A) = 15524 + 0, nnz(ADA) = 76132, nnz(L) = 38206
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            3.83E-01 0.000
+  1 :  -1.78E-02 1.67E-01 0.000 0.4361 0.9000 0.9000   1.03  1  1  5.6E+00
+  2 :  -5.35E-04 6.59E-02 0.000 0.3942 0.9000 0.9000   1.02  1  1  2.3E+00
+  3 :  -5.41E-03 2.41E-02 0.000 0.3655 0.9000 0.9000   1.04  1  1  1.6E+00
+  4 :  -3.39E-03 8.15E-03 0.000 0.3382 0.9000 0.9000   1.12  1  1  1.1E+00
+  5 :  -2.64E-03 2.92E-03 0.000 0.3584 0.9000 0.9000   1.31  1  1  8.3E-01
+  6 :  -4.57E-04 7.15E-04 0.000 0.2449 0.9000 0.9000   1.19  1  1  3.5E-01
+  7 :  -3.68E-05 6.37E-05 0.000 0.0890 0.9900 0.9900   1.02  1  1  2.8E-02
+  8 :  -2.13E-05 1.67E-05 0.000 0.2617 0.9000 0.5104   1.00  1  1  1.6E-02
+  9 :  -4.36E-06 3.07E-06 0.000 0.1841 0.9000 0.8867   1.00  1  1  3.2E-03
+ 10 :  -1.09E-06 7.59E-07 0.000 0.2473 0.9000 0.8579   1.00  1  2  8.1E-04
+ 11 :  -2.39E-07 1.58E-07 0.000 0.2077 0.9008 0.9000   1.00  2  2  1.8E-04
+ 12 :  -5.45E-08 3.51E-08 0.000 0.2227 0.9014 0.9000   0.98  4  4  4.1E-05
+ 13 :  -9.62E-09 7.09E-09 0.000 0.2021 0.9000 0.9030   0.98  7 12  7.3E-06
+ 14 :  -2.31E-09 1.64E-09 0.000 0.2308 0.9000 0.8605   0.99 28 26  1.8E-06
+ 15 :  -1.96E-09 1.51E-09 0.000 0.9213 0.9000 0.1877   1.00 70 85  1.5E-06
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      3.0  10.3  0.0000000000e+00 -1.9567626466e-09
+|Ax-b| =   1.0e-07, [Ay-c]_+ =   4.9E-09, |x|=  3.5e+01, |y|=  4.9e+01
+
+Detailed timing (sec)
+   Pre          IPM          Post
+7.996E-03    5.430E-01    2.002E-03    
+Max-norms: ||b||=7.580980e-01, ||c|| = 0,
+Cholesky |add|=10, |skip| = 8, ||L.L|| = 4.73396e+06.
+ 
+Residual norm: 9.9928e-08
+ 
+         iter: 15
+    feasratio: 1.0045
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0080 0.5430 0.0020]
+      wallsec: 0.5530
+       cpusec: 3.0469
+       relres: 9.9928e-08
+          eta: 5.5575e-10
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.0e-07, eta 5.6e-10, objective NaN, 9000 decision variables, 280 rows, build 0.9 s, solve 0.6 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re NaN
+##### DIAGSED x3min Pd []: inaccurate fr 1 exst inaccurate ndec 9000
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 8100 decision variables in the certificate (Gram blocks [54 36 36 36 36], sized from opts.like); 9000 in the program.
+Size: 9000   291
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 291, order n = 229, dim = 9001, blocks = 7
+nnz(A) = 19608 + 0, nnz(ADA) = 81231, nnz(L) = 40761
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            3.84E-01 0.000
+  1 :  -1.49E-02 1.66E-01 0.000 0.4315 0.9000 0.9000   1.02  1  1  5.5E+00
+  2 :  -2.30E-03 6.47E-02 0.000 0.3905 0.9000 0.9000   1.02  1  1  2.8E+00
+  3 :  -5.33E-03 2.36E-02 0.000 0.3654 0.9000 0.9000   1.05  1  1  1.6E+00
+  4 :  -3.55E-03 7.96E-03 0.000 0.3368 0.9000 0.9000   1.10  2  1  1.1E+00
+  5 :  -2.66E-03 2.91E-03 0.000 0.3653 0.9000 0.9000   1.32  2  2  8.3E-01
+  6 :  -1.12E-03 6.46E-04 0.000 0.2221 0.9000 0.6068   1.22  1  1  7.4E-01
+  7 :  -2.27E-04 1.46E-04 0.000 0.2259 0.9000 0.8570   1.03  1  1  1.7E-01
+  8 :  -5.39E-05 3.58E-05 0.000 0.2452 0.9000 0.8277   1.00  2  2  4.0E-02
+  9 :  -1.70E-05 6.53E-06 0.000 0.1824 0.9161 0.9000   1.00  4  2  1.3E-02
+ 10 :  -4.61E-06 1.65E-06 0.000 0.2523 0.9014 0.9000   1.00  6  6  3.4E-03
+ 11 :  -9.53E-07 3.87E-07 0.000 0.2353 0.9000 0.9075   1.01 11 11  7.1E-04
+ 12 :  -2.08E-07 8.54E-08 0.000 0.2205 0.9005 0.9000   0.99 13 15  1.6E-04
+ 13 :  -4.94E-08 2.28E-08 0.000 0.2673 0.9000 0.9033   0.98 23 26  3.8E-05
+ 14 :  -1.47E-08 5.77E-09 0.000 0.2528 0.9058 0.9000   0.98 32 41  1.1E-05
+ 15 :  -4.11E-09 1.63E-09 0.000 0.2819 0.9000 0.9019   0.99 85 99  3.1E-06
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      3.5  17.4  0.0000000000e+00 -4.1109093692e-09
+|Ax-b| =   1.1e-07, [Ay-c]_+ =   8.7E-09, |x|=  3.5e+01, |y|=  1.4e+09
+
+Detailed timing (sec)
+   Pre          IPM          Post
+8.992E-03    6.160E-01    2.002E-03    
+Max-norms: ||b||=7.562012e-01, ||c|| = 0,
+Cholesky |add|=20, |skip| = 5, ||L.L|| = 3.50937e+08.
+ 
+Residual norm: 1.0503e-07
+ 
+         iter: 15
+    feasratio: 0.9922
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0090 0.6160 0.0020]
+      wallsec: 0.6270
+       cpusec: 3.5000
+       relres: 1.0503e-07
+          eta: 5.5503e-10
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.1e-07, eta 5.6e-10, objective NaN, 9000 decision variables, 291 rows, build 0.6 s, solve 0.6 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0.01: 1; numerical spectrum max Re NaN
+##### DIAGSED x3min Pd [st.epneg = 1e-2]: inaccurate fr 0.992 exst inaccurate ndec 9000
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s)     <--          (/s)ýx(t,s)
+   xf(t,s,s)  <--          (/s)ýx(t,s,s)
+   xf(t,s,s)  <--  (/s)ý(/s)x(t,s,s)
+   xf(t,s,s)  <--          (/s)x(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 73984 decision variables in the certificate (Gram blocks [240 64 64 64 64], sized from the operator); 75164 in the program.
+ - lpi_ineq_sop: 111952 decision variables in the certificate (Gram blocks [296 78 78 78 78], sized from the operator); 187116 in the program.
+Size: 187116   14833
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 1180 free variables in a quadratic cone
+eqs m = 14833, order n = 1107, dim = 187118, blocks = 12
+nnz(A) = 468916 + 0, nnz(ADA) = 107347677, nnz(L) = 53681255
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            9.65E-02 0.000
+  1 :   5.62E-01 4.85E-02 0.000 0.5022 0.9000 0.9000  -0.07  1  1  8.5E+00
+  2 :   3.20E-01 2.04E-02 0.000 0.4206 0.9000 0.9000   0.23  1  1  4.1E+00
+  3 :   2.17E-01 8.62E-03 0.000 0.4228 0.9000 0.9000   0.42  1  1  2.1E+00
+  4 :   1.52E-01 3.26E-03 0.000 0.3778 0.9000 0.9000   0.53  1  1  9.5E-01
+  5 :   1.34E-01 1.44E-03 0.000 0.4423 0.9000 0.9000   0.48  1  1  5.4E-01
+  6 :   1.47E-01 7.11E-04 0.000 0.4940 0.9000 0.9000   0.21  1  1  3.7E-01
+  7 :   1.12E-01 3.88E-04 0.000 0.5450 0.9000 0.9000   0.29  1  1  2.4E-01
+  8 :   5.45E-02 1.44E-04 0.000 0.3711 0.9000 0.9000   0.54  1  1  1.0E-01
+  9 :   3.22E-02 7.24E-05 0.000 0.5029 0.9000 0.9000   0.71  1  1  5.5E-02
+ 10 :   1.73E-02 3.60E-05 0.000 0.4980 0.9000 0.9000   0.81  1  1  2.8E-02
+ 11 :   7.24E-03 1.36E-05 0.000 0.3774 0.9000 0.9000   0.88  1  1  1.1E-02
+ 12 :   2.92E-03 5.47E-06 0.000 0.4020 0.9000 0.9000   0.94  1  2  4.4E-03
+ 13 :   7.03E-04 1.27E-06 0.000 0.2319 0.9000 0.9000   0.98  1  2  1.0E-03
+ 14 :   1.99E-04 3.25E-07 0.000 0.2564 0.9051 0.9000   0.98  2  3  2.5E-04
+ 15 :   4.15E-05 7.77E-08 0.000 0.2390 0.9000 0.9097   0.98 10 32  6.7E-05
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15    860.3   9.7  0.0000000000e+00  4.1521944338e-05
+|Ax-b| =   6.1e-04, [Ay-c]_+ =   5.5E-06, |x|=  2.7e+02, |y|=  8.2e+05
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.422E+00    4.989E+02    2.700E-02    
+Max-norms: ||b||=2.716072e-01, ||c|| = 0,
+Cholesky |add|=18, |skip| = 5461, ||L.L|| = 1.62886e+11.
+ 
+Residual norm: 0.00061415
+ 
+         iter: 15
+    feasratio: 0.9841
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [1.4220 498.8930 0.0270]
+      wallsec: 500.3420
+       cpusec: 863.6250
+       relres: 6.1415e-04
+          eta: 5.2655e-07
+
+  [stability_sop Q] dw 0: inaccurate, residual 6.1e-04, eta 5.3e-07, objective NaN, 187116 decision variables, 14833 rows, build 7.0 s, solve 500.4 s
+  [stability_sop Q] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re NaN
+##### DIAGSED 70mix Q [st.lpi.ineq.dD = 0]: inaccurate fr 0.984 exst inaccurate ndec 187116
+## DIAGSED DONE 20-Nov-2026 15:08:18

@@ -1,0 +1,8 @@
+mu,maxre_N24,maxre_N48,variant,status,fr,exst,eta,ndec
+0.65,-0.0161516,-0.0161516,44min,infeasible,-1,infeasible,1,9000
+0.65,-0.0161516,-0.0161516,riemann,infeasible,-1,infeasible,1,9000
+0.7,38.1763,143.91,44min,infeasible,-1,infeasible,1,9000
+0.7,38.1763,143.91,riemann,infeasible,-1,infeasible,1,9000
+0.8,153.497,578.621,44min,infeasible,-1,infeasible,1,9000
+0.8,153.497,578.621,riemann,infeasible,-1,infeasible,1,9000
+0.9,269.701,1016.66,44min,infeasible,-1,infeasible,1,9000

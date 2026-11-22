@@ -1,0 +1,3 @@
+key,form,delta,s1_status,s1_fr,s1_exst,s1_eta,s1_ndec,ok,s2_status,s2_fr,s2_exst,s2_eta,s2_ndec,note
+PDE:41,P,0,unknown,0.1135,unknown,2.13e-11,324,1,certified,0.8443,optimal,3.44e-09,320,"residual of the solve 9.1e-09; largest D 1.8e+02; slack of the solve; residue 0 zeroed; slack entries 172 (solve: 320)"
+PDE:41,P,10,unknown,0.1135,unknown,2.13e-11,324,0,infeasible,-1,infeasible,1,320,"shifted by 10; residual of the solve 9.1e-09; largest D 1.8e+03; slack of the solve (first: infeasible fr -1 eta 1; residue 0); then the support of D one degree up; slack entries 172 (solve: 320)"

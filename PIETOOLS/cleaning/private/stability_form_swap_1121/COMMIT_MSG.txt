@@ -1,0 +1,40 @@
+Executives: never replace a requested form
+
+PIETOOLS_stability_sop, PIETOOLS_Hinf_gain_sop and PIETOOLS_H2_norm_sop
+replaced a requested form by another without a message, and the label
+named the requested form: stability 'Qd' -> 'Pd' and 'FQ' -> 'FP' in two
+or more variables; gain 'Qd' -> 'Pd' in two or more variables; gain
+'Q' -> 'P' when Tw ~= 0; with the constraint K x = 0, every dual form ->
+its primal form (stability 'Pd'/'Qd', gain 'Pd'/'Qd', H2 'c'/'cco'). Each
+form certifies its own notion of stability or its own bound, so a
+replacement answered another question.
+
+- Stability 'Qd' and 'FQ' are posed in every dimension: in two or more
+  variables in the direct form of 'Q' ('Qd' the LPI of 'Q' on (T',A');
+  'FQ' with P >= 0 and the decay term 2*epneg*T'*T); one variable
+  unchanged.
+- Gain 'Qd' is posed in every dimension (its code reads the spaces of T).
+- Errors: a dual form with K x = 0, in any dimension (the dual LPIs have
+  no term for K; with K the dual stability LPI certified unstable PIEs,
+  11/07); gain 'Q' with Tw ~= 0 (its KYP operator has no Tw terms).
+
+Checks (MOSEK 11, workstation; on 17d68747, b7ba5299 and fa0deda4;
+cleaning/private/stability_form_swap_1121):
+- One variable, before and after: identical programs and verdicts (cases
+  5 and 8 of the PDE library in 'Qd', case 5 in 'FQ'; Dirichlet heat in
+  gain 'Q', 'Qd' and H2 'c').
+- Case 40 (PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE): stability 'Qd' certified
+  at 8,518 variables and 'FQ' at 13,366, where 'Pd' and 'FP' (what ran
+  before) are unknown; at K = -0.5 (unstable) 'Qd', 'FQ' and 'Q' are
+  infeasible. Case 43 (PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay, two
+  variables): 'Qd' certified at 1,008,600 variables, infeasible at
+  tau = 1.1 tau*. Three variables: 'FQ' on case 56 stripped infeasible
+  (840,156); on case 55 stripped it builds 29.8M variables (114,704 in
+  'FP').
+- 2-D heat: gain 'Qd' posed (unknown at light; 'Pd' was unknown too).
+- Periodic heat (K): every dual form of the three executives errors;
+  x(0) = w: gain 'Q' errors.
+- The 140 tests of the example libraries: none requests a form its PIE
+  does not admit.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

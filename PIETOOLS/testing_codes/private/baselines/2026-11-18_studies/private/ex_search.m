@@ -51,7 +51,36 @@ function ex_search(startsfile, tag, opts)
 %                   outside brackets only: the split at every ';' cut a
 %                   column vector (len_sos{1} = [2;1;2]), and the trade
 %                   pass TRADE1 stopped at the start of 80 of 115 rows.
+% MMP, 11/21/2026: opts.post true (the rerun of cleaning/private/
+%                   settings_rerun_1121/PLAN.md): the gate of 11/20 (harness
+%                   'certified', executive optimal, eta <= 1e-7), and a build
+%                   refused for numerical reasons only (executive optimal,
+%                   inaccurate or unknown; no infeasibility certificate) is
+%                   checked a posteriori (post_verify: storage fixed, slacks
+%                   sought) and kept when that check passes. The row ends on
+%                   the smallest direct certificate when it costs at most
+%                   opts.ratio (3) times the variables of the smallest one,
+%                   and is not near the memory limit (opts.near, [1.2e6 27000]
+%                   variables and rows, 60% of the size gate); else on the
+%                   smallest (maintainer, 11/21: prefer certificates which
+%                   directly certify if the cost is less than 3 times, not
+%                   counting cases near the 32GB limit). The final file gains
+%                   the columns path, ndv_direct, m_direct. Start keyword
+%                   examplest: the st an example file returns. 'FQ' takes the
+%                   moves of the 'Q' family.
+% MMP, 11/21/2026: a row with no certified start keeps the starts it tried
+%                   (st.altdone) and a resumed session skips them: each
+%                   session retried every start from the first, so a row
+%                   whose first start takes most of a session to build
+%                   (PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq, light 'P': 28M
+%                   variables, 13.6 min, refused by the size gate) never
+%                   reached its later starts.
 if nargin<3,  opts = struct();  end
+post = isfield(opts,'post') && opts.post;                                   % MMP, 11/21/2026
+setappdata(0,'EXS_POST',post);                                              % MMP, 11/21/2026
+ratio = 3;  if isfield(opts,'ratio'),  ratio = opts.ratio;  end             % MMP, 11/21/2026
+nearv = [1.2e6 27000];  if isfield(opts,'near'),  nearv = opts.near;  end   % MMP, 11/21/2026
+setappdata(0,'EXS_RULE',struct('ratio',ratio,'near',nearv));                % MMP, 11/21/2026
 here = fileparts(mfilename('fullpath'));
 addpath(fullfile(here,'gate'));     % the size gate first on the path, as in lb_run
 stopmin = 15;
@@ -81,7 +110,8 @@ if ~exist(logf,'file')
 end
 if ~exist(finf,'file')
     fid = fopen(finf,'w');
-    fprintf(fid,'key,form,tier,statements,ndv0,m0,ndv,m,builds,reason\n');  fclose(fid);
+%   fprintf(fid,'key,form,tier,statements,ndv0,m0,ndv,m,builds,reason\n');  fclose(fid); % MMP, 11/21/2026 (was)
+    fprintf(fid,'key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct\n');  fclose(fid); % MMP, 11/21/2026
 end
 T = readtable(startsfile,'Delimiter',',','TextType','char','ReadVariableNames',true);
 Cat = load(fullfile(here,'catalog.mat'));  Cat = Cat.C;
@@ -115,13 +145,20 @@ for i = 1:numel(keys)
     if ~st.done
         fprintf('\nlb_run: stop time %s reached; rerun to resume.\n',char(tstop));  return
     end
+    % The final setting: the choice between the smallest direct and the     % MMP, 11/21/2026
+    % smallest certificate (opts.post), else the end of the descent         % MMP, 11/21/2026
+    [Sf,cf,pth,cd] = final_choice(st);                                      % MMP, 11/21/2026
     stm = '';
-    if ~isempty(st.S),  stm = strjoin(st_diff(lpisettings_sop(row.tier,0,'','mosek'),st.S,'st'),' ');  end
+%   if ~isempty(st.S),  stm = strjoin(st_diff(lpisettings_sop(row.tier,0,'','mosek'),st.S,'st'),' ');  end % MMP, 11/21/2026 (was)
+    if ~isempty(Sf),  stm = strjoin(st_diff(lpisettings_sop(row.tier,0,'','mosek'),Sf,'st'),' ');  end % MMP, 11/21/2026
     fid = fopen(finf,'a');
-    fprintf(fid,'%s,%s,%s,"%s",%d,%d,%d,%d,%d,"%s"\n',key,row.form,row.tier,stm, ...
-        st.cost0(1),st.cost0(2),st.cost(1),st.cost(2),st.nbuild,st.reason);
+%   fprintf(fid,'%s,%s,%s,"%s",%d,%d,%d,%d,%d,"%s"\n',key,row.form,row.tier,stm, ... % MMP, 11/21/2026 (was)
+%       st.cost0(1),st.cost0(2),st.cost(1),st.cost(2),st.nbuild,st.reason); % MMP, 11/21/2026 (was)
+    fprintf(fid,'%s,%s,%s,"%s",%d,%d,%d,%d,%d,"%s",%s,%d,%d\n',key,row.form,row.tier,stm, ...
+        st.cost0(1),st.cost0(2),cf(1),cf(2),st.nbuild,st.reason,pth,cd(1),cd(2)); % MMP, 11/21/2026
     fclose(fid);
-    fprintf('##### %s  done: %d -> %d variables  (%s)\n',key,st.cost0(1),st.cost(1),stm);
+%   fprintf('##### %s  done: %d -> %d variables  (%s)\n',key,st.cost0(1),st.cost(1),stm); % MMP, 11/21/2026 (was)
+    fprintf('##### %s  done: %d -> %d variables, %s  (%s)\n',key,st.cost0(1),cf(1),pth,stm); % MMP, 11/21/2026
 end
 fprintf('## EX_SEARCH %s DONE %s\n',tag,char(datetime('now')));
 end
@@ -138,13 +175,22 @@ if isempty(st)                      % the start: tier, changes, form
                 'inert',{{}});
 end
 if ~isfield(st,'inert'),  st.inert = {};  end   % moves that leave the size unchanged
+% The smallest direct certificate and the path of the current point         % MMP, 11/21/2026
+if ~isfield(st,'Sdir'),  st.Sdir = [];  st.costdir = [Inf Inf];  st.path = '';  end % MMP, 11/21/2026
+if ~isfield(st,'altdone'),  st.altdone = [];  end   % starts tried          % MMP, 11/21/2026
 if st.alt == 0
     for a = 1:numel(alts)
+        if ismember(a,st.altdone),  continue,  end  % tried before          % MMP, 11/21/2026
         if datetime('now') >= tstop,  save(sf,'st');  return,  end
         row = alts(a);  row.exec = c.exec;
         [PIE,~] = row_pie(c,row);
         S = lpisettings_sop(row.tier,0,'','mosek');
-        S = apply_mods(S,row.mods,c.key);
+%       S = apply_mods(S,row.mods,c.key);                                   % MMP, 11/21/2026 (was)
+        if strcmp(strtrim(row.mods),'examplest')                            % MMP, 11/21/2026
+            S = example_st(c);              % the st of the example file    % MMP, 11/21/2026
+        else                                                                % MMP, 11/21/2026
+            S = apply_mods(S,row.mods,c.key);                               % MMP, 11/21/2026
+        end                                                                 % MMP, 11/21/2026
         setappdata(0,'LB_NDV_CAP',getappdata(0,'EXS_NDVCAP'));   setappdata(0,'LB_M_CAP',getappdata(0,'EXS_MCAP'));
         [ok,r,note] = try_solve(c,PIE,S,row);
         st.nbuild = st.nbuild + 1;
@@ -152,9 +198,12 @@ if st.alt == 0
            ternary(ok,'start','start fails'),r,note);
         if ok
             st.S = S;  st.S0 = S;  st.cost0 = [r.ndec r.m];  st.cost = st.cost0;  st.alt = a;
+            st.path = r.path;                                               % MMP, 11/21/2026
+            if strcmp(r.path,'direct'),  st.Sdir = S;  st.costdir = st.cost0;  end % MMP, 11/21/2026
             st.ref = r.gam;         % value rows: reductions keep the start value
             save(sf,'st');  break
         end
+        st.altdone(end+1) = a;                                              % MMP, 11/21/2026
         save(sf,'st');
     end
     if st.alt == 0
@@ -187,11 +236,15 @@ while true
     setappdata(0,'LB_NDV_CAP',st.cost(1)-1);  setappdata(0,'LB_M_CAP',getappdata(0,'EXS_MCAP'));
     [ok,r,note] = try_solve(c,PIE,mv.S,row);
     st.nbuild = st.nbuild + 1;  st.step = st.step + 1;
+    if ok && strcmp(r.path,'direct') && r.ndec < st.costdir(1)              % MMP, 11/21/2026
+        st.Sdir = mv.S;  st.costdir = [r.ndec r.m];                         % MMP, 11/21/2026
+    end                                                                     % MMP, 11/21/2026
     if ok && ~(r.ndec < st.cost(1))     % kept only when strictly smaller
         ok = false;  note = 'certified, not smaller';
     end
     if ok
         st.S = mv.S;  st.cost = [r.ndec r.m];  st.tried = {};  st.blocked = {};
+        st.path = r.path;                                                   % MMP, 11/21/2026
         lg(logf,c.key,st.step,mv.name,'kept',r,note);
     else
         st.tried{end+1} = mv.name;
@@ -237,19 +290,106 @@ end
 % ------------------------------------------------------------------------
 function [ok,r,note] = try_solve(c,PIE,S,row)
 % One executive call; ok by both gates and, for value rows, the best value.
+% With EXS_POST (opts.post): the gate of 11/20, and a build refused for     % MMP, 11/21/2026
+% numerical reasons only kept when post_verify passes; r.path 'direct'      % MMP, 11/21/2026
+% or 'post' tells which                                                     % MMP, 11/21/2026
 note = '';  ok = false;
 r = struct('status','error','exst','','eta',NaN,'fr',NaN,'passes',NaN,'ndec',NaN,'m',NaN,'gam',NaN,'sec',NaN);
+r.path = '';                                                                % MMP, 11/21/2026
+post = isappdata(0,'EXS_POST') && isequal(getappdata(0,'EXS_POST'),true);   % MMP, 11/21/2026
 try
-    t = tic;  r = lb_exec(c.exec, PIE, S);  r.sec = toc(t);
+    setappdata(0,'LB_KEEP_LAST',post);                                      % MMP, 11/21/2026
+%   t = tic;  r = lb_exec(c.exec, PIE, S);  r.sec = toc(t);                 % MMP, 11/21/2026 (was)
+    t = tic;  r = lb_exec(c.exec, PIE, S);  r.sec = toc(t);  r.path = '';   % MMP, 11/21/2026
+    setappdata(0,'LB_KEEP_LAST',false);                                     % MMP, 11/21/2026
     ok = strcmp(r.status,'certified') && (isempty(r.exst) || any(strcmp(r.exst,{'optimal','inaccurate'})));
+    if post                         % the gate of 11/20                     % MMP, 11/21/2026
+        ok = strcmp(r.status,'certified') && strcmp(r.exst,'optimal') && r.eta <= 1e-7; % MMP, 11/21/2026
+    end                                                                     % MMP, 11/21/2026
+    if ok,  r.path = 'direct';  end                                         % MMP, 11/21/2026
+    if post && ~ok && isappdata(0,'LB_LAST')                                % MMP, 11/21/2026
+        [ok,r,note] = try_post(r);                                          % MMP, 11/21/2026
+    end                                                                     % MMP, 11/21/2026
+    if isappdata(0,'LB_LAST'),  rmappdata(0,'LB_LAST');  end                % MMP, 11/21/2026
     if ok && strcmp(row.kind,'value')
         b = num(row.best);
         ok = isfinite(r.gam) && r.gam <= b + 1e-3*abs(b);
     end
 catch ME
+    setappdata(0,'LB_KEEP_LAST',false);                                     % MMP, 11/21/2026
+    if isappdata(0,'LB_LAST'),  rmappdata(0,'LB_LAST');  end                % MMP, 11/21/2026
     note = strrep(ME.message,',',';');
     tok = regexp(note,'LB_SIZE ndv=(\d+) m=(\d+)','tokens','once');
     if ~isempty(tok),  r.ndec = str2double(tok{1});  r.m = str2double(tok{2});  end
+end
+end
+
+% ------------------------------------------------------------------------  % MMP, 11/21/2026
+function [ok,r,note] = try_post(r)
+% [OK,R,NOTE] = TRY_POST(R) checks the solve kept in appdata LB_LAST a
+% posteriori (post_verify) when the gate refused it for numerical reasons
+% only: executive optimal, inaccurate or unknown, and no infeasibility
+% certificate; stability forms and the H2 form 'c' (the forms post_verify
+% covers). OK true: kept, r.path 'post' (r.gam the verified bound for H2).
+% MMP, 11/21/2026.
+ok = false;     note = '';
+L = getappdata(0,'LB_LAST');
+frm = '';   if ~isempty(L.form),  frm = L.form{1};  end
+numer = any(strcmp(r.exst,{'optimal','inaccurate','unknown'})) && isequal(r.pinf,0) && isequal(r.dinf,0);
+can = strcmp(L.fn,'PIETOOLS_stability_sop') || (strcmp(L.fn,'PIETOOLS_H2_norm_sop') && strcmp(frm,'c'));
+if ~numer || ~can,  return,  end
+% The check is a verification, not a candidate: the size gate of the
+% descent (just below the current size) does not apply to its programs
+cap0 = getappdata(0,'LB_NDV_CAP');  mcap0 = getappdata(0,'LB_M_CAP');
+setappdata(0,'LB_NDV_CAP',getappdata(0,'EXS_NDVCAP'));  setappdata(0,'LB_M_CAP',getappdata(0,'EXS_MCAP'));
+try
+    [ok,r2,pre] = post_verify(L.PIE,L.S,frm,L.prog,L.info,0);
+    note = sprintf('post %s: stage 2 %s fr %.3g exst %s eta %.2g ndec %d m %d; %s', ...
+        ternary(ok,'passes','fails'),r2.status,r2.fr,r2.exst,r2.eta,r2.ndec,r2.m,pre);
+    if ok
+        r.path = 'post';
+        if isfield(r2,'gam'),  r.gam = r2.gam;  end
+    end
+catch ME
+    note = ['post error: ',ME.message];
+end
+setappdata(0,'LB_NDV_CAP',cap0);    setappdata(0,'LB_M_CAP',mcap0);     % the descent's gate again
+note = strrep(strrep(note,',',';'),newline,' ');
+end
+
+function [Sf,cf,pth,cd] = final_choice(st)
+% [SF,CF,PTH,CD] = FINAL_CHOICE(ST) the final setting of a row: with
+% opts.post, the smallest direct certificate when it costs at most
+% EXS_RULE.ratio times the variables of the smallest certificate and is not
+% near the memory limit (EXS_RULE.near: variables, rows); else the end of
+% the descent. PTH 'direct', 'post' or '' (no certificate); CD the cost of
+% the smallest direct certificate ([NaN NaN] if none).
+% MMP, 11/21/2026.
+Sf = st.S;  cf = st.cost;   pth = '';   cd = [NaN NaN];
+if isfield(st,'path'),  pth = st.path;  end
+if ~isfield(st,'Sdir') || isempty(st.Sdir),  return,  end
+cd = st.costdir;
+R = getappdata(0,'EXS_RULE');
+near = cd(1) >= R.near(1) || cd(2) >= R.near(2);
+if strcmp(pth,'post') && ~near && cd(1) <= R.ratio*cf(1)
+    Sf = st.Sdir;   cf = cd;    pth = 'direct';
+end
+end
+
+function S = example_st(c)
+% S = EXAMPLE_ST(C) the settings the example file of the catalog row C
+% returns as its last output, [PDE_t,st] = fn([index,]GUI,params).
+% MMP, 11/21/2026.
+if ~strcmp(c.lib,'PDE'),  error('ex_search:examplest','examplest: %s is not a PDE example.',c.key);  end
+% st is the last output: [PDE_t,st], or [PDE_t,PDE_b,st] in the files that
+% also return the batch format
+outs = cell(1,nargout(c.fn));
+if c.idxarg,  [outs{:}] = feval(c.fn,str2double(c.id),0,{});
+else,         [outs{:}] = feval(c.fn,0,{});
+end
+S = outs{end};
+if isempty(S) || ~isstruct(S) || ~isfield(S,'lpi')
+    error('ex_search:examplest','%s returns no settings (its last output is not an lpisettings_sop structure).',c.fn);
 end
 end
 
@@ -259,7 +399,8 @@ function M = moves(S,row,nv)
 % array with fields name, S (most promising first).
 M = struct('name',{},'S',{});
 fform = row.form;  if contains(fform,'>'),  fform = extractAfter(fform,'>');  end
-famQ = any(strcmp(fform,{'Q','Qd'}));   % the form the executive runs in
+% famQ = any(strcmp(fform,{'Q','Qd'}));   % the form the executive runs in  % MMP, 11/21/2026 (was)
+famQ = any(strcmp(fform,{'Q','Qd','FQ'}));  % the form the executive runs in % MMP, 11/21/2026
 famP = ~famQ;                      % 'P' forms, H2, synthesis: the storage
 syn  = contains(row.exec,{'control','estimator'});
 stab = contains(row.exec,'stability');

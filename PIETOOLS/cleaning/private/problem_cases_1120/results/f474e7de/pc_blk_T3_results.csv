@@ -1,0 +1,12 @@
+lib,id,test,form,settings_match,verdict,feasratio,pinf,dinf,numerr,gamma,ndv,seconds,note
+DDE,DDE02,stability,P,true,certified,1,0,0,0,NaN,1964,2.2,""
+DDE,DDE02,stability_dual,Pd,true,certified,1.002,0,0,0,NaN,1964,0.6,""
+DDE,DDE08,stability,P,true,certified,0.998,0,0,0,NaN,2656,0.6,""
+DDE,DDE08,stability_dual,Pd,true,certified,1.017,0,0,0,NaN,2656,0.2,""
+DDE,DDE13,Hinf_control,,true,certified,1.001,0,0,0,1.3421124,5791,1.6,""
+DDE,DDE16,Hinf_control,,true,certified,0.8042,0,0,0,0.9630435,13486,1.6,""
+DDE,DDE21,Hinf_estimator,,true,certified,0.9182,0,0,0,2.328165,1431,0.4,""
+DDE,DDE22,Hinf_estimator,,true,certified,0.8915,0,0,0,1.3506131,2141,0.3,""
+DDE,DDE23,Hinf_estimator,,true,certified,1,0,0,0,1.8095232,1812,0.5,""
+NDSDDF,NDS12,stability,P,true,certified,1,0,0,0,NaN,371,0.4,""
+NDSDDF,NDS12,stability_dual,Pd,true,certified,1.001,0,0,0,NaN,371,0.1,""

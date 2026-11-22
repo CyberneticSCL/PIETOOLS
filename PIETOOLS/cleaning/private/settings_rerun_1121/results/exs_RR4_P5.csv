@@ -1,0 +1,161 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+06:15:20,DDE:DDE09,0,start1 P light st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0,start,certified,optimal,5.51e-11,1.07,1,651,63,25.922824,4.0,
+06:15:21,DDE:DDE09,1,d21.1,fails,certified,optimal,5.68e-11,1,1,636,63,37.538117,1.7,
+06:15:22,DDE:DDE09,2,d11.1,fails,certified,optimal,4.74e-10,1,1,239,44,28.343165,0.9,
+06:15:23,DDE:DDE09,3,d31.1,not smaller,error,,NaN,NaN,NaN,940,73,NaN,NaN,LB_SIZE ndv=940 m=73 above the gate (ndv 650; m 45000): not solved
+06:15:24,DDE:DDE09,4,d31.2,fails,certified,optimal,5.68e-11,1,1,636,63,37.538117,0.7,
+06:15:25,DDE:DDE09,5,d31.3,fails,certified,optimal,2.43e-11,0.997,1,623,61,27.250358,0.6,
+06:15:26,DDE:DDE09,6,pat1,fails,infeasible,infeasible,0.999,-1,2,307,48,0.00016828952,0.8,
+06:15:26,DDE:DDE09,7,psatz1,not smaller,error,,NaN,NaN,NaN,651,62,NaN,NaN,LB_SIZE ndv=651 m=62 above the gate (ndv 650; m 45000): not solved
+06:15:26,DDE:DDE09,8,wmin1,not smaller,error,,NaN,NaN,NaN,651,62,NaN,NaN,LB_SIZE ndv=651 m=62 above the gate (ndv 650; m 45000): not solved
+06:15:27,DDE:DDE09,9,dwP1,fails,certified,optimal,1.48e-10,0.996,1,411,53,26.147304,0.5,
+06:15:27,DDE:DDE09,10,raise1,not smaller,error,,NaN,NaN,NaN,651,62,NaN,NaN,LB_SIZE ndv=651 m=62 above the gate (ndv 650; m 45000): not solved
+06:15:28,DDE:DDE09,11,capinc,fails,certified,optimal,2.99e-10,0.982,1,579,63,25.986106,0.6,
+06:15:28,DDE:DDE09,12,t:d2+1.1+dwP1,fails,unknown,optimal,6.74e-11,0.592,1,428,54,25.974491,0.4,
+06:15:29,DDE:DDE09,13,t:d2+1.1+capinc,fails,certified,optimal,5.96e-10,0.996,1,596,64,25.938781,0.5,
+06:15:29,DDE:DDE09,14,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,668,62,NaN,NaN,LB_SIZE ndv=668 m=62 above the gate (ndv 650; m 45000): not solved
+06:15:29,DDE:DDE09,15,t:d3+1.1+capinc,not smaller,error,,NaN,NaN,NaN,660,64,NaN,NaN,LB_SIZE ndv=660 m=64 above the gate (ndv 650; m 45000): not solved
+06:15:30,DDE:DDE09,16,t:d3+1.2+dwP1,fails,unknown,optimal,2.88e-10,0.626,1,428,53,26.101131,0.4,
+06:15:30,DDE:DDE09,17,t:d3+1.2+capinc,fails,certified,optimal,1.38e-10,1,1,596,63,25.972305,0.2,
+06:15:30,DDE:DDE09,18,t:d3+1.3+dwP1,not smaller,error,,NaN,NaN,NaN,687,66,NaN,NaN,LB_SIZE ndv=687 m=66 above the gate (ndv 650; m 45000): not solved
+06:15:30,DDE:DDE09,19,t:d3+1.3+capinc,not smaller,error,,NaN,NaN,NaN,991,76,NaN,NaN,LB_SIZE ndv=991 m=76 above the gate (ndv 650; m 45000): not solved
+06:15:31,DDE:DDE09,20,t:d1+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,767,71,NaN,NaN,LB_SIZE ndv=767 m=71 above the gate (ndv 650; m 45000): not solved
+06:15:31,DDE:DDE09,21,t:d1+1.1+capinc,not smaller,error,,NaN,NaN,NaN,1167,85,NaN,NaN,LB_SIZE ndv=1167 m=85 above the gate (ndv 650; m 45000): not solved
+06:15:31,DDE:DDE09,22,t:dD++d21.1,not smaller,error,,NaN,NaN,NaN,1220,81,NaN,NaN,LB_SIZE ndv=1220 m=81 above the gate (ndv 650; m 45000): not solved
+06:15:31,DDE:DDE09,23,t:dD++d11.1,kept,certified,optimal,1.7e-10,1,1,623,60,25.92842,0.2,
+06:15:32,DDE:DDE09,24,dD0,fails,certified,optimal,4.74e-10,1,1,239,44,28.343165,0.3,
+06:15:32,DDE:DDE09,25,d21.1,fails,certified,optimal,9.67e-13,1,1,612,60,69.986741,0.3,
+06:15:32,DDE:DDE09,26,d11.1,not smaller,error,,NaN,NaN,NaN,907,70,NaN,NaN,LB_SIZE ndv=907 m=70 above the gate (ndv 622; m 45000): not solved
+06:15:33,DDE:DDE09,27,d31.1,not smaller,error,,NaN,NaN,NaN,916,70,NaN,NaN,LB_SIZE ndv=916 m=70 above the gate (ndv 622; m 45000): not solved
+06:15:33,DDE:DDE09,28,d31.2,fails,certified,optimal,9.67e-13,1,1,612,60,69.986741,0.3,
+06:15:33,DDE:DDE09,29,d31.3,fails,certified,optimal,6.77e-11,1,1,612,60,27.250394,0.4,
+06:15:34,DDE:DDE09,30,pat1,not smaller,error,,NaN,NaN,NaN,907,70,NaN,NaN,LB_SIZE ndv=907 m=70 above the gate (ndv 622; m 45000): not solved
+06:15:34,DDE:DDE09,31,dwP1,fails,certified,optimal,7.42e-11,1,1,383,49,26.150062,0.3,
+06:15:34,DDE:DDE09,32,capinc,fails,unknown,optimal,1.14e-10,0.473,1,375,51,26.463082,0.3,
+06:15:35,DDE:DDE09,33,t:d2+1.1+dD0,not smaller,error,,NaN,NaN,NaN,636,60,NaN,NaN,LB_SIZE ndv=636 m=60 above the gate (ndv 622; m 45000): not solved
+06:15:35,DDE:DDE09,34,t:d2+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,716,66,NaN,NaN,LB_SIZE ndv=716 m=66 above the gate (ndv 622; m 45000): not solved
+06:15:35,DDE:DDE09,35,t:d2+1.1+capinc,fails,certified,optimal,1.38e-10,0.995,1,500,58,26.163657,0.3,
+06:15:35,DDE:DDE09,36,t:d3+1.1+dD0,fails,certified,optimal,4.43e-11,1,1,340,51,26.618843,0.3,
+06:15:36,DDE:DDE09,37,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,636,59,NaN,NaN,LB_SIZE ndv=636 m=59 above the gate (ndv 622; m 45000): not solved
+06:15:36,DDE:DDE09,38,t:d3+1.1+capinc,fails,certified,optimal,3.18e-12,1,1,388,51,26.122079,0.2,
+06:15:36,DDE:DDE09,39,t:d3+1.2+dD0,fails,certified,optimal,3.9e-10,1,1,252,45,28.343076,0.4,
+06:15:37,DDE:DDE09/Hinf_gain_dual,0,start1 Pd light st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0,start,certified,optimal,5.81e-11,1,1,651,64,25.916902,0.3,
+06:15:37,DDE:DDE09/Hinf_gain_dual,1,d21.1,fails,certified,optimal,5.13e-11,1,1,636,64,25.939736,0.3,
+06:15:38,DDE:DDE09/Hinf_gain_dual,2,d11.1,fails,infeasible,infeasible,1,-0.998,2,327,51,0.00013657598,0.6,
+06:15:38,DDE:DDE09/Hinf_gain_dual,3,d31.1,not smaller,error,,NaN,NaN,NaN,940,73,NaN,NaN,LB_SIZE ndv=940 m=73 above the gate (ndv 650; m 45000): not solved
+06:15:39,DDE:DDE09/Hinf_gain_dual,4,d31.2,fails,certified,optimal,5.13e-11,1,1,636,64,25.939736,0.4,
+06:15:39,DDE:DDE09/Hinf_gain_dual,5,d31.3,fails,certified,optimal,1.69e-11,1,1,623,61,25.948596,0.2,
+06:15:39,DDE:DDE09/Hinf_gain_dual,6,pat1,fails,infeasible,infeasible,1,-0.991,2,307,48,0.00016158459,0.6,
+06:15:40,DDE:DDE09/Hinf_gain_dual,7,psatz1,not smaller,error,,NaN,NaN,NaN,651,63,NaN,NaN,LB_SIZE ndv=651 m=63 above the gate (ndv 650; m 45000): not solved
+06:15:40,DDE:DDE09/Hinf_gain_dual,8,wmin1,not smaller,error,,NaN,NaN,NaN,651,63,NaN,NaN,LB_SIZE ndv=651 m=63 above the gate (ndv 650; m 45000): not solved
+06:15:40,DDE:DDE09/Hinf_gain_dual,9,dwP1,fails,certified,optimal,1.58e-10,0.992,1,411,54,25.995995,0.3,
+06:15:40,DDE:DDE09/Hinf_gain_dual,10,raise1,not smaller,error,,NaN,NaN,NaN,651,63,NaN,NaN,LB_SIZE ndv=651 m=63 above the gate (ndv 650; m 45000): not solved
+06:15:41,DDE:DDE09/Hinf_gain_dual,11,capinc,fails,certified,optimal,4.75e-10,0.993,1,579,64,25.944078,0.3,
+06:15:41,DDE:DDE09/Hinf_gain_dual,12,t:d2+1.1+dwP1,fails,certified,optimal,5.69e-11,0.998,1,428,55,25.984958,0.2,
+06:15:41,DDE:DDE09/Hinf_gain_dual,13,t:d2+1.1+capinc,kept,certified,optimal,1.45e-10,1,1,596,65,25.933241,0.3,
+06:15:42,DDE:DDE09/Hinf_gain_dual,14,d21.1,fails,certified,optimal,4.75e-10,0.993,1,579,64,25.944078,0.3,
+06:15:42,DDE:DDE09/Hinf_gain_dual,15,d11.1,fails,unknown,unknown,4.24e-10,0.341,2,388,52,26.695344,0.6,
+06:15:43,DDE:DDE09/Hinf_gain_dual,16,d31.1,not smaller,error,,NaN,NaN,NaN,643,66,NaN,NaN,LB_SIZE ndv=643 m=66 above the gate (ndv 595; m 45000): not solved
+06:15:43,DDE:DDE09/Hinf_gain_dual,17,d31.2,fails,certified,optimal,1.35e-10,1,1,564,64,25.963694,0.3,
+06:15:44,DDE:DDE09/Hinf_gain_dual,18,d31.3,fails,certified,optimal,4.07e-10,1,1,212,42,30.547527,0.4,
+06:15:44,DDE:DDE09/Hinf_gain_dual,19,pat1,fails,infeasible,infeasible,1,-0.994,2,76,27,0.00016301366,0.6,
+06:15:45,DDE:DDE09/Hinf_gain_dual,20,dwP1,fails,certified,optimal,5.69e-11,0.998,1,428,55,25.984958,0.3,
+06:15:45,DDE:DDE09/Hinf_gain_dual,21,t:d2+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,687,68,NaN,NaN,LB_SIZE ndv=687 m=68 above the gate (ndv 595; m 45000): not solved
+06:15:45,DDE:DDE09/Hinf_gain_dual,22,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,615,64,NaN,NaN,LB_SIZE ndv=615 m=64 above the gate (ndv 595; m 45000): not solved
+06:15:46,DDE:DDE09/Hinf_gain_dual,23,t:d3+1.2+dwP1,fails,certified,optimal,1.03e-08,0.993,1,468,56,25.979437,0.4,
+06:15:46,DDE:DDE09/Hinf_gain_dual,24,t:d3+1.3+dwP1,not smaller,error,,NaN,NaN,NaN,708,69,NaN,NaN,LB_SIZE ndv=708 m=69 above the gate (ndv 595; m 45000): not solved
+06:15:46,DDE:DDE09/Hinf_gain_dual,25,t:d1+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,788,72,NaN,NaN,LB_SIZE ndv=788 m=72 above the gate (ndv 595; m 45000): not solved
+06:15:46,DDE:DDE09/Hinf_gain_dual,26,t:dD++d21.1,not smaller,error,,NaN,NaN,NaN,867,71,NaN,NaN,LB_SIZE ndv=867 m=71 above the gate (ndv 595; m 45000): not solved
+06:15:46,DDE:DDE09/Hinf_gain_dual,27,t:dD++d11.1,fails,unknown,optimal,3.55e-10,0.565,1,500,58,26.240636,0.2,
+06:15:47,DDE:DDE09/Hinf_gain_dual,28,t:dD++d31.1,not smaller,error,,NaN,NaN,NaN,867,71,NaN,NaN,LB_SIZE ndv=867 m=71 above the gate (ndv 595; m 45000): not solved
+06:15:47,DDE:DDE09/Hinf_gain_dual,29,t:dD++d31.2,not smaller,error,,NaN,NaN,NaN,852,71,NaN,NaN,LB_SIZE ndv=852 m=71 above the gate (ndv 595; m 45000): not solved
+06:15:47,DDE:DDE09/Hinf_gain_dual,30,t:dD++d31.3,fails,certified,optimal,4.07e-10,1,1,212,42,30.547527,0.2,
+06:15:47,DDE:DDE09/Hinf_gain_dual,31,t:dD++pat1,fails,infeasible,infeasible,1,-0.994,2,76,27,0.00016301366,0.4,
+06:15:48,DDE:DDE09/Hinf_gain_dual,32,t:wmin+1+d21.1,fails,certified,optimal,4.75e-10,0.993,1,579,64,25.944078,0.3,
+06:15:48,DDE:DDE09/Hinf_gain_dual,33,t:wmin+1+d11.1,fails,unknown,unknown,4.24e-10,0.341,2,388,52,26.695344,0.5,
+06:15:49,DDE:DDE09/Hinf_gain_dual,34,t:wmin+1+d31.1,not smaller,error,,NaN,NaN,NaN,643,66,NaN,NaN,LB_SIZE ndv=643 m=66 above the gate (ndv 595; m 45000): not solved
+06:15:49,DDE:DDE09/Hinf_gain_dual,35,t:wmin+1+d31.2,fails,certified,optimal,1.35e-10,1,1,564,64,25.963694,0.2,
+06:15:49,DDE:DDE09/Hinf_gain_dual,36,t:wmin+1+d31.3,fails,certified,optimal,4.07e-10,1,1,212,42,30.547527,0.2,
+06:15:50,DDE:DDE09/Hinf_gain_dual,37,t:wmin+1+pat1,fails,infeasible,infeasible,1,-0.994,2,76,27,0.00016301366,0.4,
+06:15:50,DDE:DDE09/Hinf_gain_dual,38,t:dwP+1+d21.1,not smaller,error,,NaN,NaN,NaN,643,65,NaN,NaN,LB_SIZE ndv=643 m=65 above the gate (ndv 595; m 45000): not solved
+06:15:50,DDE:DDE09/Hinf_gain_dual,39,t:dwP+1+d11.1,fails,unknown,unknown,4.24e-10,0.341,2,388,52,26.695344,0.4,
+06:15:51,DDE:DDE10,0,start1 P stripped st.lpi.ineq.dD = 0,start,certified,optimal,1.19e-09,0.756,1,1669,178,0.23644325,0.6,
+06:15:51,DDE:DDE10,1,d21.1,kept,certified,optimal,1.02e-09,0.958,1,1509,169,0.23644338,0.2,
+06:15:52,DDE:DDE10,2,d21.1,fails,certified,optimal,6.98e-11,1,1,1381,169,0.23859675,0.2,
+06:15:52,DDE:DDE10,3,d11.1,fails,unknown,optimal,1.75e-09,0.67,1,597,114,0.25205106,0.2,
+06:15:52,DDE:DDE10,4,d31.1,fails,certified,optimal,3.16e-10,1,1,1441,169,0.23862323,0.3,
+06:15:52,DDE:DDE10,5,d31.2,fails,unknown,optimal,9.34e-10,0.685,1,1441,169,0.2364455,0.2,
+06:15:53,DDE:DDE10,6,d31.3,kept,certified,optimal,6.51e-10,0.962,1,1381,158,0.23644683,0.2,
+06:15:53,DDE:DDE10,7,d21.1,fails,certified,optimal,2.94e-10,0.995,1,1285,157,0.253043,0.2,
+06:15:53,DDE:DDE10,8,d11.1,fails,certified,optimal,6.13e-10,0.827,1,545,109,0.25232583,0.2,
+06:15:53,DDE:DDE10,9,d31.1,fails,certified,optimal,5.85e-10,1,1,1329,158,0.24298555,0.2,
+06:15:53,DDE:DDE10,10,d31.2,kept,certified,optimal,3.23e-10,0.944,1,1329,157,0.23666776,0.2,
+06:15:54,DDE:DDE10,11,d21.1,fails,certified,optimal,2.94e-10,0.995,1,1285,157,0.253043,0.3,
+06:15:54,DDE:DDE10,12,d11.1,fails,certified,optimal,3.04e-10,1.01,1,501,98,0.25232599,0.2,
+06:15:54,DDE:DDE10,13,d31.1,fails,inaccurate,unknown,8.92e-10,0.991,1,645,117,0.48388102,0.3,
+06:15:54,DDE:DDE10,14,d31.2,fails,certified,optimal,2.94e-10,0.995,1,1285,157,0.253043,0.3,
+06:15:55,DDE:DDE10,15,d31.3,fails,certified,optimal,6.94e-10,0.99,1,465,97,0.27122426,0.3,
+06:15:55,DDE:DDE10,16,pat1,fails,certified,optimal,6.94e-10,0.99,1,465,97,0.27122426,0.3,
+06:15:55,DDE:DDE10,17,psatz1,not smaller,error,,NaN,NaN,NaN,1329,156,NaN,NaN,LB_SIZE ndv=1329 m=156 above the gate (ndv 1328; m 45000): not solved
+06:15:56,DDE:DDE10,18,dwP1,fails,unknown,optimal,2.34e-11,0.566,1,689,117,0.23735885,0.3,
+06:15:56,DDE:DDE10,19,capinc,fails,unknown,optimal,3.83e-11,0.581,1,657,125,0.23741635,0.3,
+06:15:56,DDE:DDE10,20,t:d2+1.1+dwP1,fails,certified,optimal,3.92e-10,0.951,1,741,117,0.23669911,0.4,
+06:15:57,DDE:DDE10,21,t:d2+1.1+capinc,fails,certified,optimal,9.48e-10,1,1,709,125,0.23725397,0.4,
+06:15:57,DDE:DDE10,22,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,1381,157,NaN,NaN,LB_SIZE ndv=1381 m=157 above the gate (ndv 1328; m 45000): not solved
+06:15:57,DDE:DDE10,23,t:d3+1.1+capinc,fails,certified,optimal,2.46e-09,0.991,1,709,126,0.23729823,0.3,
+06:15:58,DDE:DDE10,24,t:d3+1.2+dwP1,fails,certified,optimal,5.66e-10,0.939,1,741,118,0.2367412,0.2,
+06:15:58,DDE:DDE10,25,t:d3+1.2+capinc,kept,certified,optimal,5.62e-10,0.95,1,1173,158,0.23644695,0.2,
+06:15:58,DDE:DDE10,26,d21.1,fails,unknown,optimal,7.97e-11,0.65,1,613,125,0.25794766,0.3,
+06:15:58,DDE:DDE10,27,d11.1,fails,certified,optimal,6.13e-10,0.827,1,545,109,0.25232583,0.2,
+06:15:59,DDE:DDE10,28,d31.1,fails,certified,optimal,8.14e-10,1,1,1121,158,0.24351976,0.3,
+06:15:59,DDE:DDE10,29,d31.2,fails,unknown,optimal,3.83e-11,0.581,1,657,125,0.23741635,0.2,
+06:15:59,DDE:DDE10,30,d31.3,fails,certified,optimal,4.28e-10,1.01,1,389,101,0.26056255,0.2,
+06:15:59,DDE:DDE10,31,pat1,fails,certified,optimal,4.28e-10,1.01,1,389,101,0.26056255,0.3,
+06:16:00,DDE:DDE10,32,dwP1,fails,certified,optimal,5.66e-10,0.939,1,741,118,0.2367412,0.3,
+06:16:00,DDE:DDE10,33,t:d2+1.1+dwP1,kept,certified,optimal,1.73e-09,0.923,1,869,141,0.23646879,0.2,
+06:16:00,DDE:DDE10,34,d21.1,fails,certified,optimal,5.66e-10,0.939,1,741,118,0.2367412,0.3,
+06:16:00,DDE:DDE10,35,d11.1,fails,certified,optimal,8.96e-10,0.908,1,801,137,0.23674252,0.2,
+06:16:01,DDE:DDE10,36,d31.1,fails,unknown,unknown,7.21e-10,0.0617,1,801,141,0.36557823,0.3,
+06:16:01,DDE:DDE10,37,d31.2,fails,unknown,optimal,2.72e-11,0.584,1,597,117,0.23737433,0.2,
+06:16:01,DDE:DDE10,38,d31.3,fails,certified,optimal,1.29e-09,1.01,1,597,117,0.23705791,0.2,
+06:16:01,DDE:DDE10,39,pat1,fails,certified,optimal,1.29e-09,1.01,1,597,117,0.23705791,0.2,
+06:16:02,DDE:DDE10/Hinf_gain_dual,0,start1 Pd stripped st.lpi.ineq.dD = 0,start,certified,optimal,1.34e-09,1,1,1669,182,0.23653875,0.4,
+06:16:02,DDE:DDE10/Hinf_gain_dual,1,d21.1,kept,certified,optimal,9.78e-10,0.999,1,1509,173,0.23656367,0.2,
+06:16:02,DDE:DDE10/Hinf_gain_dual,2,d21.1,kept,certified,optimal,3.06e-10,1,1,1381,173,0.23656918,0.2,
+06:16:02,DDE:DDE10/Hinf_gain_dual,3,d11.1,fails,unknown,optimal,2.74e-11,0.6,1,501,109,0.26690282,0.2,
+06:16:02,DDE:DDE10/Hinf_gain_dual,4,d31.1,fails,inaccurate,unknown,3.48e-11,0.934,1,1329,173,0.28324889,0.2,
+06:16:03,DDE:DDE10/Hinf_gain_dual,5,d31.2,not smaller,error,,NaN,NaN,NaN,1381,172,NaN,NaN,LB_SIZE ndv=1381 m=172 above the gate (ndv 1380; m 45000): not solved
+06:16:03,DDE:DDE10/Hinf_gain_dual,6,d31.3,fails,certified,optimal,6.69e-12,0.999,1,1285,157,0.24259056,0.5,
+06:16:03,DDE:DDE10/Hinf_gain_dual,7,pat1,fails,certified,optimal,2.03e-11,1,1,437,94,0.27090746,0.3,
+06:16:04,DDE:DDE10/Hinf_gain_dual,8,psatz1,not smaller,error,,NaN,NaN,NaN,1381,172,NaN,NaN,LB_SIZE ndv=1381 m=172 above the gate (ndv 1380; m 45000): not solved
+06:16:04,DDE:DDE10/Hinf_gain_dual,9,dwP1,fails,certified,optimal,9.64e-10,0.999,1,741,141,0.24847041,0.3,
+06:16:04,DDE:DDE10/Hinf_gain_dual,10,capinc,not smaller,error,,NaN,NaN,NaN,1381,172,NaN,NaN,LB_SIZE ndv=1381 m=172 above the gate (ndv 1380; m 45000): not solved
+06:16:04,DDE:DDE10/Hinf_gain_dual,11,t:d2+1.1+dwP1,fails,unknown,optimal,7.35e-12,0.567,1,869,145,0.24209183,0.2,
+06:16:04,DDE:DDE10/Hinf_gain_dual,12,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,1441,172,NaN,NaN,LB_SIZE ndv=1441 m=172 above the gate (ndv 1380; m 45000): not solved
+06:16:05,DDE:DDE10/Hinf_gain_dual,13,t:d3+1.2+dwP1,fails,certified,optimal,9.64e-10,0.999,1,741,141,0.24847041,0.2,
+06:16:05,DDE:DDE10/Hinf_gain_dual,14,t:d3+1.3+dwP1,not smaller,error,,NaN,NaN,NaN,1509,192,NaN,NaN,LB_SIZE ndv=1509 m=192 above the gate (ndv 1380; m 45000): not solved
+06:16:05,DDE:DDE10/Hinf_gain_dual,15,t:d1+1.1+dwP1,fails,certified,optimal,1.04e-09,1,1,1365,205,0.23690233,0.3,
+06:16:05,DDE:DDE10/Hinf_gain_dual,16,t:dD++d11.1,kept,certified,optimal,8.89e-12,0.805,1,1285,154,0.23659876,0.2,
+06:16:06,DDE:DDE10/Hinf_gain_dual,17,dD0,fails,unknown,optimal,2.74e-11,0.6,1,501,109,0.26690282,0.2,
+06:16:06,DDE:DDE10/Hinf_gain_dual,18,d11.1,fails,certified,optimal,1.84e-12,0.999,1,1221,154,0.24934325,0.5,
+06:16:06,DDE:DDE10/Hinf_gain_dual,19,d31.1,fails,inaccurate,unknown,5.02e-12,0.984,1,1249,154,0.29456153,0.2,
+06:16:07,DDE:DDE10/Hinf_gain_dual,20,d31.3,fails,certified,optimal,7.98e-12,0.997,1,1249,154,0.242591,0.3,
+06:16:07,DDE:DDE10/Hinf_gain_dual,21,pat1,fails,certified,optimal,1.84e-12,0.999,1,1221,154,0.24934325,0.5,
+06:16:07,DDE:DDE10/Hinf_gain_dual,22,dwP1,fails,certified,optimal,6.64e-12,1.01,1,645,118,0.24893651,0.3,
+06:16:08,DDE:DDE10/Hinf_gain_dual,23,t:d2+1.1+dD0,fails,certified,optimal,6.02e-10,0.992,1,597,118,0.25361896,0.2,
+06:16:08,DDE:DDE10/Hinf_gain_dual,24,t:d2+1.1+dwP1,fails,certified,optimal,1.18e-11,1,1,741,118,0.2422073,0.3,
+06:16:08,DDE:DDE10/Hinf_gain_dual,25,t:d3+1.1+dD0,fails,certified,optimal,7.39e-12,0.998,1,801,130,0.24271654,0.2,
+06:16:08,DDE:DDE10/Hinf_gain_dual,26,t:d3+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,1329,153,NaN,NaN,LB_SIZE ndv=1329 m=153 above the gate (ndv 1284; m 45000): not solved
+06:16:08,DDE:DDE10/Hinf_gain_dual,27,t:d3+1.2+dD0,fails,unknown,optimal,2.74e-11,0.6,1,501,109,0.26690282,0.2,
+06:16:09,DDE:DDE10/Hinf_gain_dual,28,t:d3+1.2+dwP1,fails,certified,optimal,6.64e-12,1.01,1,645,118,0.24893651,0.2,
+06:16:09,DDE:DDE10/Hinf_gain_dual,29,t:d3+1.3+dD0,fails,unknown,optimal,4.05e-12,0.0122,1,801,144,0.26485861,0.2,
+06:16:09,DDE:DDE10/Hinf_gain_dual,30,t:d3+1.3+dwP1,not smaller,error,,NaN,NaN,NaN,1329,161,NaN,NaN,LB_SIZE ndv=1329 m=161 above the gate (ndv 1284; m 45000): not solved
+06:16:09,DDE:DDE10/Hinf_gain_dual,31,t:d1+1.1+dD0,not smaller,error,,NaN,NaN,NaN,1381,172,NaN,NaN,LB_SIZE ndv=1381 m=172 above the gate (ndv 1284; m 45000): not solved
+06:16:10,DDE:DDE10/Hinf_gain_dual,32,t:d1+1.1+dwP1,fails,certified,optimal,9.97e-11,0.841,1,1237,177,0.23690626,0.2,
+06:16:10,DDE:DDE10/Hinf_gain_dual,33,t:dD++d11.1,not smaller,error,,NaN,NaN,NaN,2421,221,NaN,NaN,LB_SIZE ndv=2421 m=221 above the gate (ndv 1284; m 45000): not solved
+06:16:10,DDE:DDE10/Hinf_gain_dual,34,t:dD++d31.1,fails,unknown,unknown,3.24e-10,-0.0988,1,1105,166,0.88713045,0.2,
+06:16:10,DDE:DDE10/Hinf_gain_dual,35,t:dD++d31.3,not smaller,error,,NaN,NaN,NaN,2449,221,NaN,NaN,LB_SIZE ndv=2449 m=221 above the gate (ndv 1284; m 45000): not solved
+06:16:10,DDE:DDE10/Hinf_gain_dual,36,t:dD++pat1,not smaller,error,,NaN,NaN,NaN,2421,221,NaN,NaN,LB_SIZE ndv=2421 m=221 above the gate (ndv 1284; m 45000): not solved
+06:16:11,DDE:DDE10/Hinf_gain_dual,37,t:wmin+1+d11.1,fails,certified,optimal,1.84e-12,0.999,1,1221,154,0.24934325,0.5,
+06:16:11,DDE:DDE10/Hinf_gain_dual,38,t:wmin+1+d31.1,fails,inaccurate,unknown,5.02e-12,0.984,1,1249,154,0.29456153,0.2,
+06:16:11,DDE:DDE10/Hinf_gain_dual,39,t:wmin+1+d31.3,fails,certified,optimal,7.98e-12,0.997,1,1249,154,0.242591,0.3,

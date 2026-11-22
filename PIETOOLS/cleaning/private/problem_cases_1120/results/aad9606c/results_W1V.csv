@@ -1,0 +1,11 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:44,Pd,A,light,"",infeasible,-1,1,0,0,16419,891,17.3,"",infeasible,1
+PDE:44,Qd,A,light,"",infeasible,-1,1,0,0,21023,2107,13.6,"",infeasible,1
+PDE:44,Pd,A,stripped,"",infeasible,-1,1,0,0,9411,716,8.2,"",infeasible,1
+PDE:44,Qd,A,stripped,"",infeasible,-1,1,0,0,12167,1923,7.7,"",infeasible,1
+PDE:41,Pd,A,light,"",infeasible,-1,1,0,0,7888,159,1.7,"",infeasible,0.013
+PDE:41,Qd,A,light,"",infeasible,-1,1,0,0,7888,159,1.0,"",infeasible,0.013
+PDE:41,Pd,A,stripped,"",infeasible,-1,1,0,0,7888,159,0.7,"",infeasible,0.013
+PDE:41,Qd,A,stripped,"",infeasible,-1,1,0,0,7888,159,0.7,"",infeasible,0.013
+PDE:X3,Pd,A,light,"",infeasible,-1,1,0,0,32406,665,7.5,"",infeasible,1
+PDE:X3,Pd,A,stripped,"",infeasible,-1,1,0,0,32406,665,6.4,"",infeasible,1

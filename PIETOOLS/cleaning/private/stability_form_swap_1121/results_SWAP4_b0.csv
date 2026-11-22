@@ -1,0 +1,4 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gate,note
+PDE:5,Qd,light,"",,certified,0.9901,0,0,0,optimal,4.16e-11,780,126,2.0,1,""
+PDE:5,FQ,light,"st.epneg = 1",,unknown,1.342,0,0,0,optimal,3.79e-12,780,126,0.4,0,""
+PDE:8,Qd,light,"",,certified,0.9843,0,0,0,optimal,1.14e-11,2180,631,1.6,1,""

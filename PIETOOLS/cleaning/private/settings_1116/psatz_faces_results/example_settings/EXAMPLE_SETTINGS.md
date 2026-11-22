@@ -523,3 +523,5 @@ PDE 36: no setting passes the harness gate. The smallest program the executive c
 cap_inc 'auto' (triangular cap): made the H-infinity 'Q' program infeasible before the solve on 45-47 and cut PDE
 50 from 1,585,445 to 242,485 variables without a certificate; it certified nothing in this pass. Dmax not tried.
 | 61 | verified via the example file: Q, light + dD0 | C (0.996) | optimal (6.5e-10) | – | 197,415 | 6,969 | 1 |
+
+- Correction 11/21/2026 (cleaning/private/stability_form_swap_1121/AUDIT.md): on C:/wt1117 (33d30877) PIETOOLS_stability_sop solved form 'P' for a 'Q' request on a PIE in two or more variables, so the HEAD side of D91 and D93 and "the storage form of HEAD" for PDE 39 (933,696 variables) are 'P' results; the comparisons are direct 'Q' against 'P'. History above left as written.

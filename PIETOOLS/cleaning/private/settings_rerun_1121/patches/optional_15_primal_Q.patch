@@ -1,0 +1,46 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Timoshenko_Beam_2.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Timoshenko_Beam_2.m
+index 9ae3d646..dac643b2 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Timoshenko_Beam_2.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Timoshenko_Beam_2.m
+@@ -4,8 +4,9 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % MM
+ % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_TIMOSHENKO_BEAM_2(GUI,PARAMS) returns
+ % the Timoshenko beam below in hyperbolic/diffusive form, all coefficients
+ % 1, in the term-based and in the batch format, and the recommended
+-% settings ST of its dual stability test. It sets stability_dual = 1 and
+-% stability_form = 'Q' (the dual form 'Qd') in the base workspace. With
++% settings ST of its stability test. It sets stability = 1 and              % MMP, 11/21/2026
++% stability_form = 'Q' (generalized storage T'Q) in the base                % MMP, 11/21/2026
++% workspace. With                                                           % MMP, 11/21/2026
+ % GUI = 1 it also loads the associated GUI save file into a new
+ % PIETOOLS_PDE_GUI window.
+ %
+@@ -84,6 +85,11 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % MM
+ %                   11/19/2026 (maintainer: no default settings);
+ % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)    % MMP, 11/19/2026 (was)
+ % MMP, 11/19/2026: Release comment pass (comment-only).
++% MMP, 11/21/2026: the primal stability test in the form 'Q', with the
++%                   degrees of Q at [0 1 1] in one variable, in place of
++%                   the dual test, which certified at no setting tried
++%                   under an acceptance that also bounds the residual of
++%                   the solve;
+ 
+ % Determine the location of this example file <-- DO NOT MOVE THE FILE
+ loc = mfilename('fullpath');
+@@ -93,7 +99,8 @@ root = fileparts(loc);
+ pvar s
+ 
+ %%% Executive Function:
+-evalin('base','stability_dual= 1;');
++% evalin('base','stability_dual= 1;');                                      % MMP, 11/21/2026 (was)
++evalin('base','stability = 1;');                                            % MMP, 11/21/2026
+ evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
+ 
+ 
+@@ -234,6 +241,7 @@ PDE_t.BC{5}.term{1}.C = [1,-1];
+ % (veryheavy tier; slack lift degree at its minimum Dmin)
+ st = lpisettings_sop('veryheavy');                                          % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st.sop.deg_Q{1} = [0 1 1];                                                  % MMP, 11/21/2026
+ 
+ if GUI
+     %%% Associated GUI save file

@@ -1,0 +1,128 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+05:52:14,DDE:DDE09,0,start1 Q light ,start,certified,optimal,2.14e-09,1,1,1040,147,25.912755,3.6,
+05:52:15,DDE:DDE09,1,dD0,fails,certified,optimal,1.71e-08,0.999,1,668,134,25.942216,1.3,
+05:52:16,DDE:DDE09,2,degQ1.1,not smaller,error,,NaN,NaN,NaN,1040,146,NaN,NaN,LB_SIZE ndv=1040 m=146 above the gate (ndv 1039; m 45000): not solved
+05:52:16,DDE:DDE09,3,degQ1.2,not smaller,error,,NaN,NaN,NaN,1040,146,NaN,NaN,LB_SIZE ndv=1040 m=146 above the gate (ndv 1039; m 45000): not solved
+05:52:16,DDE:DDE09,4,degQ1.3,not smaller,error,,NaN,NaN,NaN,1040,146,NaN,NaN,LB_SIZE ndv=1040 m=146 above the gate (ndv 1039; m 45000): not solved
+05:52:16,DDE:DDE09,5,psatz1,not smaller,error,,NaN,NaN,NaN,1040,146,NaN,NaN,LB_SIZE ndv=1040 m=146 above the gate (ndv 1039; m 45000): not solved
+05:52:17,DDE:DDE09,6,wmin1,not smaller,error,,NaN,NaN,NaN,1040,146,NaN,NaN,LB_SIZE ndv=1040 m=146 above the gate (ndv 1039; m 45000): not solved
+05:52:17,DDE:DDE09,7,raiseQ1,not smaller,error,,NaN,NaN,NaN,1040,146,NaN,NaN,LB_SIZE ndv=1040 m=146 above the gate (ndv 1039; m 45000): not solved
+05:52:17,DDE:DDE09,8,capinc,kept,certified,optimal,3.29e-09,1,1,948,147,25.912633,0.4,
+05:52:18,DDE:DDE09,9,dD0,fails,certified,optimal,1.71e-08,0.999,1,668,134,25.942216,0.4,
+05:52:18,DDE:DDE09,10,t:degQ+1.1+dD0,fails,certified,optimal,1.71e-08,0.999,1,668,134,25.942216,0.4,
+05:52:18,DDE:DDE09,11,t:degQ+1.2+dD0,fails,certified,optimal,1.71e-08,0.999,1,668,134,25.942216,0.3,
+05:52:19,DDE:DDE09,12,t:degQ+1.3+dD0,fails,certified,optimal,1.71e-08,0.999,1,668,134,25.942216,0.3,
+05:52:22,PDE:49/H2_norm_dual,0,start1 c light ,start fails,unknown,optimal,3.39e-11,0.635,1,1563,169,0.10585986,0.8,post passes: stage 2 certified fr 1.16 exst optimal eta 6.7e-11 ndec 1418 m 104; slack of the solve; residue 0; gam 0.10585986; trace W 0.1058587; slack entries [373 709]
+05:52:22,PDE:49/H2_norm_dual,0,start2 cco light examplest,start,certified,optimal,5.71e-09,1.09,1,7397,137,0.10157511,0.4,
+05:52:22,PDE:49/H2_norm_dual,1,dD0,kept,certified,optimal,9.51e-09,1.04,1,5201,119,0.10157519,0.2,
+05:52:22,PDE:49/H2_norm_dual,2,d21.1,kept,certified,optimal,1.22e-08,1.04,1,4929,113,0.10157519,0.1,
+05:52:23,PDE:49/H2_norm_dual,3,d21.1,kept,certified,optimal,8.77e-09,1.06,1,4689,113,0.1015753,0.2,
+05:52:23,PDE:49/H2_norm_dual,4,d21.1,kept,certified,optimal,2.13e-09,0.996,1,4481,113,0.10157533,0.1,
+05:52:23,PDE:49/H2_norm_dual,5,d21.1,kept,certified,optimal,3.88e-09,0.923,1,4305,113,0.10157585,0.2,
+05:52:23,PDE:49/H2_norm_dual,6,d11.1,kept,certified,optimal,4e-09,0.851,1,2453,84,0.1015763,0.2,
+05:52:23,PDE:49/H2_norm_dual,7,d11.1,kept,certified,optimal,2.39e-09,1.05,1,1121,57,0.10157796,0.1,
+05:52:24,PDE:49/H2_norm_dual,8,d11.1,fails,infeasible,infeasible,NaN,-1,3,517,0,NaN,0.2,
+05:52:24,PDE:49/H2_norm_dual,9,d31.1,kept,certified,optimal,3.23e-09,0.934,1,1098,57,0.10157831,0.1,
+05:52:24,PDE:49/H2_norm_dual,10,d11.1,fails,infeasible,infeasible,NaN,-1,3,502,0,NaN,0.2,
+05:52:24,PDE:49/H2_norm_dual,11,d31.1,kept,certified,optimal,5.32e-09,0.969,1,1077,57,0.10157954,0.1,
+05:52:24,PDE:49/H2_norm_dual,12,d11.1,fails,infeasible,infeasible,NaN,-1,3,489,0,NaN,0.2,
+05:52:24,PDE:49/H2_norm_dual,13,d31.1,kept,certified,optimal,3.86e-09,0.902,1,1058,57,0.10158187,0.1,
+05:52:25,PDE:49/H2_norm_dual,14,d11.1,fails,infeasible,infeasible,NaN,-1,3,478,0,NaN,0.2,
+05:52:25,PDE:49/H2_norm_dual,15,d31.1,fails,certified,optimal,2.45e-09,1.14,1,1041,57,0.10173902,0.2,
+05:52:25,PDE:49/H2_norm_dual,16,d31.2,not smaller,error,,NaN,NaN,NaN,1058,55,NaN,NaN,LB_SIZE ndv=1058 m=55 above the gate (ndv 1057; m 45000): not solved
+05:52:25,PDE:49/H2_norm_dual,17,d31.3,kept,certified,optimal,3.24e-09,0.835,1,706,47,0.10158326,0.1,
+05:52:25,PDE:49/H2_norm_dual,18,d11.1,fails,infeasible,infeasible,NaN,-1,3,357,0,NaN,0.2,
+05:52:25,PDE:49/H2_norm_dual,19,d31.1,fails,certified,optimal,3.11e-09,1.11,1,693,47,0.10173906,0.1,
+05:52:25,PDE:49/H2_norm_dual,20,d31.3,kept,certified,optimal,5.72e-09,0.758,1,426,37,0.10166998,0.1,
+05:52:26,PDE:49/H2_norm_dual,21,d11.1,fails,infeasible,infeasible,NaN,-1,3,254,0,NaN,0.2,
+05:52:26,PDE:49/H2_norm_dual,22,d31.1,fails,certified,optimal,5.41e-09,1.09,1,417,37,0.10173924,0.1,
+05:52:26,PDE:49/H2_norm_dual,23,d31.3,fails,certified,optimal,2.69e-10,0.72,1,218,27,0.23745242,0.1,
+05:52:26,PDE:49/H2_norm_dual,24,pat1,fails,infeasible,infeasible,NaN,-1,3,166,0,NaN,0.4,
+05:52:26,PDE:49/H2_norm_dual,25,psatz1,not smaller,error,,NaN,NaN,NaN,426,35,NaN,NaN,LB_SIZE ndv=426 m=35 above the gate (ndv 425; m 45000): not solved
+05:52:26,PDE:49/H2_norm_dual,26,wmin1,not smaller,error,,NaN,NaN,NaN,426,35,NaN,NaN,LB_SIZE ndv=426 m=35 above the gate (ndv 425; m 45000): not solved
+05:52:27,PDE:49/H2_norm_dual,27,dwP1,fails,unknown,optimal,3.08e-09,0.618,1,234,29,0.10167126,0.2,
+05:52:27,PDE:49/H2_norm_dual,28,raise1,not smaller,error,,NaN,NaN,NaN,426,35,NaN,NaN,LB_SIZE ndv=426 m=35 above the gate (ndv 425; m 45000): not solved
+05:52:27,PDE:49/H2_norm_dual,29,capinc,kept,certified,optimal,5.39e-09,0.768,1,366,37,0.10167013,0.2,
+05:52:27,PDE:49/H2_norm_dual,30,d11.1,fails,infeasible,infeasible,NaN,-1,3,82,0,NaN,0.3,
+05:52:27,PDE:49/H2_norm_dual,31,d31.1,fails,certified,optimal,2.29e-09,1.05,1,357,37,0.10173901,0.1,
+05:52:28,PDE:49/H2_norm_dual,32,d31.3,fails,infeasible,infeasible,0.571,-1,3,82,21,0.76505884,0.4,
+05:52:28,PDE:49/H2_norm_dual,33,pat1,fails,infeasible,infeasible,NaN,-1,3,10,0,NaN,0.4,
+05:52:28,PDE:49/H2_norm_dual,34,dwP1,fails,unknown,optimal,3.08e-09,0.618,1,234,29,0.10167126,0.1,
+05:52:29,PDE:49/H2_norm_dual,35,t:d2+1.1+dwP1,not smaller,error,,NaN,NaN,NaN,738,44,NaN,NaN,LB_SIZE ndv=738 m=44 above the gate (ndv 365; m 45000): not solved
+05:52:29,PDE:49/H2_norm_dual,36,t:d3+1.1+dwP1,kept,certified,optimal,3.81e-09,1,1,245,29,0.10158993,0.2,
+05:52:29,PDE:49/H2_norm_dual,37,d11.1,fails,infeasible,infeasible,NaN,-1,3,89,0,NaN,0.4,
+05:52:29,PDE:49/H2_norm_dual,38,d31.1,fails,unknown,optimal,3.08e-09,0.618,1,234,29,0.10167126,0.2,
+05:52:52,PDE:15,0,start1 Qd>Q light examplest,start,certified,optimal,5.95e-09,1.06,1,272977,7783,NaN,20.5,
+05:53:04,PDE:15,1,degQ1.1,kept,certified,optimal,7.15e-09,1,1,272961,7780,NaN,12.5,
+05:53:17,PDE:15,2,degQ1.1,kept,certified,optimal,9.33e-09,1,1,272945,7777,NaN,12.4,
+05:53:28,PDE:15,3,degQ1.1,kept,certified,optimal,1.53e-08,1,1,272929,7774,NaN,11.0,
+05:53:37,PDE:15,4,degQ1.1,kept,certified,optimal,6.55e-09,1,1,272913,7771,NaN,9.7,
+05:53:53,PDE:15,5,degQ1.1,kept,certified,optimal,1.02e-08,1,1,272897,7768,NaN,15.9,
+05:54:09,PDE:15,6,degQ1.1,kept,certified,optimal,1.85e-08,1.01,1,272881,7762,NaN,15.5,
+05:54:18,PDE:15,7,degQ1.2,kept,certified,optimal,5.97e-09,1,1,202465,6630,NaN,9.2,
+05:54:25,PDE:15,8,degQ1.2,kept,certified,optimal,6.39e-09,1,1,142545,5506,NaN,6.6,
+05:54:31,PDE:15,9,degQ1.2,kept,certified,optimal,3.21e-09,1,1,93121,4390,NaN,6.4,
+05:54:36,PDE:15,10,degQ1.2,kept,certified,optimal,9.55e-10,1,1,54193,3282,NaN,4.9,
+05:54:40,PDE:15,11,degQ1.2,kept,certified,optimal,1.77e-09,1,1,25761,2182,NaN,3.5,
+05:54:49,PDE:15,12,degQ1.2,not smaller,error,,NaN,NaN,NaN,37877,2117,NaN,NaN,LB_SIZE ndv=37877 m=2117 above the gate (ndv 25760; m 45000): not solved
+05:54:53,PDE:15,13,degQ1.3,kept,certified,optimal,9.12e-11,1,1,15825,1802,NaN,3.8,
+05:54:59,PDE:15,14,degQ1.2,not smaller,error,,NaN,NaN,NaN,25505,1782,NaN,NaN,LB_SIZE ndv=25505 m=1782 above the gate (ndv 15824; m 45000): not solved
+05:55:02,PDE:15,15,degQ1.3,kept,certified,optimal,1.29e-10,1,1,15761,1690,NaN,3.0,
+05:55:10,PDE:15,16,degQ1.2,not smaller,error,,NaN,NaN,NaN,25473,1715,NaN,NaN,LB_SIZE ndv=25473 m=1715 above the gate (ndv 15760; m 45000): not solved
+05:55:13,PDE:15,17,degQ1.3,kept,certified,optimal,9.6e-11,1,1,8293,1310,NaN,2.5,
+05:55:18,PDE:15,18,degQ1.2,not smaller,error,,NaN,NaN,NaN,15569,1380,NaN,NaN,LB_SIZE ndv=15569 m=1380 above the gate (ndv 8292; m 45000): not solved
+05:55:21,PDE:15,19,degQ1.3,kept,certified,optimal,1.05e-10,1,1,8229,1198,NaN,2.7,
+05:55:29,PDE:15,20,degQ1.2,not smaller,error,,NaN,NaN,NaN,15537,1313,NaN,NaN,LB_SIZE ndv=15537 m=1313 above the gate (ndv 8228; m 45000): not solved
+05:55:32,PDE:15,21,degQ1.3,kept,certified,optimal,1.15e-09,1.01,1,3229,818,NaN,3.0,
+05:55:38,PDE:15,22,degQ1.2,not smaller,error,,NaN,NaN,NaN,8101,978,NaN,NaN,LB_SIZE ndv=8101 m=978 above the gate (ndv 3228; m 45000): not solved
+05:55:45,PDE:15,23,degQ1.3,not smaller,error,,NaN,NaN,NaN,8101,963,NaN,NaN,LB_SIZE ndv=8101 m=963 above the gate (ndv 3228; m 45000): not solved
+05:55:47,PDE:15,24,psatz1,not smaller,error,,NaN,NaN,NaN,3229,818,NaN,NaN,LB_SIZE ndv=3229 m=818 above the gate (ndv 3228; m 45000): not solved
+05:55:50,PDE:15,25,wmin1,not smaller,error,,NaN,NaN,NaN,3229,818,NaN,NaN,LB_SIZE ndv=3229 m=818 above the gate (ndv 3228; m 45000): not solved
+05:55:52,PDE:15,26,raiseQ1,not smaller,error,,NaN,NaN,NaN,3229,818,NaN,NaN,LB_SIZE ndv=3229 m=818 above the gate (ndv 3228; m 45000): not solved
+05:55:55,PDE:15,27,capinc,not smaller,error,,NaN,NaN,NaN,3229,818,NaN,NaN,LB_SIZE ndv=3229 m=818 above the gate (ndv 3228; m 45000): not solved
+05:56:00,PDE:15,28,t:dD++degQ1.2,not smaller,error,,NaN,NaN,NaN,6605,1062,NaN,NaN,LB_SIZE ndv=6605 m=1062 above the gate (ndv 3228; m 45000): not solved
+05:56:05,PDE:15,29,t:dD++degQ1.3,not smaller,error,,NaN,NaN,NaN,6605,1047,NaN,NaN,LB_SIZE ndv=6605 m=1047 above the gate (ndv 3228; m 45000): not solved
+05:56:11,PDE:15,30,t:wmin+1+degQ1.2,not smaller,error,,NaN,NaN,NaN,8101,978,NaN,NaN,LB_SIZE ndv=8101 m=978 above the gate (ndv 3228; m 45000): not solved
+05:56:16,PDE:15,31,t:wmin+1+degQ1.3,not smaller,error,,NaN,NaN,NaN,8101,963,NaN,NaN,LB_SIZE ndv=8101 m=963 above the gate (ndv 3228; m 45000): not solved
+05:56:21,PDE:15,32,t:raiseQ+1+degQ1.2,not smaller,error,,NaN,NaN,NaN,8101,978,NaN,NaN,LB_SIZE ndv=8101 m=978 above the gate (ndv 3228; m 45000): not solved
+05:56:25,PDE:15,33,t:raiseQ+1+degQ1.3,not smaller,error,,NaN,NaN,NaN,8101,963,NaN,NaN,LB_SIZE ndv=8101 m=963 above the gate (ndv 3228; m 45000): not solved
+05:56:32,PDE:41,0,start1 Q light ,start fails,unknown,unknown,5.14e-10,0.0775,3,19776,797,NaN,3.0,post fails: stage 2 infeasible fr -1 exst optimal eta 1 ndec 19684 m 667; P margin: residual of the solve 7e-10; eppos2 0.0001; residual of the solve 5e-09; largest D 2; slack of the solve (first: infeasible fr -1 eta 1; residue [0 0]); then the support of D one degree up; slack entries [3256 6723] (solve: 13284)
+05:56:34,PDE:41,0,start2 P light examplest,start,unknown,unknown,6.05e-15,-0.0969,3,4000,217,NaN,1.5,post passes: stage 2 certified fr 1.22 exst optimal eta 2.8e-08 ndec 3600 m 204; residual of the solve 9.7e-10; largest D 1.8e+04; slack of the solve; residue 6e-11 zeroed; slack entries 1842 (solve: 3600)
+05:56:36,PDE:41,1,dD0,kept,unknown,unknown,6.58e-12,-0.778,3,2000,173,NaN,1.2,post passes: stage 2 certified fr 0.717 exst optimal eta 3.4e-09 ndec 1600 m 128; residual of the solve 2.2e-08; largest D 5.3e+02; slack of the solve; residue 3.1e-09 zeroed; slack entries 828 (solve: 1600)
+05:56:37,PDE:41,2,d21.1,fails,unknown,optimal,0.00779,-0.0139,1,576,134,NaN,0.6,post fails: stage 2 infeasible fr -1 exst infeasible eta 1 ndec 320 m 63; residual of the solve 0.00043; largest D 0.0058; slack of the solve (first: infeasible fr -1 eta 1; residue 1.2e-17); then the support of D one degree up; slack entries 172 (solve: 320)
+05:56:37,PDE:41,3,d11.1,fails,unknown,optimal,0.00812,-0.0252,1,576,134,NaN,0.4,post fails: stage 2 infeasible fr -1 exst infeasible eta 1 ndec 320 m 63; residual of the solve 0.00043; largest D 0.0057; slack of the solve (first: infeasible fr -1 eta 1; residue 7.1e-18); then the support of D one degree up; slack entries 172 (solve: 320)
+05:56:39,PDE:41,4,d31.1,kept,unknown,unknown,1.55e-11,-0.577,3,1924,173,NaN,1.6,post passes: stage 2 certified fr 0.881 exst optimal eta 1.7e-09 ndec 1600 m 128; residual of the solve 4.8e-08; largest D 1.5e+03; slack of the solve; residue 2e-08 zeroed; slack entries 828 (solve: 1600)
+05:56:41,PDE:41,5,d21.1,kept,unknown,unknown,3.49e-11,-0.0735,3,1796,160,NaN,1.5,post passes: stage 2 certified fr 1.06 exst optimal eta 2.1e-08 ndec 1600 m 128; residual of the solve 1.8e-08; largest D 1.3e+02; slack of the solve; residue 3.5e-09 zeroed; slack entries 828 (solve: 1600)
+05:56:42,PDE:41,6,d21.1,kept,unknown,unknown,4.29e-11,-0.806,3,1700,154,NaN,1.5,post passes: stage 2 certified fr 0.821 exst optimal eta 1.5e-08 ndec 1600 m 128; residual of the solve 1.5e-07; largest D 1.9e+03; slack of the solve; residue 4e-08 zeroed; slack entries 828 (solve: 1600)
+05:56:44,PDE:41,7,d11.1,fails,infeasible,infeasible,0.066,-1,3,436,95,NaN,1.1,
+05:56:45,PDE:41,8,d31.1,fails,infeasible,infeasible,1,-1,3,1664,153,NaN,1.2,
+05:56:46,PDE:41,9,d31.2,not smaller,error,,NaN,NaN,NaN,1700,154,NaN,NaN,LB_SIZE ndv=1700 m=154 above the gate (ndv 1699; m 45000): not solved
+05:56:47,PDE:41,10,d31.3,kept,unknown,unknown,3.08e-11,0.254,3,868,110,NaN,1.0,post passes: stage 2 certified fr 0.893 exst optimal eta 6.4e-09 ndec 832 m 96; residual of the solve 9e-09; largest D 1.1e+02; slack of the solve; residue 1.5e-09 zeroed; slack entries 436 (solve: 832)
+05:56:48,PDE:41,11,d11.1,fails,infeasible,infeasible,0.102,-1,3,224,60,NaN,1.0,
+05:56:49,PDE:41,12,d31.1,fails,infeasible,infeasible,1,-1,3,848,109,NaN,0.7,
+05:56:50,PDE:41,13,d31.3,fails,infeasible,infeasible,0.0975,-1,3,212,46,NaN,0.9,
+05:56:51,PDE:41,14,pat1,fails,infeasible,infeasible,0.0975,-1,3,212,46,NaN,0.9,
+05:56:52,PDE:41,15,psatz1,not smaller,error,,NaN,NaN,NaN,868,110,NaN,NaN,LB_SIZE ndv=868 m=110 above the gate (ndv 867; m 45000): not solved
+05:56:52,PDE:41,16,wmin1,not smaller,error,,NaN,NaN,NaN,868,110,NaN,NaN,LB_SIZE ndv=868 m=110 above the gate (ndv 867; m 45000): not solved
+05:56:53,PDE:41,17,raisefeas1,kept,unknown,unknown,5.65e-12,-0.129,2,356,90,NaN,0.5,post passes: stage 2 certified fr 0.97 exst optimal eta 7.6e-09 ndec 320 m 64; residual of the solve 4.4e-09; largest D 2.6e+02; slack of the solve; residue 1.1e-09 zeroed; slack entries 172 (solve: 320)
+05:56:54,PDE:41,18,d11.1,fails,infeasible,infeasible,0.093,-1,2,96,47,NaN,0.7,
+05:56:55,PDE:41,19,d31.1,fails,infeasible,infeasible,1,-1,2,336,89,NaN,0.8,
+05:56:55,PDE:41,20,d31.3,fails,infeasible,infeasible,0.109,-1,2,84,30,NaN,0.9,
+05:56:56,PDE:41,21,pat1,fails,infeasible,infeasible,0.109,-1,2,84,30,NaN,0.6,
+05:56:56,PDE:41,22,raisefeas1,fails,infeasible,infeasible,0.0414,-1,1,164,90,NaN,0.4,
+05:56:57,PDE:41,23,capinc,fails,infeasible,infeasible,0.0437,-1,2,244,90,NaN,0.9,
+05:56:58,PDE:41,24,t:d2+1.1+raisefeas1,not smaller,error,,NaN,NaN,NaN,420,99,NaN,NaN,LB_SIZE ndv=420 m=99 above the gate (ndv 355; m 45000): not solved
+05:56:58,PDE:41,25,t:d2+1.1+capinc,not smaller,error,,NaN,NaN,NaN,420,99,NaN,NaN,LB_SIZE ndv=420 m=99 above the gate (ndv 355; m 45000): not solved
+05:56:58,PDE:41,26,t:d3+1.1+raisefeas1,not smaller,error,,NaN,NaN,NaN,384,90,NaN,NaN,LB_SIZE ndv=384 m=90 above the gate (ndv 355; m 45000): not solved
+05:56:59,PDE:41,27,t:d3+1.1+capinc,fails,infeasible,infeasible,0.0237,-1,2,352,95,NaN,0.6,
+05:56:59,PDE:41,28,t:d3+1.2+raisefeas1,fails,infeasible,infeasible,0.0414,-1,1,164,90,NaN,0.4,
+05:57:00,PDE:41,29,t:d3+1.2+capinc,fails,infeasible,infeasible,0.0437,-1,2,244,90,NaN,0.6,
+05:57:00,PDE:41,30,t:d3+1.3+raisefeas1,not smaller,error,,NaN,NaN,NaN,420,123,NaN,NaN,LB_SIZE ndv=420 m=123 above the gate (ndv 355; m 45000): not solved
+05:57:01,PDE:41,31,t:d3+1.3+capinc,not smaller,error,,NaN,NaN,NaN,420,123,NaN,NaN,LB_SIZE ndv=420 m=123 above the gate (ndv 355; m 45000): not solved
+05:57:01,PDE:41,32,t:d1+1.1+raisefeas1,fails,infeasible,infeasible,0.0409,-1,1,352,142,NaN,0.3,
+05:57:02,PDE:41,33,t:d1+1.1+capinc,not smaller,error,,NaN,NaN,NaN,608,142,NaN,NaN,LB_SIZE ndv=608 m=142 above the gate (ndv 355; m 45000): not solved
+05:57:02,PDE:41,34,t:dD++d11.1,fails,unknown,unknown,9.28e-13,0.18,2,336,68,NaN,0.6,post fails: stage 2 unknown fr 1.84 exst optimal eta 1.1e-08 ndec 320 m 64; residual of the solve 3e-08; largest D 1.5e+04; slack of the solve (first: unknown fr 1.84 eta 1.1e-08; residue 6.8e-11); then the support of D one degree up; slack entries 172 (solve: 320)
+05:57:03,PDE:41,35,t:dD++d31.1,not smaller,error,,NaN,NaN,NaN,736,116,NaN,NaN,LB_SIZE ndv=736 m=116 above the gate (ndv 355; m 45000): not solved
+05:57:04,PDE:41,36,t:dD++d31.3,kept,unknown,unknown,2.13e-11,0.114,2,324,64,NaN,0.5,post passes: stage 2 certified fr 0.844 exst optimal eta 3.4e-09 ndec 320 m 64; residual of the solve 9.1e-09; largest D 1.8e+02; slack of the solve; residue 0 zeroed; slack entries 172 (solve: 320)
+05:57:04,PDE:41,37,dD0,fails,infeasible,infeasible,0.109,-1,2,84,30,NaN,0.7,
+05:57:05,PDE:41,38,d11.1,not smaller,error,,NaN,NaN,NaN,324,64,NaN,NaN,LB_SIZE ndv=324 m=64 above the gate (ndv 323; m 45000): not solved

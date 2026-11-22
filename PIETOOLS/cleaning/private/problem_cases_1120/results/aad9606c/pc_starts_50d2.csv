@@ -1,0 +1,4 @@
+key,kind,form,tier,mods,best
+PDE:50/H2_norm_dual,value,c,stripped,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'",0.9
+PDE:50/H2_norm_dual,value,c,stripped,"st.lpi.ineq.dD = 0",0.9
+PDE:50/H2_norm_dual,value,c,stripped,"",0.9

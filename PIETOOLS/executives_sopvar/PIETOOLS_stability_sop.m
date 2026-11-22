@@ -85,7 +85,11 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                          the last raise and the loop history, the slack
 %                          mode, its degrees and terms, the size of the SDP,
 %                          and the dual kernel of the negativity constraint
-%                          with its 1-norm.
+%                          with its 1-norm;
+%               aux        'struct', the operators of the last pass: Pm (P), % MMP, 11/21/2026
+%                          Dm, Nm, li (the slack degrees and terms), form;  % MMP, 11/21/2026
+%                          Npm, lip: the slack of the margin of P and its   % MMP, 11/21/2026
+%                          info in the direct forms, [] in the others.      % MMP, 11/21/2026
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -129,6 +133,13 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                variables are posed as 'Pd' and 'FP'." and "'Pd' and 'Qd'
 %                are then posed as 'P' and 'Q': without K they are not
 %                sufficient for stability."
+% MMP, 11/21/2026: info.aux returns the operators of the last pass, which an
+%                a posteriori check of the solve needs (the storage fixed,
+%                the slack sought; maintainer, 11/21: in the toolbox).
+% MMP, 11/21/2026: info.aux also returns the slack of the margin of P in the
+%                direct forms (Npm, lip): sized from the numeric P instead,
+%                the check built a different slack and failed a solve whose
+%                -D passed (PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input).
 
 % Default settings and form, by the dimension of the PIE
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -232,6 +243,7 @@ end
 info = exec_info_sop(prog,aux,st,label);
 info.form = form;   info.epneg = epneg;     info.eppos = eppos;     info.nv = nv;
 info.storage = Psol;    info.D = aux.Dm;    info.N = aux.Nm;
+info.aux = aux;     % the internals of the last pass, for a posteriori checks % MMP, 11/21/2026
 
 % Numerical witness (1-D): the spectrum of the discretized pencil (A,T)
 info.witness = [];  info.maxre = NaN;
@@ -269,6 +281,7 @@ end
         % The positive operator P and the derivative operator Dm of FORM
         % (the direct 'Qd' and 'FQ' run the code of 'Q')                    % MMP, 11/21/2026
         fq = form;  if dq,  fq = 'Q';  end                                  % MMP, 11/21/2026
+        Npm = [];   lip = [];   % slack of the margin of P (direct forms)   % MMP, 11/21/2026
 %       switch form                                                         % MMP, 11/21/2026 (was)
         switch fq                                                           % MMP, 11/21/2026
             case 'P'
@@ -300,9 +313,11 @@ end
                 o = struct('dw',dwbase+dws,'margin',st.sop.margin,'cap',tl.capfor(Pm));
 %               prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026 (was)
                 if fe       % 'FQ': P >= 0, no margin                       % MMP, 11/21/2026
-                    prog = lpi_ineq_sop(prog,Pm,o);                         % MMP, 11/21/2026
+%                   prog = lpi_ineq_sop(prog,Pm,o);                         % MMP, 11/21/2026 (was)
+                    [prog,Npm,lip] = lpi_ineq_sop(prog,Pm,o);               % MMP, 11/21/2026
                 else                                                        % MMP, 11/21/2026
-                    prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026
+%                   prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026 (was)
+                    [prog,Npm,lip] = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026
                 end                                                         % MMP, 11/21/2026
                 Dm = Am'*Qm + Qm'*Am;
 %               if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end             % MMP, 11/21/2026 (was)
@@ -351,6 +366,8 @@ end
             if strcmp(form,'Q') || dq,  o = rmfield(o,'like');  end         % MMP, 11/21/2026
             [prog,Nm,li] = lpi_ineq_sop(prog,-Dm,o);
         end
-        aux = struct('obj',[],'Pm',Pm,'Dm',Dm,'Nm',Nm,'li',li,'form',form);
+%       aux = struct('obj',[],'Pm',Pm,'Dm',Dm,'Nm',Nm,'li',li,'form',form); % MMP, 11/21/2026 (was)
+        aux = struct('obj',[],'Pm',Pm,'Dm',Dm,'Nm',Nm,'li',li,'form',form, ...
+                     'Npm',Npm,'lip',lip);  % the slack of the margin of P  % MMP, 11/21/2026
     end
 end

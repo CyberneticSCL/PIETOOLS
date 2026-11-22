@@ -1,0 +1,4 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+69mix2,Q,"",error: LB_SIZE ndv=1150980 m=54558 above the gate (ndv 2e+06; m 45000): not solved,NaN,NaN,,NaN,NaN,NaN,NaN
+69mix2,Q,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = 'faces1'",certified,0.7223,0,optimal,4.27e-08,267060,23714,113.7
+69mix2,Q,"heavy: st.lpi.ineq.dD = 0",error: LB_SIZE ndv=8340061 m=123647 above the gate (ndv 2e+06; m 45000): not solved,NaN,NaN,,NaN,NaN,NaN,NaN

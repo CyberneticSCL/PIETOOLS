@@ -1,0 +1,5 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:43,P,A,light,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,91145,2019,8.1,"",infeasible,1
+PDE:43,P,A,light,"",infeasible,-1,1,0,0,428185,4626,45.1,"",infeasible,1
+PDE:43,P,A,heavy,"st.lpi.ineq.dD = 0",unknown,-1.203,0,0,2,1508273,6532,233.8,"",unknown,1.09e-08
+PDE:43,P,A,stripped,"",infeasible,-1,1,0,0,427689,4626,41.3,"",infeasible,1

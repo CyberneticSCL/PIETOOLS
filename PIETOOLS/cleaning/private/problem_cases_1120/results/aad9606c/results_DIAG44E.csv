@@ -1,0 +1,11 @@
+variant,mu,form,tier,mods,status,fr,numerr,exst,eta,ndec,m,sec
+44min,0.4,Pd,light,"st.epneg = 1e-4",unknown,1.552,0,optimal,1.31e-08,2520,315,3.9
+44min,0.4,Pd,light,"st.epneg = 1e-2",certified,1.274,0,optimal,6.01e-08,2520,315,2.3
+44min,0.4,Pd,stripped,"",certified,1,0,optimal,9.32e-10,2520,286,1.3
+44min,0.4,Pd,stripped,"st.epneg = 1e-3",unknown,1.316,0,optimal,2.05e-07,2520,315,1.7
+44min,0.4,Pd,heavy,"st.epneg = 1e-3",certified,0.844,0,optimal,8.94e-09,14373,584,3.6
+x3min,0.375,Pd,light,"",certified,0.9995,0,optimal,2.4e-10,9000,280,2.3
+x3min,0.375,Pd,light,"st.epneg = 1e-3",certified,0.8494,0,optimal,1.95e-07,9000,291,1.9
+x3min,0.375,Pd,stripped,"",certified,0.9995,0,optimal,2.4e-10,9000,280,1.4
+x3min,0.4,Pd,light,"",certified,0.9941,0,optimal,9.51e-10,9000,280,0.6
+x3min,0.4,Pd,light,"st.epneg = 1e-3",certified,1.101,0,optimal,3.11e-07,9000,291,1.6

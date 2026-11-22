@@ -1,0 +1,507 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)
+In pc_post (line 36)] 
+## PC_POST s 21-Nov-2026 01:35:52
+## sossolve: C:\wt1121v\PIETOOLS\testing_codes\private\baselines\2026-11-18_studies\private\post\sossolve.m
+## executive: C:\wt1121v\PIETOOLS\executives_sopvar\PIETOOLS_stability_sop.m
+## sedumi: C:\YALMIP\yalmip_install\tbxmanager\toolboxes\sedumi\1.3\pcwin64\sedumi_1_3_pcwin64\sedumi.m
+
+##### POST S44: 44min 0.4 Pd light [st.sos_opts.solver = 'sedumi']  21-Nov-2026 01:35:52
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 1620 decision variables in the certificate (Gram blocks [36 18], sized from opts.like); 2520 in the program.
+Size: 2520   286
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 286, order n = 85, dim = 2521, blocks = 4
+nnz(A) = 8272 + 0, nnz(ADA) = 79276, nnz(L) = 39781
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            5.87E-01 0.000
+  1 :   8.23E-02 1.88E-01 0.000 0.3198 0.9000 0.9000   0.86  1  1  2.6E+00
+  2 :   5.47E-02 6.03E-02 0.000 0.3209 0.9000 0.9000   0.75  1  1  9.5E-01
+  3 :   1.06E-02 1.75E-02 0.000 0.2898 0.9000 0.9000   0.95  1  1  2.7E-01
+  4 :   6.53E-04 5.03E-03 0.000 0.2881 0.9000 0.9000   1.11  1  1  7.3E-02
+  5 :   1.60E-04 1.24E-03 0.000 0.2465 0.9000 0.9000   1.17  1  1  1.7E-02
+  6 :   4.00E-05 2.40E-04 0.000 0.1931 0.9000 0.9000   1.03  1  1  3.2E-03
+  7 :   4.44E-06 2.05E-05 0.000 0.0857 0.9900 0.9696   1.00  1  1  2.9E-04
+  8 :   7.62E-07 3.77E-06 0.000 0.1836 0.9005 0.9000   1.00  1  1  5.3E-05
+  9 :   1.69E-07 8.44E-07 0.000 0.2240 0.9000 0.8293   1.00  1  2  1.2E-05
+ 10 :   1.70E-08 7.76E-08 0.373 0.0919 0.9900 0.9437   1.00  1  2  1.1E-06
+ 11 :   2.45E-09 6.85E-09 0.481 0.0883 0.9900 0.9610   0.98  3  5  9.6E-08
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 11      0.8  12.4  0.0000000000e+00  2.4515631119e-09
+|Ax-b| =   1.8e-07, [Ay-c]_+ =   1.2E-08, |x|=  2.1e+01, |y|=  9.5e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+4.240E-01    8.130E-01    3.800E-02    
+Max-norms: ||b||=6.696495e-01, ||c|| = 0,
+Cholesky |add|=20, |skip| = 21, ||L.L|| = 1.24022e+07.
+ 
+Residual norm: 1.7577e-07
+ 
+         iter: 11
+    feasratio: 0.9829
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.4240 0.8130 0.0380]
+      wallsec: 1.2750
+       cpusec: 0.8750
+       relres: 1.7577e-07
+          eta: 2.4608e-09
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.8e-07, eta 2.5e-09, objective NaN, 2520 decision variables, 286 rows, build 2.0 s, solve 1.5 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re 2.14907
+##### stage 1: inaccurate fr 0.9829 exst inaccurate eta 2.46e-09 ndec 2520 m 286
+##### projection: eta 2.46e-09 to 3.97e-17; lambda_min 7.44e-10 to -1.84e-08 (relative -2.71e-09); |dx|/|x| 3.27e-09
+##### storage: 45 rows touch it alone, eta 1.96e-09 to 5.68e-18, inconsistency 0; 1 Gram blocks, lambda_min -7.81e-10, clipped 0
+ - lpi_ineq_sop: 5733 decision variables in the certificate (Gram blocks [63 42], sized from the operator); 5733 in the program.
+ - lpi_ineq_sop: 2205 decision variables in the certificate (Gram blocks [42 21], sized from opts.deg); 7938 in the program.
+Size: 7938   670
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 670, order n = 169, dim = 7939, blocks = 5
+nnz(A) = 10119 + 0, nnz(ADA) = 213282, nnz(L) = 106990
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.99E-01 0.000
+  1 :  -2.38E-01 7.97E-02 0.000 0.4011 0.9000 0.9000   2.30  1  1  1.7E+00
+  2 :  -1.91E-02 2.82E-02 0.000 0.3542 0.9000 0.9000   3.50  1  1  3.9E-01
+  3 :  -4.50E-03 7.46E-03 0.000 0.2642 0.9000 0.9000   1.85  1  1  1.8E-01
+  4 :  -9.80E-04 1.79E-03 0.000 0.2403 0.9000 0.9000   1.52  1  1  1.2E-01
+  5 :  -2.23E-04 4.13E-04 0.000 0.2305 0.9000 0.9000   1.22  1  1  2.5E-02
+  6 :  -4.85E-05 8.81E-05 0.000 0.2131 0.9000 0.9000   1.13  1  1  4.9E-03
+  7 :  -1.19E-05 2.18E-05 0.000 0.2480 0.9000 0.9000   1.14  1  1  1.1E-03
+  8 :  -3.87E-06 7.04E-06 0.000 0.3222 0.9000 0.9000   1.07  1  1  3.6E-04
+  9 :  -1.27E-06 2.26E-06 0.000 0.3205 0.9000 0.9000   1.02  1  1  1.2E-04
+ 10 :  -3.77E-07 7.09E-07 0.000 0.3144 0.9000 0.9032   1.02  1  1  3.5E-05
+ 11 :  -1.21E-07 2.32E-07 0.000 0.3270 0.9000 0.9014   1.03  1  1  1.1E-05
+ 12 :  -4.43E-08 7.64E-08 0.000 0.3297 0.9050 0.9000   1.03  1  1  3.9E-06
+ 13 :  -1.94E-08 2.56E-08 0.000 0.3351 0.9150 0.9000   1.01  1  2  1.7E-06
+ 14 :  -9.28E-09 9.58E-09 0.000 0.3740 0.9176 0.9000   1.00  2  2  8.4E-07
+ 15 :  -4.39E-09 3.47E-09 0.000 0.3617 0.9213 0.9000   1.00  3  3  4.0E-07
+ 16 :  -2.26E-09 1.52E-09 0.000 0.4397 0.9190 0.9000   0.99  4  4  2.1E-07
+ 17 :  -1.15E-09 6.66E-10 0.000 0.4369 0.9233 0.9000   1.00  6  7  1.1E-07
+ 18 :  -3.63E-10 2.33E-10 0.000 0.3506 0.9000 0.9177   1.01  7  8  3.5E-08
+ 19 :  -1.59E-10 8.80E-11 0.000 0.3771 0.9205 0.9000   1.01 13 11  1.5E-08
+ 20 :  -8.11E-11 4.05E-11 0.000 0.4603 0.9236 0.9000   0.99 18 18  8.0E-09
+
+iter seconds digits       c*x               b*y
+ 20      3.3  10.2  0.0000000000e+00 -8.1063022327e-11
+|Ax-b| =   9.8e-11, [Ay-c]_+ =   5.2E-11, |x|=  2.0e+00, |y|=  2.7e+00
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.400E-02    9.580E-01    9.002E-03    
+Max-norms: ||b||=5.360884e-01, ||c|| = 0,
+Cholesky |add|=7, |skip| = 45, ||L.L|| = 2.76488e+06.
+ 
+Residual norm: 9.8327e-11
+ 
+         iter: 20
+    feasratio: 0.9888
+         pinf: 0
+         dinf: 0
+       numerr: 0
+       timing: [0.0140 0.9580 0.0090]
+      wallsec: 0.9810
+       cpusec: 3.3125
+       relres: 9.8327e-11
+          eta: 1.7821e-11
+
+##### stage 2: certified fr 0.9888 exst optimal eta 1.78e-11 ndec 7938 m 670
+##### projection: eta 1.78e-11 to 2.22e-17; lambda_min 1.02e-12 to -8.99e-12 (relative -2.17e-11); |dx|/|x| 2.11e-11
+##### POST S44: stage-2 gate only
+
+##### POST S44e: 44min 0.4 Pd light [st.sos_opts.solver = 'sedumi'; st.epneg = 1e-1]  21-Nov-2026 01:36:01
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 1620 decision variables in the certificate (Gram blocks [36 18], sized from opts.like); 2520 in the program.
+Size: 2520   315
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 315, order n = 85, dim = 2521, blocks = 4
+nnz(A) = 13971 + 0, nnz(ADA) = 96265, nnz(L) = 48290
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            4.97E-01 0.000
+  1 :   1.32E-01 1.60E-01 0.000 0.3222 0.9000 0.9000   0.77  1  1  2.5E+00
+  2 :   8.22E-02 5.18E-02 0.000 0.3232 0.9000 0.9000   0.68  1  1  9.3E-01
+  3 :   2.07E-02 1.54E-02 0.000 0.2975 0.9000 0.9000   0.92  1  1  2.8E-01
+  4 :   5.31E-03 5.34E-03 0.000 0.3465 0.9000 0.9000   1.03  1  1  9.4E-02
+  5 :   2.15E-04 1.73E-03 0.000 0.3247 0.9000 0.9000   1.19  1  1  2.7E-02
+  6 :   5.15E-05 4.74E-04 0.000 0.2736 0.9000 0.9000   1.29  1  1  6.6E-03
+  7 :   1.44E-05 9.72E-05 0.000 0.2049 0.9000 0.9000   1.05  1  1  1.3E-03
+  8 :   3.79E-06 2.43E-05 0.000 0.2501 0.9000 0.9000   1.00  1  1  3.3E-04
+  9 :   8.09E-07 6.77E-06 0.000 0.2786 0.9000 0.9001   1.00  1  1  9.2E-05
+ 10 :   1.56E-07 1.94E-06 0.000 0.2862 0.9010 0.9000   1.00  1  2  2.7E-05
+ 11 :   2.79E-08 5.55E-07 0.000 0.2862 0.9010 0.9000   1.00  2  2  7.6E-06
+ 12 :   4.11E-09 1.58E-07 0.000 0.2849 0.9003 0.9000   1.00  2  7  2.2E-06
+ 13 :   3.74E-10 4.56E-08 0.000 0.2882 0.9000 0.9000   1.00  3  4  6.3E-07
+ 14 :  -3.91E-11 1.33E-08 0.000 0.2922 0.9000 0.9001   1.00  8 13  2.2E-07
+ 15 :  -3.90E-11 3.89E-09 0.000 0.2925 0.9002 0.9000   1.00 17 33  9.0E-08
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      0.8  15.0  0.0000000000e+00 -3.9040145527e-11
+|Ax-b| =   1.0e-07, [Ay-c]_+ =   7.5E-09, |x|=  2.3e+01, |y|=  6.8e+04
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.301E-02    3.240E-01    2.002E-03    
+Max-norms: ||b||=6.275749e-01, ||c|| = 0,
+Cholesky |add|=33, |skip| = 25, ||L.L|| = 1.80919e+07.
+ 
+Residual norm: 1.0485e-07
+ 
+         iter: 15
+    feasratio: 0.9991
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0130 0.3240 0.0020]
+      wallsec: 0.3390
+       cpusec: 0.8906
+       relres: 1.0485e-07
+          eta: 1.1804e-09
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.0e-07, eta 1.2e-09, objective NaN, 2520 decision variables, 315 rows, build 1.5 s, solve 0.3 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0.1: 1; numerical spectrum max Re 2.14907
+##### stage 1: inaccurate fr 0.9991 exst inaccurate eta 1.18e-09 ndec 2520 m 315
+##### projection: eta 1.18e-09 to 1.13e-16; lambda_min 1.4e-09 to -1.01e-08 (relative -1.31e-09); |dx|/|x| 1.93e-09
+##### storage: 74 rows touch it alone, eta 9.4e-10 to 7.62e-17, inconsistency 0; 1 Gram blocks, lambda_min -7.59e-09, clipped 7.6e-09
+ - lpi_ineq_sop: 5733 decision variables in the certificate (Gram blocks [63 42], sized from the operator); 5733 in the program.
+ - lpi_ineq_sop: 2205 decision variables in the certificate (Gram blocks [42 21], sized from opts.deg); 7938 in the program.
+Size: 7938   713
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 713, order n = 169, dim = 7939, blocks = 5
+nnz(A) = 10119 + 0, nnz(ADA) = 213282, nnz(L) = 107033
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.98E-01 0.000
+  1 :  -2.49E-01 7.72E-02 0.000 0.3888 0.9000 0.9000   2.16  1  1  1.7E+00
+  2 :  -2.11E-02 2.78E-02 0.000 0.3606 0.9000 0.9000   3.49  1  1  4.1E-01
+  3 :  -4.96E-03 7.35E-03 0.000 0.2641 0.9000 0.9000   1.83  1  1  1.9E-01
+  4 :  -1.11E-03 1.79E-03 0.000 0.2438 0.9000 0.9000   1.58  1  1  1.2E-01
+  5 :  -2.43E-04 4.22E-04 0.000 0.2357 0.9000 0.9000   1.34  1  1  2.5E-02
+  6 :  -5.10E-05 9.04E-05 0.000 0.2142 0.9000 0.9000   1.18  1  1  4.8E-03
+  7 :  -1.13E-05 2.11E-05 0.000 0.2337 0.9000 0.9000   1.18  1  1  9.7E-04
+  8 :  -2.96E-06 5.72E-06 0.000 0.2708 0.9000 0.9000   1.14  1  1  2.4E-04
+  9 :  -9.60E-07 1.84E-06 0.000 0.3215 0.9000 0.9000   1.04  1  1  7.7E-05
+ 10 :  -2.76E-07 5.51E-07 0.000 0.2995 0.9000 0.9020   1.01  1  1  2.2E-05
+ 11 :  -8.17E-08 1.73E-07 0.000 0.3136 0.9000 0.9026   1.02  1  1  6.5E-06
+ 12 :  -2.67E-08 5.64E-08 0.000 0.3262 0.9002 0.9000   1.03  1  1  2.1E-06
+ 13 :  -1.02E-08 1.89E-08 0.000 0.3346 0.9067 0.9000   1.03  1  2  7.8E-07
+ 14 :  -4.63E-09 6.36E-09 0.000 0.3372 0.9171 0.9000   1.01  2  2  3.5E-07
+ 15 :  -2.25E-09 2.23E-09 0.000 0.3509 0.9229 0.9000   1.00  3  3  1.7E-07
+ 16 :  -1.11E-09 8.34E-10 0.000 0.3739 0.9254 0.9000   0.99  9  7  8.9E-08
+ 17 :  -5.63E-10 3.80E-10 0.047 0.4560 0.9148 0.9000   0.99  7  7  4.6E-08
+ 18 :  -2.55E-10 1.61E-10 0.000 0.4236 0.9104 0.9000   1.00  7  8  2.1E-08
+ 19 :  -6.41E-11 4.52E-11 0.000 0.2808 0.9000 0.9134   1.00 10 10  5.4E-09
+
+iter seconds digits       c*x               b*y
+ 19      2.4  10.2  0.0000000000e+00 -6.4077728035e-11
+|Ax-b| =   1.9e-10, [Ay-c]_+ =   3.7E-11, |x|=  1.8e+00, |y|=  1.7e+00
+
+Detailed timing (sec)
+   Pre          IPM          Post
+7.001E-03    7.700E-01    2.002E-03    
+Max-norms: ||b||=5.903672e-01, ||c|| = 0,
+Cholesky |add|=5, |skip| = 88, ||L.L|| = 9.78809e+07.
+ 
+Residual norm: 1.8994e-10
+ 
+         iter: 19
+    feasratio: 1.0017
+         pinf: 0
+         dinf: 0
+       numerr: 0
+       timing: [0.0070 0.7700 0.0020]
+      wallsec: 0.7790
+       cpusec: 2.4531
+       relres: 1.8994e-10
+          eta: 3.1295e-11
+
+##### stage 2: certified fr 1.002 exst optimal eta 3.13e-11 ndec 7938 m 713
+##### projection: eta 3.13e-11 to 3.03e-17; lambda_min 1.38e-12 to -1.81e-11 (relative -4.21e-11); |dx|/|x| 4.42e-11
+##### POST S44e: stage-2 gate only
+
+##### POST SX3: x3min 0.4 Pd light [st.sos_opts.solver = 'sedumi']  21-Nov-2026 01:36:05
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 8100 decision variables in the certificate (Gram blocks [54 36 36 36 36], sized from opts.like); 9000 in the program.
+Size: 9000   280
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 280, order n = 229, dim = 9001, blocks = 7
+nnz(A) = 15524 + 0, nnz(ADA) = 76132, nnz(L) = 38206
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            3.83E-01 0.000
+  1 :  -1.78E-02 1.67E-01 0.000 0.4361 0.9000 0.9000   1.03  1  1  5.6E+00
+  2 :  -5.35E-04 6.59E-02 0.000 0.3942 0.9000 0.9000   1.02  1  1  2.3E+00
+  3 :  -5.41E-03 2.41E-02 0.000 0.3655 0.9000 0.9000   1.04  1  1  1.6E+00
+  4 :  -3.39E-03 8.15E-03 0.000 0.3382 0.9000 0.9000   1.12  1  1  1.1E+00
+  5 :  -2.64E-03 2.92E-03 0.000 0.3584 0.9000 0.9000   1.31  1  1  8.3E-01
+  6 :  -4.57E-04 7.15E-04 0.000 0.2449 0.9000 0.9000   1.19  1  1  3.5E-01
+  7 :  -3.68E-05 6.37E-05 0.000 0.0890 0.9900 0.9900   1.02  1  1  2.8E-02
+  8 :  -2.13E-05 1.67E-05 0.000 0.2617 0.9000 0.5104   1.00  1  1  1.6E-02
+  9 :  -4.36E-06 3.07E-06 0.000 0.1841 0.9000 0.8867   1.00  1  1  3.2E-03
+ 10 :  -1.09E-06 7.59E-07 0.000 0.2473 0.9000 0.8579   1.00  1  2  8.1E-04
+ 11 :  -2.39E-07 1.58E-07 0.000 0.2077 0.9008 0.9000   1.00  2  2  1.8E-04
+ 12 :  -5.45E-08 3.51E-08 0.000 0.2227 0.9014 0.9000   0.98  4  4  4.1E-05
+ 13 :  -9.62E-09 7.09E-09 0.000 0.2021 0.9000 0.9030   0.98  7 12  7.3E-06
+ 14 :  -2.31E-09 1.64E-09 0.000 0.2308 0.9000 0.8605   0.99 28 26  1.8E-06
+ 15 :  -1.96E-09 1.51E-09 0.000 0.9213 0.9000 0.1877   1.00 70 85  1.5E-06
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      3.7  10.3  0.0000000000e+00 -1.9567626466e-09
+|Ax-b| =   1.0e-07, [Ay-c]_+ =   4.9E-09, |x|=  3.5e+01, |y|=  4.9e+01
+
+Detailed timing (sec)
+   Pre          IPM          Post
+5.400E-02    6.720E-01    1.300E-02    
+Max-norms: ||b||=7.580980e-01, ||c|| = 0,
+Cholesky |add|=10, |skip| = 8, ||L.L|| = 4.73396e+06.
+ 
+Residual norm: 9.9928e-08
+ 
+         iter: 15
+    feasratio: 1.0045
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0540 0.6720 0.0130]
+      wallsec: 0.7390
+       cpusec: 3.8125
+       relres: 9.9928e-08
+          eta: 5.5575e-10
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.0e-07, eta 5.6e-10, objective NaN, 9000 decision variables, 280 rows, build 1.5 s, solve 0.8 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0: 1; numerical spectrum max Re NaN
+##### stage 1: inaccurate fr 1.004 exst inaccurate eta 5.56e-10 ndec 9000 m 280
+##### projection: eta 5.56e-10 to 1.87e-17; lambda_min 8.21e-10 to -5.98e-09 (relative -1.7e-09); |dx|/|x| 9.07e-10
+##### storage: 14 rows touch it alone, eta 2.42e-10 to 1.91e-18, inconsistency 0; 1 Gram blocks, lambda_min -4.85e-10, clipped 1.3e-09
+ - lpi_ineq_sop: 11025 decision variables in the certificate (Gram blocks [63 42 42 42 42], sized from the operator); 11025 in the program.
+ - lpi_ineq_sop: 11025 decision variables in the certificate (Gram blocks [63 42 42 42 42], sized from opts.deg); 22050 in the program.
+Size: 22050    582
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 582, order n = 463, dim = 22051, blocks = 11
+nnz(A) = 26440 + 0, nnz(ADA) = 164738, nnz(L) = 82664
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            2.00E-01 0.000
+  1 :  -3.15E-01 1.14E-01 0.000 0.5698 0.9000 0.9000   3.13  1  1  2.9E+00
+  2 :  -1.92E-02 6.08E-02 0.000 0.5335 0.9000 0.9000   6.34  1  1  5.3E-01
+  3 :  -4.23E-03 1.89E-02 0.000 0.3116 0.9000 0.9000   2.42  1  1  1.4E-01
+  4 :  -1.39E-03 5.74E-03 0.000 0.3030 0.9000 0.9000   1.82  1  1  6.2E-02
+  5 :  -3.68E-04 1.65E-03 0.000 0.2867 0.9000 0.9000   1.52  1  1  1.7E-02
+  6 :  -9.24E-05 4.38E-04 0.000 0.2661 0.9000 0.9000   1.24  1  1  3.9E-03
+  7 :  -2.52E-05 1.22E-04 0.000 0.2791 0.9000 0.9000   1.15  1  1  1.0E-03
+  8 :  -6.22E-06 3.06E-05 0.000 0.2506 0.9000 0.9000   1.15  1  1  2.3E-04
+  9 :  -1.67E-06 8.30E-06 0.000 0.2710 0.9000 0.9000   1.10  1  1  5.9E-05
+ 10 :  -4.66E-07 2.30E-06 0.000 0.2776 0.9000 0.9000   1.05  1  1  1.6E-05
+ 11 :  -3.18E-07 6.89E-07 0.000 0.2990 0.9000 0.4167   1.01  1  1  1.0E-05
+ 12 :  -1.14E-07 2.10E-07 0.000 0.3050 0.9054 0.9000   1.00  1  1  3.6E-06
+ 13 :  -4.14E-08 7.40E-08 0.000 0.3523 0.9004 0.9000   0.97  1  2  1.3E-06
+ 14 :  -1.08E-08 2.33E-08 0.000 0.3149 0.9000 0.8138   0.99  2  2  3.5E-07
+ 15 :  -3.47E-09 7.45E-09 0.000 0.3196 0.9001 0.9000   1.00  2  6  1.1E-07
+ 16 :  -1.25E-09 2.70E-09 0.000 0.3629 0.9000 0.8492   1.00  6 12  4.1E-08
+ 17 :  -4.90E-10 1.06E-09 0.000 0.3903 0.9000 0.8485   1.00  6  8  1.6E-08
+ 18 :  -1.85E-10 4.00E-10 0.000 0.3790 0.9000 0.8064   1.01 12 13  6.0E-09
+
+iter seconds digits       c*x               b*y
+ 18      4.1   9.3  0.0000000000e+00 -1.8471417709e-10
+|Ax-b| =   2.8e-09, [Ay-c]_+ =   1.1E-10, |x|=  1.1e+00, |y|=  5.8e-01
+
+Detailed timing (sec)
+   Pre          IPM          Post
+1.301E-02    1.207E+00    0.000E+00    
+Max-norms: ||b||=6.058187e-01, ||c|| = 0,
+Cholesky |add|=1, |skip| = 14, ||L.L|| = 1.68658e+06.
+ 
+Residual norm: 2.8297e-09
+ 
+         iter: 18
+    feasratio: 1.0087
+         pinf: 0
+         dinf: 0
+       numerr: 0
+       timing: [0.0130 1.2070 0]
+      wallsec: 1.2200
+       cpusec: 4.2969
+       relres: 2.8297e-09
+          eta: 5.2658e-10
+
+##### stage 2: certified fr 1.009 exst optimal eta 5.27e-10 ndec 22050 m 582
+##### projection: eta 5.27e-10 to 6.28e-17; lambda_min 3.23e-12 to -1.4e-10 (relative -1.35e-09); |dx|/|x| 7.76e-10
+##### POST SX3: stage-2 gate only
+
+##### POST SX3e: x3min 0.4 Pd light [st.sos_opts.solver = 'sedumi'; st.epneg = 1e-2]  21-Nov-2026 01:36:12
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)  <--          (/s)ýx(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+   xf(t,s)  <--          (/s)x(t,s)
+
+ --- Conversion to PIE was successful --- 
+ - lpi_ineq_sop: 8100 decision variables in the certificate (Gram blocks [54 36 36 36 36], sized from opts.like); 9000 in the program.
+Size: 9000   291
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 291, order n = 229, dim = 9001, blocks = 7
+nnz(A) = 19608 + 0, nnz(ADA) = 81231, nnz(L) = 40761
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            3.84E-01 0.000
+  1 :  -1.49E-02 1.66E-01 0.000 0.4315 0.9000 0.9000   1.02  1  1  5.5E+00
+  2 :  -2.30E-03 6.47E-02 0.000 0.3905 0.9000 0.9000   1.02  1  1  2.8E+00
+  3 :  -5.33E-03 2.36E-02 0.000 0.3654 0.9000 0.9000   1.05  1  1  1.6E+00
+  4 :  -3.55E-03 7.96E-03 0.000 0.3368 0.9000 0.9000   1.10  2  1  1.1E+00
+  5 :  -2.66E-03 2.91E-03 0.000 0.3653 0.9000 0.9000   1.32  2  2  8.3E-01
+  6 :  -1.12E-03 6.46E-04 0.000 0.2221 0.9000 0.6068   1.22  1  1  7.4E-01
+  7 :  -2.27E-04 1.46E-04 0.000 0.2259 0.9000 0.8570   1.03  1  1  1.7E-01
+  8 :  -5.39E-05 3.58E-05 0.000 0.2452 0.9000 0.8277   1.00  2  2  4.0E-02
+  9 :  -1.70E-05 6.53E-06 0.000 0.1824 0.9161 0.9000   1.00  4  2  1.3E-02
+ 10 :  -4.61E-06 1.65E-06 0.000 0.2523 0.9014 0.9000   1.00  6  6  3.4E-03
+ 11 :  -9.53E-07 3.87E-07 0.000 0.2353 0.9000 0.9075   1.01 11 11  7.1E-04
+ 12 :  -2.08E-07 8.54E-08 0.000 0.2205 0.9005 0.9000   0.99 13 15  1.6E-04
+ 13 :  -4.94E-08 2.28E-08 0.000 0.2673 0.9000 0.9033   0.98 23 26  3.8E-05
+ 14 :  -1.47E-08 5.77E-09 0.000 0.2528 0.9058 0.9000   0.98 32 41  1.1E-05
+ 15 :  -4.11E-09 1.63E-09 0.000 0.2819 0.9000 0.9019   0.99 85 99  3.1E-06
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 15      4.8  17.4  0.0000000000e+00 -4.1109093692e-09
+|Ax-b| =   1.1e-07, [Ay-c]_+ =   8.7E-09, |x|=  3.5e+01, |y|=  1.4e+09
+
+Detailed timing (sec)
+   Pre          IPM          Post
+5.995E-03    8.390E-01    2.002E-03    
+Max-norms: ||b||=7.562012e-01, ||c|| = 0,
+Cholesky |add|=20, |skip| = 5, ||L.L|| = 3.50937e+08.
+ 
+Residual norm: 1.0503e-07
+ 
+         iter: 15
+    feasratio: 0.9922
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0060 0.8390 0.0020]
+      wallsec: 0.8470
+       cpusec: 4.7500
+       relres: 1.0503e-07
+          eta: 5.5503e-10
+
+  [stability_sop Pd] dw 0: inaccurate, residual 1.1e-07, eta 5.6e-10, objective NaN, 9000 decision variables, 291 rows, build 0.8 s, solve 0.9 s
+  [stability_sop Pd] inaccurate: certificate at epneg 0.01: 1; numerical spectrum max Re NaN
+##### stage 1: inaccurate fr 0.9922 exst inaccurate eta 5.55e-10 ndec 9000 m 291
+##### projection: eta 5.55e-10 to 8.25e-17; lambda_min 7.24e-10 to -4.54e-08 (relative -1.97e-08); |dx|/|x| 8.86e-07
+##### storage: 25 rows touch it alone, eta 2.42e-10 to 2.33e-17, inconsistency 0; 1 Gram blocks, lambda_min -2.37e-11, clipped 0
+ - lpi_ineq_sop: 11025 decision variables in the certificate (Gram blocks [63 42 42 42 42], sized from the operator); 11025 in the program.
+ - lpi_ineq_sop: 11025 decision variables in the certificate (Gram blocks [63 42 42 42 42], sized from opts.deg); 22050 in the program.
+Size: 22050    597
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+eqs m = 597, order n = 463, dim = 22051, blocks = 11
+nnz(A) = 26440 + 0, nnz(ADA) = 164738, nnz(L) = 82679
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.99E-01 0.000
+  1 :  -3.19E-01 1.13E-01 0.000 0.5673 0.9000 0.9000   3.09  1  1  3.0E+00
+  2 :  -1.96E-02 6.00E-02 0.000 0.5312 0.9000 0.9000   6.27  1  1  5.3E-01
+  3 :  -4.30E-03 1.86E-02 0.000 0.3090 0.9000 0.9000   2.42  1  1  1.4E-01
+  4 :  -1.43E-03 5.72E-03 0.000 0.3081 0.9000 0.9000   1.83  1  1  6.3E-02
+  5 :  -3.78E-04 1.65E-03 0.000 0.2878 0.9000 0.9000   1.53  1  1  1.8E-02
+  6 :  -9.49E-05 4.40E-04 0.000 0.2677 0.9000 0.9000   1.25  1  1  4.0E-03
+  7 :  -2.61E-05 1.25E-04 0.000 0.2832 0.9000 0.9000   1.16  1  1  1.0E-03
+  8 :  -6.47E-06 3.15E-05 0.000 0.2523 0.9000 0.9000   1.15  1  1  2.4E-04
+  9 :  -1.73E-06 8.55E-06 0.000 0.2718 0.9000 0.9000   1.11  1  1  6.0E-05
+ 10 :  -4.91E-07 2.42E-06 0.000 0.2830 0.9000 0.9000   1.05  1  1  1.7E-05
+ 11 :  -1.62E-07 7.91E-07 0.000 0.3270 0.9000 0.9000   1.02  1  1  5.5E-06
+ 12 :  -1.05E-07 2.25E-07 0.000 0.2847 0.9000 0.4478   1.02  1  1  3.2E-06
+ 13 :  -3.95E-08 7.79E-08 0.000 0.3456 0.9026 0.9000   1.00  2  2  1.2E-06
+ 14 :  -1.28E-08 2.77E-08 0.000 0.3561 0.9000 0.8428   0.99  2  2  4.1E-07
+ 15 :  -3.99E-09 8.63E-09 0.000 0.3111 0.9000 0.8584   1.00  2  6  1.3E-07
+ 16 :  -1.29E-09 2.78E-09 0.000 0.3221 0.9000 0.8817   1.00  4 10  4.1E-08
+ 17 :  -4.42E-10 9.56E-10 0.000 0.3439 0.9000 0.8863   0.99 12  8  1.4E-08
+ 18 :  -1.93E-10 4.17E-10 0.000 0.4368 0.9000 0.8904   0.98 15 15  6.3E-09
+
+iter seconds digits       c*x               b*y
+ 18      4.3   9.4  0.0000000000e+00 -1.9268876153e-10
+|Ax-b| =   3.0e-09, [Ay-c]_+ =   1.1E-10, |x|=  1.1e+00, |y|=  7.0e-01
+
+Detailed timing (sec)
+   Pre          IPM          Post
+7.996E-03    1.252E+00    1.992E-03    
+Max-norms: ||b||=6.199059e-01, ||c|| = 0,
+Cholesky |add|=2, |skip| = 27, ||L.L|| = 1.45484e+07.
+ 
+Residual norm: 3.0154e-09
+ 
+         iter: 18
+    feasratio: 0.9766
+         pinf: 0
+         dinf: 0
+       numerr: 0
+       timing: [0.0080 1.2520 0.0020]
+      wallsec: 1.2620
+       cpusec: 4.3438
+       relres: 3.0154e-09
+          eta: 5.4637e-10
+
+##### stage 2: certified fr 0.9766 exst optimal eta 5.46e-10 ndec 22050 m 597
+##### projection: eta 5.46e-10 to 6.14e-17; lambda_min 6.4e-12 to -1.47e-10 (relative -1.4e-09); |dx|/|x| 8.09e-10
+##### POST SX3e: stage-2 gate only
+
+## PC_POST s DONE 21-Nov-2026 01:36:17

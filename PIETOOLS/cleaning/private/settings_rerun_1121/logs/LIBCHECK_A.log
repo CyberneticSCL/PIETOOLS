@@ -1,0 +1,1071 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In pietools_path_update (line 40)
+In run (line 112)
+In heatNd_path (line 35)
+In lb_setup (line 33)] 
+## which: C:\wt1121r\PIETOOLS\PIETOOLS_examples\Examples_Library\Stability_Examples\PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC.m | C:\wt1121r\PIETOOLS\executives_sopvar\PIETOOLS_auto_execute_sop.m
+
+##### case 9  PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC  21-Nov-2026 06:03:57
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t)      <--          x(t)
+   xf(t,s)   <--  (/s)ýx(t,s)
+ - lpi_ineq_sop: 106 decision variables in the certificate (Gram blocks [9 5], sized from opts.like); 187 in the program.
+Size: 187   38
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 38              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 0               
+  Matrix variables       : 3 (scalarized: 105)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 38              
+Optimizer  - Cones                  : 0               
+Optimizer  - Scalar variables       : 0                 conic                  : 0               
+Optimizer  - Semi-definite variables: 3                 scalarized             : 105             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 725               after factor           : 741             
+Factor     - dense dim.             : 0                 flops                  : 6.98e+04        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.4e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   4.9e-01  2.0e-01  1.6e-01  3.72e-01   0.000000000e+00   2.787646027e-01   2.0e-01  0.00  
+2   1.2e-01  5.0e-02  2.4e-02  4.77e-01   0.000000000e+00   1.351848352e-01   5.0e-02  0.00  
+3   2.3e-02  9.4e-03  2.3e-03  7.18e-01   0.000000000e+00   3.541567234e-02   9.4e-03  0.00  
+4   5.7e-03  2.4e-03  3.2e-04  8.11e-01   0.000000000e+00   1.227514493e-02   2.4e-03  0.00  
+5   1.6e-03  6.7e-04  5.3e-05  8.09e-01   0.000000000e+00   4.213119969e-03   6.7e-04  0.00  
+6   5.9e-04  2.5e-04  1.3e-05  7.93e-01   0.000000000e+00   2.024189891e-03   2.5e-04  0.00  
+7   1.9e-04  7.8e-05  2.5e-06  7.83e-01   0.000000000e+00   7.266028269e-04   7.8e-05  0.00  
+8   2.7e-05  1.1e-05  1.5e-07  9.01e-01   0.000000000e+00   1.330714095e-04   1.1e-05  0.00  
+9   8.7e-06  3.6e-06  2.9e-08  8.75e-01   0.000000000e+00   4.938578762e-05   3.6e-06  0.00  
+10  2.0e-06  8.2e-07  2.9e-09  9.82e-01   0.000000000e+00   9.130611498e-06   8.2e-07  0.00  
+11  4.2e-07  1.8e-07  2.8e-10  1.05e+00   0.000000000e+00   1.855435877e-06   1.8e-07  0.00  
+12  1.1e-07  4.5e-08  3.6e-11  1.03e+00   0.000000000e+00   4.723199977e-07   4.5e-08  0.00  
+13  3.1e-08  1.3e-08  5.4e-12  1.03e+00   0.000000000e+00   1.301875054e-07   1.3e-08  0.00  
+14  8.4e-09  4.3e-09  8.1e-13  9.78e-01   0.000000000e+00   3.971682228e-08   3.5e-09  0.01  
+15  3.2e-09  1.8e-09  1.8e-13  1.04e+00   0.000000000e+00   1.353582660e-08   1.3e-09  0.01  
+16  2.2e-10  5.1e-09  3.3e-15  9.97e-01   0.000000000e+00   1.013785906e-09   9.8e-11  0.01  
+Optimizer terminated. Time: 0.01    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 0.0000000000e+00    nrm: 9e+00    Viol.  con: 1e-09    barvar: 0e+00  
+  Dual.    obj: 1.0137863882e-09    nrm: 1e+02    Viol.  con: 0e+00    barvar: 2e-08  
+Optimizer summary
+  Optimizer                 -                        time: 0.01    
+    Interior-point          - iterations : 16        time: 0.01    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1.7846e-09
+ 
+       cpusec: 0.0057
+         iter: 16
+    feasratio: 0.9969
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 1.7846e-09
+          eta: 5.0481e-11
+
+  [stability_sop P] dw 0: optimal, residual 1.8e-09, eta 5.0e-11, objective NaN, 187 decision variables, 38 rows, build 1.7 s, solve 0.1 s
+  [stability_sop P] optimal: certificate at epneg 0: 1; numerical spectrum max Re -1
+ - lpi_ineq_sop: 106 decision variables in the certificate (Gram blocks [9 5], sized from opts.like); 187 in the program.
+Size: 187   36
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 36              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 0               
+  Matrix variables       : 3 (scalarized: 105)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 36              
+Optimizer  - Cones                  : 0               
+Optimizer  - Scalar variables       : 0                 conic                  : 0               
+Optimizer  - Semi-definite variables: 3                 scalarized             : 105             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 652               after factor           : 666             
+Factor     - dense dim.             : 0                 flops                  : 6.01e+04        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.4e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   4.8e-01  2.0e-01  1.5e-01  3.07e-01   0.000000000e+00   2.536870410e-01   2.0e-01  0.00  
+2   1.1e-01  4.5e-02  1.8e-02  6.48e-01   0.000000000e+00   7.996270097e-02   4.5e-02  0.00  
+3   1.8e-02  7.5e-03  1.3e-03  8.37e-01   0.000000000e+00   1.477240810e-02   7.5e-03  0.00  
+4   3.5e-03  1.5e-03  1.1e-04  9.63e-01   0.000000000e+00   3.204311204e-03   1.5e-03  0.00  
+5   8.0e-04  3.3e-04  1.3e-05  8.96e-01   0.000000000e+00   8.574854859e-04   3.3e-04  0.00  
+6   1.7e-04  7.3e-05  1.4e-06  9.28e-01   0.000000000e+00   2.120508523e-04   7.3e-05  0.00  
+7   4.5e-05  1.9e-05  1.9e-07  9.28e-01   0.000000000e+00   5.855569106e-05   1.9e-05  0.00  
+8   1.6e-05  6.8e-06  4.0e-08  9.85e-01   0.000000000e+00   2.012632326e-05   6.8e-06  0.00  
+9   2.7e-06  1.1e-06  2.8e-09  9.63e-01   0.000000000e+00   3.603575567e-06   1.1e-06  0.00  
+10  8.0e-07  3.3e-07  4.7e-10  1.02e+00   0.000000000e+00   1.226552533e-06   3.3e-07  0.00  
+11  1.0e-07  4.3e-08  2.1e-11  1.02e+00   0.000000000e+00   1.373990125e-07   4.3e-08  0.00  
+12  2.6e-08  1.1e-08  2.7e-12  9.84e-01   0.000000000e+00   3.596903567e-08   1.1e-08  0.00  
+13  4.2e-09  1.8e-09  1.8e-13  9.99e-01   0.000000000e+00   5.872618531e-09   1.9e-09  0.00  
+Optimizer terminated. Time: 0.00    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 0.0000000000e+00    nrm: 6e+00    Viol.  con: 1e-08    barvar: 0e+00  
+  Dual.    obj: 5.8726185026e-09    nrm: 1e+02    Viol.  con: 0e+00    barvar: 4e-09  
+Optimizer summary
+  Optimizer                 -                        time: 0.00    
+    Interior-point          - iterations : 13        time: 0.00    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 2.0875e-08
+ 
+       cpusec: 0.0033
+         iter: 13
+    feasratio: 0.9989
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 2.0875e-08
+          eta: 1.1893e-09
+
+  [stability_sop Pd] dw 0: optimal, residual 2.1e-08, eta 1.2e-09, objective NaN, 187 decision variables, 36 rows, build 0.4 s, solve 0.0 s
+  [stability_sop Pd] optimal: certificate at epneg 0: 1; numerical spectrum max Re -1
+##### case 9  stability: optimal NaN (ndv 187, st)
+##### case 9  stability_dual: optimal NaN (ndv 187, st)
+
+##### case 21  PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped  21-Nov-2026 06:04:02
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+ - lpi_ineq_sop: 1000 decision variables in the certificate (Gram blocks [26 18], sized from opts.like); 1257 in the program.
+Size: 1258   144
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 144             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 1               
+  Matrix variables       : 4 (scalarized: 659)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 144             
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 3                 conic                  : 2               
+Optimizer  - Semi-definite variables: 3                 scalarized             : 658             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 9699              after factor           : 9699            
+Factor     - dense dim.             : 0                 flops                  : 1.95e+06        
+Factor     - GP saved nzs           : 540               GP saved flops         : 8.34e+04        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.4e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   5.8e-01  2.4e-01  1.2e-01  8.23e-01   6.242121704e-01   6.126064649e-01   2.4e-01  0.00  
+2   1.4e-01  5.9e-02  8.9e-03  1.47e+00   6.508267847e-01   6.285075583e-01   5.9e-02  0.00  
+3   3.6e-02  1.5e-02  1.1e-03  1.35e+00   6.208919223e-01   6.163867202e-01   1.5e-02  0.01  
+4   9.7e-03  4.0e-03  1.5e-04  1.06e+00   5.990574969e-01   5.979253613e-01   4.0e-03  0.01  
+5   1.6e-03  6.4e-04  8.7e-06  1.08e+00   5.973341674e-01   5.971336850e-01   6.4e-04  0.01  
+6   3.4e-04  1.4e-04  9.7e-07  9.90e-01   5.958402095e-01   5.957996933e-01   1.4e-04  0.01  
+7   7.4e-05  3.0e-05  9.7e-08  9.89e-01   5.954908276e-01   5.954823785e-01   3.0e-05  0.01  
+8   1.6e-05  6.7e-06  1.0e-08  9.70e-01   5.953780156e-01   5.953761292e-01   6.7e-06  0.01  
+9   4.0e-06  1.6e-06  1.4e-09  9.22e-01   5.953410944e-01   5.953406839e-01   1.6e-06  0.01  
+10  1.1e-06  4.6e-07  2.4e-10  8.27e-01   5.953282658e-01   5.953281741e-01   4.6e-07  0.02  
+11  3.2e-07  1.3e-07  4.5e-11  7.08e-01   5.953225039e-01   5.953224892e-01   1.3e-07  0.02  
+12  9.5e-08  4.0e-08  8.6e-12  7.31e-01   5.953198828e-01   5.953198836e-01   4.0e-08  0.02  
+13  3.9e-08  1.7e-08  2.7e-12  5.90e-01   5.953188256e-01   5.953188282e-01   1.7e-08  0.02  
+14  1.6e-08  6.8e-09  1.0e-12  3.33e-01   5.953180728e-01   5.953180817e-01   6.7e-09  0.02  
+Optimizer terminated. Time: 0.02    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 5.9531807281e-01    nrm: 1e+01    Viol.  con: 3e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 5.9531808173e-01    nrm: 2e+02    Viol.  con: 0e+00    var: 9e-09    barvar: 1e-08  
+Optimizer summary
+  Optimizer                 -                        time: 0.02    
+    Interior-point          - iterations : 14        time: 0.02    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 9.1896e-08
+ 
+       cpusec: 0.0230
+         iter: 14
+    feasratio: 0.3327
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 9.1896e-08
+          eta: 1.4773e-09
+
+  [Hinf_gain_sop P] dw 0: optimal, residual 9.2e-08, eta 1.5e-09, objective 0.8419069, 1257 decision variables, 144 rows, build 0.9 s, solve 0.1 s
+  [Hinf_gain_sop P] optimal: gamma 0.8419069 (certified upper bound: 1); numerical lower bound NaN at omega NaN; gap NaN; dual alignment NaN
+The upper bound on the H-infty norm has been saved as "Hinf_gain" (certificate and witness in "info_Hinf_gain").
+ - lpi_ineq_sop: 1000 decision variables in the certificate (Gram blocks [26 18], sized from opts.like); 1257 in the program.
+Size: 1258   146
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 146             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 1               
+  Matrix variables       : 4 (scalarized: 659)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 146             
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 3                 conic                  : 2               
+Optimizer  - Semi-definite variables: 3                 scalarized             : 658             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 9928              after factor           : 9928            
+Factor     - dense dim.             : 0                 flops                  : 2.01e+06        
+Factor     - GP saved nzs           : 616               GP saved flops         : 1.03e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.3e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   5.3e-01  2.3e-01  2.1e-01  4.03e-02   1.380822881e+00   1.804154839e+00   2.3e-01  0.00  
+2   1.3e-01  5.7e-02  1.7e-02  1.03e+00   1.550726023e+00   1.555715287e+00   5.7e-02  0.00  
+3   2.9e-02  1.2e-02  1.8e-03  1.21e+00   1.225777947e+00   1.229722762e+00   1.2e-02  0.01  
+4   7.8e-03  3.3e-03  3.3e-04  7.03e-01   1.011032895e+00   1.014808619e+00   3.3e-03  0.01  
+5   1.7e-03  7.4e-04  4.2e-05  7.36e-01   8.981552859e-01   8.997531015e-01   7.4e-04  0.01  
+6   4.6e-04  2.0e-04  6.2e-06  8.20e-01   8.629203471e-01   8.634700066e-01   2.0e-04  0.01  
+7   1.2e-04  5.0e-05  8.7e-07  8.89e-01   8.514291409e-01   8.516059940e-01   5.0e-05  0.01  
+8   3.2e-05  1.4e-05  1.5e-07  7.87e-01   8.463749339e-01   8.464513329e-01   1.4e-05  0.01  
+9   8.0e-06  3.4e-06  2.4e-08  6.68e-01   8.440115640e-01   8.440485906e-01   3.4e-06  0.01  
+10  2.4e-06  1.0e-06  4.6e-09  6.93e-01   8.430695503e-01   8.430855814e-01   1.0e-06  0.02  
+11  5.9e-07  2.5e-07  6.8e-10  6.64e-01   8.425672549e-01   8.425730104e-01   2.5e-07  0.02  
+12  1.7e-07  7.3e-08  1.2e-10  7.78e-01   8.423779731e-01   8.423803319e-01   7.3e-08  0.02  
+13  4.8e-08  2.0e-08  2.2e-11  7.30e-01   8.422919427e-01   8.422929151e-01   2.0e-08  0.02  
+14  1.5e-08  5.7e-09  4.0e-12  7.42e-01   8.422557772e-01   8.422562075e-01   5.7e-09  0.02  
+15  7.0e-09  2.7e-09  1.6e-12  6.29e-01   8.422440346e-01   8.422443394e-01   2.7e-09  0.03  
+16  2.6e-09  1.0e-09  4.0e-13  7.33e-01   8.422347456e-01   8.422348937e-01   9.9e-10  0.03  
+17  1.1e-09  4.1e-10  1.2e-13  6.71e-01   8.422303232e-01   8.422304078e-01   4.1e-10  0.03  
+18  5.1e-10  7.9e-11  1.0e-14  9.97e-01   8.422271415e-01   8.422271581e-01   8.0e-11  0.03  
+Optimizer terminated. Time: 0.03    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 8.4222714151e-01    nrm: 1e+02    Viol.  con: 8e-09    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 8.4222715806e-01    nrm: 4e+03    Viol.  con: 0e+00    var: 1e-09    barvar: 1e-09  
+Optimizer summary
+  Optimizer                 -                        time: 0.03    
+    Interior-point          - iterations : 18        time: 0.03    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1.9405e-08
+ 
+       cpusec: 0.0332
+         iter: 18
+    feasratio: 0.9968
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 1.9405e-08
+          eta: 4.1180e-11
+
+  [Hinf_gain_sop Pd] dw 0: optimal, residual 1.9e-08, eta 4.1e-11, objective 0.84222715, 1257 decision variables, 146 rows, build 0.5 s, solve 0.0 s
+  [Hinf_gain_sop Pd] optimal: gamma 0.84222715 (certified upper bound: 1); numerical lower bound NaN at omega NaN; gap NaN; dual alignment NaN
+The upper bound on the (dual) H-infty norm has been saved as "Hinf_gain_dual".
+##### case 21  Hinf_gain: optimal 0.841907 (ndv 1257, st)
+##### case 21  Hinf_gain_dual: optimal 0.842227 (ndv 1257, st)
+
+##### case 22  PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance  21-Nov-2026 06:04:04
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+ - lpi_ineq_sop: 100 decision variables in the certificate (Gram blocks [8 6], sized from opts.like); 105 in the program.
+Size: 106   28
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 28              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 1               
+  Matrix variables       : 4 (scalarized: 61)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 28              
+Optimizer  - Cones                  : 2               
+Optimizer  - Scalar variables       : 6                 conic                  : 5               
+Optimizer  - Semi-definite variables: 2                 scalarized             : 57              
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 321               after factor           : 327             
+Factor     - dense dim.             : 0                 flops                  : 1.37e+04        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   1.8e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   3.9e-01  2.2e-01  9.2e-02  3.40e-01   6.194892085e-01   5.501962692e-01   2.2e-01  0.00  
+2   9.4e-02  5.3e-02  1.4e-02  7.99e-01   6.461847262e-01   6.447563905e-01   5.3e-02  0.00  
+3   2.4e-02  1.3e-02  2.2e-03  7.58e-01   4.920528551e-01   4.991137681e-01   1.3e-02  0.00  
+4   4.8e-03  2.7e-03  2.4e-04  7.74e-01   4.583238753e-01   4.615615195e-01   2.7e-03  0.00  
+5   8.9e-04  5.0e-04  2.2e-05  7.86e-01   4.479338441e-01   4.488769766e-01   5.0e-04  0.00  
+6   2.6e-05  1.4e-05  1.0e-07  9.92e-01   4.472347568e-01   4.472578192e-01   1.4e-05  0.00  
+7   8.7e-07  4.9e-07  6.3e-10  1.00e+00   4.472155721e-01   4.472163071e-01   4.9e-07  0.00  
+8   9.8e-08  5.5e-08  2.4e-11  9.98e-01   4.472138957e-01   4.472139797e-01   5.5e-08  0.00  
+9   5.1e-09  2.9e-09  2.9e-13  9.97e-01   4.472136067e-01   4.472136113e-01   2.8e-09  0.00  
+Optimizer terminated. Time: 0.00    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 4.4721360673e-01    nrm: 4e+00    Viol.  con: 1e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 4.4721361127e-01    nrm: 6e+00    Viol.  con: 0e+00    var: 6e-09    barvar: 6e-09  
+Optimizer summary
+  Optimizer                 -                        time: 0.00    
+    Interior-point          - iterations : 9         time: 0.00    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1.7853e-08
+ 
+       cpusec: 0.0023
+         iter: 9
+    feasratio: 0.9967
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 1.7853e-08
+          eta: 1.6094e-09
+
+  [Hinf_gain_sop P] dw 0: optimal, residual 1.8e-08, eta 1.6e-09, objective 0.50000002, 105 decision variables, 28 rows, build 0.3 s, solve 0.0 s
+  [Hinf_gain_sop P] optimal: gamma 0.50000002 (certified upper bound: 1); numerical lower bound NaN at omega NaN; gap NaN; dual alignment NaN
+The upper bound on the H-infty norm has been saved as "Hinf_gain" (certificate and witness in "info_Hinf_gain").
+##### case 22  Hinf_gain: optimal 0.5 (ndv 105, st)
+
+##### case 49  PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2  21-Nov-2026 06:04:05
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (1) in variables (s);
+
+Encountered 1 exogenous input: 
+ w(t),    of size 1;
+
+Encountered 1 regulated output: 
+ z(t),    of size 1;
+
+Encountered 1 boundary condition: 
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)x(t,s)
+ - lpi_ineq_sop: 208 decision variables in the certificate (Gram blocks [12 8], sized from opts.like); 245 in the program.
+Size: 247   29
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 29              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 1               
+  Matrix variables       : 5 (scalarized: 137)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 29              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 4                 conic                  : 2               
+Optimizer  - Semi-definite variables: 3                 scalarized             : 135             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 384               after factor           : 408             
+Factor     - dense dim.             : 0                 flops                  : 5.44e+04        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   3.7e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   8.6e-01  2.3e-01  1.3e-01  8.20e-01   3.280971433e-01   3.812428444e-01   2.3e-01  0.00  
+2   1.5e-01  4.1e-02  5.9e-03  8.84e-01   8.105869160e-02   5.846695608e-02   4.1e-02  0.00  
+3   4.5e-02  1.2e-02  5.2e-04  2.07e+00   3.891633974e-02   3.420072495e-02   1.2e-02  0.00  
+4   1.4e-02  3.8e-03  1.1e-04  1.35e+00   2.366055167e-02   2.259859077e-02   3.8e-03  0.00  
+5   5.2e-03  1.4e-03  2.6e-05  1.13e+00   1.897794424e-02   1.864286244e-02   1.4e-03  0.00  
+6   2.8e-03  7.6e-04  1.3e-05  7.62e-01   1.726224514e-02   1.709113663e-02   7.6e-04  0.00  
+7   8.3e-04  2.2e-04  2.2e-06  9.73e-01   1.550810825e-02   1.546384284e-02   2.2e-04  0.00  
+8   3.0e-04  7.9e-05  6.7e-07  6.04e-01   1.467402550e-02   1.467401541e-02   7.9e-05  0.00  
+9   9.2e-05  2.4e-05  1.5e-07  6.32e-01   1.411331333e-02   1.412329232e-02   2.4e-05  0.00  
+10  3.7e-05  9.9e-06  5.3e-08  4.78e-01   1.379137040e-02   1.380372089e-02   9.9e-06  0.00  
+11  1.1e-05  2.9e-06  9.7e-09  7.29e-01   1.354760365e-02   1.355302243e-02   2.9e-06  0.00  
+12  4.4e-06  1.2e-06  3.1e-09  6.45e-01   1.345030110e-02   1.345424460e-02   1.2e-06  0.00  
+13  9.1e-07  2.4e-07  3.1e-10  8.65e-01   1.338397212e-02   1.338496836e-02   2.4e-07  0.00  
+14  1.7e-07  4.6e-08  2.8e-11  8.90e-01   1.336607036e-02   1.336630579e-02   4.6e-08  0.00  
+15  1.0e-08  2.7e-09  3.9e-13  9.83e-01   1.336190579e-02   1.336191989e-02   2.7e-09  0.00  
+16  5.9e-10  1.6e-10  5.6e-15  9.98e-01   1.336165349e-02   1.336165432e-02   1.6e-10  0.00  
+Optimizer terminated. Time: 0.00    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 1.3361653487e-02    nrm: 2e+01    Viol.  con: 2e-09    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 1.3361654323e-02    nrm: 2e+01    Viol.  con: 0e+00    var: 4e-10    barvar: 4e-10  
+Optimizer summary
+  Optimizer                 -                        time: 0.00    
+    Interior-point          - iterations : 16        time: 0.00    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 2.1336e-09
+ 
+       cpusec: 0.0043
+         iter: 16
+    feasratio: 0.9980
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 2.1336e-09
+          eta: 2.3376e-11
+
+  [H2_norm_sop oco] dw 0: optimal, residual 2.1e-09, eta 2.3e-11, objective 0.013361654, 245 decision variables, 29 rows, build 0.4 s, solve 0.0 s
+  [H2_norm_sop oco] optimal: value 0.11559262 (LPI objective 0.013361654); numerical H2 norm 0.1015749; gap 1.38e-01
+The upper bound on the H-2 norm has been saved as "H2_norm".
+ - lpi_ineq_sop: 208 decision variables in the certificate (Gram blocks [12 8], sized from opts.like); 245 in the program.
+Size: 247   29
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 29              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 1               
+  Matrix variables       : 5 (scalarized: 137)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 29              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 4                 conic                  : 2               
+Optimizer  - Semi-definite variables: 3                 scalarized             : 135             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 372               after factor           : 408             
+Factor     - dense dim.             : 0                 flops                  : 5.48e+04        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.3e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   5.0e-01  2.1e-01  7.3e-02  1.12e+00   2.632104804e-01   1.919710310e-01   2.1e-01  0.00  
+2   1.3e-01  5.6e-02  7.8e-03  1.42e+00   6.475979097e-02   4.614543145e-02   5.6e-02  0.00  
+3   2.7e-02  1.2e-02  5.7e-04  1.48e+00   1.722343053e-02   1.348354936e-02   1.2e-02  0.00  
+4   6.1e-03  2.6e-03  4.9e-05  1.49e+00   7.843510446e-03   7.130486421e-03   2.6e-03  0.00  
+5   1.8e-03  7.9e-04  8.0e-06  1.19e+00   6.044028990e-03   5.852262805e-03   7.9e-04  0.00  
+6   6.0e-04  2.6e-04  1.4e-06  1.24e+00   5.502723771e-03   5.445513428e-03   2.6e-04  0.00  
+7   2.1e-04  8.9e-05  2.9e-07  1.06e+00   5.262452875e-03   5.243251773e-03   8.9e-05  0.00  
+8   3.8e-05  1.6e-05  1.9e-08  1.20e+00   5.181126570e-03   5.177639806e-03   1.6e-05  0.00  
+9   9.2e-06  3.9e-06  2.2e-09  1.18e+00   5.164548523e-03   5.163784533e-03   3.9e-06  0.00  
+10  2.6e-06  1.1e-06  3.1e-10  1.07e+00   5.161235565e-03   5.161027989e-03   1.1e-06  0.00  
+11  5.6e-07  2.4e-07  3.1e-11  1.02e+00   5.160491686e-03   5.160446067e-03   2.4e-07  0.00  
+12  6.8e-08  2.9e-08  1.3e-12  1.00e+00   5.160256955e-03   5.160251404e-03   2.9e-08  0.00  
+Optimizer terminated. Time: 0.00    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 5.1602569545e-03    nrm: 2e+00    Viol.  con: 2e-08    var: 0e+00    barvar: 6e-09  
+  Dual.    obj: 5.1602514036e-03    nrm: 2e+00    Viol.  con: 0e+00    var: 8e-09    barvar: 8e-09  
+Optimizer summary
+  Optimizer                 -                        time: 0.00    
+    Interior-point          - iterations : 12        time: 0.00    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 2.786e-08
+ 
+       cpusec: 0.0031
+         iter: 12
+    feasratio: 1.0021
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 2.7860e-08
+          eta: 3.8058e-09
+
+  [H2_norm_sop cco] dw 0: optimal, residual 2.8e-08, eta 3.8e-09, objective 0.010320514, 245 decision variables, 29 rows, build 0.3 s, solve 0.0 s
+  [H2_norm_sop cco] optimal: value 0.10158993 (LPI objective 0.010320514); numerical H2 norm 0.1015749; gap 1.48e-04
+The upper bound on the (dual) H-2 norm has been saved as "H2_norm_dual".
+##### case 49  H2_norm: optimal 0.115593 (ndv 245, st)
+##### case 49  H2_norm_dual: optimal 0.10159 (ndv 245, st)
+
+##### case 41  PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input  21-Nov-2026 06:04:07
+
+Delayed states or inputs were encountered:
+ --- Running "expand_delays" to remove the delays --- 
+
+Added 1 state components: 
+   x(t,ntau_2)  := u(t+ntau_2);
+
+Variable s1 has been merged with variable ntau_2.
+
+All spatial variables have been rescaled to exist on the interval [-1,1].
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--         (/s)ýx(t,s)
+   xf(t,s)   <--           (/t)u(t+s)
+ - lpi_ineq_sop: 128 decision variables in the certificate (Gram blocks [8 8], sized from opts.like); 132 in the program.
+Size: 132   64
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 64              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 0               
+  Matrix variables       : 3 (scalarized: 75)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 64              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 3                 conic                  : 3               
+Optimizer  - Semi-definite variables: 2                 scalarized             : 72              
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 2080              after factor           : 2080            
+Factor     - dense dim.             : 0                 flops                  : 1.26e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   3.3e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   5.9e-01  1.8e-01  9.7e-02  8.32e-01   0.000000000e+00   9.437812908e-02   1.8e-01  0.00  
+2   7.1e-02  2.1e-02  1.7e-02  8.47e-02   0.000000000e+00   5.145144020e-01   2.1e-02  0.00  
+3   2.1e-04  6.3e-05  1.8e-03  -8.74e-01  0.000000000e+00   7.936585364e+02   6.3e-05  0.00  
+4   1.3e-06  3.8e-07  1.0e-04  -9.80e-01  0.000000000e+00   7.608977295e+04   3.8e-07  0.00  
+5   7.0e-08  2.1e-08  2.2e-05  -9.33e-01  0.000000000e+00   1.091268713e+06   2.1e-08  0.00  
+6   2.1e-09  8.4e-10  3.6e-06  -9.76e-01  0.000000000e+00   3.205330382e+07   6.3e-10  0.00  
+7   1.7e-10  6.4e-09  6.2e-07  -1.00e+00  0.000000000e+00   1.090248025e+09   1.9e-11  0.00  
+8   4.1e-11  5.0e-07  4.8e-08  -1.00e+00  0.000000000e+00   1.560666003e+11   1.3e-13  0.00  
+9   3.2e-11  7.7e-05  4.2e-08  -1.00e+00  0.000000000e+00   2.057067306e+11   1.0e-13  0.00  
+10  6.3e-13  7.9e-05  3.0e-08  -1.00e+00  0.000000000e+00   3.989671088e+11   5.2e-14  0.00  
+11  6.3e-13  7.9e-05  3.0e-08  -1.00e+00  0.000000000e+00   3.989671088e+11   5.2e-14  0.00  
+Optimizer terminated. Time: 0.00    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_INFEASIBLE
+  Solution status : PRIMAL_INFEASIBLE_CER
+  Dual.    obj: 1.2971012862e-01    nrm: 3e+00    Viol.  con: 0e+00    barvar: 5e-10  
+Optimizer summary
+  Optimizer                 -                        time: 0.00    
+    Interior-point          - iterations : 12        time: 0.00    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1
+ 
+       cpusec: 0.0050
+         iter: 12
+    feasratio: -1.0000
+         dinf: 0
+         pinf: 1
+       numerr: 0
+       relres: 1.0000
+          eta: 0.1194
+
+  [stability_sop P] dw 0: infeasible, residual 1.0e+00, eta 1.2e-01, objective NaN, 132 decision variables, 64 rows, build 0.6 s, solve 0.0 s
+ - lpi_ineq_sop: 320 decision variables in the certificate (Gram blocks [16 8], sized from opts.like); 324 in the program.
+Size: 324   64
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 64              
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 0               
+  Matrix variables       : 3 (scalarized: 175)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 0
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 64              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 3                 conic                  : 3               
+Optimizer  - Semi-definite variables: 2                 scalarized             : 172             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 2080              after factor           : 2080            
+Factor     - dense dim.             : 0                 flops                  : 2.31e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   4.0e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   7.7e-01  1.9e-01  1.0e-01  9.03e-01   0.000000000e+00   6.651146027e-02   1.9e-01  0.00  
+2   1.2e-01  3.1e-02  9.9e-03  6.15e-01   0.000000000e+00   5.845203373e-02   3.1e-02  0.00  
+3   2.8e-02  6.9e-03  1.7e-03  3.81e-01   0.000000000e+00   4.450761344e-02   6.9e-03  0.00  
+4   7.0e-03  1.8e-03  3.9e-04  2.31e-01   0.000000000e+00   4.122110283e-02   1.8e-03  0.00  
+5   2.5e-03  6.4e-04  1.2e-04  1.58e-01   0.000000000e+00   3.458209459e-02   6.4e-04  0.00  
+6   7.0e-04  1.8e-04  3.8e-05  4.93e-02   0.000000000e+00   4.546502035e-02   1.8e-04  0.00  
+7   2.4e-04  6.0e-05  1.1e-05  8.66e-02   0.000000000e+00   3.026921081e-02   6.0e-05  0.00  
+8   5.0e-05  1.3e-05  2.5e-06  3.97e-02   0.000000000e+00   4.015418959e-02   1.3e-05  0.01  
+9   1.4e-05  3.6e-06  6.7e-07  -3.76e-02  0.000000000e+00   3.462995453e-02   3.6e-06  0.01  
+10  3.4e-06  8.5e-07  1.7e-07  9.10e-03   0.000000000e+00   3.906861955e-02   8.5e-07  0.01  
+11  1.1e-06  2.7e-07  4.8e-08  2.08e-02   0.000000000e+00   3.155481284e-02   2.7e-07  0.01  
+12  2.7e-07  6.8e-08  1.4e-08  -2.42e-02  0.000000000e+00   4.165001320e-02   6.7e-08  0.01  
+13  8.2e-08  2.1e-08  3.5e-09  2.58e-02   0.000000000e+00   2.892455969e-02   2.0e-08  0.01  
+14  1.8e-08  4.6e-09  9.4e-10  -3.61e-02  0.000000000e+00   4.123571335e-02   4.6e-09  0.01  
+15  5.8e-09  5.5e-09  2.7e-10  -3.28e-02  0.000000000e+00   3.498305203e-02   1.4e-09  0.01  
+16  1.2e-09  1.5e-08  5.7e-11  7.97e-02   0.000000000e+00   3.455377179e-02   3.2e-10  0.01  
+17  4.9e-10  2.2e-07  2.3e-11  -8.32e-02  0.000000000e+00   3.530979705e-02   1.2e-10  0.01  
+18  1.1e-10  1.4e-07  4.9e-12  8.41e-02   0.000000000e+00   3.429680410e-02   2.7e-11  0.01  
+19  5.8e-11  2.3e-07  2.0e-12  -9.30e-02  0.000000000e+00   3.366813729e-02   1.1e-11  0.01  
+20  5.8e-11  2.3e-07  2.0e-12  -9.30e-02  0.000000000e+00   3.366813729e-02   1.1e-11  0.01  
+21  5.8e-11  7.8e-06  2.0e-12  1.14e-01   0.000000000e+00   3.366810904e-02   1.1e-11  0.01  
+22  5.8e-11  7.8e-06  2.0e-12  1.14e-01   0.000000000e+00   3.366810904e-02   1.1e-11  0.02  
+Optimizer terminated. Time: 0.02    
+
+
+Interior-point solution summary
+  Problem status  : UNKNOWN
+  Solution status : UNKNOWN
+  Primal.  obj: 0.0000000000e+00    nrm: 1e+05    Viol.  con: 1e-05    barvar: 0e+00  
+  Dual.    obj: 3.3668109034e-02    nrm: 9e+04    Viol.  con: 0e+00    barvar: 4e-01  
+Optimizer summary
+  Optimizer                 -                        time: 0.02    
+    Interior-point          - iterations : 23        time: 0.02    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1.8111e-05
+ 
+       cpusec: 0.0170
+         iter: 23
+    feasratio: 0.1135
+         dinf: 0
+         pinf: 0
+       numerr: 2
+       relres: 1.8111e-05
+          eta: 2.1263e-11
+
+  [stability_sop P] dw 1: unknown (divergent), residual 1.8e-05, eta 2.1e-11, objective NaN, 324 decision variables, 64 rows, build 0.4 s, solve 0.0 s
+  [stability_sop P] unknown: certificate at epneg 0: 0; numerical spectrum max Re -8.8521
+##### case 41  stability: unknown NaN (ndv 324, st)
+
+##### case 15  PIETOOLS_PDE_Ex_Timoshenko_Beam_2  21-Nov-2026 06:04:09
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)ýx(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+   xf(t,s)   <--  (/s)x(t,s)
+ - lpi_ineq_sop: 1280 decision variables in the certificate (Gram blocks [32 16], sized from the operator); 1424 in the program.
+ - lpi_ineq_sop: 1805 decision variables in the certificate (Gram blocks [38 19], sized from the operator); 3229 in the program.
+Size: 3229   818
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 818             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 144             
+  Matrix variables       : 4 (scalarized: 1595)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 47
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 17                dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 530             
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 29                conic                  : 29              
+Optimizer  - Semi-definite variables: 4                 scalarized             : 1595            
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 7.69e+04          after factor           : 7.69e+04        
+Factor     - dense dim.             : 0                 flops                  : 1.78e+07        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.1e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.01  
+1   5.6e-01  2.7e-01  2.2e-01  -3.43e-01  0.000000000e+00   2.877310181e-01   2.7e-01  0.01  
+2   1.5e-01  7.1e-02  4.4e-02  4.78e-01   0.000000000e+00   2.196385176e-01   7.1e-02  0.01  
+3   2.7e-02  1.3e-02  4.2e-03  5.05e-01   0.000000000e+00   7.028012265e-02   1.3e-02  0.02  
+4   3.9e-03  1.8e-03  2.3e-04  9.07e-01   0.000000000e+00   1.008499866e-02   1.8e-03  0.02  
+5   2.0e-04  9.6e-05  2.8e-06  9.87e-01   0.000000000e+00   5.374116393e-04   9.6e-05  0.02  
+6   3.2e-07  1.5e-07  1.7e-10  1.00e+00   0.000000000e+00   7.085450019e-07   1.5e-07  0.03  
+7   4.9e-09  2.3e-09  3.0e-13  1.01e+00   0.000000000e+00   9.306806119e-09   2.4e-09  0.03  
+Optimizer terminated. Time: 0.03    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 0.0000000000e+00    nrm: 7e+00    Viol.  con: 1e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 9.3068059925e-09    nrm: 6e+01    Viol.  con: 0e+00    var: 3e-09    barvar: 7e-09  
+Optimizer summary
+  Optimizer                 -                        time: 0.03    
+    Interior-point          - iterations : 7         time: 0.03    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 6.7044e-08
+ 
+       cpusec: 0.0333
+         iter: 7
+    feasratio: 1.0120
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 6.7044e-08
+          eta: 1.1482e-09
+
+  [stability_sop Q] dw 0: optimal, residual 6.7e-08, eta 1.1e-09, objective NaN, 3229 decision variables, 818 rows, build 2.9 s, solve 0.0 s
+  [stability_sop Q] optimal: certificate at epneg 0: 1; numerical spectrum max Re 0
+ - lpi_ineq_sop: 50225 decision variables in the certificate (Gram blocks [175 140], sized from opts.like); 74593 in the program.
+Size: 74593   6765
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 6765            
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 3632            
+  Matrix variables       : 3 (scalarized: 35710)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 40
+Eliminator terminated.
+Eliminator started.
+Freed constraints in eliminator : 8
+Eliminator terminated.
+Eliminator - tries                  : 2                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 20                dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 3885            
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 1908              conic                  : 1908            
+Optimizer  - Semi-definite variables: 3                 scalarized             : 35710           
+Factor     - setup time             : 0.83            
+Factor     - dense det. time        : 0.12              GP order time          : 0.29            
+Factor     - nonzeros before factor : 4.01e+06          after factor           : 5.59e+06        
+Factor     - dense dim.             : 2                 flops                  : 1.18e+10        
+Factor     - GP saved nzs           : 4.18e+04          GP saved flops         : 2.09e+08        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   2.0e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.84  
+1   3.7e-01  1.8e-01  1.4e-01  1.56e-01   0.000000000e+00   2.852155194e-01   1.8e-01  1.32  
+2   4.8e-02  2.4e-02  1.1e-02  4.09e-01   0.000000000e+00   1.493682516e-01   2.4e-02  1.51  
+3   7.4e-03  3.6e-03  6.9e-04  6.69e-01   0.000000000e+00   2.464653552e-02   3.6e-03  1.72  
+4   1.6e-03  7.8e-04  8.9e-05  7.39e-01   0.000000000e+00   9.935553585e-03   7.8e-04  1.92  
+5   1.6e-04  8.0e-05  3.1e-06  8.92e-01   0.000000000e+00   1.128429121e-03   8.0e-05  2.10  
+6   2.3e-05  1.1e-05  1.7e-07  9.16e-01   0.000000000e+00   1.815739371e-04   1.1e-05  2.37  
+7   1.6e-05  7.6e-06  9.6e-08  1.00e+00   0.000000000e+00   1.243112330e-04   7.7e-06  2.49  
+8   7.5e-06  3.7e-06  3.3e-08  9.69e-01   0.000000000e+00   6.435280995e-05   3.7e-06  2.62  
+9   1.1e-06  5.4e-07  1.9e-09  9.85e-01   0.000000000e+00   9.147464560e-06   5.7e-07  2.76  
+10  5.2e-07  2.5e-07  6.0e-10  1.02e+00   0.000000000e+00   4.470807882e-06   2.6e-07  2.95  
+11  5.9e-08  2.5e-08  1.9e-11  9.59e-01   0.000000000e+00   4.474696715e-07   2.7e-08  3.14  
+12  3.1e-08  1.5e-08  8.7e-12  1.02e+00   0.000000000e+00   2.760903181e-07   1.6e-08  3.43  
+13  3.0e-08  1.4e-08  7.6e-12  9.70e-01   0.000000000e+00   2.541492526e-07   1.4e-08  3.58  
+14  3.0e-08  1.4e-08  7.6e-12  9.70e-01   0.000000000e+00   2.541492526e-07   1.4e-08  3.87  
+15  3.0e-08  1.4e-08  7.6e-12  9.70e-01   0.000000000e+00   2.541492526e-07   1.4e-08  4.15  
+Optimizer terminated. Time: 4.39    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 0.0000000000e+00    nrm: 3e+01    Viol.  con: 5e-05    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 2.5414925257e-07    nrm: 2e+02    Viol.  con: 0e+00    var: 2e-08    barvar: 7e-08  
+Optimizer summary
+  Optimizer                 -                        time: 4.39    
+    Interior-point          - iterations : 16        time: 4.39    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 0.00011508
+ 
+       cpusec: 4.3904
+         iter: 16
+    feasratio: 0.9696
+         dinf: 0
+         pinf: 0
+       numerr: 0
+       relres: 1.1508e-04
+          eta: 6.0075e-07
+
+  [stability_sop Qd] dw 0: optimal, residual 1.2e-04, eta 6.0e-07, objective NaN, 74593 decision variables, 6765 rows, build 1.5 s, solve 4.4 s
+  [stability_sop Qd] optimal: certificate at epneg 0: 1; numerical spectrum max Re 0
+##### case 15  stability: optimal NaN (ndv 3229, st)
+##### case 15  stability_dual: optimal NaN (ndv 74593, st)
+## LIBCHECK DONE 21-Nov-2026 06:04:20

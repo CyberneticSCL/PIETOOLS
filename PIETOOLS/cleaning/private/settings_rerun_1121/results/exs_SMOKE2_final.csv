@@ -1,0 +1,3 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+PDE:15,Qd,light,"",NaN,NaN,NaN,NaN,1,"no start certified",,NaN,NaN
+PDE:36,Q,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1;",52880,5643,52880,5643,1,"build budget",post,NaN,NaN

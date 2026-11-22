@@ -1,0 +1,4 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+11:09:18,PDE:50/H2_norm_dual,0,start1 c stripped st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto',start fails,unknown,unknown,1.69e-06,-0.383,1,66923,22635,458.04276,9.0,
+11:09:41,PDE:50/H2_norm_dual,0,start2 c stripped st.lpi.ineq.dD = 0,start fails,unknown,unknown,4.65e-07,-0.284,1,236155,25972,628.75636,22.6,
+11:13:39,PDE:50/H2_norm_dual,0,start3 c stripped ,start fails,unknown,unknown,6.22e-06,-0.308,1,887267,36060,398.00737,238.6,

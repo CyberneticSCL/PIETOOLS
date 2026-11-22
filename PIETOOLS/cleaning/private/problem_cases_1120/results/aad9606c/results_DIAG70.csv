@@ -1,0 +1,4 @@
+variant,form,mods,status,fr,numerr,exst,eta,ndec,m,sec
+70m,Q,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = [0 1 1]",infeasible,-1,0,infeasible,1,457225,13821,78.2
+70m,Q,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,457393,13947,83.9
+70m,Pd,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,364580,10389,98.6

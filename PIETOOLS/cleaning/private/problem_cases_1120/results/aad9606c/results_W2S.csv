@@ -1,0 +1,4 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:69,P,A,light,"st.settings_2d = settings_2d_stock('light')",infeasible,-1,1,0,0,1691856,26723,933.1,"",infeasible,1
+PDE:70,P,A,light,"st.settings_2d = settings_2d_stock('light')",infeasible,-1,1,0,0,1708624,18226,606.9,"",infeasible,1
+PDE:39,P,A,light,"st.settings_2d = settings_2d_stock('heavy')",certified,0.9998,0,0,0,1692801,26851,796.4,"",optimal,5.51e-11

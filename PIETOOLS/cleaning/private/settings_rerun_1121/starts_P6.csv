@@ -1,0 +1,2 @@
+key,kind,form,tier,mods,best
+NDSDDF:DDF03,value,Q,heavy,"st.lpi.pos.len_sos{1} = [4;2;2]; st.lpi.ineq.cap_inc = 'auto'; st.lpi.var.deg{1} = [1 2 2]",0.420543

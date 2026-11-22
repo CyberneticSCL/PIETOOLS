@@ -1,0 +1,5 @@
+key,form,tier,statements,ndv0,m0,ndv,m,builds,reason,path,ndv_direct,m_direct
+DDE:DDE09,P,light,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2];",651,63,623,60,40,"build budget",direct,623,60
+DDE:DDE09/Hinf_gain_dual,Pd,light,"st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto';",651,64,596,65,40,"build budget",direct,596,65
+DDE:DDE10,P,stripped,"st.lpi.pos.len_sos{1} = [2;2;1]; st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.sop.dw_P = 0;",1669,178,869,141,40,"build budget",direct,869,141
+DDE:DDE10/Hinf_gain_dual,Pd,stripped,"st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 0;",1669,182,1285,154,40,"build budget",direct,1285,154

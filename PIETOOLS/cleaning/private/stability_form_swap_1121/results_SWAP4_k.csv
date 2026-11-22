@@ -1,0 +1,3 @@
+key,form,tier,mods,param,status,fr,pinf,dinf,numerr,exst,eta,ndec,m,sec,gate,note
+periodic_heat,Pd,light,"",,error,,,,,,,,,0.0,,"PIE.K is nonempty (the state satisfies K x = 0), which the dual form 'Pd' does not test; use 'P' or 'Q'."
+periodic_heat,Qd,light,"",,error,,,,,,,,,0.0,,"PIE.K is nonempty (the state satisfies K x = 0), which the dual form 'Qd' does not test; use 'P' or 'Q'."

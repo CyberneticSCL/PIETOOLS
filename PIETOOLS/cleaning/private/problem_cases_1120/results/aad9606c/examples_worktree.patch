@@ -1,0 +1,33 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m
+index a8350c08..9cd27851 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m
+@@ -106,6 +106,7 @@ PDE_t = [diff(x1,'t')==x2;
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.lpi.ineq.dD = 0;  st.lpi.ineq.wcross = 1;  st.epneg = 1e-3;              % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
+index 28964962..e647a59b 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
+@@ -63,7 +63,7 @@ end
+ 
+ 
+ % % % Construct the PDE.
+-expand_delays = false;
++expand_delays = true;                                                       % MMP, 11/20/2026 (worktree test)
+ if ~expand_delays
+     %%% pde_var input format with delay
+     clear stateNameGenerator
+@@ -132,6 +132,7 @@ end
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.eppos = 1e-2;                                                            % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')

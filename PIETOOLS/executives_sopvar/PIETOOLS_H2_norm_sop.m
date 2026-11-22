@@ -70,7 +70,9 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                          the last raise and the loop history, the slack
 %                          mode, its degrees and terms, the size of the SDP,
 %                          and the dual kernel of the negativity constraint
-%                          with its 1-norm.
+%                          with its 1-norm;
+%               aux        'struct', the operators of the last pass: obj    % MMP, 11/21/2026
+%                          (gam), Rm, Qm, Pm, Zm, Wm, li, form.             % MMP, 11/21/2026
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -107,6 +109,9 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                and 'cco' are posed as 'o' and 'oco'."
 % DJ, 11/21/2026: Error for a PIE with an algebraic constraint (K, Kw, Ku
 %                with rows);
+% MMP, 11/21/2026: info.aux returns the operators of the last pass, which an
+%                a posteriori check of the solve needs (maintainer, 11/21: in
+%                the toolbox).
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -180,6 +185,7 @@ end
 info = exec_info_sop(prog,aux,st,label);
 info.form = form;   info.gam = gam;  info.gam_lpi = gam_lpi;    info.nv = nv;
 info.W = W;     info.R = R;     info.Q = Q;
+info.aux = aux;     % the internals of the last pass, for a posteriori checks % MMP, 11/21/2026
 
 % Numerical witness (1-D): the H2 norm of the discretized PIE
 info.witness = [];  info.h2_num = NaN;  info.gap = NaN;

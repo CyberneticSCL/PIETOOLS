@@ -1,0 +1,10 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:39,P,A,light,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1",infeasible,-0.9998,0,0,0,238905,13559,127.9,"",optimal,0.999
+PDE:39,P,A,light,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1; st.epneg = 1e-3",infeasible,-1,1,0,0,1696905,27280,1163.0,"",infeasible,1
+PDE:69,P,A,light,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1; st.eppos = 1e-2",infeasible,-1,1,0,0,1696905,26907,997.6,"",infeasible,1
+PDE:70,P,A,light,"st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1; st.eppos = 1e-2",infeasible,-1,1,0,0,1802596,19204,692.5,"",infeasible,1
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wcross = 1",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=4456629 m=70475 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 2; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wcross = 1",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=2129860 m=35909 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:56,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.lpi.ineq.cap_inc = 'auto'",infeasible,-1,1,0,0,1492444,36021,307.7,"",infeasible,1
+PDE:56,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1; st.epneg = 1e-3",infeasible,-1,1,0,0,1492444,36993,284.6,"",infeasible,1
+PDE:56,P,A,light,"st.lpi.ineq.dD = 0; st.lpi.pos.len_cross{2} = 2; st.lpi.ineq.wcross = 1",infeasible,-1,1,0,0,471977,21480,96.7,"",infeasible,1

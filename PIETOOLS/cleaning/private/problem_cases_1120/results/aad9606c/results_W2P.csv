@@ -1,0 +1,17 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.psatz{2} = [0 3 4 5 6 7 8]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=3929076 m=40776 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.psatz{2} = 'corners'",infeasible,-1,1,0,0,1448852,25968,464.0,"",infeasible,1
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.psatz{2} = [0 1 3 4 5 6]",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=3367908 m=42907 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wmin = [3 3 0]",infeasible,-1,1,0,0,1005460,25968,228.3,"",infeasible,1
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wmin = [4 4 0]",infeasible,-1,1,0,0,1005460,25968,238.1,"",infeasible,1
+PDE:69,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.dw = 2",infeasible,-1,1,0,0,1005460,25968,231.7,"",infeasible,1
+PDE:69,P,A,stripped,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = [0 3 4 5 6 7 8]",infeasible,-1,1,0,0,1308969,17353,401.2,"",infeasible,1
+PDE:69,P,A,stripped,"st.lpi.ineq.dD = 0; st.lpi.ineq.wmin = [4 4 0]",infeasible,-1,1,0,0,336681,10585,73.8,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.psatz{2} = [0 3 4 5 6 7 8]",infeasible,-1,1,0,0,1730391,21284,219.1,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.psatz{2} = 'corners'",infeasible,-1,1,0,0,667073,13560,93.8,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.psatz{2} = [0 1 3 4 5 6]",infeasible,-1,1,0,0,1483278,22409,253.8,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wmin = [3 3 0]",infeasible,-1,1,0,0,457393,13560,50.0,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.wmin = [4 4 0]",infeasible,-1,1,0,0,457393,13560,48.5,"",infeasible,1
+PDE:70,Q,A,light,"st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto'; st.lpi.ineq.dw = 2",infeasible,-1,1,0,0,457393,13560,48.3,"",infeasible,1
+PDE:70,P,A,stripped,"st.lpi.ineq.dD = 0; st.lpi.ineq.psatz{2} = [0 3 4 5 6 7 8]",infeasible,-1,1,0,0,1214308,12886,227.0,"",infeasible,1
+PDE:70,P,A,stripped,"st.lpi.ineq.dD = 0; st.lpi.ineq.wmin = [4 4 0]",infeasible,-1,1,0,0,362596,8532,53.3,"",infeasible,1

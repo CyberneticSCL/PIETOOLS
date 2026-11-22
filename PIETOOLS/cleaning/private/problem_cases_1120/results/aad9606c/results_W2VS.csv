@@ -1,0 +1,6 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:70,Pd,A,stripped,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,362596,8640,69.4,"",infeasible,1
+PDE:69,Pd,A,stripped,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,336681,10631,91.3,"",infeasible,1
+PDE:70,Pd,A,light,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,364580,8873,82.1,"",infeasible,1
+PDE:69,Pd,A,light,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,339705,10750,81.4,"",infeasible,1
+PDE:56,Pd,A,light,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,266148,19916,64.1,"",infeasible,1

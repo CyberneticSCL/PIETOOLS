@@ -1,0 +1,551 @@
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
+index 5268b5be..78485472 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_NS_Antonelli.m
+@@ -43,7 +43,8 @@ pvar s1 s2
+ 
+ %%% Executive Function:
+ evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++%evalin('base','stability_form = ''Q'';');                                  % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_form = ''P'';');                                   % MMP, 11/20/2026 (worktree test)
+ %evalin('base','stability_dual = 1;');
+ 
+ M = 0.1;  lam = 1;  nu = 1;
+@@ -148,6 +149,8 @@ PDE_t = [diff(x1,'t')==-s2*diff(x1,s1)-x2-(1/M^2)*diff(x3,s1)+nu*(diff(x1,s1,2)+
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.settings_2d = settings_2d_stock('light');                                % MMP, 11/20/2026 (worktree test)
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m
+index a8350c08..9cd27851 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Telegraph_Eq.m
+@@ -106,6 +106,7 @@ PDE_t = [diff(x1,'t')==x2;
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.lpi.ineq.dD = 0;  st.lpi.ineq.wcross = 1;  st.epneg = 1e-3;              % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
+index 28964962..e647a59b 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input.m
+@@ -63,7 +63,7 @@ end
+ 
+ 
+ % % % Construct the PDE.
+-expand_delays = false;
++expand_delays = true;                                                       % MMP, 11/20/2026 (worktree test)
+ if ~expand_delays
+     %%% pde_var input format with delay
+     clear stateNameGenerator
+@@ -132,6 +132,7 @@ end
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.eppos = 1e-2;                                                            % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m
+index d1210677..bb60fe14 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay.m
+@@ -58,8 +58,10 @@ root = fileparts(loc);
+ pvar s
+ 
+ %%% Executive Function:
+-evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++%evalin('base','stability = 1;');                                           % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_dual = 1;');                                       % MMP, 11/20/2026 (worktree test)
++%evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026  % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_form = ''P'';');                                   % MMP, 11/20/2026 (worktree test)
+ %evalin('base','stability_dual = 1;');
+ 
+ k = 1;
+@@ -76,21 +78,30 @@ end
+ % % % Construct the PDE.
+ %%% pde_var input format
+ clear stateNameGenerator
+-x1 = pde_var();
+-x2 = pde_var(s,[0,1]);
+-x3 = pde_var(s,[0,1],2);       % x3 must be 2nd order differentiable wrt s1
+-x4 = pde_var(s,[0,1]);
+-x5 = pde_var(s,[0,1]);
+-PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);
+-         diff(x2,'t')==x3;
+-         diff(x3,'t')==diff(x2,s,2);
+-         diff(x4,'t')==-(1/tau)*diff(x4,s);
+-         diff(x5,'t')==-(1/tau)*diff(x5,s);
+-         subs([x2;x3],s,0)==0;
+-         x1==-k*(1-mu)*subs(x2,s,1)-k*mu*subs(x4,s,1);
+-         subs(diff(x2,s),s,1)==-k*(1-mu)*subs(x3,s,1)-k*mu*subs(x5,s,1);
+-         subs(x4,s,0)==subs(x2,s,1);
+-         subs(x5,s,0)==subs(x3,s,1)];
++%x1 = pde_var();                                                            % MMP, 11/20/2026 (worktree test, was)
++%x2 = pde_var(s,[0,1]);                                                     % MMP, 11/20/2026 (worktree test, was)
++%x3 = pde_var(s,[0,1],2);       % x3 must be 2nd order differentiable wrt s1  % MMP, 11/20/2026 (worktree test, was)
++%x4 = pde_var(s,[0,1]);                                                     % MMP, 11/20/2026 (worktree test, was)
++%x5 = pde_var(s,[0,1]);                                                     % MMP, 11/20/2026 (worktree test, was)
++%PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);                               % MMP, 11/20/2026 (worktree test, was)
++%         diff(x2,'t')==x3;                                                 % MMP, 11/20/2026 (worktree test, was)
++%         diff(x3,'t')==diff(x2,s,2);                                       % MMP, 11/20/2026 (worktree test, was)
++%         diff(x4,'t')==-(1/tau)*diff(x4,s);                                % MMP, 11/20/2026 (worktree test, was)
++%         diff(x5,'t')==-(1/tau)*diff(x5,s);                                % MMP, 11/20/2026 (worktree test, was)
++%         subs([x2;x3],s,0)==0;                                             % MMP, 11/20/2026 (worktree test, was)
++%         x1==-k*(1-mu)*subs(x2,s,1)-k*mu*subs(x4,s,1);                     % MMP, 11/20/2026 (worktree test, was)
++%         subs(diff(x2,s),s,1)==-k*(1-mu)*subs(x3,s,1)-k*mu*subs(x5,s,1);   % MMP, 11/20/2026 (worktree test, was)
++%         subs(x4,s,0)==subs(x2,s,1);                                       % MMP, 11/20/2026 (worktree test, was)
++%         subs(x5,s,0)==subs(x3,s,1)];                                      % MMP, 11/20/2026 (worktree test, was)
++u = pde_var(s,[0,1],2);                                                     % MMP, 11/20/2026 (worktree test)
++v = pde_var(s,[0,1],1);                                                     % MMP, 11/20/2026 (worktree test)
++z = pde_var(s,[0,1],1);                                                     % MMP, 11/20/2026 (worktree test)
++PDE_t = [diff(u,'t')==v;                                                    % MMP, 11/20/2026 (worktree test)
++         diff(v,'t')==diff(u,s,2);                                          % MMP, 11/20/2026 (worktree test)
++         diff(z,'t')==-(1/tau)*diff(z,s);                                   % MMP, 11/20/2026 (worktree test)
++         subs(u,s,0)==0;          subs(v,s,0)==0;                           % MMP, 11/20/2026 (worktree test)
++         subs(diff(u,s),s,1)==-k*(1-mu)*subs(v,s,1)-k*mu*subs(z,s,1);       % MMP, 11/20/2026 (worktree test)
++         subs(z,s,0)==subs(v,s,1)];                                         % MMP, 11/20/2026 (worktree test)
+ 
+ 
+ % %%% Term-based input format
+@@ -153,6 +164,7 @@ PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);
+                                 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.epneg = 1e-1;                                                            % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay_2D.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay_2D.m
+index 242180f8..910190ca 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay_2D.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay_2D.m
+@@ -58,8 +58,10 @@ root = fileparts(loc);
+ pvar s1 s2
+ 
+ %%% Executive Function:
+-evalin('base','stability = 1;');
+-evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026
++%evalin('base','stability = 1;');                                           % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_dual = 1;');                                       % MMP, 11/20/2026 (worktree test)
++%evalin('base','stability_form = ''Q'';');  % form of the stability test     % MMP, 11/19/2026  % MMP, 11/20/2026 (worktree test, was)
++evalin('base','stability_form = ''P'';');                                   % MMP, 11/20/2026 (worktree test)
+ %evalin('base','stability_dual = 1;');
+ 
+ a = 0;      b = 1;  
+@@ -77,21 +79,30 @@ end
+ % % % Construct the PDE.
+ %%% pde_var input format
+ clear stateNameGenerator
+-x1 = pde_var();
+-x2 = pde_var(s1,[a,b]);
+-x3 = pde_var(s1,[a,b],2);       % x3 must be 2nd order differentiable wrt s1
+-x4 = pde_var(s2,[0,1]);
+-x5 = pde_var(s2,[0,1]);
+-PDE_t = [diff(x1,'t')==subs(diff(x2,s1),s1,b);
+-         diff(x2,'t')==x3;
+-         diff(x3,'t')==diff(x2,s1,2);
+-         diff(x4,'t')==-(1/tau)*diff(x4,s2);
+-         diff(x5,'t')==-(1/tau)*diff(x5,s2);
+-         subs([x2;x3],s1,a)==0;
+-         x1==-k*(1-mu)*subs(x2,s1,1)-k*mu*subs(x4,s2,1);
+-         subs(diff(x2,s1),s1,b)==-k*(1-mu)*subs(x3,s1,1)-k*mu*subs(x5,s2,1);
+-         subs(x4,s2,0)==subs(x2,s1,b);
+-         subs(x5,s2,0)==subs(x3,s1,b)];
++%x1 = pde_var();                                                            % MMP, 11/20/2026 (worktree test, was)
++%x2 = pde_var(s1,[a,b]);                                                    % MMP, 11/20/2026 (worktree test, was)
++%x3 = pde_var(s1,[a,b],2);       % x3 must be 2nd order differentiable wrt s1  % MMP, 11/20/2026 (worktree test, was)
++%x4 = pde_var(s2,[0,1]);                                                    % MMP, 11/20/2026 (worktree test, was)
++%x5 = pde_var(s2,[0,1]);                                                    % MMP, 11/20/2026 (worktree test, was)
++%PDE_t = [diff(x1,'t')==subs(diff(x2,s1),s1,b);                             % MMP, 11/20/2026 (worktree test, was)
++%         diff(x2,'t')==x3;                                                 % MMP, 11/20/2026 (worktree test, was)
++%         diff(x3,'t')==diff(x2,s1,2);                                      % MMP, 11/20/2026 (worktree test, was)
++%         diff(x4,'t')==-(1/tau)*diff(x4,s2);                               % MMP, 11/20/2026 (worktree test, was)
++%         diff(x5,'t')==-(1/tau)*diff(x5,s2);                               % MMP, 11/20/2026 (worktree test, was)
++%         subs([x2;x3],s1,a)==0;                                            % MMP, 11/20/2026 (worktree test, was)
++%         x1==-k*(1-mu)*subs(x2,s1,1)-k*mu*subs(x4,s2,1);                   % MMP, 11/20/2026 (worktree test, was)
++%         subs(diff(x2,s1),s1,b)==-k*(1-mu)*subs(x3,s1,1)-k*mu*subs(x5,s2,1);  % MMP, 11/20/2026 (worktree test, was)
++%         subs(x4,s2,0)==subs(x2,s1,b);                                     % MMP, 11/20/2026 (worktree test, was)
++%         subs(x5,s2,0)==subs(x3,s1,b)];                                    % MMP, 11/20/2026 (worktree test, was)
++u = pde_var(s1,[a,b],2);                                                    % MMP, 11/20/2026 (worktree test)
++v = pde_var(s1,[a,b],1);                                                    % MMP, 11/20/2026 (worktree test)
++z = pde_var(s2,[0,1],1);                                                    % MMP, 11/20/2026 (worktree test)
++PDE_t = [diff(u,'t')==v;                                                    % MMP, 11/20/2026 (worktree test)
++         diff(v,'t')==diff(u,s1,2);                                         % MMP, 11/20/2026 (worktree test)
++         diff(z,'t')==-(1/tau)*diff(z,s2);                                  % MMP, 11/20/2026 (worktree test)
++         subs(u,s1,a)==0;         subs(v,s1,a)==0;                          % MMP, 11/20/2026 (worktree test)
++         subs(diff(u,s1),s1,b)==-k*(1-mu)*subs(v,s1,b)-k*mu*subs(z,s2,1);   % MMP, 11/20/2026 (worktree test)
++         subs(z,s2,0)==subs(v,s1,b)];                                       % MMP, 11/20/2026 (worktree test)
+ 
+ 
+ % %%% Term-based input format
+@@ -154,6 +165,7 @@ PDE_t = [diff(x1,'t')==subs(diff(x2,s1),s1,b);
+                                 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.epneg = 1e-2;                                                            % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m
+index 69be2d37..ccd54d90 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance.m
+@@ -113,5 +113,7 @@ st = lpisettings_sop('stripped');                                           % MM
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [2;1;1];                                            % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [2;1;1];
+ 
+ end
+\ No newline at end of file
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance.m
+index deb17a56..b9a01658 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Gain_Examples/PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance.m
+@@ -119,5 +119,7 @@ end
+ st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+ st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [2;2;1];                                            % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.ineq.cap_inc = 'auto'; st.sop.dw_P = 0;
+ 
+ end
+\ No newline at end of file
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input.m
+index 163fdff9..56fa35d7 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input.m
+@@ -142,5 +142,7 @@ st.lpi.pos.len_com{1} = 0;                                                  % MM
+ st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/19/2026
+ st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
+ st.lpi.var.deg{1} = [0 2 2];                                                % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 3; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [0;2;2]; st.lpi.ineq.cap_inc = 'auto'; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;
+ 
+ end
+\ No newline at end of file
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control.m
+index 6612b36f..e07db2a3 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Hinf_Optimal_Controller_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control.m
+@@ -100,6 +100,8 @@ st = lpisettings_sop('veryheavy');                                          % MM
+ st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [3;4;4];                                            % MMP, 11/19/2026
+ st.lpi.var.deg{1} = [3 6 6];                                                % MMP, 11/19/2026
++st = lpisettings_sop('veryheavy');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_sos{1} = [2;2;4]; st.lpi.var.deg{1} = [3 6 6]; st.sop.dw_P = 0;
+ 
+ end
+ % @article{shivakumar2022h_,
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale.m
+index 775331d1..ed73efa0 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_2D_Wave_Acoustic_Boundary_Beale.m
+@@ -73,22 +73,37 @@ end
+ % % % Construct the PDE.
+ %%% pde_var input
+ clear stateNameGenerator
+-ph = pde_var([s1;s2],[0,1;0,1],[2;2]);
+-ps = pde_var([s1;s2],[0,1;0,1],[2;1]);          % 2nd order in s1, 1st in s2
+-de = pde_var(s1,[0,1],2);                       % order 2: edge datum of ph must be C2 in s1
+-et = pde_var(s1,[0,1],2);
+-PDE_t = [diff(ph,'t')==ps;
+-         diff(ps,'t')==diff(ph,s1,2)+diff(ph,s2,2);
+-         diff(de,'t')==et;
+-         diff(et,'t')==-et-de-subs(ps,s2,0);
+-         subs([ph;ps],s1,0)==0;     subs([ph;ps],s1,1)==0;
+-         subs(diff(ph,s2),s2,0)==-et;
+-         subs(ph,s2,1)==0;          subs(ps,s2,1)==0;
+-         subs([de;et],s1,0)==0;     subs([de;et],s1,1)==0];
++%ph = pde_var([s1;s2],[0,1;0,1],[2;2]);                                     % MMP, 11/20/2026 (worktree test, was)
++%ps = pde_var([s1;s2],[0,1;0,1],[2;1]);          % 2nd order in s1, 1st in s2  % MMP, 11/20/2026 (worktree test, was)
++%de = pde_var(s1,[0,1],2);                       % order 2: edge datum of ph must be C2 in s1  % MMP, 11/20/2026 (worktree test, was)
++%et = pde_var(s1,[0,1],2);                                                  % MMP, 11/20/2026 (worktree test, was)
++%PDE_t = [diff(ph,'t')==ps;                                                 % MMP, 11/20/2026 (worktree test, was)
++%         diff(ps,'t')==diff(ph,s1,2)+diff(ph,s2,2);                        % MMP, 11/20/2026 (worktree test, was)
++%         diff(de,'t')==et;                                                 % MMP, 11/20/2026 (worktree test, was)
++%         diff(et,'t')==-et-de-subs(ps,s2,0);                               % MMP, 11/20/2026 (worktree test, was)
++%         subs([ph;ps],s1,0)==0;     subs([ph;ps],s1,1)==0;                 % MMP, 11/20/2026 (worktree test, was)
++%         subs(diff(ph,s2),s2,0)==-et;                                      % MMP, 11/20/2026 (worktree test, was)
++%         subs(ph,s2,1)==0;          subs(ps,s2,1)==0;                      % MMP, 11/20/2026 (worktree test, was)
++%         subs([de;et],s1,0)==0;     subs([de;et],s1,1)==0];                % MMP, 11/20/2026 (worktree test, was)
++ph = pde_var([s1;s2],[0,1;0,1],[2;0]);                                      % MMP, 11/20/2026 (worktree test)
++e2 = pde_var([s1;s2],[0,1;0,1],[0;1]);                                      % MMP, 11/20/2026 (worktree test)
++ps = pde_var([s1;s2],[0,1;0,1],[2;1]);                                      % MMP, 11/20/2026 (worktree test)
++de = pde_var(s1,[0,1],2);                                                   % MMP, 11/20/2026 (worktree test)
++et = pde_var(s1,[0,1],2);                                                   % MMP, 11/20/2026 (worktree test)
++PDE_t = [diff(ph,'t')==ps;                                                  % MMP, 11/20/2026 (worktree test)
++         diff(ps,'t')==diff(ph,s1,2)+diff(e2,s2);                           % MMP, 11/20/2026 (worktree test)
++         diff(e2,'t')==diff(ps,s2);                                         % MMP, 11/20/2026 (worktree test)
++         diff(de,'t')==et;                                                  % MMP, 11/20/2026 (worktree test)
++         diff(et,'t')==-et-de-subs(ps,s2,0);                                % MMP, 11/20/2026 (worktree test)
++         subs([ph;ps],s1,0)==0;     subs([ph;ps],s1,1)==0;                  % MMP, 11/20/2026 (worktree test)
++         subs(ps,s2,1)==0;                                                  % MMP, 11/20/2026 (worktree test)
++         subs(e2,s2,0)==-et;                                                % MMP, 11/20/2026 (worktree test)
++         subs([de;et],s1,0)==0;     subs([de;et],s1,1)==0];                 % MMP, 11/20/2026 (worktree test)
+ 
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi.m
+index 778599d2..681e94f1 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocchi.m
+@@ -99,6 +99,8 @@ st = lpisettings_sop('stripped');                                           % MM
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [0;2;1];
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty.m
+index ad16251a..4ca7e426 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_1D_Batty.m
+@@ -86,6 +86,8 @@ st = lpisettings_sop('stripped');                                           % MM
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [0;2;1];                                            % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [0;2;1];
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m
+index 7520cd6e..562aaf01 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Mixed_Domain_Examples/PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty.m
+@@ -68,20 +68,35 @@ end
+ % % % Construct the PDE.
+ %%% pde_var input
+ clear stateNameGenerator
+-u = pde_var([s1;s2],[0,1;0,1],[2;2]);
+-v = pde_var([s1;s2],[0,1;0,1],[1;2]);           % 1st order in s1, 2nd in s2
+-w = pde_var([s1;s2],[0,1;0,1],[2;2]);
+-PDE_t = [diff(u,'t')==v;
+-         diff(v,'t')==diff(u,s1,2)+diff(u,s2,2);
+-         diff(w,'t')==diff(w,s1,2)+diff(w,s2,2);
+-         subs(u,s1,1)==0;           subs(diff(u,s1),s1,0)==-subs(diff(w,s1),s1,0);
+-         subs(v,s1,1)==0;
+-         subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);
+-         subs([u;v;w],s2,0)==0;     subs([u;v;w],s2,1)==0];
++%u = pde_var([s1;s2],[0,1;0,1],[2;2]);                                      % MMP, 11/20/2026 (worktree test, was)
++%v = pde_var([s1;s2],[0,1;0,1],[1;2]);           % 1st order in s1, 2nd in s2  % MMP, 11/20/2026 (worktree test, was)
++%w = pde_var([s1;s2],[0,1;0,1],[2;2]);                                      % MMP, 11/20/2026 (worktree test, was)
++%PDE_t = [diff(u,'t')==v;                                                   % MMP, 11/20/2026 (worktree test, was)
++%         diff(v,'t')==diff(u,s1,2)+diff(u,s2,2);                           % MMP, 11/20/2026 (worktree test, was)
++%         diff(w,'t')==diff(w,s1,2)+diff(w,s2,2);                           % MMP, 11/20/2026 (worktree test, was)
++%         subs(u,s1,1)==0;           subs(diff(u,s1),s1,0)==-subs(diff(w,s1),s1,0);  % MMP, 11/20/2026 (worktree test, was)
++%         subs(v,s1,1)==0;                                                  % MMP, 11/20/2026 (worktree test, was)
++%         subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);            % MMP, 11/20/2026 (worktree test, was)
++%         subs([u;v;w],s2,0)==0;     subs([u;v;w],s2,1)==0];                % MMP, 11/20/2026 (worktree test, was)
++u = pde_var([s1;s2],[0,1;0,1],[0;2]);                                       % MMP, 11/20/2026 (worktree test)
++e1 = pde_var([s1;s2],[0,1;0,1],[1;2]);                                      % MMP, 11/20/2026 (worktree test)
++v = pde_var([s1;s2],[0,1;0,1],[1;2]);                                       % MMP, 11/20/2026 (worktree test)
++w = pde_var([s1;s2],[0,1;0,1],[2;2]);                                       % MMP, 11/20/2026 (worktree test)
++PDE_t = [diff(u,'t')==v;                                                    % MMP, 11/20/2026 (worktree test)
++         diff(v,'t')==diff(e1,s1)+diff(u,s2,2);                             % MMP, 11/20/2026 (worktree test)
++         diff(e1,'t')==diff(v,s1);                                          % MMP, 11/20/2026 (worktree test)
++         diff(w,'t')==diff(w,s1,2)+diff(w,s2,2);                            % MMP, 11/20/2026 (worktree test)
++         subs(u,s2,0)==0;           subs(u,s2,1)==0;                        % MMP, 11/20/2026 (worktree test)
++         subs(e1,s1,0)==-subs(diff(w,s1),s1,0);                             % MMP, 11/20/2026 (worktree test)
++         subs(e1,s2,0)==0;          subs(e1,s2,1)==0;                       % MMP, 11/20/2026 (worktree test)
++         subs(v,s1,1)==0;           subs(v,s2,0)==0;     subs(v,s2,1)==0;   % MMP, 11/20/2026 (worktree test)
++         subs(w,s1,1)==0;           subs(w,s1,0)==subs(v,s1,0);             % MMP, 11/20/2026 (worktree test)
++         subs(w,s2,0)==0;           subs(w,s2,1)==0];                       % MMP, 11/20/2026 (worktree test)
+ 
+ 
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
++st.lpi.ineq.dD = 0;                                                         % MMP, 11/20/2026 (worktree test)
+ 
+ if GUI~=0
+     disp('No GUI representation available for this system.')
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control.m
+index 8ef46be4..0bfb23db 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control.m
+@@ -58,5 +58,7 @@ st.lpi.pos.len_sos{1} = [3;2;1];                                            % MM
+ st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/19/2026
+ st.sop.dw_P = 1;                                                            % MMP, 11/19/2026
+ st.sop.deg_Q{1} = [6 2 2];                                                  % MMP, 11/19/2026
++st = lpisettings_sop('heavy');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_sos{1} = [3;2;1]; st.lpi.ineq.cap_inc = 'auto'; st.lpi.var.deg{1} = [1 2 2]; st.sop.dw_P = 1; st.sop.deg_Q{1} = [6 2 2];
+ 
+ end
+\ No newline at end of file
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Diagne.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Diagne.m
+index cfecd113..11113761 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Diagne.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Diagne.m
+@@ -174,6 +174,8 @@ st = lpisettings_sop('stripped');                                           % MM
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [1;2;1];                                            % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [2;2;1]; st.lpi.ineq.dD = 0; st.lpi.ineq.cap_inc = 'auto';
+ 
+ end
+ % @article{diagne2012lyapunov,
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi.m
+index 857427ad..88a62293 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi.m
+@@ -101,6 +101,8 @@ end
+ st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [1;2;2];                                            % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [1;2;1]; st.lpi.ineq.dD = 2; st.sop.dw_feas = [1 1 1];
+ 
+ end
+ % @inproceedings{valmorbida2014semi,
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2.m
+index c259162b..aff19903 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2.m
+@@ -101,6 +101,8 @@ end
+ % Example-specific settings                                                 % MMP, 11/19/2026
+ st = lpisettings_sop('light');                                              % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 0; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [1;2;1]; st.lpi.ineq.dD = 2;
+ 
+ end
+ % @article{valmorbida2015stability,
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq.m
+index 0a84a240..94ee9c09 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq.m
+@@ -96,6 +96,8 @@ end
+ st = lpisettings_sop('stripped');                                           % MMP, 11/19/2026
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [0;2;1]; st.lpi.ineq.dD = 2; st.sop.dw_feas = [1 1 1];
+ 
+ end
+ % @article{valmorbida2015stability,
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat.m
+index 7308d409..76d0fd3f 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat.m
+@@ -100,6 +100,8 @@ st = lpisettings_sop('light');                                              % MM
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('light');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [0;2;1]; st.sop.dw_feas = [1 1 1];
+ 
+ end
+ % @article{gahlawat2016convex,
+diff --git a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1.m b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1.m
+index 9aa50a87..c1c26789 100644
+--- a/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1.m
++++ b/PIETOOLS/PIETOOLS_examples/Examples_Library/Stability_Examples/PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1.m
+@@ -111,6 +111,8 @@ st = lpisettings_sop('stripped');                                           % MM
+ st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/19/2026
+ st.lpi.pos.len_sos{1} = [1;2;1];                                            % MMP, 11/19/2026
+ st.lpi.ineq.dD = 0;                                                         % MMP, 11/19/2026
++st = lpisettings_sop('stripped');  % worktree test 11/20/2026: the TRADE3 cut
++st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 0; st.lpi.pos.len_sos{1} = [1;2;1];
+ 
+ end
+ % @article{datko1986example,
+diff --git a/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m b/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m
+index 03669e6e..5c762e3c 100644
+--- a/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m
++++ b/PIETOOLS/PIETOOLS_examples/examples_DDE_library_PIETOOLS.m
+@@ -100,6 +100,8 @@
+ % st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+ % stability_form = 'P';                                                     % MMP, 11/19/2026
++% st = lpisettings_sop('stripped');                                         % MMP, 11/20/2026 (worktree test)
++% st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2];  % MMP, 11/20/2026 (worktree test)
+ % % [1] says the stable range is tauNmax<2
+ % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -200,6 +202,8 @@
+  % st.lpi.ineq.dD = 0;                                                      % MMP, 11/19/2026
+  % st.sop.dw_feas = [0 2 2];                                                % MMP, 11/19/2026
+  % stability_form = 'P';                                                    % MMP, 11/19/2026
++ % st = lpisettings_sop('veryheavy');                                       % MMP, 11/20/2026 (worktree test)
++ % st.lpi.pos.len_inc{1} = 3; st.lpi.pos.len_com{1} = 2; st.lpi.pos.len_sos{1} = [2;3;4]; st.sop.dw_feas = [0 2 2];  % MMP, 11/20/2026 (worktree test)
+  % stability_form='Q';     % the st acts in 'Q'; 'P' at light: 1.42229      % MMP, 11/18/2026
+ % % % %%%% answer - tauNmax\in [3.9,3.95] (Note:requires veryheavy settings)
+ %
+@@ -295,6 +299,8 @@
+ % st.lpi.pos.len_sos{1} = [2;3;4];                                          % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+ % st.lpi.var.deg{1} = [0 6 6];                                              % MMP, 11/19/2026
++% st = lpisettings_sop('veryheavy');                                        % MMP, 11/20/2026 (worktree test)
++% st.lpi.pos.len_inc{1} = 2; st.lpi.pos.len_com{1} = 2; st.lpi.pos.len_sos{1} = [3;3;4]; st.lpi.var.deg{1} = [0 6 6]; st.sop.dw_P = 0;  % MMP, 11/20/2026 (worktree test)
+ % %
+ % % % % %%%% answer - .1000 (tau=.99)
+ % % % % %%%% answer - 1.339 (tau=2)
+@@ -359,6 +365,8 @@
+ % st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+ % st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
++% st = lpisettings_sop('stripped');                                         % MMP, 11/20/2026 (worktree test)
++% st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;  % MMP, 11/20/2026 (worktree test)
+ % Answer [3,3] - .9630
+ % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ % % % % % %%% Spring-Mass Network delay problem
+@@ -519,6 +527,8 @@
+    % st.lpi.pos.len_sos{1} = [2;1;2];                                       % MMP, 11/19/2026
+    % st.lpi.ineq.dD = 0;                                                    % MMP, 11/19/2026
+    % st.lpi.var.deg{1} = [0 2 2];                                           % MMP, 11/19/2026
++   % st = lpisettings_sop('stripped');                                      % MMP, 11/20/2026 (worktree test)
++   % st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.var.deg{1} = [0 2 2];  % MMP, 11/20/2026 (worktree test)
+ % %%%% answer - 2.327
+ 
+ % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -538,6 +548,8 @@
+ % st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+ % st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
+ % st.sop.dw_P = 0;                                                          % MMP, 11/19/2026
++% st = lpisettings_sop('stripped');                                         % MMP, 11/20/2026 (worktree test)
++% st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [2;1;1]; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;  % MMP, 11/20/2026 (worktree test)
+ % %%%% answer - 1.3501
+ % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ % % % Example 1 from [10]
+@@ -554,6 +566,8 @@
+ % st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+ % st.lpi.var.deg{1} = [0 2 2];                                              % MMP, 11/19/2026
++% st = lpisettings_sop('stripped');                                         % MMP, 11/20/2026 (worktree test)
++% st.lpi.pos.len_sos{1} = [2;1;2]; st.lpi.ineq.dD = 0; st.lpi.var.deg{1} = [0 2 2]; st.sop.dw_P = 0;  % MMP, 11/20/2026 (worktree test)
+ 
+ % % %%%% answer - 1.808
+ % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+diff --git a/PIETOOLS/PIETOOLS_examples/examples_NDSDDF_library_PIETOOLS.m b/PIETOOLS/PIETOOLS_examples/examples_NDSDDF_library_PIETOOLS.m
+index 7ce3c6e7..223dcb6d 100644
+--- a/PIETOOLS/PIETOOLS_examples/examples_NDSDDF_library_PIETOOLS.m
++++ b/PIETOOLS/PIETOOLS_examples/examples_NDSDDF_library_PIETOOLS.m
+@@ -279,6 +279,8 @@
+ % st.lpi.pos.len_sos{1} = [2;1;2];                                          % MMP, 11/19/2026
+ % st.lpi.ineq.dD = 0;                                                       % MMP, 11/19/2026
+ % stability_form = 'P';                                                     % MMP, 11/19/2026
++% st = lpisettings_sop('stripped');                                         % MMP, 11/20/2026 (worktree test)
++% st.lpi.pos.len_inc{1} = 1; st.lpi.pos.len_com{1} = 1; st.lpi.pos.len_sos{1} = [3;1;1]; st.lpi.ineq.dD = 0;  % MMP, 11/20/2026 (worktree test)
+ % 
+ 
+ % ndim=size(An,1);

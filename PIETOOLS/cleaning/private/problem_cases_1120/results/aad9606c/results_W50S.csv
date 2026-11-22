@@ -1,0 +1,5 @@
+key,form,variant,tier,mods,status,fr,pinf,dinf,numerr,ndec,m,sec,note,exst,eta
+PDE:50,Pd,A,light,"",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=2158560 m=18168 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:50,Pd,A,stripped,"st.lpi.ineq.dD = 0",infeasible,-1,1,0,0,501968,7553,58.6,"",infeasible,1
+PDE:50,Qd,A,light,"",error,NaN,NaN,NaN,NaN,NaN,NaN,NaN,"LB_SIZE ndv=2158560 m=18168 above the gate (ndv 2e+06; m 45000): not solved",,NaN
+PDE:50,P,A,light,"st.lpi.ineq.dD = 0",certified,1.003,0,0,0,98080,3831,8.1,"",optimal,2.61e-10

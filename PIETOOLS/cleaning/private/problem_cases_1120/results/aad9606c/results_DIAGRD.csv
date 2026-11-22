@@ -1,0 +1,7 @@
+r,form,tier,mods,status,fr,numerr,exst,eta,ndec,m,sec
+15,P,light,"",certified,0.9679,0,optimal,6.16e-10,188545,2987,12.3
+15,P,heavy,"",certified,0.9755,0,optimal,1.66e-10,752976,5206,58.6
+15,Q,light,"st.lpi.ineq.dD = 0",certified,0.9854,0,optimal,1.54e-09,16740,1345,1.2
+15,Q,light,"",certified,0.9848,0,optimal,2.15e-10,72100,3281,3.2
+10,P,light,"st.lpi.ineq.dD = 0",infeasible,-1,0,infeasible,1,37745,1176,2.4
+5,P,light,"st.lpi.ineq.dD = 0",certified,0.9197,0,optimal,1.97e-10,37745,1175,2.1

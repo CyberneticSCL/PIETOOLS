@@ -546,3 +546,40 @@ Saint-Venant–Exner BCs and gains (https://perso.uclouvain.be/georges.bastin/pa
   line of the Laplace–Beltrami file no longer points at the header. `chk18.m`: 18 of 18 parse, resolve
   to the working copy and return the same PDE_t and st as the backup (scratchpad `examples_bak_notes4`).
   Left in example comments: the four committed log entries that name `cleaning/private/`.
+
+## 13. Coverage gaps found in the status review (11/20/2026 01:10)
+
+- **Trade pass.** EXS1 ran before `ex_search` had its trade step; `TRADE1` (11/19 03:00–03:11) restarted the
+  115 one-variable rows from their EXS1 final settings to try the trades. It stopped at the start of 80 rows
+  ("This statement is incomplete"): `apply_mods` in `ex_search.m` splits a start at every `;`, which cuts a
+  column vector such as `len_sos{1} = [2;1;2]` (78 of the 80 starts hold one; the starts files of EXS1 and EXU
+  hold none). Trades therefore ran on 35 one-variable rows, in every two-variable search (EXS2, EXS2X, EXS2Y)
+  and in the single-row searches (EXX, EXS8, EXSCTL, EXSFIX, EXSFIX2); the trade counts of §6.4 cover these
+  only. The written settings are unaffected: `st_run` (EXV1B, §2) evaluates the statements whole.
+  Fixed in add6e3ef (11/20/2026): `apply_mods` splits at a `;` outside brackets only; TRADE3 of the problem-case
+  run reran the 80 rows (problem_cases_1120/REPORT.md §3).
+- **Search budget.** Stopped on the build budget without converging: PDE 28, 31, 51, 52 and X1 (40 builds);
+  PDE 35, 48, 60 (40, not resumed); PDE 45, 46, 47, 62, 71 (70); PDE 53, 54 (12, no cut found).
+- **Stock 2-D storage in 'P'** (`settings_2d_stock('light')`, tag STOCK2D): run on PDE 39 (unknown, ratio
+  0.498) and 65 (certified) only; not on PDE 36, 69, 70.
+- **PDE 55**, Sol job 2067511: pending at 01:05 (Priority), start estimated 11/20 08:41 (05:43 at submission).
+
+## 14. The problem-case run of 11/20 (05:10–16:40)
+
+Record: `cleaning/private/problem_cases_1120/` (REPORT.md – outcome by case, findings, what was tried and not,
+candidate statements, defects; RUN_LOG.md – chronology). In brief:
+
+- **Certified and verified** (aad9606c, 41c9210c and f474e7de – the release comment pass – identical; the library path optimal, through worktree copies
+  of the example files where the formulation changes): 39 ('P' with `settings_2d_stock('light')` or `'heavy'` and
+  `dD = 0`), 36, 41 (the file's explicit delay branch), 44 and X3 (a minimal position form in the dual form 'Pd',
+  epneg 1e-1 / 1e-2), 69 and 70 (mixed position–strain forms in 'Q' light with `dD = 0`: 267,060 and 187,116).
+  The formulation changes are candidates for the maintainer; no example file was edited.
+- **Open**: 56 (needs deg_Q{3} [1 2 2], 7.86M variables), 55 (only the 7.34M program; the 6 h Sol job ran out),
+  the 50 H2 dual (the dual stability test fails on that system).
+- **Corrections to §8–§13**: `st.lpi.ineq.dw` and `st.lpi.ineq.wmin` are not read by PIETOOLS_stability_sop, so the
+  11/19 row of PDE 55 with `wmin [0 0 1]` (05:13, EXU3D3) tested nothing. The stock 2-D storage now ran on 36, 69, 70 (§13
+  gap): 69 and 70 infeasible at light and heavy, 36 a MATLAB access violation. The trade pass of the 80 rows ran
+  (TRADE3, 22 verified cuts). The "numerical spectrum max Re" the stability executive prints is spurious on
+  position-state PIEs (pie_witness_sop).
+
+- Correction 11/21/2026 (cleaning/private/stability_form_swap_1121/AUDIT.md): on C:/wt1117 (33d30877) PIETOOLS_stability_sop solved form 'P' for a 'Q' request on a PIE in two or more variables, so the HEAD side of D91 and D93 and "the storage form of HEAD" for PDE 39 (933,696 variables) are 'P' results; the comparisons are direct 'Q' against 'P'. History above left as written.

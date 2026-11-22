@@ -1,0 +1,5 @@
+time,key,step,move,outcome,status,exst,eta,fr,passes,ndv,m,gam,seconds,note
+02:35:49,PDE:40,0,start1 Q light examplest,start,certified,optimal,6.24e-11,0.961,1,8518,844,NaN,2.1,
+02:35:50,PDE:40,1,degQ1.1,not smaller,error,,NaN,NaN,NaN,8518,844,NaN,NaN,LB_SIZE ndv=8518 m=844 above the gate (ndv 8517; m 45000): not solved
+02:35:51,PDE:40,2,degQ1.2,not smaller,error,,NaN,NaN,NaN,8518,844,NaN,NaN,LB_SIZE ndv=8518 m=844 above the gate (ndv 8517; m 45000): not solved
+02:35:51,PDE:40,3,degQ1.3,not smaller,error,,NaN,NaN,NaN,8518,844,NaN,NaN,LB_SIZE ndv=8518 m=844 above the gate (ndv 8517; m 45000): not solved
