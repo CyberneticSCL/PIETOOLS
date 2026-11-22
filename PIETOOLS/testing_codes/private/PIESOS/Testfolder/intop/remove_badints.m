@@ -107,7 +107,7 @@ for i=1:numel(intmat)
                 % All variables are good
                 break
             end
-            safe_vars = [safe_vars,find(safe_idcs)];
+            safe_vars = [safe_vars,rem_vars(safe_idcs)];
             % For remaining variables, determine on what interval they are defined
             rem_vars = rem_vars(~safe_idcs);
             var_list = var_list(~safe_idcs);

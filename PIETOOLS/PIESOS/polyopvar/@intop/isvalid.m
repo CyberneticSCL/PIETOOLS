@@ -288,7 +288,7 @@ for j=1:nterms
         if all(safe_idcs)
             break
         end
-        safe_vars = [safe_vars,find(safe_idcs)];
+        safe_vars = [safe_vars,rem_vars(safe_idcs)];
         rem_vars = rem_vars(~safe_idcs);
         var_list = var_list(~safe_idcs);
         var_list = cellfun(@(a) cell2mat(var_list0(a)),var_list,'UniformOutput',false);
