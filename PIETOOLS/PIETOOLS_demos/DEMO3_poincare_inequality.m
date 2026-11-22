@@ -30,6 +30,10 @@
 %
 % This example is also included in the paper (page 6, Demonstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
+%                                                                           % MMP, 11/22/2026
+% Example 1 of examples_FI_library_PIETOOLS computes c^2 for this           % MMP, 11/22/2026
+% inequality on [0,b]; that library holds 17 functional inequalities,       % MMP, 11/22/2026
+% and PIETOOLS_FI.m runs any of them.                                       % MMP, 11/22/2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO3
@@ -66,6 +70,8 @@
 %   of H2op and imposed by lpi_ineq_sop, which allows the inequality to fail
 %   outside [a,b] by default; the solution is read by lpigetsol_sop; help
 %   text revised.
+% MMP, 11/22/2026: help names example 1 of examples_FI_library_PIETOOLS,
+%   which computes c^2, and PIETOOLS_FI.m;
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;

@@ -34,6 +34,10 @@
 % finite-element value and the bound of Barraza Martinez et al. Workspace:
 % H0op, H1op, E0op, E1op, the solved program prob, trace_constant. ECHO ON
 % prints each line as it runs.
+%                                                                           % MMP, 11/22/2026
+% Example 6 of examples_FI_library_PIETOOLS computes the same constant      % MMP, 11/22/2026
+% c on [0,b]; that library holds 17 functional inequalities, and            % MMP, 11/22/2026
+% PIETOOLS_FI.m runs any of them.                                           % MMP, 11/22/2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO14
@@ -61,6 +65,8 @@
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding, AT, 11/10/2026
+% MMP, 11/22/2026: help names example 6 of examples_FI_library_PIETOOLS,
+%   which computes the same constant, and PIETOOLS_FI.m;
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;

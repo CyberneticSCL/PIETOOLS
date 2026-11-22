@@ -7,8 +7,9 @@ PIETOOLS can be used to:
 - declare 1D and 2D PI operators variables (postive semidefinite or indefinite)
 - add operator inequality constraints
 - solve LPI optimization problems
+- compute the constants of functional inequalities (Poincare, trace, Hardy, operator norms, eigenvalue bounds) as solutions of LPIs
 - numerically simulate 1D PDE, DDE, and PIE solutions.
 	
 The interface is inspired by YALMIP and the program structure is based on that used by SOSTOOLS. By default the LPIs are solved using SeDuMi, however, the toolbox also supports use of other SDP solvers such as Mosek, sdpt3 and sdpnal.
 
-For more information on installation and use refer to the documnetation in PIETOOLS/PIETOOLS_documentation/, and demos in PIETOOLS/PIETOOLS_demos/.
+For more information on installation and use refer to the documnetation in PIETOOLS/PIETOOLS_documentation/, and demos in PIETOOLS/PIETOOLS_demos/. The entry scripts PIETOOLS/PIETOOLS_PDE.m, PIETOOLS_DDE.m, PIETOOLS_DDF.m and PIETOOLS_FI.m open the example libraries in PIETOOLS/PIETOOLS_examples/: ODE-PDE systems, delay systems, and functional inequalities.
