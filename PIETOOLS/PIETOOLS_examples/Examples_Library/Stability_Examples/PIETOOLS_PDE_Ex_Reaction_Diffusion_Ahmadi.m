@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params) % DB, MMP, 11/21/2026
+function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params) % DB, MMP, 11/22/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % [PDE_t,PDE_b,ST] = PIETOOLS_PDE_EX_REACTION_DIFFUSION_AHMADI(GUI,PARAMS)
@@ -20,8 +20,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
-%               for the tests this file names                               % DB, MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/22/2026
+%               for the tests this file names                               % DB, MMP, 11/22/2026
 %
 % %---------------------------------------------------------------------% %
 % % Example Diffusion-reaction from Ahmadi (see reference below):
@@ -59,12 +59,13 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding DJ - 08/18/2022
-% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the batch format
+% DB, MMP, 11/22/2026: Changes since PIETOOLS 2025: the batch format
 %   imposes x(1) = 0 in place of x_{s}(1) = 0, as the term-based format
 %   and the help; new output st, the recommended settings of the stability
-%   tests; stability_form = 'P' set in the base workspace; help and
+%   tests; stability_form = 'P' set in the base workspace; with GUI = 1 the
+%   load check tests logval (it tested the undefined logvals); help and
 %   comments revised.
-% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params) % DB, MMP, 11/21/2026 (was)
+% function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params) % DB, MMP, 11/22/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -76,7 +77,7 @@ pvar s
 %%% Executive Function:
 evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
-evalin('base','stability_form = ''P'';');  % form of the stability test     % DB, MMP, 11/21/2026
+evalin('base','stability_form = ''P'';');  % form of the stability test     % DB, MMP, 11/22/2026
 
 % Specify the parameters
 Cm = [1, 1.5; 5, 0.2];      R = 2.9; % [2.93 2.94]
@@ -126,17 +127,18 @@ if GUI
     app = PIETOOLS_PDE_GUI;
     load(fullfile(root,'PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_GUI.mat'));
     logval = app.loadData(data);
-    if logvals
+%     if logvals                                                            % DB, MMP, 11/22/2026 (was)
+    if logval                                                               % DB, MMP, 11/22/2026
         disp("Failed to load data object. Incorrect structure");
     end
 end
 
-% Example-specific settings                                                 % DB, MMP, 11/21/2026
+% Example-specific settings                                                 % DB, MMP, 11/22/2026
 % (stripped tier; 1-D storage without the upper-integral basis operator,
 % s-length 0, and theta-lengths 1 (multiplier), 2 (lower integral))
-st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
-st.lpi.pos.len_com{1} = 0;                                                  % DB, MMP, 11/21/2026
-st.lpi.pos.len_sos{1} = [1;2;2];                                            % DB, MMP, 11/21/2026
+st = lpisettings_sop('stripped');                                           % DB, MMP, 11/22/2026
+st.lpi.pos.len_com{1} = 0;                                                  % DB, MMP, 11/22/2026
+st.lpi.pos.len_sos{1} = [1;2;2];                                            % DB, MMP, 11/22/2026
 
 end
 % @inproceedings{valmorbida2014semi,

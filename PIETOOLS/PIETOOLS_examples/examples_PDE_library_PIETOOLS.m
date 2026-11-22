@@ -372,7 +372,7 @@ switch index
     % simulation (Shivakumar et al., TAC 2025, Sec. VII-B), the system is   % DB, MMP, DJ, 11/21/2026
     % unstable (eigenvalues with real parts 1.52, 2.27, 2.75, ...); the     % DB, MMP, DJ, 11/21/2026
     % case stops with an error.                                             % DB, MMP, DJ, 11/21/2026
-    error('Example 16 was removed from the stability examples on 11/19/2026.'); % DB, MMP, DJ, 11/21/2026
+    error('Example 16 was removed from the stability examples.');           % DB, MMP, DJ, 11/21/2026
 %--------------------------------------------------------------------------
 %       Wave Equations
 %--------------------------------------------------------------------------

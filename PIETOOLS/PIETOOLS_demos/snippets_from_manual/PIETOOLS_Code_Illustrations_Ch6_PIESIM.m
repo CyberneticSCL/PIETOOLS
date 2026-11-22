@@ -382,5 +382,5 @@ lgd2.Location = 'northeast';
 title('Simulated evolution of DDE states, $x$, with fundamental state feedback control','Interpreter','latex','FontSize',14);
 ylabel('$x_{1}(t)$, $x_{2}(t)$','Interpreter','latex','FontSize',14);
 xlabel('$t$','FontSize',14,'Interpreter','latex');
-ax.FontSize = 14
+ax.FontSize = 14;                                                           % YP, VJ, DJ, MMP, 11/21/2026
 %saveas(fig2,'Ch6_ExD_DDE_State','epsc');

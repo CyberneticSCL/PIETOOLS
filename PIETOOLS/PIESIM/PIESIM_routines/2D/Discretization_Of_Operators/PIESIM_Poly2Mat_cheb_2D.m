@@ -59,12 +59,12 @@
 % DJ, 12/16/2024: Correct limits of for loop j=1:size(acheb);
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
-% YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: output A_nonsquare
+% YP, MMP, 11/22/2026: Changes since PIETOOLS 2025: output A_nonsquare
 %   renamed A_2PDEstate (ns*prod(N+1) rows, not truncated); N is [N_x, N_y]
 %   and p is a 2 x ns array [p_x; p_y]; R is evaluated on deg+2
 %   Chebyshev-Gauss-Lobatto nodes per direction (deg the maximal degree of
-%   R), its coefficients padded to (N_x+1) x (N_y+1); A is A_2PDEstate with
-%   the rows of each state truncated by p.
+%   R), its coefficients padded or truncated to (N_x+1) x (N_y+1); A is
+%   A_2PDEstate with the rows of each state truncated by p.
 
 function [A, A_2PDEstate]=PIESIM_Poly2Mat_cheb_2D(N, Rop, var1, p)
 
@@ -107,7 +107,10 @@ for k=1:no
     % Initiailize square array of size (N(1)+1)x(N(2)+1)
     acheb2D_all=zeros(N(1)+1,N(2)+1);
     acheb2D=fcgltran2d(double(Reval),1);
-    acheb2D_all(1:deg+2, 1:deg+2) = acheb2D;
+    % Coefficients of orders up to N_x, N_y; higher orders, present when    % YP, MMP, 11/22/2026
+    % deg >= N, are dropped, so the array keeps its size                    % YP, MMP, 11/22/2026
+    nx = min(deg+2,N(1)+1);   ny = min(deg+2,N(2)+1);                       % YP, MMP, 11/22/2026
+    acheb2D_all(1:nx,1:ny) = acheb2D(1:nx,1:ny);                            % YP, MMP, 11/22/2026
 
     % Coefficients a_ij, padded to (N_x+1)x(N_y+1), as column k (x index
     % fastest)

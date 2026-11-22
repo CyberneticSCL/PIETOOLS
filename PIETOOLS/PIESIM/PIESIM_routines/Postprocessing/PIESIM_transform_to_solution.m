@@ -152,7 +152,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 
      % Final time of the computed solution
      if (solcoeff.tf~=opts.tf) 
-     disp('Warning: solution final time does n0t match user input final time');
+     disp('Warning: solution final time does not match user input final time');
      disp('Defaulting to solution final time');
      end
      tf=solcoeff.tf;

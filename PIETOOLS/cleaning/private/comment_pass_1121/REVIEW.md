@@ -67,3 +67,23 @@ files, 0 problems.
   degree plus 2 exceeds N+1 (by reading, not run).
 - Stale text kept: comments on rsize/csize in `PIESIM_9PI2Mat_cheb_2D.m`; the PIESIM help lists
   ic.pde/ic.pie/ic.ode while the code reads one uinput.ic.
+
+## Bug batch of 11/22/2026 (maintainer: "do the bug patch")
+
+The six code problems above, each reproduced before the fix and checked after it against an independent
+reference (scratch `bb1122/bb_check.m`, outputs `bb_before.txt`, `bb_after.txt`); authors by
+`git blame -w -C -C -M`, none of them DJ:
+
+| Item | File (author of the line) | Before | After |
+|---|---|---|---|
+| B1 | `PIESIM_transform_to_solution.m:155` (YP, 02/2026) | PIESIM printed "does n0t match" | "does not match", the 2025 text: the line equals its 2025 version again |
+| B2 | `examples_PDE_library_PIETOOLS.m`, case 16 (MMP) | error message "... on 11/19/2026." | no date |
+| B3 | `PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi.m` (DB, 2022) | GUI = 1: "Unrecognized function or variable 'logvals'" | runs (GUI app stubbed); 2025 line kept as (was) |
+| B4 | `stability_3.m` (SS, 2022) | params {'g=5;'}: Lm unchanged, 1.3 from eig([Vs,Hs,0;g,Vs,g;0,Vs^2,0]) | equal to it (0); default g = 10 unchanged; as in the library twin PIETOOLS_PDE_Ex_Diagne.m |
+| B5 | Ch6 snippet (YP, 02/2026) | `ax.FontSize = 14` printed 531 characters | semicolon |
+| B6 | `PIESIM_Poly2Mat_cheb_2D.m` (YP, 02/2026) | N = [3 3], R = s1^2*s2^2: A_2PDEstate 36 x 1 (16 expected), A off the exact Chebyshev coefficients by 0.25 | coefficients above order N dropped in each direction, as the 1-D routine does: 16 x 1, A and A_2PDEstate exact to 2e-17; N = [6 6] and the PIESIM run of 2-D library example 1 unchanged (isequaln) |
+
+Annotation: B3, B4 and B6 are added to the single note of their file, whose date becomes 11/22/2026 with
+every marker of the file; B2 and B5 lines carry the existing tag; B1 needs none. Checks: cpass.pl check PASS
+on the six files, code changes against HEAD only the six intended lines, line endings and whitespace
+unchanged, parse check 6 files, 0 problems.
