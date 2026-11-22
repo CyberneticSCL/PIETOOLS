@@ -133,7 +133,7 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   | heat: min gam, gam - T'*T >= 0 (norm of T squared) | 1.104 → 1.000001 | 1.000253 → 1.000002 (109,520 → 198,505; 2.3 → 7.4 s) |
   | Volterra: min gam, gam - T'*T >= 0 ((2/pi)^(2N)) | 1.000580 → 1.000000 | 1.000008 → 1.000002 (23,120 → 41,905; 0.3 → 1.0 s) |
 
-  The heat rows use the `heatNd` PIE (`testing_codes/private/PIETOOLS_demos/sopvar_demos`). In 1-D, the
+  The heat rows use the `heatNd` PIE (the heat equation on the unit cube). In 1-D, the
   faces at `w = 1` reach only 1.174 on the first heat row, so that class needs the weight, not more terms.
   DEMO15 sets `dw` 1 itself and reaches the finite-element value 4.165 at `w = 1` (93,845 variables);
   with the floor it would have 169,325.
@@ -150,7 +150,7 @@ executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `lig
   ('auto' = Dmax - 1, or one cap per direction) bounds theta + s on the lower and upper basis operators
   only (Lemma 1.2 there: the triangular part has total degree at most p - 1). Both off in every tier; the
   derivative targets of the executives are purely integral on L2, so the bounds apply to the slacks that
-  set the cost (measurements on the 1-D library rows: cleaning/private/settings_1116/newton_polytope_guidance.md).
+  set the cost (measured on the 1-D library rows, 11/16/2026).
 - **Posopvar structure** (positive operators, slack sizing): the weight raise by kind of LPI (1-D
   feasibility certifies at dw 0 with 2.0-3.7x fewer variables in the same time; 2-D at dw 1 in 2.5 s
   against 6.6 s at dw 2; coercive 1-D at dw 2 reaches the 1.1e-6 floor; Q forms gain nothing above 1),

@@ -72,9 +72,8 @@ value, decision count, rows and Gram sizes identical.
 
 1. **Operators.** The PIE operators are converted once to containers (`op2copvar_sop`: `opvar2copvar`
    in 1-D, a per-component `opvar2d2sopvar` grid in 2-D); every product, adjoint and sum is a container
-   operation. The LPIs are those of the stock files as the 10/06/2026 transcriptions
-   (`sopvar/Testfolder/sdopvar/claude_tests/cx_exec`) wrote them, which produced programs identical to the
-   stock on the test plants.
+   operation. The LPIs are those of the stock files as the 10/06/2026 transcriptions wrote them, which
+   produced programs identical to the stock on the test plants.
 2. **Storage.** Declared as the stock executive declares it, through `exec_tools_sop`: in 1-D
    `poslpivar_settings_sop` 'lf' (entry 1 of `lpi.pos`, the former dd1 and options1, 11/12/2026), in 2-D
    `poslpivar_settings_2d_sop` 'lf' (LF_deg, LF_opts and the psatz terms of `settings_2d`, translated by
@@ -142,11 +141,9 @@ former `ddZ`), as the stock.
 
 ## utility_functions/ (moved from lpi_programming_sopvar, 10/16/2026)
 
-The helpers the executives call. They are on the path like every folder: the tests and examples of
-`lpi_programming_sopvar`, the cx_exec tests, `sopvar/@sopvar/inv` and the stock `getController` call some
-of them. The stock counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop` were
-in `executives/utility_functions/`, retired to `cleaning/private/` on 11/08/2026; `closedLoopPIE` moved
-from there to this folder the same day.
+The helpers the executives call. They are on the path like every folder; `sopvar/@sopvar/inv` also calls
+some of them. The stock counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop`
+were retired on 11/08/2026; `closedLoopPIE` moved to this folder the same day.
 
 | function | what it does |
 |---|---|
@@ -178,8 +175,8 @@ The two sections below moved here from `lpi_programming_sopvar/README.md` on 10/
 ### Operator inverse and gain reconstruction (MMP, 10/09/2026)
 
 1-D only. The class methods are in `sopvar/@sopvar/inv.m` and `sopvar/@copvar/inv.m`;
-the wrappers are in this folder. Measured on `sopvar/Testfolder/Test_copvar_inv.m` (17
-checks, 10/09/2026): operator residuals `max|P*Pinv - I|` of 1e-9 to 1e-11 on seven
+the wrappers are in this folder. Measured with 17 checks (10/09/2026): operator residuals
+`max|P*Pinv - I|` of 1e-9 to 1e-11 on seven
 hand-built 3-PI and 4-PI operators (0.05 to 0.3 s each), and on the synthesis executives
 `|K P - Z|/|Z|` = 2.4e-11 and `|P L - Z|/|Z|` = 7.0e-9 where the stock `getController`
 and `getObserver` give 8.1e-5 and 7.4e-3 on the same solved P, Z.
@@ -230,8 +227,7 @@ forms.
 The rows name the executives of 10/08/2026; the table at the top gives the executive and form that pose
 each of these programs now.
 
-`testing_codes/private/executives_sopvar/tests/test_executives_sop.m` (in `tests/` until 11/08/2026; off the path since 11/09/2026) asserts the 1-D part (19 checks; `test_executives_sop(false)` adds the
-2-D stability executive). The numbers below are from the session drivers (`run_exec_1d`,
+The numbers below are from the session drivers (`run_exec_1d`,
 `run_exec_1d_b`, `run_exec_2d`, `run_exec_2d_b`); 'stock' is the stock executive, 'stock slack' this
 folder with `settings.sop.slack = 'stock'`, 'like' the default. "numerical" is `pie_witness_sop`.
 
