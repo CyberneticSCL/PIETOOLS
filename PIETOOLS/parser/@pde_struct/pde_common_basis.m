@@ -54,6 +54,8 @@ function [PDE_1_out,PDE_2_out,new_obnums_1,new_obnums_2] = pde_common_basis(PDE_
 %                   generated;
 % DJ, 02/17/2026: Allow for nonlinear terms
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/21/2026: Also remove the flag is_zero of an equation copied from
+%                   the other PDE;
 
 % % Since state variables and inputs may appear both in PDE_1 and PDE_2, we
 % % will have to be careful to combine them in the structure.
@@ -105,9 +107,16 @@ for kk=1:n_objs
             % Remove equations from PDE_1 that belong to PDE_1.
             PDE_1_out.(obj){ii}.term = {};
         end
+        % A zero equation (no terms, is_zero) belongs to the other PDE too
+        if ~ismember(new_IDs(ii),tab_1(:,1)) && isfield(PDE_1_out.(obj){ii},'is_zero')
+            PDE_1_out.(obj){ii}.is_zero = false;                            % DJ, 11/21/2026
+        end
         if ~ismember(new_IDs(ii),tab_2(:,1)) && isfield(PDE_2_out.(obj){ii},'term')
             % Remove equations from PDE_2 that belong to PDE_1.
             PDE_2_out.(obj){ii}.term = {};
+        end
+        if ~ismember(new_IDs(ii),tab_2(:,1)) && isfield(PDE_2_out.(obj){ii},'is_zero')
+            PDE_2_out.(obj){ii}.is_zero = false;                            % DJ, 11/21/2026
         end
     end
 

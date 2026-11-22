@@ -57,10 +57,6 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   0=x2(s)-x1(1), or 0=x1-2*x2+0.5*w for ODE states) are algebraic
 %   constraints K*xf + Kw*wf + Ku*uf = 0; inputs in them are supported for
 %   a linear PIE only.
-% - A state without a differential equation is algebraic: it gets no rows
-%   in T, A (which are then rectangular), nor in pie2pde.X; pie2pde.T
-%   gives it from xf. At least one state needs dynamics. Not supported for
-%   a nonlinear PIE, nor with higher-order temporal derivatives.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
@@ -99,9 +95,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 11/15/2026: Bugfix in case row of f, gz or gy has no terms;
 % DB, 11/18/2026: Move print_convert_summary to its own file;
 % MMP, 11/19/2026: Release comment pass (comment-only).
-% DJ, 11/20/2026: Support states without dynamics (rectangular T, A); take
-%                   all constraints (K, Kw, Ku) from convert_PIETOOLS_BVP;
-%                   new pie2pde fields;
+% DJ, 11/20/2026: Take all constraints (K, Kw, Ku) from
+%                   convert_PIETOOLS_BVP; new pie2pde fields;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, and
 % % % convert other structures to pde_struct
@@ -147,10 +142,9 @@ if ~isempty(PDE.constraint_ID)                                              % DJ
         error("Constraints 0=F(s) cannot involve the inputs w or u.")
     end
 end
-% States without a differential equation (tdiff=nan) are algebraic; at
-% least one state needs dynamics
+% Every state component needs a differential equation
 x_noeq = find(cellfun(@(xi) isfield(xi,'tdiff') && isnan(xi.tdiff),PDE.x));
-if numel(x_noeq)==numel(PDE.x)                                              % DJ, 11/20/2026
+if ~isempty(x_noeq)
     error(['Conversion to PIE is not supported: no differential equation has been specified for state component(s) x{',strjoin(arrayfun(@num2str,x_noeq(:)','UniformOutput',false),'}, x{'),'}.',...
             ' A PDE without dynamics describes a boundary value problem, which cannot be converted to a PIE.'])
 end
