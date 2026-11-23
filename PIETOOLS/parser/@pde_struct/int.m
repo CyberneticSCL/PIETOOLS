@@ -12,7 +12,10 @@ function PDE_out = int(PDE_in,vars,L,U)
 % - L:          nx1 array of type 'double' or 'polynomial', specifying the
 %               lower limits of the integral for each variable in "vars".
 %               Can also be nx2 array, in which case L(:,2) will be taken
-%               as input U.
+%               as input U, or nx3 array [L,vars,U], integrating over [L,U]
+%               while keeping vars as variables of the result, or nx1 cell
+%               of 1x2 arrays [L,U] and 1x3 arrays [L,s,U], one per
+%               variable.
 % - U:          nx1 array of type 'double' or 'polynomial', specifying the
 %               upper limits of the integral for each variable in "vars".
 %
@@ -21,6 +24,14 @@ function PDE_out = int(PDE_in,vars,L,U)
 %               input PDE structure, but with integration performed with
 %               respect to variables "vars", from lower limits "L up to
 %               upper limits "U".
+%
+% NOTES
+% - A variable of integration s in the coefficients of PDE_in is the
+%   integration variable: int(s*x,s,[0,1]) is the integral of s*x(s) over
+%   [0,1]. A coefficient multiplied after integration stays outside the
+%   integral: s*int(x,s,[0,1]) is s times the integral of x over [0,1].
+%   For a full integral of an input, a coefficient depending on s is read
+%   as outside the integral if the equation depends on s.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,6 +63,9 @@ function PDE_out = int(PDE_in,vars,L,U)
 %                   single free term, see also update to "pde_var";
 % DJ, 02/28/2026: Prohibit integration of nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/22/2026: Use a dummy variable for full integrals too, so C is the
+%                   kernel; update vars for integration variables and limits;
+% DJ, 11/22/2026: Allow domains [a,s,b] (nx3, or cell) that keep s in vars;
 
 
 % % % Process the inputs
@@ -91,7 +105,30 @@ if length(vars.varname)~=nvars
 end
 
 % % Check that the location at which to evaluate is properly specified.
-if nargin<=3 && size(L,2)==2
+% A domain [L,s,U] integrates s over [L,U], keeping s as a variable of the
+% result.
+is_keep_var = false(nvars,1);                                               % DJ, 11/22/2026
+if nargin<=3 && iscell(L)                                                   % DJ, 11/22/2026
+    % Cell of domains [L,U] or [L,s,U], one per variable.
+    if numel(L)~=nvars
+        error("The number of domains of integration should match the number of variables to integrate with.")
+    end
+    dom_cell = L;
+    L = cell(nvars,1);      U = cell(nvars,1);      M = cell(nvars,1);
+    for kk=1:nvars
+        dom_kk = polynomial(dom_cell{kk});
+        if size(dom_kk,1)~=1 || ~ismember(size(dom_kk,2),[2,3])
+            error("Each domain of integration in a cell should be a 1x2 array [L,U] or a 1x3 array [L,s,U].")
+        end
+        L{kk} = dom_kk(1);  U{kk} = dom_kk(end);  M{kk} = dom_kk(end-1);
+        is_keep_var(kk) = size(dom_kk,2)==3;
+    end
+    L = vertcat(L{:});      U = vertcat(U{:});      M = vertcat(M{:});
+elseif nargin<=3 && size(L,2)==3                                            % DJ, 11/22/2026
+    % Allow domain of integration to be specified as [L,s,U].
+    M = L(:,2);     U = L(:,3);     L = L(:,1);
+    is_keep_var = true(nvars,1);
+elseif nargin<=3 && size(L,2)==2
     % Allow domain of integration to be specified as [L,U].
     U = L(:,2);
     L = L(:,1);
@@ -112,7 +149,18 @@ end
 % Make sure that each limit is either a position ('double') or variable
 % ('pvar')
 L = polynomial(L);      U = polynomial(U);
-is_full_int = true(nvars,1);        % Keep track of for which variables a full integral is taken.
+% A domain [L,s,U] must have the variable of integration in the middle,
+% and real limits.
+for kk=find(is_keep_var)'
+    M_kk = polynomial(M(kk));
+    if ~ispvar(M_kk) || ~strcmp(M_kk.varname{1},vars(kk).varname{1}) || ~isdouble(L(kk)) || ~isdouble(U(kk))
+        error("A domain [L,s,U] should have the variable of integration s as middle element, and real values L and U.")
+    end
+end
+% Names of the variables kept by a domain [L,s,U].
+vnames_keep = arrayfun(@(k) vars(k).varname{1},find(is_keep_var),'UniformOutput',false); % DJ, 11/22/2026
+% Keep track of which variables of integration are also a limit.
+is_lim_var = false(nvars,1);                                                % DJ, 11/22/2026
 for kk=1:nvars
     if (~isdouble(L(kk)) && ~ispvar(L(kk))) || (~isdouble(U(kk)) && ~ispvar(U(kk)))
         error("Upper and lower limits of integrals should correspond to real values or single variables ('pvar' objects).")
@@ -123,7 +171,9 @@ for kk=1:nvars
     end
     if ispvar(L(kk)) || ispvar(U(kk))
         % If one of the limits is a variable, this is a partial integral.
-        is_full_int = false;
+        % Check if that limit is the variable of integration itself.
+        lim_names = [L(kk).varname;U(kk).varname];                          % DJ, 11/22/2026
+        is_lim_var(kk) = ismember(vars(kk).varname{1},lim_names);           % DJ, 11/22/2026
     end
 end
 % Also check no integration is performed of temporal variable.
@@ -188,20 +238,22 @@ for ii=1:numel(PDE_out.free)
                 end
                 % Set the desired integral limits.
                 term_jj.I{is_term_var} = [L(ll),U(ll)];
-                % If partial integration is performed, replace variable
-                % with dummy variable.
-                if ispvar(L(ll)) || ispvar(U(ll))
-                    if strcmp(vars(ll).varname{1},obj_vars(is_term_var).varname{1})
-                        % Generate a dummy variable.
-                        varname_ll = vars(ll).varname{1};
-                        dumvar = polynomial({[varname_ll,'_d']});
-                        % Evaluate the term at the dummy variable.
-                        term_jj.loc(is_term_var) = dumvar;
-                        if isfield(term_jj,'C')
-                            % Make sure to also replace variable in
-                            % coefficients with dummy variable.
-                            term_jj.C = subs(polynomial(term_jj.C),vars(ll),dumvar);
-                        end
+                % Replace the variable with a dummy variable, for a full
+                % integral of a state as well, so that the coefficients
+                % are a kernel in the dummy variable. Terms involving an
+                % input take a dummy variable for partial integrals only.
+                is_partial = ispvar(L(ll)) || ispvar(U(ll));
+                if strcmp(vars(ll).varname{1},obj_vars(is_term_var).varname{1}) ...
+                        && (strcmp(obj_jj,'x') || is_partial)                    % DJ, 11/22/2026
+                    % Generate a dummy variable.
+                    varname_ll = vars(ll).varname{1};
+                    dumvar = polynomial({[varname_ll,'_d']});
+                    % Evaluate the term at the dummy variable.
+                    term_jj.loc(is_term_var) = dumvar;
+                    if isfield(term_jj,'C')
+                        % Make sure to also replace variable in
+                        % coefficients with dummy variable.
+                        term_jj.C = subs(polynomial(term_jj.C),vars(ll),dumvar);
                     end
                 end
             else
@@ -224,13 +276,22 @@ for ii=1:numel(PDE_out.free)
         for ll=1:size(vars_ii,1)
             % Check if integration is performed with variable vars_ii(ll); 
             is_int_var = isequal(vars_ii(ll),vars);
-            if any(is_int_var) && is_full_int(is_int_var)
-                % If a full integral is taken, dependence on variable is
-                % removed.
+            if any(is_int_var) && ~is_lim_var(is_int_var)                   % DJ, 11/22/2026
+                % Integration removes dependence on the variable, unless
+                % it is also a limit, as in int(x,s,0,s). This includes
+                % a dummy variable integrated partially, as in
+                % int(C(s,th)*x(th),th,0,s).
                 retain_vars(ll) = false;
             end
         end
         PDE_out.free{ii}.vars = vars_ii(retain_vars);
+        % A variable limit of the integral is a variable of the result, as
+        % is a variable kept with a domain [L,s,U].
+        vnames_lim = [L.varname; U.varname; vnames_keep(:)];                % DJ, 11/22/2026
+        if ~isempty(vnames_lim)
+            vnames_ii = [PDE_out.free{ii}.vars.varname; vnames_lim(:)];
+            PDE_out.free{ii}.vars = polynomial(unique(vnames_ii));          % DJ, 11/22/2026
+        end
     end
 end
 

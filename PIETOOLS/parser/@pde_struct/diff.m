@@ -23,6 +23,14 @@ function PDE_out = diff(PDE_in,vars,dval)
 %               input PDE structure, but differentiated up to the desired
 %               order with respect to the desired variables.
 %
+% NOTES
+% - A term evaluated at a position or integrated over the full domain in a
+%   variable s varies along s only through its coefficients. A partial
+%   integral in s is differentiated with the Leibniz rule, e.g.
+%   d/ds int_a^s C(s,th)x(th) dth = C(s,s)x(s) + int_a^s d/ds C(s,th)x(th) dth.
+% - An input can only be differentiated along variables along which it
+%   does not vary.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2024  PIETOOLS Team
 %
@@ -55,6 +63,8 @@ function PDE_out = diff(PDE_in,vars,dval)
 %                   polydiff (one caller) inlined into the coefficient
 %                   derivative loop;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/22/2026: Differentiate evaluated, integrated terms (Leibniz rule)
+%                   and coefficients of inputs; fix the vars of the result;
 
 % % % Process the inputs
 
@@ -219,9 +229,32 @@ end
 
 % % % Finally, proceed with case where derivative is taken of one or
 % % % multiple terms.
+% Names of the variables of differentiation.
+vnames_diff = arrayfun(@(k) vars(k).varname{1},1:nvars,'UniformOutput',false);
+% A partial integral along a variable of differentiation is differentiated
+% with the Leibniz rule, taking one first-order derivative at a time.
+if nvars>1 || any(dval>1)                                                   % DJ, 11/22/2026
+    for ii=1:numel(PDE_in.free)
+        for jj=1:numel(PDE_in.free{ii}.term)
+            for f=1:numel(PDE_in.free{ii}.term{jj})
+                [~,~,vnames_obj_f,~,is_partial_f] = factor_vars(PDE_in.free{ii}.term{jj}(f),PDE_in);
+                if any(ismember(vnames_obj_f(is_partial_f),vnames_diff))
+                    PDE_out = PDE_in;
+                    for kk=1:nvars
+                        for l=1:dval(kk)
+                            PDE_out = diff(PDE_out,vars(kk),1);             % DJ, 11/22/2026
+                        end
+                    end
+                    return
+                end
+            end
+        end
+    end
+end
 % % Loop over all equations, and take the derivative.
 for ii=1:numel(PDE_out.free)
     PDE_out.free{ii}.term = {};
+    vars_ii = [];                                                           % DJ, 11/22/2026
     n_trms = numel(PDE_in.free{ii}.term);
     % % Loop over all the terms, taking the desired derivative.
     for jj=1:n_trms
@@ -234,6 +267,44 @@ for ii=1:numel(PDE_out.free)
         % Make sure the term has a coefficient
         if ~isfield(term_jj,'C')
             term_jj(1).C = 1;
+        end
+        % % Differentiate a partial integral along the variable of
+        % % differentiation (only one, of order 1, at this point) with the
+        % % Leibniz rule,
+        % %   d/ds int_a^s C(s,th)x(th) dth =  C(s,s)x(s) + int_a^s d/ds C(s,th)x(th) dth,
+        % %   d/ds int_s^b C(s,th)x(th) dth = -C(s,s)x(s) + int_s^b d/ds C(s,th)x(th) dth.
+        is_leibniz = false;
+        for f=1:numel(term_jj)
+            [~,~,vnames_obj_f,~,is_partial_f] = factor_vars(term_jj(f),PDE_in);
+            idx_f = find(strcmp(vnames_obj_f,vnames_diff{1}) & is_partial_f,1); % DJ, 11/22/2026
+            if isempty(idx_f)
+                continue
+            elseif numel(term_jj)>1
+                error("Differentiation of products involving a partial integral along the variable of differentiation is not supported.")
+            end
+            dum_var = polynomial(term_jj.loc(idx_f));
+            lims = polynomial(term_jj.I{idx_f});
+            Cf = polynomial(term_jj.C);
+            % Boundary term, with sign -1 if s is the lower limit.
+            trm_bnd = term_jj;
+            trm_bnd.loc(idx_f) = vars;
+            trm_bnd.I{idx_f} = [];
+            trm_bnd.C = (1-2*isequal(lims(1),vars))*subs(Cf,dum_var,vars);  % DJ, 11/22/2026
+            % Integral of the derivative of the kernel.
+            trm_dif = term_jj;
+            trm_dif.C = diff(Cf,vars);                                      % DJ, 11/22/2026
+            % Add the nonzero terms, and the variables they depend on.
+            new_terms = {trm_bnd, trm_dif};
+            new_terms = new_terms([~all(all(isequal(trm_bnd.C,0))), ~all(all(isequal(trm_dif.C,0)))]);
+            for kk=1:numel(new_terms)
+                [~,~,~,~,~,vnames_kk] = factor_vars(new_terms{kk},PDE_in);
+                vars_ii = unique([vars_ii; vnames_kk]);
+            end
+            PDE_out.free{ii}.term = [PDE_out.free{ii}.term, new_terms];
+            is_leibniz = true;
+        end
+        if is_leibniz
+            continue
         end
         % In nonlinear case, we have to use the product rule.
         % Compute all orders of derivatives of the factors with respect to
@@ -259,7 +330,6 @@ for ii=1:numel(PDE_out.free)
         trm_num = 1;
         fctr_strt = ones(size(dval_fctr,1),1);
         d_idx = 1;
-        vars_ii = [];
         while d_idx<=size(dval_fctr,1)
             % Loop over each of the obtained derivatives of the different
             % factors
@@ -272,7 +342,6 @@ for ii=1:numel(PDE_out.free)
             % Loop over the different factors in the term, taking the
             % derivative of order dval_fctr(k,l) of the lth factor
             term_k = new_terms{d_idx};
-            vars_k = [];
             for fctr_num = fctr_strt(d_idx):n_fctrs
                 % Extract the factor and order of derivative to be taken
                 fctr = term_k(fctr_num);
@@ -280,24 +349,26 @@ for ii=1:numel(PDE_out.free)
                 if all(dval_jj==0)
                     continue
                 end
+                % Determine the state or input in the factor, and the
+                % variables along which it varies, i.e. at which it is not
+                % evaluated at a position and along which it is not
+                % integrated; along other variables, only the coefficients
+                % vary.
+                [obj_f,vars_obj,~,vnames_eff] = factor_vars(fctr,PDE_in);   % DJ, 11/22/2026
+                is_direct = ismember(vnames_diff,vnames_eff);               % DJ, 11/22/2026
                 % Make sure derivative is only taken of state variables, not inputs.
-                if (isfield(fctr,'u') && ~isempty(fctr.u)) ||...
-                    (isfield(fctr,'w') && ~isempty(fctr.w))
+                if ~strcmp(obj_f,'x') && any(dval_jj>0 & is_direct)         % DJ, 11/22/2026
                     error('Differentiation of input signals is currently not supported.')
                 end
-                % Determine which state variable is involved in the factor.
-                Ridx = fctr.x;
-                % Determine which variables the state depends on.
-                vars_obj = PDE_in.x{Ridx}.vars;
-        
+
                 % Check if the coefficients depend on the variables with which to
                 % differentiate.
                 Cjj = polynomial(fctr.C);
-                if ~any(ismember(vars.varname,Cjj.varname))
+                if ~any(ismember(vnames_diff(dval_jj>0),Cjj.varname))       % DJ, 11/22/2026
                     % The coefficients need not be differentiated
                     % --> just take derivative of the state.
-                    if any(~ismember(vars.varname,vars_obj.varname))
-                        % The state does not depend on one of the variables
+                    if any(dval_jj>0 & ~is_direct)                          % DJ, 11/22/2026
+                        % The state does not vary along one of the variables
                         % --> differentiation will return zero.
                         rm_term = true;
                         break
@@ -307,7 +378,6 @@ for ii=1:numel(PDE_out.free)
                         dval_obj = compute_d_obj(vars_obj,vars,dval_jj);
                         new_terms{trm_num}(fctr_num) = fctr;
                         new_terms{trm_num}(fctr_num).D = fctr.D +dval_obj;
-                        vars_k = unique([vars_k; vars_obj.varname]);
                     end
                 else
                     % The coefficients need to be differentiated as well...
@@ -316,12 +386,12 @@ for ii=1:numel(PDE_out.free)
                     % First, get rid of variables on which the state does not
                     % depend:
                     vars_jj = vars;
-                    if any(~ismember(vars.varname,vars_obj.varname))
+                    if any(dval_jj>0 & ~is_direct)                          % DJ, 11/22/2026
                         % If the state does not depend on certain variables,
-                        % but C does, only the derivative of C wrt this 
+                        % but C does, only the derivative of C wrt this
                         % variable will be nonzero in the product rule.
                         for kk=1:nvars
-                            if ~any(isequal(vars(kk),vars_obj))
+                            if ~is_direct(kk)                               % DJ, 11/22/2026
                                 % The object does not depend on variable kk
                                 for ll=1:dval_jj(kk)
                                     % Have to perform differentiation of
@@ -338,9 +408,6 @@ for ii=1:numel(PDE_out.free)
                         else
                             % Replace coefficients with their derivative.
                             fctr.C = Cjj;
-                            % Keep track of which variables the term depends on.
-                            tmp_vars_ii_jj = addvars(vars_obj,Cjj);     
-                            vars_k = unique([vars_k;tmp_vars_ii_jj.varname]);
                         end
                         % Get rid of zero-order derivatives.
                         vars_jj = vars_jj(dval_jj~=0);
@@ -360,9 +427,11 @@ for ii=1:numel(PDE_out.free)
                     % First account for term C*D^(dval)x
                     dval_obj = compute_d_obj(vars_obj,vars_jj,dval_jj);
                     new_terms{trm_num}(fctr_num) = fctr;
-                    new_terms{trm_num}(fctr_num).D = fctr.D +dval_obj;
-        
-                    % Then, add all other terms D^(i)C *D^(dval-i)x            
+                    if any(dval_obj)                                        % DJ, 11/22/2026
+                        new_terms{trm_num}(fctr_num).D = fctr.D +dval_obj;
+                    end
+
+                    % Then, add all other terms D^(i)C *D^(dval-i)x
                     n_prods = prod(dval_obj+1);
                     trm_num_ll = trm_num+1;
                     for ll=2:n_prods
@@ -396,11 +465,7 @@ for ii=1:numel(PDE_out.free)
                         new_terms{trm_num_ll}(fctr_num) = fctr;
                         new_terms{trm_num_ll}(fctr_num).D = fctr.D +(dval_obj-dval_C);
                         new_terms{trm_num_ll}(fctr_num).C = Cll;
-        
-                        % Keep track of which variables the term depends on
-                        tmp_vars_ii_jj = addvars(vars_obj,Cll);     
-                        vars_k = unique([vars_k;tmp_vars_ii_jj.varname]);
-                    
+
                         % Proceed to the next term.
                         dval_fctr = [dval_fctr(1:d_idx,:); dval_fctr(d_idx,:); dval_fctr(d_idx+1:end,:)];
                         nreps_fctr = [nreps_fctr(1:d_idx); 1; nreps_fctr(d_idx+1:end)];
@@ -420,10 +485,16 @@ for ii=1:numel(PDE_out.free)
                 % Move on to the next derivative
                 d_idx = d_idx+1;
                 trm_num = trm_num+1;
-                vars_ii = unique([vars_ii; vars_k]);
             end
         end
         PDE_out.free{ii}.term = [PDE_out.free{ii}.term, new_terms];
+        % Keep track of the variables on which the new terms depend.
+        for kk=1:numel(new_terms)
+            for f=1:numel(new_terms{kk})
+                [~,~,~,~,~,vnames_kk] = factor_vars(new_terms{kk}(f),PDE_in); % DJ, 11/22/2026
+                vars_ii = unique([vars_ii; vnames_kk]);
+            end
+        end
     end
     % Keep track of which variables the equation depends on.
     PDE_out.free{ii}.vars = polynomial(vars_ii);
@@ -467,35 +538,73 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function newvars = addvars(oldvars,C)
-% Add variables that appear in polynomial object C to the list of variables
-% oldvars.
+function [obj,vars_obj,vnames_obj,vnames_eff,is_partial,vnames] = factor_vars(fctr,PDE)
+% [OBJ,VARS_OBJ,VNAMES_OBJ,VNAMES_EFF,IS_PARTIAL,VNAMES] = FACTOR_VARS(FCTR,PDE)
+% returns the state or input in a factor of a term, the variables along
+% which it varies (not evaluated at a position, not integrated), and the
+% variables on which the factor depends.
 %
 % INPUT
-% - oldvars:    n x 1 (or n x 2, first column used) 'polynomial', the
-%               variables;
-% - C:          'polynomial' or 'double', a coefficient;
+% - fctr:       'struct', a factor of a term in a 'pde_struct' object;
+% - PDE:        'pde_struct' object holding the states and inputs that the
+%               factor refers to;
 %
 % OUTPUT
-% - newvars:    'polynomial' column, the variables of oldvars followed by
-%               those of C not among them.
+% - obj:        'char', 'x', 'u' or 'w', the type of object in the
+%               factor ('' if none);
+% - vars_obj:   m x 1 'polynomial', the variables of the object;
+% - vnames_obj: 1 x m cellstr, the names of vars_obj;
+% - vnames_eff: cellstr, the names of the variables of vars_obj along
+%               which the factor varies;
+% - is_partial: 1 x m logical, true for a variable along which the factor
+%               is partially integrated;
+% - vnames:     cellstr column, vnames_eff, the variable limits of partial
+%               integrals, and the variables of fctr.C other than the
+%               dummy variables of integration.
 
-if isdouble(C)
-    % C introduces no new variables.
-    newvars = oldvars;
-else
-    % Combine spatial variabels of the PDE variable and the factor C
-    % Has to be done somewhat akwardly, as the polynomial structure
-    % rearranges the variables alphabetically
-    nvars = size(oldvars,1);
-    vnames = cell(nvars+length(C.varname),1);
-    for jj=1:nvars
-        vnames{jj} = oldvars(jj,1).varname{1};
+% Determine the state or input in the factor.
+obj = '';
+for obj_k = {'x','u','w'}
+    if isfield(fctr,obj_k{1}) && ~isempty(fctr.(obj_k{1}))
+        obj = obj_k{1};
     end
-    vnames(nvars+1:end) = C.varname;
-    vnames = unique(vnames,'stable');
-    newvars = polynomial(vnames);
 end
+if isempty(obj)
+    vars_obj = polynomial(zeros(0,1));
+else
+    vars_obj = PDE.(obj){fctr.(obj)}.vars(:,1);
+end
+nvars_obj = size(vars_obj,1);
+vnames_obj = arrayfun(@(k) vars_obj(k).varname{1},1:nvars_obj,'UniformOutput',false);
+% Check for each variable whether the factor is evaluated at a position or
+% a dummy variable, or integrated.
+is_eff = true(1,nvars_obj);     is_partial = false(1,nvars_obj);
+vnames_dum = cell(0,1);         vnames_lim = cell(0,1);
+for kk=1:nvars_obj
+    if isfield(fctr,'loc') && length(fctr.loc)>=kk
+        loc_kk = polynomial(fctr.loc(kk));
+        if isdouble(loc_kk)
+            is_eff(kk) = false;
+        elseif ~strcmp(loc_kk.varname{1},vnames_obj{kk})
+            is_eff(kk) = false;
+            vnames_dum = [vnames_dum; loc_kk.varname];                      %#ok<AGROW>
+        end
+    end
+    if isfield(fctr,'I') && numel(fctr.I)>=kk && ~isempty(fctr.I{kk})
+        is_eff(kk) = false;
+        lims_kk = polynomial(fctr.I{kk});
+        is_partial(kk) = ~isdouble(lims_kk);
+        vnames_lim = [vnames_lim; lims_kk.varname];                         %#ok<AGROW>
+    end
+end
+vnames_eff = vnames_obj(is_eff);
+% Collect the variables of the factor.
+vnames = [vnames_eff(:); vnames_lim];
+if isfield(fctr,'C') && ~isempty(fctr.C)
+    C = polynomial(fctr.C);
+    vnames = [vnames; reshape(setdiff(C.varname,vnames_dum),[],1)];
+end
+vnames = unique(vnames);
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

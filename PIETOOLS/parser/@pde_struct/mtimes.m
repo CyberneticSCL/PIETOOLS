@@ -5,7 +5,9 @@ function PDE_out = mtimes(C,PDE_in)
 % INPUT
 % - C:          mxn object of type 'polynomial' or 'double', represting a
 %               matrix of coefficients with which to multiply terms in the
-%               PDE.
+%               PDE, or 'sopvar' or 'copvar' object of input dimension n,
+%               representing a PI operator to apply to the terms (not to
+%               outputs).
 % - PDE_in:     'pde_struct' object corresponding to either a single PDE
 %               variable (state, input, or output) of size n or
 %               corresponding to one or several terms in a PDE, belonging
@@ -45,6 +47,7 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 02/17/2025: Add support for multiplication of PDE terms;
 % DJ, 02/18/2026: Prohibit matrix-multiplication with nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/22/2026: Add multiplication with 'sopvar' and 'copvar' objects;
 
 % % % Process the inputs
 
@@ -62,9 +65,10 @@ if isa(C,'pde_struct')
     end
     PDE_out = times_pdes(C,PDE_in);
     return
-elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar')
-    error("The first factor in the product should be of type 'pde_struct', 'double' or 'polynomial'.")
-elseif ~isa(C,'opvar')
+elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar') ...
+        && ~isa(C,'sopvar') && ~isa(C,'copvar')
+    error("The first factor in the product should be of type 'pde_struct', 'double', 'polynomial', 'sopvar' or 'copvar'.") % DJ, 11/22/2026
+elseif isa(C,'double') || isa(C,'polynomial')                               % DJ, 11/22/2026
     C = polynomial(C);
 end
 
@@ -79,108 +83,10 @@ end
 PDE_out = PDE_in;
 
 
-% % % Deal with the case that the coefficients are specified as 'opvar'
-% % % object, requiring (partial) integrals to be taken.
-if isa(C,'opvar')
-    % % Check that the size makes sense.
-    n_eqs = size(PDE_in,'free','vec_size_tot');
-    if sum(C.dim(:,2))~=n_eqs
-        error("Column dimension of the factor should match row dimension of PDE object.")
-    elseif n_eqs==0
-        PDE_out = PDE_in;
-        return
-    elseif sum(C.dim(:,1))==0
-        % Empty output.
-        PDE_out = PDE_in;
-        PDE_out.free = cell(0,1);
-        return
-    end
-    
-    % % Now, the opvar object has a structure
-    % %     C = [P, Q1; Q2, R]
-    % % Extract information from the object.
-    n_eqs_1 = C.dim(1,2);       n_eqs_2 = C.dim(2,2);
-    n_eqs_out1 = C.dim(1,1);    n_eqs_out2 = C.dim(2,1);
-    Cvar1 = C.var1;      Cvar2 = C.var2;
-    Cdom = C.I;
-    if n_eqs_1~=0
-        % % Determine which equations to multiply with [P;Q2], and which to
-        % % multiply with [Q1;R]
-        eq_num = 0;     eq_tot = 0;
-        while eq_tot<n_eqs_1
-            % Keep adding equations until we have "n_eqs_1" many.
-            eq_num = eq_num + 1;
-            eq_tot = eq_tot + PDE_in.free{eq_num}.size;
-        end
-        if eq_tot~=n_eqs_1
-            error("Multiplication with opvar is not supported: some vector-valued state or input components appear to have both finite- and infinite-dimensional elements")
-        end
-        % Extract equations to multiply with [P;Q2].
-        PDE_in1 = PDE_in;
-        PDE_in1.free = PDE_in1.free(1:eq_num);
-        if n_eqs_2~=0
-            % Extract equations to multiply with [Q1;R];
-            PDE_in2 = PDE_in;
-            PDE_in2.free = PDE_in2.free(eq_num+1:end);
-        end
-    else
-        % No equations to multiply with [P;Q2].
-        PDE_in2 = PDE_in;
-    end
-
-    % % Apply the finite-dimensional components of C to the PDE;
-    if n_eqs_1~=0
-        % Apply P to the PDE;
-        PDE_out11 = C.P*PDE_in1;
-        % Apply Q2 to the PDE;
-        PDE_out21 = C.Q2*PDE_in1;
-    else
-        PDE_out11 = 0;
-        PDE_out21 = 0;
-    end
-    % % Apply the infinite-dimensional components of C to the PDE;
-    if n_eqs_2~=0
-        % Apply Q1 to the PDE;
-        PDE_out12 = int(C.Q1*PDE_in2,Cvar1,Cdom);
-        % % Apply R to the PDE
-        % First apply multiplier operator.
-        PDE_out22 = C.R.R0*PDE_in2;
-        % Check if any integration is performed.
-        R1 = cleanpoly(polynomial(C.R.R1),1e-12);
-        R2 = cleanpoly(polynomial(C.R.R2),1e-12);
-        if any(any(abs(R1.C)))
-            % Partial integral a^s is taken.
-            if any(any(abs(R2.C)))
-                % Partial integral s^b is also taken
-                % --> re-organize as full integral and Volterra operator.
-                PDE_out22 = PDE_out22 +int(R2*PDE_in2,Cvar1,Cdom);
-                R1 = cleanpoly(R1-R2,1e-12);
-                if any(any(abs(R1.C)))
-                    PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
-                    PDE_out22 = PDE_out22 +int(R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]);
-                end
-            else
-                % Only partial integral a^s is taken;
-                PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
-                PDE_out22 = PDE_out22 +int(R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]);
-            end
-        elseif any(any(abs(R2.C)))
-            % Only partial integral s^b is taken;
-            PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
-            PDE_out22 = PDE_out22 +int(R2*PDE_subs,Cvar2,[Cvar1,Cdom(2)]);
-        end
-    else
-        PDE_out12 = 0;
-        PDE_out22 = 0;
-    end
-    % % Add the terms, and concatenate
-    if n_eqs_out1>0 && n_eqs_out2>0
-        PDE_out = [PDE_out11+PDE_out12; PDE_out21+PDE_out22];
-    elseif n_eqs_out1>0
-        PDE_out = PDE_out11+PDE_out12;
-    elseif n_eqs_out2>0
-        PDE_out = PDE_out21+PDE_out22;
-    end
+% % % Deal with the case that the factor is a PI operator, requiring
+% % % (partial) integrals to be taken.
+if isa(C,'opvar') || isa(C,'sopvar') || isa(C,'copvar')                     % DJ, 11/22/2026
+    PDE_out = mtimes_copvar(C,PDE_in);                                      % DJ, 11/22/2026
     return
 end
 
@@ -219,13 +125,6 @@ if is_pde_var_in
     % Keep track of which variables the newly started equation depends on.
     new_varnames = unique([vars.varname;C.varname]);
     PDE_out.free{1}.vars = polynomial(new_varnames);
-    %PDE_out.free{1}.vars = addvars(vars,C);
-    %PDE_out.free{1}.term{1}.vars = addvars(vars,C);
-    %PDE_out.free{1}.vars = PDE_out.free{1}.term{1}.vars;
-
-    % Set the variables and size of the equation to which the term is to be
-    % added.    
-    %PDE_out.free{1}.size = PDE_out.free{1}.term{1}.size;
     return
 end
 
@@ -277,23 +176,11 @@ elseif numel(eq_size_list)==size(C,2)
     eq_size_cell_in = num2cell(repmat(eq_size_list',size(C,1),1));
     C_cell = mat2cell_poly(C);
     C_cell = cellfun(@(a,nr,nc) a*eye(nr,nc),C_cell,eq_size_cell_out,eq_size_cell_in,'UniformOutput',false);
-    %C = cell2mat(C_cell);
     % Keep track of which element of C_cell are nonzero
     include_eqs = ~isequal(C,0);
 else
     error("Number of columns of the coefficients should match number of rows of equations.")
 end
-
-% % % Check that the number of output equations matches the number of input
-% % % equations.
-% if numel(eq_size_list)>1 && size(C,1)~=size(C,2)
-%     error("For multiplication with multiple equations, the number of rows of C must match the number of columns, to avoid ambiguity.")
-% end
-
-% % % For now, assume only a single equation
-% if numel(PDE_in.free)>1 && any(size(C)>1)
-%     error('Multiplication with multiple equations is currently not supported.')
-% end
 
 % % Loop over all the output equations, adding terms from each of the
 % % input equations, scaled with the appropriate factor.
@@ -355,110 +242,18 @@ for ii=1:numel(PDE_out.free)
         varnames_kk = unique([eq_kk.vars.varname;Cik.varname]);
         varnames_ii = unique([vars_ii.varname;varnames_kk]);
         vars_ii = polynomial(varnames_ii);
-        % vars_kk = addvars(eq_kk.vars,Cik);
-        % vars_ii = [vars_ii;vars_kk];
-        % vars_ii = polynomial(vars_ii.varname); % remove duplicate variables.
     end
 
     % Set the variables on which the output equation depends.
     PDE_out.free{ii}.vars = vars_ii;
 end
 
-% for ii=1:numel(PDE_out.free)
-% 
-%     % Check that the size of the coefficients is appropriate.
-%     if all(size(C)==1)
-%         % C is scalar-values --> adjust to appropriate size.
-%         Cik = C*eye(PDE_in.free{ii}.size);
-%     elseif size(C,2)~=PDE_in.free{ii}.size
-%         error("Column dimension of the factor should match row dimension of PDE object.")   
-%     else
-%         Cik = C;
-%     end
-%     PDE_out.free{ii}.size = size(Cik,1);
-% 
-%     % % Set the new variables of the equation.
-%     %PDE_out.free{1}.vars = addvars(PDE_in.free{1}.vars,C);
-% 
-% 
-%     % For multiplication with 0, just get rid of all the terms
-%     if all(all(isequal(Cik,0)))
-%         PDE_out.free{ii}.term = {};
-%         continue
-%     end
-%     % % Otherwise, loop over all terms, multiplying the coefficients with C
-%     for jj=1:numel(PDE_in.free{ii}.term)
-%         % Check first if the term corresponds to an output object, or a
-%         % temporal derivative of a state.
-%         if is_LHS_term(PDE_in.free{ii}.term{jj})
-%             % The term corresponds to a temporal derivative of a state, or to
-%             % an output signal. Only multiplication with +1 or -1 is supported.
-%             if isdouble(Cik) && isequal(double(Cik),eye(size(Cik,2)))
-%                 PDE_out.free{ii}.term{jj}.C = 1;
-%             elseif isdouble(Cik) && isequal(double(Cik),-eye(size(Cik,2)))
-%                 PDE_out.free{ii}.term{jj}.C = -1;
-%             else
-%                 error("Multiplication with output signals or temporal derivatives of state variables is not supported.")
-%             end
-%             continue
-%         end
-%         PDE_out.free{ii}.term{jj}.C = Cik*PDE_in.free{ii}.term{jj}.C;
-%         %PDE_out.free{1}.term{jj}.vars = addvars(PDE_in.free{1}.term{jj}.vars,C);
-%         %PDE_out.free{1}.term{jj}.vars = addvars(PDE_in.free{1}.term{jj}.vars,C);
-%     end
-%     % Keep track of which variables the equation depends on
-%     PDE_out.free{ii}.vars = addvars(PDE_in.free{ii}.vars,Cik);
-% 
-% end
-
-
-% % % Check that the number of columns in C matches the number of equations.
-% % Determine the number of equations.
-% RHS_size = 0;
-% for ii=1:numel(PDE_in.free)
-%     RHS_size = RHS_size + PDE_in.free.size;
-% end
-% 
-% if all(size(C)==1)
-%     % C is scalar-valued --> adjust to appropriate size
-%     C = C*eye(RHS_size);
-% elseif size(C,2)~=RHS_size && size(C,2)==numel(PDE_in.free)
-%     % Each column acts on one vector-sized equation --> adjust to
-%     % appropriate size
-%     if size(C,1)~=size(C,2)
-%         error('For multiplication with multiple terms, the cooefficient matrix should be diagonal')
-%     end
-% 
-% end
-
-
-
-
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-% function newvars = addvars(oldvars,C)
-% % Add variables that appear in polynomial object C to the list of variables
-% % oldvars.
-% 
-% if isdouble(C)
-%     % C introduces no new variables.
-%     newvars = oldvars;
-% else
-%     % Combine spatial variabels of the PDE variable and the factor C
-%     % Has to be done somewhat akwardly, as the polynomial structure
-%     % rearranges the variables alphabetically
-%     nvars = size(oldvars,1);
-%     vnames = cell(nvars+length(C.varname),1);
-%     for jj=1:nvars
-%         vnames{jj} = oldvars(jj,1).varname{1};
-%     end
-%     vnames(nvars+1:end) = C.varname;
-%     vnames = unique(vnames,'stable');
-%     newvars = polynomial(vnames);
-% end
-% 
-% end
 
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function P_cell = mat2cell_poly(P,nr_list,nc_list)
 % Function mat2cell for 'polynomial' classs objects.
 %
