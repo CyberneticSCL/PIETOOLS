@@ -48,6 +48,7 @@ function PDE_out = eq(LHS,RHS)
 %                   0 to match that of x;
 % DJ, 02/17/2026: Add support for nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Name the variables in the error for mismatched variables;
 
 % % % Process the inputs
 
@@ -179,8 +180,9 @@ for ii=1:numel(RHS.free)
         end
         % Check that the variables appearing in the terms make sense for
         % the object.
-        if any(~ismember(RHS.free{ii}.vars.varname,PDE_out.(obj){eq_num}.vars.varname))
-            error("The equation cannot be set: the left-hand side and right-hand side depend on different spatial variables.")
+        vnames_extra = setdiff(RHS.free{ii}.vars.varname,PDE_out.(obj){eq_num}.vars.varname);
+        if ~isempty(vnames_extra)
+            error("The equation cannot be set: the right-hand side depends on the variable(s) %s, on which the left-hand side does not depend. Integrate over these variables, or evaluate at a boundary.",strjoin(vnames_extra,', ')) % DJ, 11/23/2026
         end
 
         % For state variables, include the order of the temporal

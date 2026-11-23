@@ -13,6 +13,9 @@ function PDE_out = uminus(PDE_in)
 %               terms as the input, but now with all coefficients
 %               sign-swapped.
 %
+% NOTES
+% - Equations are returned unchanged, as -(L==R) is the equation L==R.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2026 PIETOOLS Team
 %
@@ -42,6 +45,8 @@ function PDE_out = uminus(PDE_in)
 %                   single free term, see also update to "pde_var";
 % DJ, 02/17/2026: Allow for nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Negate only free terms, not the right-hand side of an
+%                   equation;
 
 % % Process the input.
 % Check that the input is indeed of suitable type.
@@ -49,10 +54,12 @@ if ~isa(PDE_in,'pde_struct')
     error("This function should only be called for 'pde_struct'-type objects...")
 end
 
-% % Change the sign of all the coefficients of all the terms in all of the
-% % equations of each equation type.
+% % Change the sign of all the coefficients of the free terms. An equation
+% % L==R is returned unchanged: -L==-R is the same equation, whereas its
+% % left-hand side is not stored as a term, so that negating the terms
+% % would give L==-R.
 PDE_out = PDE_in;
-eq_types = {'free';'x';'y';'z'};
+eq_types = {'free'};                                                        % DJ, 11/23/2026
 for kk=1:numel(eq_types)
     eq_type = eq_types{kk};
     for ii=1:numel(PDE_out.(eq_type))

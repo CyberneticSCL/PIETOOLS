@@ -15,6 +15,11 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 %               new set of free terms (collected in PDE_out.free)
 %               corresponding to the sum of the terms in PDE_1 and PDE_2;
 %
+% NOTES
+% - Terms added before an equation go to its left-hand side, terms added
+%   after it to its right-hand side: s*x+(x_t==x) is x_t = x-s*x, whereas
+%   (x_t==x)+s*x is x_t = x+s*x.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2024  PIETOOLS Team
 %
@@ -45,6 +50,7 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 %                   Also account for added "is_zero" field;
 % DJ, 01/04/2025: Bugfix for empty terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Return the sum for terms plus an equation;
 
 
 % % % Process the inputs
@@ -94,6 +100,7 @@ elseif ~is_pde_term(PDE_2)
     % Trying to add terms on left-hand side of PDE
     % --> move to right-hand side
     PDE_out = plus(PDE_2,-1*PDE_1);
+    return                                                                  % DJ, 11/23/2026
 end
 
 % % Determine what type of objects we can extract from PDE_1

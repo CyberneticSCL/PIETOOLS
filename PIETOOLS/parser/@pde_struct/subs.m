@@ -53,6 +53,8 @@ function PDE_out = subs(PDE_in,vars,locs)
 % DJ, 02/18/2026: Add support for substitution of nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/22/2026: Replace substituted variables in vars; fix limits check;
+% DJ, 11/23/2026: Reject time advances; remove a term whose integral gets
+%                   equal limits;
 
 
 % % % Process the inputs
@@ -114,8 +116,9 @@ locs = polynomial(locs);
 is_fixed_loc = true(nvars,1);       % Keep track of which variables are replaced with an actual position.
 for kk=1:nvars
     if is_t_subs(kk)                                                        % DJ, 12/16/2024
-        if ~isa(locs(kk),'polynomial') || isdouble(locs(kk)) || ~isdouble(pvar('t')-locs(kk))
-            error("Temporal delay should be specified as 'subs(x,t,t-a)' for positive scalar a.")
+        if ~isa(locs(kk),'polynomial') || isdouble(locs(kk)) || ~isdouble(pvar('t')-locs(kk)) ||...
+                double(pvar('t')-locs(kk))<0                                % DJ, 11/23/2026
+            error("Temporal delay should be specified as 'subs(x,t,t-a)' for scalar a>=0; an advance subs(x,t,t+a) is not supported.")
         else
             % Store the value of the delay in locs
             locs(kk) = pvar('t')-locs(kk);
@@ -207,6 +210,11 @@ for ii=1:numel(PDE_out.free)
                     if isfield(fctr_jj,'I') && numel(fctr_jj.I)>=var_idx 
                         if ~isempty(fctr_jj.I{var_idx}) && isa(fctr_jj.I{var_idx},'polynomial') % DJ, 11/22/2026
                             fctr_jj.I{var_idx} = subs(fctr_jj.I{var_idx},vars(ll),locs(ll));
+                            % An integral over [c,c] is zero
+                            if isequal(fctr_jj.I{var_idx}(1),fctr_jj.I{var_idx}(2))
+                                rm_term = true;                             % DJ, 11/23/2026
+                                break
+                            end
                         end
                     end
                 end

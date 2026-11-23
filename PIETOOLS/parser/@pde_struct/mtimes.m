@@ -48,10 +48,21 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 02/18/2026: Prohibit matrix-multiplication with nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/22/2026: Add multiplication with 'sopvar' and 'copvar' objects;
+% DJ, 11/23/2026: Support matrix coefficients of nonlinear terms (the entry
+%                   of 02/18/2026 no longer applies) and x*c for scalar c;
 
 % % % Process the inputs
 
 % % Check that the second input makes sense.
+% Right-multiplication with a scalar, as in x*2 or x*s, is multiplication
+% from the left.
+if isa(C,'pde_struct') && (isa(PDE_in,'double') || isa(PDE_in,'polynomial'))
+    if ~isequal(size(PDE_in),[1,1])
+        error("Right-multiplication of a PDE term is only supported with a scalar; write C*x for a matrix C.")
+    end
+    PDE_out = mtimes(PDE_in,C);                                             % DJ, 11/23/2026
+    return
+end
 % Make sure the input is a pde_struct object.
 if ~isa(PDE_in,'pde_struct')
     error("The second factor in the product should correspond to a single term in the PDE.")
@@ -222,12 +233,29 @@ for ii=1:numel(PDE_out.free)
             else
                 % Add a standard term, with coefficients multiplied with
                 % Cik;
-                if numel(eq_kk.term{jj})>1 && ~isscalar(Cik)                % DJ, 02/18/2026
-                    % Multiplication of coefficient with nonlinear term
-                    % only works for scalar coefficient
-                    if any(any(~isequal(Cik-Cik(1,1)*eye(size(Cik,1)),0)))
-                        error("Matrix multiplication of coefficient with nonlinear term is not supported.")
+                trm = eq_kk.term{jj};
+                if numel(trm)>1 && any(any(~isequal(Cik-Cik(1,1)*eye(size(Cik)),0)))
+                    % A matrix M=Cik times a nonlinear term, the elementwise
+                    % product of factors C_k*x_k, is a sum over the columns
+                    % j of M of the terms M(:,j)*prod_k C_k(j,:)*x_k, with
+                    % factors M(:,j)*C_1(j,:)*x_1 and ones*C_k(j,:)*x_k.
+                    for j=find(any(~isequal(Cik,0),1))
+                        trm_j = trm;
+                        for f=1:numel(trm)
+                            Cf = polynomial(eye(size(Cik,2)));
+                            if isfield(trm,'C') && ~isempty(trm(f).C)
+                                Cf = polynomial(trm(f).C);
+                            end
+                            if f==1
+                                trm_j(f).C = Cik(:,j)*Cf(j,:);              % DJ, 11/23/2026
+                            else
+                                trm_j(f).C = ones(size(Cik,1),1)*Cf(j,:);
+                            end
+                        end
+                        PDE_out.free{ii}.term{term_num} = trm_j;
+                        term_num = term_num+1;
                     end
+                    continue
                 end
                 if isfield(eq_kk.term{jj},'C')
                     PDE_out.free{ii}.term{term_num}(1).C = Cik*eq_kk.term{jj}(1).C;

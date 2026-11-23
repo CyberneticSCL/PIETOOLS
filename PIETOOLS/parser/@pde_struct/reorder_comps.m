@@ -67,6 +67,7 @@ function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 % Initial coding DJ - 08/09/2022
 % DJ, 02/21/2026: Allow for nonlinear terms, also reordering the factors
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Update PDE.constraint_ID to the new IDs of the outputs;
 %
 
 % % % Check the input arguments
@@ -101,6 +102,12 @@ end
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
+% Outputs that are static constraints 0=E(s), listed by ID in
+% PDE.constraint_ID; the list must follow the new IDs.
+is_con = [];
+if strcmp(obj,'z') && isa(PDE,'pde_struct') && ~isempty(PDE.constraint_ID)
+    is_con = cellfun(@(zi) ismember(zi.ID,PDE.constraint_ID),PDE.z);        % DJ, 11/23/2026
+end
 % If there is no reordering to be done, just replace the ID with 1 and
 % return.
 if numel(PDE.(obj))==0
@@ -115,6 +122,9 @@ elseif isscalar(PDE.(obj))
     % Replace the ID of the object accordingly
     if isfield(PDE.(obj){1},'ID')
         PDE.(obj){1}.ID = 1;
+    end
+    if ~isempty(is_con)
+        PDE.constraint_ID = find(is_con);                                   % DJ, 11/23/2026
     end
     % All fields of the returned PDE should still be appropriately specified.
     PDE.is_initialized = true;
@@ -190,6 +200,10 @@ comp_order = old2new_idcs;
 old_IDs = obj_tab_new(:,1);
 % Re-arrange the equations to match the new order.
 PDE.(obj) = PDE.(obj)(old2new_idcs);
+% The static constraints, by their new IDs (positions) set below
+if ~isempty(is_con)
+    PDE.constraint_ID = reshape(find(is_con(old2new_idcs)),1,[]);           % DJ, 11/23/2026
+end
 % Assign new indices 1:ncomps to the components.
 obj_tab_new(:,1) = 1:size(obj_tab_new,1);
 PDE.([obj,'_tab']) = obj_tab_new;
