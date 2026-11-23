@@ -1,7 +1,8 @@
 function results = test_parser_edge_cases(groups)
 % TEST_PARSER_EDGE_CASES Edge cases of the PDE parser and of the PIE
-% structures: int, mtimes, plus/minus, subs, diff, delays, outputs, BCs,
-% constraints and inputs, concatenation of PIEs, and comparison of PIEs.
+% structures: integrals, products, sums and differences, substitution,
+% derivatives, delays, outputs, BCs, constraints and inputs, concatenation
+% of PIEs, and comparison of PIEs.
 %
 % Each 'eq' case declares the same system in two independent ways and
 % checks that the converted PIEs are equal; for nonlinear PIEs, for which
@@ -17,11 +18,12 @@ function results = test_parser_edge_cases(groups)
 %         results = test_parser_edge_cases({'I','S'});
 %
 % INPUT
-% - groups: (optional) cellstr, the groups of cases to run, from 'I' (int),
-%           'M' (mtimes), 'P' (plus/minus), 'S' (subs), 'D' (diff),
-%           'E' (delays), 'B' (outputs, BCs, constraints, inputs),
-%           'C' (concatenation, piess), 'N' (npie_struct eq); all by
-%           default;
+% - groups: (optional) cellstr, the groups of cases to run, from 'I'
+%           (integrals), 'M' (products), 'P' (sums and differences), 'S'
+%           (substitution), 'D' (derivatives), 'E' (delays), 'B' (outputs,
+%           BCs, constraints, inputs), 'C' (concatenation of PIEs, PIEs
+%           built from operators), 'N' (comparison of nonlinear PIEs); all
+%           by default;
 %
 % OUTPUT
 % - results: 'struct' array with fields name, passed and message, one
@@ -631,8 +633,9 @@ end
 end
 
 function r = case_C1()
-% R = CASE_C1() checks horzcat, vertcat and piess for a PIE whose
-% variables are not in alphabetical order (state on zz, input on aa).
+% R = CASE_C1() checks horizontal and vertical concatenation, and the PIE
+% built from the operators, for a PIE whose variables are not in
+% alphabetical order (state on zz, input on aa).
 % OUTPUT
 % - r:      'struct', the result.
 pvar t zz aa
@@ -709,7 +712,8 @@ end
 end
 
 function r = case_N3()
-% R = CASE_N3() checks npie_struct(P)==N, as in case N2, for a 2D PDE.
+% R = CASE_N3() checks, as case N2, the two 'npie_struct' objects of a 2D
+% PDE.
 % OUTPUT
 % - r:      'struct', the result.
 pvar t s1 s2

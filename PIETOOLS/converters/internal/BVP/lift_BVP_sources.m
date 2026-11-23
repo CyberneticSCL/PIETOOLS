@@ -38,6 +38,13 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 % - A term of a state is of lower dimension if the variables of another
 %   state in the BC strictly contain its variables. Integrals or delays
 %   of such a term are not supported.
+% - A term of a state on the same variables as another state in the BC,
+%   and free in the same variables, is lifted too if its orders in these
+%   variables are at least those of the other state, and higher in one.
+%   E.g. x3(1,s2)=x1(-1,s2) for the history state x3(s1,s2) (orders
+%   (1,0)) of the delayed trace x1(t-tau,-1,s2) of x1 (orders (2,2)):
+%   compose_Tmaps cannot couple states of different orders in another
+%   direction, and the trace is the data of the BC of x3.
 % - A term that fixes several variables of its state (a corner value, or
 %   an integral over the full domain in several variables) cannot be a
 %   condition along a single direction, so it is lifted
@@ -81,7 +88,7 @@ function [PDE_out,src] = lift_BVP_sources(PDE)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ (CC), 11/02/2026: Initial coding;
+% DJ, 11/02/2026: Initial coding;
 
 N = size(PDE.vars,1);
 nw = numel(PDE.w);
@@ -140,8 +147,15 @@ for k=1:numel(BC)
     % Lower dimension: the variables are strictly contained in those of
     % another state in the BC that can be constrained by it
     is_lower = false(nst,1);
+    D_states = PDE.x_tab(cellfun(@(term) term.x,terms(state_terms)),2+N+(1:N));
     for ii=1:nst
         is_lower(ii) = is_multi(ii) || any(all(isvar_states(~is_multi,:)>=isvar_states(ii,:),2) & any(isvar_states(~is_multi,:)>isvar_states(ii,:),2));
+        % Or the same variables and free variables as another state term,
+        % with orders in the free variables >= those of that state, > in
+        % one: the trace is BC data of that state (see NOTES)
+        D_free = D_states.*free_states(ii,:);
+        same = ~is_multi & all(isvar_states==isvar_states(ii,:),2) & all(free_states==free_states(ii,:),2);
+        is_lower(ii) = is_lower(ii) || any(same & all(D_free(ii,:)>=D_free,2) & any(D_free(ii,:)>D_free,2));
     end
     % The first of the other terms is that of the constrained state
     ii_main = find(~is_lower,1);

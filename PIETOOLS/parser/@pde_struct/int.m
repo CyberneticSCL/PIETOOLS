@@ -32,6 +32,12 @@ function PDE_out = int(PDE_in,vars,L,U)
 %   integral: s*int(x,s,[0,1]) is s times the integral of x over [0,1].
 %   For a full integral of an input, a coefficient depending on s is read
 %   as outside the integral if the equation depends on s.
+% - A partial integral over [a,s] or [s,b] can be integrated with respect
+%   to s over [a,b], [a,s] or [s,b], e.g. int(int(x,s,[a,s]),s,[a,b]) =
+%   int((b-s)*x,s,[a,b]). Limits on opposite sides, as in
+%   int(int(x,s,[a,s]),s,[s,b]), give two terms, on [a,s] and on [s,b].
+% - Reversed limits [s,a], [b,s] or [b,a], for s in [a,b], give the
+%   integral over [a,s], [s,b] or [a,b] with negated coefficients.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,6 +72,8 @@ function PDE_out = int(PDE_in,vars,L,U)
 % DJ, 11/22/2026: Use a dummy variable for full integrals too, so C is the
 %                   kernel; update vars for integration variables and limits;
 % DJ, 11/22/2026: Allow domains [a,s,b] (nx3, or cell) that keep s in vars;
+% DJ, 11/23/2026: Allow integration of a partial integral over its variable
+%                   limit, and reversed limits, one variable at a time;
 
 
 % % % Process the inputs
@@ -178,7 +186,43 @@ for kk=1:nvars
 end
 % Also check no integration is performed of temporal variable.
 if ismember('t',vars.varname)
-    error("Temporal delay is currently not supported.")
+    error("Integration with respect to the temporal variable t is not supported.")
+end
+% Integrate with respect to one variable at a time, so that a term that is
+% split in two (see below) is also integrated with respect to the others.
+if nvars>1
+    PDE_out = PDE_in;
+    for kk=1:nvars
+        dom_kk = [L(kk),U(kk)];
+        if is_keep_var(kk)
+            dom_kk = [L(kk),vars(kk),U(kk)];
+        end
+        PDE_out = int(PDE_out,vars(kk),dom_kk);                             % DJ, 11/23/2026
+    end
+    return
+end
+% Reversed limits [s,a], [b,s] or [b,a], for s in [a,b], give the integral
+% over [a,s], [s,b] or [a,b] with negated coefficients. The domain [a,b]
+% is that of the components depending on s; without any, the limits of the
+% integral of the coefficients may stay reversed.
+dom_s = zeros(0,2);
+for obj_type = {'x','w','u'}
+    for kk=1:numel(PDE_in.(obj_type{1}))
+        comp = PDE_in.(obj_type{1}){kk};
+        if isfield(comp,'vars') && isfield(comp,'dom') && ~isempty(comp.vars)
+            is_s = arrayfun(@(r) strcmp(comp.vars(r,1).varname{1},vars.varname{1}),1:size(comp.vars,1));
+            dom_s = [dom_s; comp.dom(is_s,:)];                              %#ok<AGROW>
+        end
+    end
+end
+if isdouble(L) && isdouble(U)
+    is_rev = double(L)>double(U);
+else
+    is_rev = is_lim_var && ~isempty(dom_s) && ((isdouble(U) && double(U)==dom_s(1,1)) ||...
+                (isdouble(L) && double(L)==dom_s(1,2)));
+end
+if is_rev
+    [L,U] = deal(U,L);                                                      % DJ, 11/23/2026
 end
 
 % % % Perform the actual integration.
@@ -190,6 +234,7 @@ for ii=1:numel(PDE_out.free)
         % If there are no terms, there is nothing to be done.
         continue
     end
+    new_terms = {};
     for jj=1:numel(PDE_out.free{ii}.term)
         term_jj = PDE_out.free{ii}.term{jj};
         % First, check the term does not correspond to a left-hand side
@@ -258,8 +303,63 @@ for ii=1:numel(PDE_out.free)
                 end
             else
                 % The term does not depend on the specified variable
-                % --> only coefficients need to be integrated.
-                if isfield(term_jj,'C')
+                % --> only coefficients need to be integrated, unless the
+                % variable is a limit of an integral in the term, as in
+                % int(int(x,s,[a,s]),s,[a,b]). Then swap the order of
+                % integration: with th the dummy variable of the term,
+                %   int_a^b int_a^s C(s,th)x(th) dth ds
+                %       = int_a^b [int_th^b C(r,th) dr] x(th) dth,
+                %   int_a^b int_s^b C(s,th)x(th) dth ds
+                %       = int_a^b [int_a^th C(r,th) dr] x(th) dth,
+                % and similarly with outer limits [a,s] or [s,b]. Limits on
+                % opposite sides split the term in two:
+                %   int_s^b int_a^s C(s,th)x(th) dth ds
+                %       = int_a^s [int_s^b C(r,th) dr] x(th) dth
+                %           + int_s^b [int_th^b C(r,th) dr] x(th) dth,
+                %   int_a^s int_s^b C(s,th)x(th) dth ds
+                %       = int_a^s [int_a^th C(r,th) dr] x(th) dth
+                %           + int_s^b [int_a^s C(r,th) dr] x(th) dth.
+                is_lim = cellfun(@(I) ismember(vars(ll).varname{1},...
+                            polynomial(I).varname),term_jj.I);
+                k_lim = find(is_lim,1);                                     % DJ, 11/23/2026
+                if ~isempty(k_lim)
+                    I_k = polynomial(term_jj.I{k_lim});
+                    th = polynomial(term_jj.loc(k_lim));
+                    % A variable outer limit must be s itself
+                    lim_ok = (isdouble(L(ll)) && isdouble(U(ll))) || is_lim_var(ll);
+                    % Domain I_new{q} of the q-th term, and limits r_lims{q}
+                    % of the integral over r of its coefficients
+                    if isdouble(I_k(1)) && isdouble(L(ll)) && double(L(ll))==double(I_k(1)) && lim_ok
+                        % Inner [a,s], outer [a,b] or [a,s]
+                        I_new = {[I_k(1),U(ll)]};       r_lims = {[th,U(ll)]};
+                    elseif isdouble(I_k(1)) && ~isdouble(L(ll)) && lim_ok
+                        % Inner [a,s], outer [s,b]
+                        I_new = {I_k,[L(ll),U(ll)]};    r_lims = {[L(ll),U(ll)],[th,U(ll)]};
+                    elseif isdouble(I_k(2)) && isdouble(U(ll)) && double(U(ll))==double(I_k(2)) && lim_ok
+                        % Inner [s,b], outer [a,b] or [s,b]
+                        I_new = {[L(ll),I_k(2)]};       r_lims = {[L(ll),th]};
+                    elseif isdouble(I_k(2)) && ~isdouble(U(ll)) && lim_ok
+                        % Inner [s,b], outer [a,s]
+                        I_new = {[L(ll),U(ll)],I_k};    r_lims = {[L(ll),th],[L(ll),U(ll)]};
+                    else
+                        error("Integrating a partial integral over [a,s] or [s,b] with respect to s is only supported over [a,b], [a,s] or [s,b].")
+                    end
+                    % Rename s to r in the coefficients, and integrate
+                    r = polynomial({[vars(ll).varname{1},'_r']});
+                    C = polynomial(1);
+                    if isfield(term_jj,'C')
+                        C = polynomial(term_jj.C);
+                    end
+                    C = subs(C,vars(ll),r);
+                    terms_q = cell(1,numel(I_new));
+                    for q=1:numel(I_new)
+                        terms_q{q} = term_jj;
+                        terms_q{q}.C = int(C,r,r_lims{q}(1),r_lims{q}(2));  % DJ, 11/23/2026
+                        terms_q{q}.I{k_lim} = I_new{q};                     % DJ, 11/23/2026
+                    end
+                    term_jj = terms_q{1};
+                    new_terms = [new_terms,terms_q(2:end)];                 % DJ, 11/23/2026
+                elseif isfield(term_jj,'C')
                     term_jj.C = int(term_jj.C,vars(ll),L(ll),U(ll));
                 else
                     term_jj.C = polynomial(U(ll)-L(ll));
@@ -268,6 +368,19 @@ for ii=1:numel(PDE_out.free)
         end
         % Update the term in the PDE.
         PDE_out.free{ii}.term{jj} = term_jj;
+    end
+    % Terms split off when swapping the order of integration
+    PDE_out.free{ii}.term = [PDE_out.free{ii}.term, new_terms];             % DJ, 11/23/2026
+    % Reversed limits: negate the coefficients of all terms
+    if is_rev
+        for jj=1:numel(PDE_out.free{ii}.term)
+            if isfield(PDE_out.free{ii}.term{jj},'C')
+                C_jj = -polynomial(PDE_out.free{ii}.term{jj}.C);            % DJ, 11/23/2026
+            else
+                C_jj = polynomial(-1);
+            end
+            PDE_out.free{ii}.term{jj}.C = C_jj;
+        end
     end
     % Update the list of variables on which the equation depends.
     if isfield(PDE_out.free{ii},'vars')

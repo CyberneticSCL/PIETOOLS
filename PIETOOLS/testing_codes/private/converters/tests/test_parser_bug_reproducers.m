@@ -3,16 +3,16 @@ function results = test_parser_bug_reproducers()
 % structures, each checked against an independently declared reference
 % rather than against the routine itself:
 %   1. an integral over the variable that is the limit of an inner
-%      integral (int);
-%   2. reordering outputs that hold a static constraint (reorder_comps);
-%   3. a map pde2pie.x.C with blocks outside the diagonal
-%      (expand_tderivatives of a 'pie_struct');
-%   4. terms added to an equation (plus);
-%   5. a matrix times a nonlinear term (mtimes);
+%      integral;
+%   2. reordering outputs that hold a static constraint;
+%   3. expansion of higher-order temporal derivatives of a 'pie_struct'
+%      with a map pde2pie.x.C with blocks outside the diagonal;
+%   4. terms added to an equation;
+%   5. a matrix times a nonlinear term;
 %   6. a delayed boundary trace of a 2D state, fixed and distributed
-%      delays (expand_delays);
-%   7. horzcat, vertcat and piess of a PIE with an input on its own
-%      variable;
+%      delays;
+%   7. concatenation of a PIE with an input on its own variable, and the
+%      PIE built from its operators;
 %   8. == of an 'npie_struct' and of the 'npie_struct' of a 'pie_struct'.
 %
 % Run as: results = test_parser_bug_reproducers;
@@ -99,7 +99,7 @@ assert(cv([diff(X,t)==-X+T; base])==cv([diff(X,t)==-X+int((1-s)*x,s,[0,1]); base
 end
 
 function case2_reorder_constraint()
-% reorder_comps of the outputs keeps the static constraint 0 = x1_s + x2
+% Reordering the outputs keeps the static constraint 0 = x1_s + x2
 % flagged, also when it moves, and when it is the only output.
 pvar s1 t
 % The reproducer: the constraint keeps its position
@@ -135,7 +135,8 @@ assert(isequal(Q2.constraint_ID,1) && cv(Q2)==cv(Q),'A single constraint output 
 end
 
 function case3_offdiagonal_map()
-% pie_struct/expand_tderivatives rejects a map pde2pie.x.C with blocks
+% Expansion of higher-order temporal derivatives of a 'pie_struct' rejects
+% a map pde2pie.x.C with blocks
 % outside the diagonal, and still expands a wave equation.
 pvar s t
 clear('stateNameGenerator');
@@ -210,7 +211,7 @@ end
 function case6_delayed_trace()
 % Delayed terms, fixed and distributed, of 1D states and of boundary traces
 % of 2D states, with and without integral: the PDE converts, and the term
-% after expand_delays is the history state at the delay, integrated over
+% after expansion of the delays is the history state at the delay, integrated over
 % the full domain of the other variable(s) where the PDE integrates.
 for distributed = [false true]
     for k = 1:5
@@ -284,7 +285,8 @@ end
 end
 
 function case7_concatenation()
-% [PIE,PIE], [PIE;PIE] and piess for an ODE with an input w(s): the input
+% [PIE,PIE], [PIE;PIE] and the PIE built from the operators, for an ODE
+% with an input w(s): the input
 % depends on a variable on which no state depends.
 pvar s t
 clear('stateNameGenerator');
@@ -298,7 +300,8 @@ assert(piess(PIE.T,PIE.A,PIE.Bw,PIE.Cz,PIE.Dzw)==PIE,'piess of the operators dif
 end
 
 function case8_npie_eq()
-% npie_struct(P)==N for the PIE of a linear PDE converted both ways; a
+% The 'npie_struct' of the 'pie_struct' of a linear PDE equals the
+% 'npie_struct' converted directly; a
 % different PIE is not equal.
 pvar s t
 clear('stateNameGenerator');
