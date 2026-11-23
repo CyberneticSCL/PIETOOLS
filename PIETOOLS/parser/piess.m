@@ -121,6 +121,7 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %                   the operators of a pie_struct. The construction from
 %                   'opvar' and 'opvar2d' operators moved to piess_opvar;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Pass the variables of all copvar operators to the PIE;
 
 
 % % % Process the inputs
@@ -366,6 +367,9 @@ PIE = pie_struct();
 for k = 1:numel(Pops)
     PIE.(fnames{k}) = Pops{k};
 end
+% The variables of all operators, as an input or output may depend on a
+% variable on which no state component depends
+PIE.space.vars = meta.vars;     PIE.space.dom = meta.dom;                   % DJ, 11/23/2026
 PIE = initialize(PIE);
 % % % END construction from copvar operators, DJ (CC), 10/30/2026
 

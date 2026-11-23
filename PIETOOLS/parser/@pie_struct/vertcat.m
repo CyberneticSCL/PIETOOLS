@@ -78,6 +78,7 @@ function PIE_cat = vertcat(varargin)
 %                   function spaces, and algebraic constraints K, Kw, and
 %                   Ku);
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Keep the spatial variables and domain of the PIEs;
 
 % Extract the inputs
 if nargin==1
@@ -151,6 +152,8 @@ for type = {'x','z','y'}                                                    % DJ
 end
 PIE_cat.space.w = PIE1.space.w;
 PIE_cat.space.u = PIE1.space.u;
+% The variables, in the order of the columns of the depmat fields
+PIE_cat.space.vars = PIE1.space.vars;   PIE_cat.space.dom = PIE1.space.dom; % DJ, 11/23/2026
 
 % Perform remaining concatenations.
 if nargin>2
