@@ -78,8 +78,10 @@ end
 if ~isequal(size(A),size(B))
     error("Matrix dimensions of each factor in the tensopvar objects must match.")
 end
-% Make sure the input and output variables match
-if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)
+% Make sure the input and output variables match; an empty list of
+% variables may be stored as {} or as cell(1,0)
+if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:)) ||...
+        ~isequal(A.dom,B.dom)
     error("Spatial variables and domains of operators must match.")
 end
 % Make sure the degrees in the input and output variables match

@@ -112,8 +112,10 @@ if any(is_nat_A(:)) || any(is_nat_B(:))
     [A,B] = common_vars(A,B);
     [A,B] = merge_out_spaces(A,B);
 end
-% Make sure the input and output variables match
-if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)
+% Make sure the input and output variables match; an empty list of
+% variables may be stored as {} or as cell(1,0)
+if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:)) ||...
+        ~isequal(A.dom,B.dom)
     error("Spatial variables and domains of operators must match.")
 end
 % Make sure the individual operators depend on the same variables
