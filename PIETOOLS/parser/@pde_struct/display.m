@@ -5,7 +5,8 @@ function display(PDE,name)
 %
 % INPUTS:
 % PDE:  A pde_struct class object, defining a PDE.
-% name: str, specifying the name of the PDE. (not currently used...)
+% name: char, the name of the variable, used in the hint "name.C{i,j}" on
+%       extracting coefficients; defaults to the name of the input.
 % 
 % OUTPUTS:
 % Command line display of PDE, as well as the output equations and BCs.
@@ -17,7 +18,7 @@ function display(PDE,name)
 % - Coefficient matrices term{j}.C will not be shown, unless they are a
 %   constant scalar value. If they are matrix-valued and/or polynomial, "C"
 %   will be used to denote the factor, to avoid the expression from getting
-%   too messy.
+%   too messy. A hint below the display gives the call that extracts it.
 % - Display is only possible for initialized PDEs, as the fields x_tab
 %   through BC_tab constructed in the initialization are used to
 %   establish variable dependence of the different states, inputs, and
@@ -55,17 +56,20 @@ function display(PDE,name)
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Pass the variable name, to name it in the hint on
+%                   extracting coefficients C_ij;
 
-% Name of the PDE (not printed)
+% Name of the PDE, used in the hint "name.C{i,j}"
 if nargin<2
     name = '';
 end
+if isempty(name),   name = inputname(1);    end                             % DJ, 11/23/2026
 
 % Full display of an initialized PDE, crude display otherwise
 if PDE.is_initialized
     display_PDE(PDE,name);
 else
-    display_PDE_crude(PDE);
+    display_PDE_crude(PDE,name);                                            % DJ, 11/23/2026
 % else
 %     try PDE = initialize(PDE,true);
 %         display_PDE(PDE,name);

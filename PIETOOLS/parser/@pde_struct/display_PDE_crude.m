@@ -1,5 +1,5 @@
-function [] = display_PDE_crude(PDE)
-% DISPLAY_PDE_CRUDE(PDE) displays the input PDE in the Command Window,
+function [] = display_PDE_crude(PDE,name)
+% DISPLAY_PDE_CRUDE(PDE,NAME) displays the input PDE in the Command Window,
 % giving a symbolic overview of the specified equations/terms using
 % UNICODE. This function is intended to display "unfinished"
 % (un-initialized) pde_struct objects.
@@ -7,6 +7,8 @@ function [] = display_PDE_crude(PDE)
 % INPUT
 % - PDE:    'pde_struct' object, representing a PDE to be displayed.
 %           Equations will be printed in the Command Window.
+% - name:   (optional) char, the name of the variable, used in the hint
+%           "name.C{i,j}" on extracting coefficients; 'PDE' by default.
 %
 % OUTPUT
 % - none; the equations (or free terms) are printed, one per line.
@@ -42,6 +44,8 @@ function [] = display_PDE_crude(PDE)
 %                   'varname2display', display the time derivative as d_t
 %                   unless 'use_unicode', and call coefficients C_ij;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Give the hint on extracting C_ij for coefficients in any
+%                   term or factor, as name.C{i,j} or name.C{i,j,k};
 
 % % % Declare some UNICODE char symbols to display temporal derivatives of
 % % % state components for the left-hand side of the equation. The names,
@@ -56,11 +60,15 @@ if ~use_unicode()
     sub_t = '_t';           % the subscript t is missing from many fonts
 end
 partial = char(8706);
+% Name of the variable in the hint on extracting coefficients
+if nargin<2 || isempty(name),   name = 'PDE';   end                         % DJ, 11/23/2026
 
 
 % % % Loop over all types of equations in the PDE, displaying them line by
 % % % line.
-use_C = false;
+% Whether coefficients C_ij (single factor) and C_ijk (factor k of a
+% product term) are displayed
+use_C = false(1,2);                                                         % DJ, 11/23/2026
 eq_types = {'free';'x';'y';'z';'BC'};
 % If free terms are available, assume there are actual full equations
 if numel(PDE.free)>0
@@ -172,14 +180,17 @@ for kk=1:numel(eq_types)
         else
             prod_str = '.*';
         end
-        % The factors of the first term joined by the product sign, and the
-        % sign of the term
-        [term_str,term_sign] = display_term(PDE,eq_struct.term{1}(1),C_idx,use_ID);
+        % The factors of the first term joined by the product sign, the
+        % sign of the term, and whether any factor uses C_ij
+        [term_str,term_sign,use_C1] = display_term(PDE,eq_struct.term{1}(1),C_idx,use_ID);    % DJ, 11/23/2026
         for k=2:numel(eq_struct.term{1})
-            [term_str_k,term_sign_k] = display_term(PDE,eq_struct.term{1}(k),[ii+n_eqs_tot,1,k],use_ID);
+            [term_str_k,term_sign_k,use_Ck] = display_term(PDE,eq_struct.term{1}(k),[ii+n_eqs_tot,1,k],use_ID);
             term_sign = term_sign*term_sign_k;
             term_str = [term_str,prod_str,term_str_k];
+            use_C1 = use_C1 || use_Ck;                                      % DJ, 11/23/2026
         end
+        % C_idx has 2 indices (C_ij) or 3 (C_ijk)
+        use_C(numel(C_idx)-1) = use_C(numel(C_idx)-1) || use_C1;            % DJ, 11/23/2026
         if term_sign==-1
             fprintf(['- ',term_str]);
         else
@@ -196,25 +207,30 @@ for kk=1:numel(eq_types)
             % The factors of term jj, its sign, and whether it uses C_ij
             [term_str,term_sign,use_Cjj] = display_term(PDE,eq_struct.term{jj}(1),C_idx,use_ID);
             for k=2:numel(eq_struct.term{jj})
-                [term_str_k,term_sign_k] = display_term(PDE,eq_struct.term{jj}(k),[ii+n_eqs_tot,jj,k],use_ID);
+                [term_str_k,term_sign_k,use_Ck] = display_term(PDE,eq_struct.term{jj}(k),[ii+n_eqs_tot,jj,k],use_ID);
                 term_sign = term_sign*term_sign_k;
                 term_str = [term_str,prod_str,term_str_k];
+                use_Cjj = use_Cjj || use_Ck;                                % DJ, 11/23/2026
             end
             if term_sign==-1
                 fprintf([' - ',term_str]);
             else
                 fprintf([' + ',term_str]);
             end
-            use_C = use_C || use_Cjj;
+            use_C(numel(C_idx)-1) = use_C(numel(C_idx)-1) || use_Cjj;       % DJ, 11/23/2026
         end
         fprintf(';');
     end
     n_eqs_tot = n_eqs_tot + numel(PDE.(eq_type));
 end
 
-% % Inform users on how to extract coefficients, if applicable.
-if use_C
-    fprintf(['\n\n Call "PDE.C{i,j}" to see the value of coefficients C',sub_i,sub_j,' as in the displayed equations.'])
+% % Inform users on how to extract coefficients, if applicable, with the
+% % calls for the numbers of indices displayed.
+if any(use_C)                                                               % DJ, 11/23/2026
+    [~,sub_k] = varname2display('k');
+    calls = {['"',name,'.C{i,j}"'],['"',name,'.C{i,j,k}"']};
+    coeffs = {['C',sub_i,sub_j],['C',sub_i,sub_j,sub_k]};
+    fprintf('\n\n Call %s to see the value of coefficients %s as displayed.',strjoin(calls(use_C),' or '),strjoin(coeffs(use_C),', '));
 end
 
 % % Add some empty lines.

@@ -5,7 +5,9 @@ function [] = display_PDE(PDE,name)
 % INPUTS:
 % PDE:  A struct or pde_struct class object, defining a PDE, or a 'sys'
 %       object holding one.
-% name: str, specifying the name of the PDE. (not currently used...)
+% name: char, the name of the variable, used in the hint "name.C{i,j}" on
+%       extracting coefficients; defaults to the name of the input, or
+%       'PDE' if the input is not a named pde_struct.
 % 
 % OUTPUTS:
 % Command line display of PDE, as well as the output equations and BCs.
@@ -58,6 +60,13 @@ function [] = display_PDE(PDE,name)
 %                   'use_unicode', and call coefficients C_ij, C_ijk;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: Do not display d/dt x = 0 for states without an equation;
+% DJ, 11/23/2026: Name the variable in the hint on extracting C_ij, and
+%                   give C{i,j,k} only if C_ijk is displayed;
+
+% Name of the variable in the hint "name.C{i,j}"; a struct or 'sys' input
+% has no field C to call
+if nargin<2 || isempty(name),   name = inputname(1);    end                 % DJ, 11/23/2026
+if isempty(name) || ~isa(PDE,'pde_struct'),     name = 'PDE';   end         % DJ, 11/23/2026
 
 % Initialize the system
 if isa(PDE,'sys')
@@ -158,8 +167,8 @@ var_list = [var1_list, var2_list, sub_var1_list, sub_var2_list, sup_var1_list, l
 
 % If the coefficients in the terms are too big, they will be displayed as
 % "C_{ij}" instead. We use "use_Cij" to keep track of whether or not this
-% is done at all.
-use_Cij = false;
+% is done at all, for C_ij (single factor) and C_ijk (product term).
+use_Cij = false(1,2);                                                       % DJ, 11/23/2026
 
 % % % Display the equations of each type, starting with state equations,
 % % % observed outputs, regulated outputs, and then BCs
@@ -271,12 +280,13 @@ for kk=1:numel(eq_types)
         for trm = 1:numel(LHS_comp.term)
             C_row_idx = eq_num_strt+eq_num;
             term_str = '';
+            i_C = 1 + ~isscalar(LHS_comp.term{trm});    % C_ij, or C_ijk    % DJ, 11/23/2026
             for fctr = 1:numel(LHS_comp.term{trm})
                 [term_str_ii,use_Cij_ii] = construct_term(PDE,LHS_comp,C_row_idx,eq_info,trm,fctr,var_list,tau_list);
-                use_Cij = use_Cij || use_Cij_ii;
+                use_Cij(i_C) = use_Cij(i_C) || use_Cij_ii;                  % DJ, 11/23/2026
                 term_str = [term_str,term_str_ii];
             end
-            use_Cij = use_Cij || use_Cij_ii;
+            % Deleted: repeat of the update above, for the last factor      % DJ, 11/23/2026
             eq_kk_new = [eq_kk, term_str];
             
             % If the size of the equation becomes too large, start a new line.
@@ -299,12 +309,11 @@ for kk=1:numel(eq_types)
 end
 
 
-if use_Cij
-    if PDE.is_nonlinear
-        fprintf(['\n Call "PDE.C{i,j,k}" to see the value of coefficients C',sub_i,sub_j,sub_k,' as in the displayed equations.\n'])
-    else
-        fprintf(['\n Call "PDE.C{i,j}" to see the value of coefficients C',sub_i,sub_j,' as in the displayed equations.\n'])
-    end
+% Calls for the numbers of indices displayed
+if any(use_Cij)                                                             % DJ, 11/23/2026
+    calls = {['"',name,'.C{i,j}"'],['"',name,'.C{i,j,k}"']};
+    coeffs = {['C',sub_i,sub_j],['C',sub_i,sub_j,sub_k]};
+    fprintf('\n Call %s to see the value of coefficients %s as in the displayed equations.\n',strjoin(calls(use_Cij),' or '),strjoin(coeffs(use_Cij),', '));
 end
 
 fprintf('\n')
