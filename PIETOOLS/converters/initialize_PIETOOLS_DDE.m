@@ -52,6 +52,10 @@ function DDE_out=initialize_PIETOOLS_DDE(DDE)
 % MMP, 5_30_2021; added new data structure and made script a function
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: the number of disturbances nw
 %   is also read off B1di; help and comments revised.
+% MMP, 11/24/2026: an empty tau is an error with a message; it was the
+%   error 'Unrecognized function or variable Ai' at the output, since the
+%   zero defaults of the cells loop over the delays. The DDE converters
+%   need a delay (minimize_PIETOOLS_DDE2DDF errors without one).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checking to make sure the delays are defined.
@@ -62,6 +66,11 @@ else
     tau=DDE.tau;
 end
 nK=length(tau);    % the specified number of delays
+% No delay: an error here (the zero defaults of the cells below loop over   % MMP, 11/24/2026
+% the delays, so Ai was undefined at the output)                            % MMP, 11/24/2026
+if nK==0                                                                    % MMP, 11/24/2026
+    error('The DDE has no delays (tau is empty). Define at least one delay.') % MMP, 11/24/2026
+end                                                                         % MMP, 11/24/2026
 
 for i=1:nK
     if tau(i)<0

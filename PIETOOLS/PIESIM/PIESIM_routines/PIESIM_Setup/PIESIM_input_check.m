@@ -91,6 +91,12 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 %   the single list uinput.ic, missing ones zero (default zero, was
 %   sinusoidal), extra ones dropped; inputs are checked and split into
 %   temporal and spatial parts; DDE and PIE sizes are read from field dim.
+% MMP, 11/24/2026: batch format: the number of ODE states is no, else nx,
+%   else the count the PDE converter takes from A, E, Bx, ... (the first
+%   given); both no and nx are set to it, and no and nx that differ are an
+%   error. PIESIM read only no, the converter only nx (or A, E, ...), so a
+%   model giving one and not the other failed on a size mismatch in the
+%   time integration.
 
 syms st sx sy;
 structure=varargin{1};
@@ -709,10 +715,12 @@ function [structure, uinput, opts, psize] = PIESIM_input_check_PDE_batch(varargi
 % -----------------------------------------------------------
 % INPUT: varargin = {PDE, uinput, opts}: the PDE 'struct' in batch format
 %   (fields n0, n1, n2, no, nw, nu, nb, nz, ny, missing ones 0; dom,
-%   default [-1,1]; optional Bw, B21_nonpol), uinput, opts.
-% OUTPUT: structure, the PDE with the defaults; uinput with a, b, ic, w,
-%   u (cells) and Bpw_nonpol; opts (N scalar, ifexact); psize with fields
-%   n = [n0 n1 n2], nu, nw, n0, nr0, no0, N, dim = 1.
+%   default [-1,1]; optional Bw, B21_nonpol), uinput, opts. The number of
+%   ODE states is no, else nx, else the size of A, E, Bx, ... (the first
+%   given), as in the PDE converter; no and nx given must agree.
+% OUTPUT: structure, the PDE with the defaults and nx = no; uinput with a,
+%   b, ic, w, u (cells) and Bpw_nonpol; opts (N scalar, ifexact); psize
+%   with fields n = [n0 n1 n2], nu, nw, n0, nr0, no0, N, dim = 1.
 
 syms st sx;
 structure=varargin{1};
@@ -746,10 +754,23 @@ psize.n=[PDE.n0 PDE.n1 PDE.n2];
 ns = PDE.n0+PDE.n1+PDE.n2;
 
 % Numbers of ODE states and inputs (default 0)
+% ODE states: no here, nx in the PDE converter, which without nx counts     % MMP, 11/24/2026
+% them by the first given of A, E, Bx (columns), E0, Ea, Eb, Ec, B11, B12   % MMP, 11/24/2026
+if ~isfield(PDE,'no') && isfield(PDE,'nx'),  PDE.no = PDE.nx;  end          % MMP, 11/24/2026
+f = {'A','E','Bx','E0','Ea','Eb','Ec','B11','B12'};                         % MMP, 11/24/2026
+k = find(isfield(PDE,f),1);                                                 % MMP, 11/24/2026
+if ~isfield(PDE,'no') && ~isempty(k)                                        % MMP, 11/24/2026
+    PDE.no = size(PDE.(f{k}),1+ismember(k,[2 3]));                          % MMP, 11/24/2026
+end                                                                         % MMP, 11/24/2026
 if ~isfield(PDE,'no')
     disp('Warning: number of ODE states is not defined. Defaulting to zero');
     PDE.no=0;
 end
+% One count for both; no and nx given must agree                            % MMP, 11/24/2026
+if isfield(PDE,'nx') && PDE.nx~=PDE.no                                      % MMP, 11/24/2026
+    error('PDE.no = %d and PDE.nx = %d give different numbers of ODE states.',PDE.no,PDE.nx); % MMP, 11/24/2026
+end                                                                         % MMP, 11/24/2026
+PDE.nx = PDE.no;                                                            % MMP, 11/24/2026
 if ~isfield(PDE,'nw')
     disp('Warning: number of disturbances is not defined. Defaulting to zero');
     PDE.nw=0;

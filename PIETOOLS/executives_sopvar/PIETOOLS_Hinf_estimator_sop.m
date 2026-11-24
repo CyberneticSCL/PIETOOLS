@@ -28,7 +28,8 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %             object; T, Tw, A, B1, C1, D11, C2 and D21 'copvar' objects (Tw
 %             may be absent), and K, Kw, Ku empty or without rows; its
 %             other operators are not used; in two or more variables, Tw
-%             and B1 not both nonzero;
+%             and B1 not both nonzero; C2 with at least one row (a sensed
+%             output), else an error;
 % - settings: (optional) 'struct' of LPI settings:
 %               lpi.pos   the storage row of P, in every dimension;
 %               lpi.var   field deg, a 1x3 'cell': deg{min(nv,3)} the
@@ -105,6 +106,10 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 % Initial coding MMP, 10/08/2026
 % DJ, 11/21/2026: Error for a PIE with an algebraic constraint (K, Kw, Ku
 %                with rows);
+% MMP, 11/24/2026: Error for a PIE without sensed output (C2 without rows):
+%                no estimation is possible; the LPI was built and solved,
+%                then the gain extraction failed ('Index exceeds array
+%                bounds'), and L was returned empty. Help: C2 needs a row.
 
 % Default settings and fixed gain; check the PIE
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -142,6 +147,10 @@ if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@
 end
 Bw = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
 Cy = PIE.C2;    Dyw = PIE.D21;
+% No sensed output y (C2 without rows): no estimation is possible           % MMP, 11/24/2026
+if size(Cy,1)==0                                                            % MMP, 11/24/2026
+    error('PIETOOLS_Hinf_estimator_sop:noOutput','The PIE has no sensed outputs (C2 has no rows); estimation is not possible.'); % MMP, 11/24/2026
+end                                                                         % MMP, 11/24/2026
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 Twm = [];   if ~Tw0,    Twm = PIE.Tw;    end
 

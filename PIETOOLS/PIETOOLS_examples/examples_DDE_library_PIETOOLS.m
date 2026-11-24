@@ -90,6 +90,14 @@
 %   lower-integral s-length 1 and the slack lift degree at its tier value,
 %   the smallest setting found that certifies both gain bounds under an
 %   acceptance that also bounds the residual of the solve.
+% MMP, 11/24/2026: random example generator: its kernels are polynomials in
+%   s1, the variable of the DDE converters since 12/07/2024 (s, which it
+%   used, was never declared: an error at the first kernel); rng(seed)
+%   before the size draws, which preceded it, so the sizes depended on the
+%   generator state at entry; nK = randi(maxn) (was randi(maxn+1)-1), since
+%   a DDE without delay is an error in the converters, and ny = randi(maxn)
+%   likewise, since the estimator the block calls (Hinf_estimator = 1)
+%   errors without a sensed output.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -702,6 +710,8 @@ st.lpi.ineq.dD = 0;                                                         % MM
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % seed='default';%234235;
 % maxn=3; pvar_deg=1;
+% % kernels in s1, the variable of the DDE converters                       % MMP, 11/24/2026
+% s = polynomial({'s1'});                                                   % MMP, 11/24/2026
 % stability=0;
 % stability_dual=0;
 % Hinf_gain=0;
@@ -710,9 +720,13 @@ st.lpi.ineq.dD = 0;                                                         % MM
 % Hinf_estimator=1;
 % 
 % %%%%%%%% Begin generating case
-% nK=randi(maxn+1)-1; nx =randi(maxn+1)-1; nw=randi(maxn+1)-1; nu=randi(maxn+1)-1; nz=randi(maxn+1)-1; ny=randi(maxn+1)-1;
+% % rng(seed) before the size draws, so the seed fixes the sizes too        % MMP, 11/24/2026
+% rng(seed)                                                                 % MMP, 11/24/2026
+% % nK=randi(maxn+1)-1; nx =randi(maxn+1)-1; nw=randi(maxn+1)-1; nu=randi(maxn+1)-1; nz=randi(maxn+1)-1; ny=randi(maxn+1)-1; % MMP, 11/24/2026 (was)
+% % nK, ny >= 1: the converters need a delay, the estimator an output       % MMP, 11/24/2026
+% nK=randi(maxn); nx =randi(maxn+1)-1; nw=randi(maxn+1)-1; nu=randi(maxn+1)-1; nz=randi(maxn+1)-1; ny=randi(maxn); % MMP, 11/24/2026
 % %nK=2; nx =2; nw=1; nu=2; nz=1; ny=2;
-% rng(seed)
+% % rng(seed)                                                               % MMP, 11/24/2026 (was)
 % DDE.tau=rand([1 nK]);
 % DDE.A0=rand([nx nx]);
 % DDE.B1=rand([nx nw]);

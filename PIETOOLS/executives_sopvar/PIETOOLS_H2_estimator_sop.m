@@ -28,7 +28,8 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %             B1, C1, C2 and D21 'copvar' objects; Tw and D11 zero or
 %             absent; K, Kw, Ku empty or without rows; its other
 %             operators are not used; a PIE in
-%             two or more variables is an error;
+%             two or more variables is an error; C2 with at least one row
+%             (a sensed output), else an error;
 % - settings: (optional) 'struct' of LPI settings:
 %               lpi.pos   the storage row of P;
 %               lpi.var   field deg, a 1x3 'cell': deg{1} the degrees of
@@ -94,6 +95,9 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % Initial coding MMP, 10/08/2026
 % DJ, 11/21/2026: Error for a PIE with an algebraic constraint (K, Kw, Ku
 %                with rows);
+% MMP, 11/24/2026: Error for a PIE without sensed output (C2 without rows):
+%                no estimation is possible; the LPI was solved and a bound
+%                returned with no gain. Help: C2 needs a row.
 
 % Default settings; check the PIE
 if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
@@ -128,6 +132,10 @@ if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@
 end
 Bw = PIE.B1;    Cz = PIE.C1;
 C2m = PIE.C2;   D21m = PIE.D21;
+% No sensed output y (C2 without rows): no estimation is possible           % MMP, 11/24/2026
+if size(C2m,1)==0                                                           % MMP, 11/24/2026
+    error('PIETOOLS_H2_estimator_sop:noOutput','The PIE has no sensed outputs (C2 has no rows); estimation is not possible.'); % MMP, 11/24/2026
+end                                                                         % MMP, 11/24/2026
 Iz = tl.ident(PIE.C1,1);
 
 % Build and solve, raising the slack degree while the solver returns
