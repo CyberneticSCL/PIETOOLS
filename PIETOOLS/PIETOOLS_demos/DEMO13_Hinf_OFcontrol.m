@@ -94,21 +94,16 @@ dom = PIE.dom;
 settings = lpisettings_sop('light');
 % margin on R, V: eppos on R^n (entry 1) and on L2[s] (entry 2)
 ep = [1e-4; 1e-6];
-%% For each 'copvar' P, get for each block row ('out') or column ('in')
-% the variables sp{k} ({} = R^n,  {s} = L2[s]) and its dimensions dm(k).
-% These lists describe the spaces of the PIE (state x in R^n x L2[s]; inputs w,u; outputs z,y) and
-% are the size/space arguments lpivar_cdopvar needs for Q,U,An,Bn,Cn,Dn.
-[spi,dmi] = copvar_space_list(T,'in');
-[spo,dmo] = copvar_space_list(T,'out');
-[spu,dmu] = copvar_space_list(Bu,'in');
-[spy,dmy] = copvar_space_list(Cy,'out');
-%% Identity 'copvar' on the spaces (SP,DM) over the domain DOM.
+%% Identity 'copvar' on the output spaces of an operator.
 % Used for the -gam*I blocks of the KYP operator, on the disturbance space w
-% (columns of B1) and on the output space z (rows of C1).
-[s,d] = copvar_space_list(Bw,'in');   Iw = eye_copvar_sop(d,s,dom);   % identity on w
-[s,d] = copvar_space_list(Cz,'out');  Iz = eye_copvar_sop(d,s,dom);   % identity on z
+% (the output space of Bw') and on the output space z (of Cz).
+Iw = eye_copvar_sop(Bw');   % identity on w
+Iz = eye_copvar_sop(Cz);    % identity on z
 % ep*I on the state (weights per block: R^n -> ep(1), L2 -> ep(2)) used to
-% impose coercivity of the Lyapunov variables.
+% impose coercivity of the Lyapunov variables; for each block of the state
+% (the input of T), the variables spi{k} ({} = R^n, {s} = L2[s]) and the
+% dimension dmi(k).
+[spi,dmi] = copvar_space_list(T,'in');
 w = cellfun(@(c) ep(1+(~isempty(c))),spi);
 blk = arrayfun(@(k) w(k)*eye(dmi(k)),1:numel(spi),'UniformOutput',false);
 % mat2copvar_sop(M,DM,SP,DOM): turns the numeric matrix M (block structure DM)
@@ -116,14 +111,6 @@ blk = arrayfun(@(k) w(k)*eye(dmi(k)),1:numel(spi),'UniformOutput',false);
 %   the matrix on that space). Here M = blkdiag(ep*I) is the margin operator
 %   added to R and V so that they are >= ep*I, not just >= 0, in the raise loop.
 Ieps = mat2copvar_sop(blkdiag(blk{:}),dmi,spi,dom);
-
-% size/space arguments of lpivar_cdopvar for each free operator (rows 'out' x columns 'in'):
-%   dimension struct with fields out/in, and space struct (variables of each block)
-dimQ  = struct('out',dmo,'in',dmi);   spQ  = struct('out',{spo},'in',{spi});   % Q  : state <- state
-dimU  = struct('out',dmi,'in',dmi);   spU  = struct('out',{spi},'in',{spi});   % U, An : state -> state
-dimBn = struct('out',dmi,'in',dmy);   spBn = struct('out',{spi},'in',{spy});   % Bn : y -> state
-dimCn = struct('out',dmu,'in',dmi);   spCn = struct('out',{spu},'in',{spi});   % Cn : state -> u
-dimDn = struct('out',dmu,'in',dmy);   spDn = struct('out',{spu},'in',{spy});   % Dn : y -> u
 
 %% raise the slack degree until a feasible solution is found
 % The raise count and the weight raise of the settings hold one entry per
@@ -139,11 +126,12 @@ for dw = 0:max_raise
     [prog,gamv] = lpidecvar(prog,'gam');           % gam >= 0, minimized
     prog = lpi_ineq_sop(prog,gamv);
     prog = lpisetobj(prog,gamv);
-    % Lyapunov variables R, V >= eppos I, with the degrees of the storage
-    % row of the settings (POSCOPVAR with DEG omitted)
-    [prog,R] = poscopvar(prog,dmi,spi,dom);
+    % Lyapunov variables R, V >= eppos I on the state (the output space of
+    % T'), with the degrees of the storage row of the settings (POSCOPVAR
+    % with DEG omitted)
+    [prog,R] = poscopvar(prog,T');
     R = R + Ieps;
-    [prog,V] = poscopvar(prog,dmi,spi,dom);
+    [prog,V] = poscopvar(prog,T');
     V = V + Ieps;
     % get_lpivar_degs_sop(R): reads the monomial degrees actually used in the
     %   positive operator R (multiplier, integral kernels), returned in the
@@ -155,8 +143,12 @@ for dw = 0:max_raise
     % Lyapunov variables:  Q_cl = [Q S; S S], for functional <x,Rx>==<x,T*Qx>.
     %  Define U := (Q − S)^{-1}, such that V = T U. The congruence transform
     %  U_cl = [I U; 0 −U] linearizes the closed-loop inequality.
-    [prog,Q]  = lpivar_cdopvar(prog,dimQ, spQ, dom,dQ);
-    [prog,U]  = lpivar_cdopvar(prog,dimU, spU, dom,dU);
+    % Each free operator takes the output and input spaces of an operator of
+    % the same shape: Q those of T (state -> state), U and An those of R
+    % (state -> state), Bn those of Cy' (y -> state), Cn those of Bu'
+    % (state -> u), Dn those of (Cy*Bu)' (y -> u).
+    [prog,Q]  = lpivar_cdopvar(prog,T,dQ);
+    [prog,U]  = lpivar_cdopvar(prog,R,dU);
     % controller variables (AK,BK,CK,DK) defined as:
     %  (assumes D22 = 0)
     %   An := Q'*(A + Bu*DK*Cy - Bu*CK)*U + S'*(BK*Cy - AK)*U
@@ -164,10 +156,10 @@ for dw = 0:max_raise
     %   Cn := (DK*Cy - CK)*U
     %   Dn := DK
     % (AK,BK,CK,DK are recovered from the solution at the end).
-    [prog,An] = lpivar_cdopvar(prog,dimU, spU, dom,dU);
-    [prog,Bn] = lpivar_cdopvar(prog,dimBn,spBn,dom,dQ);
-    [prog,Cn] = lpivar_cdopvar(prog,dimCn,spCn,dom,dU);
-    [prog,Dn] = lpivar_cdopvar(prog,dimDn,spDn,dom,dQ);
+    [prog,An] = lpivar_cdopvar(prog,R,dU);
+    [prog,Bn] = lpivar_cdopvar(prog,Cy',dQ);
+    [prog,Cn] = lpivar_cdopvar(prog,Bu',dU);
+    [prog,Dn] = lpivar_cdopvar(prog,(Cy*Bu)',dQ);
     %% declare the operator equality and inequality constraints.
     Tc = T'*T;
     prog = lpi_eq_sop(prog,T'*Q - R);              % T'Q = R

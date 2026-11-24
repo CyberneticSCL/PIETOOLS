@@ -109,13 +109,26 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 % Process the user inputs
 [index,opts] = process_inputs(varargin,nargin);
 
-% Print the index; spatial variable s1 and dummy s1_dum on [0,b]; outputs
-% default to NaN (sharp, paper) and an empty struct (extra)
+% Print the index; spatial variables s1, s2, dummy s1_dum and time t;
+% interval [0,b]; outputs default to NaN (sharp, paper) and an empty struct
+% (extra)
 fprintf([' --- Extracting functional inequality ', num2str(index),' ---\n']);
-pvar s1 s1_dum
+pvar s1 s2 s1_dum t
 b = opts.b;
 dom = [0,b];
 sharp = NaN;    paper = NaN;    extra = struct();
+
+% PDE variables on which the operators act: x0 in R, y in L2[0,b], y01 in
+% L2[0,1] and y12 = (y1,y2) in L2^2[0,1]; u2 in H2[0,b] and u4 in H4[0,b]
+% are the states of the PDEs of examples 15-17. Operators are expressed in
+% terms of integrals of these variables, and extracted with `get_op`.
+clear stateNameGenerator
+x0  = pde_var(1);
+y   = pde_var(s1,dom);
+y01 = pde_var(s1,[0,1]);
+y12 = pde_var(2,s1,[0,1]);
+u2  = pde_var(s1,dom,2);
+u4  = pde_var(s1,dom,4);
 switch index
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                           Table of Contents
@@ -144,11 +157,11 @@ switch index
 
         % Operators acting on the free variable y in L2[0,b]:
         % (Ty)(s) = int_0^s y(theta) dtheta -- Volterra-type operator (integrates y from 0 to s)
-        T  = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,dom);
+        T  = get_op(int(y(s1_dum),s1_dum,[0,s1]));
         % (Pi y)(s) = (1/b) int_0^b y(theta) dtheta -- averaging operator (maps y to its mean, a constant function)
-        Pi = pi4_copvar_sop([],[],[],{0,1/b,1/b},[0 0; 1 1],s1,s1_dum,dom);
+        Pi = get_op((1/b)*int(y,s1,[0,s1,b]));
         % identity operator on L2[0,b]
-        I1 = eye_copvar_sop(1,{{'s1'}},dom);
+        I1 = get_op(y);
 
         % M = T*(I - Pi) maps y to x:
         % (My)(s) = int_0^s y(theta) dtheta - (s/b) int_0^b y(theta) dtheta,
@@ -187,11 +200,11 @@ switch index
 
         % Operators acting on the free variable y in L2[0,b]:
         % (Ty)(s) = int_0^s y(theta) dtheta -- Volterra-type operator (integrates y from 0 to s)
-        T  = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,dom);
+        T  = get_op(int(y(s1_dum),s1_dum,[0,s1]));
         % (Pi y)(s) = (1/b) int_0^b y(theta) dtheta -- averaging operator (maps y to its mean, a constant function)
-        Pi = pi4_copvar_sop([],[],[],{0,1/b,1/b},[0 0; 1 1],s1,s1_dum,dom);
+        Pi = get_op((1/b)*int(y,s1,[0,s1,b]));
         % identity operator on L2[0,b]
-        I1 = eye_copvar_sop(1,{{'s1'}},dom);
+        I1 = get_op(y);
 
         % M = (I - Pi)*T*(I - Pi) maps y to x in three steps:
         %   w = (I - Pi) y   w has zero mean (w = x_s),
@@ -223,11 +236,11 @@ switch index
 
         % Operators acting on the free variable y in L2[0,b]:
         % (Ty)(s) = int_0^s y(theta) dtheta -- Volterra-type operator (integrates y from 0 to s)
-        T  = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,dom);
+        T  = get_op(int(y(s1_dum),s1_dum,[0,s1]));
         % (Pi y)(s) = (1/b) int_0^b y(theta) dtheta -- averaging operator (maps y to its mean, a constant function)
-        Pi = pi4_copvar_sop([],[],[],{0,1/b,1/b},[0 0; 1 1],s1,s1_dum,dom);
+        Pi = get_op((1/b)*int(y,s1,[0,s1,b]));
         % identity operator on L2[0,b]
-        I1 = eye_copvar_sop(1,{{'s1'}},dom);
+        I1 = get_op(y);
 
         % M = (I - Pi)*T maps y to x: first v = T y (v(0) = 0, v_s = y), then x = v - mean(v):
         % (My)(s) = int_0^s y(theta) dtheta - (1/b) int_0^b (b-theta) y(theta) dtheta,
@@ -255,7 +268,7 @@ switch index
 
         % Operator acting on the free variable y in L2[0,b]:
         % (Ty)(s) = int_0^s y(theta) dtheta -- Volterra-type operator; x = T y has x(0) = 0 and x_s = y
-        T = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,dom);
+        T = get_op(int(y(s1_dum),s1_dum,[0,s1]));
 
         % optimization problem min C s.t. C*I - T'*T >= 0, i.e. ||x||^2 = ||Ty||^2 <= C ||y||^2 = C ||x_s||^2
         Csol = solve_min(dom,@(C) C - T'*T,dg);
@@ -280,12 +293,12 @@ switch index
 
         % Operators acting on the state (x0,y) in R x L2[0,b], with x0 = x(0) and y = x_s:
         % T(x0,y)(s) := x0 + int_0^s y(theta) dtheta = x(s) -- maps the state to the function x (L2 output)
-        T  = pi4_copvar_sop([],[],1,{0,1,0},[0 1; 1 1],s1,s1_dum,dom);
+        T  = get_op(x0 + int(y(s1_dum),s1_dum,[0,s1]));
         % E0(x0,y) := x0 = x(0) -- maps the state to the point value x(0) (an element of R)
-        E0 = pi4_copvar_sop(1,[],[],{},[1 1; 0 1],s1,s1_dum,dom);
-        % B(x0,y) := y = x_s -- the projection (x0,y) -> y, so <B.,B.> = ||x_s||^2 and B'*B = B
+        E0 = get_op(x0 + int(0*y,s1,[0,b]));
+        % B(x0,y) := (0,y) = (0,x_s) -- the projection (x0,y) -> y in R x L2, so <B.,B.> = ||x_s||^2 and B'*B = B
         % (the code below uses B itself as the quadratic form B'*B)
-        B  = pi4_copvar_sop(0,[],[],{1,[],[]},[1 1; 1 1],s1,s1_dum,dom);
+        B  = get_op([0*x0; y]);
 
         % optimization problem min C s.t. C*(B'*B + E0'*E0) - T'*T >= 0, i.e. ||x||^2 <= C (||x_s||^2 + x(0)^2)
         Csol = solve_min(dom,@(C) C*(B + E0'*E0) - T'*T,dg);
@@ -315,14 +328,14 @@ switch index
 
         % Operators acting on the state (x0,y) in R x L2[0,b], with x0 = x(0) and y = x_s:
         % T(x0,y)(s) := x0 + int_0^s y(theta) dtheta = x(s) -- maps the state to the function x (L2 output)
-        T  = pi4_copvar_sop([],[],1,{0,1,0},[0 1; 1 1],s1,s1_dum,dom);
+        T  = get_op(x0 + int(y(s1_dum),s1_dum,[0,s1]));
         % E0(x0,y) := x0 = x(0) -- maps the state to the point value x(0) (an element of R)
-        E0 = pi4_copvar_sop(1,[],[],{},[1 1; 0 1],s1,s1_dum,dom);
+        E0 = get_op(x0 + int(0*y,s1,[0,b]));
         % E1(x0,y) := x0 + int_0^b y(theta) dtheta = x(b) -- point value at the right end (an element of R)
-        E1 = pi4_copvar_sop(1,1,[],{},[1 1; 0 1],s1,s1_dum,dom);
-        % B(x0,y) := y = x_s -- the projection (x0,y) -> y, so <B.,B.> = ||x_s||^2 and B'*B = B
+        E1 = get_op(x0 + int(y,s1,[0,b]));
+        % B(x0,y) := (0,y) = (0,x_s) -- the projection (x0,y) -> y in R x L2, so <B.,B.> = ||x_s||^2 and B'*B = B
         % (the code below uses B itself as the quadratic form B'*B)
-        B  = pi4_copvar_sop(0,[],[],{1,[],[]},[1 1; 1 1],s1,s1_dum,dom);
+        B  = get_op([0*x0; y]);
 
         % optimization problem min C s.t. C*(T'*T + B'*B) - E0'*E0 - E1'*E1 >= 0,
         % i.e. x(0)^2 + x(b)^2 <= C (||x||^2 + ||x_s||^2)
@@ -349,12 +362,12 @@ switch index
 
         % Operators acting on the state (x0,y) in R x L2[0,b], with x0 = x(0) and y = x_s:
         % X(x0,y)(s) := x0 + int_0^s y(theta) dtheta = x(s) -- maps the state to the function x (L2 output)
-        X = pi4_copvar_sop([],[],1,{0,1,0},[0 1; 1 1],s1,s1_dum,dom);
+        X = get_op(x0 + int(y(s1_dum),s1_dum,[0,s1]));
         % E(x0,y) := x0 + int_0^b y(theta) dtheta = x(b) -- maps the state to the point value x(b) (an element of R)
-        E = pi4_copvar_sop(1,1,[],{},[1 1; 0 1],s1,s1_dum,dom);
-        % B(x0,y) := y = x_s -- the projection (x0,y) -> y, so <B.,B.> = ||x_s||^2 and B'*B = B
+        E = get_op(x0 + int(y,s1,[0,b]));
+        % B(x0,y) := (0,y) = (0,x_s) -- the projection (x0,y) -> y in R x L2, so <B.,B.> = ||x_s||^2 and B'*B = B
         % (the code below uses B itself as the quadratic form B'*B)
-        B = pi4_copvar_sop(0,[],[],{1,[],[]},[1 1; 1 1],s1,s1_dum,dom);
+        B = get_op([0*x0; y]);
 
         % optimization problem min C s.t. C*(X'*X + B'*B) - E'*E >= 0,
         % i.e. x(b)^2 <= C (||x||^2 + ||x_s||^2)
@@ -395,27 +408,24 @@ switch index
         name = sprintf('Agmon / 1D Sobolev: x(t)^2 <= C (||x||^2 + ||x_s||^2), t = %g in (0,%g)',t,b);
 
         % After the split at t both pieces are rescaled to [0,1], so the operators below
-        % act on the state z = (x*, y1, y2) in R x L2[0,1] x L2[0,1] and live on dom1 = [0,1].
-        % In the kernels {R0,R1,R2}, R1 acts for theta < tau and R2 for theta > tau, and a pair
-        % [a c] in a kernel multiplies (y1,y2) by (a,c).
+        % act on the state z = (x*, y1, y2) = (x0, y12) in R x L2^2[0,1] and live on dom1 = [0,1].
+        % The row [a c] multiplies (y1,y2) by (a,c).
         dom1 = [0,1];
 
         % Operators from the state z to the two pieces of x (L2[0,1] outputs):
         % (U1 z)(tau) := x* - int_tau^1 y1(theta) dtheta  -- left piece u1(tau) = x(t*tau)
-        % (upper integral of y1: kernel -[1 0] for theta > tau)
-        U1 = pi4_copvar_sop([],[],1,{[0 0],[0 0],[-1 0]},[0 1; 1 2],s1,s1_dum,dom1);
+        U1 = get_op(x0 - int([1 0]*y12(s1_dum),s1_dum,[s1,1]));
         % (U2 z)(tau) := x* + int_0^tau y2(theta) dtheta  -- right piece u2(tau) = x(t + (b-t)*tau)
-        % (lower integral of y2: kernel [0 1] for theta < tau)
-        U2 = pi4_copvar_sop([],[],1,{[0 0],[0 1],[0 0]},[0 1; 1 2],s1,s1_dum,dom1);
+        U2 = get_op(x0 + int([0 1]*y12(s1_dum),s1_dum,[0,s1]));
 
         % Projections of the state onto its derivative components (L2[0,1] outputs):
         % B1 z := y1 = t*x_s on [0,t],   B2 z := y2 = (b-t)*x_s on [t,b]
-        B1 = pi4_copvar_sop([],[],[],{[1 0],[],[]},[0 1; 1 2],s1,s1_dum,dom1);
-        B2 = pi4_copvar_sop([],[],[],{[0 1],[],[]},[0 1; 1 2],s1,s1_dum,dom1);
+        B1 = get_op(0*x0 + [1 0]*y12);
+        B2 = get_op(0*x0 + [0 1]*y12);
 
         % Point evaluation at the split point (an element of R):
         % E z := x* = x(t)
-        E  = pi4_copvar_sop(1,[],[],{},[1 1; 0 2],s1,s1_dum,dom1);
+        E  = get_op(x0 + int([0 0]*y12,s1,[0,1]));
 
         % The norms of x and x_s as quadratic forms of z (with the Jacobian factors of the split):
         % <z,Qx z> = ||x||^2 = t ||u1||^2 + (b-t) ||u2||^2
@@ -471,42 +481,33 @@ switch index
 
         % The point t is now a second spatial variable, called s2 below, with domain [tmin,b-tmin];
         % tau (called s1 below) lives on [0,1].
-        pvar s2
 
-        % Spaces of the lifted state z = (x*, y1, y2):
-        %   x*(s2) lives on L2[s2]                                    (variable list XS = {'s2'}),
-        %   y1(tau,s2), y2(tau,s2) and all outputs live on L2[tau,s2]  (variable list YS = {'s1','s2'}).
-        XS = {'s2'};     YS = {'s1','s2'};
-        dmn = struct('s1',[0,1],'s2',[tmin,b-tmin]);
-
-        % Helper mk(K,vin,vout,idom): the PI operator with kernel K from functions of the variables vin to
-        % functions of the variables vout. idom gives the integration limits per input variable:
-        % [s1 s1] = multiplier in tau, [0 s1] = lower integral, [s1 1] = upper integral,
-        % [s2 s2] = multiplier in s2 (the operator acts pointwise in s2, with no integral in s2).
-        mk  = @(K,vin,vout,idom) int2sopvar(K,struct('in',{vin},'out',{vout}), ...
-                struct('in',cell2mat(cellfun(@(v) dmn.(v),vin(:),'uni',0)), ...
-                       'out',cell2mat(cellfun(@(v) dmn.(v),vout(:),'uni',0))),idom);
+        % Lifted state z = (x*, y1, y2): x*(s2) in L2[s2], and y1(tau,s2), y2(tau,s2) in L2[tau,s2]
+        % (declared here, since their domain depends on tmin).
+        xs = pde_var(s2,[tmin,b-tmin]);
+        y1 = pde_var([s1;s2],[0,1; tmin,b-tmin]);
+        y2 = pde_var([s1;s2],[0,1; tmin,b-tmin]);
 
         % Multiplication operators by a function w(s2), acting in s2 only:
         % (mulY(w) z)(tau,s2) = w(s2) z(tau,s2) on L2[tau,s2],   (mulX(w) z)(s2) = w(s2) z(s2) on L2[s2]
-        mulY = @(w) copvar({mk(w,YS,YS,[s1 s1; s2 s2])});
-        mulX = @(w) copvar({mk(w,XS,XS,[s2 s2])});
+        mulY = @(w) get_op(w*y1);
+        mulX = @(w) get_op(w*xs);
 
         % Operators from the state z = (x*,y1,y2) to the two pieces of x, as in example 8 but with t = s2 a variable
-        % (each is a 1 x 3 block row acting on (x*,y1,y2); the zero blocks mk(0,...) only fix the spaces):
+        % (each is a 1 x 3 block row acting on (x*,y1,y2); the zero terms only fix the spaces):
         % (U1 z)(tau,s2) := x*(s2) - int_tau^1 y1(theta,s2) dtheta   -- left piece  u1(tau,s2) = x(s2*tau)
-        U1 = copvar({mk(1,XS,YS,[s2 s2]), mk(-1,YS,YS,[s1 1; s2 s2]), mk(0,YS,YS,[s1 s1; s2 s2])});
+        U1 = get_op(xs - int(y1(s1_dum,s2),s1_dum,[s1,1]) + 0*y2);
         % (U2 z)(tau,s2) := x*(s2) + int_0^tau y2(theta,s2) dtheta   -- right piece u2(tau,s2) = x(s2 + (b-s2)*tau)
-        U2 = copvar({mk(1,XS,YS,[s2 s2]), mk(0,YS,YS,[s1 s1; s2 s2]), mk(1,YS,YS,[0 s1; s2 s2])});
+        U2 = get_op(xs + 0*y1 + int(y2(s1_dum,s2),s1_dum,[0,s1]));
 
         % Projections onto the derivative components (L2[tau,s2] outputs):
         % B1 z := y1 = s2*x_s on [0,s2],   B2 z := y2 = (b-s2)*x_s on [s2,b]
-        B1 = copvar({mk(0,XS,YS,[s2 s2]), mk(1,YS,YS,[s1 s1; s2 s2]), mk(0,YS,YS,[s1 s1; s2 s2])});
-        B2 = copvar({mk(0,XS,YS,[s2 s2]), mk(0,YS,YS,[s1 s1; s2 s2]), mk(1,YS,YS,[s1 s1; s2 s2])});
+        B1 = get_op(0*xs + y1 + 0*y2);
+        B2 = get_op(0*xs + 0*y1 + y2);
 
         % Point evaluation x(s2) = x*(s2), an L2[s2] output: a multiplier in s2, so no trace on the diagonal is needed
         % E z := x*(s2) = x(s2)
-        E  = copvar({mk(1,XS,XS,[s2 s2]), mk(0,YS,XS,[0 1; s2 s2]), mk(0,YS,XS,[0 1; s2 s2])});
+        E  = get_op(xs + int(0*y1,s1,[0,1]) + int(0*y2,s1,[0,1]));
 
         % The norms as quadratic forms of z, multiplied by s2*(b-s2) > 0 so that all coefficients are polynomials in s2:
         % <z,Qx z> = s2(b-s2) ||x||^2 = s2(b-s2) ( s2 ||u1||^2 + (b-s2) ||u2||^2 )
@@ -557,11 +558,11 @@ switch index
         % Operators acting on the free variable y in L2[0,1]:
         % (Ty)(s) := -int_s^1 y(theta) dtheta -- Volterra-type operator (integrates y from s to 1).
         % T(1) = 0 and (Ty)_s = y, so x = Ty for any y = x_s with x(1) = 0
-        T = pi4_copvar_sop([],[],[],{0,0,-1},[0 0; 1 1],s1,s1_dum,dom);
+        T = get_op(-int(y01(s1_dum),s1_dum,[s1,1]));
         % (Sy)(s) := s*y(s) -- multiplication operator by s; S'*S is the multiplication by the weight s^2
-        S = pi4_copvar_sop([],[],[],{s1,[],[]},[0 0; 1 1],s1,s1_dum,dom);
+        S = get_op(s1*y01);
         % identity operator on L2[0,1]
-        I1 = eye_copvar_sop(1,{{'s1'}},dom);
+        I1 = get_op(y01);
 
         % optimization problem min C s.t. C*(S'*S + eps*I) - T'*T >= 0,
         % i.e. ||x||^2 = ||Ty||^2 <= C int (s^2+eps) y^2 = C int (s^2+eps) x_s^2
@@ -589,9 +590,9 @@ switch index
         name = 'Volterra operator norm: ||T x||^2 <= C ||x||^2, (T x)(s) = int_0^s x';
         dg = degrees(opts,[],[]);
 
-        % Operator on L2[0,b]: kernel {R0,R1,R2} = {0,1,0}, i.e. R1 = 1 for r < s and nothing else:
+        % Operator on L2[0,b]:
         % (Tx)(s) := int_0^s x(r) dr -- Volterra-type operator (integrates x from 0 to s)
-        T = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,dom);
+        T = get_op(int(y(s1_dum),s1_dum,[0,s1]));
 
         % optimization problem min C s.t. C*I - T'*T >= 0, i.e. ||Tx||^2 <= C ||x||^2 for all x in L2
         Csol = solve_min(dom,@(C) C - T'*T,dg);
@@ -613,11 +614,10 @@ switch index
         name = 'Green operator (Dirichlet): ||G x||^2 <= C ||x||^2';
         dg = degrees(opts,3,3);
 
-        % Operator on L2[0,b]: kernel {R0,R1,R2} = {0, G(s,theta) for theta < s, G(s,theta) for theta > s}
-        % (the kernels depend on s1 = s and s1_dum = theta):
+        % Operator on L2[0,b], with s1 = s and s1_dum = theta:
         % (Gx)(s) := int_0^s theta*(b-s)/b x(theta) dtheta + int_s^b s*(b-theta)/b x(theta) dtheta
         % -- Green's operator of -u'' = x with u(0) = u(b) = 0, i.e. (Gx)'' = -x
-        G = pi4_copvar_sop([],[],[],{0,s1_dum*(b-s1)/b,s1*(b-s1_dum)/b},[0 0; 1 1],s1,s1_dum,dom);
+        G = get_op(int(s1_dum*(b-s1)/b*y(s1_dum),s1_dum,[0,s1]) + int(s1*(b-s1_dum)/b*y(s1_dum),s1_dum,[s1,b]));
 
         % optimization problem min C s.t. C*I - G'*G >= 0, i.e. ||Gx||^2 <= C ||x||^2 for all x in L2
         Csol = solve_min(dom,@(C) C - G'*G,dg);
@@ -639,11 +639,10 @@ switch index
         name = 'Green operator (mixed): ||G x||^2 <= C ||x||^2';
         dg = degrees(opts,3,3);
 
-        % Operator on L2[0,b]: kernel {R0,R1,R2} = {0, theta for theta < s, s for theta > s}, i.e. min(s,theta)
-        % (the kernels depend on s1 = s and s1_dum = theta):
+        % Operator on L2[0,b] with kernel min(s,theta), with s1 = s and s1_dum = theta:
         % (Gx)(s) := int_0^s theta x(theta) dtheta + int_s^b s x(theta) dtheta
         % -- Green's operator of -u'' = x with u(0) = 0 and u_s(b) = 0, i.e. (Gx)'' = -x
-        G = pi4_copvar_sop([],[],[],{0,s1_dum,s1},[0 0; 1 1],s1,s1_dum,dom);
+        G = get_op(int(s1_dum*y(s1_dum),s1_dum,[0,s1]) + int(s1*y(s1_dum),s1_dum,[s1,b]));
 
         % optimization problem min C s.t. C*I - G'*G >= 0, i.e. ||Gx||^2 <= C ||x||^2 for all x in L2
         Csol = solve_min(dom,@(C) C - G'*G,dg);
@@ -665,9 +664,9 @@ switch index
         name = 'Green operator (hinged beam): ||B x||^2 <= C ||x||^2';
         dg = degrees(opts,4,4);
 
-        % Dirichlet Green's operator as in example 12 (kernels in s1 = s and s1_dum = theta):
+        % Dirichlet Green's operator as in example 12 (s1 = s and s1_dum = theta):
         % (Gx)(s) := int_0^s theta*(b-s)/b x(theta) dtheta + int_s^b s*(b-theta)/b x(theta) dtheta,  (Gx)'' = -x
-        G = pi4_copvar_sop([],[],[],{0,s1_dum*(b-s1)/b,s1*(b-s1_dum)/b},[0 0; 1 1],s1,s1_dum,dom);
+        G = get_op(int(s1_dum*(b-s1)/b*y(s1_dum),s1_dum,[0,s1]) + int(s1*(b-s1_dum)/b*y(s1_dum),s1_dum,[s1,b]));
 
         % B := G*G (composition of two Dirichlet solves: x -> v = Gx with -v'' = x, then u = Gv with -u'' = v),
         % so Bx = u solves u'''' = x with u = u'' = 0 at both ends (hinged beam)
@@ -704,22 +703,19 @@ switch index
         if nm < 1 || nm ~= round(nm),   error('Option modes must be a positive integer.');   end
         if nm > 6,   error('At most 6 modes are resolved at degree 16; reduce the option modes.');   end
 
-        % PIE of u_t = u_ss with u(0) = u(b) = 0
-        clear stateNameGenerator;
-        pvar t
-        uvar = pde_var(s1,[0,b],2);
-        PDE = [diff(uvar,t) == diff(uvar,s1,2);
-               subs(uvar,s1,0) == 0;   subs(uvar,s1,b) == 0];
+        % PIE of u_t = u_ss with u(0) = u(b) = 0, for u = u2
+        PDE = [diff(u2,t) == diff(u2,s1,2);
+               subs(u2,s1,0) == 0;   subs(u2,s1,b) == 0];
         PIE = convert(PDE,'pie');
 
         % Operators acting on the fundamental state v = x_ss in L2[0,b]:
         % identity operator on L2[0,b]
-        Id = eye_copvar_sop(1,{{'s1'}},dom);
+        Id = get_op(y);
         % T v = x -- the Green's operator of v = x_ss with x(0) = x(b) = 0 (PIE.T; here PIE.A = I since u_ss = v);
         % the eigenvalue problem x = lambda*x_ss reads (T - lambda*I) v = 0
         T = PIE.T;
         % dummy right-hand side for qp_copvar (only the Gram matrix H of the polynomial basis is used below)
-        B0 = pi4_copvar_sop([],[],1,{},[0 1; 1 0],s1,s1_dum,dom);
+        B0 = get_op(x0,y);
         qopts = struct('deg',16,'basis','legendre','assembly','apply','solver','backslash');
 
         % Gram matrix H(lambda) of the polynomial basis under (T - lambda*I): ||(T - lambda*I) X||^2 = x'*H(lambda)*x.
@@ -757,9 +753,9 @@ switch index
         % is computed with apply_sopvar and normalized to ||x||_{L2} = 1, with x'(0) > 0.
 
         % (S z)(s) = s*z(s) -- multiplication operator by s (L2 -> L2)
-        Sm = pi4_copvar_sop([],[],[],{s1,[],[]},[0 0; 1 1],s1,s1_dum,dom);
+        Sm = get_op(s1*y);
         % Es c = c*s -- the function s, as a map from R to L2 (R -> L2)
-        Es = pi4_copvar_sop([],[],s1,{},[0 1; 1 0],s1,s1_dum,dom);
+        Es = get_op(s1*x0,y);
         % T*S^2 and T*s, the pieces of (T - lambda*I)(s + s^2*Z) = T*s + T*S^2*Z - lambda*(s + s^2*Z)
         TS2 = T*(Sm*Sm);   TEs = T*Es;
         qopts = struct('deg',14,'basis','legendre','assembly','apply','solver','backslash');
@@ -828,13 +824,10 @@ switch index
         dg = degrees(opts,3,3);
 
         % PDE u_t = u_ss + u_ssss with the four clamped boundary conditions
-        % (u(0) = u(b) = u_s(0) = u_s(b) = 0); its PIE gives the operators below.
-        clear stateNameGenerator;
-        pvar t
-        u = pde_var(s1,[0,b],4);          % u in W^4[0,b]
-        PDE = [diff(u,t) == diff(u,s1,2) + diff(u,s1,4);
-               subs(u,s1,0) == 0;             subs(u,s1,b) == 0;
-               subs(diff(u,s1,1),s1,0) == 0;  subs(diff(u,s1,1),s1,b) == 0];
+        % (u(0) = u(b) = u_s(0) = u_s(b) = 0), for u = u4 in H4[0,b]; its PIE gives the operators below.
+        PDE = [diff(u4,t) == diff(u4,s1,2) + diff(u4,s1,4);
+               subs(u4,s1,0) == 0;             subs(u4,s1,b) == 0;
+               subs(diff(u4,s1,1),s1,0) == 0;  subs(diff(u4,s1,1),s1,b) == 0];
 
         % PIE: T v_t = A v for the fundamental state v = u_ssss in L2[0,b], with u = T v
         PIE = convert(PDE,'pie');
@@ -843,7 +836,7 @@ switch index
         % B v = u    -- B = PIE.T, the operator that integrates v four times with the clamped boundary conditions
         B = PIE.T;
         % identity operator on L2[0,b]
-        Id = eye_copvar_sop(1,{{'s1'}},dom);
+        Id = get_op(y);
         % P v = u_ss -- since u_ss + u_ssss = A v and u_ssss = v, we have A = P + I, so P = PIE.A - I
         P = PIE.A - Id;
         % H1 v = u_s -- the derivative of B in s, (H1*u_ssss) = u_s
@@ -890,17 +883,14 @@ switch index
         deg = 16;
 
         % PIE of u_t = u_ss + u_ssss with the four clamped boundary conditions, as in example 16
-        clear stateNameGenerator;
-        pvar t
-        uvar = pde_var(s1,[0,b],4);
-        PDE = [diff(uvar,t) == diff(uvar,s1,2) + diff(uvar,s1,4);
-               subs(uvar,s1,0) == 0;             subs(uvar,s1,b) == 0;
-               subs(diff(uvar,s1,1),s1,0) == 0;  subs(diff(uvar,s1,1),s1,b) == 0];
+        PDE = [diff(u4,t) == diff(u4,s1,2) + diff(u4,s1,4);
+               subs(u4,s1,0) == 0;             subs(u4,s1,b) == 0;
+               subs(diff(u4,s1,1),s1,0) == 0;  subs(diff(u4,s1,1),s1,b) == 0];
         PIE = convert(PDE,'pie');
 
         % Operators acting on the fundamental state v = u_ssss in L2[0,b]:
         % identity operator on L2[0,b]
-        Id = eye_copvar_sop(1,{{'s1'}},dom);
+        Id = get_op(y);
         % P v = u_ss -- P = PIE.A - I (see example 16); the eigenvalue problem u_ss = lambda*u_ssss reads (P - lambda*I) v = 0
         P = PIE.A - Id;
         % T v = u    -- T = PIE.T, integrates v four times with the clamped boundary conditions
@@ -908,9 +898,9 @@ switch index
 
         % Operators used to build the normalization v(0) = 1 into the unknown, X = v = 1 + s*Z:
         % (S z)(s) = s*z(s) -- multiplication operator by s (L2 -> L2)
-        Sm = pi4_copvar_sop([],[],[],{s1,[],[]},[0 0; 1 1],s1,s1_dum,dom);
+        Sm = get_op(s1*y);
         % E1 c = c*1 -- the constant function 1, as a map from R to L2 (R -> L2)
-        E1 = pi4_copvar_sop([],[],1,{},[0 1; 1 0],s1,s1_dum,dom);
+        E1 = get_op(x0,y);
         % P*S and P*1, the two pieces of (P - lambda*I)(1 + s*Z) = P*1 + P*S*Z - lambda*(1 + s*Z)
         PS = P*Sm;   PE = P*E1;
 

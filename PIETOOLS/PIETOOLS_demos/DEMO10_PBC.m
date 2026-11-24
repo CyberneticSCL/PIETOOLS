@@ -12,10 +12,10 @@
 % First we convert the above PDE to a PIE of the form:
 %   [T \dot{xf}](t,s) = [A xf](t,s),    [K xf](t,s) = 0;
 % where the PIE state xf includes auxiliary states, and the second row of T
-% maps xf to the PDE state x. Letting S be the mean operator,
-% [S x](s) = (1/2)int_{-1}^{1} x(r) dr, we then define Tt = (I-S)*T and
-% At = (I-S)*A, so that Tt*xf is the mean-free part of x. To certify that
-% it decays at rate alpha, we solve the LPI
+% maps xf to the PDE state x. Letting S be the deviation from the mean,
+%   [S x](s) = x(s) - (1/2)int_{-1}^{1} x(r) dr, 
+% we then define Tt = S*T(2,:) and At = S*A, so that Tt*xf is the mean-free 
+% part of x. To certify that it decays at rate alpha, we solve the LPI
 %   find_{P,X}  P,X
 %   s.t.        P>=0,
 %       At'*P*Tt + Tt'*P*At + 2*alpha*Tt'*P*Tt + X*K + K'*X' <= 0
@@ -71,20 +71,19 @@ PDE = initialize([eq_PDE;eq_BC]);
 display(PDE);
 PIE = convert(PDE,'pie');
 %% Extract operators defining the PIE
-% Extract the PIE dynamics of the original PDE state
-T = PIE.T(2,:);    A = PIE.A(2,:);
-% The PIE state must also satisfy K*x=0
+% Declare operator of the mean-free part, 
+%   x - (1/2)int_{-1}^{1} x(r) dr, on L2[-1,1]
+S = get_op(x - (1/2)*int(x,s,[-1,1]), s);
+% Get the PIE dynamics of the mean-free part of the PDE state
+T = S*PIE.T(2,:);     A = S*PIE.A(2,:);
+% The PIE state must also satisfy K*xf=0
 K = PIE.K;
-%% Take the deviation of the PDE state from the mean
-S = (1/2)*int2copvar(eye(1),T.vars,T.dom);  % S*x = 0.5*int_{-1}^{1} x(s) ds
-I = eye_copvar_sop(T);                  % I*x = x;
-T = (I-S)*T;            A = (I-S)*A;
 %% The slack X enforces dissipation subject to linear PI constraint
 % Initialize lpiprogram
 prog = lpiprogram(PIE.vars,PIE.dom);
 % Lyapunov decision PI variable (coercive), on the output spaces of T
 [prog,P] = poscopvar(prog,T,struct('int',3,'mult',3,'joint',3));
-P = P + 1e-4*I;
+P = P + 1e-4*eye_copvar_sop(T);
 % Lagrange decision PI variable (indefinite)
 [prog,X] = lpivar_cdopvar(prog,K',6);   % X with the spaces of K'
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
