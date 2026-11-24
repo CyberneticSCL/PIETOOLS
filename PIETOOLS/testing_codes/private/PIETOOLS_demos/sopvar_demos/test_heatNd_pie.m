@@ -20,7 +20,8 @@ function R = test_heatNd_pie(dostock)
 %      (r - lambda1) T phi1 for the lowest mode (quadrature, nq = 20);
 %  (f) N = 2 only: T against the paper's printed Ex. 3 kernel (four terms);
 %  (g) DOSTOCK (default true), N = 1, 2: STOCK convert(PDE,'pie') T and A
-%      (opvar / opvar2d), each evaluated from ITS OWN class definition by
+%      (containers, read through their opvar / opvar2d fields), each
+%      evaluated from ITS OWN class definition by
 %      the local quadrature below (no converter), applied to the same
 %      polynomial at the same points, against the container T and A.
 % Operators are applied with HEATND_APPLY (sopvar definition by quadrature).
@@ -32,6 +33,10 @@ function R = test_heatNd_pie(dostock)
 %
 % Initial coding MMP, 09/27/2026
 % MMP, 09/27/2026 (review fixes): check (d0) of pie.A0.
+% MMP, 11/23/2026: (g) applies a 1-D 'copvar' (convert returns containers
+%   since the container port) by the 1-D branch of STOCK_APPLY, through its
+%   opvar-field accessors; a 'copvar' is not an 'opvar', so it went to the
+%   2-D branch. Help to match.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(dostock),    dostock = true;     end
@@ -243,7 +248,9 @@ function y = stock_apply(P,f,S)
 % 2-D  (P v)(x,y) = sum_{i,j} R22{i,j} applied with row i the x-direction
 %      and column j the y-direction, 1 multiplier, 2 int_a^x, 3 int_x^b.
 [xg,wg] = gl01(12);     y = zeros(size(S,1),1);
-if isa(P,'opvar')
+% if isa(P,'opvar')                                                         % MMP, 11/23/2026 (was)
+% 'copvar' since the container port: 1-D by its opvar-field accessors       % MMP, 11/23/2026
+if isa(P,'opvar') || (isa(P,'copvar') && is_opvar1d(P))                     % MMP, 11/23/2026
     cells = {P.R.R0, P.R.R1, P.R.R2};   nm = [elnames(P.var1); elnames(P.var2)];
     I = P.I;
     for k = 1:size(S,1)

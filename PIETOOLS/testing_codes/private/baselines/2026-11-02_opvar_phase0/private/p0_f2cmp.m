@@ -25,6 +25,12 @@ function p0_f2cmp(a, b)
 % - A PIE with an operator above 1e-8, or not comparable, is compared once
 %   more up to a reordering of its state components (P0_F2PERM): the
 %   converter of b4256de6 orders the state components differently.
+%
+% MMP, 11/23/2026: na, nb taken as rows. A PIE that failed to build in one
+% pass has a 0x0 fix (F2/pass5/LIB_PDE_16.mat: example removed 11/19), so
+% {fix.name} is 0x0, and setxor and intersect return columns; a for-loop
+% over a column runs once: one operator listed as in one pass only, then
+% o{1} of an empty 0x1 cell, "Index exceeds array bounds".
 here = fileparts(mfilename('fullpath'));
 root = fileparts(here);
 p0_path();
@@ -39,7 +45,9 @@ for f = dir(fullfile(root,'F2',sprintf('pass%d',a),'*.mat'))'
     g = fullfile(root,'F2',sprintf('pass%d',b),f.name);
     if ~exist(g,'file'),    fprintf(fid,'%s missing in pass %d\n',f.name,b);  continue,   end
     A = load(fullfile(f.folder,f.name));    B = load(g);
-    na = {A.fix.name};  nb = {B.fix.name};
+%   na = {A.fix.name};  nb = {B.fix.name};                                  % MMP, 11/23/2026 (was)
+    % Rows, so that each loop below runs once per operator name             % MMP, 11/23/2026
+    na = reshape({A.fix.name},1,[]);  nb = reshape({B.fix.name},1,[]);      % MMP, 11/23/2026
     for o = setxor(na, nb)
         in = 'b';  if ismember(o{1},na),   in = 'a';   end
         fprintf(fid,'%s %s: in pass %s only\n', A.label, o{1}, in);

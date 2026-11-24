@@ -11,8 +11,9 @@ function R = test_translators_sop()
 %         :dim, :excludeRn, :excludeL2, :nargout;
 %         poslpivar_settings_sop:stock, :role; get_lpivar_degs_sop:class;
 %         trace_rn_sop:square; copvar_space_list:side);
-%   (iii) on the container R x L2[s1], with lpisettings_stock_sop('custom')
-%         and override2 = 0, poslpivar_settings_sop returns for the role
+%   (iii) on the container R x L2[s1], with lpisettings_stock_sop('custom'),
+%         override2 = 0 and the stock-field lpi.pos of 11/12/2026,
+%         poslpivar_settings_sop returns for the role
 %         'lf' the program and operator of the former stock-format
 %         dd1 = {1,[1 1 2],[1 1 2]}, sep 0 (poslpivar_sop), and for the
 %         role 'slack' those of its two poslpivar_sop terms summed;
@@ -97,6 +98,10 @@ function R = test_translators_sop()
 %                'slack' with the two terms of sop.stock
 %                (LPISETTINGS_STOCK_SOP). override1 and the 'lf' psatz term
 %                are gone.
+% MMP, 11/23/2026: (iii) sets lpi.pos to the stock fields of 'custom' on
+%                11/12/2026 (mult 1, int 1, joint 2, sep 0), which role 'lf'
+%                reads; the tiers hold the storage row since 11/18/2026, on
+%                which 'lf' errored. Help to match.
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter
@@ -116,6 +121,7 @@ n = 0;
 % st.override1 = 0;   st.override2 = 0;           % both second terms declared % MMP, 11/12/2026 (was)
 st = lpisettings_stock_sop('custom');               % with the stock slack  % MMP, 11/12/2026
 st.sop.stock.override2 = 0;                         % its second term       % MMP, 11/12/2026
+st.lpi.pos = struct('mult',1,'int',1,'joint',2,'sep',0);  % 'lf' fields     % MMP, 11/23/2026
 
 % % % (ii) errors
 % Containers: R^1 x L2[s1], L2[s1] -> R^2, one space over two variables

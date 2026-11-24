@@ -12,13 +12,22 @@ function st_d2solve(cd3,frac,capinc,dD,degQ3,form)
 % of the Newton polytope note keeps every certificate on D2, whose targets
 % are purely integral). Prints '@@ A3' lines; the MOSEK log goes into the
 % session log. MMP, 11/18/2026.
+% MMP, 11/23/2026: the root R is the checkout that holds this file (was the
+%   live repo: a run from an export or a worktree put the live tree on the
+%   path; stress test of 11/22/2026).
 if nargin<1,  cd3 = 1;  end
 if nargin<2,  frac = 0.5;  end
 if nargin<3,  capinc = [];  end       % lpi.ineq.cap_inc: [] none, 'auto' the triangular cap
 if nargin<4,  dD = 1;  end           % lpi.ineq.dD, the lift raise (light: 1)
 if nargin<5,  degQ3 = 1;  end        % sop.deg_Q{3}, the degree of Q in three variables (light: 1)
 if nargin<6,  form = 'Q';  end       % the stability form: 'Q' direct, 'P' storage (stronger)
-R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';
+% R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';         % MMP, 11/23/2026 (was)
+% R: the checkout holding this file, its first ancestor with                % MMP, 11/23/2026
+% pietools_path_update.m (the loop ends at the drive root if none)          % MMP, 11/23/2026
+R = fileparts(mfilename('fullpath'));                                       % MMP, 11/23/2026
+while ~isfile([R '/pietools_path_update.m']) && ~strcmp(R,fileparts(R))     % MMP, 11/23/2026
+    R = fileparts(R);                                                       % MMP, 11/23/2026
+end                                                                         % MMP, 11/23/2026
 t0 = tic;   cd(R);  pietools_path_update;
 fprintf('@@ A3 start %s: cap_delta(3) %g, cap_inc %s, tau = %g tau*\n',char(datetime('now')),cd3,mat2str(capinc),frac);
 fprintf('@@ A3 lpisolve %s\n',which('lpisolve'));

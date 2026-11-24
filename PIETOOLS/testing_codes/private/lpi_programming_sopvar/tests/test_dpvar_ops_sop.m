@@ -28,8 +28,8 @@ function test_dpvar_ops_sop()
 %   (c) on X: R^1 x L2^2 -> R^1 x L2^2, a 'copvar' and a 'cdopvar' with 3
 %       decision variables, all variables on [0,1]: gam*X, X*gam, -gam*X,
 %       (2*gam-0.5)*X, dpvar(2.5)*X; gam + X, X - gam, gam - X as X plus or
-%       minus gam*I; X + D and D - X for a 3 x 3 'dpvar' D as a
-%       multiplier; D*X with one output space and X*D with one input space;
+%       minus gam*I, and 1e-3 + X as X + 1e-3*I; X + D and D - X for a
+%       3 x 3 'dpvar' D as a multiplier; D*X with one output space and X*D with one input space;
 %       [-gam, D', B'; D, -gam, C; B, C', A], [-gam, B'; B, Pd] with a
 %       'cdopvar' Pd, [D21, A] (a constant function) and [D12; A] (an
 %       integral); the products, the sums and [D21, Xb] for a 'sopvar'
@@ -39,8 +39,7 @@ function test_dpvar_ops_sop()
 %       'opvar' classes, now retired.
 % Every result passes verify (containers) and is in canonical multiplier
 % form in every block as returned. Errors, by identifier: a product of two
-% decision objects; a numeric summand, numeric matrix factor or numeric
-% concatenation entry; a 'dpvar' summand with an integral block, and an
+% decision objects; a numeric matrix factor or numeric concatenation entry; a 'dpvar' summand with an integral block, and an
 % integral block with mult_only; a matrix of the wrong size or in a
 % spatial variable; a non-square identity; a matrix factor with two row
 % spaces; mismatched sizes in sums, products and concatenations.
@@ -101,6 +100,10 @@ function test_dpvar_ops_sop()
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): a (was) comment
 %                line removed; code unchanged.
 % DJ, 11/18/2026: Account for updated `size` function.
+% MMP, 11/23/2026: (c) checks 1e-3 + X as X + 1e-3*I: a numeric scalar
+%                summand is scalar*I since 921aed59 (11/17/2026, copvar
+%                plus); the check expected the refusal plus:badInput. Help
+%                to match.
 
 % Fixed seed; canonical-form warnings off; the check counts and the
 % relative tolerance of CKVAL
@@ -328,7 +331,10 @@ for nd = 1:3
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([-1 gv],YXd,Ix),tag('gam-Xd'));
     R = dpvar(1e-3) + X;    ck(isa(R,'copvar'),tag('dpvar(1e-3)+X is copvar'));
     ckval(act(R,xf,T),lin([1 1e-3],YX,Ix),tag('dpvar(1e-3)+X'));
-    ckerr(@() 1e-3 + X,'plus:badInput',tag('numeric summand refused, as before'));
+%   ckerr(@() 1e-3 + X,'plus:badInput',tag('numeric summand refused, as before')); % MMP, 11/23/2026 (was)
+    % A numeric scalar is scalar*I, as dpvar(1e-3) above (921aed59)         % MMP, 11/23/2026
+    R = 1e-3 + X;   ck(isa(R,'copvar'),tag('1e-3+X is copvar'));            % MMP, 11/23/2026
+    ckval(act(R,xf,T),lin([1 1e-3],YX,Ix),tag('1e-3+X'));                   % MMP, 11/23/2026
     % Full-size matrix: a multiplier split by the dimensions; the
     % R^1 <- L2 block (row 1, cols 2:3) would be an integral and is zero.
     Dm = rand_dp(3,3,gam,h);    Dm(1,2:3) = 0;

@@ -12,7 +12,18 @@ function st_d2size()
 % prints '@@ LB_SIZE ndv m ineq' and errors before solving; this function
 % records '@@ A2' lines. Memory model (D90): MOSEK holds 23-25 bytes per
 % m^2, so m <= 45,000 is about 47-51 GB. MMP, 11/18/2026.
-R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';
+% MMP, 11/23/2026: the root R is the checkout that holds this file (was the
+%   live repo: a run from an export or a worktree put the live tree on the
+%   path; stress test of 11/22/2026).
+% R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';         % MMP, 11/23/2026 (was)
+% R: the checkout holding this file, its first ancestor with                % MMP, 11/23/2026
+% pietools_path_update.m (the loop ends at the drive root if none);         % MMP, 11/23/2026
+% '/' separators as in the literal, for the startsWith check below          % MMP, 11/23/2026
+R = fileparts(mfilename('fullpath'));                                       % MMP, 11/23/2026
+while ~isfile([R '/pietools_path_update.m']) && ~strcmp(R,fileparts(R))     % MMP, 11/23/2026
+    R = fileparts(R);                                                       % MMP, 11/23/2026
+end                                                                         % MMP, 11/23/2026
+R = strrep(R,'\','/');                                                      % MMP, 11/23/2026
 SH = [R '/cleaning/private/settings_1116/d2/shadow'];
 t0 = tic;   cd(R);  pietools_path_update;   addpath(SH);
 wl = strrep(which('lpisolve'),'\','/');

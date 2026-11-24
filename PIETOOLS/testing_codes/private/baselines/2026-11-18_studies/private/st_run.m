@@ -45,10 +45,24 @@ function st_run(tag)
 %   - Hooks (lb_exec of this copy): LB_ST_HOOK, @(S,PIE,exec) -> S;
 %     LB_FORM_MAP, struct of stability forms; LB_ROW_KEY set per row.
 % MMP, 11/18/2026.
+% MMP, 11/23/2026: 'VDA' takes the root from the checkout that holds this
+%   file (was the live repo: a run from an export or a worktree put the live
+%   tree on the path; stress test of 11/22/2026). 'CTLCHK', variant 'Ai':
+%   Adi{1} moved to Ai{1} only where the block sets Adi (blocks/DDE19.m sets
+%   Ai{1} since 99f7dff5, and rmfield of the absent Adi errored). 'DIAGA1',
+%   'DIAGA3': no PDE 16 rows; the example left the library on 11/19/2026
+%   and each such row could only record an error.
 here = fileparts(mfilename('fullpath'));    cd(here);
 if strcmp(tag,'A2size'),  st_d2size();  return,  end     % study A2: D2 sizes, no solve
 if strcmp(tag,'VDA')      % D-a verified: PIETOOLS_DDE with Example B ('P') and Example E ('Q')
-    R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';   cd(R);  pietools_path_update;
+%   R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';   cd(R);  pietools_path_update;  % MMP, 11/23/2026 (was)
+    % R: the checkout holding this file, the first ancestor of here with    % MMP, 11/23/2026
+    % pietools_path_update.m (the loop ends at the drive root if none)      % MMP, 11/23/2026
+    R = here;                                                               % MMP, 11/23/2026
+    while ~isfile([R '/pietools_path_update.m']) && ~strcmp(R,fileparts(R)) % MMP, 11/23/2026
+        R = fileparts(R);                                                   % MMP, 11/23/2026
+    end                                                                     % MMP, 11/23/2026
+    cd(R);  pietools_path_update;                                           % MMP, 11/23/2026
     run_script(fullfile(here,'vda','vda_B.m'));   % each in its own workspace:
     run_script(fullfile(here,'vda','vda_E.m'));   % the scripts begin with clear
     return
@@ -517,7 +531,9 @@ switch tag
                         % side or lpi_ineq side
         J = {};  % rows under 50,000 variables at light, forms 'Q' and 'P'; the
                  % bisection rows (44, X3) at their tested parameter
-        R1 = {{'PDE:15',[]},{'PDE:16',[]},{'PDE:41',[]},{'PDE:44',0.374625},{'PDE:X3',0.375}};
+%       R1 = {{'PDE:15',[]},{'PDE:16',[]},{'PDE:41',[]},{'PDE:44',0.374625},{'PDE:X3',0.375}}; % MMP, 11/23/2026 (was)
+        % no PDE 16: the example left the library on 11/19/2026             % MMP, 11/23/2026
+        R1 = {{'PDE:15',[]},{'PDE:41',[]},{'PDE:44',0.374625},{'PDE:X3',0.375}}; % MMP, 11/23/2026
         R2 = {{'PDE:69','st.lpi.ineq.dD = 0; st.sop.deg_Q{2} = 0; st.lpi.ineq.wcross = 1'}, ...
               {'PDE:70','st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1'}, ...
               {'PDE:36','st.lpi.ineq.dD = 0; st.lpi.ineq.wcross = 1'}, ...
@@ -530,10 +546,11 @@ switch tag
                     J{end+1} = {k{1}{1},fm{1},'light','',vr{1},k{1}{2}}; %#ok<AGROW>
                 end,  end
             end
-            if strcmp(tag,'DIAGA3')     % PDE 16 'P' fails at A = -T: a larger slack lift
-                J{end+1} = {'PDE:16','P','light','st.lpi.ineq.dD = 2','AmT',[]};
-                J{end+1} = {'PDE:16','P','light','st.lpi.ineq.Dmax = true','AmT',[]};
-            end
+            % DIAGA3 PDE 16 rows removed with the example (11/19/2026)      % MMP, 11/23/2026
+%           if strcmp(tag,'DIAGA3')     % PDE 16 'P' fails at A = -T: a larger slack lift % MMP, 11/23/2026 (was)
+%               J{end+1} = {'PDE:16','P','light','st.lpi.ineq.dD = 2','AmT',[]}; % MMP, 11/23/2026 (was)
+%               J{end+1} = {'PDE:16','P','light','st.lpi.ineq.Dmax = true','AmT',[]}; % MMP, 11/23/2026 (was)
+%           end                                                             % MMP, 11/23/2026 (was)
         else      % two-variable rows in 'Q' at their first EXU start, whose A is known
             if strcmp(tag,'DIAGA2'),  vs = {'A0','AmT'};  end
             % DIAGA4: not 69, 65, whose start (deg_Q{2} 0) fails at A = 0 (DIAGA2)
@@ -578,7 +595,12 @@ switch tag
                         % DDE19 as written (distributed delay Adi) and with the
                         % discrete delay of [5] (Ai); DDF03 as written (tau(i) = n)
                         % and with the delays of the source (tau(i) = i)
-        dis = 'DDE.Ai{1}=DDE.Adi{1}; DDE=rmfield(DDE,''Adi'');';
+%       dis = 'DDE.Ai{1}=DDE.Adi{1}; DDE=rmfield(DDE,''Adi'');';            % MMP, 11/23/2026 (was)
+        % 'Ai': the discrete delay of [5] in Ai{1}, from Adi{1} where the   % MMP, 11/23/2026
+        % block sets Adi; blocks/DDE19.m sets Ai{1} since 99f7dff5 (11/19), % MMP, 11/23/2026
+        % so there the variant is the block as written ('tau_i' likewise)   % MMP, 11/23/2026
+        dis = ['if isfield(DDE,''Adi''), DDE.Ai{1}=DDE.Adi{1}; ', ...
+               'DDE=rmfield(DDE,''Adi''); end'];                            % MMP, 11/23/2026
         J = {};
         for tr = {'stripped','light','heavy'}
             J = [J, {{'DDE:DDE19','Adi',tr{1},''},{'DDE:DDE19','Ai',tr{1},dis}, ...

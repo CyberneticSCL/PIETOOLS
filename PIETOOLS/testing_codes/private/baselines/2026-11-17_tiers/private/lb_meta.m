@@ -31,6 +31,12 @@ function M = lb_meta()
 % NOTES
 %   - Values in 'doc' are quoted from the library comments; they are not
 %     results. Notes marked (inferred) are derived here, not quoted.
+%
+% MMP, 11/23/2026: entry PDE 16 (Timoshenko_Beam_3) commented out. The
+% example file left the path on 11/19/2026 and library case 16 now stops
+% with an error, so lb_build_catalog, and lb_catalog_add given '16', could
+% only record a build error for it. The rows PDE:16 of catalog.mat, which
+% lb_run reads, are unchanged.
 
 P = 'PIETOOLS_PDE_Ex_';
 % {id, function, idxarg, param, setter, doc, docdual, docnum, lo, hi, bisect, note}
@@ -61,7 +67,8 @@ pde = {
  '13.2',[P,'Euler_Bernoulli_Beam_Eq'],1,'','','stable','',NaN,NaN,NaN,0,''
  '14',  [P,'Timoshenko_Beam_1'],0,'','','stable (TOC: PDE stable without damping)','',NaN,NaN,NaN,0,''
  '15',  [P,'Timoshenko_Beam_2'],0,'','','TOC: (unstable); PDE stable with damping c>0','',NaN,NaN,NaN,0,''
- '16',  [P,'Timoshenko_Beam_3'],0,'','','','',NaN,NaN,NaN,0,'no documented verdict'
+%'16',  [P,'Timoshenko_Beam_3'],0,'','','','',NaN,NaN,NaN,0,'no documented verdict'  % MMP, 11/23/2026 (was)
+ % 16: example retired 11/19/2026, library case 16 stops with an error      % MMP, 11/23/2026
  '17',  [P,'Wave_Eq_Boundary_Damped'],0,'','','stable for k>0 (k=1)','',NaN,NaN,NaN,0,''
  '18',  [P,'Wave_Eq_Datko_Boundary_Damped_1'],0,'','','stable (TOC: dual stable)','',NaN,NaN,NaN,0,''
  '19',  [P,'Wave_Eq_Datko_Boundary_Damped_2'],0,'','','stable','',NaN,NaN,NaN,0,''

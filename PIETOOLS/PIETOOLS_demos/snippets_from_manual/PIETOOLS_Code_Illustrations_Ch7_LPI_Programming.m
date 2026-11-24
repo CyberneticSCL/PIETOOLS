@@ -77,6 +77,9 @@
 %   replace lpi_ineq (psatz = 1) and lpi_eq; getsol_lpivar_sop,
 %   lpigetsol_sop and getObserver_sop read the solution and the gain; help
 %   text revised.
+% MMP, 11/23/2026: getObserver_sop called with method 'inv', as the comment
+%   of 7.6.1 states; the default 'qp' builds column selectors into R^ny, and
+%   y lies in L2[s1], so Z*Ej failed. The manual needs the same change.
 
 % Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator;
@@ -242,7 +245,9 @@ Zval = getsol_lpivar_sop(prog_sol,Z);                                       % DB
 % Compute the (optimal) observer gain operator L=P^{-1}*Z
 % Lval = getObserver(Pval,Zval);                                            % DB, MMP, 11/21/2026 (was)
 % P is separable (a multiplier plus eppos*I), so P^{-1}*Z is computed exactly % DB, MMP, 11/21/2026
-Lval = getObserver_sop(Pval,Zval);                                          % DB, MMP, 11/21/2026
+% Lval = getObserver_sop(Pval,Zval);                                        % MMP, 11/23/2026 (was); DB, MMP, 11/21/2026
+% y lies in L2[s1]: method 'inv'; the default 'qp' needs y in R^ny          % MMP, 11/23/2026
+Lval = getObserver_sop(Pval,Zval,struct('method','inv'));                   % MMP, 11/23/2026
 
 % % 7.6.2 getController_sop
 % Compute the (optimal) controller gain operator K=Z*P^{-1} 

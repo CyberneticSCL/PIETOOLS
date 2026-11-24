@@ -7,8 +7,19 @@ function st_merge_tests(what)
 % printed to the log only, on lines that begin with '## '.
 % WHAT: 'all' (default) or 'tests' (the unit tests only).
 % MMP, 11/18/2026.
+% MMP, 11/23/2026: the root R is the checkout that holds this file (was the
+%   live repo: a run from an export or a worktree put the live tree on the
+%   path; stress test of 11/22/2026).
 if nargin<1,  what = 'all';  end
-R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';
+% R = 'C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS';         % MMP, 11/23/2026 (was)
+% R: the checkout holding this file, its first ancestor with                % MMP, 11/23/2026
+% pietools_path_update.m (the loop ends at the drive root if none);         % MMP, 11/23/2026
+% '/' separators as in the literal, for the startsWith check below          % MMP, 11/23/2026
+R = fileparts(mfilename('fullpath'));                                       % MMP, 11/23/2026
+while ~isfile([R '/pietools_path_update.m']) && ~strcmp(R,fileparts(R))     % MMP, 11/23/2026
+    R = fileparts(R);                                                       % MMP, 11/23/2026
+end                                                                         % MMP, 11/23/2026
+R = strrep(R,'\','/');                                                      % MMP, 11/23/2026
 cd(R);  pietools_path_update;
 % The helpers of the tests are off the path with the rest of
 % testing_codes/private: rand_copvar, rand_cdopvar (Testfolder); rand_sopvar,

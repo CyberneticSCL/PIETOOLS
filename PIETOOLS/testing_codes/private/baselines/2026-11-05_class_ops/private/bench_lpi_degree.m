@@ -39,9 +39,11 @@ function R = bench_lpi_degree(nv,dlist,series,problem)
 % Settings, one family per dimension, d the Lyapunov degree:
 %   1-D: sosineq_on = 0, dd1 = dd12 = {d,[d d 2d],[d d 2d]},
 %        dd2 = {d+1,[d+2 d+2 2d+2],..}, dd3 = {d,[d+1 d+1 2d+1],..},
-%        ddZ = [2d 2d 2d]; equal to lpisettings('veryheavy') at d = 3.
-%   2-D: lpisettings('light') with every degree in settings_2d.LF_deg
-%        multiplied by d (light at d = 1); the negativity by lpi_ineq.
+%        ddZ = [2d 2d 2d]; equal to the retired lpisettings('veryheavy') at
+%        d = 3; the rest from lpisettings_stock_sop('veryheavy').
+%   2-D: lpisettings_sop('light') with settings_2d_stock('light'), every
+%        degree in settings_2d.LF_deg multiplied by d (light at d = 1); the
+%        negativity by lpi_ineq.
 % Container options: one pass (max_raise = max_raise_feas = 0), no witness,
 % no dual read-back, not verbose. A run shorter than 10 s is repeated 3
 % times; the medians are reported.
@@ -59,6 +61,13 @@ function R = bench_lpi_degree(nv,dlist,series,problem)
 %                since the container executives refuse the stock-format
 %                fields (phase 2 of the knob reduction); the legacy series
 %                keeps them. Same degrees, so the same programs.
+% MMP, 11/23/2026: SETTINGS_FOR without LPISETTINGS, retired to
+%                cleaning/private on 11/08/2026: 1-D the tier 'veryheavy'
+%                with its stock slack (LPISETTINGS_STOCK_SOP; options2,
+%                options3, override2 and dd2 equal the retired ones) and the
+%                retired options1; 2-D lpisettings_sop('light') with
+%                settings_2d from SETTINGS_2D_STOCK('light') (LF_deg equal).
+%                Same degree families. Help to match.
 
 % The PDE and its PIE (copvar operators), and the PIE with opvar operators
 if nargin<4 || isempty(problem),    problem = 'stability';  end             % MMP, 11/06/2026
@@ -191,7 +200,13 @@ end
 function st = settings_for(nv,d)
 % The settings of degree d (see the header)
 if nv==1
-    st = lpisettings('veryheavy');
+%   st = lpisettings('veryheavy');                                          % MMP, 11/23/2026 (was)
+    % LPISETTINGS retired: the tier with its stock slack, whose options2,   % MMP, 11/23/2026
+    % options3, override2 equal the retired ones, and the retired options1  % MMP, 11/23/2026
+    [st,sk] = lpisettings_stock_sop('veryheavy');                           % MMP, 11/23/2026
+    st.options1 = struct('sep',0,'exclude',[0 0 0 0]);                      % MMP, 11/23/2026
+    st.override2 = sk.override2;    st.options2 = sk.options2;              % MMP, 11/23/2026
+    st.options3 = sk.options3;                                              % MMP, 11/23/2026
     st.sosineq_on = 0;
     st.dd1  = {d,[d d 2*d],[d d 2*d]};
     st.dd12 = st.dd1;
@@ -199,7 +214,9 @@ if nv==1
     st.dd3  = {d,[d+1 d+1 2*d+1],[d+1 d+1 2*d+1]};
     st.ddZ  = [2*d 2*d 2*d];
 else
-    st = lpisettings('light');
+%   st = lpisettings('light');                                              % MMP, 11/23/2026 (was)
+    st = lpisettings_sop('light');                                          % MMP, 11/23/2026
+    st.settings_2d = settings_2d_stock('light');    % LF_deg as retired     % MMP, 11/23/2026
     st.settings_2d.LF_deg = scale_deg(st.settings_2d.LF_deg,d);
 end
 end

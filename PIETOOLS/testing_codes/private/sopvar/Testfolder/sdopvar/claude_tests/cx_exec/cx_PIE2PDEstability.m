@@ -57,6 +57,11 @@ function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MM
 %                  from lpi.pos and N from sop.stock (POSLPIVAR_SETTINGS_SOP),
 %                  which CX_SETTINGS and the default ST now carry. The same
 %                  program for every tier.
+% MMP, 11/23/2026: The default ST carries lpi.pos in the stock-field form
+%                  of 'heavy' on 11/12/2026 (mult 2, int 1, joint 2, sep 0),
+%                  which role 'lf' reads; the tiers hold the storage row
+%                  since 11/18/2026, on which 'lf' errors. CX_SETTINGS
+%                  supplies the same form for each tier.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -74,6 +79,7 @@ if nargin<2                                         % stock lines 73-79
 %   st = settings_PIETOOLS_heavy;                                           % MMP, 11/08/2026 (was)
     st = lpisettings_sop('heavy');                                          % MMP, 11/08/2026
     [~,st.sop.stock] = lpisettings_stock_sop('heavy');  % the stock slack   % MMP, 11/12/2026
+    st.lpi.pos = struct('mult',2,'int',1,'joint',2,'sep',0);  % 'lf' fields % MMP, 11/23/2026
     st.sos_opts.simplify = 1;
     st.eppos = 1e-4;    st.eppos2 = 1e-6;   st.epneg = 0;
 end

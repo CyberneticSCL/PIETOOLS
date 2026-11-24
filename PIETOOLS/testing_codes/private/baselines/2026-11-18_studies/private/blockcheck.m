@@ -25,6 +25,11 @@ function blockcheck(which_lib, ids, outfile)
 %   - settings_match: the settings the executive received equal the st of
 %     the block (isequaln); 'no st' when the block sets none.
 % MMP, 11/19/2026.
+% MMP, 11/23/2026: block detection by the layout of the libraries, not by
+%   the tag 'MMP, 11/19/2026', which the 11/21 comment pass replaced: code
+%   lines compare without a dated end-of-line marker (DDE19 and DDF03 were
+%   not found), and a block extends past its code over comments with text
+%   and st and form lines (every block found ran without its st and form).
 here = fileparts(mfilename('fullpath'));
 switch which_lib
     case 'DDE',     libname = 'examples_DDE_library_PIETOOLS';     script = 'PIETOOLS_DDE';
@@ -33,6 +38,12 @@ end
 libpath = which(libname);
 L = splitlines(fileread(libpath));
 S = regexprep(L,'^(\s*)%','$1','once');             % one comment level removed
+% Block layout, not date tags (the 11/21 comment pass retagged the lines    % MMP, 11/23/2026
+% of 11/19): code lines compare without a dated marker such as              % MMP, 11/23/2026
+% '% MMP, 11/21/2026' (mk); after its code a block runs on over comments    % MMP, 11/23/2026
+% with text and st, stability_form, Hinf_gain_form lines (tail)             % MMP, 11/23/2026
+mk = '\s*%[A-Z, ]*\d\d/\d\d/\d{4}\s*$';                                     % MMP, 11/23/2026
+tail = '^\s*(%.*[^%\s]|(st|stability_form|Hinf_gain_form)\s*[=.])';         % MMP, 11/23/2026
 if ~exist(outfile,'file')
     fid = fopen(outfile,'w');
     fprintf(fid,'lib,id,test,form,settings_match,verdict,feasratio,pinf,dinf,numerr,gamma,ndv,seconds,note\n');
@@ -42,13 +53,16 @@ flags = {'stability','stability_dual','Hinf_gain','Hinf_gain_dual','Hinf_control
 for b = 1:numel(ids)
     id = ids{b};
     B = splitlines(fileread(fullfile(here,'blocks',[id,'.m'])));  B = B(2:end);
-    code = strtrim(B(~startsWith(strtrim(B),'%') & ~cellfun(@isempty,strtrim(B))));
+%   code = strtrim(B(~startsWith(strtrim(B),'%') & ~cellfun(@isempty,strtrim(B))));  % MMP, 11/23/2026 (was)
+    code = strtrim(regexprep(B(~startsWith(strtrim(B),'%') & ...
+        ~cellfun(@isempty,strtrim(B))),mk,''));                             % MMP, 11/23/2026
     % the block in the library: its code lines in order, prose between them;
     % first one comment level removed (a commented block), then the lines as
     % they are (the active block, whose one-level comments, e.g. commented
     % alternatives, would read as code with a level removed)
     hit = [];
-    for T = {S, L}
+%   for T = {S, L}                                                          % MMP, 11/23/2026 (was)
+    for T = {regexprep(S,mk,''), regexprep(L,mk,'')}                        % MMP, 11/23/2026
         T = T{1}; %#ok<FXSET>
         for i = find(strcmp(strtrim(T),code{1}))'
             h = i;  j = i + 1;  ok = true;
@@ -65,7 +79,15 @@ for b = 1:numel(ids)
     end
     if isempty(hit),  wline(outfile,which_lib,id,'','','','not found',NaN,NaN,NaN,NaN,NaN,NaN,0,'');  continue,  end
     k = hit(end);
-    while k < numel(L) && contains(L{k+1},'MMP, 11/19/2026'),  k = k + 1;  end
+%   while k < numel(L) && contains(L{k+1},'MMP, 11/19/2026'),  k = k + 1;  end  % MMP, 11/23/2026 (was)
+    % the st prose, st and form lines and notes after the code, up to a     % MMP, 11/23/2026
+    % blank line, a separator ('%' and spaces) or code (one-level prose     % MMP, 11/23/2026
+    % such as '% the analytical range is ...' stays commented); E: the      % MMP, 11/23/2026
+    % text the block is run from (S commented, L active)                    % MMP, 11/23/2026
+    E = S;  if ~startsWith(strtrim(L{hit(end)}),'%'),  E = L;  end          % MMP, 11/23/2026
+    while k < numel(L) && ~isempty(regexp(E{k+1},tail,'once'))              % MMP, 11/23/2026
+        k = k + 1;                                                          % MMP, 11/23/2026
+    end                                                                     % MMP, 11/23/2026
     blk = S(hit(1):k);
     if ~startsWith(strtrim(L{hit(end)}),'%'),  blk = L(hit(1):k);  end   % the active block: as it is
     % the st and forms the block sets

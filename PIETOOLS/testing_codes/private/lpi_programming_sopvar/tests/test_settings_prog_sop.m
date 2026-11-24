@@ -24,8 +24,9 @@ function test_settings_prog_sop
 %   (6) LPISOLVE without options passes prog.settings.sos_opts, and with a
 %       settings structure its sos_opts (an unknown solver name is reported
 %       by SOSSOLVE in both cases); with the tier options it solves;
-%   (7) POSCOPVAR without DEG builds, on R^2 x L2[s1] at 'light' and at
-%       'heavy', the operator of the explicit specification of lpi.pos
+%   (7) POSCOPVAR without DEG builds, on R^2 x L2[s1] with lpi.pos in the
+%       stock-field form of 'light' and of 'heavy' on 11/12/2026, the
+%       operator of the explicit specification of lpi.pos
 %       (the multiplier, lower and upper bases), and on R^2 x L2[s1] x
 %       L2[s1,s2] the multiplier and full-integral bases in every space
 %       (s1 separable, being owned by the 2-D space); with DEG omitted an
@@ -40,7 +41,26 @@ function test_settings_prog_sop
 %       in the left basis of a block is the cap of the entry for its output
 %       space, in the right basis that of its input space (L2[s1]: 4 left,
 %       2 right in s1 shared, 4 right in s1 input-only; L2[s1,s2]: 1); on
-%       R x L2[s1,s2] the operator of entry 2.
+%       R x L2[s1,s2] the operator of entry 2;
+%  (10) POSCOPVAR without DEG reads the storage row lpi.pos (len_com) of
+%       every tier: on R^2 x L2[s1], L2[s1,s2], L2[s1,s2,s3] and R^2 x
+%       L2[s1] x L2[s1,s2], the basis operators (space, multi-index) and
+%       Gram sizes derived by hand from the tier files and the header of
+%       POSCOPVAR (6 tiers x 4 configurations);
+%  (11) on a row with lengths distinct per letter, direction and entry,
+%       the operator of each configuration equals that of the explicit
+%       DEG of the header, and a b with its theta- and s-lengths exchanged
+%       does not; the Gram sizes with len_cross, owned and non-owned caps,
+%       len_R 2 and absent, letter words (equal to code rows) and a zero
+%       length that drops a letter; with both lpi.pos layouts the row is
+%       read; DOM given with DEG omitted or empty (the call of POS_ROW)
+%       gives the operator of both omitted; five inputs refused by message;
+%  (12) PIETOOLS_stability_sop at 'light' certifies x_t = x_ss + pi^2/2 x,
+%       x(0) = x(1) = 0, and its storage, the first entry of prog.sop_pos,
+%       is the operator of the hand specification of entry 1 on L2[s];
+%  (13) a space in 4 variables reads entry 3, the last entry: 'uniform',
+%       a of length 1 and b of 2 x 2 per direction, from the scalar entry
+%       3 of (11) and from 'light', whose entry 3 holds rows of 3 lengths.
 %
 % INPUT:  none.
 % OUTPUT: none; one line per passed part, then a summary line.
@@ -80,6 +100,19 @@ function test_settings_prog_sop
 % MMP, 11/12/2026: Part (4) compares DEG omitted with the caps of each block
 %   from its two spaces, part (9) reads those caps off the bases (phase 3:
 %   LPIVAR_CDOPVAR defaults per block, no longer the largest space).
+% MMP, 11/23/2026: Part (7) runs on lpi.pos in the stock-field form (mult,
+%   int, joint, sep; the 'light' and 'heavy' entries of 11/12/2026), which
+%   POSCOPVAR reads without len_com; the tiers hold the storage row since
+%   11/18/2026, and part (7) errored at ps.int. No part checks the
+%   storage-row branch of POSCOPVAR. Help to match. Part (9) runs on the
+%   'heavy' lpi.var of 11/12/2026, {[4 2 2],1,1}, which its expected
+%   exponents assume (the tier has entry 2 = 2 since 11/18/2026); its
+%   failure message passed a 1 x 2 block index to one %d.
+% MMP, 11/24/2026: Parts (10)-(13) check the storage-row branch of POSCOPVAR
+%   (lpi.pos with len_com: every tier since 11/18/2026, and every executive
+%   storage through POS_ROW), which no part checked: the tier tables, each
+%   rule on a synthetic row against the explicit DEG, the storage of an
+%   executive, a space in 4 variables. Local GRAM_SIZES; help to match.
 
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
@@ -195,8 +228,15 @@ fprintf('  passed: (6) lpisolve: prog.settings.sos_opts and a settings structure
 npass = npass+1;
 
 %% (7) POSCOPVAR and LPIVAR_CDOPVAR without DEG: the program settings
-q1 = lpiprogram(polynomial({'s1'}),[0 1]);          % light
-q2 = lpiprogram(polynomial({'s1'}),[0 1],'heavy');
+% lpi.pos in the stock-field form of 11/12/2026, which POSCOPVAR reads      % MMP, 11/23/2026
+% without len_com (the tiers hold the storage row since 11/18/2026)         % MMP, 11/23/2026
+pf = @(m) struct('mult',[m 0 0],'int',[1 1 1],'joint',[2 2 2],'sep',0);     % MMP, 11/23/2026
+o1 = light;     o1.lpi.pos = pf(1);         % 'light' on 11/12/2026         % MMP, 11/23/2026
+o2 = heavy;     o2.lpi.pos = pf(2);         % 'heavy' on 11/12/2026         % MMP, 11/23/2026
+% q1 = lpiprogram(polynomial({'s1'}),[0 1]);          % light               % MMP, 11/23/2026 (was)
+% q2 = lpiprogram(polynomial({'s1'}),[0 1],'heavy');                        % MMP, 11/23/2026 (was)
+q1 = lpiprogram(polynomial({'s1'}),[0 1],o1);       % light                 % MMP, 11/23/2026
+q2 = lpiprogram(polynomial({'s1'}),[0 1],o2);       % heavy                 % MMP, 11/23/2026
 sp1 = {{},{'s1'}};      dm1 = [2;1];
 for q = {q1, q2}
     ps = q{1}.settings.lpi.pos;
@@ -210,14 +250,18 @@ for q = {q1, q2}
     end
 end
 % the coupled spaces: s1 separable for the 1-D space too
-st2 = p0.settings.lpi.pos;
+% st2 = p0.settings.lpi.pos;                                                % MMP, 11/23/2026 (was)
+p0o = lpiprogram(vars,dom,o1);              % p0 with the stock fields      % MMP, 11/23/2026
+st2 = p0o.settings.lpi.pos;                                                 % MMP, 11/23/2026
 Zi1 = struct('int',st2.int(1),'mult',st2.int(1),'joint',st2.joint(1));
 Zi2 = struct('int',st2.int(2),'mult',st2.int(2),'joint',st2.joint(2));
 dx = {struct('int',0), {struct('int',st2.mult(1),'mult',0,'joint',st2.mult(1)),Zi1}, ...
       {struct('int',st2.mult(2),'mult',0,'joint',st2.mult(2)),Zi2}};
 ox = struct('sep',true(1,2));   ox.include = {[],[1;4],[1 1;4 4]};
-[~,Pc] = poscopvar(p0,dm,sp);
-[~,Pd] = poscopvar(p0,dm,sp,dx,ox);
+% [~,Pc] = poscopvar(p0,dm,sp);                                             % MMP, 11/23/2026 (was)
+% [~,Pd] = poscopvar(p0,dm,sp,dx,ox);                                       % MMP, 11/23/2026 (was)
+[~,Pc] = poscopvar(p0o,dm,sp);                                              % MMP, 11/23/2026
+[~,Pd] = poscopvar(p0o,dm,sp,dx,ox);                                        % MMP, 11/23/2026
 if ~isequaln(Pc,Pd)
     error('test_settings_prog_sop: (7) the coupled default differs from multiplier and full integral in every space.');
 end
@@ -255,7 +299,9 @@ npass = npass+1;
 %% (9) LPIVAR_CDOPVAR without DEG: the caps of each block from its two spaces
 % heavy: entry 1 [4 2 2] (mult = out = in = 4, int = [2 2]), entry 2 every
 % cap 1. Rows: block, side, its variables, their largest exponents.
-h = lpiprogram(polynomial({'s1';'s2'}),[0 1; 0 2],'heavy');
+% h = lpiprogram(polynomial({'s1';'s2'}),[0 1; 0 2],'heavy');               % MMP, 11/23/2026 (was)
+hv = heavy;     hv.lpi.var.deg = {[4 2 2],1,1};     % 'heavy' on 11/12/2026 % MMP, 11/23/2026
+h = lpiprogram(polynomial({'s1';'s2'}),[0 1; 0 2],hv);                      % MMP, 11/23/2026
 sp3 = {{},{'s1'},{'s1','s2'}};      d3 = struct('out',[1;1;1],'in',[1;1;1]);
 [~,Zh] = lpivar_cdopvar(h,d3,sp3);
 want = {[2 2],'ZL',{'s1'},4;            [2 2],'ZR',{'s1'},2;
@@ -271,8 +317,9 @@ for k = 1:size(want,1)
     end
     [in,loc] = ismember(want{k,3},v);
     if ~all(in) || numel(v)~=numel(want{k,3}) || ~isequal(cellfun(@max,Zb(loc)),want{k,4})
+%             want{k,1},want{k,2},strjoin(v,','),mat2str(cellfun(@max,Zb)),mat2str(want{k,4})); % MMP, 11/23/2026 (was)
         error('test_settings_prog_sop: (9) block (%d,%d) %s over %s: largest exponents %s, expected %s.', ...
-              want{k,1},want{k,2},strjoin(v,','),mat2str(cellfun(@max,Zb)),mat2str(want{k,4}));
+              want{k,1}(1),want{k,1}(2),want{k,2},strjoin(v,','),mat2str(cellfun(@max,Zb)),mat2str(want{k,4})); % MMP, 11/23/2026
     end
 end
 % One dimension besides R^n: every block from that entry, as before
@@ -285,6 +332,209 @@ end
 fprintf('  passed: (9) lpivar_cdopvar without DEG: %d block sides capped by their own space; R x L2[s1,s2] = entry 2\n',size(want,1));
 npass = npass+1;
 
+% ---- MMP, 11/24/2026: begin of parts (10)-(13), the storage row ----
+%% (10) POSCOPVAR without DEG: the storage row of every tier
+% Per tier and configuration, the basis operators and Gram sizes that the
+% header of POSCOPVAR (DEG OMITTED) gives for the row of the tier file,
+% derived by hand. Rows: space; alpha_d per registry direction (1
+% multiplier, 2 lower, 3 upper, 4 full integral, 0 not owned); Gram size
+% m_k*|Z_b|, |Z_b| the product over owned directions of theta-length times
+% s-length (1 for a), times len_cross = 1 in a direction not owned. In the
+% coupled configuration the 1-D space carries c in s1, so b is the upper
+% integral in s1 in both spaces, the full integral in s2.
+cf = {polynomial({'s1'}),           [0 1],          [2;1],   {{},{'s1'}};
+      polynomial({'s1';'s2'}),      [0 1;0 2],      1,       {{'s1','s2'}};
+      polynomial({'s1';'s2';'s3'}), [0 1;0 2;0 1],  1,       {{'s1','s2','s3'}};
+      polynomial({'s1';'s2'}),      [0 1;0 2],      [2;1;1], {{},{'s1'},{'s1','s2'}}};
+% stripped: entry 1 'all' (a 2; b, c 2x2); 2, 3 'uniform' (b 2x2, 1x1)
+Est = {[1 0 2; 2 1 2; 2 3 4; 2 2 4],  [1 1 1 1; 1 4 4 16],  [1 1 1 1 1; 1 4 4 4 1], ...
+       [1 0 0 2; 2 1 0 2; 2 3 0 4; 2 2 0 4; 3 1 1 1; 3 3 4 16]};
+% light, custom: entry 2 'separable' (a 1; b 2x2), entry 3 'uniform'
+Eli = {[1 0 2; 2 1 2; 2 3 4; 2 2 4],  [1 1 1 1; 1 4 1 4; 1 1 4 4; 1 4 4 16], ...
+       [1 1 1 1 1; 1 4 4 4 64], ...
+       [1 0 0 2; 2 1 0 2; 2 3 0 4; 2 2 0 4; 3 1 1 1; 3 3 1 4; 3 1 4 4; 3 3 4 16]};
+% heavy: entry 1 a 3; entry 2 a 2, b 2x2
+Ehe = {[1 0 2; 2 1 3; 2 3 4; 2 2 4],  [1 1 1 4; 1 4 1 8; 1 1 4 8; 1 4 4 16], ...
+       [1 1 1 1 1; 1 4 4 4 64], ...
+       [1 0 0 2; 2 1 0 3; 2 3 0 4; 2 2 0 4; 3 1 1 4; 3 3 1 8; 3 1 4 8; 3 3 4 16]};
+% veryheavy: entry 1 a 4, b and c 4x4; entry 2 a 2, b 3x3
+Evh = {[1 0 2; 2 1 4; 2 3 16; 2 2 16],  [1 1 1 4; 1 4 1 18; 1 1 4 18; 1 4 4 81], ...
+       [1 1 1 1 1; 1 4 4 4 64], ...
+       [1 0 0 2; 2 1 0 4; 2 3 0 16; 2 2 0 16; 3 1 1 4; 3 3 1 18; 3 1 4 18; 3 3 4 81]};
+% extreme: the multiplier alone, a of length 2, 1, 1
+Eex = {[1 0 2; 2 1 2],  [1 1 1 1],  [1 1 1 1 1],  [1 0 0 2; 2 1 0 2; 3 1 1 1]};
+tiers = {'stripped',Est; 'light',Eli; 'custom',Eli; 'heavy',Ehe; 'veryheavy',Evh; 'extreme',Eex};
+for t = 1:size(tiers,1)
+    for c = 1:size(cf,1)
+        [~,~,Qc,bl] = poscopvar(lpiprogram(cf{c,1},cf{c,2},tiers{t,1}),cf{c,3},cf{c,4});
+        G = [bl,gram_sizes(Qc)];
+        if ~isequal(G,tiers{t,2}{c})
+            error('test_settings_prog_sop: (10) %s, configuration %d: rows %s, expected %s.', ...
+                  tiers{t,1},c,mat2str(G),mat2str(tiers{t,2}{c}));
+        end
+    end
+end
+fprintf('  passed: (10) poscopvar without DEG: the storage rows of %d tiers, %d configurations\n', ...
+        size(tiers,1),size(cf,1));
+npass = npass+1;
+
+%% (11) The rules of the row, on lengths distinct per letter, direction, entry
+% The explicit DEG of the header, by hand, is the oracle: equal operator,
+% decision variables, Gram names and basis rows; Gram sizes as in (10).
+% No len_cross: in a direction not owned, the largest owned int.
+S = struct('len_R',1,'len_inc',{{3,[2 0],1}},'len_com',{{2,[3 2],2}}, ...
+           'len_sos',{{[2;3;4],[1 2;2 3;3 1],[1;2;0]}},'patterns',{{'all','all','uniform'}}, ...
+           'cap',{{Inf,[Inf Inf],Inf}},'terms',{{'none','none','none'}},'offsets',{{[],[],[]}});
+sS = light;     sS.lpi.pos = S;
+mk = @(i,m) struct('int',i,'mult',m);
+% R x L2[s1]: a; b upper (s1 carries c), int 2, mult 1; c lower, int 3, mult 2
+X1 = {{struct('int',0),{mk(1,0),mk(2,1),mk(3,2)}}, struct('sep',false,'include',{{[],[1;3;2]}})};
+% L2[s1,s2]: 'all' less c in s2 (len_inc 0 there): b upper in s1, full in s2
+D2 = {mk([0 1],[0 0]),mk([1 1],[2 0]),mk([2 1],[1 0]),mk([0 2],[0 1]),mk([1 2],[2 1]),mk([2 2],[1 1])};
+I2 = [1 1; 3 1; 2 1; 1 4; 3 4; 2 4];
+X2 = {{D2}, struct('sep',[false true],'include',{{I2}})};
+% L2[s1,s2,s3]: 'uniform', the column of len_sos in every direction
+X3 = {{{mk([0 0 0],[0 0 0]),mk([1 1 1],[1 1 1])}}, struct('sep',true(1,3),'include',{{[1 1 1; 4 4 4]}})};
+% R x L2[s1] x L2[s1,s2]: the 1-D space has in s2 the int of s1
+X4 = {{struct('int',0),{mk([1 1],[0 0]),mk([2 2],[1 0]),mk([3 3],[2 0])},D2}, ...
+      struct('sep',[false true],'include',{{[],[1;3;2],I2}})};
+cs = {[1;1],   X1, [1 0 1; 2 1 2; 2 3 6; 2 2 12];
+      1,       X2, [1 1 1 2; 1 3 1 12; 1 2 1 12; 1 1 4 6; 1 3 4 36; 1 2 4 36];
+      1,       X3, [1 1 1 1 1; 1 4 4 4 64];
+      [1;1;1], X4, [1 0 0 1; 2 1 0 4; 2 3 0 18; 2 2 0 48; 3 1 1 2; 3 3 1 12; 3 2 1 12; ...
+                    3 1 4 6; 3 3 4 36; 3 2 4 36]};
+pr0 = cell(1,4);    P0 = cell(1,4);
+for c = 1:4
+    pr0{c} = lpiprogram(cf{c,1},cf{c,2},sS);
+    [qa,P0{c},Qa,ba] = poscopvar(pr0{c},cs{c,1},cf{c,4});
+    [qb,Pb,Qb,bb] = poscopvar(pr0{c},cs{c,1},cf{c,4},cs{c,2}{:});
+    if ~isequaln(P0{c},Pb) || ~isequaln(qa.decvartable,qb.decvartable) || ~isequal(Qa,Qb) || ~isequal(ba,bb)
+        error('test_settings_prog_sop: (11) configuration %d: the row differs from the explicit DEG.',c);
+    end
+    if ~isequal([ba,gram_sizes(Qa)],cs{c,3})
+        error('test_settings_prog_sop: (11) configuration %d: rows %s, expected %s.',c, ...
+              mat2str([ba,gram_sizes(Qa)]),mat2str(cs{c,3}));
+    end
+end
+% Control: b of R x L2[s1] with its theta- and s-lengths exchanged keeps the
+% Gram size and changes the operator, so the comparison separates int, mult
+Xs = X1;    Xs{1}{2}{2} = mk(1,2);
+[~,Ps] = poscopvar(pr0{1},[1;1],cf{1,4},Xs{:});
+if isequaln(P0{1},Ps)
+    error('test_settings_prog_sop: (11) b with theta- and s-lengths exchanged builds the same operator.');
+end
+% Variants, by Gram size: len_cross 1 (the 1-D space has no theta-monomial
+% in s2); theta_1+s_1 <= 2 (b 5 of 3x2, c 6 of 4x3); cap{2} = [1 Inf],
+% read by the 2-D space in s1 and by the 1-D space in s2 (theta_2 <= 1: 2
+% of 2, 3, 4); len_R 2 (degree 1 in theta_1 on R^2) and absent (1); the
+% words {'ab','ba','cb'} ('cb' puts c in s1: b upper there); a zero
+% theta-length of b in s2 drops b there
+vr = {@(p) setfield(p,'len_cross',{1,1,1}), 4, [1;1;1], ...
+         [1 0 0 1; 2 1 0 2; 2 3 0 6; 2 2 0 12; 3 1 1 2; 3 3 1 12; 3 2 1 12; 3 1 4 6; 3 3 4 36; 3 2 4 36];
+      @(p) setfield(p,'cap',{2,[Inf Inf],Inf}), 1, [1;1], [1 0 1; 2 1 2; 2 3 5; 2 2 6];
+      @(p) setfield(p,'cap',{Inf,[1 Inf],Inf}), 4, [1;1;1], ...
+         [1 0 0 1; 2 1 0 4; 2 3 0 12; 2 2 0 24; 3 1 1 2; 3 3 1 6; 3 2 1 6; 3 1 4 6; 3 3 4 18; 3 2 4 18];
+      @(p) setfield(p,'len_R',2), 1, [2;1], [1 0 4; 2 1 2; 2 3 6; 2 2 12];
+      @(p) rmfield(p,'len_R'), 1, [2;1], [1 0 2; 2 1 2; 2 3 6; 2 2 12];
+      @(p) setfield(p,'patterns',{'all',{'ab','ba','cb'},'uniform'}), 2, 1, [1 1 4 6; 1 3 1 12; 1 2 4 36];
+      @(p) setfield(p,'len_sos',{[2;3;4],[1 2;2 0;3 1],[1;2;0]}), 2, 1, [1 1 1 2; 1 3 1 12; 1 2 1 12]};
+Pv = cell(size(vr,1),1);
+for r = 1:size(vr,1)
+    v = sS;     v.lpi.pos = vr{r,1}(S);     c = vr{r,2};
+    [~,Pv{r},Qv,bv] = poscopvar(lpiprogram(cf{c,1},cf{c,2},v),vr{r,3},cf{c,4});
+    if ~isequal([bv,gram_sizes(Qv)],vr{r,4})
+        error('test_settings_prog_sop: (11) variant %d: rows %s, expected %s.',r, ...
+              mat2str([bv,gram_sizes(Qv)]),mat2str(vr{r,4}));
+    end
+end
+% The code rows [1 2;2 1;3 2] spell the patterns of the words above
+v = sS;     v.lpi.pos.patterns = {'all',[1 2;2 1;3 2],'uniform'};
+[~,Pr] = poscopvar(lpiprogram(cf{2,1},cf{2,2},v),1,cf{2,4});
+% Both layouts in lpi.pos: len_com decides, the stock fields are not read
+v = sS;     v.lpi.pos.mult = [3 0 0];   v.lpi.pos.int = [2 2 2];
+v.lpi.pos.joint = [4 4 4];  v.lpi.pos.sep = 1;
+[~,Pt] = poscopvar(lpiprogram(cf{1,1},cf{1,2},v),[1;1],cf{1,4});
+% DOM given, DEG omitted (the call of POS_ROW in EXEC_TOOLS_SOP) or empty
+dm4 = struct('vars',{{'s1','s2'}},'dom',[0 1;0 2]);
+[~,Pf1] = poscopvar(pr0{4},[1;1;1],cf{4,4},dm4);
+[~,Pf2] = poscopvar(pr0{4},[1;1;1],cf{4,4},dm4,[]);
+eq = [isequaln(Pv{6},Pr),isequaln(Pt,P0{1}),isequaln(Pf1,P0{4}),isequaln(Pf2,P0{4})];
+if ~all(eq)
+    error('test_settings_prog_sop: (11) words = rows, both layouts, DOM given: %s (1 = equal).',mat2str(eq));
+end
+% Refused, by message: a term in the storage, an unknown pattern set, a
+% length row of 3 entries for a space in 2 variables; include or sep in
+% OPTIONS with DEG omitted
+bad = {@(p) setfield(p,'terms',{'psatz','none','none'}),      'carries no term';
+       @(p) setfield(p,'patterns',{'bogus','all','uniform'}), 'Unknown pattern set';
+       @(p) setfield(p,'len_com',{2,[3 2 1],2}),              'entries for a space in 2 variables'};
+nref = 0;
+for r = 1:size(bad,1)
+    v = sS;     v.lpi.pos = bad{r,1}(S);
+    try,    poscopvar(lpiprogram(cf{4,1},cf{4,2},v),[1;1;1],cf{4,4});
+    catch ME,   nref = nref + contains(ME.message,bad{r,2});
+    end
+end
+for o = {struct('include',{{[],[1;2],[1 1]}}), struct('sep',true)}
+    try,    poscopvar(pr0{4},[1;1;1],cf{4,4},dm4,[],o{1});
+    catch ME,   nref = nref + contains(ME.message,'OPTIONS may not set them');
+    end
+end
+if nref~=5
+    error('test_settings_prog_sop: (11) %d of 5 inputs refused with their message.',nref);
+end
+fprintf('  passed: (11) the row rules in 4 configurations, %d variants, 5 refusals\n',size(vr,1));
+npass = npass+1;
+
+%% (12) The storage of an executive: PIETOOLS_stability_sop at 'light'
+% x_t = x_ss + pi^2/2 x, x(0) = x(1) = 0 (decay rate pi^2/2): the storage
+% that POS_ROW of EXEC_TOOLS_SOP declares from the row, the first entry of
+% prog.sop_pos, is the hand specification of entry 1 on L2[s]
+pvar s t
+x = pde_var(1,s,[0,1]);
+PDE = [diff(x,t,1)==diff(x,s,2)+0.5*pi^2*x;  subs(x,s,0)==0;  subs(x,s,1)==0]; %#ok<NASGU> read in evalc
+PIE = [];   pe = [];    ie = [];    % assigned in evalc
+evalc('PIE = initialize(convert(PDE));');
+sl = light;     sl.sop.verbose = false;
+evalc('[pe,~,ie] = PIETOOLS_stability_sop(PIE,sl,''P'');');
+pf = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,sl);
+[~,Ph] = poscopvar(pf,1,{{'s'}},{{mk(1,0),mk(1,1),mk(1,1)}},struct('sep',false,'include',{{[1;3;2]}}));
+if ~ie.certified || ~isequaln(pe.sop_pos{1},Ph)
+    error('test_settings_prog_sop: (12) stability_sop at light: certified %d, storage of the row %d.', ...
+          ie.certified,isequaln(pe.sop_pos{1},Ph));
+end
+fprintf('  passed: (12) PIETOOLS_stability_sop at light: certified, its storage the row of entry 1\n');
+npass = npass+1;
+
+%% (13) A space in 4 variables reads entry 3, the last entry
+% 'uniform': a of length 1, b of 2 x 2 per direction; from the scalar entry
+% 3 of (11), and from 'light', whose entry 3 holds rows of 3 lengths
+v4 = polynomial({'s1';'s2';'s3';'s4'});     d4 = repmat([0 1],4,1);
+s4 = {{'s1','s2','s3','s4'}};   E4 = [1 1 1 1 1 1; 1 4 4 4 4 256];
+for o = {'the row of (11)','light'; sS,light}
+    try
+        [~,~,Q4,b4] = poscopvar(lpiprogram(v4,d4,o{2}),1,s4);
+    catch ME
+        error('test_settings_prog_sop: (13) %s on L2[s1,s2,s3,s4]: %s',o{1},ME.message);
+    end
+    if ~isequal([b4,gram_sizes(Q4)],E4)
+        error('test_settings_prog_sop: (13) %s on L2[s1,s2,s3,s4]: rows %s, expected %s.',o{1}, ...
+              mat2str([b4,gram_sizes(Q4)]),mat2str(E4));
+    end
+end
+fprintf('  passed: (13) a space in 4 variables reads entry 3 (the row of (11), light)\n');
+npass = npass+1;
+% ---- MMP, 11/24/2026: end of parts (10)-(13) ----
+
 % The summary line
 fprintf('\ntest_settings_prog_sop passed (%d checks).\n',npass);
 end
+
+
+function g = gram_sizes(Qc)                                                 % MMP, 11/24/2026
+% G = GRAM_SIZES(QC) the size of each diagonal block of the Gram matrix.    % MMP, 11/24/2026
+% INPUT  Qc: N_b x N_b cell, the Gram names of POSCOPVAR.                   % MMP, 11/24/2026
+% OUTPUT g:  N_b x 1 double, the number of rows of block (b,b).             % MMP, 11/24/2026
+g = zeros(size(Qc,1),1);                                                    % MMP, 11/24/2026
+for b = 1:numel(g),     g(b) = size(Qc{b,b},1);     end                     % MMP, 11/24/2026
+end                                                                         % MMP, 11/24/2026
