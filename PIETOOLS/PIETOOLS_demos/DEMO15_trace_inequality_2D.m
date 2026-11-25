@@ -14,28 +14,33 @@
 %   s.t. int_{BC} x^2 − c(<x,x> + <x_{s1},x_{s1}> + <x_{s2},x_{s2}>) <= 0
 %   x in H1.
 % To solve, we take x in the space of functions with x_{s1}, x_{s2}, and
-% x_{s1 s2} in L2 (the 2D version of W^1), and solve the boundary value
-% problem with only trivial conditions along each direction,
-%               x(0,s2) = x(0,s2),     x(s1,0) = x(s1,0).
+% x_{s1 s2} in L2 (the 2D version of W^1). No condition is imposed on x:
+% instead, states of lower dimension are declared that x determines, and
+% the relations between them form a boundary value problem (BVP). Option
+% 'int' (below) uses the means
+%       x1(s1) = int_0^1 x(s1,s2) ds2,   x2(s2) = int_0^1 x(s1,s2) ds1,
+%       x0 = int_0^1 x1(s1) ds1 = int_0^1 x2(s2) ds2,
+% and option 'subs' the edge values
+%       x1(s1) = x(s1,0),   x2(s2) = x(0,s2),   x0 = x1(0) = x2(0).
 % PIETOOLS then returns the fundamental state xf, free of boundary
-% conditions (four components: a scalar, functions of s1, of s2, and of
-% (s1,s2); see Dmap), and the operators such that
+% conditions, with four components: x0, x1_{s1}, x2_{s2} and x_{s1 s2}. 
+% The operator T has a row for each state x, x0, x1, x2.
+% That of x gives the operators such that
 %               x = H0op*xf,    x_{s1} = H1op*xf,    x_{s2} = H2op*xf.
 % Composing H0op with evaluation at each edge gives the edge values,
 %               x(0,s2) = E1op*xf,   x(1,s2) = E2op*xf,
 %               x(s1,0) = E3op*xf,   x(s1,1) = E4op*xf.
-% Alternatively (option 'inputs' below), the values of x on two edges can be
-% declared as inputs, x(s1,0) = v1(s1), x(0,s2) = v2(s2), as in DEMO14. The
-% fundamental state is then [x(0,0); v1_{s1}; v2_{s2}; x_{s1 s2}], and
-%               x = H0op*[w; xf],  with w the inputs.
-% Both options parameterize all of H1 and give the same constant.
+% Both options parameterize this space and give the same constant.
 % We can then pose the trace inequality as an LPI
 %   min_{gam}   gam,
 %      s.t.     gam*(H0op'*H0op + H1op'*H1op + H2op'*H2op) - sum_k Ekop'*Ekop ≥ 0.
 %
 % The 1D version of this inequality (DEMO14) has the constant 2.164 on
 % [0,1] for x(0)^2 + x(1)^2. The optimal constant on the unit square is
-% about 4.165 (finite elements). The same construction applies to more
+%   c = sqrt(2)/tanh(1/(2*sqrt(2))) = 4.16529,
+% attained by x = cosh((s1-1/2)/sqrt(2))*cosh((s2-1/2)/sqrt(2)), which
+% solves -x_{s1s1}-x_{s2s2}+x = 0 with x_{n} = x/c on the boundary (n the
+% outward normal). The same construction applies to more
 % variables, at a higher cost: the certificate grows quickly with the
 % number of variables and with the degrees dD, dw.
 
@@ -65,6 +70,7 @@
 %
 % Initial coding, AT, 11/10/2026: 2D extension of DEMO13_trace_inequality.
 % DJ, 11/11/2026: Use `convert` to solve the BVP;
+% DJ, 11/25/2026: Use ODE and PDE states to declare BVP;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -72,17 +78,16 @@ echo on
 % =============================================
 % === Declare the operators of interest
 
-% % Choose how the state is parameterized:
-% %   'mean'   - trivial boundary conditions; the state is
-% %              [int int x; int x_{s1} ds2; int x_{s2} ds1; x_{s1 s2}]
-% %              SeDuMi solver compute the upper bound 
-% %                                             without numerical problems
-% %              
-% %   'inputs' - boundary values as inputs, x(s1,c) = v1, x(a,s2) = v2; the
-% %              state is [x(a,c); v1_{s1}; v2_{s2}; x_{s1 s2}]
-% %              SeDuMi solver computes the upper bound, 
-% %              but runs into numerical problems
-option = 'mean';        % 'mean' or 'inputs'
+% % Choose the states of lower dimension declared with x, 'int' or 'subs':
+% %   'int'  - means of x; the fundamental state is
+% %            [int int x; int x_{s1} ds2; int x_{s2} ds1; x_{s1 s2}];
+% %            certificate degree dD = 0 suffices (about 18600 decision
+% %            variables, bound 4.1654)
+% %   'subs' - edge values of x; the fundamental state is
+% %            [x(a,c); x_{s1}(s1,c); x_{s2}(a,s2); x_{s1 s2}];
+% %            needs dD = 1 (about 18600 decision variables, bound 4.1654;
+% %            dD = 0 gives 4.449)
+option = 'int';
 
 % % Declare the BVP
 % %     x in W^{[1,1]}([a,b]x[c,d])
@@ -90,35 +95,35 @@ a = 0;  b = 1;  c = 0;  d = 1;
 pvar s1 s2
 x = pde_var([s1;s2],[a,b;c,d],[1;1]);
 switch option
-    case 'mean'
-        % Trivial conditions along each direction
-        BVP = [subs(x,s1,a)==subs(x,s1,a);
-               subs(x,s2,c)==subs(x,s2,c)];
-    case 'inputs'
-        % Edge values declared as inputs
-        v1 = pde_var('in',1,s1,[a,b]);      % v1(s1) = x(s1,c)
-        v2 = pde_var('in',1,s2,[c,d]);      % v2(s2) = x(a,s2)
-        BVP = [subs(x,s2,c)==v1;
-               subs(x,s1,a)==v2];
+    case 'subs'
+        % Edge values declared as states
+        x0 = pde_var();                     % x(a,c)
+        x1 = pde_var(s1,[a,b],1);           % x(s1,c)
+        x2 = pde_var(s2,[c,d],1);           % x(a,s2)
+        BVP = [subs(x,s1,a)==x2;
+               subs(x,s2,c)==x1;
+               subs(x1,s1,a)==x0;
+               subs(x2,s2,c)==x0];
+    case 'int'
+        % Mean values declared as states
+        x0 = pde_var();                     % int_a^b int_c^d x(s1,s2) ds2 ds1
+        x1 = pde_var(s1,[a,b],1);           % int_c^d x(s1,s2) ds2
+        x2 = pde_var(s2,[c,d],1);           % int_a^b x(s1,s2) ds1
+        BVP = [int(x,s1,[a,b])==x2;
+               int(x,s2,[c,d])==x1
+               int(x1,s1,[a,b])==x0;
+               int(x2,s2,[c,d])==x0];
     otherwise
-        error("option must be 'mean' or 'inputs'.");
+        error("option must be 'int' or 'subs'.");
 end
 
 % % Parameterize all x in H1:  x = H0op*xf, and its first derivatives
-% xf = [int_0^1 int_0^1 x; int_0^1 x_{s1} ds2; int_0^1 x_{s2} ds1; x_{s1 s2}]
+% xf = [x0; x1_{s1}; x2_{s2}; x_{s1 s2}]. T has a row for each state
+% (x, x0, x1, x2), but only that of x is used
 BVP_sol = convert(BVP);
-H0op = BVP_sol.T;               % (H0op*xf) = x
+H0op = BVP_sol.T(1,:);          % (H0op*xf) = x
 H1op = diff(H0op,s1);           % (H1op*xf) = x_{s1}
 H2op = diff(H0op,s2);           % (H2op*xf) = x_{s2}
-
-if strcmp(option,'inputs')
-    % Prepend the input components w to the state
-
-    % [w, x] = [x(0,0); x_s1(s1, 0);  x_s2(0, s2); x_s1s2(s1,s2)]
-    H0op = [BVP_sol.Tw, H0op];     % (H0op*[w;xf]) = x
-    H1op = diff(H0op,s1);          % (H1op*[w;xf]) = x_{s1}
-    H2op = diff(H0op,s2);          % (H2op*[w;xf]) = x_{s2}
-end
 
 % % Edge values of x, as operators from xf to L2 of the other variable
 E1op = subs(H0op,s1,a);             % x(a,s2)
@@ -139,11 +144,11 @@ prob = lpiprogram(H0op.vars,H0op.dom);
 
 % % Set inequality constraints:
 % %   gam*(H0op'*H0op + H1op'*H1op + H2op'*H2op) - sum_k Ekop'*Ekop >= 0
-% % (the 'inputs' option needs higher certificate degrees, dD = 1, to reach
-% % the same value, which costs about 94000 decision variables)
+% % (option 'subs' needs the certificate degree dD = 1 to reach the same
+% % value)
 P = gam*(H0op'*H0op + H1op'*H1op + H2op'*H2op) ...
     - E1op'*E1op - E2op'*E2op - E3op'*E3op - E4op'*E4op;
-if strcmp(option,'mean')
+if strcmp(option,'int')
     prob = lpi_ineq_sop(prob,P,struct('dD',0,'dw',1));
 else
     prob = lpi_ineq_sop(prob,P,struct('dD',1,'dw',1));
@@ -160,5 +165,5 @@ trace_constant = double(lpigetsol_sop(prob,gam));
 
 echo off
 
-fprintf(['\n If successful, ',num2str(trace_constant,4),' is an upper bound on c in int_{bdry} x^2 <= c(||x||^2+||x_s1||^2+||x_s2||^2) on [0,1]^2.\n'])
-fprintf([' The optimal value is 4.165 (finite elements).\n']);
+fprintf(['\n If successful, ',num2str(trace_constant,6),' is an upper bound on c in int_{bdry} x^2 <= c(||x||^2+||x_s1||^2+||x_s2||^2) on [0,1]^2.\n']) % DJ (CC), 11/25/2026
+fprintf([' The optimal value is sqrt(2)/tanh(1/(2*sqrt(2))) = 4.16529.\n']);

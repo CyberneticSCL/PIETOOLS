@@ -28,6 +28,10 @@ function PIE = convert(PDE,out_type)
 %   for the fundamental state xf and inputs wf, uf. A PDE without dynamics
 %   cannot have delays. Its static constraints 0=F(s) on the whole domain,
 %   and other algebraic constraints, are rows of K.
+% - Each state needs at least as many boundary conditions along each
+%   direction as its order. A condition reducing to 0=0, such as
+%   x(0)==x(0), is an error: states free along a direction are not
+%   supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -72,6 +76,8 @@ function PIE = convert(PDE,out_type)
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: Allow static constraints in a BVP (rows of K); set
 %                   pie2pde.X, T, Tw, Tu; print a heading and summary;
+% DJ, 11/25/2026: Order the components of xf of a BVP by their number of
+%                   variables, as for a PDE with dynamics;
 
 % We support only PDE to PIE conversion. The second argument is 'pie', or
 % flags of the converter, with the 'pie' left out.
@@ -153,6 +159,21 @@ end
 PDE = static_constraints(PDE,'drop');
 if any(Dmap.x.idx==0)                                                       % DJ (CC), 11/13/2026
     error("convert_PIETOOLS_PDE:blocks","Rank-deficient (e.g. periodic) boundary conditions that couple states in a shared moment are not supported.")
+end
+% List the components of xf by their number of variables, ascending (ODE
+% states first), stable within each group, as for a PDE with dynamics. The
+% columns of T and K, and the rows of the map to xf, are permuted.
+[~,perm] = sort(sum(info.space.x.depmat,2)','ascend');                      % DJ, 11/25/2026
+if ~isequal(perm,1:numel(perm))
+    Tops.x = copvar(Tops.x.C(:,perm));
+    if size(Kops.x,1)>0
+        Kops.x = copvar(Kops.x.C(:,perm));
+    end
+    Dmap.x.idx = Dmap.x.idx(perm);
+    Dmap.x.diff = Dmap.x.diff(perm,:,:);
+    Dmap.x.C = copvar(Dmap.x.C.C(perm,:));
+    info.space.x.dims = info.space.x.dims(perm);
+    info.space.x.depmat = info.space.x.depmat(perm,:);
 end
 space_pie = info.space;
 N = numel(space_pie.vars);     

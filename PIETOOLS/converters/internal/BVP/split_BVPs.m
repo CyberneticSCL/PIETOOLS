@@ -39,6 +39,8 @@ function dirs = split_BVPs(PDE)
 %   states. There should be at least as many conditions along s_i as the
 %   total order of the states in s_i. Integrals of derivatives along s_i
 %   are integrated by parts.
+% - A condition with a row reducing to 0=0 (e.g. x(0)==x(0)) is an
+%   error: it imposes nothing, and would leave the states free along s_i.
 % - Whether the 1D problems combine to an admissible problem is not
 %   checked here.
 
@@ -278,6 +280,14 @@ for i=1:N
                 F = F + Rsel*(-1)^r*C*Csel;
             end
         end
+    end
+    % Rows reducing to 0=0 (no boundary value, integral or forcing) impose
+    % nothing, and would leave the states free along s_i (rank deficient),
+    % which is not supported
+    F_nz = reshape(full(any(F.coefficient,1)),size(F));
+    is_triv = ~any(E,2) & ~any(F_nz,2) & repelem(cellfun(@isempty,dirs(i).forcing),nrow)';
+    if any(is_triv)
+        error('split_BVPs:trivialBC','%s',['Boundary conditions along ',var_names{i,1},': A boundary condition reduces to 0=0 (e.g. x(0)==x(0)), and imposes nothing. States that are free along a direction are not supported; specify conditions on the boundary values.'])
     end
     dirs(i).n = n;      dirs(i).x_order = x_order;      dirs(i).E = E;      dirs(i).F = F;
     dirs(i).lab_E = lab_E;      dirs(i).lab_F = lab_F;
