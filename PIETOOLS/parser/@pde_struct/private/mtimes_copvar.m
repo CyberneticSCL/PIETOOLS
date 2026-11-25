@@ -56,17 +56,7 @@ function PDE_out = mtimes_copvar(P,PDE_in)
 % % % Process the inputs
 
 % % Represent the operator as a container of 'sopvar' blocks.
-if isa(P,'opvar')
-    % The conversion requires the dummy variable to be named as var1 with
-    % _dum appended; only the kernels R1 and R2 depend on it.
-    dum_var = pvar([P.var1.varname{1},'_dum']);
-    if ~isequal(P.var2,dum_var)
-        P.R.R1 = subs(polynomial(P.R.R1),P.var2,dum_var);
-        P.R.R2 = subs(polynomial(P.R.R2),P.var2,dum_var);
-        P.var2 = dum_var;
-    end
-    P = opvar2copvar(P);
-elseif isa(P,'sopvar')
+if isa(P,'sopvar')
     P = copvar({P});
 end
 

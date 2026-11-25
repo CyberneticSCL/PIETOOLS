@@ -5,8 +5,8 @@ function PIE = initialize(PIE)
 % is well-defined and consistent.
 %
 % INPUT
-%   PIE:    "pie_struct" class object, with operators specified as 'opvar',
-%           'opvar2d', or 'copvar' objects.
+%   PIE:    "pie_struct" class object, with operators specified as 'copvar'
+%           objects.
 %
 % OUTPUT
 %   PIE:    "pie_struct" class object describing the same system as the
@@ -25,11 +25,6 @@ function PIE = initialize(PIE)
 %   Dyu. Then, A is not mandatory, and the output (row) spaces of T, Tw, Tu,
 %   those of x_pde=T*x+Tw*w+Tu*u, need not match the input (column) spaces,
 %   the components of x, which are those of the columns of T and K.
-% - Operators specified as 'opvar' or 'opvar2d' objects are converted to
-%   'copvar' objects, which do not involve dummy variables. Dummy variables
-%   of the operators are first renamed to follow the convention of the PIE,
-%   adding '_dum' to the name of the spatial variable, see also
-%   PIE.space.vars.
 % - The variables and domain of each operator must match those of the PIE,
 %   and the output (input) spaces of all operators mapping to (from) the
 %   same type of component (x, w, u, z, or y) must match.
@@ -86,6 +81,8 @@ function PIE = initialize(PIE)
 %                   specified), as converted from a BVP;
 % DJ, 11/18/2026: Account for updated `size` function.
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/25/2026: Remove the conversion of the retired 'opvar' and
+%                   'opvar2d' classes;
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -120,11 +117,7 @@ end
 T = PIE.T;
 if is_unset(T)
     error("PIE.T is a mandatory element of PIE structure and cannot be defaulted to zero");
-elseif isa(T,'opvar') || isa(T,'opvar2d')
-    % Adapt variables and domain of the PIE to those of the T operator.
-    PIE.space.vars = arrayfun(@(ii) T.var1(ii).varname{1},1:size(T.var1,1),'UniformOutput',false);
-    PIE.space.dom = T.I;
-elseif isa(T,'copvar')
+elseif isa(T,'copvar')                                                      % DJ, 11/25/2026
     if isempty(PIE.space.vars)
         PIE.space.vars = T.vars;
         PIE.space.dom = T.dom;
@@ -137,7 +130,7 @@ elseif isa(T,'copvar')
         PIE.space.dom = dom;
     end
 else
-    error("PIE.T should be specified as an 'opvar', 'opvar2d', or 'copvar' object.")
+    error("PIE.T should be specified as a 'copvar' object.")
 end
 vnames = PIE.space.vars;
 dom = PIE.space.dom;
@@ -158,22 +151,11 @@ for k = 1:numel(opnames)
             error(['PIE.',fname,' is a mandatory element of PIE structure and cannot be defaulted to zero']);
         end
         continue
-    elseif isa(Pop,'opvar') || isa(Pop,'opvar2d')
-        % Convert to copvar, using the dummy variables of the PIE. An
-        % operator without any L2 space does not involve any variables.
-        if any(any(Pop.dim(2:end,:)))
-            op_vars = reshape(Pop.var1.varname,1,[]);
-            op_dom = double(Pop.I);
-        else
-            op_vars = cell(1,0);
-            op_dom = zeros(0,2);
-        end
-        Pop = op2copvar_sop(pie_rename_dummy(Pop));
-    elseif isa(Pop,'copvar')
+    elseif isa(Pop,'copvar')                                                % DJ, 11/25/2026
         op_vars = Pop.vars;
         op_dom = Pop.dom;
     else
-        error(['PIE.',fname," should be specified as an 'opvar', 'opvar2d', or 'copvar' object."])
+        error(['PIE.',fname," should be specified as a 'copvar' object."])
     end
     % The variables and domain of the operator must match those of the PIE.
     [is_pie_var,loc] = ismember(op_vars,vnames);

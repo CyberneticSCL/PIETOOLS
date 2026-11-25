@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
+classdef (InferiorClasses={?dpvar,?polynomial}) pie_struct                  % DJ, 11/25/2026
 % pie_struct is a class of objects used to describe linear PIE systems in
 % PIETOOLS, taking the form
 %
@@ -19,9 +19,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %   PIE.Cy, PIE.Dyw, PIE.Dyu:
 %               copvar objects representing the operators in the equations
 %               above, e.g. Dyu maps the actuator input u to the observed
-%               output y. They may also be specified as opvar or opvar2d
-%               objects, which `initialize` converts to copvar objects.
-%               Operators that have not been specified are initialized as
+%               output y. Operators that have not been specified are initialized as
 %               zero operators;
 % - PIE.K, PIE.Kw, PIE.Ku:
 %               copvar objects representing the algebraic constraint on the
@@ -191,6 +189,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: pie2pde fields X, T, Tw, Tu, W, U, Y, Z (were x, w, u,
 %                   y, z), with T, Tw, Tu the maps to the PDE state;
+% DJ, 11/25/2026: Drop the retired 'opvar2d' class from InferiorClasses;
 
 properties
     % The dynamics

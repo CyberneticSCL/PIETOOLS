@@ -51,6 +51,9 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 % DJ, 01/04/2025: Bugfix for empty terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/23/2026: Return the sum for terms plus an equation;
+% DJ, 11/24/2026: Add rows of terms of different sizes but equal total
+%                   size, also with a row of zeros, as single vector-valued
+%                   rows;
 
 
 % % % Process the inputs
@@ -101,6 +104,24 @@ elseif ~is_pde_term(PDE_2)
     % --> move to right-hand side
     PDE_out = plus(PDE_2,-1*PDE_1);
     return                                                                  % DJ, 11/23/2026
+end
+% % Rows of terms of different sizes but equal total size, as in
+% % x+[x(2);x(1)], are added as single vector-valued rows. The size of a
+% % single row of zeros, as in x+[x(2);0], follows from the total size.
+if is_pde_term(PDE_1)
+    rows = [PDE_1.free(:);PDE_2.free(:)];
+    has_sz = cellfun(@(f) isfield(f,'size'),rows);
+    sz = nan(numel(rows),1);    sz(has_sz) = cellfun(@(f) f.size,rows(has_sz));
+    sz_1 = sz(1:numel(PDE_1.free));     sz_2 = sz(numel(PDE_1.free)+1:end);
+    if sum(~has_sz)==1 && any(isnan(sz_1))
+        sz_1(isnan(sz_1)) = sum(sz_2)-sum(sz_1,'omitnan');
+    elseif sum(~has_sz)==1
+        sz_2(isnan(sz_2)) = sum(sz_1)-sum(sz_2,'omitnan');
+    end
+    if all([sz_1;sz_2]>0) && ~isequal(sz_1,sz_2) && sum(sz_1)==sum(sz_2)
+        PDE_out = plus(squash_eqs(PDE_1,sz_1),squash_eqs(PDE_2,sz_2));      % DJ, 11/24/2026
+        return
+    end
 end
 
 % % Determine what type of objects we can extract from PDE_1

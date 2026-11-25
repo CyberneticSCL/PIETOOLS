@@ -53,9 +53,9 @@ if isa(fctr1,'pde_struct')
     % Use separate function for multiplication of PDE terms
     PDE_out = times_pdes(fctr1,fctr2);
     return
-elseif ~isa(fctr1,'double') && ~isa(fctr1,'polynomial') && ~isa(fctr1,'opvar')
+elseif ~isa(fctr1,'double') && ~isa(fctr1,'polynomial')
     error("The first factor in the product should be of type 'pde_struct', 'double' or 'polynomial'.")
-elseif ~isa(fctr1,'opvar')
+else
     fctr1 = polynomial(fctr1);
 end
 

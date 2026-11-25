@@ -49,6 +49,10 @@ function PDE_out = eq(LHS,RHS)
 % DJ, 02/17/2026: Add support for nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/23/2026: Name the variables in the error for mismatched variables;
+% DJ, 11/24/2026: Move subroutine squash_eqs to a private function, which
+%                   also squashes nonlinear terms;
+% DJ, 11/25/2026: Explain in the row-mismatch error that equations for
+%                   single components are not supported;
 
 % % % Process the inputs
 
@@ -176,7 +180,7 @@ for ii=1:numel(RHS.free)
         
         % Check that the size of the terms makes sense for the object.
         if PDE_out.(obj){eq_num}.size~=RHS.free{ii}.size
-            error("The number of rows in the PDE terms to equate do not match.")
+            error("The number of rows in the PDE terms to equate do not match. Equations for single components of a state or output, as in diff(x(1),t)==..., are not supported: declare one equation for the full variable, as in diff(x,t)==[...;...].") % DJ, 11/25/2026
         end
         % Check that the variables appearing in the terms make sense for
         % the object.
@@ -232,82 +236,5 @@ for ii=1:numel(RHS.free)
     % Get rid of loose PDE terms.
     PDE_out.free = {};
 end
-
-end
-
-
-
-%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
-function PDE_new = squash_eqs(PDE,sz_eqs)
-% PDE_NEW = SQUASH_EQS(PDE) takes a PDE structure describing free terms (no
-% completed equations), and squashes all rows of terms (each row to be
-% added to a separate equation) into a single vector-valued row of terms.
-%
-% INPUT
-% - PDE:        'pde_struct' object representing a set of n rows of free
-%               terms to be used to define equations, specified through the
-%               fields PDE.free{ii}.term, for ii=1:n;
-% - sz_eqs:     nx1 array specifying for each row of terms the vector size
-%               of those terms, sz_eqs(ii) = PDE.free{ii}.size;
-%
-% OUTPUT
-% - PDE_new:    'pde_struct' object representing the same equations, but
-%               now with PDE_new.free only containing a single element,
-%               with PDE_new.free{1}.term including all terms from all
-%               elements PDE.free{ii}, premultiplied with a suitable
-%               permutation matrix;
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% If you modify this code, document all changes carefully and include date
-% authorship, and a brief description of modifications
-%
-% DJ, 01/06/2025: Initial coding;
-%
-
-% Initialize a new object with just 1 vector-valued equation
-PDE_new = PDE;
-PDE_new.free = PDE.free(1);
-% Augment all terms in first row to new size by premultiplying coefficients.
-C_aug = [eye(sz_eqs(1));zeros(sum(sz_eqs(2:end)),sz_eqs(1))];
-for jj=1:numel(PDE.free{1}.term)
-    if isfield(PDE_new.free{1}.term{jj},'C')
-        PDE_new.free{1}.term{jj}.C = C_aug*PDE_new.free{1}.term{jj}.C;
-    else
-        PDE_new.free{1}.term{jj}.C = C_aug;
-    end
-end
-% Keep track of the variables that appear in the first row;
-var_list = cell(size(PDE.free{1}.vars,1),1);
-for kk=1:numel(var_list)
-    var_list{kk} = PDE.free{1}.vars(kk).varname{1};
-end
-% Add all other terms, augmented to new size.
-for ii=2:numel(sz_eqs)
-    trm_cntr = numel(PDE_new.free{1}.term);
-    PDE_new.free{1}.term = [PDE_new.free{1}.term,PDE.free{ii}.term];
-    C_aug = [zeros(sum(sz_eqs(1:ii-1)),sz_eqs(ii));
-             eye(sz_eqs(ii));
-             zeros(sum(sz_eqs(ii+1:end)),sz_eqs(ii))];
-    for jj=trm_cntr+(1:numel(PDE.free{ii}.term))
-        if isfield(PDE_new.free{1}.term{jj},'C')
-            PDE_new.free{1}.term{jj}.C = C_aug*PDE_new.free{1}.term{jj}.C;
-        else
-            PDE_new.free{1}.term{jj}.C = C_aug;
-        end
-    end
-    % Keep track of the variables that appear in all rows.
-    for kk=1:size(PDE.free{ii}.vars,1)
-        varname_kk = PDE.free{ii}.vars(kk).varname{1};
-        if ~ismember(varname_kk,var_list)
-            var_list = [var_list;{varname_kk}];
-        end
-    end
-end
-% Set the variables and size of the new squashed row of terms
-PDE_new.free{1}.size = sum(sz_eqs);
-PDE_new.free{1}.vars = polynomial(var_list);
-% Continue with new RHS
-PDE = PDE_new;
 
 end

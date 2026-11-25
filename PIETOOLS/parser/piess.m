@@ -70,11 +70,7 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %
 % NOTES
 % - The operators are 'copvar' objects, the type of the operators of a
-% 'pie_struct'. If instead at least one is
-% an 'opvar' or 'opvar2d' object, and none is a 'copvar', the PIE is
-% constructed from these operators as they are. Otherwise, 'opvar' and
-% 'opvar2d' objects are converted to 'copvar' objects when the PIE is
-% initialized.
+% 'pie_struct'.
 % - Matrices are interpreted as constant multipliers between the spaces of
 % the 'copvar' operators acting on the same components, or between R^n if
 % there are none. Top and Aop must be specified, unless no operator is a
@@ -125,6 +121,7 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %                   copvar operator removed (maintainer, 11/22/2026;
 %                   the opvar classes are retired).
 % DJ, 11/23/2026: Pass the variables of all copvar operators to the PIE;
+% DJ, 11/25/2026: Do not accept the retired 'opvar' and 'opvar2d' classes;
 
 
 % % % Process the inputs
@@ -156,7 +153,7 @@ end
 
 % % Extract operators defining the PIE.
 % Types of object accepted as operator ('copvar' is the default).           % DJ (CC), 10/30/2026
-is_op = @(P) isa(P,'copvar') || isa(P,'opvar') || isa(P,'opvar2d') || isa(P,'polynomial') || isa(P,'double');   % DJ (CC), 10/30/2026
+is_op = @(P) isa(P,'copvar') || isa(P,'polynomial') || isa(P,'double');     % DJ, 11/25/2026
 % Operators Top s.t u = Top*v + Twop*w + Tuop*u
 Twop = [];      Tuop = [];
 if isa(Top,'cell')
@@ -328,8 +325,7 @@ is_cop = cellfun(@(P) isa(P,'copvar'),Pops);                                % DJ
 % % % BEGIN construction from copvar operators, DJ (CC), 10/30/2026
 % The construction from opvar operators that was here (DJ, 12/20/2024 -
 % 10/29/2026) moved to piess_opvar, unchanged. The PIE is now built from
-% the operators as they are, so that opvar and opvar2d operators among the
-% copvar ones are converted by initialize, which also checks the spaces.
+% the operators as they are; initialize checks the spaces.
 fnames = {'T','Tw','Tu'; 'A','Bw','Bu'; 'Cz','Dzw','Dzu'; 'Cy','Dyw','Dyu'};
 % Type of component in the rows (x,x,z,y) and columns (x,w,u) of Pops.
 rtype = repmat([1;1;2;3],1,3);

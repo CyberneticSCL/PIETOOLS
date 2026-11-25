@@ -32,6 +32,10 @@ function val = subsref(PDE,prop)
 % variables s1,...,sn, at the given variables or positions: x(s1_dum,s2)
 % substitutes s1_dum for s1, and x(s1,0) substitutes 0 for s2. An
 % additional first argument is the time: x(t-1,s1,s2) substitutes t-1 for t.
+% With only numeric arguments, a single PDE variable x of size n returns
+% components: x(idx) = I(idx,:)*x for I = eye(n) and integers idx in 1..n,
+% and x(1:n) = x. Any other object returns terms: PDE(i,j) is term j of
+% equation i, PDE(j) term j if there is one equation, else equation j.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2026 PIETOOLS Team
@@ -65,6 +69,8 @@ function val = subsref(PDE,prop)
 %                   extracted term;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/23/2026: Evaluate PDE variables and terms as x(t-1,s1_dum,s2);
+% DJ, 11/24/2026: Numeric x(idx) on a PDE variable returns components
+%                   I(idx,:)*x, not the term idx;
 
 
 % % % If the object is a single PDE variable, we have a separate case for
@@ -80,6 +86,24 @@ elseif strcmp(prop(1).type,'()') && any(cellfun(@(r) isa(r,'polynomial'),prop(1)
     % % the given positions or variables: x(s1_dum,s2) substitutes s1_dum
     % % for s1.
     val = eval_pde(PDE,prop(1).subs,is_var,obj);                            % DJ, 11/23/2026
+    % Perform remaining subsref.
+    if numel(prop)>1
+        val = subsref(val,prop(2:end));
+    end
+elseif strcmp(prop(1).type,'()') && is_var && ~isempty(prop(1).subs) && all(cellfun(@isnumeric,prop(1).subs)) % DJ, 11/24/2026
+    % % Extract components x(idx) = I(idx,:)*x of a PDE variable of size n.
+    n = PDE.(obj){1}.size;      idcs = prop(1).subs{1};
+    if ~isscalar(prop(1).subs)
+        error("Components of a PDE variable take a single index, as in x(i) or x([i1,i2]).")
+    elseif isempty(idcs) || ~isvector(idcs) || ~isreal(idcs) || any(idcs~=round(idcs)) || any(idcs<1) || any(idcs>n)
+        error("Component indices of a PDE variable of size %d must be integers in 1..%d; to evaluate at a position, use subs or a 'polynomial' argument as in x(t,0).",n,n)
+    end
+    if isequal(idcs(:)',1:n)
+        val = PDE;
+    else
+        I = eye(n);
+        val = I(idcs,:)*PDE;                                                % DJ, 11/24/2026
+    end
     % Perform remaining subsref.
     if numel(prop)>1
         val = subsref(val,prop(2:end));

@@ -50,6 +50,9 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 11/22/2026: Add multiplication with 'sopvar' and 'copvar' objects;
 % DJ, 11/23/2026: Support matrix coefficients of nonlinear terms (the entry
 %                   of 02/18/2026 no longer applies) and x*c for scalar c;
+% DJ, 11/24/2026: Split a non-square matrix such as [1;0] times a nonlinear
+%                   term over its columns, also if it equals c*eye(m,n);
+% DJ, 11/25/2026: Remove multiplication with the retired 'opvar' class;
 
 % % % Process the inputs
 
@@ -76,8 +79,7 @@ if isa(C,'pde_struct')
     end
     PDE_out = times_pdes(C,PDE_in);
     return
-elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar') ...
-        && ~isa(C,'sopvar') && ~isa(C,'copvar')
+elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'sopvar') && ~isa(C,'copvar') % DJ, 11/25/2026
     error("The first factor in the product should be of type 'pde_struct', 'double', 'polynomial', 'sopvar' or 'copvar'.") % DJ, 11/22/2026
 elseif isa(C,'double') || isa(C,'polynomial')                               % DJ, 11/22/2026
     C = polynomial(C);
@@ -96,7 +98,7 @@ PDE_out = PDE_in;
 
 % % % Deal with the case that the factor is a PI operator, requiring
 % % % (partial) integrals to be taken.
-if isa(C,'opvar') || isa(C,'sopvar') || isa(C,'copvar')                     % DJ, 11/22/2026
+if isa(C,'sopvar') || isa(C,'copvar')                                       % DJ, 11/25/2026
     PDE_out = mtimes_copvar(C,PDE_in);                                      % DJ, 11/22/2026
     return
 end
@@ -234,7 +236,7 @@ for ii=1:numel(PDE_out.free)
                 % Add a standard term, with coefficients multiplied with
                 % Cik;
                 trm = eq_kk.term{jj};
-                if numel(trm)>1 && any(any(~isequal(Cik-Cik(1,1)*eye(size(Cik)),0)))
+                if numel(trm)>1 && (size(Cik,1)~=size(Cik,2) || any(any(~isequal(Cik-Cik(1,1)*eye(size(Cik)),0)))) % DJ, 11/24/2026
                     % A matrix M=Cik times a nonlinear term, the elementwise
                     % product of factors C_k*x_k, is a sum over the columns
                     % j of M of the terms M(:,j)*prod_k C_k(j,:)*x_k, with
