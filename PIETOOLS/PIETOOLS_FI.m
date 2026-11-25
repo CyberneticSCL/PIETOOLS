@@ -12,8 +12,8 @@
 % operator inequality in the free state y = x_s (and, where needed, the
 % value x(0)), so its constant C solves the LPI
 %       min C   s.t.   (quadratic form of operators with C) >= 0.
-% The library holds 17 inequalities: Poincare-type (1-5), trace (6-9),
-% Hardy (10), operator norms (11-14) and eigenvalue bounds (15-17); the
+% The library holds 15 inequalities: Poincare-type (1-5), trace (6-9),
+% Hardy (10), operator norms (11-14) and an eigenvalue bound (15); the
 % table of contents is in its help (help examples_FI_library_PIETOOLS).
 %
 % INPUT
@@ -59,14 +59,12 @@ close all; clc; clear;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 1: Choose an inequality and its options
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The index of the inequality, 1 through 17 (help examples_FI_library_PIETOOLS)
+% The index of the inequality, 1 through 15 (help examples_FI_library_PIETOOLS)
 example = 1;
 % Options, each a 'name=value' string: b (the interval [0,b], default 1);
 % dD, dw (degrees of the diagonal and off-diagonal parts of the
 % certificate); t (the point of example 8); eps (the weight of example
-% 10); tmin (the range of t in example 9); modes (eigenvalues of example
-% 15, eigenfunctions of example 17); plot (1 plots the eigenfunctions of
-% examples 15 and 17, 0 does not)
+% 10); tmin (the range of t in example 9)
 options = {'b=1'};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

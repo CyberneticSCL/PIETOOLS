@@ -43,6 +43,9 @@ function varargout = size(P,dim)
 % authorship, and a brief description of modifications
 %
 % Initial coding AT -- 01/28/2026
+% AT, 11/25/2026: With one output, SIZE(P,DIM) returns all requested
+%                 entries as one vector (SIZE(P,[1 2]) returned only q);
+%                 an error for DIM other than 1, 2 or [1,2].
 
 % The input must be a 'sopvar' object
 if ~isa(P,'sopvar')
@@ -58,9 +61,16 @@ varargout = {sum(matdim,1)};
 return
 elseif nargin==1
 dim = 1:2;
+elseif isempty(dim) || ~isnumeric(dim) || ~all(ismember(dim(:),[1,2]))
+    error('sopvar:size:badDim','Dimension must be 1, 2 or [1,2]: a sopvar has only two dimensions.');
 end
 % Separate outputs, restricted to DIM
 varargout{1} = sum(matdim(:,1));
 varargout{2} = sum(matdim(:,2));
-varargout = varargout(dim);
+if nargout<=1
+    % One output: the requested entries as one vector, SIZE(P,[1 2]) = [q,p]
+    varargout = {[varargout{dim}]};
+else
+    varargout = varargout(dim);
+end
 end

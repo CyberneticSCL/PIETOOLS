@@ -1,5 +1,5 @@
 function test_examples_FI_library()
-% TEST_EXAMPLES_FI_LIBRARY runs the 17 examples of
+% TEST_EXAMPLES_FI_LIBRARY runs the 15 examples of
 % examples_FI_library_PIETOOLS and checks each bound against the constant
 % the library reports for it; it errors, listing every example that fails.
 %
@@ -10,7 +10,7 @@ function test_examples_FI_library()
 % it the bound has lost accuracy (the largest gap measured on 11/18 and
 % 11/22/2026 is 6.3e-5 of the sharp constant, example 2). Where only the
 % constant of Barraza Martinez et al. is known (info.paper; examples 5 and
-% 6), C must not exceed it. The examples run with plot=0.
+% 6), C must not exceed it.
 %
 % INPUT
 % - none.
@@ -19,9 +19,9 @@ function test_examples_FI_library()
 %
 % MMP, 11/22/2026.
 fails = {};
-for k = 1:17
+for k = 1:15
     t = tic;
-    [C,info] = examples_FI_library_PIETOOLS(k,'plot=0');
+    [C,info] = examples_FI_library_PIETOOLS(k);
     if ~isnan(info.sharp)
         ok = C >= info.sharp*(1-1e-6) && C <= info.sharp*(1+1e-4);
         ref = sprintf('sharp %.8g',info.sharp);
@@ -38,5 +38,5 @@ end
 if ~isempty(fails)
     error('test_examples_FI_library:fail','Failed: %s',strjoin(fails,'; '));
 end
-fprintf('## FI all 17 examples pass\n');
+fprintf('## FI all 15 examples pass\n');
 end

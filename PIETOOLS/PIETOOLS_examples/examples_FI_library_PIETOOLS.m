@@ -10,7 +10,7 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %
 % Inputs:
 %     [C,info] = examples_FI_library_PIETOOLS(example,option1,option2,...)
-%       - example - integer (1-17) corresponding to the selected inequality;
+%       - example - integer (1-15) corresponding to the selected inequality;
 %                   with no input, the function prompts for the index and
 %                   the options (separated by spaces or commas)
 %       - option# - character array 'name=value' that overrides a default
@@ -26,12 +26,7 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %                            (default 1e-2),
 %                     tmin - the point t ranges over [tmin, b-tmin] in
 %                            example 9, 0 <= tmin < b/2 (default 0.05),
-%                     modes - number of eigenvalues in example 15, of
-%                            eigenfunctions in example 17
-%                            (default 6, at most 6),
-%                     plot  - 1 plots the eigenfunctions of examples 15, 17
-%                            (default 1), 0 does not,
-%
+%%
 % Table of contents:
 %  Poincare-type:   1 Wirtinger (Dirichlet)     
 %                   2 Wirtinger (periodic)
@@ -47,12 +42,13 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %                   12 Green operator (Dirichlet)
 %                   13 Green operator (mixed)
 %                   14 Green operator (hinged beam)
-%  Eigenvalues:     15 Dirichlet eigenvalue problem x = lambda*x_ss
-%                   16 Clamped beam u_ss = lambda*u_ssss
-%                   17 Clamped beam eigenfunctions (precomputed eigenvalues)
+%  Eigenvalues:     15 Clamped beam u_ss = lambda*u_ssss
 %
 %   The Heisenberg-type and Ehrling (Landau-Kolmogorov) inequalities, which
-%   come from products of norms, are not in this library.
+%   come from products of norms, are not in this library. The eigenvalues and
+%   eigenfunctions computed with qp_copvar (Dirichlet problem x = lambda*x_ss,
+%   clamped beam eigenfunctions) are in the folder
+%   PIETOOLS_examples/Examples_Library/QP_Examples.
 %
 % Outputs:
 %       - C    - double; the upper bound on the constant that the LPI returns,
@@ -62,10 +58,8 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %                   sharp     - the known sharp constant (NaN if not known),
 %                   paper     - constant of Barraza Martinez et al. [1], where
 %                               applicable (NaN otherwise),
-%                   extra     - struct with example-specific data (empty,
-%                               except in examples 15, 17: eigenvalues,
-%                               eigenvalues_exact, s, x (example 15) or u
-%                               (example 17), v).
+%                   extra     - struct with example-specific data (empty in
+%                               all current examples).
 %
 % In each example the inequality is written as an operator inequality in
 % terms of the free state y = x_s (and, where needed, the value x(0)), so
@@ -119,15 +113,14 @@ dom = [0,b];
 sharp = NaN;    paper = NaN;    extra = struct();
 
 % PDE variables on which the operators act: x0 in R, y in L2[0,b], y01 in
-% L2[0,1] and y12 = (y1,y2) in L2^2[0,1]; u2 in H2[0,b] and u4 in H4[0,b]
-% are the states of the PDEs of examples 15-17. Operators are expressed in
+% L2[0,1] and y12 = (y1,y2) in L2^2[0,1]; u4 in H4[0,b]
+% is the state of the PDE of example 15. Operators are expressed in
 % terms of integrals of these variables, and extracted with `get_op`.
 clear stateNameGenerator
 x0  = pde_var(1);
 y   = pde_var(s1,dom);
 y01 = pde_var(s1,[0,1]);
 y12 = pde_var(2,s1,[0,1]);
-u2  = pde_var(s1,dom,2);
 u4  = pde_var(s1,dom,4);
 switch index
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -184,7 +177,7 @@ switch index
 %   References: Valmorbida and Papachristodoulou [3] (Sec. II-A) treat this inequality with INTSOSTOOLS:
 %   their Lemma 1 shows that the worst case is x(0) = x(1) = 0 (replace x by x - k), which is why the
 %   common value k = x(0) = x(b) is free here, and v = int_0^s x then gives the second-order form
-%   int v_s^2 <= C int v_ss^2, v = v_s = 0 at both ends (clamped beam, example 16); see also [2].
+%   int v_s^2 <= C int v_ss^2, v = v_s = 0 at both ends (clamped beam, example 15); see also [2].
 %   Free variable y in L_2[0, 1]
 %   step 1. Introduce v such that: x = v - int_0^1 v (implies that int_0^1 x = 0).
 %   step 2. Introduce w such that: v = int_0^s w (implies that v_s=x_s=w)
@@ -682,128 +675,6 @@ switch index
 %       Eigenvalue problems
 %==========================================================================
     case 15
-%   Find lambda, v such that  x = lambda*x_ss,  v = x_ss             | b = 1        Dirichlet eigenvalue problem
-%   x(0) = x(b) = 0                                                  | modes = 6    Exact: lambda_n = -(b/(n*pi))^2, n = 1, 2, ...
-%   Since x_ss = -(n*pi/b)^2 x for x = sin(n*pi*s/b), the eigenvalues of x = lambda*x_ss are
-%   lambda_n = -1/(n*pi/b)^2, of magnitude 1/(n*pi)^2 for b = 1. The largest is lambda_1 = -(b/pi)^2.
-%   Free variable v = x_ss in L_2[0, b]
-%   Introduce x such that: x = T v, where T = PIE.T is the Green's operator of v = x_ss with
-%   x(0) = x(b) = 0, from the PIE of the PDE u_t = u_ss, u(0) = u(b) = 0, which is T v_t = A v
-%   with A = I (since u_ss = v). Then x = lambda*x_ss reads (T - lambda*I) v = 0.
-%   For each lambda, qp_copvar returns the Gram matrix H(lambda) of the polynomial basis under
-%   (T - lambda*I), so ||(T - lambda*I) X||^2 = x'*H(lambda)*x, and H is exactly quadratic in lambda,
-%   H(lambda) = H0 + lambda*H1 + lambda^2*H2 (three calls give H0, H1, H2). The eigenvalues are the
-%   values of lambda for which H(lambda) is singular, i.e. the roots of this quadratic eigenvalue
-%   problem (polyeig); each root appears twice. No eigenvalue is typed in.
-%   The eigenfunctions are then computed by qp_copvar for each eigenvalue (see below) and plotted.
-%   Only the first modes (about 6 at degree 16) are resolved: the polynomial of degree 16 cannot
-%   represent the oscillations of sin(n*pi*s/b) for larger n.
-        name = 'Dirichlet eigenvalue problem: x = lambda x_ss, x(0) = x(b) = 0';
-        nm = opts.modes;
-        if nm < 1 || nm ~= round(nm),   error('Option modes must be a positive integer.');   end
-        if nm > 6,   error('At most 6 modes are resolved at degree 16; reduce the option modes.');   end
-
-        % PIE of u_t = u_ss with u(0) = u(b) = 0, for u = u2
-        PDE = [diff(u2,t) == diff(u2,s1,2);
-               subs(u2,s1,0) == 0;   subs(u2,s1,b) == 0];
-        PIE = convert(PDE,'pie');
-
-        % Operators acting on the fundamental state v = x_ss in L2[0,b]:
-        % identity operator on L2[0,b]
-        Id = get_op(y);
-        % T v = x -- the Green's operator of v = x_ss with x(0) = x(b) = 0 (PIE.T; here PIE.A = I since u_ss = v);
-        % the eigenvalue problem x = lambda*x_ss reads (T - lambda*I) v = 0
-        T = PIE.T;
-        % dummy right-hand side for qp_copvar (only the Gram matrix H of the polynomial basis is used below)
-        B0 = get_op(x0,y);
-        qopts = struct('deg',16,'basis','legendre','assembly','apply','solver','backslash');
-
-        % Gram matrix H(lambda) of the polynomial basis under (T - lambda*I): ||(T - lambda*I) X||^2 = x'*H(lambda)*x.
-        % It is exactly quadratic in lambda, H(lambda) = H0 + lambda*H1 + lambda^2*H2 (three evaluations give H0, H1, H2).
-        % qp_copvar returns this Gram matrix in info.H (for A = T - lambda*I and the dummy right-hand side B0);
-        % it is evaluated at lambda = -1, 0, 1:
-        lv = [-1 0 1];   Hs = cell(1,3);
-        for i = 1:3
-            [~,info_qp] = qp_copvar(T - lv(i)*Id,B0,qopts);
-            Hs{i} = (info_qp.H + info_qp.H')/2;                 % symmetrize
-        end
-        Hm = Hs{1};   H0 = Hs{2};   Hp = Hs{3};
-        H2 = (Hp+Hm)/2 - H0;   H1 = (Hp-Hm)/2;
-
-        % The eigenvalues are the values of lambda where H(lambda) is singular: roots of the quadratic eigenvalue problem
-        ev = polyeig(H0,H1,H2);
-        ev = ev(real(ev) < 0 & abs(imag(ev)) < 5e-3*abs(real(ev)));
-        ev = sort(real(ev),'ascend');   ev = ev(1:2:end);       % each root appears twice
-        if numel(ev) < nm,  error('Only %d eigenvalues were found; reduce the option modes.',numel(ev));  end
-        lams = ev(1:nm);
-
-        % Exact eigenvalues for comparison: lambda_n = -(b/(n*pi))^2
-        lam_exact = -(b./(pi*(1:nm)')).^2;
-        fprintf('\n  k   lambda (QP)     lambda (exact)    rel. error\n');
-        for k = 1:nm
-            fprintf(' %2d  %14.8f  %14.8f   %9.1e\n',k,lams(k),lam_exact(k),abs(lams(k)-lam_exact(k))/abs(lam_exact(k)));
-        end
-
-        % The eigenfunctions. v = x_ss is a multiple of sin(n*pi*s/b), so v(0) = 0 and the
-        % normalization is v(0) = 0, v'(0) = 1: v = s + s^2*Z with Z a polynomial of degree 14.
-        % For each lambda, qp_copvar solves the least squares problem
-        %   min_Z ||(T - lambda*I)(s + s^2*Z)||^2 = ||A Z - B||^2,
-        %   A = (T - lambda*I) S^2,   B = -(T - lambda*I) s,
-        % (S the multiplication by s, s the function s as an R -> L2 map); then x = T v = lambda*v
-        % is computed with apply_sopvar and normalized to ||x||_{L2} = 1, with x'(0) > 0.
-
-        % (S z)(s) = s*z(s) -- multiplication operator by s (L2 -> L2)
-        Sm = get_op(s1*y);
-        % Es c = c*s -- the function s, as a map from R to L2 (R -> L2)
-        Es = get_op(s1*x0,y);
-        % T*S^2 and T*s, the pieces of (T - lambda*I)(s + s^2*Z) = T*s + T*S^2*Z - lambda*(s + s^2*Z)
-        TS2 = T*(Sm*Sm);   TEs = T*Es;
-        qopts = struct('deg',14,'basis','legendre','assembly','apply','solver','backslash');
-
-        % Solve for each eigenfunction and evaluate on a grid sg; Xex is the exact eigenfunction for comparison
-        sg = linspace(0,b,400)';
-        Xvals = zeros(400,nm);   Vvals = zeros(400,nm);   Xex = zeros(400,nm);
-        for k = 1:nm
-            Zk = qp_copvar(TS2 - lams(k)*(Sm*Sm),lams(k)*Es - TEs,qopts);
-            blk = Zk.C{1,1};
-            cz = full(blk.params{1});   ez = blk.ZL{1}(:);     % monomial coefficients of Z
-            c = zeros(17,1);   c(2) = 1;                       % v = s + s^2*Z
-            c(ez+3) = c(ez+3) + cz;
-            vpoly = 0*s1;
-            for j = 1:numel(c),  vpoly = vpoly + c(j)*s1^(j-1);  end
-            xpoly = apply_sopvar(T.C{1,1},vpoly);              % x = T v
-            Vvals(:,k) = polyval(flipud(c),sg);
-            Xvals(:,k) = arrayfun(@(z) double(subs(xpoly,s1,z)),sg);
-            Xex(:,k) = sqrt(2/b)*sin(k*pi*sg/b);               % exact, ||x|| = 1, x'(0) > 0
-        end
-
-        % Normalize x to ||x||_{L2} = 1 and take the sign of the exact eigenfunction
-        Xvals = Xvals./sqrt(trapz(sg,Xvals.^2));
-        sg0 = sign(Xvals(40,:) .* Xex(40,:));   Xvals = Xvals.*sg0;   Vvals = Vvals.*sg0;   % sign of the exact one
-
-        % Report the error of the eigenfunctions
-        fprintf('\n  k   max |x - exact|   (x normalized to ||x|| = 1, exact x = sqrt(2/b) sin(k*pi*s/b))\n');
-        for k = 1:nm
-            fprintf(' %2d   %10.2e\n',k,max(abs(Xvals(:,k)-Xex(:,k))));
-        end
-
-        % Plot the eigenfunctions x = T v
-        if opts.plot
-            co = [0 0.447 0.741; 0.85 0.325 0.098; 0.929 0.694 0.125; 0.494 0.184 0.556; 0.466 0.674 0.188; 0.301 0.745 0.933; 0.635 0.078 0.184];
-            figure; hold on;
-            for k = nm:-1:1
-                plot(sg,Xvals(:,k),'Color',co(mod(k-1,7)+1,:),'LineWidth',2);
-            end
-            xlim([0 b]);  xlabel('s');  title('Computed eigenfunctions, x = T v  (||x||_{L2} = 1)');
-        end
-
-        % Outputs: eigenvalues and eigenfunctions in info.extra; the constant C = -lambda_1
-        extra = struct('eigenvalues',lams,'eigenvalues_exact',lam_exact,'s',sg,'x',Xvals,'v',Vvals);
-        Csol = -lams(1);                       % the largest eigenvalue is lambda = -C
-        sharp = (b/pi)^2;
-        fprintf('\n Largest eigenvalue lambda = -C = %.6f (exact -(b/pi)^2 = %.6f).\n',-Csol,-sharp);
-%--------------------------------------------------------------------------
-    case 16
 %   min C
 %   s.t. int_0^b u_{s}^2 <= C int_0^b u_{ss}^2,          | b = 1        Clamped-clamped problem  u_{ss} = lambda*u_{ssss}
 %        u(0) = u(b) = u_s(0) = u_s(b) = 0               |                Sharp C = (b/(2*pi))^2, so lambda_max = -C
@@ -855,117 +726,6 @@ switch index
         Csol = double(lpigetsol_sop(prog,C));
 
         % sharp value and the eigenvalue: lambda = -||u_s||^2/||u_ss||^2, so the largest one is lambda = -C
-        sharp = (b/(2*pi))^2;
-        fprintf('\n Largest eigenvalue lambda = -C = %.6f (exact -(b/(2*pi))^2 = %.6f).\n',-Csol,-sharp);
-%--------------------------------------------------------------------------
-    case 17
-%   Find v, lambda such that  
-%   (P - lambda*I) v = 0,  v = u_{ssss}   | b = 1        Clamped beam eigenfunctions (example 16), using precomputed eigenvalues
-%   u(0) = u(b) = u_s(0) = u_s(b) = 0     | modes = 6      Exact: lambda = -(b/beta)^2, beta = 2*pi*j or beta = 2*x, tan(x) = x
-%   The eigenvalues are PRECOMPUTED and defined manually in the code
-%   (six values for b = 1, scaled by b^2).
-%   Free variable v = u_{ssss} in L_2[0, b]  (a polynomial of degree 16)
-%   Introduce u = B v (B = PIE.T) and P v = u_ss (P = PIE.A - I) as in example 16.
-%   The QP  min ||(P - lambda*I) X||^2  s.t.  X(0) = 1  is solved by qp_copvar itself. 
-%   The constraint is implemented by X = 1 + s*Z with Z a polynomial of degree 15,
-%   
-%       min_Z ||A Z - B||^2,   A = (P - lambda*I) S,   B = -(P - lambda*I) 1,
-%   where S is the multiplication by s and 1 the constant function (an R -> L_2 map). 
-%   qp_copvar returns Z (assembly 'apply', Legendre basis); 
-%   X is the eigenfunction v. Then u = B v is computed
-%   with apply_sopvar, and u is normalized to ||u||_{L2} = 1. 
-%   Signs of u: modes 1, 3, 4, 5 are flipped.
-%   Only the first 6 modes are used (the polynomial of degree 16 resolves about 7):
-%   for higher modes the polynomial cannot represent the oscillations.
-        name = 'Clamped beam eigenfunctions: x_ss = lambda x_ssss, x(0) = x(b) = x_s(0) = x_s(b) = 0 (precomputed lambda)';
-        nm = opts.modes;
-        if nm < 1 || nm ~= round(nm),   error('Option modes must be a positive integer.');   end
-        deg = 16;
-
-        % PIE of u_t = u_ss + u_ssss with the four clamped boundary conditions, as in example 16
-        PDE = [diff(u4,t) == diff(u4,s1,2) + diff(u4,s1,4);
-               subs(u4,s1,0) == 0;             subs(u4,s1,b) == 0;
-               subs(diff(u4,s1,1),s1,0) == 0;  subs(diff(u4,s1,1),s1,b) == 0];
-        PIE = convert(PDE,'pie');
-
-        % Operators acting on the fundamental state v = u_ssss in L2[0,b]:
-        % identity operator on L2[0,b]
-        Id = get_op(y);
-        % P v = u_ss -- P = PIE.A - I (see example 16); the eigenvalue problem u_ss = lambda*u_ssss reads (P - lambda*I) v = 0
-        P = PIE.A - Id;
-        % T v = u    -- T = PIE.T, integrates v four times with the clamped boundary conditions
-        T = PIE.T;
-
-        % Operators used to build the normalization v(0) = 1 into the unknown, X = v = 1 + s*Z:
-        % (S z)(s) = s*z(s) -- multiplication operator by s (L2 -> L2)
-        Sm = get_op(s1*y);
-        % E1 c = c*1 -- the constant function 1, as a map from R to L2 (R -> L2)
-        E1 = get_op(x0,y);
-        % P*S and P*1, the two pieces of (P - lambda*I)(1 + s*Z) = P*1 + P*S*Z - lambda*(1 + s*Z)
-        PS = P*Sm;   PE = P*E1;
-
-        % X = 1 + s*Z with Z of degree deg-1: qp_copvar solves the least squares problem in Z
-        qopts = struct('deg',deg-1,'basis','legendre','assembly','apply','solver','backslash');
-
-        % The eigenvalues, defined manually (precomputed for b = 1, the eigenvalues of
-        % u_ss = lambda*u_ssss scale with b^2); the first six, most negative first
-        lam_b1 = [-0.025330379244080; -0.012382004040601; -0.006332657311635; ...
-                  -0.004189125353983; -0.002814560658210; -0.002102692882017];
-        if nm > numel(lam_b1)
-            error('Only %d eigenvalues are defined; reduce the option modes.',numel(lam_b1));
-        end
-        lams = b^2*lam_b1(1:nm);
-
-        % The exact eigenvalues, for comparison: beta = 2*pi*j (cosine family) and beta = 2*x, tan(x) = x
-        xt = arrayfun(@(j) fzero(@(z) tan(z)-z,[j*pi+0.01,(j+0.5)*pi-0.01]),1:nm);
-        bb = sort([2*pi*(1:nm), 2*xt]);     lam_exact = -b^2./bb(1:nm).^2;
-
-        % Solve for each eigenfunction (the first six modes) and evaluate on a grid sg
-        sg = linspace(0,b,400)';
-        Uvals = zeros(400,nm);   Vvals = zeros(400,nm);   bcs = zeros(nm,2);
-        sgn = ones(1,nm);   sgn(intersect([1 3 4 5],1:nm)) = -1;
-        for k = 1:nm
-            % QP by qp_copvar: min_Z ||(P - lambda*I)(1 + s*Z)||^2, i.e. ||A Z - B||^2 with
-            % A = (P - lambda*I)*S and B = -(P - lambda*I)*1; then v = X = 1 + s*Z, X(0) = 1
-            Zk = qp_copvar(PS - lams(k)*Sm,lams(k)*E1 - PE,qopts);
-            blk = Zk.C{1,1};
-            cz = full(blk.params{1});   ez = blk.ZL{1}(:);     % monomial coefficients of Z, exponents 0..deg-1
-            c = zeros(deg+1,1);   c(1) = 1;                    % v = 1 + s*Z in monomials of s
-            c(ez+2) = c(ez+2) + cz;
-            vpoly = 0*s1;
-            for j = 1:numel(c),  vpoly = vpoly + c(j)*s1^(j-1);  end
-            upoly = apply_sopvar(T.C{1,1},vpoly);              % u = T v
-            Vvals(:,k) = polyval(flipud(c),sg);
-            Uvals(:,k) = arrayfun(@(z) double(subs(upoly,s1,z)),sg);
-            dupoly = diff(upoly,s1);                           % end values of u_s (clamped: 0)
-            bcs(k,:) = [double(subs(dupoly,s1,0)) double(subs(dupoly,s1,b))];
-        end
-
-        % Normalize u to ||u||_{L2} = 1 and flip the signs of modes 1, 3, 4, 5
-        nrm = sqrt(trapz(sg,Uvals.^2));
-        Uvals = Uvals./nrm;   bcs = bcs./nrm(:);              % ||u||_{L2} = 1
-        Uvals = Uvals.*sgn;   Vvals = Vvals.*sgn;
-
-        % Report: the eigenvalues, and how well u satisfies the clamped conditions (all should be 0)
-        fprintf('\n  k   lambda (used)   lambda (exact)    |u(b)|   |u_s(0)|  |u_s(b)|  (clamped: all 0)\n');
-        for k = 1:nm
-            fprintf(' %2d  %14.8f  %14.8f   %9.1e %9.1e %9.1e\n',k,lams(k),lam_exact(k), ...
-                abs(Uvals(end,k)),abs(bcs(k,1)),abs(bcs(k,2)));
-        end
-
-        % Plot the eigenfunctions u = T v
-        if opts.plot
-            co = [0 0.447 0.741; 0.85 0.325 0.098; 0.929 0.694 0.125; 0.494 0.184 0.556; 0.466 0.674 0.188; 0.301 0.745 0.933; 0.635 0.078 0.184];
-            figure; hold on;
-            for k = nm:-1:1
-                plot(sg,Uvals(:,k),'Color',co(mod(6-k,7)+1,:),'LineWidth',2);
-            end
-            xlim([0 b]);  xlabel('s');  title('Computed eigenfunctions, u = T v  (||u||_{L2} = 1)');
-        end
-
-        % Outputs: eigenvalues and eigenfunctions in info.extra; the constant C = -lambda_1 as in example 16
-        extra = struct('eigenvalues',lams,'eigenvalues_exact',lam_exact,'s',sg,'u',Uvals,'v',Vvals);
-        Csol = -lams(1);                       % as in example 16: the largest eigenvalue is lambda = -C
         sharp = (b/(2*pi))^2;
         fprintf('\n Largest eigenvalue lambda = -C = %.6f (exact -(b/(2*pi))^2 = %.6f).\n',-Csol,-sharp);
 %__________________________________________________________________________
@@ -1074,15 +834,15 @@ function [index,opts] = process_inputs(varargin0,nargin1)
 % - varargin0: 'cell', the inputs of the library function;
 % - nargin1:   'double', their number.
 % OUTPUT
-% - index: 'double', the example index, 1 to 17;
-% - opts:  'struct' with fields b, dD, dw, eps, t, tmin, modes, plot: the
+% - index: 'double', the example index, 1 to 15;
+% - opts:  'struct' with fields b, dD, dw, eps, t, tmin: the
 %          defaults, overridden by the recognized options; an option that
 %          is not understood is ignored with a warning.
 
 % Number of examples and default options
-n_examples = 17;
+n_examples = 15;
 opts = struct('b',1,'dD',[],'dw',[],'eps',1e-2,'t',[], ...
-              'tmin',0.05,'modes',6,'plot',1);
+              'tmin',0.05);
 
 % Collect the inputs
 if nargin1==0 %<-- If there is no input, pause the script and let the user specify an example

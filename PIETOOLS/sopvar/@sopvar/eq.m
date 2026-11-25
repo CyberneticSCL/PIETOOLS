@@ -42,6 +42,9 @@ function logval = eq(P1,P2,tol)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 %
 % AT, 01/21/2026: Initial coding
+% AT, 11/25/2026: Return false for operators on different spatial variables
+%                 or domains (before: printed a message, then errored in
+%                 'plus'); variables and domains compared with 'isequal'.
 
 % Default tolerance
 if nargin<3
@@ -65,9 +68,23 @@ if any(P1.dims~=P2.dims)
     return
 end
 
-% Report differing domains (the difference below then fails in 'plus')
-if any(any(P1.dom_1~=P2.dom_1))|| any(any(P1.dom_2~=P2.dom_2)) || any(any(P1.dom_3~=P2.dom_3))
+% Operators on different spatial variables are not equal ('plus' below
+% would reject them). The constructor stores the variables in canonical
+% order, [S2,S3] and [S3,S1] with each part sorted, so equal sets give
+% equal lists. 'isequal', not '~=': '~=' is not defined for cell arrays.
+if ~isequal(P1.vars.in(:),P2.vars.in(:)) || ~isequal(P1.vars.out(:),P2.vars.out(:))
+    disp('Operators have different spatial variables and hence cannot be equal');
+    logval = false;
+    return
+end
+
+% Operators on different domains are not equal ('plus' below would reject
+% them). The variables agree here, so the domain arrays have equal sizes;
+% a NaN placeholder domain matches NaN, as in 'canonical_var_order'.
+if ~isequaln(P1.dom_1,P2.dom_1) || ~isequaln(P1.dom_2,P2.dom_2) || ~isequaln(P1.dom_3,P2.dom_3)
     disp('Operators have different intervals and hence cannot be equal');
+    logval = false;
+    return
 end
 
 % Compare through the difference, so that 'plus' aligns the monomial bases:
