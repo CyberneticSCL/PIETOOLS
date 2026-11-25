@@ -81,7 +81,7 @@ False hits: "orphaned row" (`PIESOS/polyopvar/@polyopvar/clean_poly.m`) and "cle
 
 `PIETOOLS_demos/sopvar_demos/heatNd_apply.m` lies in the toolbox, and only tests call it.
 
-## Actions of 11/22/2026 (committed before the stress run of 04:30)
+## Actions of 11/22/2026 (the first four committed before the stress run of 04:30)
 
 | Maintainer | Done |
 |---|---|
@@ -89,18 +89,15 @@ False hits: "orphaned row" (`PIESOS/polyopvar/@polyopvar/clean_poly.m`) and "cle
 | low-rank certify: "ask the low rank agent to do this" | Retired by the low-rank session: 15 files moved to `orphaned_file/private/PIETOOLS_demos/lowrank_2d_stability/`, and `pielr_path.m`, `private/restrict_solve.m` and `private/pielr_evalop.m` edited. That session verified it with `pielr_bench` on 5 cases. |
 | `compute_PIETOOLS_PDE_periodic_map`: "move to orphaned code" | Moved to `orphaned_file/private/`. |
 | opvar-input branches: "move these to orphaned code" | `opvar2copvar`, `opvar2sopvar`, `opvar2d2sopvar` and `dopvar2sdopvar` moved to `orphaned_file/private/`. The branches were removed from `op2copvar_sop`, `piess`, `piesos_getsol`, `piesos_ineq`, `tensopmat`, `@tensopmat/initialize` and `@tensopvar/initialize`, and the originals kept in `orphaned_file/private/opvar_branches_1122/`. 13 demos and tests give the same output on HEAD and the edited tree, apart from solver times. |
+| "move the legacy 2-D converters to orphaned code" | The 7 files of the closed group moved to `orphaned_file/private/converters/legacy/` with their paths: `convert_PIETOOLS_PDE_2D`, `convert_PIETOOLS_PDE_nonlinear_2D`, `pie_pde_maps_2D`, and `2D/` `Compute_Tmap_PDE_2D_Separable`, `PIETOOLS_FTC_Expansion_2D`, `expand_PIETOOLS_PDE_BCs`, `compute_PIETOOLS_PDE_periodic_map_2D`. The last three were found by caller search: nothing else calls them. Three 2-D library examples convert the same as before. |
 
-After these moves, the only toolbox code that still calls a function of the three folders is the
-legacy 2-D converter group: `convert_PIETOOLS_PDE_2D` and `convert_PIETOOLS_PDE_nonlinear_2D`, with
-`Compute_Tmap_PDE_2D_Separable`, `PIETOOLS_FTC_Expansion_2D` and
-`compute_PIETOOLS_PDE_periodic_map_2D`. It calls the opvar classes, `opvar2sopvar` and
-`compute_PIETOOLS_PDE_periodic_map`.
+After these moves, no toolbox code calls a function of the three folders. The names of the retired
+classes remain in `isa` checks, messages and comments (§4).
 
 ## Decisions for the maintainer
 
-1. Low-rank 2-D certify (§2, row 1): port or retire. This decision has been open since 11/08/2026.
-2. Legacy 2-D converter group (§2, row 2; DJ and DB files): move to `cleaning/private/dead_code/` under the
-   dead-code rule, or keep.
+1. Low-rank 2-D certify (§2, row 1): retired 11/22/2026 (Actions).
+2. Legacy 2-D converter group (§2, row 2; DJ and DB files): moved to orphaned_file/private 11/22/2026 (Actions).
 3. Opvar branches and opvar names (§2 rows 3–4, §4): these belong to the opvar-removal plan. Our files are
    the converters and the container messages. `parser/` and `PIESOS/` belong to DJ, `PIESIM/` to YP.
 4. Text pointers (§3), core folders. Done (11/22/2026):

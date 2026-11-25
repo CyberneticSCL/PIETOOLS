@@ -72,6 +72,19 @@ Moved with `mv`, so the git index still lists the original paths; `mv` back rest
   - Checked on 11/22/2026 by running DEMO1, DEMO2, DEMO7, the Ch5 snippet, the three PIESOS demos
     and six tensopmat and tensopvar tests on HEAD and on the edited tree. All 13 run, and their output
     is the same apart from solver times.
+- **Legacy 2-D converter**, into `converters/legacy/` here, with the same paths (maintainer,
+  11/22/2026: "move the legacy 2-D converters to orphaned code"): `convert_PIETOOLS_PDE_2D.m`,
+  `convert_PIETOOLS_PDE_nonlinear_2D.m`, `pie_pde_maps_2D.m`, and from `2D/`
+  `Compute_Tmap_PDE_2D_Separable.m`, `PIETOOLS_FTC_Expansion_2D.m`, `expand_PIETOOLS_PDE_BCs.m` (DJ,
+  2022–2026) and `compute_PIETOOLS_PDE_periodic_map_2D.m` (DB, 10/29/2026).
+  - The seven files called only each other. They build `opvar2d` operators (`opvar2d()`,
+    `clean_opvar`, `mat2opvar`) and call `opvar2sopvar` and `compute_PIETOOLS_PDE_periodic_map`,
+    which are also here now. 2-D PDEs convert through `convert` on `pde_struct` (DJ, since 11/02/2026).
+  - Checked on 11/22/2026: three 2-D library examples (`2D_Heat_Eq_with_ODE`, `2D_KISS_Model`,
+    `2D_NS_Antonelli`) convert to `copvar` PIEs before and after. The PIESOS test
+    `Test_convert_PDE_nonlinear_varnames` called the nonlinear converter directly and stopped on the
+    retired `opvar`. Since 146cbb70 (DJ, 11/24/2026) it calls `convert`, and no file outside
+    `cleaning/` and `orphaned_file/` calls the seven files.
 - **Low-rank 2-D certify family**, into `PIETOOLS_demos/lowrank_2d_stability/` here, with the same
   path (maintainer, 11/22/2026: "port or retire"; retired by the low-rank session, CC):
   `pielr_certify.m`, `pielr_certify_pos.m`, `pielr_tensor.m`, `build_stab_2d_st2.m`, `face_n1.mat`,
