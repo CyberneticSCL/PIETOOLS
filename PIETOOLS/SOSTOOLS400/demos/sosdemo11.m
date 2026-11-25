@@ -1,4 +1,4 @@
-% SOSDEMO11p --- Robust Stability
+% SOSDEMO11 --- Robust Stability
 %
 % We have a linear system of the form
 % \dot x(t) = A(p)x(t) 
@@ -15,7 +15,7 @@ eps = .01;
 
 % =============================================
 % This is the problem data
-n = 10;      % Size of matrix A
+n = 3;      % Size of matrix A
 deg = 3;    % Monomial degree for solving the program
 
 % =============================================

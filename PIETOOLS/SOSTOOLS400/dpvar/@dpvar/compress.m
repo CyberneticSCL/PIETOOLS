@@ -34,8 +34,7 @@ function outdpvar = compress(indpvar)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ, MP, SS - 07/01/2021
-% DJ, 11/20/2026: Remap the nonzeros of C, instead of indexing its rows,
-%                   which is slow for many decision variables;
+% DJ, 11/20/2026: Remap the nonzeros of C, instead of indexing its rows;
 
 if ~isa(indpvar,'dpvar')
     error("DPcompress() needs a dpvar variable as input");

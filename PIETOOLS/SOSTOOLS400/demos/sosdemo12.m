@@ -1,4 +1,4 @@
-% SOSDEMO12p --- Local Stability
+% SOSDEMO12 --- Local Stability
 %
 % Testing local stability of coupled Van der Pol equations, \dot{x}=f(x),
 % on a circle x*x'<=r. In particular, x=[y,z] and:

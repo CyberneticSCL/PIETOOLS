@@ -84,22 +84,11 @@ function Dpsub=subsref(Dp,ref)
 % Correction for ":" case, DJ - 04/24/2022
 % DJ, 02/11/2026: Only allocate space for the true number of nonzero
 %                   coefficients;
-% MMP, 08/24/2026: Linear indexing took the shape of the index
-%                   unconditionally, so D([1 3]) on a column dpvar returned
-%                   1x2 while the same call on the equivalent @polynomial
-%                   returned 2x1. Adopt @polynomial/subsref's rule verbatim
-%                   -- a column object stays a column, otherwise the index's
-%                   shape is used -- so the two classes agree everywhere.
-%                   Deliberately NOT full MATLAB semantics: MATLAB also keeps
-%                   a row object a row and treats 1x1 as a matrix, but
-%                   matching that would make dpvar and @polynomial disagree in
-%                   two new cases, and the two interconvert constantly. If
-%                   MATLAB parity is wanted, fix both classes together.
-%                   The adjacent ndims() guard tested the output of size(),
-%                   which is always 2-D, so it never fired; it now tests the
-%                   index, turning a silently wrong result for a 3-D index
-%                   into an error.
+% MMP, 08/24/2026: Keep column dpvars a column under linear indexing, as
+%                   for polynomials; error for indices of more than 2-D;
 % DJ, 11/19/2026: Improve efficiency for linear indexing.
+% DJ, 11/25/2026: Linear indexing gives the output shape MATLAB would,
+%                   replacing the rule of MMP, 08/24/2026; fix logical indices;
 
 
 switch ref(1).type
@@ -118,8 +107,12 @@ switch ref(1).type
         if isscalar(ref(1).subs)
             % % Distinguish case of linear indexing
             
-            if strcmp(ref(1).subs{1},':')
+            is_colon = strcmp(ref(1).subs{1},':');                          % DJ, 11/25/2026
+            if is_colon
                 ref(1).subs{1} = (1:matdim(1)*matdim(2))';
+            elseif islogical(ref(1).subs{1})
+                % Logical index: use the positions of its true entries
+                ref(1).subs{1} = find(ref(1).subs{1});
             end
             
             % Error checking
@@ -129,18 +122,17 @@ switch ref(1).type
                 error('Indices exceed matrix dimensions');
             end
             
-            % Shape of the output, matching @polynomial/subsref exactly: a
-            % column object stays a column, otherwise the shape of the index
-            % is used. Note ':' has already been converted to a column above,
-            % so it yields a column either way.
+            % Shape of the output, as in MATLAB: a vector indexed by a vector
+            % keeps its orientation, otherwise the shape of the index is used.
             if ndims(ref(1).subs{1})~=2                                     % MMP, 08/24/2026
                 error('Indices to dpvar objects can be at most 2 dimensional')
             end
-            if matdim(2)==1                                                 % MMP, 08/24/2026
-                mdim = [numel(ref(1).subs{1}),1];                           % MMP, 08/24/2026
-            else                                                            % MMP, 08/24/2026
-                mdim = size(ref(1).subs{1});                                % MMP, 08/24/2026
-            end                                                             % MMP, 08/24/2026
+            if prod(matdim)>1 && min(matdim)==1 && isvector(ref(1).subs{1}) && ~is_colon   % DJ, 11/25/2026
+                mdim = [numel(ref(1).subs{1}),1];
+                if matdim(1)==1,    mdim = [1,numel(ref(1).subs{1})];   end
+            else
+                mdim = size(ref(1).subs{1});
+            end
 
             % Remap only the nonzero coefficients of Dp.C                   % DJ, 11/19/2026
             [ridcs,cidcs,vals] = find(Dp.C);

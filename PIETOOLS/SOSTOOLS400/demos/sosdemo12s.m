@@ -1,4 +1,4 @@
-% SOSDEMO12 --- Local Stability
+% SOSDEMO12s --- Local Stability
 %
 % Testing local stability of coupled Van der Pol equations, \dot{x}=f(x),
 % on a circle x*x'<=r. In particular, x=[y,z] and:
@@ -80,7 +80,7 @@ prog = sossolve(prog,solver_opt);
 
 catch
     
-disp('Problem may be too big to handle with syms. Please use a smaller problem, or try the polynomial implementation')
+disp('Problem may be too big to handle with syms. Please use a smaller problem, or try the ''dpvar'' implementation')
     
 end
 

@@ -60,49 +60,8 @@ function [At,b,Z] = getequation(symexpr,vartable,decvartable,varmat,Type)
 % 12/14/21 - DJ -- Fixed issues with symengine, missing ']', though more issues may be expected
 % 02/14/22 - DJ -- Adjustment for dpvar Mineq case
 % 02/21/22 - DJ, PS -- Bugfix for sym case
-% 09/26/26 - MMP -- dpvar branch: two changes that remove costs growing with
-%                   the size of the program rather than of the constraint.
-%                   The equations produced are identical (At, b, Z bit for
-%                   bit on every program tested).
-%   (1) Expression with ONE matrix row (1 x n): skip the mat2cell/cell2mat
-%       reordering of the coefficients to [C11,...,Cm1,C12,...], which is the
-%       identity when m = 1. It split C into n sparse cells, one per column
-%       block, and concatenated them again, so a long row of scalar equalities
-%       - e.g. the coefficient-matching conditions of a large matrix or
-%       polynomial identity passed to soseq as a 1 x n expression - paid
-%       O(n) sparse extractions for no effect. Measured: n in the thousands,
-%       1.8e5 program decision variables, 16 s -> 0 per program.
-%   (2) Locate the expression's decision variables in the program's table by
-%       one pass of the table against the expression's names, instead of
-%       looking the names up in char(decvartable). The char table made
-%       ismember convert it back to a cellstr (cellstr + deblank of every
-%       row) on every soseq/sosineq call, so each dpvar constraint cost
-%       O(N) in the TOTAL number N of decision variables in the program,
-%       however few it involves; large programs with many constraints paid it
-%       again and again. Measured with N = 7.6e5: 5.2 -> 1.4 s over 5
-%       constraints, peak memory 108 -> 17 MB. The indices equal the old
-%       lookup's whenever names carry no trailing blanks, which holds for
-%       every name SOSTOOLS generates (cellstr, int2str/fastint2str); a table
-%       that is not a cellstr, or a name missing from it or repeated in the
-%       expression, takes the plain ismember route.
-% 09/26/26 - MMP -- Corrects the entry above, whose "identical" held on the
-%                   SOSTOOLS demos but not on two degenerate inputs that a
-%                   randomized search over sosprogram/sosdecvar/soseq/sosineq
-%                   found. Both now take the original code again:
-%   (1) A 1 x 0 expression was bypassed and gave an empty set of equations;
-%       through sosineq the solver then received a 0 x 0 psd block (SeDuMi
-%       crashed MATLAB). The original reorder rejects it with an index error.
-%       The bypass now requires n > 0.
-%   (2) A program with exactly one decision variable and a constraint not
-%       involving it (e.g. sosdecvar(prog,dpvar('g')), then
-%       sosineq(prog,x^2+1)) threw in accumarray: ismember with a 1 x 1 cell
-%       first argument returns scalar outputs. The one-pass lookup now
-%       requires at least two table entries; 0 or 1 cost nothing to look up.
-%   Both conditions are O(1). With them, 5272 intercepted calls from random
-%   programs and targeted cases match the pre-09/26/26 code exactly, except
-%   user-chosen names ending in blanks (e.g. dpvar('c ')): the old char
-%   route stripped those from the table but not from the expression, which
-%   was inconsistent; they are now matched exactly.
+% 09/26/26 - MMP -- dpvar branch: skip reordering coefficients of 1 x n
+%                   expressions, match decision variables to the table once;
 % 09/27/26 - DJ -- Throw an error right away if repeated or missing
 %                   decision variables are encountered in 'dvarname'.
 
@@ -113,7 +72,6 @@ if isa(symexpr,'dpvar')
     n_dvars_prog = numel(decvartable);
     n_vars_prog = numel(vartable);
     cvartable_prog = char(vartable);
-%   cdvartable_prog = char(decvartable);                                    % MMP, 09/26/2026 (was)
     dvarname = symexpr.dvarname;
 %     if isempty(dvarname)
 %         error(['Direct constraints on independent variables are not supported.',...
@@ -131,16 +89,14 @@ if isa(symexpr,'dpvar')
     
     
     % % Reshape coefficients as [C11,C21,...,Cm1,C12,...,Cmn]
-%   if m==1                                                                 % MMP, 09/26/2026 (was)
-    % n = 0 stays on the reorder, which errors on it as before; bypassed,   % MMP, 09/26/2026
-    % a 1 x 0 sosineq reached the solver as a 0 x 0 psd block.              % MMP, 09/26/2026
+    % A single row of blocks is already in this order; n = 0 is left to the
+    % reorder, which rejects it.
     if m==1 && n>0                                                          % MMP, 09/26/2026
-        % One row of blocks is already in that order.                       % MMP, 09/26/2026
-        C_reshape = C;                                                      % MMP, 09/26/2026
-    else                                                                    % MMP, 09/26/2026
+        C_reshape = C;
+    else
     C_cell = mat2cell(C,(n_dvars_dp+1)*ones(m,1),n_mons*ones(n,1));
     C_reshape = cell2mat(reshape(C_cell,1,m*n));
-    end                                                                     % MMP, 09/26/2026
+    end
     
     if nargin>=5 && strcmp(Type,'ineq')
         % In Mineq case, retain all columns, and store the unique monomials
@@ -194,38 +150,23 @@ if isa(symexpr,'dpvar')
     Z(:,idx) = degmat_big2;
 
     % synchronize dpvars to SOS program decvartable
-%   [~,idx]=ismember(dvarname,cdvartable_prog); % also slow??               % MMP, 09/26/2026 (was)
-    % Match against the cellstr itself: a char table makes ismember rebuild % MMP, 09/26/2026
-    % the cellstr (cellstr + deblank of every table row) on every call.     % MMP, 09/26/2026
-%   if iscellstr(decvartable) && iscellstr(dvarname)                        % MMP, 09/26/2026 (was)
-    % Tables of 0 or 1 names keep the char route: on a scalar cell          % MMP, 09/26/2026
-    % ismember returns scalar tf, loc(tf) is then 0 x 0, and accumarray     % MMP, 09/26/2026
-    % throws when that one name is not in dvarname.                         % MMP, 09/26/2026
+    % Scan the table once against the expression's names; idx(i) is the
+    % first table row holding dvarname{i}. A table of one name takes the
+    % ismember route, as accumarray fails on its scalar output.
     if iscellstr(decvartable) && iscellstr(dvarname) && numel(decvartable)>1 % MMP, 09/26/2026
-%       [~,idx]=ismember(dvarname,decvartable);                             % MMP, 09/26/2026 (was)
-        % Scan the table once against the expression's names, which combine % MMP, 09/26/2026
-        % has made few and distinct: ismember(dvarname,decvartable) costs   % MMP, 09/26/2026
-        % ~0.5 s with 7.6e5 program variables even for a few hundred names, % MMP, 09/26/2026
-        % this ~0.04 s.                                                     % MMP, 09/26/2026
-        % idx(i) = lowest table row holding dvarname{i}, as in ismember.    % MMP, 09/26/2026
-        [tf,loc] = ismember(decvartable(:),dvarname);                       % MMP, 09/26/2026
-        idx = accumarray(loc(tf),find(tf),[numel(dvarname),1],@min,0);      % MMP, 09/26/2026
-        if ~all(idx)                                                        % MMP, 09/26/2026
-            % A name absent from the table, or repeated in dvarname         % MMP, 09/26/2026
-            % (only its first copy is matched above): not supported.        
-            %[~,idx]=ismember(dvarname,decvartable);                        % DJ, 09/27/2026 (was)
+        [tf,loc] = ismember(decvartable(:),dvarname);
+        idx = accumarray(loc(tf),find(tf),[numel(dvarname),1],@min,0);
+        if ~all(idx)
+            % A name absent from the table, or repeated in dvarname
             error('The given expression has a decision variable which is repeated or does not appear in the sosprogram')
-        end                                                                 % MMP, 09/26/2026
-        idx = reshape(idx,size(dvarname));                                  % MMP, 09/26/2026
-    else                                                                    % MMP, 09/26/2026
-        [~,idx]=ismember(dvarname,char(decvartable));                       % MMP, 09/26/2026
+        end
+        idx = reshape(idx,size(dvarname));
+    else
+        [~,idx]=ismember(dvarname,char(decvartable));
         if ~all(idx)                                                        % DJ, 09/27/2026
             error('The given expression has a decision variable which does not appear in the sosprogram')
         end
     end
-    % if ~isempty(find(~idx,1))                                             % DJ, 09/27/2026 (was)
-    %     error('The given expression has a decision variable which does not appear in the sosprogram')
-    % end
     At=sparse([],[],[],n_dvars_prog,n_cons,nnz(At_temp));
     At(idx,:)=-At_temp; % main time sink?
     
