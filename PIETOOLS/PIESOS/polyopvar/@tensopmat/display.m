@@ -4,13 +4,13 @@ function display(Rop,name,width_max,expand)
 %   NAME = [C_11 ... C_1d] : [X_1] --> [Y_1]
 %          [ :   .    :  ]   [ : ]     [ : ]
 %          [C_p1 ... C_pd]   [X_d]     [Y_p]
-% with each of the blocks C_ij named, zero blocks displayed as 0, and with
-% X_j the space that column j acts on, and Y_i the space that row i maps
-% to, e.g. R, L_2[0,1], or L_2^2[[-1,1]x[0,2]^2], with the 2 of L_2 as
-% subscript and the powers as superscripts, followed by the operator
-% written out explicitly, or the definitions of the blocks as the actual
-% operators acting on x_j, if they are small enough. If
-% the operator consists of a single block, it is displayed as
+% with each of the blocks C_ij named, zero blocks displayed as 0, X_j the
+% space that column j acts on, and Y_i the space that row i maps to, e.g.
+% R, L_2[0,1], or L_2^2[[-1,1]x[0,2]^2], with the 2 of L_2 as subscript
+% and the powers as superscripts. This is followed by the operator
+% written out explicitly, or by the definitions of the blocks as the
+% actual operators acting on x_j, if they are small enough. If the
+% operator consists of a single block, it is displayed as
 %   NAME : X --> Y
 % instead, followed by the operator written out. An empty block matrix is
 % displayed as
@@ -28,16 +28,15 @@ function display(Rop,name,width_max,expand)
 % - width_max:  (optional) maximal number of characters of a line with
 %           multiple terms. Defaults to the width of the command window, or
 %           to 100 if this cannot be determined;
-% - expand: (optional) logical, false to not define the blocks as the
-%           actual operators. Defaults to true;
-%
-% OUTPUTS
-% Display of the block matrix in the command window.
+% - expand: (optional) logical, false to neither write out the operator
+%           nor define the blocks as the actual operators. Defaults to
+%           true;
 %
 % NOTES
 % - If the operator maps from a single space to a single space, with one
-%   block of type 'tensopvar' or 'intop', that block is displayed after
-%   the line NAME : X --> Y, and EXPAND is passed on to the display of a 'tensopvar'.
+%   block of type 'tensopvar' or 'intop', that block is displayed by its
+%   own 'display' after the line NAME : X --> Y, with EXPAND passed on
+%   for a 'tensopvar'.
 % - An identity operator is displayed as (NAME x)_i(s) = x_i(s) for each
 %   block row i, with the spatial variables of the row, and a block that is
 %   an identity operator is defined as (C_ij x_j)(s) = x_j(s).
@@ -46,9 +45,10 @@ function display(Rop,name,width_max,expand)
 %   type 'double' is displayed as its value.
 % - The blocks can be extracted by calling Rop.ops{i,j}. The 'tensopvar'
 %   blocks can be displayed in turn.
-% - If blocks are not of type 'tensopvar', the blocks of each other type
-%   are listed.
+% - The blocks that are not of type 'tensopvar', other than scalar
+%   'double' blocks, are listed by type.
 % - The spaces follow from Rop.dims, Rop.dom and Rop.depmat.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display
 %

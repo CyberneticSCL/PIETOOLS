@@ -1,35 +1,24 @@
 function [logval,varname,dims,vars,dom] = ispvar(p)
-% [LOGVAL,VARNAME,DIMS,VARS,DOM] = ISPVAR(P) checks whether the
-% 'polyopvar' object P is an array of individual (state) variables,
-% returning an array of the state variables and the spatial variables that
-% they depend on.
+% [LOGVAL,VARNAME,DIMS,VARS,DOM] = ISPVAR(P) checks whether each
+% row-block of the 'polyopvar' object P is a single state variable (an
+% identity operator acting on a state), and if so returns these states
+% and the spatial variables that they depend on.
 %
 % INPUTS
-% - p:          mtot x 1 'polyopvar' object;
+% - p:          m x 1 'polyopvar' object;
 %
 % OUTPUTS
-% - logval:     boolean indicating whether (true) or not (false) each of
-%               the elements of p corresponds to an individual state
-%               variable (acted upon by an identity operator);
-% - varname:    m x 1 cellstr, where m = size(p.C.ops,1) is the number of
-%               blocks of rows of p.C, specifying the names of the state
-%               variables in each row of p, if logval==true. Otherwise,
-%               varname = cell(0,1). Elements may not be unique: the same
-%               state variable may appear in different rows in p;
-% - dims:       m x 1 array of integers, specifying the vector size of each
-%               of the state variables listed in "varname". If
-%               logval==false, dims = zeros(0,1);
-% - vars:       m x 1 cell with each element vars{i} a 1 x ni cellstr
-%               specifying the names of the spatial variables on which
-%               state varname{i} depends. If logval==false, vars =
-%               cell(0,1);
-% - dom:        m x 1 cell with each element a ni x 2 array specifying for
-%               each of the variables in vars{i} the interval on which
-%               these variables are defined. If logval==false, dom =
-%               cell(0,1);
-%
-% NOTES
-% - Polynomial arrays with multiple columns are not supported.
+% - logval:     logical, true if each row-block of p is a single state;
+% - varname:    nr x 1 'cellstr', the name of the state in each of the nr
+%               row-blocks of p.C, not necessarily unique. cell(0,1) if
+%               logval is false;
+% - dims:       nr x 1 array of integers, the vector size of each of these
+%               states. zeros(0,1) if logval is false;
+% - vars:       nr x 1 'cell', with vars{i} the 1 x ni 'cellstr' of the
+%               spatial variables on which state varname{i} depends.
+%               cell(0,1) if logval is false;
+% - dom:        nr x 1 'cell', with dom{i} the ni x 2 array of the domains
+%               of the variables vars{i}. cell(0,1) if logval is false;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

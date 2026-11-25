@@ -10,10 +10,11 @@ function [logval,errmsg] = isvalid(Cop)
 %           'double', 'polynomial' or 'dpvar' acting on R;
 %
 % OUTPUTS
-% - logval: boolean value specifying whether (true) or not (false) the
+% - logval: logical value specifying whether (true) or not (false) the
 %           object is properly specified;
 % - errmsg: 'string' used to declare an error message indicating what is
-%           wrong with the object if logval = false;
+%           wrong with the object if logval = false (a confirmation if
+%           logval = true);
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,7 +42,7 @@ function [logval,errmsg] = isvalid(Cop)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Initialize
 logval = true;  % innocent until proven guilty
@@ -107,11 +108,14 @@ if ~all(size(dom.in)==[N,2])
     errmsg = errmsg + "Field 'dom.in' must be specified as a N x 2 array of type 'double', for N input variables.";
     logval = false;
 elseif ~all(size(dom.out)==[M,2])
-    errmsg = errmsg + "Field 'dom.out' must be specified as a M x 2 array of type 'double', for M input variables.";
+    errmsg = errmsg + "Field 'dom.out' must be specified as a M x 2 array of type 'double', for M output variables.";
     logval = false;
 elseif any(dom.in(:,1)>=dom.in(:,2)) || any(dom.out(:,1)>=dom.out(:,2))
-    errmsg = errmsg + "Lower boundary of domains cannot exceed upper boundary.";
+    errmsg = errmsg + "The lower boundary of each domain must be smaller than the upper boundary.";
     logval = false;
+end
+if ~logval
+    return
 end
 
 % Check that the dependency arrays are appropriate
@@ -120,11 +124,14 @@ if ~all(size(depmat.in)==[q,N])
     errmsg = errmsg + "Field 'depmat.in' must be specified as a q x N array of type 'double', for N input variables and q coupled inputs.";
     logval = false;
 elseif ~all(size(depmat.out)==[p,M])
-    errmsg = errmsg + "Field 'depmat.out' must be specified as a p x M array of type 'double', for M input variables and p coupled outputs.";
+    errmsg = errmsg + "Field 'depmat.out' must be specified as a p x M array of type 'double', for M output variables and p coupled outputs.";
     logval = false;
 elseif any(round(abs(depmat.in(:)))~=depmat.in(:)) || any(round(abs(depmat.out(:)))~=depmat.out(:))
     errmsg = errmsg + "Dependency arrays must be specified as real nonnegative integers.";
     logval = false;
+end
+if ~logval
+    return
 end
 
 

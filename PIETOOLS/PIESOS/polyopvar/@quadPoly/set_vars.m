@@ -1,16 +1,16 @@
 function [A_out,s_idcs,t_idcs] = set_vars(A_in,ns_new,nt_new)
-% A_OUT = SET_VARS(A_IN,NS_NEW,NT_NEW) takes a 'quadPoly' object and
-% expresses in terms of variables NS_NEW and NT_NEW
+% [A_OUT,S_IDCS,T_IDCS] = SET_VARS(A_IN,NS_NEW,NT_NEW) takes a 'quadPoly'
+% object and expresses it in terms of the variables NS_NEW and NT_NEW.
 %
 % INPUTS
-% - A_in:       'quadPoly' objects representing a polynomial;
+% - A_in:       'quadPoly' object representing a polynomial;
 % - ns_new:     1 x M cellstr specifying the new names of the left
 %               variables. Must include A_in.ns as a subset;
 % - nt_new:     1 x N cellstr specifying the new names of the right
 %               variables. Must include A_in.nt as a subset;
 %
 % OUTPUTS
-% - A_out:      'quadPoly' objects representing the same polynomial as the
+% - A_out:      'quadPoly' object representing the same polynomial as the
 %               input, but now expressed in terms of the specified
 %               variables, so that
 %                       A_out.ns = ns_new;    A_out.nt = nt_new;
@@ -45,7 +45,7 @@ function [A_out,s_idcs,t_idcs] = set_vars(A_in,ns_new,nt_new)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 06/19/2026: Initial coding
+% DJ, 06/19/2026: Initial coding;
 
 % Extract the variable names and monomials
 vars1_A = A_in.ns;      N1 = numel(ns_new);

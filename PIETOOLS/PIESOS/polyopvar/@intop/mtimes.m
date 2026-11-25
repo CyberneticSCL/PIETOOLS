@@ -4,7 +4,8 @@ function C = mtimes(A,B)
 %
 % INPUTS
 % - A:      m x p 'double', 'polynomial', or 'dpvar' object (or a scalar)
-%           representing some multiplier operator to multiply with B;
+%           representing some multiplier operator to multiply with B, or
+%           an 'intop' object, see NOTES;
 % - B:      p x n 'intop' object;
 %
 % OUTPUTS
@@ -13,15 +14,12 @@ function C = mtimes(A,B)
 %           object if A is an 'intop' and B a 'tensopmat');
 %
 % NOTES
-% - For a constant ('double') multiplier A, the product acts directly on
-%   the sparse coefficients B.params. For a 'polynomial' or 'dpvar'
-%   multiplier, the kernels of B are multiplied by A and expressed in the
-%   same monomials and decision variables again.
+% - A 'polynomial' or 'dpvar' A must not depend on spatial variables: the
+%   kernels of the product may only depend on the dummy variables of B.
 % - If A is an 'intop' and B a 'tensopvar', C is the composition of A with
-%   B. If B is a 'tensopmat' with one row, C is
-%   the 'tensopmat' of the compositions of A with each element of B. If B
-%   is a scalar, C = B*A. Products of two 'intop' objects are not
-%   supported.
+%   B. If B is a 'tensopmat' with one row, C is the 'tensopmat' of the
+%   compositions of A with each element of B. If B is a scalar, C = B*A.
+%   Products of two 'intop' objects are not supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,7 +47,7 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that multiplication is supported
 if isa(A,'intop') && isa(B,'tensopvar')
@@ -59,9 +57,15 @@ elseif isa(A,'intop') && isa(B,'tensopmat')
     if size(B.ops,1)>1
         error("Composition of 'intop' with multi-row 'tensopmat' is currently not supported.")
     end
-    % Take the composition of A with each of the elements of B
+    % Take the composition of A with each of the elements of B; an empty
+    % block is the zero operator
     C = B;
     for j=1:size(B.ops,2)
+        if isa(B.ops{1,j},'double') && isempty(B.ops{1,j})
+            continue
+        elseif isa(B.ops{1,j},'double') || isa(B.ops{1,j},'polynomial') || isa(B.ops{1,j},'dpvar')
+            error("Composition of a functional ('intop') with a block of type 'double', 'polynomial' or 'dpvar' is not supported.")
+        end
         C.ops{j} = mtimes_tensopvar(A,B.ops{1,j});
     end
     C.dims.out = size(A,1);

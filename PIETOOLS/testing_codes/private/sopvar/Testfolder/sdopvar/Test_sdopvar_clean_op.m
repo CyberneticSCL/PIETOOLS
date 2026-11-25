@@ -5,11 +5,14 @@
 % variables and the canonical form (a rebuild through the constructor
 % gives the same parameters); (2) an operator with all coefficients below
 % ztol is flagged is_zero; (3) a nonzero operator is not flagged and is
-% unchanged. Then (4) a 'tensopvar' with an 'sdopvar' factor (c*x) is
-% cleaned, and (5) the cost at q = 1e6 decision variables is compared with
-% uminus (both linear in the nonzeros of B). Errors on the first failure.
+% unchanged. Then (4) an 'sdopvar' from a 'dpvar' times a 'sopvar' (c*S)
+% is cleaned, and 0*(c*S) flagged zero, and (5) the cost at q = 1e6
+% decision variables is compared with uminus (both linear in the nonzeros
+% of B). Errors on the first failure.
 %
 % DJ, 11/24/2026: Initial coding;
+% DJ, 11/24/2026: Case 4 uses c*S, as c*x (a 'dpvar' times a state) is no
+%   longer supported;
 
 ztol = 1e-12;
 nn = @(R) sum(cellfun(@nnz,R.params.A),'all') + sum(cellfun(@nnz,R.params.B),'all');
@@ -72,17 +75,17 @@ for trial = 1:9
     end
 end
 
-%%%% Case 4: a 'tensopvar' with an 'sdopvar' factor
+%%%% Case 4: an 'sdopvar' from a 'dpvar' times a 'sopvar', and 0 times it
 dpvar c
-x = polyopvar('x',1,{'s'},[0,1]);
-cx = c*x;
-[T,is_zero4] = clean_op(cx.C.ops{1});
-if is_zero4 || ~isa(T.ops{1},'sdopvar')
-    error("Test_sdopvar_clean_op failed: c*x is not cleaned as a nonzero 'sdopvar' factor.")
+S = mat2sopvar(polynomial(1),struct('in',{cell(1,0)},'out',{{'s'}}),struct('in',zeros(0,2),'out',[0,1]));
+D = c*S;
+[D1,is_zero4] = clean_op(D);
+if is_zero4 || ~isa(D1,'sdopvar')
+    error("Test_sdopvar_clean_op failed: c*S is not cleaned as a nonzero 'sdopvar'.")
 end
-[~,is_zero5] = clean_op(0*cx.C.ops{1});
+[~,is_zero5] = clean_op(0*D);
 if ~is_zero5
-    error("Test_sdopvar_clean_op failed: 0*(c*x) is not flagged zero.")
+    error("Test_sdopvar_clean_op failed: 0*(c*S) is not flagged zero.")
 end
 
 %%%% Case 5: cost at q = 1e6, nothing dropped and 10% of B dropped, vs uminus

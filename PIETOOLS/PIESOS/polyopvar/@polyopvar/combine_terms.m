@@ -1,26 +1,26 @@
 function f = combine_terms(f)
-% F = COMBINE_TERMS(F) takes a distributed polynomial and adds the
-% coefficients acting on the same monomial, to minimize the size of the
-% distributed monomial basis.
+% F = COMBINE_TERMS(F) adds the operators acting on the same monomial of
+% the distributed polynomial F, so that each monomial appears once.
 %
 % INPUTS
-% - f:  'polyopvar' object representing a distributed polynomial;
+% - f:  'polyopvar' object;
 %
 % OUTPUTS
-% - f:  'polyopvar' object representing the same polynomial as the input,
-%       with only unique monomials, so that each monomial (row of f.Z)
-%       appears once (see NOTES);
+% - f:  'polyopvar' object representing the same polynomial, with unique
+%       monomials (rows of f.Z);
 %
 % NOTES
 % - Monomials with the same Z but a different number of factors (factors
 %   that are multipliers from R) are different monomials.
-% - If f has no output spatial variables (f.C.depmat.out is zero), the
-%   monomials of the same degree in each state, in any order, are combined
-%   as well, by reordering the integrals in the operators acting on them,
-%   e.g.   int_{a}^{b} int_{c}^{d} y(s1) x(s2) ds2 ds1
-%        = int_{c}^{d} int_{a}^{b} x(s1) y(s2) ds1 ds2.
+% - If f has no output variables (f.C.depmat.out is zero), monomials of
+%   the same degree in each state, in any order, are combined as well,
+%   by reordering the integrals in the operators acting on them, e.g.
+%       int_{a}^{b} int_{c}^{d} y(s1) x(s2) ds2 ds1
+%     = int_{c}^{d} int_{a}^{b} x(s1) y(s2) ds1 ds2.
 %   The states in the resulting monomials are in order of increasing
-%   index. Monomials with operators of type 'tensopvar' are not combined.
+%   index. Monomials of the same degrees are not combined this way if a
+%   'tensopvar' or a 'dpvar' (a decision variable as constant term) acts
+%   on any of them.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - combine_terms
@@ -47,7 +47,7 @@ function f = combine_terms(f)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if ~f.chkval
     f = initialize(f);
@@ -65,6 +65,10 @@ Zmat = f.Z;
 % x o c, with c a multiplier from R, Z=[1,0], and x, Z=[1], which are the same row once padded
 % to the same width
 [~,nopsZ,is_empty] = num_factors(f);
+% Without output variables, a 'dpvar' constant term merges with a
+% constant multiplier (one factor)
+is_dpconst = isempty(f.vars.out) & ~any(Zmat,2) & reshape(any(cellfun('isclass',Cop.ops,'dpvar'),1),[],1);
+nopsZ(is_dpconst) = 1;
 nopsZ = factor_key(Zmat,nopsZ,is_empty);        % empty monomials merge with those of the same Z
 [Pmat,Zmat_new] = uniquerows_integerTable([sum(Zmat>0,2),nopsZ,Zmat]);
 Zmat_new = Zmat_new(:,3:end);
@@ -132,7 +136,9 @@ for j=1:size(degmat2,1)
     Zmat_j = Zmat_new(is_degj,:);        
     ops_j = Cop.ops(:,is_degj);
     degs_j = degmat2(j,:);
-    if any(cellfun(@(c) isa(c,'tensopvar'),ops_j(:)))
+    % Only 'intop' blocks can be reordered (reorder_states); keep monomials
+    % with other nonzero blocks as they are
+    if any(cellfun(@(c) isa(c,'tensopvar') || isa(c,'dpvar') || isa(c,'polynomial') || (isa(c,'double') && any(c(:))),ops_j(:)))
         old_deg_nums{j} = idcs1(j)*ones(1,nnz(is_degj));
         Zcell{j} = Zmat_j';
         opcell{j} = ops_j;

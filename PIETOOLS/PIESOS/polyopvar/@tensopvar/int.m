@@ -14,15 +14,12 @@ function KCop = int(Cop,W,vars,dom)
 %           inside the integral, defaults to the identity. If W depends on
 %           the output variables of Cop, it is integrated along with Cop,
 %           and may depend only on the variables
-%             'si_j'  for the jth copy of vars.out{i}, j=1,...,deps.out(i),
-%                     for a tensor product of the
-%                     outputs (Cop.otype(1)==2, or degree above 1);
-%             'si'    also for the only copy, if the ith output variable
-%                     vars.out{i} has degree 1 (deps.out(i)==1) and
+%             'si_j'  for the jth copy of si = Cop.vars.out{i},
+%                     j=1,...,Cop.deps.out(i);
+%             'si'    also for the only copy, if Cop.deps.out(i)==1 and
 %                     Cop.otype(1)==1 (a pointwise product);
-%           where si is the name vars.out{i}. Other variables are rejected,
-%           as is a weight depending on both 'si' and 'si_1', unless they
-%           are in VARS;
+%           and on other variables in VARS, over which W is integrated
+%           first. W may not depend on both 'si' and 'si_1';
 % - vars:   (optional) 1 x N 'cellstr' or 'polynomial' (pvar) array, the
 %           variables to integrate over: each copy of the output variables
 %           of Cop, named as for W, once, and any other variables. W is
@@ -44,8 +41,8 @@ function KCop = int(Cop,W,vars,dom)
 %           variable si of Cop a 1 x 2*Di array, the region of the copies
 %           si_1,...,si_Di as a row of the intmat of an 'intop' (0 for ai,
 %           Di+1 for bi, j for si_j, [j,j] for evaluation at si_j). The
-%           first deps.out(i) copies are those of the output of Cop, and
-%           lie between ai, bi and each other; W is integrated over the
+%           first Cop.deps.out(i) copies are those of the output of Cop,
+%           and lie between ai, bi and each other; W is integrated over the
 %           other copies first, as over the other variables of VARS;
 %
 % OUTPUTS
@@ -53,9 +50,8 @@ function KCop = int(Cop,W,vars,dom)
 %           composition of an integral operator and Cop;
 %
 % NOTES
-% - The variables "vars" must include all variables on which the output of
-% Cop depends, integration with respect to only a subset of the variables
-% is not supported.
+% - VARS must include each copy of the output variables of Cop once:
+%   partial integrals are not supported.
 % - Variable limits define an iterated integral, e.g. for the copies s_1,
 %   s_2 of s in [a,b],
 %     int(Cop,W,[s_1;s_2],[a,b;a,s_1])
@@ -66,8 +62,8 @@ function KCop = int(Cop,W,vars,dom)
 %   A variable may not appear in its own limits, also not through the
 %   limits of the variables in its limits. The limits of the copies may
 %   not be other variables, and a copy between two copies must have these
-%   ordered by the other limits (see intop.canonicalize_intmat), so that
-%   the iterated integral is the integral over the region.
+%   ordered by the other limits, so that the iterated integral is the
+%   integral over the region.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,9 +91,7 @@ function KCop = int(Cop,W,vars,dom)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% DJ, 11/22/2026: Variable limits of integration, equal limits for
-%                   evaluation (Dirac delta), and regions as an intmat;
+% DJ, 11/22/2026: Initial coding;
 
 if nargin<2
     W = [];
@@ -140,7 +134,7 @@ elseif nargin>=3
     % The limits of the copies set the intmat of Kop (below). W is
     % integrated over the other variables, or evaluated at equal variable
     % limits, each before the variables in its limits (order ord_W)
-    [vars,lims,intmat_lims,ord_W] = dom2intmat(vars,dom,names_cp,idcs_cp,dom_cp,Cop.deps.out); % DJ, 11/19/2026
+    [vars,lims,intmat_lims,ord_W] = dom2intmat(vars,dom,names_cp,idcs_cp,dom_cp,Cop.deps.out);
 end
 if nargin>=3
     if isempty(W) && ~isempty(ord_W)
@@ -148,7 +142,7 @@ if nargin>=3
     end
     for k=ord_W
         [L,U] = lims{k,:};
-        if ~isnumeric(L) && isequal(L,U)                                    % DJ, 11/19/2026
+        if ~isnumeric(L) && isequal(L,U)
             % Dirac delta: W at vars{k}=L, a constant W is unchanged
             if ~isa(W,'double')
                 W = subs(W,polynomial(vars(k)),L);
@@ -177,7 +171,7 @@ end
 if nargin>=3
     % With the limits of dom, checked to be ordered by dom2intmat, so that
     % intop need not check them
-    intmat = intmat_lims;                                                   % DJ, 11/19/2026
+    intmat = intmat_lims;
 end
 params = {speye(m)};
 Kop = intop(params,intmat,vars_out,dom_out,true);
@@ -252,7 +246,8 @@ function [vars,lims,intmat,ord_W] = dom2intmat(vars,dom,names_cp,idcs_cp,dom_cp,
 % - intmat:     1 x M cell, the intervals of the copies of each output
 %               variable, as the field intmat of an 'intop' (0 and d+1 for
 %               the boundaries, j for copy j, [j,j] for evaluation at j),
-%               with ordered rows (see intop.canonicalize_intmat);
+%               checked to be ordered (a copy between two copies has the
+%               lower one below the upper one by the other limits);
 % - ord_W:      1 x K array, the indices in VARS of the other variables, in
 %               the order in which W is integrated over them: each before
 %               the variables in its limits;

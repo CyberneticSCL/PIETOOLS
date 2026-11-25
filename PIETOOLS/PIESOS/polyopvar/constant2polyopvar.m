@@ -1,15 +1,21 @@
-function F = constant2polyopvar(C)
-% F = CONSTANT2POLYOPVAR(C) takes a constant or decision variable C and
-% converts it to a degree-0 distributed monomial F.
+function F = constant2polyopvar(C,vars,dom)
+% F = CONSTANT2POLYOPVAR(C,VARS,DOM) takes a constant, a decision variable
+% or a known function C of spatial variables, and converts it to a
+% degree-0 distributed monomial F.
 %
 % INPUTS
-% - C:  'double', 'polynomial', or 'dpvar' column vector (or 'polyopvar',
-%       returned unchanged) representing a constant value or variable,
-%       which cannot depend on spatial variables;
+% - C:      'double', 'polynomial', or 'dpvar' column vector (or
+%           'polyopvar', returned unchanged). A 'polynomial' may depend on
+%           spatial variables in VARS; a 'dpvar' cannot depend on any;
+% - vars:   (optional) 1 x M 'cellstr', the spatial variables on which a
+%           'polynomial' C may depend;
+% - dom:    (optional) M x 2 'double' array, the domains of VARS;
 %
 % OUTPUTS
-% - F:  'polyopvar' object representing the same term as C, expressed as
-%       a degree-0 distributed polynomial;
+% - F:      'polyopvar' object representing the same term as C,
+%           expressed as a degree-0 distributed polynomial: a function of
+%           the variables of C, or, for a 'dpvar', with the 'dpvar' as
+%           coefficient;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,7 +43,7 @@ function F = constant2polyopvar(C)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Allow the input to already be of type 'polyopvar'
 if isa(C,'polyopvar')
@@ -54,16 +60,32 @@ elseif isa(C,'polynomial') || isa(C,'dpvar')
 else
     error("Input must be of type 'double', 'polynomial', or 'dpvar'.")
 end
-if ~isempty(pvarname)
-    error("Constants depending on spatial variables are not currently supported by constant2polyopvar (domain of these variables is unknown).")
-elseif size(C,2)~=1
+if size(C,2)~=1
     error("constant2polyopvar currently only supports column-vector-valued constants.")
 end
 
-% Convert coefficient to a plain (no spatial variable) multiplier operator
-novars = struct('in',{cell(1,0)},'out',{cell(1,0)});
-nodom = struct('in',zeros(0,2),'out',zeros(0,2));
-Cop = mat2tensopvar(C,novars,nodom);
+if isa(C,'dpvar')
+    % A decision variable is the coefficient of the degree-0 monomial
+    if ~isempty(pvarname)
+        error("Decision variables depending on spatial variables are not supported.")
+    end
+    Cop = C;
+else
+    % A multiplier operator from R to functions of the variables of C,
+    % with their domain taken from vars, dom
+    if isempty(pvarname)
+        vars = cell(1,0);       dom = zeros(0,2);
+    elseif nargin<3
+        error("Constants depending on spatial variables require the domain of these variables.")
+    else
+        is_var = ismember(vars,pvarname);
+        if ~all(ismember(pvarname,vars))
+            error("The function depends on spatial variables on which the distributed polynomial does not depend.")
+        end
+        vars = reshape(vars(is_var),1,[]);       dom = dom(is_var,:);
+    end
+    Cop = mat2tensopvar(C,struct('in',{cell(1,0)},'out',{vars}),struct('in',zeros(0,2),'out',dom));
+end
 
 % Declare a polyopvar representation of the term, as a single degree-0
 % monomial (the constant "1") with coefficient Cop

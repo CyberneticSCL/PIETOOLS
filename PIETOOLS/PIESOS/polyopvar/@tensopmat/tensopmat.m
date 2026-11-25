@@ -6,39 +6,44 @@ classdef (InferiorClasses={?tensopvar,?sopvar,?dpvar,?polynomial})tensopmat
 %         [Cp1, ..., Cpd]
 %
 % CLASS properties
-% - C.ops:  p x d cell with each element {i,j} a 'tensopvar' object Cij
-%           representing a tensor-PI operator between different function
-%           spaces, or an 'intop' object representing a functional, or a
-%           matrix M of type 'double', 'polynomial' or 'dpvar' acting on R
-%           (see NOTES). An empty element represents the zero operator;
-% - C.vars:     struct with fields
+% - C.ops:      p x d 'cell' with each element {i,j} a 'tensopvar' object
+%               Cij representing a tensor-PI operator between different
+%               function spaces, or an 'intop' object representing a
+%               functional, or a matrix M of type 'double', 'polynomial'
+%               or 'dpvar' acting on R (see NOTES). An empty element
+%               represents the zero operator;
+% - C.vars:     'struct' with fields
 %       in:     1 x N cellstr specifying the variable names of the
 %               function which the operator maps from;
 %      out:     1 x M cellstr specifying the variable names of the
 %               function which the operator maps to;
-% - C.dom:      struct with fields
+% - C.dom:      'struct' with fields
 %       in:     N x 2 'double' array specifying the intervals on which
 %               each of the input variables is defined;
 %      out:     M x 2 'double' array specifying the intervals on which
 %               each of the output variables is defined;
-% - C.dims:     struct with fields
+% - C.dims:     'struct' with fields
 %       in:     d x 1 array specifying the dimensions of the input to each
 %               column-block (matdim(2) = sum(dims.in));
 %      out:     p x 1 array specifying the dimensions of the output of each
 %               row-block (matdim(1) = sum(dims.out));
-% - C.depmat:   struct with fields
+% - C.depmat:   'struct' with fields
 %         in:   d x N 'double' array with element (j,k) specifying to what
 %               degree the operators in column-block j map from spatial
 %               variable k;
 %        out:   p x M 'double' array with element (i,k) specifying to what
 %               degree the operators in row-block i map to spatial
-%               variable k. If a block is a 'tensopvar' object, element
-%               (i,k) may be bigger than 1, to indicate that the operator
-%               maps to a higher-degree monomial in the spatial variable;
+%               variable k. The degree is the number of copies of the
+%               variable that the functions depend on, which can exceed 1
+%               for a 'tensopvar' block (e.g. a tensor product);
 %
 % DEPENDENT properties
 % - C.matdim:   1 x 2 array specifying the matrix dimensions of the
 %               tensor-PI operator (computed from C.dims);
+%
+% HIDDEN properties
+% - C.chkval:   logical, true if the object has been checked to be
+%               properly declared;
 %
 % NOTES
 % - vars.in and vars.out always store the spatial variables in the same
@@ -79,9 +84,7 @@ classdef (InferiorClasses={?tensopvar,?sopvar,?dpvar,?polynomial})tensopmat
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% MMP, 11/22/2026: the branches for the retired classes opvar and opvar2d
-%   removed (maintainer, 11/22/2026).
+% DJ, 11/24/2026: Initial coding;
 
 properties
     ops = cell(0,0);
@@ -99,11 +102,9 @@ end
 
 methods
     function obj = tensopmat(Cop,vars,dom) 
-        % OBJ = TENSOPMAT(COP,VARS,DOM) returns a 'tensopmat' object OBJ
-        % representing a block matrix of tensor-PI operators.
-        %
         % OBJ = TENSOPMAT(COP) converts the object COP, a single operator
-        % or a cell of operators, to a 'tensopmat' object.
+        % or a cell of operators, to a 'tensopmat' object OBJ,
+        % representing a block matrix of tensor-PI operators.
         %
         % OBJ = TENSOPMAT(COP,VARS,DOM) additionally specifies the
         % variables and their domains as structs with fields 'in' and
@@ -112,16 +113,18 @@ methods
         % OBJ = TENSOPMAT() returns an empty 'tensopmat' object.
         %
         % INPUTS
-        % - Cop:    (optional) 'tensopvar', 'intop', 'sopvar', 'opvar' or
-        %           'opvar2d' object, matrix of type 'double',
-        %           'polynomial' or 'dpvar' acting on R, or p x d cell of
-        %           such objects, representing the blocks of OBJ (empty
-        %           elements of a cell represent zero operators);
-        % - vars:   (optional) struct with fields 'in' (1 x N cellstr) and
-        %           'out' (1 x M cellstr) specifying the names of the
+        % - Cop:    (optional) 'tensopvar', 'intop' or 'sopvar' object,
+        %           matrix of type 'double',
+        %           'polynomial' or 'dpvar' acting on R, or p x d 'cell'
+        %           of such objects, representing the blocks of OBJ. Empty
+        %           elements of a cell represent zero operators, and an
+        %           element may also be a 'cell' of operators, the factors
+        %           (columns) in each term (row) of a tensor-PI operator;
+        % - vars:   (optional) 'struct' with fields 'in' (1 x N cellstr)
+        %           and 'out' (1 x M cellstr) specifying the names of the
         %           input and output variables. Only with dom, and only
         %           for Cop a cell or a matrix;
-        % - dom:    (optional) struct with fields 'in' (N x 2 array) and
+        % - dom:    (optional) 'struct' with fields 'in' (N x 2 array) and
         %           'out' (M x 2 array) specifying the intervals on which
         %           the input and output variables are defined. Only with
         %           vars;
@@ -152,7 +155,6 @@ methods
             for j=1:numel(Cop)
                 if isempty(Cop{j})
                     continue
-                % (branch for the retired opvar and opvar2d removed)        % MMP, 11/22/2026
                 elseif isa(Cop{j},'sopvar') || isa(Cop{j},'cell')
                     Cop{j} = sopvar2tensopvar(Cop{j});
                 elseif ~isa(Cop{j},'tensopvar') && ~isa(Cop{j},'intop') && ~is_native_op(Cop{j})
@@ -176,7 +178,6 @@ methods
             % Fill in and check the remaining fields
             obj = initialize(obj);
         % A single operator of another class: converted, then stored as one block
-        % (branch for the retired opvar and opvar2d removed)                % MMP, 11/22/2026
         elseif isa(Cop,'sopvar')
             obj = tensopmat(sopvar2tensopvar(Cop));
         % 'tensopvar' or 'intop': the only block, with its function spaces
@@ -189,17 +190,17 @@ methods
             obj.depmat.out = Cop.deps.out;
             obj.chkval = true;
         else
-            error("Input must be object of type 'tensopvar'.")
+            error("Input must be a cell of blocks, or an object of type 'tensopvar', 'sopvar', 'intop', 'double', 'polynomial' or 'dpvar'.")
         end
     end
 
     function matdim = get.matdim(obj)
         % Determine the matrix dimensions of the operator
         %
-        % INPUT
+        % INPUTS
         % - obj:      'tensopmat' object;
         %
-        % OUTPUT
+        % OUTPUTS
         % - matdim:   1 x 2 array [sum(dims.out),sum(dims.in)].
         matdim = [sum(obj.dims.out),sum(obj.dims.in)];
     end

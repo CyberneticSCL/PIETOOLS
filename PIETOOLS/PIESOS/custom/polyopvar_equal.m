@@ -1,58 +1,58 @@
 function [logval, max_error, residual] = polyopvar_equal(F1, F2, tol)
-    % [LOGVAL,MAX_ERROR,RESIDUAL] = POLYOPVAR_EQUAL(F1,F2,TOL) tests
-    % whether two 'polyopvar' objects represent the same FDP.
-    %
-    % Direct comparison of the object fields is generally insufficient,
-    % since equivalent FDPs may store repeated distributed monomials in
-    % different orders. This function therefore forms F1-F2, canonicalizes
-    % equivalent distributed monomials using clean_poly, and compares all
-    % remaining coefficients with a specified tolerance.
-    %
-    % INPUTS
-    % - F1, F2:     'polyopvar' objects to compare;
-    % - tol:        (optional) nonnegative scalar coefficient tolerance.
-    %               Defaults to 1e-10;
-    %
-    % OUTPUTS
-    % - logval:     logical value equal to true when the maximum absolute
-    %               coefficient in the canonical residual is at most tol.
-    %               False if F1 and F2 have different sizes;
-    % - max_error:  maximum absolute coefficient in the residual F1-F2.
-    %               Inf if F1 and F2 have different sizes;
-    % - residual:   canonical 'polyopvar' representation of F1-F2. Empty
-    %               if F1 and F2 have different sizes;
-    %
-    % NOTES
-    % - For dpvar-valued objects, this function tests algebraic equality as
-    %   affine expressions in the decision variables. It does not use any
-    %   equality constraints stored separately in a PIESOS program.
+% [LOGVAL,MAX_ERROR,RESIDUAL] = POLYOPVAR_EQUAL(F1,F2,TOL) tests
+% whether two 'polyopvar' objects represent the same FDP.
+%
+% Direct comparison of the object fields is generally insufficient,
+% since equivalent FDPs may store repeated distributed monomials in
+% different orders. This function therefore forms F1-F2, canonicalizes
+% equivalent distributed monomials using clean_poly, and compares all
+% remaining coefficients with the tolerance tol.
+%
+% INPUTS
+% - F1, F2:     'polyopvar' objects to compare;
+% - tol:        (optional) nonnegative scalar coefficient tolerance.
+%               Defaults to 1e-10;
+%
+% OUTPUTS
+% - logval:     logical value equal to true when the maximum absolute
+%               coefficient in the canonical residual is at most tol.
+%               False if F1 and F2 have different sizes;
+% - max_error:  maximum absolute coefficient in the residual F1-F2.
+%               Inf if F1 and F2 have different sizes;
+% - residual:   canonical 'polyopvar' representation of F1-F2. Empty
+%               if F1 and F2 have different sizes;
+%
+% NOTES
+% - For 'dpvar'-valued objects, this function tests algebraic equality as
+%   affine expressions in the decision variables. It does not use any
+%   equality constraints stored separately in a PIESOS program.
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - polyopvar_equal
-    %
-    % Copyright (C) 2026 PIETOOLS Team
-    %
-    % This program is free software; you can redistribute it and/or modify
-    % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
-    % (at your option) any later version.
-    %
-    % This program is distributed in the hope that it will be useful,
-    % but WITHOUT ANY WARRANTY; without even the implied warranty of
-    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    % GNU General Public License for more details.
-    %
-    % You should have received a copy of the GNU General Public License
-    % along with this program; if not, write to the Free Software
-    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %
-    % If you modify this code, document all changes carefully and
-    % include date authorship, and a brief description of modifications.
-    %
-    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-    % CR, 10/07/2026: Initial coding.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - polyopvar_equal
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% CR, 10/07/2026: Initial coding;
 
     % Check the inputs; objects of different sizes are not equal
     narginchk(2,3);
@@ -98,16 +98,18 @@ end
 
 
 function m = max_abs_coef(coefficient)
-    % m = max_abs_coef(coefficient) returns the maximal absolute value of the
-    % coefficients (of the kernels, for an 'intop', of the parameters, for a
-    % 'sopvar') of the operator or polynomial 'coefficient'.
+    % m = max_abs_coef(coefficient) returns the maximal absolute value of
+    % the coefficients (of the kernels, for an 'intop', of the parameters,
+    % for a 'sopvar') of the operator or polynomial 'coefficient'.
     %
-    % INPUT
-    % - coefficient:    'intop', 'tensopmat', 'tensopvar', 'sopvar', 'dpvar',
-    %                   'polynomial', numeric array, or cell of these;
+    % INPUTS
+    % - coefficient:    'intop', 'tensopmat', 'tensopvar', 'sopvar',
+    %                   'dpvar', 'polynomial', numeric array, or 'cell' of
+    %                   these;
     %
-    % OUTPUT
-    % - m:              nonnegative scalar, the maximal absolute coefficient;
+    % OUTPUTS
+    % - m:              nonnegative scalar, the maximal absolute
+    %                   coefficient;
 
     m = 0;
     if isempty(coefficient)
@@ -147,23 +149,23 @@ end
 
 
 function m = max_abs_terms(ops)
-    % m = max_abs_terms(ops) returns the maximal absolute coefficient of the
-    % tensor T = sum_i ops{i,1} (x) ... (x) ops{i,d}, with the terms i merged
-    % wherever possible so that cancelling terms give 0.
+    % m = max_abs_terms(ops) returns the maximal absolute coefficient of
+    % the tensor T = sum_i ops{i,1} (x) ... (x) ops{i,d}, with the terms i
+    % merged wherever possible so that cancelling terms give 0.
     %
-    % Two terms agreeing up to a scalar in all but one factor j are replaced
-    % by one term, with factor j the (scaled) sum of their factors j. This
-    % is exact for the tensor T of the parameters, whose maximal entry is
-    % the product of the maximal entries of the factors of the last
-    % remaining term; but it is only sufficient for equality of the
-    % operators when the product is pointwise (otype 1), where different T
-    % can give the same operator, and it does not detect a sum that
-    % vanishes only through three or more dependent terms.
+    % Two terms agreeing up to a scalar in all but one factor j are
+    % replaced by one term, with factor j the (scaled) sum of their
+    % factors j. This is exact for the tensor T of the parameters, whose
+    % maximal entry is the product of the maximal entries of the factors
+    % of the last remaining term; but it is only sufficient for equality
+    % of the operators when the product is pointwise (otype 1), where
+    % different T can give the same operator, and it does not detect a
+    % sum that vanishes only through three or more dependent terms.
     %
-    % INPUT
-    % - ops:    K x d cell of 'sopvar' objects, the d factors of K terms;
+    % INPUTS
+    % - ops:    K x d 'cell' of 'sopvar' objects, the d factors of K terms;
     %
-    % OUTPUT
+    % OUTPUTS
     % - m:      nonnegative scalar, the maximal absolute coefficient of T;
 
     ztol = 1e-12;                       % tolerance for a zero coefficient

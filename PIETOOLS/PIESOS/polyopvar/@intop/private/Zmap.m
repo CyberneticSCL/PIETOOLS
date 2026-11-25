@@ -8,7 +8,8 @@ function zmap = Zmap(Zsrc,Ztgt)
 % - Zsrc:   1 x N cell, with element i a nmonsS(i) x deps(i) array, each
 %           row specifying the degrees of one monomial along direction i;
 % - Ztgt:   1 x N cell of the same form, with element i a nmonsT(i) x
-%           deps(i) array. Each row of Zsrc{i} must appear in Ztgt{i};
+%           deps(i) array. Each row of Zsrc{i} must appear in Ztgt{i}, or
+%           an error is thrown;
 %
 % OUTPUTS
 % - zmap:   nZS x 1 array of integers, for nZS = prod(nmonsS), with zmap(z)

@@ -4,8 +4,9 @@ function C = times(A,B)
 % tensor-PI operator defined by B.
 %
 % INPUTS
-% - A:      m x n 'double', 'polynomial', or 'dpvar' object representing
-%           some multiplier operator to multiply with B;
+% - A:      m x n 'double' object (or constant 'polynomial') representing
+%           some multiplier operator to multiply with B (a 'dpvar' is not
+%           supported: the factors cannot depend on decision variables);
 % - B:      m x n 'tensopvar' object acting on some degree-d distributed
 %           monomial;
 %
@@ -17,8 +18,8 @@ function C = times(A,B)
 % - If A is a 'tensopvar' and B is not, then B.*A is returned. The product
 %   of two 'tensopvar' objects is not supported.
 % - A multiplies the first factor of each term of B. If A or B has a
-%   single row (column) of dimension 1, it is repeated to match the number
-%   of rows (columns) of the other.
+%   single row (column), it is repeated to match the number of rows
+%   (columns) of the other.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,7 +47,7 @@ function C = times(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that multiplication is supported
 if isa(A,'tensopvar') && isa(B,'tensopvar')
@@ -55,8 +56,16 @@ elseif isa(A,'tensopvar')
     % Make sure B is the tensor-PI operator
     C = B.*A;
     return
-elseif ~isa(A,'double') && ~isa(A,'polynomial') && ~isa(A,'dpvar')
-    error("'tensopvar' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
+elseif isa(A,'dpvar')
+    % The factors of a 'tensopvar' cannot depend on decision variables
+    error("Multiplication of a 'tensopvar' with a 'dpvar' is not supported: the factors of a 'tensopvar' cannot depend on decision variables.")
+elseif isa(A,'polynomial') && isempty(A.varname)
+    A = double(A);
+elseif isa(A,'polynomial')
+    % The factors ('sopvar') do not support a multiplier in spatial variables
+    error("Elementwise multiplication of a 'tensopvar' with a 'polynomial' in spatial variables is not supported.")
+elseif ~isa(A,'double')
+    error("'tensopvar' objects can only be multiplied with objects of type 'double' or constant 'polynomial'.")
 end
 if ~B.chkval
     B = initialize(B);
@@ -94,25 +103,30 @@ if Adim(2)~=Bdim(2)
         error("Column dimensions of objects to multiply must match.")
     end
 end
+Adim = size(A);     % A may have been expanded above
 
-% Update dimensions of operator to account for dimensions of B
+% A single row (column) of B is repeated to match the rows (columns) of A
 C = B;
-if isdim1(1) && isdim1(2)
-    for l=1:numel(C.ops)
-        C.ops{l} = ones(Adim(1),Adim(2)).*C.ops{l};
-    end
-elseif isdim1(1)
-    for l=1:numel(C.ops)
-        C.ops{l} = ones(Adim(1),1).*C.ops{l};
-    end
-elseif isdim1(2)
-    for l=1:numel(C.ops)
-        C.ops{l} = ones(1,Adim(2)).*C.ops{l};
-    end
+if any(isdim1)
+    C = repmat(B,1+(Adim(1)-1)*isdim1(1),1+(Adim(2)-1)*isdim1(2));
 end
-% Multiply the first factor of each term with A
+% Multiply the first factor of each term with A, elementwise; a 'sopvar'
+% factor as A.*R = sum_j diag(A(:,j))*R*E_jj, E_jj = e_j*e_j'
 for i=1:size(C.ops,1)
-    C.ops{i,1} = A.*C.ops{i,1};
+    R1 = C.ops{i,1};
+    if ~isequal(size(R1),Adim)
+        error("Elementwise multiplication with a matrix requires the first factor of each term to have the size of the matrix.")
+    elseif isa(R1,'sopvar') && isnumeric(A)
+        Ejj = zeros(Adim(2));       Ejj(1,1) = 1;
+        R1new = diag(A(:,1))*R1*Ejj;
+        for j=2:Adim(2)
+            Ejj = zeros(Adim(2));   Ejj(j,j) = 1;
+            R1new = R1new + diag(A(:,j))*R1*Ejj;
+        end
+        C.ops{i,1} = R1new;
+    else
+        C.ops{i,1} = A.*R1;
+    end
 end
 
 end

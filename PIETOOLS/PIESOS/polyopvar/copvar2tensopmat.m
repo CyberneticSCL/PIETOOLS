@@ -4,28 +4,30 @@ function Pt = copvar2tensopmat(P,dims,vars,depmat)
 % component of the output space and a component of the input space, taken
 % from the 'sopvar' blocks of P (a zero operator for an empty block).
 %
-% INPUT
+% INPUTS
 % - P:      'copvar' object, with grid of spaces
 %               L2^{p_1}[s^1] x ... x L2^{p_N}[s^N]
 %                   --> L2^{q_1}[t^1] x ... x L2^{q_M}[t^M];
-% - dims:   (optional) struct with fields
+% - dims:   (optional) 'struct' with fields
 %       out:    ncomps_out x 1 array with the sizes of the components of
 %               the output space;
 %       in:     ncomps_in x 1 array with the sizes of the components of the
 %               input space;
-% - vars:   (optional) struct with fields
-%       out:    1 x N cellstr with the names of the variables in the
+% - vars:   (optional) 'struct' with fields
+%       out:    1 x N 'cellstr' with the names of the variables in the
 %               columns of depmat.out;
-%       in:     1 x N cellstr with the names of the variables in the
+%       in:     1 x N 'cellstr' with the names of the variables in the
 %               columns of depmat.in;
-%           Default to P.vars;
-% - depmat: (optional) struct with fields
+%           Defaults to P.vars;
+% - depmat: (optional) 'struct' with fields
 %       out:    ncomps_out x N logical array, with element (i,j) true if
 %               component i of the output space depends on variable
 %               vars.out{j};
 %       in:     ncomps_in x N logical array, similarly for the input space;
+%           Required for the output (input) space if dims.out (dims.in)
+%           is specified;
 %
-% OUTPUT
+% OUTPUTS
 % - Pt:     'tensopmat' object representing the same operator as P, with a
 %           row for each component of the output space, and a column for
 %           each component of the input space. [] if there are no
@@ -45,7 +47,7 @@ function Pt = copvar2tensopmat(P,dims,vars,depmat)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - copvar2tensopmat
 %
-% Copyright (C)2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

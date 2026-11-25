@@ -43,7 +43,7 @@ function C = plus(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Support addition with 0
 if isequal(A,0) || isempty(A)
@@ -53,6 +53,10 @@ end
 if isequal(B,0) || isempty(B)
     C = A;
     return
+end
+% A nonzero constant is not a linear functional of the state
+if ~isa(A,'intop') || ~isa(B,'intop')
+    error("An 'intop' object can only be added to an 'intop' object, or to 0.")
 end
 % Check that the operators are well-defined
 if (~A.chkval && ~isvalid(A)) || (~B.chkval && ~isvalid(B))

@@ -1,11 +1,14 @@
 function H = plus(F, G)
-%plus Add two quadPoly objects
+%PLUS Add two quadPoly objects.
 %
-% Inputs:
-%   F,G: quadPoly objects of same matrix dimension
+% INPUTS
+%   F,G: quadPoly objects or 'double' matrices of the same matrix
+%        dimension (not checked); a scalar is not expanded, except the
+%        scalar 0, for which the other summand is returned
 %
-% Outputs:
-%   H = F+G a quadPoly object
+% OUTPUTS
+%   H = F+G a quadPoly object, in the union of the monomial bases of F
+%       and G
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus
@@ -32,7 +35,7 @@ function H = plus(F, G)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 % Support addition with constant terms
 if isequal(F,0)

@@ -14,14 +14,12 @@ function B = ctranspose(A)
 %           B.is_adjoint = ~A.is_adjoint, and B.weight = 1;
 %
 % NOTES
-% - An adjoint stores the polynomial U that it is the adjoint of, and not
-%   the polynomial U'. Most operations are therefore not supported for an
-%   adjoint, only the products U'*V and U'*P, sums of adjoints with the
-%   same weight, the negative, and the horizontal concatenation of
-%   adjoints.
-% - The transpose of an object with a weight W other than the identity,
-%   e.g. the transpose (U'*P)' of an adjoint, is not supported: an error
-%   is thrown, whether or not A is an adjoint.
+% - An adjoint stores the polynomial U that it is the adjoint of, not U'.
+%   For an adjoint, only the products U'*V and U'*P, sums of adjoints
+%   with the same weight, the negative, and the horizontal concatenation
+%   of adjoints are supported.
+% - The transpose of an adjoint with a weight other than the identity,
+%   e.g. (U'*P)', is not supported (error).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

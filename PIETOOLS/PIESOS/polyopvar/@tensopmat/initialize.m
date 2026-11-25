@@ -1,15 +1,15 @@
 function Cop = initialize(Cop)
 % COP = INITIALIZE(COP) takes a 'tensopmat' object representing a block
-% matrix of tensor-PI operators, and fills in the empty fields based on the
-% information on the individual tensor-PI operators in each element.
+% matrix of tensor-PI operators, and sets the fields dims, vars, dom and
+% depmat based on the individual tensor-PI operators in each block.
 %
 % INPUTS
 % - Cop:    'tensopmat' object with field Cop.ops specified as a p x d cell
 %           array of 'tensopvar' or 'intop' objects, representing a
 %           concatenation of tensor-PI operators, or of matrices of type
-%           'double', 'polynomial' or 'dpvar' acting on R. The domains of the variables in such matrices are
-%           taken from the other blocks, or from Cop.vars and Cop.dom if
-%           already set;
+%           'double', 'polynomial' or 'dpvar' acting on R. The domains of
+%           the variables in such matrices are taken from the other
+%           blocks, or from Cop.vars and Cop.dom if already set;
 %
 % OUTPUTS
 % - Cop:    'tensopmat' object representing the same tensor-PI operator as
@@ -17,9 +17,12 @@ function Cop = initialize(Cop)
 %           filled in based on the values of Cop.ops;
 %
 % NOTES
-% - Empty blocks Cop.ops{i,j} represent zero operators.
-% - Blocks of type 'opvar', 'opvar2d' or 'sopvar' are converted to
-%   'tensopvar' objects in Cop.ops.
+% - Empty blocks Cop.ops{i,j} represent zero operators, but each block row
+%   and block column needs a nonempty block, fixing its dimension.
+% - Blocks of type 'sopvar' are converted to 'tensopvar' objects in
+%   Cop.ops.
+% - An error is thrown if the blocks in a block row or block column do not
+%   match in dimension, variables, or domains.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,9 +50,7 @@ function Cop = initialize(Cop)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% MMP, 11/22/2026: the branch for the retired classes opvar and opvar2d
-%   removed (maintainer, 11/22/2026).
+% DJ, 11/24/2026: Initial coding;
 
 % Determine the input domain from the first row of operators
 [p,d] = size(Cop.ops);
@@ -164,8 +165,7 @@ for i=1:p
             continue
         end
         % Convert other operator classes to 'tensopvar'; initialize or check
-        % (branch for the retired opvar and opvar2d removed)                % MMP, 11/22/2026
-        if isa(op_ij,'sopvar')                                              % MMP, 11/22/2026
+        if isa(op_ij,'sopvar')
             op_ij = tensopvar(op_ij);
             Cop.ops{i,j} = op_ij;
         elseif ~isa(op_ij,'tensopvar') && ~isa(op_ij,'intop')
@@ -231,18 +231,20 @@ end
 
 
 function dom = lookup_dom(Cop,is_nat,names)
-% DOM = LOOKUP_DOM(COP,IS_NAT,NAMES) returns the M x 2 domains of the variables NAMES (1 x M cellstr)
-% that appear in the blocks of type 'double', 'polynomial' or 'dpvar' (marked in IS_NAT), which carry no
-% domain themselves. These are taken from the other blocks, and from Cop.vars, Cop.dom if already set.
+% DOM = LOOKUP_DOM(COP,IS_NAT,NAMES) returns the domains of the variables
+% NAMES that appear in the blocks of type 'double', 'polynomial' or
+% 'dpvar' (marked in IS_NAT), which carry no domain themselves. These are
+% taken from the other blocks, and from Cop.vars, Cop.dom if already set.
+% An error is thrown if the domain of a variable cannot be determined.
 %
-% INPUT
+% INPUTS
 % - Cop:      'tensopmat' object;
-% - is_nat:   logical array, the blocks of type 'double', 'polynomial' or
-%             'dpvar';
+% - is_nat:   p x d logical array, true for the blocks of type 'double',
+%             'polynomial' or 'dpvar';
 % - names:    1 x M cellstr of variable names;
 %
-% OUTPUT
-% - dom:      M x 2 array of intervals.
+% OUTPUTS
+% - dom:      M x 2 'double' array of intervals.
 dom = zeros(numel(names),2);
 if isempty(names)
     return

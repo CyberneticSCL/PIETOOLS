@@ -5,9 +5,8 @@ function C = times(A,B)
 %
 % INPUTS
 % - A:      m x n 'double', 'polynomial', or 'dpvar' object representing
-%           some multiplier operator to multiply with B;
-% - B:      m x n 'tensopmat' object acting on some degree-d distributed
-%           monomial;
+%           a multiplier operator to multiply with B;
+% - B:      m x n 'tensopmat' object;
 %
 % OUTPUTS
 % - C:      m x n 'tensopmat' object representing the product of the
@@ -19,6 +18,10 @@ function C = times(A,B)
 % - A scalar A multiplies each block of B. If A or B has a single row
 %   (column) of dimension 1, it is repeated to match the number of rows
 %   (columns) of the other.
+% - A scalar 'dpvar' A times a block acting on R (e.g. the constant term)
+%   gives a 'dpvar' block; times an operator on functions it is not
+%   supported ('polyopvar' also refuses it for states without spatial
+%   variables).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,7 +49,7 @@ function C = times(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that multiplication is supported
 if isa(A,'tensopmat') && isa(B,'tensopmat')
@@ -56,7 +59,7 @@ elseif isa(A,'tensopmat')
     C = B.*A;
     return
 elseif ~isa(A,'double') && ~isa(A,'polynomial') && ~isa(A,'dpvar')
-    error("'tensopvar' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
+    error("'tensopmat' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
 end
 if ~B.chkval && ~isvalid(B)
     error("Tensopmat object is not properly declared.")
@@ -67,8 +70,21 @@ Adim = size(A);     Bdim = size(B);
 if all(Adim==1)
     C = B;
     for k=1:numel(C.ops)
-        % Multiply the first factor of each term with A
-        C.ops{k} = A*B.ops{k};
+        if isempty(B.ops{k})
+            continue
+        elseif isa(A,'dpvar') && isa(B.ops{k},'tensopvar')
+            % A decision variable times an operator acting on R (e.g. the
+            % constant term) is a 'dpvar' block, as in constant2polyopvar;
+            % on functions, the factors would depend on decision variables
+            [P,is_ok] = tensopvar2polynomial(B.ops{k});
+            if ~is_ok
+                error("Multiplication of a decision variable ('dpvar') with a distributed polynomial in the states, e.g. c.*x, is not supported; multiply a functional instead, e.g. c*(x'*x), or use c as a weight, e.g. x'*c*x.")
+            end
+            C.ops{k} = A*P;
+        else
+            % Multiply the first factor of each term with A
+            C.ops{k} = A*B.ops{k};
+        end
     end
     if ~isa(A,'double') && any(native_mask(C.ops(:)))
         C = initialize(C);      % A may introduce new variables

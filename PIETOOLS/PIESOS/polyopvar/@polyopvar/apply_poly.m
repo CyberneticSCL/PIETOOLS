@@ -1,23 +1,19 @@
 function Y = apply_poly(P,xvals)
-% Y = APPLY_POLY(P,XVALS) evaluates the matrix-valued distributed
-% polynomial P at the state values XVALS, returning P(x) = C*Z(x).
+% Y = APPLY_POLY(P,XVALS) evaluates the distributed polynomial P at the
+% state values XVALS, returning P(x) = C*Z(x).
 %
 % INPUTS
-% - P:      'polyopvar' object;
-% - xvals:  p x 1 cell, one entry per state variable (matching
-%           P.varname, in order), each a 'polynomial'/'double' column
-%           vector of size P.dims.in(i). States with an empty entry, or
-%           beyond numel(xvals), are not substituted, and must not appear
-%           in P;
+% - P:      m x 1 'polyopvar' object, not an adjoint;
+% - xvals:  p x 1 'cell', with xvals{i} the value of state P.varname{i},
+%           a P.dims.in(i) x 1 'double', 'polynomial' or 'dpvar' (without
+%           decision variables) array. A 'polynomial' value may depend
+%           only on the spatial variables of its state. States with an
+%           empty entry, or beyond numel(xvals), are not substituted, and
+%           must not appear in P;
 %
 % OUTPUTS
-% - Y:      polynomial array representing P(x) evaluated at xvals;
-%
-% NOTES
-% - The values are substituted for the states by 'subs', which replaces
-%   the states by constants (a polynomial value may only depend on the
-%   spatial variables of its state). This gives a degree-0 polyopvar, of which the value is read
-%   off by applying the operators to the dummy input 1.
+% - Y:      m x 1 'polynomial' (or 'dpvar') array, the value P(x), a
+%           function of the output variables of P;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - apply_poly
@@ -44,7 +40,7 @@ function Y = apply_poly(P,xvals)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if ~isa(P,'polyopvar')
     error("First argument must be of type 'polyopvar'.")
@@ -62,6 +58,13 @@ xvals = xvals(:);
 xvals(end+1:nstates) = {[]};
 xvals = xvals(1:nstates);
 has_val = ~cellfun(@isempty,xvals);
+% Every state in a monomial needs a value, also for a tensor-product output
+% (applied directly below); a value may not depend on decision variables
+if any(~has_val(nonzeros(P.Z)))
+    error("Values must be specified for all states appearing in the polynomial.")
+elseif any(cellfun(@(a) isa(a,'dpvar') && ~isempty(a.dvarname),xvals))
+    error("State values cannot depend on decision variables.")
+end
 if any(any(P.depmat.out>1))
     % An output that is a tensor product of its factors, a function of several copies of a
     % variable (s_1,s_2,...), cannot be represented by the constant polyopvar that subs returns:

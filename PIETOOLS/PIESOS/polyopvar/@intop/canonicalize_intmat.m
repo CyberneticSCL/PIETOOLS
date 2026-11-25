@@ -5,7 +5,7 @@ function [intmat,params,is_ord] = canonicalize_intmat(intmat,params,check_only)
 % declared functional keeps the same value, if the indicator function
 % chi_{[x,y]}(z) is taken to be 1 if x<=z<=y, and 0 otherwise.
 %
-% [INTMAT] = INTOP.CANONICALIZE_INTMAT(INTMAT) only returns the new intmat.
+% INTMAT = INTOP.CANONICALIZE_INTMAT(INTMAT) only returns the new intmat.
 %
 % [~,~,IS_ORD] = INTOP.CANONICALIZE_INTMAT(INTMAT,[],TRUE) determines
 % which rows are ordered, without splitting any rows.
@@ -54,10 +54,8 @@ function [intmat,params,is_ord] = canonicalize_intmat(intmat,params,check_only)
 % - The implication is determined recursively: a variable x_j with two
 %   variable limits is added to the variables known to be ordered if
 %   x_lj<=x_uj follows from the limits of the variables known to be
-%   ordered. Using the limits of all other variables, including those of
-%   variables that are not known to be ordered, would not be sound: e.g.
-%   x_1,x_2 in [x_3,x_4] would then be ordered, although x_3<=x_4 is not
-%   implied, and both would be negative if x_4<x_3.
+%   ordered. E.g. in [3,4,3,4,0,5,0,5], neither x_1 nor x_2 in [x_3,x_4]
+%   is ordered.
 % - A row that is not ordered is replaced by the cells of the ordered
 %   regions: let S be the variables that are not ordered, together with the
 %   variables defining their limits, and recursively the variables defining
@@ -72,11 +70,7 @@ function [intmat,params,is_ord] = canonicalize_intmat(intmat,params,check_only)
 %   integration is empty (has measure zero) and the integral is zero. The
 %   row is then removed, together with its kernel. If this leaves a
 %   direction without rows, the functional is zero, and an error is thrown.
-% - Only the integers in INTMAT are used, so that the cost is independent
-%   of the number of decision variables, and is zero for rows in which no
-%   variable has two variable limits. The kernels are only indexed, not
-%   copied.
-% - The 'intop' constructor and `isvalid` do not split rows, but reject an
+% - The 'intop' constructor and 'isvalid' do not split rows, but reject an
 %   intmat with rows that are not ordered, referring to this function.
 %
 % EXAMPLE
@@ -179,9 +173,18 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function [intmat,idcs,is_ord] = canonicalize_dir(intmat,check_only)
 % [INTMAT,IDCS,IS_ORD] = CANONICALIZE_DIR(INTMAT,CHECK_ONLY) splits the
-% rows of the intmat along a single direction that are not ordered, see
-% canonicalize_intmat. IDCS(k) is the row of the input from which row k of
-% the output was obtained.
+% rows of the intmat along a single direction that are not ordered into
+% ordered rows. IDCS(k) is the row of the input from which row k of the
+% output was obtained.
+%
+% INPUTS
+% - intmat:     ntrms x 2*d array, the intmat along one direction;
+% - check_only: logical, true to only check the ordering;
+%
+% OUTPUTS
+% - intmat:     n x 2*d array, the rows in canonical (ordered) form;
+% - idcs:       n x 1 array, the input row of each output row;
+% - is_ord:     ntrms x 1 logical array, true for an ordered input row.
 %
 % EXAMPLE
 %   intmat = [0,4,0,3,1,4; 0,4,1,3,0,4; 3,4,1,3,0,4];
@@ -189,15 +192,6 @@ function [intmat,idcs,is_ord] = canonicalize_dir(intmat,check_only)
 %   % returns intmat = [0,4,0,3,1,4; 0,2,0,3,0,4], idcs = [1;2] and
 %   % is_ord = [1;0;0]: the first row is ordered, the second is replaced
 %   % by [0,2,0,3,0,4], and the third has an empty region, and is removed.
-%
-% INPUT
-% - intmat:     ntrms x 2*d array, the intmat along one direction;
-% - check_only: logical, true to only check the ordering;
-%
-% OUTPUT
-% - intmat:     the rows in canonical (ordered) form;
-% - idcs:       column array, the input row of each output row;
-% - is_ord:     ntrms x 1 logical array, true for an ordered input row.
 
 q = size(intmat,1);
 d = size(intmat,2)/2;
@@ -304,20 +298,21 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function rows = split_row(row)
 % ROWS = SPLIT_ROW(ROW) splits a row of an intmat that is not ordered into
-% ordered rows, see canonicalize_intmat. ROWS has no rows if the region of
+% ordered rows, one for each ordering of the variables involved that is
+% consistent with their limits. ROWS has no rows if the region of
 % integration is empty.
+%
+% INPUTS
+% - row:    1 x 2*d array, a row of an intmat;
+%
+% OUTPUTS
+% - rows:   k x 2*d array of ordered rows (k=0 for an empty region).
 %
 % EXAMPLE
 %   rows = split_row([3,4,3,4,0,5,0,5])
 %   % returns the rows [0,2,0,4,0,1,0,5] and [0,4,0,1,0,2,0,5], for the
 %   % orderings x_3<=x_1<=x_2<=x_4 and x_3<=x_2<=x_1<=x_4, whereas
 %   % split_row([3,4,1,3,0,4]) returns zeros(0,6): the region is empty.
-%
-% INPUT
-% - row:    1 x 2*d array, a row of an intmat;
-%
-% OUTPUT
-% - rows:   k x 2*d array of ordered rows (k=0 for an empty region).
 
 d = numel(row)/2;
 [bad_vars,Lr,Ur] = unordered_vars(row);

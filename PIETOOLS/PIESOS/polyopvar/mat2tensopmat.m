@@ -5,23 +5,24 @@ function Pop = mat2tensopmat(Pmat,dims,vars,dom,depmat)
 %
 % INPUTS
 % - Pmat:   m x n 'double' array, representing a multiplier operator;
-% - dims:   (optional) struct with fields
+% - dims:   (optional) 'struct' with fields
 %     in:   q x 1 array of integers adding up to n, specifying the vector
 %           sizes of the inputs to the operator;
 %    out:   p x 1 array of integers adding up to m, specifying the vector
 %           sizes of the outputs to the operator. Defaults to a single
 %           input and output block, dims.in = n and dims.out = m;
-% - vars:   (optional) struct with fields
-%     in:   1 x N cellstr array specifying the names of the input
-%           variables to the operator;
-%    out:   1 x M cellstr array specifying the names of the output
-%           variables to the operator. Defaults to no variables;
-% - dom:    (optional) struct with fields
+% - vars:   (optional) 'struct' with fields
+%     in:   1 x N 'cellstr' specifying the names of the input variables
+%           to the operator;
+%    out:   1 x M 'cellstr' specifying the names of the output variables
+%           to the operator. Defaults to no variables;
+% - dom:    (optional) 'struct' with fields
 %    in:    N x 2 'double' array specifying the intervals on which the
 %           input variables are defined;
 %   out:    M x 2 'double' array specifying the intervals on which the
-%           output variables are defined. Defaults to no variables;
-% - depmat: (optional) struct with fields
+%           output variables are defined. Defaults to no variables, but
+%           must be specified if vars is specified;
+% - depmat: (optional) 'struct' with fields
 %    in:    q x N logical array specifying for each of the q inputs on
 %           which of the N input variables it depends;
 %   out:    p x M logical array specifying for each of the p outputs on

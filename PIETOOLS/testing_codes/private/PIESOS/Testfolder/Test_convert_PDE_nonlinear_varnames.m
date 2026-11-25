@@ -16,6 +16,8 @@
 % DJ (CC), 11/02/2026: The first case calls the old converter
 %   convert_PIETOOLS_PDE_nonlinear_2D, as it tests the reordering of
 %   the components, which convert does not do;
+% DJ, 11/24/2026: The first case calls convert (the old converter uses the
+%   retired opvar), and finds the first order state by name;
 %
 % NOTES:
 % - 'clear stateNameGenerator' restarts the state numbering in each case,
@@ -26,28 +28,26 @@ pvar s t
 dom = [0,1];
 ncases = 0;
 
-% % Reordered components: the second order state u1 is declared before the first order state u2,
-% % and the converter puts u2 first
+% % States of different order: the second order state u1 is declared before the first order
+% % state u2. The PIE states may be reordered; the first order state is found by name.
 clear stateNameGenerator
 u1 = pde_var(s,dom);        u2 = pde_var(s,dom);
 PDE = [diff(u1,t)==diff(u1,s,2)-u1+u2;
        diff(u2,t)==-diff(u2,s)-u2;
        subs(u1,s,dom(1))==0;    subs(u1,s,dom(2))==0;
        subs(u2,s,dom(1))==0];
-evalc('PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,''silent'');');          % DJ (CC), 11/02/2026
-if isequal(PIE.x_tab(:,1),sort(PIE.x_tab(:,1)))
-    error("Test_convert_PDE_nonlinear_varnames: the converter did not reorder the components, the test is vacuous.")
-end
-check_names(PIE,'reordered');
-% The first state is the first order state u2: T = int_0^s
-%   if ~strcmp(PIE.varname_pde{1},'x2')                                     % DJ, 10/29/2026 (was)
-if ~strcmp(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(1,1)},'x2')            % DJ, 10/29/2026
-    error("Test_convert_PDE_nonlinear_varnames failed: the first state is not the PDE state x2.")
+evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');                    % DJ, 11/24/2026
+check_names(PIE,'two orders');
+% The first order state u2 (PDE state x2), row and column k2: T = int_0^s
+k2 = find(strcmp(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),'x2'));     % DJ, 11/24/2026
+if ~isscalar(k2)
+    error("Test_convert_PDE_nonlinear_varnames failed: the PDE state x2 is not a single state of the PIE.")
 end
 v = 3*s^2+1;                                        % state value of the first order state
-Y = polynomial(apply_op(PIE.T,{v,0*s}));            % T*[v;0]
-% expected: u2 = int_0^s v = s^3+s (first row), u1 = 0 (second row)
-D1 = Y(1)-(s^3+s);      D2 = Y(2);
+X = {0*s,0*s};      X{k2} = v;
+Y = polynomial(apply_op(PIE.T,X));                  % T*x, x = v in the state of u2
+% expected: u2 = int_0^s v = s^3+s (row k2), u1 = 0 (other row)
+D1 = Y(k2)-(s^3+s);     D2 = Y(3-k2);
 if any(abs(full(D1.coefficient))>1e-10) || any(abs(full(D2.coefficient))>1e-10)
     error("Test_convert_PDE_nonlinear_varnames failed: T does not act on the first state as on the first order state.")
 end

@@ -1,7 +1,7 @@
 function ords = enumerate_valid_orders(Llims,Ulims,expnd_vars,var_nums,n)
 % ORDS = ENUMERATE_VALID_ORDERS(LLIMS,ULIMS,EXPND_VARS,VAR_NUMS,N) returns
-% all possible orderings of the variables VARS(EXPND_VARS) that are 
-% consistent with the domains of integration specified by LLIMS and ULIMS.
+% all orderings of the variables VAR_NUMS = find(EXPND_VARS) that are
+% consistent with the limits of integration LLIMS and ULIMS.
 %
 % INPUTS
 % - Llims,Ulims:  1 x d arrays, the indices of the lower and upper limits
@@ -9,23 +9,20 @@ function ords = enumerate_valid_orders(Llims,Ulims,expnd_vars,var_nums,n)
 %                 for the boundaries a and b of the domain);
 % - expnd_vars:   1 x d logical, the variables whose orderings are
 %                 enumerated;
-% - var_nums:     1 x n array, find(expnd_vars)
-% - n:            numel(var_nums);
+% - var_nums:     1 x n array, find(expnd_vars);
+% - n:            integer, numel(var_nums);
 %
 % OUTPUTS
-% - ords:         nprms x n array as described above; nprms==0 is possible
-%                 (an unsatisfiable/contradictory constraint set).
+% - ords:         nprms x n array of integers, with ords(r,k) the position
+%                 of variable var_nums(k) in ordering r: for var_nums =
+%                 [1,2,3], ords(r,:) = [3,1,2] means s2 <= s3 <= s1. No
+%                 rows (nprms=0) if no ordering is consistent with the
+%                 limits;
 %
 % NOTES
-%
-% DETAILS
-% We consider the variables specified by expnd_vars, and integrate them all
-% over the full domain, [a,b], represented by [0,di+1].
-% We split this full domain into n! subdomains, considering all possible
-% orderings of the n variables.
-% We keep track of the ordering by assigning a magnitude to each variable,
-% 'ord', so that ord(i)>=ord(j) implies si>=sj. For example, if n=3,
-%   ord(i,:) = [3,1,2] implies s2 <= s3 <= s1 in term i
+% - An ordering is consistent if each variable comes after its lower limit
+%   and before its upper limit, where these limits are among var_nums;
+%   other limits impose no constraint.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - enumerate_valid_orders
@@ -52,7 +49,7 @@ function ords = enumerate_valid_orders(Llims,Ulims,expnd_vars,var_nums,n)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/22/2026: Initial coding (moved from 'mtimes_tensopvar');
+% DJ, 10/22/2026: Initial coding;
 
 % For each expand variable (by its position 1..n in var_nums), find the
 % position of its Llims/Ulims reference WITHIN var_nums, when that
@@ -78,10 +75,7 @@ end
 % IDENTICAL constraint "p before c" (discovered from two different sides:
 % c's own Llims, and separately p's own Ulims) -- collect each node's
 % prerequisite set and deduplicate with unique() before computing indegree,
-% or such a pair double-counts c's indegree and c can never become "ready"
-% (confirmed by direct trace: d=2 chain Llims=[0,1] Ulims=[2,3] gives
-% pred(2)=1 AND succ(1)=2, the same "1 before 2" constraint from both
-% sides).
+% or such a pair double-counts c's indegree and c can never become "ready".
 parents = cell(1,n);
 for c = 1:n
     if pred(c)~=0
@@ -98,9 +92,7 @@ for c = 1:n
     % unique([]) returns a 0x1 (column), not 1x0 -- 'for p = (0x1 empty)'
     % iterates ONCE with p empty (only a 1x0 row iterates zero times), so
     % force row shape or an empty prerequisite set spuriously adds an edge
-    % to an empty index (confirmed: this exact issue caused every closure
-    % with an unconstrained variable to find zero valid orderings, i.e.
-    % every real case -- every variable has at least one free bound).
+    % to an empty index.
     parents{c} = reshape(unique(parents{c}),1,[]);
     indeg0(c) = numel(parents{c});
     for p = parents{c}
@@ -121,16 +113,13 @@ else
 end
 
     function backtrack(pos)
-        % Nested function: shares seq/placed/indeg/rows with the parent.
         % Places a variable at position POS of the ordering, for each
         % variable whose predecessors are placed, and recurses; a
-        % complete ordering is appended to the rows.
+        % complete ordering is appended to the rows. Nested function,
+        % sharing seq, placed, indeg and rows with the parent.
         %
-        % INPUT
-        % - pos:    integer, the position to fill (1..n+1);
-        %
-        % OUTPUT
-        % - none: the orderings are collected in the parent workspace.
+        % INPUTS
+        % - pos:    integer, the position to fill (1,...,n+1);
         if pos>n
             row = zeros(1,n);
             row(seq) = 1:n;

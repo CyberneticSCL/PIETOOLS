@@ -1,25 +1,22 @@
 function P_out = repelem(P_in,R,varargin)
-% P_OUT = REPELEM(P_IN,R) replicates each row i of 'polyopvar' object
-% P_IN R(i) times (or R times, if R is scalar), analogous to the builtin
-% 'repelem' applied along dimension 1.
+% P_OUT = REPELEM(P_IN,R) or REPELEM(P_IN,R,1) repeats each row i of the
+% 'polyopvar' object P_IN R(i) times (or R times, if R is scalar), as the
+% builtin 'repelem' along dimension 1.
 %
 % INPUTS
-% - P_in:       'polyopvar' object;
-% - R:          scalar, or nr x 1 array of nonnegative integers (nr =
-%               number of rows of P_in), specifying how many times to
-%               repeat each row;
-% - varargin:   (optional) column replication factor C, which must be 1
-%               (or empty);
+% - P_in:       m x 1 'polyopvar' object;
+% - R:          nonnegative integer, or m x 1 array of nonnegative
+%               integers, the number of copies of each row;
+% - varargin:   (optional) the column replication factor, which must be 1
+%               (or empty), as multi-column 'polyopvar' objects are not
+%               supported;
 %
 % OUTPUTS
-% - P_out:      'polyopvar' object with rows of P_in repeated as
-%               specified;
+% - P_out:      sum(R) x 1 'polyopvar' object (m*R x 1 for a scalar R),
+%               with row i of P_in repeated R(i) times;
 %
 % NOTES
-% - Only row-wise replication is supported: repelem(P_in,R,C) with C~=1
-%   is rejected, as multi-column 'polyopvar' objects are not supported.
-% - At least one entry of R must be positive, otherwise an error is
-%   thrown.
+% - At least one entry of R must be positive (error otherwise).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - repelem

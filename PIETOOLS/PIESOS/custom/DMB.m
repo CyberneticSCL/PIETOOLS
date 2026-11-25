@@ -1,49 +1,49 @@
 function C = DMB(A,B)
-    % C = DMB(A,B) returns the 'polyopvar' object C representing the
-    % product of the distributed monomials of A and B. The tensor-PI
-    % operators of A and B are combined
-    % using the tensor-PI product otimes, so that C acts on the tensor
-    % product of the monomials of A and B. This allows products such as
-    % Zs{2} = Zx*Zx, where Zs{i} represents (Z*x)^(\otimes i).
-    %
-    % INPUTS
-    % - A, B:   'polyopvar' objects representing a single monomial in the
-    %           same scalar state variable, defined on the same spatial
-    %           variables and domain. The 'tensopmat' A.C (B.C) must hold
-    %           a single 'tensopvar' operator, in A.C.ops{1,1}, which may
-    %           act on a tensor product of any degree;
-    %
-    % OUTPUTS
-    % - C:      'polyopvar' object representing the tensor product of A
-    %           and B, with kA*kB output components if the operators of A
-    %           and B have kA and kB output components, respectively;
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - DMB
-    %
-    % Copyright (C) 2026 PIETOOLS Team
-    %
-    % This program is free software; you can redistribute it and/or modify
-    % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
-    % (at your option) any later version.
-    %
-    % This program is distributed in the hope that it will be useful,
-    % but WITHOUT ANY WARRANTY; without even the implied warranty of
-    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    % GNU General Public License for more details.
-    %
-    % You should have received a copy of the GNU General Public License
-    % along with this program; if not, write to the Free Software
-    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %
-    % If you modify this code, document all changes carefully and include date
-    % authorship, and a brief description of modifications
-    %
-    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-    % CR, 09/03/2026: Initial coding
+% C = DMB(A,B) returns the 'polyopvar' object C representing the
+% product of the distributed monomials of A and B. The tensor-PI
+% operators of A and B are combined using the tensor-PI product otimes,
+% so that C acts on the tensor product of the monomials of A and B. This
+% allows products such as Zs{2} = Zx*Zx, where Zs{i} represents
+% (Z*x)^(\otimes i).
+%
+% INPUTS
+% - A, B:   'polyopvar' objects representing a single monomial in the
+%           same scalar state variable, defined on the same spatial
+%           variables and domain. The 'tensopmat' A.C (B.C) must hold
+%           a single 'tensopvar' operator, in A.C.ops{1,1}, which may
+%           act on a tensor product of any degree;
+%
+% OUTPUTS
+% - C:      'polyopvar' object representing the tensor product of A
+%           and B, with kA*kB output components if the operators of A
+%           and B have kA and kB output components, respectively;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DMB
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% CR, DJ, 11/24/2026: Initial coding;
 
     % Check the inputs: two single-monomial 'polyopvar' objects in the
     % same scalar state, on the same spatial variables and domain
@@ -107,7 +107,7 @@ function C = DMB(A,B)
     TDP = otimes(repelem(TA,kB,1),repmat(TB,kA,1),[1,2]);
     if size(TDP,1) ~= kA*kB
         error('polyopvar_product:InvalidProductDimension', ...
-            'Def. 4 product has an inconsistent output component count.');
+            'The product has an inconsistent number of output components.');
     end
 
     % The monomial of the product has the factors of A, followed by those of B

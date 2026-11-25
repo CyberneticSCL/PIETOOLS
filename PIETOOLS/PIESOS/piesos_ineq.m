@@ -5,25 +5,25 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program;
-% - f:      'polyopvar' object representing a distributed polynomial.
-%           The object must be a scalar-valued functional: its
-%           coefficients must be 'intop' objects (or constants for
-%           degree-0 monomials), with f.matdim=[1,1] and no output
-%           variables;
+% - f:      'polyopvar' object representing a distributed polynomial,
+%           not an adjoint (u'). The object must be a scalar-valued
+%           functional: its coefficients must be 'intop' objects (or
+%           constants for degree-0 monomials), with f.matdim=[1,1] and no
+%           output variables. Other classes: see NOTES;
 % - opts:   (optional) struct, passed on to `piesos_sosvar`, with fields
 %               'psatz':  1 x N array of orders of the psatz multipliers
 %                         along each spatial variable: order q gives the
 %                         multipliers (s-a)^j*(b-s)^(q-j), j=0,...,q;
-%               'degs', 'exclude':  set here, based on the kernels of f
-%                         (see NOTES), only if not specified. A field
-%                         'deg' is renamed to 'degs', with a warning;
+%               'degs', 'exclude':  set from the kernels of f (see
+%                         NOTES), unless specified. A field 'deg' is
+%                         renamed to 'degs', with a warning;
 %               'tol':    tolerance below which coefficients of f are
 %                         taken to be zero. Defaults to 1e-14;
-%               'otype':  output of the operator Zop of g: pointwise (1) or
-%                         tensor (2) products, or both (3), see
+%               'otype':  output of the operator Zop of g: pointwise (1)
+%                         or tensor (2) products, or both (3), as in
 %                         `piesos_quadopvar`, or 'auto' for the smallest
-%                         type whose terms have the structure of those of
-%                         f (see `get_ineq_opts`). Defaults to 'auto';
+%                         type whose terms have the structure of those
+%                         of f. Defaults to 'auto';
 %
 % OUTPUTS
 % - prog:   'struct' specifying the same PIESOS program as the input, but
@@ -32,67 +32,51 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %           `piesos_sosvar`, and enforcing F==G using `piesos_eq`;
 % - g:      'polyopvar' object representing the distributed SOS variable
 %           for which F==G is enforced to impose positivity of F;
-% - Qmat:   m x m cell of 'dpvar' blocks representing the symmetric
-%           positive semidefinite (SOS in the primary variables)
-%           multiplier operator used to
-%           parameterize g in the quadratic form
+% - Qmat:   r x r cell of 'dpvar' blocks, for r the number of block rows
+%           of Zop, representing the SOS matrix in the primary variables
+%           (Pmat of `piesos_sosvar`) that parameterizes g in the
+%           quadratic form
 %               g = <Zop*Z(x), Qmat*Zop*Z(x)>;
-% - Zop:    n x m 'tensopmat' object representing the monomial basis
-%           operator used to parameterize g in the quadratic form;
-% - Z:      m x 1 'polyopvar' object representing the distributed monomial
-%           basis used to define g in the quadratic form;
+% - Zop:    'tensopmat' object representing the monomial basis operator
+%           used to parameterize g in the quadratic form;
+% - Z:      nZ x 1 'polyopvar' object representing the distributed
+%           monomial basis used to define g in the quadratic form;
 %
 % NOTES
 % - If F is a 'dpvar', 'polynomial', or 'double' object, F>=0 is
-%   enforced using `sosineq`, and only the output PROG is returned.         % MMP, 11/22/2026
-%
-% - A monomial in the basis for g (Z) cannot mix states that depend on
+%   enforced using `sosineq`, and only the output PROG can be requested.
+% - A monomial in the basis Z of g cannot mix states that depend on
 %   different spatial variables, e.g. x1(s1)*x2(s1,s2). Such monomials
-%   are discarded with a warning (id
-%   PIESOS:ineq:mixedDependence). This makes the constraint F>=0
-%   conservative, in particular for F with terms such as (x1*x2)^2 that
-%   require them. If no monomials remain, F=0 is imposed, with g=0 and
-%   with Qmat, Zop and Z empty.
-%
-% - The degrees d (of the dummy variables in Zop) and p (of the primary
-%   variables, in Qmat), and the types of terms in Zop, follow from the
+%   are discarded with a warning (id PIESOS:ineq:mixedDependence), which
+%   makes F>=0 conservative, e.g. for terms such as (x1*x2)^2. If no
+%   monomials remain, F=0 is imposed, with g=0 and Qmat, Zop, Z empty.
+% - The degrees d (of the dummy variables in Zop, the same in each
+%   factor) and p (of the primary variables, in Qmat) follow from the
 %   exponents of the monomials in the dummy variables of the kernels of
-%   f, per spatial variable. For a monomial, let e(1)>=e(2)>=... be the
-%   sorted exponents of its free dummy variables, where dummy variables
-%   evaluated at the same point (a delta term) count as one variable.
-%   The terms of g, with dummy degree d and primary degree p, have all
-%   but one exponent <=d, and that one <=d+2p+1 (from int_{s_i}^b s^k
-%   ds). So, to recover a monomial,
-%       d>=e(2),    d+2p+1>=e(1),    2p>=e_delta,
-%   where e_delta is the exponent of a delta term.
-%
-% - The multiplier term in Zop (exclude(1)) is included only along
-%   variables in which f has delta terms: otherwise its Gram blocks are
-%   zero, as the delta part of g is a square. The integral terms
-%   (exclude(2:3)) are included only along variables in which f has free
-%   dummy variables: otherwise the multiplier block reproduces f.
-%
+%   f, per spatial variable. Dummy variables evaluated at the same point
+%   (a delta term) form a group; let e(1)>=e(2)>=... be the exponents of
+%   the other (free) dummy variables of a monomial, and e_delta those of
+%   its groups. The terms of g have all free exponents <=d, except one
+%   <=d+2p+1 (from int_{s_i}^b s^k ds) if there is no group, and group
+%   exponents <=2p. So, to recover a monomial,
+%       without a group:    d>=e(2),    d+2p+1>=e(1),
+%       with a group:       d>=e(1),    2p>=e_delta.
 % - If f has no decision variables, d and p are the smallest degrees
-%   recovering all monomials. The total degree of the kernels does not
-%   give d: for f=(int s^3*x ds)^2 it is 6, but d=3 is needed.
-%
-% - If f has decision variables, only the monomials with a numeric
-%   coefficient need to be recovered: the others may be set to zero by
-%   the solver. However, a certificate may need other monomials than
-%   those of f: for -dV of a Lyapunov functional V, d=5 and p=2,
-%   recovering all monomials (e(1)=9), is infeasible, whereas d=p=3 is
-%   feasible, so that the smallest d and p depend on the data, not on
-%   the monomials. Therefore, d and p are at least those for the numeric
-%   monomials, and at least the smaller of ceil(D/4), for D the maximal
-%   total degree of the kernels, and the d=p for which all monomials
-%   fit: d+2p+1>=e(1), 2p>=e_delta.
-%
+%   recovering all monomials. Otherwise, only the monomials with a
+%   numeric coefficient must be recovered, but a certificate may need
+%   other monomials: d and p are at least those for the numeric
+%   monomials, and at least the smaller of ceil(D/4), D the largest
+%   total degree of the kernels, and the d=p for which all monomials fit:
+%   d+2p+1>=e(1) and 2p>=e_delta.
+% - The multiplier term of Zop (exclude(1)) is included only along
+%   variables in which f has delta terms or boundary evaluations, the
+%   integral terms (exclude(2:3)) only along variables in which f has
+%   free dummy variables.
 % - A psatz multiplier of order q limits the degree of Qmat in s to
 %   q+2(p-ceil(q/2)).
-%
-% - The same d is used for each factor of a distributed monomial, as the
-%   order of the factors in the kernels of f is not unique. If F>=0 is
-%   infeasible for the d and p chosen, increase them using opts.degs.
+% - If F>=0 is infeasible for the otype and degrees chosen, try
+%   opts.otype=3, or increase the degrees using opts.degs.
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_ineq
@@ -119,11 +103,7 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% MMP, 11/22/2026: the branch for F of the retired classes opvar, opvar2d,
-%   dopvar and dopvar2d removed (maintainer, 11/22/2026).
-% DJ, 11/22/2026: Option 'otype' ('auto' by default), and use 
-%                   `get_ineq_opts` to set basis, degrees and options;
+% DJ, 11/24/2026: Initial coding;
 
 % % Check the inputs
 % Check the program structure
@@ -134,11 +114,10 @@ end
 if isa(f,'dpvar') || isa(f,'polynomial') || isa(f,'double')
     % Enforce positivity of finite-dimensional polynomials using sos_ineq;
     if nargout>1
-        error("Multiple output arguments is not supported in this case.")
+        error("Multiple output arguments are not supported in this case.")
     end
     prog = sosineq(prog,f);
     return
-% (branch for the retired dopvar, dopvar2d, opvar and opvar2d removed)      % MMP, 11/22/2026
 elseif ~isa(f,'polyopvar')
     error("Distributed polynomial functional must be specified as object of type 'polyopvar'.")
 elseif f.is_adjoint
@@ -162,6 +141,7 @@ elseif nargin==3
 else
     error("Too many input arguments.")
 end
+check_opts(opts,'piesos_ineq');
 % Tolerance below which coefficients are taken to be zero
 if isfield(opts,'tol') && ~isempty(opts.tol)
     tol = opts.tol;
@@ -206,18 +186,19 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function prog = enforce_eq(prog,f,g,tol)
-% PROG = ENFORCE_EQ(PROG,F,G,TOL) adds the constraint F=G to the program, for F
-% and G scalar 'polyopvar' functionals. The constant (degree-0) terms are
-% equated directly, as they are stored as 'tensopvar' in F but as 'intop'
-% in G, and 'tensopvar' + 'intop' is not supported.
-% The remaining terms are equated using piesos_eq.
+% PROG = ENFORCE_EQ(PROG,F,G,TOL) adds the constraint F=G to the program,
+% for F and G scalar 'polyopvar' functionals. The constant (degree-0)
+% terms are equated directly, as they are stored as 'tensopvar' in F but
+% as 'intop' in G, and 'tensopvar' + 'intop' is not supported. The
+% remaining terms are equated using piesos_eq.
 %
-% INPUT
+% INPUTS
 % - prog:   'struct', the PIESOS program;
 % - f, g:   scalar 'polyopvar' functionals;
-% - tol:    scalar, tolerance below which coefficients are taken zero;
+% - tol:    scalar, tolerance below which coefficients are taken to be
+%           zero;
 %
-% OUTPUT
+% OUTPUTS
 % - prog:   the program with the constraint F=G added.
 
 % Equate the constant terms (degree-0 monomials) as scalars
@@ -255,15 +236,15 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function [f,c] = split_constant(f)
-% [F,C] = SPLIT_CONSTANT(F) removes the degree-0 monomial from the scalar
-% 'polyopvar' F, and returns its coefficient C (empty if F has none), a
-% 'double' (for a 'tensopvar' coefficient), or a 'dpvar' (for an 'intop'
-% coefficient).
+% [F,C] = SPLIT_CONSTANT(F) removes the degree-0 monomials from the scalar
+% 'polyopvar' F, and returns the sum C of their coefficients (empty if F
+% has none), a 'double' (for 'tensopvar' coefficients), or a 'dpvar' (for
+% 'intop' coefficients).
 %
-% INPUT
+% INPUTS
 % - f:  scalar 'polyopvar' functional;
 %
-% OUTPUT
+% OUTPUTS
 % - f:  the functional without its degree-0 monomial;
 % - c:  'double' or 'dpvar', the sum of the constant coefficients, or []
 %       if f has no degree-0 monomial.
@@ -282,10 +263,10 @@ for i=reshape(find(is_const),1,[])
         if isempty(ci)
             ci = 0;
         end
-    elseif isnumeric(Cop)
+    elseif isnumeric(Cop) || isa(Cop,'dpvar')
         ci = Cop;
     else
-        error("Constant coefficients must be scalar 'tensopvar' or 'intop' objects without variables.")
+        error("Constant coefficients must be scalar 'tensopvar', 'intop' or 'dpvar' objects without variables.")
     end
     % Add to the sum
     if isempty(c)

@@ -1,53 +1,43 @@
 function row_disp = get_display(P,expand)
-% ROW_DISP = GET_DISPLAY(P,EXPAND) constructs the terms of the polynomials
-%   C_i1 x + ... + C_ij (x^{od} o y^{or})
-% defined by the rows of P.C, with the operators C_ij acting on the
-% monomials, or the actual operators acting on the monomials, if they are
-% small enough, for use in the 'display' method of 'polyopvar'.
+% ROW_DISP = GET_DISPLAY(P,EXPAND) returns, for each row-block i of P.C,
+% the terms of the polynomial
+%   C_i1 x + ... + C_ij (x^{od} o y^{or}),
+% with the operators C_ij acting on the monomials displayed by name, or
+% as the actual operators if they are small enough, for the 'display'
+% method of 'polyopvar'.
 %
 % INPUTS
-% - P:      'polyopvar' object with nr rows;
-% - expand: (optional) logical, true if the operators C_ij may be displayed
-%           as the actual operators if they are small enough. If false,
-%           they are always displayed as C_ij. Defaults to true;
+% - P:          'polyopvar' object with nr row-blocks;
+% - expand:     (optional) logical, false to always display the operators
+%               as C_ij. Defaults to true;
 %
 % OUTPUTS
-% - row_disp:      nr x 1 struct array, with for the polynomial defined by
-%           row i the fields
-%       terms:  1 x n cell of char, the terms of the polynomial, without
-%               their sign, in the order of the monomials. These are
-%               C_ij monomial, or the terms of the display of C_ij acting
-%               on the monomial;
-%       signs:  1 x n array of 1 and -1, the sign of each term;
-%       expanded:   logical, true if the operators are displayed as the
-%               actual operators, and false if they are displayed as C_ij;
-%       states: cellstr, the names of the states that the polynomial
-%               depends on, those in the monomials of the nonzero
-%               operators;
-%       out_args:   cellstr, the names of the output variables of the
-%               polynomial, with a subscript for the copy of a variable if
-%               it has multiple copies;
+% - row_disp:   nr x 1 'struct' array, with for row-block i the fields
+%     terms:    1 x n 'cell' of char, the terms of the polynomial without
+%               their sign, in the order of the monomials: C_ij followed
+%               by the monomial, or the terms of the display of C_ij
+%               acting on the monomial;
+%     signs:    1 x n array of 1 and -1, the sign of each term;
+%     expanded: logical, true if the operators are displayed as the
+%               actual operators, false if as C_ij;
+%     states:   'cellstr', the display names of the states in the
+%               monomials on which a nonempty block of the row acts;
+%     out_args: 'cellstr', the display names of the output variables,
+%               with a subscript for the copy of a variable if it has
+%               several copies;
 %
 % NOTES
-% - The operators of the row i are displayed as the actual operators if all
-%   of them can be displayed by 'get_display' of 'tensopvar' or 'intop',
-%   and the polynomial has at most 6 terms, of at most 100 characters. If
-%   not, none of the operators of the row is displayed, so that the
-%   polynomial is displayed in terms of C_ij. This is also the case for
-%   operators that are not scalar-valued, unless they are identity
-%   operators, which are displayed as the monomial itself.
+% - The operators of a row are displayed as the actual operators only if
+%   all of them can be displayed by 'get_display' of 'tensopvar' or
+%   'intop' (which requires them to be scalar-valued, or identity
+%   operators, displayed as the monomial), and the row has at most 6
+%   terms, each of at most 100 characters. Otherwise, all operators of
+%   the row are displayed as C_ij.
 % - A monomial is displayed as the tensor product of its factors, in the
-%   order of P.Z, with the tensor product of d consecutive copies of a
-%   state x displayed as x^{od}. A factor of a monomial that is a known
-%   function (a multiplier from R) is displayed as 1. The
-%   tensor product and the tensor power are displayed as o and ^{od}
-%   unless 'use_unicode' is true.
-% - The operator that acts on a monomial with d factors is displayed
-%   with the factors of the monomial as the functions on which the d
-%   factors of the operator act, so that the operator is displayed as the
-%   sum of the products of the factors acting on the states. A functional
-%   (an 'intop' block) acts on the monomial as a single function of the
-%   variables of all its factors, e.g. the integral of (x o y)(s,s).
+%   order of P.Z, with d consecutive copies of a state x as x^{od}, and a
+%   factor that is a multiplier from R as 1. A functional ('intop') acts
+%   on the monomial as a function of the variables of all its factors,
+%   e.g. (x o y)(s_1,s_2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - get_display
@@ -74,7 +64,7 @@ function row_disp = get_display(P,expand)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 11/06/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Default settings
 max_terms = 6;          % maximal number of monomials and terms for which the operators
@@ -134,7 +124,7 @@ end
 nvars_out = numel(P.vars.out);
 row_disp = repmat(struct('terms',{cell(1,0)},'signs',zeros(1,0),'expanded',false,'states',{cell(1,0)},'out_args',{cell(1,0)}),nr,1);
 for i=1:nr
-    mono_idcs = find(~cellfun(@isempty,P.C.ops(i,:)));
+    mono_idcs = find(~cellfun('isempty',P.C.ops(i,:)));
     state_idcs = unique([mono_states{mono_idcs}]);
     row_disp(i).states = state_names(state_idcs);
     % Output variables, numbered by copy if a variable has several copies
@@ -191,6 +181,23 @@ for i=1:nr
             end
             blk_disp = get_display(blk,x_fctr_str);
             is_ok = blk_disp.ok;
+        elseif isempty(mono_states{j}) && isequal(size(blk),[1,1]) && (isnumeric(blk) || ((isa(blk,'dpvar') || isa(blk,'polynomial')) && isempty(blk.varname)))
+            % A constant term c0 + sum_k c_k*d_k, with decision variables d_k
+            if isa(blk,'dpvar')
+                cf = full(blk.C(:));        nms = [{''};blk.dvarname(:)];
+            else
+                cf = full(double(blk));     nms = {''};
+            end
+            blk_disp = struct('terms',{cell(1,0)},'signs',zeros(1,0));
+            for k=reshape(find(cf),1,[])
+                if k>1 && abs(cf(k))==1
+                    blk_disp.terms{end+1} = nms{k};
+                else
+                    blk_disp.terms{end+1} = strtrim([num2str(abs(cf(k)),'%g'),' ',nms{k}]);
+                end
+                blk_disp.signs(end+1) = sign(cf(k));
+            end
+            is_ok = true;
         else
             is_ok = false;
         end

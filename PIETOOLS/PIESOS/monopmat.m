@@ -3,20 +3,20 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 % tensor-PI operators in the specified variables,
 %       ZOP = blkdiag(Zop{1},...,Zop{q})
 % where each Zop{i} is a tensor-PI operator,
-%   Zop{i}: L2^{ni}[Omega_in{i}] --> L2^{mi}[Omega_out{i}]
-% for
-%   Omega_in = [a1,b1]^{d_in(i,1)} x ... x [aN,bN]^{d_in(i,N)}
-%   Omega_out = [a1,b1]^{d_out(i,1)} x ... x [aM,bM]^{d_out(i,M)}
+%   Zop{i}: L2^{ni^di}[Omega_in{i}] --> L2^{mi}[Omega_out{i}]
+% for di = max(d_in(i,:)) factors (di = 1 if this is 0), and
+%   Omega_in{i} = [a1,b1]^{d_in(i,1)} x ... x [aN,bN]^{d_in(i,N)}
+%   Omega_out{i} = [a1,b1]^{d_out(i,1)} x ... x [aM,bM]^{d_out(i,M)}
 %
 % INPUTS
 % - dims:   q x 1 array specifying the number of state variables (ni) on
 %           which each of the blocks in Zop acts. May also be a struct
 %           with field 'in' containing this array;
 % - vars:   struct with fields
-%       'in':   1 x N cellstr specifying the names of the input spatial
-%               variables to the operator;
-%       'out':  1 x M cellstr specifying the names of the output spatial
-%               variables to the operator;
+%       'in':   1 x N cellstr (or 'polynomial') specifying the distinct
+%               names of the input spatial variables to the operator;
+%       'out':  1 x M cellstr (or 'polynomial') specifying the distinct
+%               names of the output spatial variables to the operator;
 % - dom:    struct with fields
 %       'in':   N x 2 array specifying the intervals on which the input
 %               variables are defined;
@@ -26,29 +26,31 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 %       'in':   q x N integer array specifying the degree to which each of
 %               the states depends on each of the input variables (d_in);
 %       'out':  q x M logical array specifying whether or not each of the
-%               outputs depends on each of the output variables (d_out).
-%               A state may map to output variables on which its input
-%               does not depend: its output is constant in these
-%               variables, and only the monomials in degs.out depend on
-%               them;
+%               outputs depends on each of the output variables (d_out
+%               for otype 1, see opts.otype). A state may map to output
+%               variables on which its input does not depend: its output
+%               is constant in these variables, and only the monomials in
+%               degs.out depend on them;
 % - degs:   (optional) struct with fields
 %       'in':   1 x q cell, specifying the degrees of the input variables
-%               in each operator block. Each element degs.in{i} can be a
-%               di x N cell, where di depends on depmat.in(i,:),
-%               specifying the degrees of the monomial basis in each of
-%               the factors of each of the input variables in block i.
-%               Element degs.in{i} can also be a di x N array, specifying
-%               the maximal monomial degree in each of the factors of each
-%               variable. If degs.in{i} is scalar, the same degree is used
-%               for all variables;
+%               in each operator block. Element degs.in{i} can be a
+%               di x N cell, specifying the monomial degrees (including
+%               0) in each factor of each input variable in block i, a
+%               single row being used for all factors. It can also be a
+%               di x N array of maximal monomial degrees, where a single
+%               row (or a scalar, for all variables) gives the maximal
+%               degrees summed over the factors, split over them (e.g. 3
+%               over 2 factors as [2;1]);
 %       'out':  1 x q cell, specifying the degrees of the output variables
 %               in each operator block. Each element degs.out{i} can be a
 %               1 x M cell, specifying the degrees of the monomial basis
 %               in each of the output variables in block i, or a 1 x M
-%               array specifying the maximal monomial degree in each of
-%               the variables.
-%       If DEGS is not a struct, but a numeric array or a cell, the same
-%       DEGS is used for 'in' and 'out'. Defaults to 0;
+%               array (or a scalar) specifying the maximal monomial degree
+%               in each of the variables.
+%       A numeric array or 1 x 1 cell is used for all blocks, and the N
+%       (M) columns may be restricted to the variables on which the block
+%       depends. If DEGS is not a struct, but a numeric array or a cell,
+%       the same DEGS is used for 'in' and 'out'. Defaults to 0;
 % - opts:   (optional) struct with fields
 %       'exclude':  1 x q cell, specifying for each of the operator blocks
 %               whether any terms need to be excluded. Element
@@ -59,53 +61,49 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 %               multiplier term (k=1), lower integral term (k=2), or upper
 %               integral term (k=3), along spatial variable j in the list
 %               of 3-PI variables (intersect(vars.in,vars.out)). A single
-%               logical array may also be specified, to be used for all
-%               blocks. A 3 x 1 array e may be specified instead of the full
-%               array, to exclude every term of which the type is excluded
-%               along any of the 3-PI variables of the block, e.g. e =
-%               [0;0;1] excludes every term with an upper integral, so that
-%               for N3=2 the full array is [0,0,1;0,0,1;1,1,1]. By default,
-%               no terms are excluded;
+%               3^N3 logical array, for all N3 3-PI variables, may also
+%               be specified, to be used for all blocks. A 3 x 1 array e
+%               may be specified instead of the full array, to exclude
+%               every term of which the type is excluded along any of the
+%               3-PI variables of the block, e.g. e = [0;0;1] excludes
+%               every term with an upper integral, so that for N3=2 the
+%               full array is [0,0,1;0,0,1;1,1,1]. By default, no terms
+%               are excluded;
 %       'sep':  1 x q cell, specifying for each of the operator blocks
 %               whether to enforce separability along each of the
 %               variables. Element opts.sep{i} is a 1 x N3(i) logical
 %               array, specifying for each of the 3-PI variables whether
 %               the operator is separable along that variable, meaning
 %               that the kernel in the upper and lower integrals is the
-%               same. A single logical array (or scalar) may also be
-%               specified, to be used for all blocks. By default, no
+%               same. A single 1 x N3 logical array (or scalar) may also
+%               be specified, to be used for all blocks. By default, no
 %               separability is enforced;
 %       'otype':  q x 1 array specifying for each block i the type of
 %               product of the 3-PI operators in the tensor-PI operator:
 %               1 for the pointwise product, with d_out(i,:) =
 %               depmat.out(i,:), 2 for the proper tensor product, with
-%               d_out(i,:) = d*depmat.out(i,:) for d = max(depmat.in(i,:)),
-%               or 3 for both, splitting block i into a block row of type
-%               1 followed by one of type 2, acting on the same input (a
-%               single block row of type 1 if d = 1, as the types then
-%               coincide). A scalar otype is used for all blocks. Defaults
-%               to 1. A 1 x 2 array [otype,2], or a q x 2 array, also
-%               specifies the product along the input, which must be 2;
+%               d_out(i,:) = di*depmat.out(i,:), or 3 for both, splitting
+%               block i into a block row of type 1 followed by one of
+%               type 2, acting on the same input (a single block row of
+%               type 1 if di = 1, as the types then coincide). A scalar
+%               otype is used for all blocks. Defaults to 1. A 1 x 2
+%               array [otype,2], or a q x 2 array, also specifies the
+%               product along the input, which must be 2;
 %
 % OUTPUTS
 % - Zop:    m x n 'tensopmat' object representing a basis of operators of
-%           specified degrees on the declared function space, where n =
-%           sum(dims) and where m depends on the selected monomial
-%           degrees, if every block has a single factor, i.e.
-%           max(depmat.in(i,:))==1 for all i. Block column i acts on input
-%           i, in block row i, or, if blocks are split (otype = 3), in
-%           the one or two block rows of block i, in the order of the
-%           blocks;
+%           specified degrees on the declared function space, where
+%           n = sum_i dims(i)^di and m depends on the monomial degrees.
+%           Block column i acts on input i, in block row i, or, if
+%           blocks are split (otype 3), in the one or two block rows of
+%           block i, in the order of the blocks, so that Zop may have
+%           more than q block rows;
 %
 % NOTES
-% - A block i with dj>1 factors (dj = max(depmat.in(i,:))) is a tensor
-%   product of dj operators acting on L2^{dims(i)}, and acts on
-%   L2^{dims(i)^dj}. Its column dimension is dims(i)^dj, instead of
-%   dims(i), and its row dimension is a product over the dj factors.
-% - Using otype=3 for any of the output blocks, this block will be split
-%   into one block of otype 1 (pointwise product), and one of otype 2
-%   (proper tensor product). As such, the number of rows of blocks may not
-%   match the number of rows q of e.g. depmat in this case;
+% - Block i is the tensor product of its di factors, each acting on
+%   L2^{dims(i)}: its column dimension is dims(i)^di, and its row
+%   dimension is a product over the di factors.
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - monopmat
@@ -132,7 +130,7 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 
 %% Process the inputs
@@ -220,6 +218,7 @@ end
 if nargin<=5
     opts = struct();
 end
+check_opts(opts,'monopmat');
 if ~isfield(opts,'exclude')
     % Include all types of operators by default
     exclude_arr = false([3*ones(1,N3),1]);
@@ -274,7 +273,7 @@ if N3>0
             Ni = N3_arr(j);
             exclude_arr = exclude_cell{j};
             if ~islogical(exclude_arr) || (numel(exclude_arr)~=3 && numel(exclude_arr)~=3^Ni)
-                error("Each element of the option 'exclude' must be specified as a 3 x ... x 3 cell array, corresponding to the spatial dimensionality of the state.")
+                error("Each element of the option 'exclude' must be specified as a 3 x 1 or 3 x ... x 3 logical array, corresponding to the spatial dimensionality of the state.")
             end
             if numel(exclude_arr)==3
                 % Assume same exclude along all dimensions
@@ -317,7 +316,7 @@ if islogical(is_sep)
     if isscalar(is_sep)
         is_sep = repmat(is_sep,1,N3);
     elseif numel(is_sep)~=N3
-        error("Option 'sep' must be specified as a 1 x N logical arrray, for N spatial variables.")
+        error("Option 'sep' must be specified as a 1 x N logical array, for N spatial variables.")
     end
     is_sep = reshape(is_sep,1,N3);
     sep_cell = cell(1,q);
@@ -612,14 +611,11 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
 function degs = process_degs(degs,N_arr,depmat,is_deps,otype)
-% Check the specified monomial degrees and augment to account for the
-% number of coupled state variables, number of factors in the tensor-PI
-% operators, and the number of spatial variables in terms of which each
-% operator is defined. Return the full list of monomial degrees in each of
-% the variables (rather than just the maximal monomial degrees). OTYPE is
-% the type of product of each block (q x 1 array);
+% DEGS = PROCESS_DEGS(DEGS,N_ARR,DEPMAT,IS_DEPS,OTYPE) checks the monomial
+% degrees DEGS of MONOPMAT, and expands them to the full list of monomial
+% degrees in each factor and each variable of each block.
 %
-% INPUT
+% INPUTS
 % - degs:     numeric array, or 1 x q (or scalar) cell, of monomial
 %             degrees, as degs.in or degs.out of MONOPMAT;
 % - N_arr:    q x 1 array, the number of variables of each block;
@@ -628,9 +624,9 @@ function degs = process_degs(degs,N_arr,depmat,is_deps,otype)
 % - is_deps:  q x N logical array, logical(depmat);
 % - otype:    q x 1 array, the type of product of each block;
 %
-% OUTPUT
-% - degs:     1 x q cell; degs{j} is a dj x N_arr(j) cell of column
-%             vectors of monomial degrees, for dj = max(depmat(j,:))^(otype(j)-1)
+% OUTPUTS
+% - degs:     1 x q cell; degs{j} is a dj x N_arr(j) cell of vectors of
+%             monomial degrees, for dj = max(depmat(j,:))^(otype(j)-1)
 %             factors (a 1 x 0 cell for a block without variables);
 
 [q,N] = size(depmat);

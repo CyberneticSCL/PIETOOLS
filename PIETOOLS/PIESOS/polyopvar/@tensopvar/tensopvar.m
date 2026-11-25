@@ -4,10 +4,12 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar})tensopvar
 %
 %   C = sum_{i=1}^{K} Ri1 \otimes ... \otimes Rid
 %
-% where \otimes denotes the tensor product. This operator will map
-%   
-%   C : L2[[a_in1,b_in1]^{d_in1} x ... x L2[[a_inN,b_inN]^{d_inN}
-%      --> L2[[a_out1,b_out1]^{d_out1} x ... x L2[[a_outM,b_outM]^{d_outM}
+% where \otimes denotes the tensor product. This operator maps
+%
+%   C : L2^n[[a_in1,b_in1]^{d_in1} x ... x [a_inN,b_inN]^{d_inN}]
+%      --> L2^m[[a_out1,b_out1]^{d_out1} x ... x [a_outM,b_outM]^{d_outM}]
+%
+% with [m,n] = C.matdim, d_ink = C.deps.in(k) and d_outk = C.deps.out(k).
 %
 % CLASS properties
 % - C.ops:  K x d cell with each element {i,j} a 'sopvar' (or 'intop')
@@ -19,43 +21,43 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar})tensopvar
 %           product is taken along the row (otype(1)) and column
 %           (otype(2)) dimensions: 2 indicates that a proper tensor
 %           product is taken, and 1 that a pointwise product is taken.
-%           Defaults to [2,2]. For example, if Rop is defined by
-%           Pop1,Pop2:L2^n[0,1] --> L2^m[0,1], then different values of
-%           otype imply
-%               - (2,2):    Rop: L2^{n^2}[[0,1]^2] --> L2^{m^2}[[0,1]^2]
-%               - (1,2):    Rop: L2^{n^2}[[0,1]^2] --> L2^{m}[0,1]
-%               - (2,1):    Rop: L2^{n}[0,1] --> L2^{m^2}[[0,1]^2]
-%               - (1,1):    Rop: L2^{n}[0,1] --> L2^{m}[0,1]
+%           Defaults to [2,2]; TENSOPVAR(POP) sets [1,2]. For example,
+%           for C = P1 \otimes P2 with P1,P2: L2^n[0,1] --> L2^m[0,1],
+%           the different values of otype give
+%               - (2,2):    C: L2^{n^2}[[0,1]^2] --> L2^{m^2}[[0,1]^2]
+%               - (1,2):    C: L2^{n^2}[[0,1]^2] --> L2^{m}[0,1]
+%               - (2,1):    C: L2^{n}[0,1] --> L2^{m^2}[[0,1]^2]
+%               - (1,1):    C: L2^{n}[0,1] --> L2^{m}[0,1]
 %
 % PROTECTED properties
 % These properties are determined from the operators in C.ops, and should
 % not be set by the user
 %
-% - C.vars:     struct with fields
-%       in:     1 x N cellstr specifying the variable names of the
+% - C.vars:     'struct' with fields
+%       in:     1 x N 'cellstr' specifying the variable names of the
 %               function which the operator maps from;
-%      out:     1 x M cellstr specifying the variable names of the
+%      out:     1 x M 'cellstr' specifying the variable names of the
 %               function which the operator maps to;
-% - C.dom:      struct with fields
+% - C.dom:      'struct' with fields
 %       in:     N x 2 'double' array specifying the intervals on which
 %               each of the input variables is defined;
 %      out:     M x 2 'double' array specifying the intervals on which
 %               each of the output variables is defined;
-% - C.dims:     d x 2 array specifying the matrix dimensions of each factor
-%               in the tensor-PI operator, from which C.matdim follows.
-%               C.dims.in and C.dims.out return C.dims(:,2) and
-%               C.dims(:,1), the input and output dimensions of the
-%               factors;
-% - C.depmat:   struct with fields
+% - C.dims:     d x 2 'double' array specifying the matrix dimensions
+%               [rows,columns] of each factor in the tensor-PI operator,
+%               from which C.matdim follows. C.dims.in and C.dims.out
+%               return C.dims(:,2) and C.dims(:,1), the input and output
+%               dimensions of the factors;
+% - C.depmat:   'struct' with fields
 %         in:   d x N 'double' array with element (i,j) specifying whether
 %               the operator in factor i maps FROM spatial variable j. If
 %               factor i is a 'tensopvar' object, element (i,j) may be
-%               bigger than 1, to indicate the operator maps from a
+%               greater than 1, to indicate the operator maps from a
 %               higher-degree monomial in the spatial variable;
 %        out:   d x M 'double' array with element (i,j) specifying whether
 %               the operator in factor i maps TO spatial variable j. If
 %               factor i is a 'tensopvar' object, element (i,j) may be
-%               bigger than 1, to indicate the operator maps to a
+%               greater than 1, to indicate the operator maps to a
 %               higher-degree monomial in the spatial variable;
 %
 % DEPENDENT properties
@@ -66,7 +68,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar})tensopvar
 %               dimension, the product of the dimensions of the factors
 %               for a Kronecker product (otype=2), or their common value
 %               for a pointwise product (otype=1);
-% - C.deps:     struct with fields
+% - C.deps:     'struct' with fields
 %       in:     1 x N array of integers, specifying for each of the
 %               input variables sk to what degree d_ink the input depends
 %               on this variable;
@@ -79,9 +81,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar})tensopvar
 %               product (otype=1);
 %
 % NOTES
-% - vars.in and vars.out always store the spatial variables in the same
-%   (sorted) order; this order corresponds positionally to depmat.in/
-%   depmat.out, dom.in/dom.out, and dims.
+% - vars.in and vars.out list the spatial variables in sorted order; the
+%   columns of depmat.in/depmat.out and the rows of dom.in/dom.out follow
+%   this order. The rows of depmat.in/depmat.out and dims follow the
+%   order of the factors.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - tensopvar
@@ -134,7 +137,7 @@ methods
 function [C] = tensopvar(varargin) %constructor
     % C = TENSOPVAR(POP) returns a 'tensopvar' object C representing the
     % tensor-PI operator defined by the 'sopvar' object, or the cell of
-    % 'sopvar' objects, POP.
+    % operators, POP.
     %
     % C = TENSOPVAR() returns an empty 'tensopvar' object.
     %
@@ -146,11 +149,12 @@ function [C] = tensopvar(varargin) %constructor
     %               POP: 'sopvar' object, or K x d cell of operators
     %               representing the K terms and d factors of the operator
     %               (as in C.ops). For TENSOPVAR C1 C2 C3, the names of the
-    %               objects to declare, specified as strings;
+    %               objects to declare, as 'char';
     %
     % OUTPUTS
     % - C:      'tensopvar' object representing the tensor-PI operator
-    %           defined by POP;
+    %           defined by POP, with C.otype = [1,2] (a pointwise product
+    %           of the outputs, a tensor product of the inputs);
     %
     if nargout==0
         % Declare coefficient operator as
@@ -187,11 +191,12 @@ end
 function matdim = get.matdim(obj)
     % Determine the matrix dimensions of the operator
     %
-    % INPUT
+    % INPUTS
     % - obj:      'tensopvar' object;
     %
-    % OUTPUT
-    % - matdim:   1 x 2 array, the matrix dimensions of the operator.
+    % OUTPUTS
+    % - matdim:   1 x 2 array, the matrix dimensions of the operator; NaN
+    %             for a pointwise product of factors of different sizes.
     if isempty(obj.ops)
         matdim = [0,0];
         return
@@ -219,14 +224,14 @@ end
 
 function deps = get.deps(obj)
     % Determine the degrees of the monomial in each of the variables
-    % in the input and outputs of the tensor-PI operator
+    % in the input and output of the tensor-PI operator
     %
-    % INPUT
+    % INPUTS
     % - obj:      'tensopvar' object;
     %
-    % OUTPUT
-    % - deps:     struct with fields 'in' and 'out', the degree of the
-    %             monomial in each variable.
+    % OUTPUTS
+    % - deps:     'struct' with fields 'in' (1 x N) and 'out' (1 x M), the
+    %             degree of the monomial in each variable.
     deps = struct();
     if obj.otype(1)==1
         % Pointwise product along primary variable

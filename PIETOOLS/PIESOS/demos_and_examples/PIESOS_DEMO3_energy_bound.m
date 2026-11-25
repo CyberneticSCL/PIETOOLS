@@ -15,19 +15,20 @@
 % The bound from the SOS constraint, for which gam is found by bisection,
 % is printed with this exact minimum for r = 12.
 %
-% INPUT
+% INPUTS
 % - none: the reaction rate r and the number of bisection steps are set
 %   in the script;
 %
-% OUTPUT (workspace)
-% - gam_min:    the largest lower bound gam verified, E(u) >= gam_min for
-%               all u;
-% - prog_sol:   'struct', the PIESOS program of the last bisection step.
+% OUTPUTS (workspace)
+% - gam_min:    scalar, the largest lower bound gam verified, so that
+%               E(u) >= gam_min for all u;
+% - prog_sol:   'struct', the solved PIESOS program of the last bisection
+%               step.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - PIESOS_DEMO3
+% PIETOOLS - PIESOS_DEMO3_energy_bound
 %
-% Copyright (C) 2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

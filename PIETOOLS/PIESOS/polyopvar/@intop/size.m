@@ -19,7 +19,7 @@ function varargout = size(A,dim)
 %                 the number of rows, followed by the number of columns;
 %
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - size
 %
 % Copyright (C) 2026 PIETOOLS Team

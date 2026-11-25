@@ -1,7 +1,7 @@
 function B = ctranspose(A)
 % B = CTRANSPOSE(A) would return the adjoint A' of the 'intop' object
-% A. The adjoint of these operators is currently not supported, so an
-% error is thrown.
+% A. The adjoint of these operators is not supported, so an error is
+% thrown.
 %
 % INPUTS
 % - A:      'intop' object;

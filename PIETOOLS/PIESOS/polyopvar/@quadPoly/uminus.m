@@ -1,10 +1,11 @@
 function A = uminus(A)
-% Trivial. Just flip signs of coefficients. Returns -A given quadPoly A.
+% A = UMINUS(A) returns -A given quadPoly A, flipping the signs of the
+% coefficients.
 %
-% INPUT
+% INPUTS
 % - A:      'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - A:      'quadPoly' object, -A (coefficients negated).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +33,7 @@ function A = uminus(A)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 A.C = -A.C;
 end

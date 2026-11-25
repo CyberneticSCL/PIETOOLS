@@ -1,16 +1,18 @@
 function [A_out,B_out] = common_vars_quadPolyCell(A_in,B_in)
 % [A_OUT,B_OUT] = COMMON_VARS_QUADPOLYCELL(A_IN,B_IN) takes two 'quadPoly'
-% objects and expresses them in terms of the same left- and
-% right-variables.
+% objects, or their 'struct' form with a 'cell' of coefficients, and
+% expresses them in terms of the same left- and right-variables.
 %
 % INPUTS
-% - A_in, B_in:     'quadPoly' objects representing polynomials in
-%                   (potentially) different variables;
+% - A_in, B_in:     'quadPoly' objects, or 'struct' with the fields of a
+%                   'quadPoly' object and a 'cell' of coefficients C,
+%                   representing polynomials in (potentially) different
+%                   variables;
 %
 % OUTPUTS
-% - A_out, B_out:   'quadPoly' objects representing the same polynomials
-%                   as the inputs, but expressed in terms of the same
-%                   variables, so that
+% - A_out, B_out:   objects of the same type as the inputs, representing
+%                   the same polynomials, but expressed in terms of the
+%                   same variables, so that
 %                       A_out.ns = B_out.ns;    A_out.nt = B_out.nt;
 %
 

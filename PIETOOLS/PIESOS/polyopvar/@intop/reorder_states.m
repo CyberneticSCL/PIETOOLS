@@ -4,7 +4,7 @@ function Kop_out = reorder_states(Kop,state_order,dims,depmat)
 % monomial, to match the new order of the state variables in the
 % distributed monomial, so that
 %   KOP_OUT*(x_{i1} o ... o x_{id}) = KOP*(x1 o ... o xd)
-% where o denotes the tensor product.
+% where o denotes the tensor product, and STATE_ORDER = [i1,...,id].
 %
 % INPUTS
 % - Kop:            m x n 'intop' object representing a functional on a
@@ -28,14 +28,9 @@ function Kop_out = reorder_states(Kop,state_order,dims,depmat)
 % NOTES
 % - If depmat has more than N columns, only the columns of the spatial
 %   variables on which at least one state depends are retained.
-% - This kind of reordering of the state vectors in the distributed
-%   monomial is possible because they are vectors, so that
-%   kron(x,y) = P*kron(y,x) for a suitable permutation matrix P. If x or y
-%   is matrix-valued, another permutation matrix would be needed,
-%   kron(x,y) = P1*kron(y,x)*P2.
-% - The columns of the functional are permuted by permuting the blocks of
-%   nZ columns (one for each of the n matrix columns) of the coefficient
-%   matrices.
+% - Both the dummy variables and the n matrix columns of Kop are permuted,
+%   the latter as kron(x,y) = P*kron(y,x) for the vector-valued states x
+%   and y, and a permutation matrix P.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

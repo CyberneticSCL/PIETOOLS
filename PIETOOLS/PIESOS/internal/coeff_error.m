@@ -9,8 +9,16 @@ function max_error  = coeff_error(F)
 %
 % OUTPUTS
 % - max_error:  nonnegative scalar, the largest absolute value of the
-%               coefficients (kernels of 'intop' operators, or entries of
-%               constant coefficients) across all monomials of F;
+%               coefficients (the parameters of 'intop', 'sopvar' and
+%               'sdopvar' operators, the coefficients of 'polynomial' and
+%               'dpvar' objects, or the entries of numeric arrays) across
+%               all monomials of F;
+%
+% NOTES
+% - The coefficients of a term of a 'tensopvar', a product of factors,
+%   are bounded by the product of the largest coefficients of its
+%   factors.
+% - Coefficient operators of other classes are taken to be zero.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - coeff_error
@@ -37,7 +45,7 @@ function max_error  = coeff_error(F)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% CRR, 06/09/2026: Initial coding
+% CR, DJ, 11/24/2026: Initial coding;
 
 % Largest absolute coefficient across the coefficient operators of F
 max_error = 0;
@@ -51,23 +59,39 @@ end
 %% Local functions
 function err = block_coeff_max(op)
 % Largest absolute coefficient of the coefficient operator op of a
-% 'polyopvar' object: an 'intop' object (sparse coefficients in op.params),
-% a constant, or a 'tensopmat' or 'tensopvar' object (nested operators)
+% 'polyopvar' object: an 'intop', 'sopvar' or 'sdopvar' object (sparse
+% coefficients in op.params), a constant, or a 'tensopmat' or 'tensopvar'
+% object (nested operators)
 %
-% INPUT
-% - op:   'intop', 'tensopmat', 'tensopvar', 'polynomial', 'dpvar'
-%         or numeric coefficient;
+% INPUTS
+% - op:   'intop', 'tensopmat', 'tensopvar', 'sopvar', 'sdopvar',
+%         'polynomial', 'dpvar' or numeric coefficient; other classes give
+%         err = 0;
 %
-% OUTPUT
+% OUTPUTS
 % - err:  nonnegative scalar, the largest absolute coefficient.
 err = 0;
 if isa(op,'intop')
     for k=1:numel(op.params)
         err = max(err,max_abs(op.params{k}));
     end
-elseif isa(op,'tensopmat') || isa(op,'tensopvar')
+elseif isa(op,'tensopmat')
     for k=1:numel(op.ops)
         err = max(err,block_coeff_max(op.ops{k}));
+    end
+elseif isa(op,'tensopvar')
+    % A term (row of ops) is a product of its factors: bound its
+    % coefficients by the product of those of the factors
+    for i=1:size(op.ops,1)
+        err = max(err,prod(cellfun(@block_coeff_max,op.ops(i,:))));
+    end
+elseif isa(op,'sopvar')
+    for k=1:numel(op.params)
+        err = max(err,max_abs(op.params{k}));
+    end
+elseif isa(op,'sdopvar')
+    for k=1:numel(op.params.A)
+        err = max([err,max_abs(op.params.A{k}),max_abs(op.params.B{k})]);
     end
 elseif isa(op,'polynomial') || isa(op,'dpvar')
     err = max_abs(op.C);
@@ -79,10 +103,10 @@ end
 function m = max_abs(A)
 % Largest absolute value among the nonzero elements of A, or 0
 %
-% INPUT
+% INPUTS
 % - A:  numeric array (sparse or full);
 %
-% OUTPUT
+% OUTPUTS
 % - m:  nonnegative scalar.
 v = nonzeros(abs(A));
 m = 0;

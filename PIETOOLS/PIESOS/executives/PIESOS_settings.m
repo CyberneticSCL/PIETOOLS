@@ -1,6 +1,5 @@
 function settings = PIESOS_settings(preset)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SETTINGS = PIESOS_settings(PRESET) returns the settings of the PIESOS
+% SETTINGS = PIESOS_SETTINGS(PRESET) returns the settings of the PIESOS
 % executives, PIESOS_stability_global and PIESOS_stability_local, as a
 % 'struct'. PIESOS_sublevel only uses LF.mon_deg, sos.mon_deg(3),
 % sos.psatz(3), sos.otype, sos.intmat and the solver fields. Change the
@@ -9,120 +8,131 @@ function settings = PIESOS_settings(preset)
 %   settings.LF.mon_deg = 4;
 %   settings.sos.use_ineq = false;
 %
-% INPUT
+% INPUTS
 % - preset:     (optional) char, 'light', 'default' or 'heavy', setting the
-%               degrees of the monomials below. Defaults to 'default';
+%               degrees LF.mon_deg, mult.mon_deg and sos.mon_deg (see
+%               NOTES). Defaults to 'default';
 %
-% OUTPUT
-% - settings:   'struct' with fields
+% OUTPUTS
+% - settings:   'struct' with the fields below, and their defaults for
+%               the preset 'default'.
 %
-%   Lyapunov functional V, of degree 2*LF.dist_deg. The
-%   form of V, in the PIE states x or in the PDE states u=T*x, is not set
-%   here, but specified as input LF_form of the executives
+%   Lyapunov functional V, of degree 2*LF.dist_deg. The form of V, in the
+%   PIE states x or in the PDE states u=T*x, is not set here, but
+%   specified as input LF_form of the executives
 %     LF.dist_deg   positive integer, maximal degree d of the distributed
-%                   monomials Z(u)=[u,...,u^d] of V. V has degree 2*d.
-%                   If d>1, there is no global upper bound on V;
+%                   monomials of V, so that V has degree 2*d. If d>1,
+%                   there is no global upper bound on V. Default 1;
 %     LF.mon_deg    nonnegative integer, degree of the monomials in the
 %                   spatial variables in the kernels of the basis operators
-%                   Zop in V;
+%                   Zop in V. Default 3;
 %     LF.exclude    3 x 1 logical, the terms to exclude from Zop: the
 %                   multiplier (1), the lower integral (2) and the upper
-%                   integral (3) term, or 'auto'. For 'auto', [0;0;0] is
-%                   used if LF_form is 'pie', and [0;1;1], only allowing
-%                   a multiplier operator, if LF_form is 'pde';
-%     LF.sep        logical, true to enforce separable kernels in Zop;
+%                   integral (3) term, or 'auto' (default): [0;0;0] if
+%                   LF_form is 'pie', and [0;1;1], only allowing a
+%                   multiplier operator, if LF_form is 'pde';
+%     LF.sep        logical, true to enforce separable kernels in Zop.
+%                   Default false;
 %     LF.psatz      nonnegative integer, order of the psatz multipliers in
-%                   the SOS matrix defining V;
+%                   the SOS matrix defining V (LF_form 'pde' only).
+%                   Default 0;
 %     LF.otype      1, 2 or 3, the output of Zop in V: pointwise (1) or
-%                   tensor (2) products, or both (3), see piesos_quadopvar;
-%     LF.intmat     'full', 'steps' or 'all', or a 1 x N cell: the regions
-%                   of integration of the Gram forms in V, each with its
-%                   own SOS matrix, see piesos_quadopvar. Only used with
-%                   tensor products (otype 2 or 3);
+%                   tensor (2) products, or both (3), passed to
+%                   piesos_quadopvar as opts.otype. Default 1;
+%     LF.intmat     'full', 'steps' or 'all', or a 1 x N 'cell': the
+%                   regions of integration of the Gram forms in V, each
+%                   with its own matrix, passed to piesos_quadopvar as
+%                   opts.intmat. Only used with tensor products (otype 2
+%                   or 3). Default 'full';
 %     LF.eppos      positive scalar, the weight of the lower bound
-%                   V >= eppos*N(u) on V, with N the norm of the test;
+%                   V >= eppos*N(u) on V, with N the norm of the test.
+%                   Default 1;
 %     LF.C          [], Inf or positive scalar, the constant C in the upper
-%                   bound V <= C*N(u) on V. If [], the bound is enforced
-%                   with C minimized, if a scalar c, with C=c, and if Inf,
-%                   no bound is enforced (global test only);
-%     LF.lower      'u' or 'x_pde', the state in the lower bound on V. For
-%                   'u', V >= eppos*N(u) with u=T*x the full state, as in
-%                   the upper bound. For 'x_pde', V >= eppos*N(x_pde) with
-%                   x_pde=PIE.x_pde=X_pde*T*x the actual PDE state, which
-%                   leaves out e.g. the history states of delays, whereas
-%                   the upper bound remains in terms of u;
+%                   bound V <= C*N(u) on V. If [] (default), the bound is
+%                   enforced with C minimized, if a scalar c, with C=c, and
+%                   if Inf (global test only), no bound is enforced;
+%     LF.lower      'u' (default) or 'x_pde', the state in the lower bound
+%                   on V. For 'u', V >= eppos*N(u) with u=T*x the full
+%                   state, as in the upper bound. For 'x_pde' (global test
+%                   only), V >= eppos*N(x_pde) with x_pde=PIE.x_pde=
+%                   X_pde*T*x the actual PDE state, which leaves out e.g.
+%                   the history states of delays, whereas the upper bound
+%                   remains in terms of u;
 %
-%   SOS multipliers p1, p2 of the local test, p1 in
-%   the upper bound on V, p2 in the derivative condition on dV. They are
-%   not used by the global test
-%     mult.dist_deg 1 x 2 array of nonnegative integers, the degrees of
-%                   the distributed monomial bases Z(u)=[u,...,u^d] of p1
-%                   and p2 (the multipliers then have degree 2*d). If 0,
-%                   the multiplier is not used. p1 is only needed if
-%                   LF.dist_deg>1;
+%   SOS multipliers p1, p2 of the local test, p1 in the upper bound on V,
+%   p2 in the derivative condition on dV. They are not used by the global
+%   test
+%     mult.dist_deg 1 x 2 array of nonnegative integers, the degrees d of
+%                   the distributed monomial bases [x,...,x^d] of p1 and p2
+%                   (the multipliers then have degree 2*d). If 0, the
+%                   multiplier is not used. p1 is only needed if
+%                   LF.dist_deg>1. Default [0,1];
 %     mult.mon_deg  1 x 2 array, degrees of the monomials in the spatial
-%                   variables in the kernels of the operators of p1, p2;
-%     mult.psatz    1 x 2 array, orders of the psatz multipliers in p1, p2;
+%                   variables in the kernels of the operators of p1, p2.
+%                   Default [3,3];
+%     mult.psatz    1 x 2 array, orders of the psatz multipliers in p1, p2.
+%                   Default [0,0];
 %     mult.exclude  3 x 1 logical, the terms to exclude from the operators
-%                   of p1, p2, as LF.exclude. By default, [1;0;0] only
-%                   allows integral operators;
+%                   of p1, p2, as LF.exclude, but not 'auto'. The
+%                   multiplier term is kept if the PIE has ODE states.
+%                   Default [1;0;0], only allowing integral operators;
 %     mult.otype    1, 2 or 3, the output of the operators of p1, p2, as
-%                   LF.otype;
-%     mult.intmat   regions of integration of p1, p2, as LF.intmat;
+%                   LF.otype. Default 1;
+%     mult.intmat   regions of integration of p1, p2, as LF.intmat.
+%                   Default 'full';
 %
 %   SOS constraints on V (lower bound, if not satisfied by construction),
-%   on the upper bound C*N(u)-V-p1*g, and on the derivative -dV-2*lambda*V-
-%   p2*g. For the global test, only the derivative condition and (if
-%   LF.dist_deg=1) the upper bound are enforced, without p1, p2, g
-%     sos.use_ineq  logical, true to enforce the constraints using
-%                   piesos_ineq, and false to construct them manually,
-%                   declaring a distributed SOS polynomial W with
+%   on the upper bound C*N(u)-V-p1*g, and on the derivative
+%   -dV-2*lambda*V-p2*g. The global test has no p1, p2, g, and enforces
+%   the upper bound only if LF.dist_deg=1 and LF.C is not Inf
+%     sos.use_ineq  logical, true (default) to enforce the constraints
+%                   using piesos_ineq, and false to construct them
+%                   manually, declaring a distributed SOS polynomial W with
 %                   piesos_sosvar, and enforcing that W is equal to the
-%                   polynomial with piesos_eq. The manual construction
-%                   matches piesos_ineq for LF_form='pde', but was not
-%                   feasible for LF_form='pie' (tested for the heat
-%                   equation with a Sobolev norm);
+%                   polynomial with piesos_eq. The manual construction is
+%                   unreliable for LF_form='pie';
 %     sos.mon_deg   1 x 3 array, degrees of the monomials in the spatial
 %                   variables in the kernels of the operators of the SOS
 %                   polynomials of the lower bound, upper bound and
 %                   derivative condition, respectively. NaN to let
-%                   piesos_ineq select the degree (use_ineq only). Or a
-%                   1 x 3 cell of opts.degs of piesos_ineq, e.g. with
-%                   degrees per factor ([d;d]), as a scalar degree is
-%                   split over the factors (see monopmat). Not for
-%                   PIESOS_sublevel;
+%                   piesos_ineq select the degree (use_ineq only). Or,
+%                   except for PIESOS_sublevel, a 1 x 3 'cell' of
+%                   opts.degs of piesos_ineq, e.g. with degrees per factor
+%                   ([d;d]), as a scalar degree is split over the factors.
+%                   Default [3,3,4];
 %     sos.psatz     1 x 3 array, orders of the psatz multipliers in the
-%                   SOS polynomials;
+%                   SOS polynomials. Default [1,1,1];
 %     sos.exclude   3 x 1 logical, the terms to exclude from the operators
-%                   of the SOS polynomials, as LF.exclude (only used if
+%                   of the SOS polynomials, as mult.exclude (only used if
 %                   use_ineq is false, otherwise they follow from the
 %                   kernels of the polynomial). Or, with use_ineq, a 1 x 3
-%                   cell of opts.exclude of piesos_ineq per constraint
+%                   'cell' of opts.exclude of piesos_ineq per constraint
 %                   ([] to let it choose), e.g. per block of the basis
-%                   (PIESOS_stability_local only);
+%                   (PIESOS_stability_local only). Default [1;0;0];
 %     sos.otype     1, 2 or 3, the output of the operators of the SOS
 %                   polynomials, as LF.otype, or 'auto' (default) to
-%                   choose it from the structure of each polynomial (see
-%                   piesos_ineq);
+%                   choose it from the structure of each polynomial, as
+%                   opts.otype='auto' of piesos_ineq;
 %     sos.intmat    regions of integration of the SOS polynomials, as
-%                   LF.intmat (opts.intmat of piesos_ineq);
+%                   LF.intmat (opts.intmat of piesos_ineq). Default 'full';
 %
 %   Solver
 %     solver        char, the SDP solver (e.g. 'mosek', 'sedumi'), or ''
-%                   for the default solver;
-%     simplify      logical, true to simplify the SDP before solving;
-%     tol_feas      scalar, if C is minimized, the program is taken to be
-%                   solved if the feasibility ratio of the solver is within
-%                   tol_feas of 1 (and the program is not infeasible). If C
-%                   is not minimized, the ratio is not informative and not
-%                   used;
-%     verbose       logical, true to display the progress;
+%                   (default) for the default solver;
+%     simplify      logical, true (default) to simplify the SDP before
+%                   solving;
+%     tol_feas      scalar, a program with an objective (C minimized, or a
+%                   program of PIESOS_sublevel) is taken to be solved if
+%                   the feasibility ratio of the solver is within tol_feas
+%                   of 1 (and the program is not infeasible). Without an
+%                   objective, the ratio is not informative and not used.
+%                   Default 0.1;
+%     verbose       logical, true (default) to display the progress;
 %
 % NOTES
-% - The defaults of the presets 'light', 'default' and 'heavy' differ in
-%   the degrees LF.mon_deg, mult.mon_deg and sos.mon_deg only.
-%
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% - The presets only differ in the degrees: LF.mon_deg, mult.mon_deg and
+%   sos.mon_deg are 2, [2,2] and [2,2,3] for 'light', 3, [3,3] and
+%   [3,3,4] for 'default', and 4, [4,4] and [4,4,5] for 'heavy'.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIESOS_settings
@@ -148,9 +158,8 @@ function settings = PIESOS_settings(preset)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 11/09/2026: Initial coding;
-% DJ, 11/22/2026: Fields otype and intmat of LF, mult, sos; sos.mon_deg
-%                   and sos.exclude as cells;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% DJ, 11/22/2026: Initial coding;
 
 % Default preset
 if nargin<1 || isempty(preset)

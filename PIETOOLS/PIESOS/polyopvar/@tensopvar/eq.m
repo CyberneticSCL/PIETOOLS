@@ -3,19 +3,21 @@ function logval = eq(A,B)
 %
 % INPUTS
 % - A, B:   'tensopvar' objects of which to verify equality. Can also have
-%           B=0 to test whether A is a zero operator;
+%           B=0 (or A=0) to test whether A (B) is a zero operator;
 %
 % OUTPUTS
-% - logval: logical value set to true if the operators are equal, or false
+% - logval: 'logical' scalar, true if the operators are equal, and false
 %           otherwise. Equality requires the input and output function
-%           spaces of A and B to be equal, and the parameters to match. For
-%           B=0, it is sufficient for only one factor in each term to be
-%           zero;
+%           spaces of A and B to be equal, and A-B to be zero. For B=0, it
+%           is sufficient for one factor in each term to be zero (up to
+%           1e-12);
 %
 % NOTES
-% - No simplification of the operators is performed. If the terms in the
-%   tensor-PI operators are the same but reordered, `eq` will not catch
-%   this, and will report them to be different.
+% - No simplification of the operators is performed. Single-factor
+%   operators are compared by their parameters, but operators with
+%   several factors are only found equal if they are identical, or if
+%   both are zero; e.g. the same terms in a different order are reported
+%   to be different.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

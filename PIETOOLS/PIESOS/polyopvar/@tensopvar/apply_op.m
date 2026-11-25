@@ -3,39 +3,36 @@ function Y = apply_op(Cop,X)
 % distributed monomial X to return the function Y.
 %
 % INPUTS
-% - Cop:    m x n 'tensopvar' object mapping
+% - Cop:    m x n 'tensopvar' object with d factors, mapping
 %               Cop: L2^{n1}[Omega1] x ... x L2^{nd}[Omegad]
-%                       --> L2^{m1}[Omega1] x ... x L2^{mp}[Omegap];
+%                       --> L2^{m1}[Theta1] x ... x L2^{md}[Thetad];
 % - X:      1 x d cell of 'polynomial' objects (or a single 'polynomial'
 %           if d=1), representing a distributed monomial
-%            X := x1 x... xd in L2^{n1}[Omega1] x ... x L2^{nd}[Omegad];
-%           if Cop has nested factors (a 'tensopvar' acting on some of the
-%           x_j), x_j is a cell of the inputs of these nested factors, or X
-%           is a cell with one input for each of the factors of Cop,
-%           counting those of nested operators (num_factors(Cop)), in
-%           order;
+%            X := x1 x ... x xd in L2^{n1}[Omega1] x ... x L2^{nd}[Omegad];
+%           for a nested factor j (a 'tensopvar'), xj = X{j} is the cell of
+%           the inputs of its own factors.
+%           Alternatively, X is a cell with one input for each of the
+%           num_factors(Cop) factors of Cop, counting those of nested
+%           operators, in order;
 %
 % OUTPUTS
 % - Y:      m x r 'polynomial' array, representing the output of Cop upon
-%           acting on X;
+%           acting on X (r=1 if each xj is a column vector);
 %
 % NOTES
 % - The polynomials in X must be defined in terms of the same variables as
-%   kernels defining Cop.
-% - We must have Cop.otype(2)==2, meaning a proper tensor product is taken
-%   of the inputs. If Cop.otype(1)==1, then m = m1 =...= mp, and the output
-%   represents the elementwise product of each of the operators applied to
-%   each of the factors. If Cop.otype(1)==2, then m = m1*...*mp.
+%   the kernels defining Cop.
+% - Cop.otype(2) must be 2 (a proper tensor product of the inputs). If
+%   Cop.otype(1)==1, then m = m1 =...= md, and the output is the
+%   elementwise product of the outputs of the factors. If
+%   Cop.otype(1)==2, then m = m1*...*md.
 % - If Cop.otype(1)==2, the copies of each output variable s are named s_1,
-%   s_2,..., numbered over the factors in order. A nested factor with k
-%   copies of s (as in Cop.depmat.out) takes k consecutive numbers, a
-%   nested single factor and a nested pointwise product one.
-% - Each operator in Cop.ops may be a 'tensopvar' or 'intop' object, to
-%   which its own 'apply_op' is applied, or a 'sopvar' object, to which
-%   'apply_sopvar' is applied.
+%   s_2,..., numbered over the factors in order. A factor with k copies of
+%   s (Cop.depmat.out) takes k consecutive numbers.
+% - The factors may be 'sopvar', 'intop' or (nested) 'tensopvar' objects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - apply_op (tensopvar)
+% PIETOOLS - apply_op
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -187,16 +184,16 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function Xs = split_inputs(X,fctrs)
-% XS = SPLIT_INPUTS(X,FCTRS) splits the cell X of inputs, one for each factor of the operator, including
-% those of nested operators, over the 1 x d cell FCTRS of the factors of one term: XS is the 1 x d cell
-% with the input of each factor, and, for a nested factor, the 1 x n cell of the n=num_factors inputs
-% that belong to it, which its own apply_op splits further if it has nested factors.
+% XS = SPLIT_INPUTS(X,FCTRS) groups the inputs X, one for each factor of
+% the operator including those of nested operators, by the factors FCTRS
+% of one term: a nested factor gets the cell of its num_factors inputs,
+% which its own apply_op splits further.
 %
-% INPUT
-% - X:        cell of inputs, one per (leaf) factor;
+% INPUTS
+% - X:        cell of inputs, one per (leaf) factor, in order;
 % - fctrs:    1 x d cell of the factors of one term;
 %
-% OUTPUT
+% OUTPUTS
 % - Xs:       1 x d cell of the inputs of each factor (a cell for a
 %             nested factor).
 d = numel(fctrs);

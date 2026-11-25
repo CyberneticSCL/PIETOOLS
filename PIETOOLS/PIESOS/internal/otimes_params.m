@@ -9,7 +9,7 @@ function C = otimes_params(A,B,otype)
 %           matrix (B must then be of the same form); a 'cell' array of
 %           parameters (see NOTES); a 'quadPoly' object; and a 'struct'
 %           with field 'Zt', representing a 'quadPoly' object with
-%           coefficients specified as cell;
+%           coefficients specified as 'cell';
 % - B:      m2 x n2 array of type 'double', 'polynomial', or 'dpvar', or
 %           another of the types listed for A;
 % - otype:  (optional) 1 x 2 array of integers 1 or 2, specifying the
@@ -17,8 +17,8 @@ function C = otimes_params(A,B,otype)
 %           (otype(2)) dimensions, where 1 means an elementwise product
 %           and 2 means a Kronecker product. A scalar value specifies
 %           otype(1), and otype(2) is set to 2. Defaults to [1,2].
-%           Note that otype(1)=1 requires m1=m2 (or m1=1 or m2=1), and
-%           otype(2)=1 requires n1=n2 (or n1=1 or n2=1);
+%           otype(1)=1 requires m1=m2 (or m1=1 or m2=1), and otype(2)=1
+%           requires n1=n2 (or n1=1 or n2=1);
 %
 % OUTPUTS
 % - C:      m x n array of the same type as the inputs, representing the
@@ -59,7 +59,7 @@ function C = otimes_params(A,B,otype)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if nargin<=2
     % Use elementwise product along row dimension by default
@@ -119,14 +119,14 @@ end
 
 %%
 function C = otimes_double(A,B,type)
-% % Compute the otimes product for full arrays
+% Computes the otimes product of full arrays.
 %
-% INPUT
+% INPUTS
 % - A, B:   full 'double' arrays;
 % - type:   1 x 2 array, the product along the rows and the columns (1
 %           elementwise, 2 Kronecker);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      full 'double' array, the product.
 
 if type(1)==1 && type(2)==1
@@ -152,15 +152,15 @@ end
 
 %% Sparse Matrix Implementation (explicitly using row and column indices)
 function C = otimes_sparse_struct(A,B,type)
-% % Compute the otimes product for sparse matrices specified as structs
+% Computes the otimes product of sparse matrices specified as structs.
 %
-% INPUT
+% INPUTS
 % - A, B:   'struct' with fields 'ridcs', 'cidcs', 'vals' (the nonzero
 %           triplets) and 'size';
 % - type:   1 x 2 array, the product along the rows and the columns (1
 %           elementwise, 2 Kronecker);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'struct' of the same form, the product.
 ridcsA = A.ridcs(:);    ridcsB = B.ridcs(:);
 cidcsA = A.cidcs(:);    cidcsB = B.cidcs(:);
@@ -242,14 +242,14 @@ end
 
 %% Sparse Matrix Implementation
 function C = otimes_sparse(A,B,type)
-% % Compute the otimes product for sparse matrices
+% Computes the otimes product of sparse matrices.
 %
-% INPUT
+% INPUTS
 % - A, B:   'double' arrays, at least one sparse;
 % - type:   1 x 2 array, the product along the rows and the columns (1
 %           elementwise, 2 Kronecker);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      sparse 'double' array, the product.
 
 % Distinguish different types
@@ -288,14 +288,14 @@ end
 
 %% dpvar Implementation
 function C = otimes_dpvar(A,B,otype)
-% % Compute the otimes product for 'dpvar' with 'polynomial' objects
+% Computes the otimes product of 'dpvar' and 'polynomial' objects.
 %
-% INPUT
+% INPUTS
 % - A, B:   'dpvar', 'polynomial' or 'double' arrays, at most one 'dpvar';
 % - otype:  1 x 2 array, the product along the rows and the columns (1
 %           elementwise, 2 Kronecker);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'dpvar' or 'polynomial' array, the product.
 
 % Only one of the object can be of type 'dpvar'
@@ -461,16 +461,16 @@ end
 
 %% quadPoly Implementation
 function C = otimes_quadPoly(A,B,otype)
-% % Compute the otimes product for 'quadPoly' objects
+% Computes the otimes product of 'quadPoly' objects
 % A = (Im o ZL)' C (In o ZR)
 % B = (Ip o ZL)' D (Iq o ZR)
 %
-% INPUT
+% INPUTS
 % - A, B:   'quadPoly' objects, or 'double' arrays (constant 'quadPoly');
 % - otype:  1 x 2 array, the product along the rows and the columns (1
 %           elementwise, 2 Kronecker);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'quadPoly' object, the product, in the union of the variables.
 
 if isa(A,'double')
@@ -631,19 +631,19 @@ end
 
 %% cell of quadPoly objects implementation
 function C = otimes_quadPolyCell(A,B,otype)
-% % Compute the otimes product for 'quadPoly' objects, where the
-% coefficients are specified as cells
+% Computes the otimes product of 'quadPoly' objects with coefficients
+% specified as cells
 % A = (Im o ZL)' C (In o ZR)
 % B = (Ip o ZL)' D (Iq o ZR)
 %
-% INPUT
-% - A, B:   'struct' with the fields of a 'quadPoly' object and a cell of
-%           coefficients C, or 'quadPoly' objects or 'double' arrays;
+% INPUTS
+% - A, B:   'struct' with the fields of a 'quadPoly' object and a 'cell'
+%           of coefficients C, or 'quadPoly' objects or 'double' arrays;
 % - otype:  1 x 2 array, the product along the rows and the columns (1
 %           elementwise, 2 Kronecker);
 %
-% OUTPUT
-% - C:      'struct' of the same form, the product, with a cell of
+% OUTPUTS
+% - C:      'struct' of the same form, the product, with a 'cell' of
 %           coefficients.
 
 if isa(A,'double')
@@ -653,7 +653,7 @@ elseif ~isa(A,'quadPoly') && ~isa(A,'struct')
 end
 if isa(B,'double')
     B = quadPoly(B);
-elseif ~isa(B,'quadPoly') && ~isa(A,'struct')
+elseif ~isa(B,'quadPoly') && ~isa(B,'struct')
     error("Both parameters must be specified as objects of type 'quadPoly'.")
 end
 
@@ -869,17 +869,18 @@ end
 
 %% cell of parameters implementation
 function C = otimes_cell(A,B,otype)
-% Each element of the cells is assumed to represent a term in an operator,
-% so that the product of the operators (independent of otype) should
-% involve the product of each pair of terms in A and B.
+% Computes the otimes product of cells of parameters. Each element of the
+% cells represents a term in an operator, so that the product of the
+% operators (independent of otype) involves the product of each pair of
+% terms in A and B.
 %
-% INPUT
-% - A, B:   cells of parameters (a non-cell is one parameter), with the
-%           same number of dimensions;
+% INPUTS
+% - A, B:   'cell' arrays of parameters (a non-cell is one parameter),
+%           with the same number of dimensions;
 % - otype:  1 x 2 array, the product along the rows and the columns;
 %
-% OUTPUT
-% - C:      cell of size size(A).*size(B), element k the product of the
+% OUTPUTS
+% - C:      'cell' of size size(A).*size(B), element k the product of the
 %           elements of A and B at the corresponding indices.
 
 % Assume a single parameter if object is not a cell
@@ -919,24 +920,27 @@ end
 %%
 %%
 function [rsubs,csubs,vals] = find_idcs(C,nnr,nnc)
-% Find indices in monomial bases associated with each nonzero coefficient
-% in the matrix C
+% Finds the row and column indices, and the indices in the monomial bases,
+% associated with each nonzero coefficient in the matrix C
 %
 % INPUTS
-% - C:  (sparse) array of dimensions prod(nr) x prod(nc), representing
-%       coefficient matrix acting on monomials 
-%           ZL = ZL{1} o ... o ZL{m}    and     ZR = ZR{1} o ... o ZR{n}
-%       for o the Kronekcer product
-% - nr: 1 x m array specifying the cumulative number of elements in each 
-%       monomial basis ZL{i};
-% - nc: 1 x n array specifying the cumulative number of elements in each 
-%       monomial basis ZR{i};
+% - C:      (sparse) array of dimensions (p*nnr(1)) x (q*nnc(1)),
+%           representing the coefficient matrix of a p x q 'quadPoly',
+%           acting on the monomials
+%               ZL = ZL{1} o ... o ZL{m},  ZR = ZR{1} o ... o ZR{n},
+%           for o the Kronecker product;
+% - nnr:    1 x (m+1) array, with nnr(i) the number of monomials in
+%           ZL{i} o ... o ZL{m}, and nnr(m+1)=1;
+% - nnc:    1 x (n+1) array, with nnc(i) the number of monomials in
+%           ZR{i} o ... o ZR{n}, and nnc(n+1)=1;
 %
 % OUTPUTS
-% - rsubs:  k x m array specifying the monomial index in ZL associated with
-%           each nonzero element of C;
-% - csubs:  k x m array specifying the monomial index in ZL associated with
-%           each nonzero element of C;
+% - rsubs:  k x (m+1) array specifying, for each nonzero element of C,
+%           the row index in the p x q matrix, and the index of the
+%           monomial in each ZL{i};
+% - csubs:  k x (n+1) array specifying, for each nonzero element of C,
+%           the column index in the p x q matrix, and the index of the
+%           monomial in each ZR{i};
 % - vals:   k x 1 array specifying the nonzero values appearing in C
 %
 

@@ -9,8 +9,9 @@ function logval = is_id_op(Rop,ztol)
 %           factor. Defaults to 1e-12;
 %
 % OUTPUTS
-% - logval: boolean specifying whether (true) or not (false) Rop is an
-%           identity operator on the function space on which it is defined;
+% - logval: 'logical' scalar specifying whether (true) or not (false) Rop
+%           is an identity operator on the function space on which it is
+%           defined;
 %
 % NOTES
 % - For 'tensopvar' objects defined by multiple terms, the function does

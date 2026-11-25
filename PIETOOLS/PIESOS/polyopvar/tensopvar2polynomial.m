@@ -81,12 +81,13 @@ end
 
 
 function [P,msg] = convert_op(Top)
-% Recursive conversion: msg is empty if P is the polynomial matrix of Top, else the reason it is not
+% Recursive conversion: msg is empty if P is the polynomial matrix of Top,
+% else the reason it is not
 %
-% INPUT
+% INPUTS
 % - Top:  'tensopvar' or 'sopvar' object;
 %
-% OUTPUT
+% OUTPUTS
 % - P:    'polynomial' matrix of Top, or [] if it cannot be converted;
 % - msg:  char or string, empty, or the reason Top cannot be converted.
 P = [];     msg = '';
@@ -155,16 +156,19 @@ end
 
 
 function C = combine_matrices(A,B,type)
-% Product of two polynomial matrices A, B of the factors of a tensor-PI operator: pointwise (type(1)=1) or
-% Kronecker (type(1)=2) along the rows, and Kronecker (type(2)=2) or pointwise along the columns. The
-% matrix of the products A(r1,c1)*B(r2,c2), with r1=r2 (c1=c2) for a pointwise product.
+% Product of two polynomial matrices A, B of the factors of a tensor-PI
+% operator: pointwise (type(1)=1) or Kronecker (type(1)=2) along the rows,
+% and Kronecker (type(2)=2) or pointwise along the columns. The matrix of
+% the products A(r1,c1)*B(r2,c2), with r1=r2 (c1=c2) for a pointwise
+% product.
 %
-% INPUT
+% INPUTS
 % - A, B:   'polynomial' (or 'double') matrices;
 % - type:   1 x 2 array, the product along the rows and the columns;
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'polynomial' matrix of the products.
+
 % A Kronecker product along the rows requires disjoint variables
 if type(1)==2 && ~isempty(intersect(used_vars(A),used_vars(B)))
     error("A Kronecker product along the rows of factors that share a spatial variable is not a polynomial.")
@@ -196,13 +200,14 @@ end
 
 
 function vars = used_vars(P)
-% Names of the variables that appear in a term of the polynomial P with a nonzero coefficient
+% Names of the variables that appear in a term of the polynomial P with a
+% nonzero coefficient
 %
-% INPUT
+% INPUTS
 % - P:      'polynomial' object;
 %
-% OUTPUT
-% - vars:   1 x k cellstr of variable names.
+% OUTPUTS
+% - vars:   1 x k 'cellstr' of variable names.
 mons = find(any(P.coefficient,2));
 vars = reshape(P.varname(any(full(P.degmat(mons,:))>0,1)),1,[]);
 

@@ -4,21 +4,17 @@ function logval = is_id_op(Kop,ztol)
 %
 % INPUTS
 % - Kop:    m x n 'intop' object;
-% - ztol:   (optional) scalar tolerance below which the difference between
-%           the kernel and the identity matrix is taken to be zero.
-%           Defaults to 1e-12;
+% - ztol:   (optional) scalar tolerance: coefficients of the difference
+%           between the kernel and the identity matrix of magnitude at
+%           most ztol are taken to be zero. Defaults to 1e-12;
 %
 % OUTPUTS
-% - logval: boolean specifying whether (true) or not (false) Kop is the
-%           identity operator on R^m;
+% - logval: logical, true if Kop is the identity operator on R^m;
 %
 % NOTES
-% - An 'intop' maps functions of N spatial variables to R^m. For N>0, it is
-%   never the identity, as it maps from L2 to R^m. Hence, Kop is the
-%   identity iff Kop.vars.in is empty and the coefficients of Kop.params{1}
-%   are those of the m x m identity matrix: constant term 1 on the
-%   diagonal, and no other nonzeros, in particular none for the decision
-%   variables.
+% - Kop is the identity only if it has no spatial variables (N=0) and its
+%   kernel is the m x m identity matrix up to ztol, with zero coefficients
+%   for all decision variables.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

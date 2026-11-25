@@ -1,10 +1,11 @@
 function P = quadPoly2polynomial(Q)
-%quadPoly2polynomial Convert quadPoly to polynomial object.
+%QUADPOLY2POLYNOMIAL Convert quadPoly to polynomial object.
+% Static method, called as quadPoly.quadPoly2polynomial(Q).
 %
-% INPUT
-% - Q:      m x n 'quadPoly' object;
+% INPUTS
+% - Q:      m x n 'quadPoly' object (or 'double' matrix);
 %
-% OUTPUT
+% OUTPUTS
 % - P:      m x n 'polynomial' object in the variables Q.ns and Q.nt.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +33,7 @@ function P = quadPoly2polynomial(Q)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/11/2026
+% SS, 02/11/2026: Initial coding;
 
     [m,n] = size(Q);
     if isdouble(Q)
@@ -110,10 +111,10 @@ function d = basisSize(Zcell)
 % product basis defined by the exponent vectors in ZCELL (an empty
 % element counts as the constant monomial).
 %
-% INPUT
+% INPUTS
 % - Zcell:  1 x k cell of exponent vectors;
 %
-% OUTPUT
+% OUTPUTS
 % - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
@@ -125,14 +126,14 @@ function d = basisSize(Zcell)
 end
 
 function D = fullDegreeTable(Zcell)
-% Return full tensor degree table: (prod_i |Z{i}|) × (#vars)
+% Return full tensor degree table: (prod_i |Z{i}|) x (#vars)
 % kron order: last variable varies fastest
 %
-% INPUT
+% INPUTS
 % - Zcell:  1 x k cell of exponent vectors (an empty one counts as degree
 %           0);
 %
-% OUTPUT
+% OUTPUTS
 % - D:      prod_i |Z{i}| x k array, row j the degrees of monomial j
 %           (1 x 0 for an empty Zcell).
     if isempty(Zcell)

@@ -1,21 +1,19 @@
 function H = hessian(F, vars)
-%HESSIAN compute hessian of quadpoly object F.
-% 
+%HESSIAN Compute the Hessian of a quadPoly object F.
+%
 % INPUTS
-% - F:    1x1 'quadpoly' class object.
-% - vars:  (optional) cell array of names of vars, k of them; defaults to
-%          all variables of F, left (ns) then right (nt)
-% 
+% - F:      1 x 1 'quadPoly' object;
+% - vars:   (optional) 'char', 'string' array or 'cell' of k variable
+%           names; defaults to all variables of F, left (F.ns) then
+%           right (F.nt);
+%
 % OUTPUTS
-% - H:      'quadpoly' object differentiated with respect all vars: the
-%           k x k matrix H(i,j) = d^2 F/(d vars{i} d vars{j})
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% - H:      k x k 'quadPoly' object, H(i,j) = d^2 F/(d vars{i} d vars{j}).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - hessian
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -31,11 +29,12 @@ function H = hessian(F, vars)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % AT, 02/18/2026: Initial coding;
 
 

@@ -2,12 +2,18 @@ function [E, Z3] = tensExps(Z1,Z2)
 % Given two monomial column vectors Z1, Z2, this
 % function calculates Z3 such that E*Z3 = Z1\otimes Z2.
 %
-% INPUT
-% - Z1, Z2: column vectors of monomial degrees;
+% INPUTS
+% - Z1, Z2: numeric column vectors;
 %
-% OUTPUT
-% - E:      sparse matrix with E*Z3 = Z1 o Z2;
-% - Z3:     column vector of the unique degrees of Z1 o Z2.
+% OUTPUTS
+% - E:      numel(Z1)*numel(Z2) x numel(Z3) sparse 0/1 matrix with
+%           E*Z3 = Z1\otimes Z2;
+% - Z3:     column vector of the sorted unique entries of Z1\otimes Z2.
+%
+% NOTES
+% - The entries of Z1\otimes Z2 are the products Z1(i)*Z2(j): applied to
+%   vectors of exponents, they are not the exponents of the products of
+%   the monomials.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - tensExps
@@ -34,7 +40,7 @@ function [E, Z3] = tensExps(Z1,Z2)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/31/2026
+% SS, 01/31/2026: Initial coding;
 
 Zfull = kron(Z1,Z2);
 

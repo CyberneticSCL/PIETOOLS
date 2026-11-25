@@ -23,9 +23,6 @@ function K = params2kernel(P,Zin,Zd,dumnames)
 %               array of type 'double' instead;
 %
 % NOTES
-% - Only the nonzeros of P, and the monomials they involve, are used, so
-%   that the cost does not depend on the number of decision variables nd,
-%   nor on the number of monomials nZ, apart from the size of P.
 % - A zero kernel is declared as the monomial Z.in{1}(1,:)*...*Z.in{N}(1,:)
 %   with coefficient 0.
 

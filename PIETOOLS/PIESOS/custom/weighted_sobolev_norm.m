@@ -10,26 +10,27 @@ function g = weighted_sobolev_norm(u,alpha)
 % The components of u may depend on different numbers of spatial variables.
 %
 % INPUTS
-% - u:      'polyopvar' representing the state, with m components u_i: the
-%           blocks of rows of u.C (m = numel(u.dims.out), which equals
-%           size(u,1) if all components are scalar-valued). Component u_i
-%           is a function of the N spatial variables in u.vars.out for
-%           which u.depmat.out(i,:) is nonzero (in the order of u.vars.out),
-%           e.g. N = 1, 2, 0 for u = [u1(s1); u2(s1,s2); u3]. All entries
-%           of a vector-valued component get the same weights;
-% - alpha:  m x 1 cell, with alpha{i} specifying the weights of the
-%           derivatives of u_i: alpha{i}(k_1+1,...,k_N+1) is the weight of
-%           ||D^k u_i||^2, where k_j is the order of the derivative in the
-%           jth variable of u_i, as ordered above. For derivatives up to order
-%           (d_1,...,d_N), alpha{i} is a (d_1+1) x ... x (d_N+1) array,
-%           so a scalar if N=0, a vector if N=1, and a matrix if N=2.
-%           Derivatives with zero weight are not taken and need not exist:
-%           for an L2 state u_i, use alpha{i} = 1 (or any nonnegative
-%           scalar) for the weight of ||u_i||^2.
+% - u:      'polyopvar' object representing the state, with m components
+%           u_i: the blocks of rows of u.C (m = numel(u.dims.out), which
+%           equals size(u,1) if all components are scalar-valued).
+%           Component u_i is a function of the N spatial variables in
+%           u.vars.out for which u.depmat.out(i,:) is nonzero (in the
+%           order of u.vars.out), e.g. N = 1, 2, 0 for
+%           u = [u1(s1); u2(s1,s2); u3]. All entries of a vector-valued
+%           component get the same weights;
+% - alpha:  m x 1 'cell', with alpha{i} specifying the weights of the
+%           derivatives of u_i: alpha{i}(k_1+1,...,k_N+1) is the weight
+%           of ||D^k u_i||^2, where k_j is the order of the derivative in
+%           the jth variable of u_i, as ordered above. For derivatives up
+%           to order (d_1,...,d_N), alpha{i} is a (d_1+1) x ... x (d_N+1)
+%           array, so a scalar if N=0, a vector if N=1, and a matrix if
+%           N=2. Derivatives with zero weight are not taken and need not
+%           exist: for an L2 state u_i, use alpha{i} = 1 (or any
+%           nonnegative scalar) for the weight of ||u_i||^2.
 %           Alternatively, alpha can be a single array, used for all
 %           components: a scalar then weights ||u_i||^2 for each
 %           component, whereas an array with N>0 dimensions requires each
-%           component to depend on N variables;
+%           component to depend on at least N variables;
 %
 % OUTPUTS
 % - g:      scalar 'polyopvar' object representing the squared weighted
@@ -39,13 +40,16 @@ function g = weighted_sobolev_norm(u,alpha)
 % For u = [u1(s1); u2(s1,s2); u3], with u3 in R, and
 %   alpha = {[1;0;2]; [1,3;0,0]; 5},
 % the output is
-%   g = ||u1||^2 + 2*||d^2 u1/ds1^2||^2 + ||u2||^2 + 3*||d u2/ds2||^2 + 5*u3^2.
+%   g = ||u1||^2 + 2*||d^2 u1/ds1^2||^2 + ||u2||^2
+%       + 3*||d u2/ds2||^2 + 5*u3^2.
 %
 % NOTES
 % - The derivatives are taken of the output of u, so they must again be
-%   operators acting on x: an error is
-%   thrown for a derivative of nonzero weight if u_i involves a multiplier
-%   along the differentiated variable (a derivative of x would be needed);
+%   operators acting on x: an error is thrown for a derivative of nonzero
+%   weight if u_i involves a multiplier along the differentiated variable
+%   (a derivative of x would be needed);
+% - A component u_i that is a tensor product of functions of the same
+%   variable (u.depmat.out(i,:)>1) is not supported;
 % - g is a norm only if all weights are nonnegative, which is not checked;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,8 +73,8 @@ function g = weighted_sobolev_norm(u,alpha)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% If you modify this code, document all changes carefully and
-% include date authorship, and a brief description of modifications
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % CR, DJ, 11/09/2026: Initial coding;

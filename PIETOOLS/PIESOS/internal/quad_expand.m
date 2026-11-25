@@ -6,39 +6,40 @@ function [coeffs,Z] = quad_expand(params,varnames,Z,chk_vars)
 % (see NOTES).
 %
 % INPUTS
-% - params:     cell of elements of type 'double', 'polynomial', 'dpvar',
+% - params:     'cell' of elements of type 'double', 'polynomial', 'dpvar',
 %               or 'quadPoly' (or a single element of such a type, in
 %               which case coeffs is a single matrix, not a cell);
-% - varnames:   struct with fields
-%         in:   1 x N cellstr, specifying the names of the input variables
-%               appearing in the parameters;
-%        out:   1 x M cellstr, specifying the names of the output
+% - varnames:   'struct' with fields
+%         in:   1 x N 'cellstr', specifying the names of the input
 %               variables appearing in the parameters;
-% - Z:          (optional) struct with fields
-%         in:   1 x N cell, with each element a di x 1 array specifying
+%        out:   1 x M 'cellstr', specifying the names of the output
+%               variables appearing in the parameters;
+% - Z:          (optional) 'struct' with fields
+%         in:   1 x N 'cell', with each element a di x 1 array specifying
 %               the degrees of the monomials in varnames.in{i} in terms of
 %               which to express the parameters;
-%        out:   1 x M cell, with each element a pi x 1 array specifying
+%        out:   1 x M 'cell', with each element a pi x 1 array specifying
 %               the degrees of the monomials in varnames.out{i} in terms
 %               of which to express the parameters.
 %               If not specified, monomial degrees are determined based
 %               on what monomials are encountered in the parameters;
-% - chk_vars:   (optional) logical values indicating whether (true) or not
+% - chk_vars:   (optional) logical value indicating whether (true) or not
 %               (false) to update the parameters to express them in terms
-%               of the same variables. If false, the parameters must
-%               already be expressed in terms of the same variables
-%               (varnames.out and varnames.in), and Z must be specified.
+%               of the same variables. If false, the parameters must be
+%               'polynomial', 'dpvar' or 'quadPoly' objects already
+%               expressed in terms of the variables varnames.out and
+%               varnames.in, in this order, and Z must be specified.
 %               Defaults to true;
 %
 % OUTPUTS
-% - coeffs:     cell of the same dimensions as params, expressing for each
-%               of the parameters the coefficient matrix defining this
+% - coeffs:     'cell' of the same dimensions as params, expressing for
+%               each of the parameters the coefficient matrix defining this
 %               parameter in the quadratic format;
-% - Z:          struct with fields
-%         in:   1 x N cell, with each element a di x 1 array specifying
+% - Z:          'struct' with fields
+%         in:   1 x N 'cell', with each element a di x 1 array specifying
 %               the degrees of the monomials in varnames.in{i} in terms of
 %               which the parameters are expressed;
-%        out:   1 x M cell, with each element a pi x 1 array specifying
+%        out:   1 x M 'cell', with each element a pi x 1 array specifying
 %               the degrees of the monomials in varnames.out{i} in terms
 %               of which the parameters are expressed;
 %

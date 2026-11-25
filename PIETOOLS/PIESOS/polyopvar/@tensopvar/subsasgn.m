@@ -8,7 +8,8 @@ function out = subsasgn(obj,ref,RHS)
 % - obj:    'tensopvar' object of which to assign elements;
 % - ref:    'struct' specifying which elements of obj to adjust;
 % - RHS:    object specifying the new value(s) of the elements specified
-%           by ref. For ref(1).type='{}', this is one of:
+%           by ref. For ref(1).type='.', the new value of the field. For
+%           ref(1).type='{}', this is one of:
 %             - if ref(1).subs is a single (scalar) row,column pair: the
 %               'sopvar', 'intop', or 'tensopvar' object to store directly
 %               as obj.ops{i,j};
@@ -22,13 +23,14 @@ function out = subsasgn(obj,ref,RHS)
 % NOTES
 % - Only '{}'-type subsasgn (replacing term/factor(s) in obj.ops) and
 %   '.'-type subsasgn (setting a field) are supported; '()'-type subsasgn
-%   is not supported.
-% - After '{}'-type subsasgn, the object is passed through 'initialize',
-%   which recomputes dims/vars/dom/depmat from obj.ops and errors if the
-%   new factor(s) are inconsistent in matrix dimension, variables, or
-%   domain with the rest of the tensor-PI operator.
+%   and chained assignment, e.g. C{i,j}.field = RHS, are not supported.
+% - After '{}'-type subsasgn, dims/vars/dom/depmat are recomputed from
+%   obj.ops, and an error is thrown if the new factor(s) are inconsistent
+%   in matrix dimension, variables, or domain with the rest of the
+%   tensor-PI operator. '.'-type subsasgn does not update these fields;
+%   after setting C.ops, call C = initialize(C).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - subsasgn
 %
 % Copyright (C) 2026 PIETOOLS Team
@@ -47,13 +49,13 @@ function out = subsasgn(obj,ref,RHS)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 switch ref(1).type
     case '.'
@@ -75,12 +77,19 @@ switch ref(1).type
         else
             error("At most two indices are supported for 'tensopvar' objects.")
         end
+        % ':' selects all terms or factors (compared as a number, it is 58)
+        if ischar(indr) && strcmp(indr,':')
+            indr = 1:ncomps;
+        end
+        if ischar(indc) && strcmp(indc,':')
+            indc = 1:ntrms;
+        end
         if any(indr<=0) || any(indc<=0)
             error("Indices must be positive integers.")
         elseif any(indr>ncomps)
-            error("Row indices cannot exceed number of components.")
+            error("Row indices cannot exceed the number of terms.")
         elseif any(indc>ntrms)
-            error("Column indices cannot exceed number of monomials.")
+            error("Column indices cannot exceed the number of factors.")
         end
         if numel(ref)>=2
             % e.g. C{i,j}.field=... -- would require reaching into the

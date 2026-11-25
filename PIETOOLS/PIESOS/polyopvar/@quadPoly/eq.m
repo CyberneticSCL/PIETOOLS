@@ -1,15 +1,16 @@
 function logval = eq(P1,P2,tol)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% logval = eq(P1,P2,tol) tests equality of two quadpoly P1 and P2 with tolerance tol
-% Version: 1.0
+% LOGVAL = EQ(P1,P2,TOL) tests equality of two quadPoly objects P1 and P2
+% with tolerance TOL.
 %
-% INPUT
-% P1, P2: quadpoly class objects; one of them may be the scalar 0
-% tol: (optional) acceptable tolerance value, default 1e-14. If every
-%      coefficient of P1-P2 is smaller than tol in magnitude, then P1=P2
+% INPUTS
+% - P1, P2: 'quadPoly' objects of the same size; one of them may be the
+%           scalar 0;
+% - tol:    (optional) acceptable tolerance value, default 1e-14. If every
+%           coefficient of P1-P2 is smaller than tol in magnitude, then
+%           P1=P2;
 %
-% OUTPUT
-% logval: returns 1 if the objects are equal, 0 if not equal
+% OUTPUTS
+% - logval: logical, true if the objects are equal, false if not.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,7 +38,7 @@ function logval = eq(P1,P2,tol)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% AT, 01/21/2026: Initial coding
+% AT, 01/21/2026: Initial coding;
 
 % Default tolerance
 if nargin<3

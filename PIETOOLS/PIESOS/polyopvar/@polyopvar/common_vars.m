@@ -1,17 +1,17 @@
 function [A_out,B_out] = common_vars(A_in,B_in)
-% [A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) takes two distributed polynomials
-% and expresses them in terms of the same state variables and the same
-% output variables.
+% [A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) expresses two distributed
+% polynomials in terms of the same state variables and the same output
+% variables.
 %
 % INPUTS
-% - A_in, B_in:     m x n 'polyopvar' objects;
+% - A_in, B_in:     'polyopvar' objects, not adjoints;
 %
 % OUTPUTS
-% - A_out, B_out:   m x n 'polyopvar' objects representing the same
-%                   distributed polynomials as A_in, B_in, respectively,
-%                   but expressed in terms of the same variables, so that
-%                   A_out.varname = B_out.varname;
-%                   A_out.vars = B_out.vars;
+% - A_out, B_out:   'polyopvar' objects representing the same
+%                   polynomials as A_in, B_in, respectively, with
+%                       A_out.varname = B_out.varname;
+%                       A_out.vars = B_out.vars;
+%                       A_out.dom = B_out.dom;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

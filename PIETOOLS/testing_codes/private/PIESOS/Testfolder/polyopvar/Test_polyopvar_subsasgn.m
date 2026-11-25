@@ -9,6 +9,7 @@
 % Assignment to elements, f(i,j)=... or f{i,j}=..., is not supported.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Accept the reworded message of initialize ("do not match");
 
 pvar s
 x = polyopvar({'a','b'},s,[0,1]);
@@ -106,7 +107,7 @@ try
 catch ME
     if strcmp(ME.identifier,"Test_polyopvar_subsasgn:noerror")
         rethrow(ME)
-    elseif ~contains(ME.message,'does not match') && ~contains(ME.message,'conflicts')
+    elseif ~contains(ME.message,'not match') && ~contains(ME.message,'conflicts')     % DJ, 11/24/2026
         error("Unexpected error for inconsistent dims: %s",ME.message)
     end
 end

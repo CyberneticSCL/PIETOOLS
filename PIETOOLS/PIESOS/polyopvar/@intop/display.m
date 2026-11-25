@@ -12,37 +12,29 @@ function display(Kop,name,width_max,call_name)
 %           Defaults to the name of the variable passed to display, or to
 %           'Kop' if there is none. The name 'ans' is replaced by 'Kop';
 % - width_max:  (optional) maximal number of characters of a line with
-%           multiple terms. Defaults to the width of the command window, or
-%           to 100 if this cannot be determined;
+%           multiple terms. Defaults to the width of the command window
+%           minus one, or to 100 if this cannot be determined;
 % - call_name:  (optional) char, the expression with which the user can
-%           call the functional, used in the call to extract a kernel.
-%           Defaults to name, also if that is ans, and is set by the
-%           display of a container that has Kop as its only block, e.g.
-%           'Rop.ops{1,1}';
-%
-% OUTPUTS
-% Display of the functional in the command window. The terms are
-% placed on the same line, unless the line would have more characters than
-% fit in the command window, in which case the whole next term is moved to
-% the next line, so that no term is split by the command window, with the
-% sign aligned under the equality sign.
+%           call the functional, used in the call to extract a kernel,
+%           e.g. 'Rop.ops{1,1}' for the only block of a container.
+%           Defaults to name, also if that is 'ans';
 %
 % NOTES
+% - The terms are placed on one line as long as they fit in the command
+%   window; otherwise the whole next term moves to the next line, with its
+%   sign aligned under the equality sign.
 % - The integrals involve only dummy variables, displayed as gamma, with
 %   the number of the integrated copy as subscript if there are multiple.
 %   The domains of the variables are those of Kop.dom.
 % - A kernel with at most 4 nonzero coefficients is displayed explicitly,
 %   if the functional is scalar-valued. Other kernels K_i are displayed by
 %   name; the kernel K_i can be extracted by calling Kop.kernels{i}, which
-%   returns the kernel defined by Kop.params{i}, in the output variables
-%   and in dummy variables named as the variables in Kop.vars with _dum
-%   appended.
+%   returns the kernel defined by Kop.params{i} in the dummy variables
+%   Kop.varnames.in_dum, {'s_dum1',...,'s_dumd'} for each variable s in
+%   Kop.vars.in.
 % - The function that the functional acts on is named x.
 % - The terms are numbered like the elements of Kop.params, so a term
 %   with a zero kernel is not displayed, but does take an index.
-% - The cost does not depend on the number of decision variables: only the
-%   nonzeros of the parameters of kernels that are displayed explicitly
-%   are accessed.
 % - An identity operator is displayed as NAME x = x.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

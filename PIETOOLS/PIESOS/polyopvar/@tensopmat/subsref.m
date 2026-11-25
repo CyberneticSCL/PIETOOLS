@@ -5,7 +5,7 @@ function out = subsref(obj,ref)
 %
 % INPUTS
 % - obj:    'tensopmat' object of which to extract certain elements;
-% - ref:    struct indicating which element/fields of obj to extract;
+% - ref:    'struct' indicating which element/fields of obj to extract;
 %
 % OUTPUTS
 % - out:    object representing the elements of 'obj' specified by 'ref'.
@@ -23,6 +23,8 @@ function out = subsref(obj,ref)
 %   the scalar rows and columns that C(i,j) indexes. The keyword 'end'
 %   cannot be used: it evaluates to 1 for a 'tensopmat', so C{i,end} is
 %   C{i,1}. Use size(C.ops,2) instead.
+% - C(i,j) requires two indices; a single linear index is only supported
+%   for extracting a single block, C{k}.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,7 +52,7 @@ function out = subsref(obj,ref)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if isempty(ref)
     out = obj;
@@ -160,9 +162,9 @@ switch ref(1).type
         if strcmp(indr,':'),    indr = 1:ncomps;    end
         if strcmp(indc,':'),    indc = 1:ntrms;     end
         if any(indr>ncomps)
-            error("Row indices cannot exceed number of components.")
+            error("Row indices cannot exceed the number of row-blocks.")
         elseif any(indc>ntrms)
-            error("Column indices cannot exceed number of monomials.")
+            error("Column indices cannot exceed the number of column-blocks.")
         end
         % Several blocks, C{I,J} or with ':': the 'tensopmat' of these blocks. Slicing obj.ops, and
         % dims/depmat as for '()', keeps the dimensions of blocks in an empty row or column

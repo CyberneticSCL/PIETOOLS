@@ -27,9 +27,10 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 %             array specifying the intervals of integration along
 %             variable i to include in the functional variable, in the
 %             'intop' format;
-%           OPTION 2: a char indicating what kind of integrals to include
-%             in the functional. An associated intmat in the 'intop'
-%             format is generated accordingly. Must be one of
+%           OPTION 2: a 'char' (or string) indicating what kind of
+%             integrals to include in the functional. An associated
+%             intmat in the 'intop' format is generated accordingly. Must
+%             be one of
 %               'full':   include all admissible integrals;
 %               'nomult': exclude any delta functions in the kernel, so
 %                         that the functional is defined by only proper
@@ -43,9 +44,10 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 %             Here, 'full' includes one integral for each possible
 %             ordering of the deps(i) dummy variables of variable i, with
 %             ties between variables taken as delta functions
-%             (multipliers). 'nomult' includes the deps(i)! integrals
-%             without ties, with the lower integral first and the upper
-%             integral last.
+%             (multipliers), those with fewer distinct values first, then
+%             ordered as for 'nomult'. 'nomult' includes the deps(i)!
+%             integrals without ties, with the lower integral first and
+%             the upper integral last.
 %           The terms along the N variables form an ntrms(1) x ... x
 %           ntrms(N) cell Kop.params, with a kernel for each combination
 %           of terms;
@@ -68,13 +70,13 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 %             so that a single row specifies a single monomial. These can
 %             be specified as
 %             - ntrms(1) x ... x ntrms(N) cell array, with element
-%               (i1,...,iN) specifying the monomials in the kernel
-%               Each element is either an nmons x sum(deps) array, with a
-%               column for each of the sum(deps) dummy variables of the
-%               term (those of variable 1 first, in the order of the
-%               variables as specified in "vars", and for each variable
-%               in the order of its dummy variables), which allows
-%               monomials in different variables to be coupled; or a
+%               (i1,...,iN) specifying the monomials in the kernel of
+%               that term. Each element is either an
+%               nmons x sum(deps) array, with a column for each of the
+%               sum(deps) dummy variables of the term (those of variable
+%               1 first, in the order of the variables in VARS, and for
+%               each variable in the order of its dummy variables), which
+%               allows monomials in different variables to be coupled; or a
 %               1 x N cell, with element i an nmons(i) x deps(i) array of
 %               the monomials in the dummy variables of variable i, so
 %               that the monomials in the kernel are all products of
@@ -94,16 +96,18 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 %           with the functional Kop added;
 % - Kop:    'intop' object representing a functional acting on the
 %           prescribed function space and defined in terms of the
-%           specified integrals. The kernels are 'dpvar' objects, defined
-%           by monomials of degrees determined by DEGS, in terms of the
-%           dummy variables 'si_dum1',...,'si_dum<deps(i)>'. The
-%           variables are sorted by name;
+%           specified integrals. The kernels are matdim(1) x matdim(2)
+%           'dpvar' objects, defined by monomials of degrees determined
+%           by DEGS, in terms of the dummy variables
+%           'si_dum1',...,'si_dum<deps(i)>'. The variables with
+%           deps(i)>0 are kept, sorted by name;
 %
 % NOTES
-% - A kernel in a term where a dummy variable si_j is set equal to
-%   another one, i.e. intmat{i}(t,2*j-1)=intmat{i}(t,2*j), cannot
-%   depend on si_j: monomials with nonzero degree in si_j are
-%   discarded, and the kernel is zero if no monomials remain.
+% - A kernel in a term where a dummy variable si_j is evaluated at a
+%   point (another dummy variable or a boundary), i.e.
+%   intmat{i}(t,2*j-1)=intmat{i}(t,2*j), cannot depend on si_j:
+%   monomials with nonzero degree in si_j are discarded, and the kernel
+%   is zero (a 'polynomial') if no monomials remain.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_intopvar
@@ -130,7 +134,7 @@ function [prog,Kop] = piesos_intopvar(prog,matdim,vars,dom,deps,intmat,degs)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 
 % Check the matrix dimensions
@@ -173,7 +177,7 @@ if ~isnumeric(dom)
 elseif N==0
     domval = zeros(0,2);
 elseif size(dom,2)~=2
-    error("An upper and lower boundary of the domain must be speciified.")
+    error("An upper and lower boundary of the domain must be specified.")
 elseif size(dom,1)==1
     % Assume same interval for all variables.
     domval = repmat(dom,N,1);
@@ -353,28 +357,28 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function intmat = build_intmat(opt,deps)
 % INTMAT = BUILD_INTMAT(OPT,DEPS) builds an 'intop' intmat structure based
-% on the specified option, with no integrals for the variables with 
+% on the specified option, with no integrals for the variables with
 % DEPS(i)=0.
 %
-% NOTES:
-% Each integral is defined by the ordering of the dummy variables
-% si_1,...,si_d, as a vector r of ranks, with r(j) the rank of si_j in the
-% increasing order of the values; variables with the same rank are equal.
-% The variables of rank q are all set equal to the first of them, rep(q),
-% as the kernel cannot depend on the others. Variable rep(q) is integrated
-% over [a,si_rep(q+1)] if q<max(r), and over the full domain if q=max(r).
-% Then the variables are ordered as r, and every ordering gives a different
-% integral (intmat entries 0 and d+1 stand for the boundaries a and b of
-% the domain).
-%
-% INPUT
+% INPUTS
 % - opt:    char, 'full', 'nomult', 'lower' or 'upper';
 % - deps:   1 x N array, the number of dummy variables of each variable;
 %
-% OUTPUT
+% OUTPUTS
 % - intmat: 1 x N cell; intmat{i} is an ntrms(i) x 2*deps(i) array of the
 %           limits of integration of the dummy variables of variable i, one
 %           row per integral (a 1 x 0 array if deps(i)=0).
+%
+% NOTES
+% - Each integral is defined by the ordering of the dummy variables
+%   si_1,...,si_d, as a vector r of ranks, with r(j) the rank of si_j in
+%   the increasing order of the values; variables with the same rank are
+%   equal. The variables of rank q are all set equal to the first of
+%   them, rep(q), as the kernel cannot depend on the others. Variable
+%   rep(q) is integrated over [a,si_rep(q+1)] if q<max(r), and over the
+%   full domain if q=max(r). Then the variables are ordered as r, and
+%   every ordering gives a different integral (intmat entries 0 and d+1
+%   stand for the boundaries a and b of the domain).
 
 N = numel(deps);
 intmat = cell(1,N);
@@ -436,12 +440,11 @@ function R = weak_orders(d)
 % R = WEAK_ORDERS(D) returns all rank vectors (rows) of the weak orderings
 % of D variables, so that R(t,j) is the rank of variable j in the t-th
 % ordering, and R(t,:) contains all integers from 1 to max(R(t,:)).
-% Built by choosing the variables with rank 1, and ordering the rest.
 %
-% INPUT
+% INPUTS
 % - d:  nonnegative integer, the number of variables;
 %
-% OUTPUT
+% OUTPUTS
 % - R:  nord x d array of ranks, nord the number of weak orderings (a
 %       1 x 0 array if d=0).
 
@@ -482,7 +485,7 @@ function Zcell = build_monoms(degs,per_term,is_max,intmat,deps,varnames_dum,ntrm
 % If DEGS is a cell of terms with an array for a term, the array specifies
 % the monomials in all dummy variables of the term together.
 %
-% INPUT
+% INPUTS
 % - degs:         1 x N cell (per variable), or ntrms(1) x ... x ntrms(N)
 %                 cell (per term), of degrees as DEGS of the main function;
 % - per_term:     logical, true if degs is a cell of terms;
@@ -493,7 +496,7 @@ function Zcell = build_monoms(degs,per_term,is_max,intmat,deps,varnames_dum,ntrm
 %                 dummy variables of variable i;
 % - ntrms:        1 x N array, the number of terms along each variable;
 %
-% OUTPUT
+% OUTPUTS
 % - Zcell:        ntrms(1) x ... x ntrms(N) cell; element k is the nZ x 1
 %                 'polynomial' of the monomials of the kernel of term k, or
 %                 [] if no monomial remains.
@@ -556,14 +559,14 @@ function a = sort_degs(a,sort_idx,deps)
 % of the variables in the order specified. The columns of an array, one for
 % each of the dummy variables, are reordered in blocks of DEPS(i) columns.
 %
-% INPUT
+% INPUTS
 % - a:        1 x N cell of monomial degrees per variable, or nmons x
 %             sum(deps) array of monomial degrees;
 % - sort_idx: 1 x N array, the permutation sorting the variables;
 % - deps:     1 x N array, the number of dummy variables of each variable,
 %             in the order specified;
 %
-% OUTPUT
+% OUTPUTS
 % - a:        the same degrees, with elements (cell) or column blocks
 %             (array) permuted by sort_idx.
 
@@ -586,25 +589,25 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
 function degmat = degs2degmat(degs,nvars,rm_vars,is_max)
-% DEGMAT = DEGS2DEGMAT(DEGS,NVARS,RM_VARS,IS_MAX) computes a nmons x NVARS
-% array DEGMAT of monomial degrees based on the degrees specified by DEGS.
+% DEGMAT = DEGS2DEGMAT(DEGS,NVARS,RM_VARS,IS_MAX) computes the array
+% DEGMAT of monomial degrees based on the degrees specified by DEGS.
 % If IS_MAX is true, DEGS specifies maximal degrees: a scalar, the maximal
 % cumulative degree, or a 1 x NVARS array, the maximal degree in each
-% variable. Otherwise, each row of DEGS specifies the degrees of a monomial,
-% with a column for each of the NVARS dummy variables, so that a single row
-% specifies a single monomial. NVARS is the number of dummy variables of a
-% variable, or of all variables of a term.
-% Monomials which are not constant in variables RM_VARS are removed, and
-% the columns associated with variables RM_VARS are removed from DEGMAT.
+% variable. Otherwise, each row of DEGS specifies the degrees of a
+% monomial, with a column for each of the NVARS dummy variables, so that a
+% single row specifies a single monomial. NVARS is the number of dummy
+% variables of a variable, or of all variables of a term. Monomials which
+% are not constant in variables RM_VARS are removed, and the columns
+% associated with variables RM_VARS are removed from DEGMAT.
 %
-% INPUT
+% INPUTS
 % - degs:     scalar or 1 x nvars array of maximal degrees (is_max true),
 %             or nmons x nvars array of monomial degrees;
 % - nvars:    nonnegative integer, the number of dummy variables;
 % - rm_vars:  1 x nvars logical array, the dummy variables to remove;
 % - is_max:   logical, true if degs holds maximal degrees;
 %
-% OUTPUT
+% OUTPUTS
 % - degmat:   nmons x nnz(~rm_vars) array of monomial degrees, rows sorted.
 
 if ~isnumeric(degs) || isempty(degs) || any(degs(:)<0) || any(round(degs(:))~=degs(:))
@@ -636,12 +639,12 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function degmat = box_degs(maxdegs)
 % DEGMAT = BOX_DEGS(MAXDEGS) returns the degrees (rows) of all monomials in
-% numel(MAXDEGS) variables, of degree at most MAXDEG(j) in variable j.
+% numel(MAXDEGS) variables, of degree at most MAXDEGS(j) in variable j.
 %
-% INPUT
+% INPUTS
 % - maxdegs:  1 x d array of nonnegative integers;
 %
-% OUTPUT
+% OUTPUTS
 % - degmat:   prod(maxdegs+1) x d array of monomial degrees.
 
 d = numel(maxdegs);

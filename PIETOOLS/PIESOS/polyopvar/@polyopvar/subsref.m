@@ -1,46 +1,31 @@
 function out = subsref(obj,ref)
-% OUT = SUBSREF(OBJ,REF) extracts the elements of the 'polyopvar' object
-% OBJ specified by REF. This function is automatically called when calling
-% e.g. f(i,j), f{i,j}, or f.C for a 'polyopvar' object f.
+% OUT = SUBSREF(OBJ,REF) extracts the elements or fields of the
+% 'polyopvar' object OBJ specified by REF. Called for e.g. f(i,j), f{i,j}
+% or f.C.
 %
 % INPUTS
-% - obj:    'polyopvar' object of which to extract certain elements;
-% - ref:    struct array indicating which elements/fields of obj to
-%           extract, with fields 'type' ('.', '()', or '{}') and 'subs';
+% - obj:    'polyopvar' object, not an adjoint for '()' and '{}';
+% - ref:    'struct' array with fields 'type' ('.', '()' or '{}') and
+%           'subs', the elements or fields of obj to extract;
 %
 % OUTPUTS
-% - out:    object representing the elements of obj specified by ref:
-%           - if ref(1).type = '.', out = obj.(ref(1).subs);
-%           - if ref(1).type = '()', a 'polyopvar' object representing
-%             the element(s) (i,j) of the matrix-valued polynomial obj,
-%             with coefficients C(i,:), for C = obj.C;
-%           - if ref(1).type = '{}', a 'polyopvar' object representing
-%             the block(s) (i,j) of the matrix-valued polynomial obj,
-%             i.e. the rows of blocks C{i,:} of the coefficients, paired
-%             with the monomials Z(k,:) of its nonempty terms C.ops{i,k};
-%           If ref has more than one element, the remaining elements
-%           ref(2:end) are applied to the resulting object;
+% - out:    - for '.', the field obj.(ref(1).subs);
+%           - for '()', a 'polyopvar' object of the rows i of obj, with
+%             coefficients C(i,:) for C = obj.C, and all monomials;
+%           - for '{}', a 'polyopvar' object of the row-blocks i of obj,
+%             C{i,:}, with only the monomials on which a nonempty block
+%             of these acts (error if there is none);
+%           ref(2:end) is then applied to the result;
 %
 % NOTES
-% - Only vector-valued polynomials are supported: obj is a single column,
-%   so that the column index j of obj(i,j) and obj{i,j} can
-%   only be 1 or ':'. With a single index k, obj(k) is obj(k,1) and obj{k}
-%   is obj{k,1}.
-% - For ref(1).type = '()', i counts the scalar rows of obj, i.e. of the
-%   'tensopmat' obj.C. All monomials are
-%   retained. If all blocks are scalar-valued, obj(i,1) represents the
-%   same polynomial as obj{i,1}.
-% - For ref(1).type = '{}', i counts the blocks of rows of obj.C.ops
-%   (components, of row dimension obj.dims.out); ':' selects all of them.
-%   Monomials for which all extracted blocks are empty are dropped from
-%   the output (so f{i} returns the nonempty terms of component i), and an
-%   error is thrown if no nonempty block is extracted. A single term of f
-%   is extracted by f.C{':',k} and f.Z(k,:), the blocks and the monomial k.
-% - The keyword 'end' cannot be used: it evaluates to 1 for a 'polyopvar'
-%   (MATLAB's size of the scalar object), so f{end} is f{1} and f(end) is
-%   f(1). Use f{size(f.C.ops,1)} or f(size(f,1)) instead.
-% - For an adjoint obj (obj.is_adjoint = true), '()' and '{}' give an
-%   error.
+% - obj is a single column, so the column index j of obj(i,j) and
+%   obj{i,j} can only be 1 or ':'; obj(k) is obj(k,1), obj{k} is obj{k,1}.
+% - For '()', i counts the scalar rows of obj; for '{}', the row-blocks
+%   of obj.C (of dimension obj.dims.out). If all row-blocks are scalar,
+%   obj(i) and obj{i} represent the same polynomial.
+% - A single term of f is f.C{':',k} acting on the monomial f.Z(k,:).
+% - The keyword 'end' evaluates to 1 for a 'polyopvar' object: use
+%   f(size(f,1)) or f{size(f.C.ops,1)} instead.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

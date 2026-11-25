@@ -2,13 +2,14 @@ function e = end(F,k,n)
 % A function for indexing quadPoly objects. This will allow operations such
 % as obj(end), obj(:,end), obj(1:end,:), etc.
 %
-% INPUT
+% INPUTS
 % - F:      'quadPoly' object of dimension F.dim = [m,p];
 % - k:      integer, the position of the index in which end appears;
 % - n:      integer, the number of indices;
 %
-% OUTPUT
-% - e:      integer, m*p for linear indexing (n=1), else m (k=1) or p.
+% OUTPUTS
+% - e:      integer, m*p for linear indexing (n=1), else m for k=1 and p
+%           for k>1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - end
@@ -35,7 +36,7 @@ function e = end(F,k,n)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 m = F.dim(1); % find matrix dimensions
 p = F.dim(2);

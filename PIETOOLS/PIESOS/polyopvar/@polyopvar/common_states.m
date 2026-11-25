@@ -1,21 +1,23 @@
 function [A_out,B_out] = common_states(A_in,B_in)
-% [A_OUT,B_OUT] = COMMON_STATES(A_IN,B_IN) takes two distributed
-% polynomials and expresses them in terms of the same STATE variables
-% (the monomial factors x1,...,xp), without touching either object's own
-% output space (C, vars.out, dom.out, depmat.out, dims.out).
+% [A_OUT,B_OUT] = COMMON_STATES(A_IN,B_IN) expresses two distributed
+% polynomials in terms of the same state variables x_1,...,x_p, keeping
+% the output space of each.
 %
 % INPUTS
-% - A_in, B_in:     m x n 'polyopvar' objects;
+% - A_in, B_in:     'polyopvar' objects, not adjoints;
 %
 % OUTPUTS
-% - A_out, B_out:   m x n 'polyopvar' objects representing the same
-%                   distributed polynomials as A_in, B_in, respectively,
-%                   but expressed in terms of the same state variables,
-%                   so that
-%                   A_out.varname = B_out.varname;
-%                   A_out.vars.in = B_out.vars.in;
-%                   A_out.C, .vars.out, .dom.out, .depmat.out, .dims.out
-%                   are the same as for A_in, B_in;
+% - A_out, B_out:   'polyopvar' objects representing the same
+%                   polynomials as A_in, B_in, respectively, with
+%                       A_out.varname = B_out.varname;
+%                       A_out.vars.in = B_out.vars.in;
+%                   (and equal dims.in, dom.in, depmat.in), and with the
+%                   same C, vars.out, dom.out, depmat.out and dims.out as
+%                   A_in, B_in;
+%
+% NOTES
+% - A state of both polynomials must have the same size in both, and a
+%   spatial variable of both the same domain.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

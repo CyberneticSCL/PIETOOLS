@@ -19,8 +19,8 @@ function int_order = get_int_order(intmat)
 % Consider d=3, with the two terms specified by the rows of
 %   intmat = [0,2,0,4,2,4; 0,4,0,1,0,2]
 % specifying the integrals
-%   int_{[a,b]^3} chi_{[a,s2]}(s1) chi_{[a,b]}(s2) chi_{[s2,b]} ... ds
-%    + int_{[a,b]^3} chi_{[a,b]}(s1) chi_{[a,s1]}(s2) chi_{[a,s2]} ... ds
+%   int_{[a,b]^3} chi_{[a,s2]}(s1) chi_{[a,b]}(s2) chi_{[s2,b]}(s3) ... ds
+%  + int_{[a,b]^3} chi_{[a,b]}(s1) chi_{[a,s1]}(s2) chi_{[a,s2]}(s3) ... ds
 % representing
 %   int_{a}^{b} int_{a}^{s2} int_{s2}^{b} ... ds3 ds1 ds2
 %    + int_{a}^{b} int_{a}^{s1} int_{a}^{s2} ... ds3 ds2 ds1

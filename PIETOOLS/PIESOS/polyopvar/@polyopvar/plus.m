@@ -1,34 +1,31 @@
 function C = plus(A,B)
-% C = PLUS(A,B) returns the 'polyopvar' object C representing the sum
-% of the distributed polynomials defined by the 'polyopvar' objects A and
-% B.
+% C = PLUS(A,B) returns the 'polyopvar' object C representing the sum A+B
+% of two distributed polynomials, or of a distributed polynomial and a
+% constant.
 %
 % INPUTS
-% - A:      m x n 'polyopvar' object, or a 'double', 'polynomial' or
-%           'dpvar' array representing a constant;
-% - B:      m x n 'polyopvar' object, or a 'double', 'polynomial' or
-%           'dpvar' array representing a constant;
+% - A:      m x n 'polyopvar' object, or a 'double' or 'dpvar' column
+%           vector (a constant), or a 'polynomial' column vector in the
+%           output variables of B (a known function);
+% - B:      m x n 'polyopvar' object, or a constant or known function, as
+%           A;
 %
 % OUTPUTS
-% - C:      m x n 'polyopvar' object representing the sum of the
-%           distributed polynomials defined by A and B;
+% - C:      m x n 'polyopvar' object representing A+B;
 %
 % NOTES
-% - Adding the scalar 0 to a 'polyopvar' object returns that object.
-% - If the output spaces of the polynomials differ, they are lifted to the
-%   same space: the output of a polynomial is constant
-%   along the output variables it is not defined in. For example, for
-%   p1(x)(s1) and p2(y)(s2), the sum is the function of (s1,s2) defined
-%   by p1(x)(s1) + p2(y)(s2), and the sum of a polynomial in an ODE state
-%   (output in R) and one in a PDE state is a function of the spatial
-%   variable.
-% - A scalar-valued polynomial (or constant) can be added to a
-%   vector-valued polynomial, and is then added to each of its rows.
-%   Otherwise, the vector dimensions must match.
-% - An adjoint (A=U1') can only be added to an adjoint of
-%   the same size with the same weight W, as then U1'*W + U2'*W =
-%   (U1+U2)'*W. The adjoints of scalar polynomials are not added to
-%   adjoints of vectors.
+% - Adding the scalar 0 returns the other input unchanged.
+% - A 'dpvar' can only be added to a polynomial without output
+%   variables, e.g. V - c for a functional V.
+% - Polynomials with different output spaces are lifted to a common one,
+%   along whose new variables they are constant. E.g. the sum of
+%   p1(x)(s1) and p2(y)(s2) is the function p1(x)(s1) + p2(y)(s2) of
+%   (s1,s2), and the sum of a polynomial in an ODE state (output in R)
+%   and one in a PDE state is a function of the spatial variable.
+% - A scalar-valued polynomial (or constant) is added to each row of a
+%   vector-valued one. Otherwise, the sizes must match.
+% - An adjoint U1'*W can only be added to an adjoint U2'*W of the same
+%   size, with the same weight W, giving (U1+U2)'*W.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus
@@ -55,7 +52,7 @@ function C = plus(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Allow addition of polynomial with 0
 if isnumeric(A) && isequal(A,0)
@@ -66,14 +63,20 @@ elseif isnumeric(B) && isequal(B,0)
     return
 end
 
-% Convert constant values to 'polyopvar' class
+% A decision variable is only added as constant term of a polynomial
+% without output variables (e.g. a functional)
+if (isa(A,'dpvar') && ~isempty(B.vars.out)) || (isa(B,'dpvar') && ~isempty(A.vars.out))
+    error("A 'dpvar' can only be added to a distributed polynomial without output variables, such as a functional u'*u.")
+end
+% Convert constant values to 'polyopvar' class; a function of spatial
+% variables is defined on the domain of the other term
 if isa(A,'double') || isa(A,'polynomial') || isa(A,'dpvar')
-    A = constant2polyopvar(A);
+    A = constant2polyopvar(A,B.vars.out,B.dom.out);
 elseif ~isa(A,'polyopvar')
     error("Addition of 'polyopvar' objects with non-'polyopvar' objects is not supported.")
 end
 if isa(B,'double') || isa(B,'polynomial') || isa(B,'dpvar')
-    B = constant2polyopvar(B);
+    B = constant2polyopvar(B,A.vars.out,A.dom.out);
 elseif ~isa(B,'polyopvar')
     error("Addition of 'polyopvar' objects with non-'polyopvar' objects is not supported.")
 end
@@ -94,6 +97,10 @@ if A.is_adjoint || B.is_adjoint
     end
     if ~is_same
         error("An adjoint can only be added to an adjoint of the same size, with the same weight.")
+    elseif ~isequal(A.vars.out,B.vars.out) || ~isequal(A.dom.out,B.dom.out) || ~isequal(A.depmat.out,B.depmat.out)
+        % (U1+U2)'*W lifts U1 and U2 to a common output space, which would
+        % scale their inner products by the length of the added domains
+        error("Adjoints can only be added if they have the same output space; add the inner products instead, e.g. x'*v + y'*v.")
     end
     W = A.weight;
     A.is_adjoint = false;       A.weight = 1;

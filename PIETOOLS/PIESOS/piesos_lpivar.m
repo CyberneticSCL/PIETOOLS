@@ -2,13 +2,13 @@ function [prog,Pop,Pmat,Zop] = piesos_lpivar(prog,dims,vars,dom,depmat,degs,opts
 % [PROG,POP,PMAT,ZOP] = PIESOS_LPIVAR(PROG,DIMS,VARS,DOM,DEPMAT,DEGS,OPTS)
 % declares an indefinite operator variable between the specified function
 % spaces, as
-%       POP = PMAT*[ZOP{1};...;ZOP{q}]
-% where each Zop{i} is a tensor-PI operator,
-%   Zop{i}: L2^{n1}[Omega_in1] x ... x L2^{nq}[Omega_in{q}]
+%       POP = PMAT*[ZOP{1};...;ZOP{p}]
+% where each Zop{i} is a tensor-PI operator, built by `monopmat`,
+%   Zop{i}: L2^{n1}[Omega_in{1}] x ... x L2^{nq}[Omega_in{q}]
 %               --> L2^{mi}[Omega_out{i}]
 % for
-%   Omega_in = [a1,b1]^{d_in(i,1)} x ... x [aN,bN]^{d_in(i,N)}
-%   Omega_out = [a1,b1]^{d_out(i,1)} x ... x [aM,bM]^{d_out(i,M)}
+%   Omega_in{j} = [a1,b1]^{d_in(j,1)} x ... x [aN,bN]^{d_in(j,N)}
+%   Omega_out{i} = [a1,b1]^{d_out(i,1)} x ... x [aM,bM]^{d_out(i,M)}
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program in which to declare the
@@ -31,25 +31,22 @@ function [prog,Pop,Pmat,Zop] = piesos_lpivar(prog,dims,vars,dom,depmat,degs,opts
 % - depmat: struct with fields
 %       in: q x N integer array specifying the degree to which each of the
 %           states depends on each of the input variables (d_in);
-%      out: p x M logical array specifying whether or not each of the
-%           outputs depends on each of the output variables (d_out);
-% - degs:   (optional) struct with fields
-%     in:   1 x q cell, specifying the degrees of the input variables in
-%           each operator block. Each element degs.in{i} can be a di x N
-%           cell, where di depends on depmat.in(i,:), specifying the
-%           degrees of the monomial basis in each of the factors of each of
-%           the input variables in block i. Element degs.in{i} can also be
-%           a di x N array, specifying the maximal monomial degree in each
-%           of the factors of each variable. If degs.in{i} is scalar, the
-%           same degree is used for all variables;
-%    out:   1 x q cell, specifying the degrees of the output variables in
-%           each operator block. Each element degs.out{i} can be a 1 x M
-%           cell, specifying the degrees of the monomial basis in each of
-%           the output variables in block i, or a 1 x M array, specifying
-%           the maximal monomial degree in each variable.
+%      out: p x M logical (or 0/1) array specifying whether or not each of
+%           the outputs depends on each of the output variables (d_out
+%           for otype 1);
+% - degs:   (optional) struct with fields 'in' and 'out', the degrees of
+%           the monomials in each of the q blocks of each Zop{i}, passed
+%           to `monopmat` as DEGS:
+%     in:   1 x q cell, element degs.in{i} a di x N cell of the monomial
+%           degrees (including 0) in each factor of each input variable
+%           of block i, or a di x N array of maximal degrees, for di the
+%           number of factors, max(depmat.in(i,:));
+%    out:   1 x q cell, element degs.out{i} a 1 x M cell of the monomial
+%           degrees in each output variable, or a 1 x M array of maximal
+%           degrees.
 %           If degs is a numeric array or a cell, the same degrees are
 %           used for 'in' and 'out'. Defaults to 0;
-% - opts:   (optional) struct with fields
+% - opts:   (optional) struct with fields, passed to `monopmat` as OPTS:
 % exclude:  1 x q cell, specifying for each of the operator blocks whether
 %           any terms need to be excluded. Element opts.exclude{i} can be a
 %           3^N3(i) logical array, where N3(i) is the number of 3-PI
@@ -57,29 +54,37 @@ function [prog,Pop,Pmat,Zop] = piesos_lpivar(prog,dims,vars,dom,depmat,degs,opts
 %           operator block i, with element k along direction j set to true
 %           to exclude the multiplier term (k=1), lower integral term
 %           (k=2), or upper integral term (k=3), along spatial variable j
-%           in the list of 3-PI variables (intersect(vars.in,vars.out));
+%           in the list of 3-PI variables (intersect(vars.in,vars.out)).
+%           A single array, or a 3 x 1 array, may also be used for all
+%           blocks. By default, no terms are excluded;
 %   sep:    1 x q cell, specifying for each of the operator blocks whether
 %           to enforce separability along each of the variables. Element
 %           opts.sep{i} is a 1 x N3(i) logical array, specifying for each
 %           of the 3-PI variables whether the operator is separable along
 %           that variable, meaning that the kernel in the upper and lower
-%           integrals is the same;
-%  otype:   integer in {1,2} specifying whether to take the proper tensor
-%           product (otype = 2) or the pointwise product (otype = 1) of the
-%           3-PI operators in constructing the tensor-PI operator basis. If
+%           integrals is the same. A single array may also be used for
+%           all blocks. By default, no separability is enforced;
+%  otype:   1, 2 or 3, specifying whether to take the pointwise product
+%           (1), the proper tensor product (2), or both (3) of the 3-PI
+%           operators in constructing the tensor-PI operator basis. If
 %           otype==1, then d_out = depmat.out. If otype==2, then d_out =
-%           d*depmat.out, where d = max(depmat.in(i,:));
+%           d*depmat.out, where d = max(depmat.in(i,:)). Defaults to 1;
 %
 % OUTPUTS
 % - prog:   'struct' specifying the same PIESOS program as the input, but
 %           with the indefinite operator variable added to the structure;
 % - Pop:    'struct' representing the indefinite operator variable, with
 %           fields P=Pmat and Z=Zop, so that the operator is Pop.P*Pop.Z;
-% - Pmat:   m x nZ 'dpvar' object representing the matrix variable defining
-%           the operator;
-% - Zop:    nZ x n 'tensopmat' object representing the monomial basis
-%           operator in terms of which Pop is defined,
+% - Pmat:   p x r cell, for r the number of block rows of Zop, with
+%           Pmat{i,j} a dims.out(i) x rj 'dpvar' object, constant in the
+%           spatial variables, for rj the number of rows of block row j
+%           of Zop;
+% - Zop:    'tensopmat' object [Zop{1};...;Zop{p}] representing the
+%           monomial basis operator in terms of which Pop is defined,
 %               Pop = Pmat * Zop;
+%
+% NOTES
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +112,7 @@ function [prog,Pop,Pmat,Zop] = piesos_lpivar(prog,dims,vars,dom,depmat,degs,opts
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 
 % Check that the output dependence is boolean
@@ -124,6 +129,7 @@ end
 if nargin<=6
     opts = struct();
 end
+check_opts(opts,'piesos_lpivar');
 
 % Declare a basis of operators on this domain, one block row per output
 Zop = [];

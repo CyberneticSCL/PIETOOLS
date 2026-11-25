@@ -3,18 +3,18 @@ function Cup = liftIndex(C, m, n, mapS, mapT, dsU, dtU)
 % Lifts C such that 
 %       (I_m\otimes Zs_old')*C*(I_n\otimes Zt_old) 
 %               = (I_m \otimes Zs_union')*Cup*(I_n \otimes Zt_union)
-% mapS: dsOld×1 old->union map (values in 1..dsU)
+% mapS: dsOld x 1 old->union map (values in 1..dsU)
 % i.e., Zs_old = Zs_union(mapS)
-% mapT: dtOld×1 old->union map (values in 1..dtU)
+% mapT: dtOld x 1 old->union map (values in 1..dtU)
 % i.e., Zt_old = Zt_union(mapT)
 %
-% INPUT
+% INPUTS
 % - C:          m*dsOld x n*dtOld sparse coefficient matrix;
 % - m, n:       integers, the matrix dimensions;
 % - mapS, mapT: the old-to-union maps above;
 % - dsU, dtU:   integers, the sizes of the union bases;
 %
-% OUTPUT
+% OUTPUTS
 % - Cup:        m*dsU x n*dtU sparse coefficient matrix.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,7 +42,7 @@ function Cup = liftIndex(C, m, n, mapS, mapT, dsU, dtU)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/29/2026
+% SS, 01/29/2026: Initial coding;
 
 C = sparse(C);
 

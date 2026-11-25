@@ -10,54 +10,54 @@ function disp_struct = get_display(Rop,xnames,expand)
 %
 % INPUTS
 % - Rop:    'tensopvar' object, with K terms and d factors in each term;
-% - xnames: (optional) char, or 1 x d cellstr, the names of the functions
-%           on which the factors act. A char is used for all factors.
-%           Defaults to x_j for factor j, or to x if d=1, with x replaced
-%           by u, w, or v, the first that is not the name of a variable, if
-%           a variable is named x (ignoring a number at the end of the
-%           name);
-% - expand: (optional) logical, true if the operators R_ij may be displayed
-%           as the actual operators if they are small enough. If false,
-%           they are always displayed as R_ij. Defaults to true;
+% - xnames: (optional) 'char', or 1 x d 'cellstr', the names of the
+%           functions on which the factors act. A 'char' is used for all
+%           factors. Defaults to x_j for factor j, or to x if d=1, with x
+%           replaced by u, w, or v, the first that is not the name of a
+%           variable, if a variable is named x (ignoring a number at the
+%           end of the name);
+% - expand: (optional) 'logical', true if the operators R_ij may be
+%           displayed as the actual operators if they are small enough. If
+%           false, they are always displayed as R_ij. Defaults to true;
 %
 % OUTPUTS
-% - disp_struct:      struct with the fields
-%       terms:  1 x n cell of char, the terms of the sum, without their
+% - disp_struct:      'struct' with the fields
+%       terms:  1 x n 'cellstr', the terms of the sum, without their
 %               sign. If there are more than 3 terms, and the operators
 %               R_ij are not displayed, only the first and last term are
 %               constructed, with '...' in between;
 %       signs:  1 x n array of 1 and -1, the sign of each term (1 for
 %               '...');
-%       expanded:   logical, true if the operators R_ij are displayed as
+%       expanded:   'logical', true if the operators R_ij are displayed as
 %               the actual operators, and false if they are displayed as
 %               R_ij, in which case they can be extracted by calling
 %               Rop.ops{i,j};
-%       xsym:   char, the name of the function x that Rop acts on, with
+%       xsym:   'char', the name of the function x that Rop acts on, with
 %               x = x_1 o ... o x_d, if d>1;
-%       xnames: 1 x d cellstr, the names of the functions on which the
+%       xnames: 1 x d 'cellstr', the names of the functions on which the
 %               factors act;
-%       out_args:   cellstr, the names of the output variables of Rop, with
-%               a subscript for the copy of a variable if it has multiple
-%               copies;
-%       in_args:    cellstr, the same for the input variables;
-%       fargs_in:   1 x d cell of cellstr, the names of the input variables
-%               of each of the factors;
-%       in_sym:     char, the symbol that joins the factors x_j of x, which
-%               is o for a tensor product, and = for a pointwise product;
-%       is_id:  logical, true if Rop is an identity operator.
-%               The only term is then the function with its
-%               spatial variables, e.g. x(s), and expanded is true;
+%       out_args:   'cellstr', the names of the output variables of Rop,
+%               with a subscript for the copy of a variable if it has
+%               multiple copies;
+%       in_args:    'cellstr', the same for the input variables;
+%       fargs_in:   1 x d 'cell' of 'cellstr', the names of the input
+%               variables of each of the factors;
+%       in_sym:     'char', the symbol that joins the factors x_j of x,
+%               which is o for a tensor product, and = for a pointwise
+%               product;
+%       is_id:  'logical', true if Rop is an identity operator. The only
+%               term is then the function with its spatial variables, e.g.
+%               x(s), and expanded is true;
 %
 % NOTES
 % - The operators R_ij are displayed as the actual operators if there are
-%   at most 3 terms, all R_ij can be displayed explicitly by 'get_display'
-%   (which requires them to be scalar-valued), and the sum has at
-%   most 6 terms of at most 100 characters. If not, none of the operators
-%   is displayed.
-% - The output variables of the factor R_ij, which can be given names with
-%   a subscript for the copy of the variable, are displayed as such in the
-%   display of R_ij. The dummy variables of the integrals in R_ij are
-%   displayed as gamma.
+%   at most 3 terms, all R_ij are 'sopvar' objects that can be displayed
+%   explicitly (which requires them to be scalar-valued), and the sum has
+%   at most 6 terms of at most 100 characters. If not, none of the
+%   operators is displayed.
+% - In the display of R_ij, its output variables carry the subscript of
+%   their copy if the variable has several copies, and the dummy
+%   variables of its integrals are displayed as gamma.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - get_display
@@ -84,7 +84,7 @@ function disp_struct = get_display(Rop,xnames,expand)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 11/06/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Default settings
 max_ops = 3;           % maximal number of terms for which the operators R_ij are
@@ -235,6 +235,9 @@ for i=1:K*expanded
             expanded = false;
             break
         end
+        % The function 1 (on R) is not displayed: a term without any text
+        % is the constant 1
+        fctr_disp.terms(cellfun('isempty',fctr_disp.terms)) = {'1'};
         if isempty(fctr_disp.terms)
             fctr_strs{j} = '0';
         elseif numel(fctr_disp.terms)>1 || fctr_disp.signs(1)<0

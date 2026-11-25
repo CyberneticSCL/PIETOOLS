@@ -1,36 +1,31 @@
 function f = initialize(f)
-% F = INITIALIZE(F) checks whether all fields of the 'polyopvar' object F
-% are properly specified (and do not conflict), and fills in any missing
-% information.
+% F = INITIALIZE(F) checks that the fields of the 'polyopvar' object F
+% are properly specified and consistent, and fills in missing fields.
 %
 % INPUTS
-% - f:      m x 1 'polyopvar' object, with field f.C a 'tensopmat' object
-%           and f.Z an nZ x d array of monomials, with nZ equal to the
-%           number of columns of f.C.ops. Fields f.dims, f.vars, f.dom and
-%           f.depmat may be left empty (in/out), in which case they are
-%           inferred from f.C; otherwise they are checked against f.C.
-%           The input variables f.vars.in may differ from those of f.C: a
-%           variable of f.C that f lacks must not be acted on, and a
-%           variable of f that f.C lacks must not appear in any monomial
-%           (every monomial is acted on by f.C). If f.is_adjoint is true,
-%           f represents the adjoint of the polynomial defined by f.C and
-%           f.Z, with weight f.weight (1, or with a row for each row of
-%           f.C);
+% - f:      'polyopvar' object, with f.C a 'tensopmat' object and f.Z an
+%           nZ x d array of monomials, nZ the number of column-blocks of
+%           f.C. The fields in and out of f.dims, f.vars, f.dom and
+%           f.depmat may be empty, in which case they are inferred from
+%           f.C; otherwise they are checked against f.C. A spatial
+%           variable in f.vars.in but not in f.C must not appear in any
+%           monomial, and one in f.C but not in f.vars.in must not be
+%           acted on;
 %
 % OUTPUTS
-% - f:      'polyopvar' object representing the same distributed
-%           polynomial as the input, but with all fields filled in and
-%           f.chkval = true, and with the nonzeros of each row of f.Z
-%           moved to the leading columns (order kept), unless the operators
-%           acting on the monomial have more factors than its degree: then
-%           the zeros mark the factors that are multipliers from R;
+% - f:      'polyopvar' object representing the same polynomial, with all
+%           fields filled in, f.chkval = true, and the nonzeros of each
+%           row of f.Z moved to its leading columns (order kept), unless
+%           the operators acting on the monomial have more factors than
+%           its degree: then the zeros mark the multipliers from R;
 %
 % NOTES
-% - Only scalar or column-vector-valued 'polyopvar' objects are
-%   supported: an error is thrown if f.matdim(2)>1, unless f is an adjoint
-%   (a row vector).
-% - An error is thrown if f.weight is not the scalar 1,
-%   but f.is_adjoint is false.
+% - If f.dims.in is empty, the size of a state is that in a monomial of
+%   degree 1 in it, or 1 if there is no such monomial.
+% - Only scalar or column-vector-valued objects are supported: an error
+%   is thrown if f.matdim(2)>1, unless f is an adjoint (a row vector).
+% - f.weight must be the scalar 1 unless f.is_adjoint is true; for an
+%   adjoint, it is a scalar or has a row for each row of f.C.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +53,7 @@ function f = initialize(f)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Decompose the distributed polynomial
 C = f.C;
@@ -89,7 +84,7 @@ Cdepmat = C.depmat;
 
 % Make sure variable names and monomials are properly specified
 if ~iscellstr(xvarname) || numel(unique(xvarname))~=numel(xvarname)
-    error("Variable names must be specifed as 1 x p 'cellstr' array with unique elements.")
+    error("Variable names must be specified as 1 x p 'cellstr' array with unique elements.")
 end
 p = numel(xvarname);
 if size(Z,1)~=size(C.ops,2)
@@ -221,7 +216,7 @@ if isempty(fdims.in)
     fdims.in = dims_in;
 else
     if ~isequal(dims_in(is_known), fdims.in(is_known))
-        error("Dependency array of state variables on spatial variables does not match that expected from the coefficient operator.")
+        error("Vector sizes of the state variables do not match those expected from the coefficient operator.")
     end
 end
 if isempty(fdepmat.in)
@@ -319,14 +314,16 @@ end
 
 
 function [nin,hasvar] = leaf_inputs(op)
-% Column dimension (nin) and whether it has input variables (hasvar), for each
-% factor in the first term of the (nested) 'tensopvar' op
+% [NIN,HASVAR] = LEAF_INPUTS(OP) returns the column dimension of each
+% factor in the first term of the 'tensopvar' OP, and whether it has
+% input variables, expanding nested 'tensopvar' factors.
 %
-% INPUT
-% - op:       'tensopvar' (possibly nested) or 'sopvar' object;
+% INPUTS
+% - op:       'tensopvar' object, possibly with nested 'tensopvar'
+%             factors;
 %
-% OUTPUT
-% - nin:      1 x k array, the column dimension of each factor;
+% OUTPUTS
+% - nin:      1 x k array, the column dimension of each of the k factors;
 % - hasvar:   1 x k logical array, true for a factor with input variables.
 nin = zeros(1,0);       hasvar = false(1,0);
 fctrs = op.ops(1,:);

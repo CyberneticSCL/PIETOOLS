@@ -1,7 +1,7 @@
 function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % COP_OUT = LIFT_OUTPUT(COP,VARS,DOM,DIMS,DEPS) returns the 'tensopvar'
 % object COP_OUT representing the tensor-PI operator COP with its output
-% lifted to the function space defined by VARS.out, DOM.out and DEPS.out:
+% lifted to the function space defined by VARS, DOM and DEPS:
 % the output is extended with variables it was not yet defined in, along
 % which it is constant. For example, for Cop mapping to L2[a,b], and
 % lifting to the space with variables (s,t) of degrees (1,1),
@@ -10,48 +10,49 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % INPUTS
 % - Cop:    m x n 'tensopvar' object representing an operator
 %               Cop: L2^n[dom_in] --> L2^m[dom_out];
-% - vars:   1 x M cellstr specifying the names of the output variables of
-%           the lifted operator. Must contain all output variables of Cop.
-%           Can also be specified as struct with field 'out' containing
-%           this cellstr (other fields, e.g. 'in', are ignored);
+% - vars:   1 x M 'cellstr' specifying the names of the output variables
+%           of the lifted operator. Must contain all output variables of
+%           Cop. Can also be specified as 'struct' with field 'out'
+%           containing this cellstr (other fields, e.g. 'in', are ignored);
 % - dom:    M x 2 'double' array specifying the intervals on which these
 %           variables are defined. Must match the domains of the output
-%           variables of Cop. Can also be specified as struct with field
+%           variables of Cop. Can also be specified as 'struct' with field
 %           'out' (other fields are ignored);
 % - dims:   (optional) number of rows of the lifted operator, specified as
-%           an integer, as 1 x 2 array [rows,columns], or as struct with
+%           an integer, as 1 x 2 array [rows,columns], or as 'struct' with
 %           field 'out'. Defaults to the number of rows of Cop. If Cop is
 %           scalar-valued (m=1), it can be lifted to a vector-valued
 %           operator, repeating the scalar output in each row;
-% - deps:   (optional) 1 x M array of nonnegative integers (or struct with
-%           field 'out') specifying the degree of the lifted operator in
-%           each of the output variables vars.out, i.e. the number of
-%           copies of that variable in the output function space (see
-%           Cop.deps). Must be at least the degrees of Cop, and defaults to
-%           these degrees, or to 1 for a new variable;
+% - deps:   (optional) 1 x M array of nonnegative integers (or 'struct'
+%           with field 'out') specifying the degree of the lifted operator
+%           in each of the variables in VARS, i.e. the number of copies of
+%           that variable in the output function space (as in
+%           Cop.deps.out). Must be at least the degrees of Cop, and
+%           defaults to these degrees, or to 1 for a new variable;
 %
 % OUTPUTS
 % - Cop_out: m x n 'tensopvar' object (or dims(1) x n, if specified)
 %           representing the lifted operator, with
-%               Cop_out.vars.out = sort(vars.out);
-%               Cop_out.deps.out = deps.out (sorted accordingly);
+%               Cop_out.vars.out = sort(VARS);
+%               Cop_out.deps.out = DEPS (sorted accordingly);
 %
 % NOTES
-% - The factors of the tensor-PI operator are lifted individually (by
-%   'lift_output' for 'sopvar' objects). Each copy of a variable that is
-%   added to the output is introduced in a factor that does not map to that
-%   variable yet (Cop.depmat.out==0), taking the last such factors.
+% - The factors of the tensor-PI operator are lifted individually. Each
+%   copy of a variable that is added to the output is introduced in a
+%   factor that does not map to that variable yet (Cop.depmat.out==0),
+%   taking the last such factors.
 % - For a Kronecker product (Cop.otype(1)==2), the copies s_1,s_2,... of
-%   an output variable are numbered over the factors in order, so the factors that are lifted determine which copies
-%   are constant. For example, for factors mapping to R and to L2[s],
-%   lifting to deps=2 for s lifts the first factor, so that the output
-%   is Y(s_2), with s_1 the constant copy.
+%   an output variable are numbered over the factors in order, so the
+%   factors that are lifted determine which copies are constant. For
+%   example, for factors mapping to R and to L2[s], lifting to deps=2 for
+%   s lifts the first factor, so that the output is Y(s_2), with s_1 the
+%   constant copy.
 % - For a pointwise product (Cop.otype(1)==1), the output can depend on a
 %   new variable with degree 1 only (introduced in a single factor), and
 %   the degrees in the existing variables cannot be increased.
 % - Factors of type 'intop' (functionals) cannot be lifted. Factors that
 %   are 'tensopvar' objects (nested operators) are lifted recursively.
-% - A new variable with deps.out=0 is only added to the list of
+% - A new variable with degree 0 in DEPS is only added to the list of
 %   variables, without changing the operator.
 %
 
@@ -195,22 +196,22 @@ function [vars_out,dom_out,dim_out] = parse_inputs(vars,dom,dims,vars0,dom0,matd
 % operator is lifted, and returns them in standard form.
 %
 % INPUTS
-% - vars, dom: the output variables (cellstr) and their domains (M x 2
+% - vars, dom: the output variables ('cellstr') and their domains (M x 2
 %           array) of the lifted operator, or structs with field 'out'
 %           containing these;
 % - dims:   [], or the number of rows of the lifted operator, specified as
-%           a scalar, as 1 x 2 array [rows,columns], or as struct with
+%           a scalar, as 1 x 2 array [rows,columns], or as 'struct' with
 %           field 'out';
 % - vars0, dom0: structs with field 'out', the output variables and
 %           domains of the operator that is lifted;
 % - matdim0: 1 x 2 array of the matrix dimensions of that operator;
 %
 % OUTPUTS
-% - vars_out: 1 x M cellstr of output variables of the lifted operator;
+% - vars_out: 1 x M 'cellstr' of output variables of the lifted operator;
 % - dom_out: M x 2 'double' array of the associated domains;
-% - dim_out: number of rows of the lifted operator: matdim0(1), or dims if
-%           specified, in which case matdim0(1) must be 1 or equal dims;
-%
+% - dim_out: number of rows of the lifted operator: matdim0(1), or dims(1)
+%           if specified, in which case matdim0(1) must be 1 or dims(1);
+
 % Check that the output variables are properly specified, as cellstr or as
 % struct with field 'out'
 if isa(vars,'struct') && isfield(vars,'out')

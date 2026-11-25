@@ -4,30 +4,32 @@ function Pc = tensopmat2copvar(Pt,dims,vars,depmat)
 % pair of a space in the output and input space, composed of the blocks of
 % Pt between the components of these spaces.
 %
-% INPUT
+% INPUTS
 % - Pt:     'tensopmat' object representing a linear operator, with each
 %           block either empty, a 'tensopvar' object involving a single
 %           'sopvar' object, a 'sopvar' object, or a constant matrix of
 %           type 'double' or 'polynomial' mapping from R;
-% - dims:   (optional) struct with fields
+% - dims:   (optional) 'struct' with fields
 %       out:    nspaces_out x 1 array with the sizes of the spaces in the
 %               output space of the copvar;
 %       in:     nspaces_in x 1 array with the sizes of the spaces in the
 %               input space of the copvar;
-% - vars:   (optional) struct with fields
-%       out:    1 x N cellstr with the names of the variables in the
+% - vars:   (optional) 'struct' with fields
+%       out:    1 x N 'cellstr' with the names of the variables in the
 %               columns of depmat.out;
-%       in:     1 x N cellstr with the names of the variables in the
+%       in:     1 x N 'cellstr' with the names of the variables in the
 %               columns of depmat.in;
-%           Default to Pt.vars.out and Pt.vars.in;
-% - depmat: (optional) struct with fields
+%           Defaults to Pt.vars.out and Pt.vars.in;
+% - depmat: (optional) 'struct' with fields
 %       out:    nspaces_out x N logical array, with element (i,j) true if
 %               space i of the output space depends on variable
 %               vars.out{j};
 %       in:     nspaces_in x N logical array, similarly for the input
 %               space;
+%           Required for the output (input) space if dims.out (dims.in)
+%           is specified;
 %
-% OUTPUT
+% OUTPUTS
 % - Pc:     'copvar' object representing the same operator as Pt, with a
 %           row for each space in the output space, and a column for each
 %           space in the input space. An empty 'copvar' if there are no
@@ -47,12 +49,12 @@ function Pc = tensopmat2copvar(Pt,dims,vars,depmat)
 % - The blocks of Pt cannot involve tensor products of multiple operators
 %   or functionals ('intop' objects), nor operators depending on variables
 %   to a degree higher than 1, as these are not linear PI operators.
-% - See also COPVAR2TENSOPMAT.
+% - The inverse conversion is copvar2tensopmat.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - tensopmat2copvar
 %
-% Copyright (C)2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -221,7 +223,7 @@ for r=1:numel(gdims{1})
     end
 end
 % Every block maps between the spaces of the zero operator (checked above),
-% so reuse its metadata to reduce computation time.
+% so reuse its metadata.
 Pc = copvar(C,metadata(Zop));
 
 end

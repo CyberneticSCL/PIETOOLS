@@ -8,9 +8,10 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 %       II_{i1}(s1)*...*II_{iN}(sN)*K_{i1,...,iN}(s1,...,sN)*v(s1,...,sN)
 %                                                           dsN ... ds1
 % where the functions II_{j}(si) are indicator functions of the form
-%       II_{j}(si) = chi_{[a_{Ai_{j,1}},b_{Bi_{j,1}}]}(si_1)*...
-%                       chi_{[a_{Ai_{j,di}},b_{Bi_{j,di}}]}(si_di)
-% where Ai and Bi are matrices specifying the domains of integration, and
+%       II_{j}(si) = chi_{[si_{Ai(j,1)},si_{Bi(j,1)}]}(si_1)*...
+%                       *chi_{[si_{Ai(j,di)},si_{Bi(j,di)}]}(si_di)
+% where Ai = intmat{i}(:,1:2:end) and Bi = intmat{i}(:,2:2:end) specify
+% the limits of integration, with si_0 := ai and si_{di+1} := bi, and
 % where chi is the characteristic function, so that
 %                         { 1,          z in [x,y],    x~=y,
 %       chi_{[x,y]}(z) := { 0,          z notin [x,y], x~=y,
@@ -50,41 +51,37 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 %           all of them has zero rows for those it does not use. The names
 %           must be distinct;
 % - vars:   struct with fields
-%     in:   1 x N cell specifying the names of the spatial variables used
-%           to define the kernels. Note that only one variable name is
-%           specified along each direction i in {1,...,N}, but each of
-%           these variables may in fact itself be multivariate in the
-%           kernel. If vars.in{i} = 'si', then the associated variable
-%           names in the kernel will be
+%     in:   1 x N cellstr of the distinct names of the spatial variables,
+%           sorted. Each variable si = vars.in{i} has di copies in the
+%           kernel, the dummy variables
 %               {'si_dum1',...,'si_dumdi'}
-%           for di the "degree" of v in variable si;
-%    out:   1 x M cell specifying the names of the spatial variables
-%           defining the output of the operator. Should be empty (M=0) for
-%           the object to be a functional;
+%           for di the degree of v in si;
+%    out:   1 x 0 cell, as the functional has no output variables;
 % - dom:    struct with fields
 %    in:    N x 2 array specifying for each of the spatial variables the
-%           interval on which it is defined. Note that if si in [ai,bi],
-%           then also si_j in [ai,bi] for each j in {1,...,di};
-%   out:    M x 2 array specifying for each of the output variables the
-%           interval on which it is defined (should be empty);
+%           interval [ai,bi] on which it is defined, with ai<bi. Each copy
+%           si_j is defined on the same interval;
+%   out:    0 x 2 array, as the functional has no output variables;
 % - intmat: 1 x N cell defining the indicator functions used in each term
-%           of the functional. In particular, for each k in {1,...,N},
-%           intmat{k} is a qk x 2*dk array, with row i corresponding to
-%           term i in the functional (along direction k), and columns
-%           [2*(j-1)+1,2*j] specifying the interval over which variable
-%           sk_j is integrated. Here, if
-%           intmat{k}(i,2*(j-1)+1:2*j) = [p,r], then this implies that sk_j
-%           is integrated over the domain [sk_p,sk_r], where we set
-%           sk_0:=ak and sk_{dk+1}:=bk. If p=r, then the term acts as a
-%           multiplier along variable sk_j, evaluating v at sk_j=sk_p.
-%           The intervals must be ordered: if both limits of sk_j are
-%           variables (p,r in {1,...,dk}, p~=r), sk_p<=sk_r must follow from
-%           the limits of the other variables, e.g. because r has lower limit
-%           p. Otherwise, chi_{[sk_p,sk_r]}(sk_j) would be nonzero for
-%           sk_r<sk_p as well, depending on the order of integration. The
-%           constructor rejects rows that are not ordered, e.g.
-%           [0,4,1,3,0,4]. Use intop.canonicalize_intmat to split them into
-%           ordered rows, [0,2,0,3,0,4], with the same kernel;
+%           of the functional. For each k in {1,...,N}, intmat{k} is a
+%           qk x 2*dk array, with row i corresponding to term i in the
+%           functional (along direction k), and columns [2*j-1,2*j]
+%           specifying the interval over which variable sk_j is
+%           integrated: if intmat{k}(i,2*j-1:2*j) = [p,r], with p in
+%           {0,...,dk} and r in {1,...,dk+1}, then sk_j is integrated over
+%           [sk_p,sk_r], where sk_0:=ak and sk_{dk+1}:=bk. If p=r, the
+%           term acts as a multiplier along sk_j, evaluating v at
+%           sk_j=sk_p. In each row, at least one variable is integrated
+%           over [ak,bk], and no variable depends on itself through its
+%           limits. The rows must be ordered: if both limits of sk_j are
+%           variables (p,r in {1,...,dk}, p~=r), sk_p<=sk_r must follow
+%           from the limits of the other variables, e.g. because r has
+%           lower limit p. Otherwise, chi_{[sk_p,sk_r]}(sk_j) would be
+%           nonzero for sk_r<sk_p as well, depending on the order of
+%           integration. The constructor rejects rows that are not
+%           ordered, e.g. [0,4,1,3,0,4]. Use intop.canonicalize_intmat to
+%           split them into ordered rows, [0,2,0,3,0,4], with the same
+%           kernel;
 % - matdim: 1 x 2 array specifying the matrix dimensions [m,n] of the
 %           functional (not stored: determined by params, Zd, and Z);
 % - dims:   struct with fields 'in' and 'out', with dims.in = n and
@@ -96,15 +93,18 @@ classdef (InferiorClasses={?polynomial,?dpvar})intop
 %           stored: determined by intmat), and 'out' empty;
 %
 % NOTES
-% - vars.in and vars.out always store the spatial variables in the same
-%   (sorted) order; this order corresponds positionally to dom.in/dom.out,
-%   intmat, Z.in, and params.
+% - The order of the sorted variables vars.in is also that of the rows of
+%   dom.in, of the elements of intmat and Z.in, and of the dimensions of
+%   params.
 % - The kernels may also be specified as a cell of 'double', 'polynomial',
 %   or 'dpvar' objects in the constructor, which expresses them in terms of
 %   the same monomials and decision variables. The dependent property
 %   'kernels' returns the kernels in this form, and Kop.kernels{i} the
 %   kernel defined by params{i}. The kernels may only depend on the dummy
 %   variables of the functional, Kop.varnames.in_dum.
+% - Hidden dependent properties: depmat (as deps), varnames (names of the
+%   copies and dummy variables), pvars (dummy variables as 'pvar'
+%   objects), int_order (order of integration in each term), and kernels.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - intop
@@ -205,9 +205,9 @@ function Kop = intop(params,intmat,vars,dom,Z,Zd,chkval)
 % - The spatial variables are sorted, and dom, intmat, params, and Z.in
 %   are permuted accordingly.
 % - Without inputs, INTOP returns an object with the default properties.
-% - The rows of intmat must be ordered (canonical form). This
-%   is checked by isvalid; only set chkval to true if the intmat is known 
-%   to be ordered, e.g. if all rows are those of PI operators.
+% - The rows of intmat must be ordered (canonical form), which is checked
+%   unless chkval is true; only set chkval to true if they are known to be
+%   ordered, e.g. if all rows are those of PI operators.
 
 if nargin==0
     return
@@ -335,10 +335,10 @@ function matdim = get.matdim(Kop)
 % MATDIM = GET.MATDIM(KOP) returns the matrix dimensions of the
 % functional
 %
-% INPUT
+% INPUTS
 % - Kop:    'intop' object;
 %
-% OUTPUT
+% OUTPUTS
 % - matdim: 1 x 2 array [m,n], the matrix dimensions of the functional.
 
 % The dimensions follow from the size of the parameters, the number of
@@ -356,7 +356,7 @@ function dims = get.dims(Kop)
 % DIMS = GET.DIMS(KOP) returns the dimensions of the input and output of
 % the functional
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS
@@ -374,13 +374,13 @@ function depmat = get.depmat(Kop)
 % DEPMAT = GET.DEPMAT(KOP) returns the degrees of the different
 % variables as they appear in the functional
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS
-% - depmat: struct with fields 'in' and 'out'. Each field is a 1 x N array,
-%           specifying the degree of the input and output to the functional
-%           in each of the N spatial variables.
+% - depmat: struct with fields 'in', the 1 x N array of the degrees di of
+%           the input in each of the N spatial variables, and 'out', an
+%           empty 1 x 0 array.
 
 % For each degree of a variable, an interval is specified by two
 % columns in Kop.intmat
@@ -403,13 +403,13 @@ function deps = get.deps(Kop)
 % DEPS = GET.DEPS(KOP) returns the degrees of the different
 % variables as they appear in the functional, as KOP.DEPMAT
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS
-% - deps:   struct with fields 'in' and 'out'. Each field is a 1 x N array,
-%           specifying the degree of the input and output to the functional
-%           in each of the N spatial variables.
+% - deps:   struct with fields 'in', the 1 x N array of the degrees di of
+%           the input in each of the N spatial variables, and 'out', an
+%           empty 1 x 0 array.
 
 deps = Kop.depmat;
 
@@ -419,17 +419,16 @@ end
 
 %%
 function pvars = get.pvars(Kop)
-% PVARS = GET.PVARS(KOP) returns the variables in terms of which the
-% kernels defining Kop are defined.
+% PVARS = GET.PVARS(KOP) returns the dummy variables in terms of which
+% the kernels defining Kop are defined, as 'pvar' objects.
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS
-% - pvars:  struct with fields 'in' and 'out'. Each element is a 1 x N
-%           cell, with each element a d1x1 'polynomial' array of 'pvar'
-%           objects specifying the variables in terms of which Kop.params
-%           are defined;
+% - pvars:  struct with fields 'in', the 1 x N cell with element i the
+%           di x 1 'polynomial' vector of the dummy variables
+%           Kop.varnames.in_dum{i}, and 'out', an empty 1 x 0 cell;
 
 % Extract the variables and degrees
 vars_tmp = Kop.vars;
@@ -449,17 +448,19 @@ end
 
 %%
 function varnames = get.varnames(Kop)
-% VARNAMES = GET.VARNAMES(KOP) returns the names of the variables in terms
-% of which the kernels defining Kop are defined.
+% VARNAMES = GET.VARNAMES(KOP) returns the names of the copies of the
+% spatial variables of KOP, and of the dummy variables in terms of which
+% its kernels are defined.
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS
 % - varnames:   struct with fields 'in', 'in_dum', 'out', and 'out_dum'.
-%               Each element is a 1 x N cell, with each element a 1xdi
-%               cellstr array, specifying the names of the variables along
-%               direction i in terms of which the functional is defined;
+%               Fields 'in' and 'in_dum' are 1 x N cells, with element i
+%               the 1 x di cellstr of the copies {'si_1',...,'si_di'},
+%               resp. the dummy variables {'si_dum1',...,'si_dumdi'}, of
+%               si = Kop.vars.in{i}; 'out' and 'out_dum' are 1 x 0 cells;
 
 % Extract the variables and degrees
 vars_tmp = Kop.vars;
@@ -483,22 +484,23 @@ function int_order = get.int_order(Kop)
 % must be performed for each of the variables in each of the terms in the
 % functional KOP
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS
 % - int_order:  1 x N cell, where element i is a qi x di array of integers.
-%               Here, int_order{i}(j,k) = q implies that degree k of
-%               variable i in term j must be integrated qth.
+%               Here, int_order{i}(j,k) = q implies that dummy variable k
+%               of variable i in term j must be integrated qth (1 for the
+%               innermost integral).
 %
 % EXAMPLE
 % Consider N=1 and d=3, with
 %   intmat{1} = [0,2,0,4,2,4; 0,4,0,1,0,2]
 % specifying the integrals
-%   int_{[a,b]^3} chi_{[a,s2]}(s1) chi_{[a,b]}(s2) chi_{[s2,b]} ... ds
-%    + int_{[a,b]^3} chi_{[a,b]}(s1) chi_{[a,s1]}(s2) chi_{[a,s2]} ... ds
+%   int_{[a,b]^3} chi_{[a,s2]}(s1) chi_{[a,b]}(s2) chi_{[s2,b]}(s3) ... ds
+%  + int_{[a,b]^3} chi_{[a,b]}(s1) chi_{[a,s1]}(s2) chi_{[a,s2]}(s3) ... ds
 % representing
-%   int_{a}^{b} int_{a}^{s2} int_{s2}^{b} ... ds2 ds1 ds3
+%   int_{a}^{b} int_{a}^{s2} int_{s2}^{b} ... ds3 ds1 ds2
 %    + int_{a}^{b} int_{a}^{s1} int_{a}^{s2} ... ds3 ds2 ds1
 % In the first term, variable s2 must be integrated last, as it is
 % integrated over the full domain [a,b]. Variables s1 and s3 can be
@@ -561,12 +563,11 @@ end
 
 %%
 function K = get.kernels(Kop)
-% K = GET.KERNELS(KOP) returns the kernels defining the functional KOP, as a
-% cell of the same size as KOP.params, with element K{i1,...,iN} the m x n
-% kernel K_{i1,...,iN} associated with KOP.params{i1,...,iN}, see the
-% documentation of the class.
+% K = GET.KERNELS(KOP) returns the kernels defining the functional KOP,
+% as a cell of the same size as KOP.params, with element K{i1,...,iN} the
+% m x n kernel K_{i1,...,iN} associated with KOP.params{i1,...,iN}.
 %
-% INPUT
+% INPUTS
 % - Kop:  'intop' object;
 %
 % OUTPUTS

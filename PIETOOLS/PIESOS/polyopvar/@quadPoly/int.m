@@ -1,26 +1,27 @@
 function [P_int] = int(P1, vars, low_limit, high_limit)
-%int integrate variables in a quadPoly
+%INT Integrate a quadPoly with respect to variables.
 %
-% 
 % INPUTS
-% - P1:   'quadpoly' class object.
-% - vars:  cell array of names of vars
-% - low_limit (optional) : 'double' array, one value per variable; the
-%                          upper limit (lower limit 0) if high_limit is
-%                          not given
-% - high_limit (optional): 'double' array
+% - P1:         m x n 'quadPoly' object;
+% - vars:       'char', 'string' array or 'cell' of names of variables; a
+%               variable not in P1 is added, on the right (P1.nt) if its
+%               name starts with 't', else on the left (P1.ns);
+% - low_limit:  (optional) lower limits, one per variable, passed to subs
+%               as vals: a 'double' array, or a 'cell' of scalars and
+%               variable names; with three inputs, the upper limits, the
+%               lower limits then being 0 (numeric limits only);
+% - high_limit: (optional) upper limits, as for low_limit;
 %
 % OUTPUTS
-% - P_int:      'quadpoly' object integrated with respect all vars: the
-%               antiderivative (constant 0) without limits, else the
-%               antiderivative at high_limit minus that at low_limit
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% - P_int:      m x n 'quadPoly' object: without limits, the
+%               antiderivative in vars that vanishes at 0; else the
+%               iterated integral over vars, in the order given (a limit
+%               may be a later variable of vars).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2026  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - int
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -36,12 +37,13 @@ function [P_int] = int(P1, vars, low_limit, high_limit)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% AT, 02/18/2026: Initial coding;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% AT, DJ, 11/24/2026: Initial coding;
 
 
 
@@ -67,12 +69,27 @@ if nargin > 2
         low_limit = 0*high_limit;
     end
 
-    P_int = int(P1, vars);
-    P_int = subs(P_int, vars, high_limit) - subs(P_int, vars, low_limit);
+    % One variable at a time, in the order of vars (an iterated integral):
+    % G(b)-G(a) in all variables at once would drop the terms in which some
+    % variables are at their lower and others at their upper limit
+    P_int = P1;
+    for k=1:numel(vars)
+        G = int(P_int, vars(k));
+        P_int = subs(G, vars(k), high_limit(k)) - subs(G, vars(k), low_limit(k));
+    end
     return
 end
 
-  
+
+% A variable on which P1 does not depend is added with degree 0, so that
+% its integral is var*P1 rather than skipped: on the right if its name
+% starts with 't', else on the left
+var_names = reshape(cellfun(@char,vars,'UniformOutput',false),1,[]);
+new_names = var_names(~ismember(var_names,[P1.ns(:)',P1.nt(:)']));
+if ~isempty(new_names)
+    is_t = startsWith(new_names,'t');
+    P1 = set_vars(P1,sort([P1.ns(:)',new_names(~is_t)]),sort([P1.nt(:)',new_names(is_t)]));
+end
 
 % extract monomials and coefficients.
 Zt = P1.Zt;

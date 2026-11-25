@@ -1,23 +1,22 @@
 function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 % COP_OUT = LIFT_OUTPUT(COP,VARS,DOM,DIMS,DEPS) returns the 'tensopmat'
 % object COP_OUT representing the block operator COP with the output of
-% each row-block lifted to the function space defined by VARS, DOM and
-% DEPS: the output is extended with variables it was not yet defined in,
-% along which it is constant. See also 'lift_output' for 'tensopvar'
-% objects.
+% each row-block lifted to the function space defined by VARS, DOM, DIMS
+% and DEPS: the output is extended with variables it was not yet defined
+% in, along which it is constant.
 %
 % INPUTS
-% - Cop:    p x d 'tensopmat' object representing an operator
+% - Cop:    'tensopmat' object with p x d blocks, representing an operator
 %               Cop: L2^n[dom_in] --> L2^m[dom_out];
 % - vars:   1 x M cellstr specifying the names of the output variables of
 %           the lifted operator. Must contain all output variables of Cop.
-%           Can also be specified as struct with field 'out' containing
+%           Can also be specified as 'struct' with field 'out' containing
 %           this cellstr (other fields, e.g. 'in', are ignored);
 % - dom:    M x 2 'double' array specifying the intervals on which these
 %           variables are defined. Must match the domains of the output
-%           variables of Cop. Can also be specified as struct with field
+%           variables of Cop. Can also be specified as 'struct' with field
 %           'out' (other fields are ignored);
-% - dims:   (optional) p x 1 array of integers (or struct with field
+% - dims:   (optional) p x 1 array of integers (or 'struct' with field
 %           'out') specifying the row dimension of each row-block of the
 %           lifted operator, or a scalar for the same dimension of all
 %           row-blocks. Defaults to the dimensions Cop.dims.out. A
@@ -25,33 +24,32 @@ function Cop_out = lift_output(Cop,vars,dom,dims,deps)
 %           repeating the scalar output in each row. If Cop has a single
 %           (scalar-valued) row-block, dims can be a q x 1 array, to repeat
 %           the row-block q times, with dimension dims(i) for the ith copy;
-% - deps:   (optional) p x M array of nonnegative integers (or struct with
-%           field 'out') specifying the degree of each row-block in each of
-%           the output variables vars, i.e. the number of copies of the
-%           variable in the output function space of the row-block (see
-%           Cop.depmat.out). A 1 x M array specifies the same degrees for
-%           all row-blocks. Must be at least the degrees of Cop, and
-%           defaults to these degrees, or to 1 for variables that a
-%           row-block is not yet defined in (so that all row-blocks are
+% - deps:   (optional) p x M array of nonnegative integers (or 'struct'
+%           with field 'out') specifying the degree of each row-block in
+%           each of the output variables vars, i.e. the number of copies
+%           of the variable in the output function space of the row-block
+%           (as in Cop.depmat.out). A 1 x M array specifies the same
+%           degrees for all row-blocks. Must be at least the degrees of
+%           Cop, and defaults to these degrees, or to 1 for variables that
+%           a row-block is not yet defined in (so that all row-blocks are
 %           lifted to the same function space);
 %
 % OUTPUTS
-% - Cop_out: p x d 'tensopmat' object representing the lifted operator,
-%           with
+% - Cop_out: 'tensopmat' object with p x d blocks (q x d if dims has q>p
+%           elements), representing the lifted operator, with
 %               Cop_out.vars.out = sort(vars);
 %               Cop_out.depmat.out = deps (sorted accordingly);
 %
 % NOTES
-% - Blocks of type 'tensopvar' are lifted by 'lift_output', which
-%   determines in which factors the new copies of the variables are
+% - Blocks of type 'tensopvar' are lifted by their own 'lift_output',
+%   which determines in which factors the new copies of the variables are
 %   introduced.
 % - Blocks of type 'double', 'polynomial' or 'dpvar' acting on R are not
-%   changed (a constant is a constant function),
-%   apart from repeating the rows to lift a scalar to a vector. This also
-%   holds for a row-block consisting of such blocks only, which maps to
-%   the variables that appear in the blocks, and for which the output
-%   space is just set to the variables vars: this is possible for degree
-%   at most 1 in each variable.
+%   changed (a constant is a constant function), apart from repeating the
+%   rows to lift a scalar to a vector. This also holds for a row-block
+%   consisting of such blocks only, which maps to the variables that
+%   appear in the blocks, and for which the output space is just set to
+%   the variables vars: this requires degree at most 1 in each variable.
 % - Blocks of type 'intop' (functionals) cannot be lifted, so a row-block
 %   containing such a block must not be lifted along any variable.
 % - A new variable with degree 0 in each row-block is only added to the
@@ -201,7 +199,7 @@ function [vars_out,dom_out,dims_out] = parse_inputs(vars,dom,dims,vars0,dom0,dim
 %           containing these;
 % - dims:   [], or the row dimensions of the row-blocks of the lifted
 %           operator, as scalar, p x 1 array (or q x 1 array if p=1), or
-%           struct with field 'out';
+%           'struct' with field 'out';
 % - vars0, dom0: structs with field 'out', the output variables and
 %           domains of the operator that is lifted;
 % - dims0:  p x 1 array of the row dimensions of its row-blocks;
@@ -209,11 +207,11 @@ function [vars_out,dom_out,dims_out] = parse_inputs(vars,dom,dims,vars0,dom0,dim
 % OUTPUTS
 % - vars_out: 1 x M cellstr of output variables of the lifted operator;
 % - dom_out: M x 2 'double' array of the associated domains;
-% - dims_out: array of the row dimensions of the row-blocks of the lifted
-%           operator (q x 1, with q>p only if p=1, to repeat the single
+% - dims_out: q x 1 array of the row dimensions of the row-blocks of the
+%           lifted operator (q>p only if p=1, to repeat the single
 %           row-block): dims0, or dims if specified, in which case each
 %           element must equal that of dims0 or the latter must be 1;
-%
+
 % Check that the output variables are properly specified, as cellstr or as
 % struct with field 'out'
 if isa(vars,'struct') && isfield(vars,'out')

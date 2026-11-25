@@ -1,23 +1,29 @@
 function F = randquadPoly(dim, nMons, var_s, var_t, maxdeg, density)
 %RANDQUADPOLY Random quadPoly with tensor-decomposed exponent storage.
+% Static method, called as quadPoly.randquadPoly(...).
 %
-% Inputs:
+% INPUTS
 %   dim     : [m,n] matrix size of the polynomial output
 %   nMons   : [ds,dt] number of monomials in the s- and t- tensor bases
-%             (interpreted as TOTAL tensor basis sizes, not per-variable)
-%   var_s   : 1×ks cellstr (or string array) of s-variable names (sorted-unique preferred)
-%   var_t   : 1×kt cellstr (or string array) of t-variable names (sorted-unique preferred)
-%   maxdeg  : [degS, degT] where each entry can be scalar or per-variable vector
-%             - scalar degS means each s-variable exponent in {0..degS}
-%             - vector degS means per-variable bounds
+%             (interpreted as TOTAL tensor basis sizes, not per-variable);
+%             ds must be 1 if var_s is empty, dt must be 1 if var_t is
+%             empty
+%   var_s   : 1 x ks cellstr (or string array) of s-variable names,
+%             sorted and unique
+%   var_t   : 1 x kt cellstr (or string array) of t-variable names,
+%             sorted and unique
+%   maxdeg  : [degS, degT], the maximal exponent of each s-variable and
+%             of each t-variable; raised where a variable needs more
+%             distinct exponents
 %   density : density argument for sprand
 %
-% Output:
+% OUTPUTS
 %   F : quadPoly object with
-%       - Zs, Zt stored as 1×k cell arrays of sorted-unique exponent vectors
-%       - C sparse coefficient matrix of size (m*ds) × (n*dt)
+%       - Zs, Zt stored as 1 x k cell arrays of sorted-unique exponent
+%         vectors
+%       - C sparse coefficient matrix of size (m*ds) x (n*dt)
 %
-% Notes:
+% NOTES
 %   This generator builds per-variable exponent sets Zs{i}, Zt{j} such that
 %   prod_i numel(Zs{i}) == ds and prod_j numel(Zt{j}) == dt by distributing
 %   the desired tensor sizes across variables.
@@ -47,7 +53,7 @@ function F = randquadPoly(dim, nMons, var_s, var_t, maxdeg, density)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 m = dim(1); 
 n = dim(2);
@@ -79,21 +85,21 @@ end
 % Helpers
 % -------------------------------------------------------------------------
 function Zcell = randExpCell(dTot, nvar, deg)
-%RANDEXPCELL Create a 1×nvar cell of sorted-unique exponent vectors whose
-%tensor-product size equals dTot.
+%RANDEXPCELL Create a 1 x nvar cell of sorted-unique exponent vectors
+% whose tensor-product size equals dTot.
 %
 % Strategy:
 %   - choose per-variable basis sizes ni such that prod(ni)=dTot
-%   - for each variable i, draw ni unique exponents from [0..deg_i] (or allow
-%     repeats if range too small, then unique+sort reduces size, so we guard)
+%   - for each variable i, draw ni distinct exponents from [0..deg_i],
+%     raising deg_i to ni-1 if that range is too small
 %
-% INPUT
+% INPUTS
 % - dTot:   positive integer, the size of the tensor-product basis;
 % - nvar:   nonnegative integer, the number of variables;
 % - deg:    scalar or 1 x nvar array of nonnegative integers, the maximal
 %           degree deg_i of each variable, raised to ni-1 where needed;
 %
-% OUTPUT
+% OUTPUTS
 % - Zcell:  1 x nvar cell of sorted unique exponent column vectors, with
 %           prod_i numel(Zcell{i}) = dTot ({} for nvar = 0).
 
@@ -138,7 +144,6 @@ for i = 1:nvar
     end
 
     % Sample ni unique exponents from 0..di
-    % (randperm is simplest; if di is huge you can switch to randsample)
     exps = randperm(di + 1, ni) - 1;
     Zcell{i} = sort(exps(:));
 end

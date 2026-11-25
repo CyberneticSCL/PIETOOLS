@@ -11,14 +11,12 @@ function n = num_factors(Cop)
 %           'sopvar' or 'intop' objects;
 %
 % NOTES
-% - The number of factors is that of the first term; 'initialize' checks
-%   that all terms have the same structure.
-% - This is a method of the class, so that Cop.ops is read directly as a
-%   property, not through the 'subsref' of the class.
+% - Only the first term is counted; the nested factors may differ between
+%   terms, but each term must have the same number of factors in total.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - num_factors (tensopvar)
+% PIETOOLS - num_factors
 %
 % Copyright (C) 2026 PIETOOLS Team
 %

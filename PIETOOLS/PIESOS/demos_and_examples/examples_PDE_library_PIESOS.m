@@ -1,60 +1,55 @@
 function varargout = examples_PDE_library_PIESOS(varargin)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_PDE_library_PIESOS.m     PIETOOLS 2026
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This library file contains the definition of some nonlinear PDE systems
-% drawn from the literature. To use one of the examples, call this function
-% with as FIRST input the index of the example you wish to use. Please
-% check the table of contents below to see which index corresponds to which
-% problem. The output of the function is the corresponding 'pde_struct'
-% object describing the PDE.
+% VARARGOUT = EXAMPLES_PDE_LIBRARY_PIESOS(VARARGIN) returns the
+% 'pde_struct' object describing one of the nonlinear PDE systems of this
+% library, drawn from the literature, and offers to run the stability
+% test associated to it. The first input is the index of the example:
+% the table of contents below lists the examples and their parameters.
 %
-% INPUT
-%     PDE = examples_PDE_library_PIESOS(example,option1,option2,...)
-%       - example - integer (1-13) corresponding to the selected example
-%       - option# - character array 'name=value', which overrides the
-%            default value of the parameter 'name' of the selected example
-%            by the value 'value'. For example, 'r=5' sets r equal to 5.
-%            The value can be any Matlab expression, e.g. 'b=2' or
-%            'r=pi^2-0.1'. The parameters that can be overridden for each
-%            example are listed in the table of contents below.
-%            Alternatively, option# can be 'light', 'default' or 'heavy',
-%            specifying the settings PIESOS_settings(option#) with which to
-%            run the stability test associated to the example (see below).
-%            In that case, the test is run without asking for permission.
-%            Without inputs, the index is requested from the user;
+% INPUTS
+% - varargin:   the inputs (example,option1,option2,...), with
+%       example:    integer 1 to 13, the index of the example. Without
+%                   inputs, the index is requested from the user;
+%       option#:    (optional) char 'name=value', overriding the default
+%                   value of the parameter 'name' of the example by the
+%                   value of the MATLAB expression 'value', e.g. 'r=5' or
+%                   'r=pi^2-0.1'. The parameters of each example are
+%                   listed in the table of contents. Alternatively,
+%                   'light', 'default' or 'heavy', running the stability
+%                   test of the example with PIESOS_settings(option#),
+%                   without asking for permission;
 %
-% OUTPUT
-%       - PDE - initialized 'pde_struct' object describing the nonlinear
-%            PDE of the selected example (the first output, varargout{1});
+% OUTPUTS
+% - varargout:  varargout{1} = PDE, the initialized 'pde_struct' object
+%               describing the nonlinear PDE of the selected example;
 %
-% Nonlinear PDEs can only be declared in the command-line (pde_var) input
-% format; the batch, term and GUI input formats are not supported.
-%
-% The output PDE can be converted to a PIE, and analyzed using PIESOS, e.g.
+% NOTES
+% - Nonlinear PDEs can only be declared in the command-line (pde_var)
+%   input format; the batch, term and GUI input formats are not
+%   supported.
+% - The output PDE can be converted to a PIE, and analyzed using PIESOS,
+%   e.g.
 %     PDE = examples_PDE_library_PIESOS(2,'r=5');
 %     PIE = convert(PDE);
-%
-% Most examples come with a stability test that can be verified for the
-% default values of the parameters, using the PIESOS executives. This test
-% is specified by
-%       use_exec - 'global' for PIESOS_stability_global, or 'local' for
-%            PIESOS_stability_local ('' if no test could be verified);
-%       lambda   - the decay rate at which to verify stability;
-%       LF_form  - the form of the Lyapunov functional, 'pie' or 'pde';
-%       rad, alpha - (local test only) the radius of the ball, and the
-%            weights of the Sobolev norm defining the ball;
-%       settings - the settings of the executive, the default settings
-%            PIESOS_settings() unless specified otherwise by the example;
-% After extracting the PDE, the library asks whether you wish to run this
-% test, and with what settings: 'light', 'default' or 'heavy', or, if you
-% just press enter, those specified by the example. If you change the
-% parameters of the example, the test may no longer be feasible.
-%
-% If you wish to include a new example in our library, please send it to us
-% and we will include it in the next release. Please also include the
-% citation information, if available.
-%
+% - Most examples come with a stability test that can be verified for the
+%   default values of the parameters, using the PIESOS executives. This
+%   test is specified by
+%     use_exec:   'global' for PIESOS_stability_global, or 'local' for
+%                 PIESOS_stability_local ('' if no test could be
+%                 verified);
+%     lambda:     the decay rate at which to verify stability;
+%     LF_form:    the form of the Lyapunov functional, 'pie' or 'pde';
+%     rad, alpha: (local test only) the radius of the ball, and the
+%                 weights of the Sobolev norm defining the ball;
+%     settings:   the settings of the executive, PIESOS_settings() unless
+%                 specified otherwise by the example.
+%   After extracting the PDE, the library asks whether you wish to run
+%   this test, and with what settings: 'light', 'default' or 'heavy', or,
+%   if you just press enter, those specified by the example. If you change
+%   the parameters of the example, the test may no longer be feasible.
+% - If you wish to include a new example in our library, please send it
+%   to us and we will include it in the next release. Please also include
+%   the citation information, if available.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - examples_PDE_library_PIESOS
 %
@@ -80,10 +75,7 @@ function varargout = examples_PDE_library_PIESOS(varargin)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 11/08/2026: Initial coding;
-% DJ, 11/22/2026: Local stability test for example 13;
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DJ, 11/22/2026: Initial coding;
 
 % Process the user inputs
 [index,params,sttngs] = process_inputs(varargin,nargin);
@@ -555,21 +547,21 @@ function [index,params,sttngs] = process_inputs(varargin0,nargin1)
 % [INDEX,PARAMS,STTNGS] = PROCESS_INPUTS(VARARGIN0,NARGIN1) processes the
 % user inputs of the examples_PDE_library_PIESOS function.
 %
-% INPUT
-% - varargin0:  1 x nargin1 cell with the inputs of the library function.
-%               The first is the index of the example, the others
-%               character arrays 'name=value', each overriding the default
-%               value of the parameter 'name' by the value of the expression
-%               'value', or one of 'light', 'default', 'heavy', specifying
-%               the settings of the stability test. If nargin1=0, the index
-%               is requested from the user;
+% INPUTS
+% - varargin0:  1 x nargin1 'cell' with the inputs of the library
+%               function. The first is the index of the example, the
+%               others character arrays 'name=value', each overriding the
+%               default value of the parameter 'name' by the value of the
+%               expression 'value', or one of 'light', 'default',
+%               'heavy', specifying the settings of the stability test. If
+%               nargin1=0, the index is requested from the user;
 % - nargin1:    number of inputs of the library function;
 %
-% OUTPUT
+% OUTPUTS
 % - index:      integer index of the example;
-% - params:     struct with a field for each parameter specified by the
+% - params:     'struct' with a field for each parameter specified by the
 %               user, holding the specified value. Has no fields if no
-%               parameters are specified. See 'set_params';
+%               parameters are specified;
 % - sttngs:     'light', 'default' or 'heavy' if the user specified the
 %               settings of the stability test, and '' otherwise;
 
@@ -635,17 +627,18 @@ function varargout = set_params(names,vals,params)
 % VALS of the parameters NAMES of an example by the values specified by the
 % user, e.g. [r,a,b] = set_params({'r','a','b'},{r,a,b},params).
 %
-% INPUT
-% - names:      1 x n cellstr with the names of the parameters of the example;
-% - vals:       1 x n cell with the default values of the parameters;
-% - params:     struct with a field for each parameter specified by the
+% INPUTS
+% - names:      1 x n 'cellstr' with the names of the parameters of the
+%               example;
+% - vals:       1 x n 'cell' with the default values of the parameters;
+% - params:     'struct' with a field for each parameter specified by the
 %               user, as output by 'process_inputs';
 %
-% OUTPUT
-% - varargout:  n outputs, the value params.(names{i}) if the user specified
-%               parameter i, and the default value vals{i} otherwise.
-%               A warning is thrown for each field of params that is not in
-%               names, which is then ignored.
+% OUTPUTS
+% - varargout:  n outputs, the value params.(names{i}) if the user
+%               specified parameter i, and the default value vals{i}
+%               otherwise. A warning is thrown for each field of params
+%               that is not in names, which is then ignored.
 
 if ~iscellstr(names) || ~iscell(vals) || numel(names)~=numel(vals)
     error('Parameter names and default values must be specified as cell arrays of the same size.')

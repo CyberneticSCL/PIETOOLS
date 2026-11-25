@@ -1,16 +1,18 @@
 function P_reshaped = reshape(P1, M, N)
-% reshape  reshape of P1 object.
-%   
-%   B = RESHAPE(A,M,N) returns the M-by-N quadpoly whose
-%   elements are taken columnwise from A. A must have M*N elements.
+%RESHAPE  Reshape a quadPoly object.
 %
-% INPUT
+%   P_RESHAPED = RESHAPE(P1,M,N) returns the M-by-N quadPoly whose
+%   elements are taken columnwise from P1. P1 must have M*N elements.
+%
+% INPUTS
 % - P1:         m x n 'quadPoly' object (or 'double' array);
-% - M, N:       positive integers with M*N = m*n;
+% - M, N:       positive integers with M*N = m*n; the form
+%               RESHAPE(P1,[M,N]) is not supported;
 %
-% OUTPUT
+% OUTPUTS
 % - P_reshaped: M x N 'quadPoly' object, the entries of P1 taken
-%               columnwise, with the same monomial bases.
+%               columnwise, with the same monomial bases ('double' for a
+%               'double' P1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - reshape
@@ -37,7 +39,7 @@ function P_reshaped = reshape(P1, M, N)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding AT - 02/18/2026
+% AT, 02/18/2026: Initial coding;
  
 
 % A 'double' array is reshaped by the builtin reshape

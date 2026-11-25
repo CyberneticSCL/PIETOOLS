@@ -8,10 +8,9 @@ function [logval,errmsg] = isvalid(Kop)
 %           are of appropriate type and consistent dimensions;
 %
 % OUTPUTS
-% - logval: boolean value specifying whether (true) or not (false) the
-%           object is properly specified;
-% - errmsg: 'string' used to declare an error message indicating what is
-%           wrong with the object if logval = false;
+% - logval: logical, true if the object is properly specified;
+% - errmsg: 'string' error message stating what is wrong with the object
+%           if logval is false;
 %
 % NOTES
 % - The names Kop.Zd of the decision variables are not checked for
@@ -244,14 +243,15 @@ end
 
 %%
 function logval = is_consistent(intmat)
-% LOGVAL = IS_CONSISTENT(INTMAT_I) checks whether any of the domains of
-% integration specified by INTMAT_I is unsuitable, in particular whether
-% the domain of integration of some variable involves the variable itself.
+% LOGVAL = IS_CONSISTENT(INTMAT) checks whether the domains of integration
+% specified by INTMAT are consistent, i.e. whether in no row the domain of
+% integration of a variable involves the variable itself, directly or
+% through the limits of other variables.
 %
-% INPUT
-% - intmat: ntrms x 2*d array, the intmat along one direction;
+% INPUTS
+% - intmat: nterms x 2*d array, the intmat along one direction;
 %
-% OUTPUT
+% OUTPUTS
 % - logval: logical, false if a variable is integrated over a domain that
 %           involves the variable itself.
 

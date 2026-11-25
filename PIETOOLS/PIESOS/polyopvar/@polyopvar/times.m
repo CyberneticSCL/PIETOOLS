@@ -1,23 +1,22 @@
 function C = times(A,B)
 % C = TIMES(A,B) returns the 'polyopvar' object C representing the
 % elementwise product A.*B of two distributed polynomials, or of a
-% constant with a distributed polynomial.
+% constant with a distributed polynomial, a function of a single copy of
+% the output variables.
 %
 % INPUTS
-% - A:     m x n 'polyopvar' object, or a constant such that A.*B.C is
-%          defined;
-% - B:     m x n 'polyopvar' object, or a constant such that A.C.*B is
-%          defined;
+% - A:     m x 1 'polyopvar' object, not an adjoint, or a constant such
+%          that A.*B.C is defined;
+% - B:     m x 1 'polyopvar' object, not an adjoint, or a constant such
+%          that A.C.*B is defined;
 %
 % OUTPUTS
-% - C:     'polyopvar' object representing A.*B;
+% - C:     m x 1 'polyopvar' object representing A.*B;
 %
 % NOTES
-% - The monomials of C are the products of each monomial of A with each
-%   monomial of B, where the factors of B follow those of A.
-% - A.*B is the elementwise product otimes(A,B,1),
-%   a function of a single copy of the variables. The tensor product, a
-%   function of a copy of the variables for each factor, is otimes(A,B,2).
+% - A and B must have the same size, or one of them be scalar.
+% - The tensor product, a function of a copy of the output variables for
+%   each factor, is otimes(A,B,2).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

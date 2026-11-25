@@ -9,46 +9,40 @@ function display(Rop,name,width_max,expand,call_name)
 %
 % INPUTS
 % - Rop:    'tensopvar' object;
-% - name:   (optional) char, the name to display for the operator. Defaults
-%           to the name of the variable passed to display, or to 'Rop' if
-%           there is none. The name 'ans' is replaced by 'Rop';
+% - name:   (optional) 'char', the name to display for the operator.
+%           Defaults to the name of the variable passed to display, or to
+%           'Rop' if there is none. The name 'ans' is replaced by 'Rop';
 % - width_max:  (optional) maximal number of characters of a line with
-%           multiple terms. Defaults to the width of the command window, or
-%           to 100 if this cannot be determined;
-% - expand: (optional) logical, false to always display the operators R_ij
-%           as such, instead of as the actual operators if they are small
-%           enough. Defaults to true;
-% - call_name:  (optional) char, the expression with which the user can
+%           multiple terms. Defaults to the width of the command window
+%           minus one, or to 100 if this cannot be determined;
+% - expand: (optional) 'logical', false to always display the operators
+%           R_ij as such, instead of as the actual operators if they are
+%           small enough. Defaults to true;
+% - call_name:  (optional) 'char', the expression with which the user can
 %           call the operator, used in the call to extract an operator
 %           R_ij. Defaults to name, also if that is ans, and is set by the
 %           display of a container that has Rop as its only block, e.g.
 %           'Rop.ops{1,1}';
 %
-% OUTPUTS
-% Display of the operator in the command window.
-%
 % NOTES
 % - The product of the factors is displayed as the circled times symbol for
 %   a tensor product (Rop.otype(1)=2), and as .* for an elementwise product
-%   (Rop.otype(1)=1). The same holds for the inputs x_1,...,x_d, with
-%   Rop.otype(2).
+%   (Rop.otype(1)=1).
 % - The output variables are those in Rop.vars.out, with a subscript to
 %   distinguish different copies of the same variable, numbered over the
-%   factors in order. A number at the end of the name of
-%   a variable is displayed as a subscript, followed by the subscript of
+%   factors in order for a tensor product. A number at the end of the name
+%   of a variable is displayed as a subscript, followed by the subscript of
 %   the copy, separated by a comma, e.g. s1 as s_1 and its second copy as
 %   s_1,2.
 % - The operators R_ij, with i the term and j the factor, are displayed as
 %   the actual operators, acting on x_j, if all of them in the terms that
-%   are displayed are small enough. Otherwise, they are
-%   displayed as R_ij, dropping i if there is only one term, and j if
-%   there is only one factor, and can be extracted by calling Rop.ops{i,j}.
+%   are displayed are small enough. Otherwise, they are displayed as R_ij,
+%   dropping i if there is only one term, and j if there is only one
+%   factor, and can be extracted by calling Rop.ops{i,j}.
 % - Up to three terms are displayed. For more terms, the first and last
 %   term are displayed, and the other terms are replaced by an ellipsis.
-%   The terms are placed on the same line, unless the line would have more
-%   characters than fit in the command window, in which case the whole next
-%   term is moved to the next line, so that no term is split by the command
-%   window, with the + aligned under the equality sign.
+%   A term that does not fit on the current line (WIDTH_MAX) is moved as a
+%   whole to the next line, with the + aligned under the equality sign.
 % - An identity operator is displayed as (NAME x)(s) = x(s), with the
 %   output variables.
 % - The input is named x, unless this is the name of a variable (ignoring a
@@ -60,6 +54,7 @@ function display(Rop,name,width_max,expand,call_name)
 %   variables. With more than four factors, the factors x_2,...,x_{d-1} are
 %   replaced by an ellipsis. For a pointwise product of the inputs
 %   (Rop.otype(2)=1), the factors are set equal, x_1(s) = x_2(s) = ...
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display
 %

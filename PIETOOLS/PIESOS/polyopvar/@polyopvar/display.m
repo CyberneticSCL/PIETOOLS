@@ -1,69 +1,44 @@
 function display(P,name,width_max,expand,call_name)
 % DISPLAY(P,NAME,WIDTH_MAX,EXPAND,CALL_NAME) displays the distributed
-% polynomial P in the command window, with each row of P.C displayed as a
-% separate polynomial,
+% polynomial P in the command window, each row-block of P.C as a separate
+% polynomial,
 %   NAME_i(x,y)(s) = C_i1 x + ... + C_ij (x^{od} o y^{or}),
 % for x, y the states, o the tensor product, and x^{od} the d-fold tensor
-% product of x, with the operators C_ij displayed as the actual operators
-% acting on the monomials if they are small enough. Called automatically
-% when displaying a 'polyopvar' object without semicolon.
+% product of x. Called when a 'polyopvar' object is displayed without
+% semicolon.
 %
 % INPUTS
-% - P:      'polyopvar' object;
-% - name:   (optional) char, the name to display for the polynomial.
-%           Defaults to the name of the variable passed to display, or to
-%           'p' if there is none. The name 'ans' is replaced by 'p';
+% - P:          'polyopvar' object;
+% - name:       (optional) char, the name of the polynomial. Defaults to
+%               the name of the variable passed to display, or to 'p' if
+%               there is none; 'ans' is replaced by 'p';
 % - width_max:  (optional) maximal number of characters of a line with
-%           multiple terms. Defaults to the width of the command window, or
-%           to 100 if this cannot be determined;
-% - expand: (optional) logical, false to always display the operators as
-%           C_ij, instead of as the actual operators if they are small
-%           enough. Defaults to true;
-% - call_name:  (optional) char, the name of the variable that the user can
-%           call to extract the operators, if this is not NAME. Used to
-%           display the polynomial that an adjoint is the adjoint of;
-%
-% OUTPUTS
-% Display of the polynomials in the command window.
+%               several terms. Defaults to the width of the command
+%               window, or to 100 if this cannot be determined;
+% - expand:     (optional) logical, false to display the operators as
+%               C_ij even if they are small enough to be displayed as the
+%               actual operators. Defaults to true;
+% - call_name:  (optional) char, the name under which the user can extract
+%               the operators, if not NAME. Used to display the polynomial
+%               that an adjoint is the adjoint of;
 %
 % NOTES
-% - If each row of P is a state variable (an identity operator acting on a
-%   single state), as for P.vartab, only the states are
-%   displayed, one per row, with the spatial variables that they depend on,
-%   e.g. x(s_1,s_2).
-% - Each polynomial is displayed as a sum over the monomials with a nonzero
-%   operator C_ij = P.C.ops{i,j}, acting on the monomial j, defined by the
-%   state variables in the jth row of P.Z. The operators are displayed as
-%   the actual operators if they are small enough.
-%   Otherwise, they are displayed as C_ij, and can be extracted by calling
-%   P.C{i,j}.
+% - The operator C_ij = P.C.ops{i,j} acts on monomial j (row j of P.Z).
+%   The operators are displayed as the actual operators if they are small
+%   enough, and otherwise as C_ij, to be extracted by P.C{i,j}.
 % - A monomial is displayed as the tensor product of its factors, in the
-%   order of P.Z, with the tensor product of d consecutive copies of a
-%   state x displayed as x^{od}. A factor of a monomial that is a known
-%   function (a multiplier from R) is displayed as 1.
-% - The polynomials are named NAME_i, dropping i if P has only one row.
-%   They are displayed as functions of the states in their monomials,
-%   followed by the output variables, those in P.vars.out, with a
-%   subscript to distinguish copies of the same variable. The output
-%   variables are only displayed once, not after each of the terms. The
-%   operators are named C_ij, dropping i if there is only one row, and j
-%   if there is only one monomial.
-% - A number at the end of the name of a state or a variable is displayed
-%   as a subscript, followed by the subscript of the copy of a variable,
-%   separated by a comma, and a state ending in _pie is displayed with a
-%   hat over its name, e.g. x1_pie as x_1 with a hat on the x.
-% - All terms are displayed for each polynomial. The terms are placed on
-%   the same line, unless the line would have more characters than fit in
-%   the command window, in which case the whole next term is moved to the
-%   next line, so that no term is split by the command window, with the +
-%   aligned under the equality sign.
+%   order of P.Z, with d consecutive copies of a state x as x^{od}, and a
+%   factor that is a multiplier from R as 1. A number at the end of the
+%   name of a state or variable is displayed as a subscript.
+% - If each row-block of P is a single state (an identity operator), as
+%   for P.vartab, only the states are displayed, with the spatial
+%   variables that they depend on, e.g. x(s_1,s_2).
 % - An adjoint (P.is_adjoint) is displayed as
-%       NAME = <p(x_1,...), \cdot >, where:
-%   or, for a weight W other than the identity, as
 %       NAME = <p(x_1,...), W, \cdot >, where:
-%   with the states x_1,... in the monomials of the polynomial p that P is
-%   the adjoint of, followed by the display of p, named p (or q if NAME is
-%   p) and, for a weight W other than the identity, the display of W.
+%   (without W for the identity weight), followed by the display of the
+%   polynomial p that P is the adjoint of (named q if NAME is p) and of
+%   the weight W.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display
 %

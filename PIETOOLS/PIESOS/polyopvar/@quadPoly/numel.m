@@ -1,10 +1,10 @@
 function out = numel(obj)
-%numel  Returns total elements in quadPoly object.
+%NUMEL  Returns the number of elements of a quadPoly object.
 %
-% INPUT
+% INPUTS
 % - obj:    'quadPoly' object of dimension obj.dim = [m,n];
 %
-% OUTPUT
+% OUTPUTS
 % - out:    integer, m*n.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +32,7 @@ function out = numel(obj)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/15/2026
+% SS, 02/15/2026: Initial coding;
 
 out = prod(obj.dim);
 end

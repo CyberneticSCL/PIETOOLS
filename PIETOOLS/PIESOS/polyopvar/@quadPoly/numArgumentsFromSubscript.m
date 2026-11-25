@@ -1,24 +1,25 @@
 function n = numArgumentsFromSubscript(obj,s,indexingContext)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This method is automatically called when one of the following statements
-% are executed:
-% a) obj.s — Number of elements referenced in a statement (indexingContext = Statement) 
-% b) (obj.s) — Number of elements returned in an expression (indexingContext = Expression) 
-% c) [obj.s] = rhs — Number of values assigned with a comma-separated list (indexingContext = Assignment)
-% The function retunrs the expected number of outputs n for each of these
-% three types of calls.
+% N = NUMARGUMENTSFROMSUBSCRIPT(OBJ,S,INDEXINGCONTEXT) returns the number
+% of outputs N expected from an indexing operation on the 'quadPoly' OBJ.
+% This method is automatically called when one of the following
+% statements is executed:
+% a) obj.s - number of elements referenced in a statement
+%    (indexingContext = Statement);
+% b) (obj.s) - number of elements returned in an expression
+%    (indexingContext = Expression);
+% c) [obj.s] = rhs - number of values assigned with a comma-separated list
+%    (indexingContext = Assignment).
 % Since we overloaded the function 'numel', we need this function to avoid
-% breaking 'subsref' and 'subsasgn'.
-% For now, this function just returns 1, expecting 1 output in all cases,
-% though something more sophisticated could be implemented as well.
+% breaking 'subsref' and 'subsasgn'. It returns 1 in all cases.
 %
-% INPUT
-% - obj:              'quadPoly' object;
-% - s:                'struct' array of the indexing operations;
+% INPUTS
+% - obj:              'quadPoly' object (not used);
+% - s:                'struct' array of the indexing operations (not
+%                     used);
 % - indexingContext:  matlab.indexing.IndexingContext, Statement,
-%                     Expression or Assignment;
+%                     Expression or Assignment (not used);
 %
-% OUTPUT
+% OUTPUTS
 % - n:                integer, 1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,7 +47,7 @@ function n = numArgumentsFromSubscript(obj,s,indexingContext)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 06/14/2022
+% SS, 06/14/2022: Initial coding;
 
    n=1;
 end

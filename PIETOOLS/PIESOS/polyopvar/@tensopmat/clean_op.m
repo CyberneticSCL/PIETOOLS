@@ -17,8 +17,8 @@ function [Cop,is_zero] = clean_op(Cop,ztol)
 %           Any input/output variable that no block structurally depends
 %           on (a column of Cop.depmat.in/.out that is entirely zero) is
 %           removed from vars.in/.out, dom.in/.out, and depmat.in/.out;
-% - is_zero: true if every block (already empty, or cleaned to zero) is
-%           zero, i.e. Cop represents the zero operator; false otherwise;
+% - is_zero: logical, true if every block (already empty, or cleaned to
+%           zero) is zero, i.e. Cop represents the zero operator;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

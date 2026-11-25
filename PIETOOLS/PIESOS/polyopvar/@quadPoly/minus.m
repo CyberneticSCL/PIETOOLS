@@ -1,10 +1,11 @@
 function C = minus(A,B)
-% Trivial. Given quadPoly A and B, do A+(-B)
+% C = MINUS(A,B) computes A+(-B), given quadPoly A and B.
 %
-% INPUT
-% - A, B:   'quadPoly' objects (or 'double'), of the same dimension;
+% INPUTS
+% - A, B:   'quadPoly' objects (or 'double'), of the same dimension (not
+%           checked; a scalar other than 0 is not expanded);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'quadPoly' object, A-B.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +33,7 @@ function C = minus(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 C = plus(A,-B);
 end

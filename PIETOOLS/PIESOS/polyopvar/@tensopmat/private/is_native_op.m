@@ -11,7 +11,7 @@ function logval = is_native_op(op)
 %           object, or [];
 %
 % OUTPUTS
-% - logval: boolean, true if op is a nonempty matrix of type 'double',
+% - logval: logical, true if op is a nonempty matrix of type 'double',
 %           'polynomial' or 'dpvar', and false otherwise;
 %
 

@@ -11,8 +11,9 @@ function [Z,opts,kst] = get_ineq_opts(f,opts)
 %           output variables) with 'intop' coefficients, or constants for
 %           degree-0 monomials, cleaned by `clean_poly`, as in
 %           `piesos_ineq`;
-% - opts:   (optional) struct, the options of `piesos_ineq`. Used here:
-%           otype, degs (or deg), exclude, psatz;
+% - opts:   (optional) 'struct', the options of `piesos_ineq`. Used here:
+%           otype (also of opts.L and opts.R), degs (or deg), exclude,
+%           psatz;
 %
 % OUTPUTS
 % - Z:      nZ x 1 'polyopvar' object, the distributed monomial basis of g:
@@ -23,21 +24,21 @@ function [Z,opts,kst] = get_ineq_opts(f,opts)
 %           rows (otype 2 or 3), each monomial of different states also in
 %           each other order of its factors (dmonomials with 'full'). [] if
 %           no monomial remains;
-% - opts:   struct, OPTS with the fields
+% - opts:   'struct', OPTS with the fields
 %    otype:   1, 2 or 3 if OPTS.otype was 'auto', see NOTES;
-%    degs:    if neither degs nor deg is specified: struct with fields 'in'
-%             (nf x N array, the degree d of the dummy variables of Zop in
-%             each of its nf factors) and 'out' (1 x N array, the degree p
-%             of the primary variables in Qmat), see the NOTES of
-%             `piesos_ineq`; 0 if Z has no spatial variables;
-%    exclude: if not specified and Z has spatial variables: 1 x q cell,
+%    degs:    if neither degs nor deg is specified: 'struct' with fields
+%             'in' (nf x N array, the degree d of the dummy variables of
+%             Zop in each of its nf factors) and 'out' (1 x N array, the
+%             degree p of the primary variables in Qmat); 0 if Z has no
+%             spatial variables;
+%    exclude: if not specified and Z has spatial variables: 1 x q 'cell',
 %             the option exclude of `monopmat` for each block of Zop (the
 %             term types not needed per variable);
-% - kst:    struct, the statistics of the exponents of the monomials in the
-%           dummy variables of the kernels of f, and of their delta groups,
-%           over the coefficients of all distributed monomials of f, see
-%           kernel_stats. Fields, each a 1 x N array over the N spatial
-%           variables f.vars.in unless stated otherwise:
+% - kst:    'struct', the statistics of the exponents of the monomials in
+%           the dummy variables of the kernels of f, and of their delta
+%           groups, over the coefficients of all distributed monomials of
+%           f. Fields, each a 1 x N array over the N spatial variables
+%           f.vars.in unless stated otherwise:
 %   dreq:   largest exponent that must be in the basis of Zop, over the
 %           monomials with a numeric coefficient (nonzero constant term of
 %           the kernel, not only decision variables): the largest second-
@@ -68,9 +69,11 @@ function [Z,opts,kst] = get_ineq_opts(f,opts)
 %
 % NOTES
 % - otype='auto' gives the smallest type whose terms have the structure of
-%   the terms of f. This is necessary, not sufficient: a certificate may 
-%   need rows whose terms cancel in g. If F>=0 is infeasible for the otype 
-%   chosen, try otype 3.
+%   the terms of f: 1 (pointwise rows), unless a term of f has two or more
+%   delta groups in a variable; then 2 (tensor-product rows), or 3 (both)
+%   if some delta group has three or more dummy variables. This is
+%   necessary, not sufficient: a certificate may need rows whose terms
+%   cancel in g. If F>=0 is infeasible for the otype chosen, try otype 3.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - get_ineq_opts
@@ -97,8 +100,7 @@ function [Z,opts,kst] = get_ineq_opts(f,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 11/22/2026: Initial coding, moved from 'piesos_ineq'; option
-%                   otype='auto';
+% DJ, 11/22/2026: Initial coding;
 
 if ~isa(f,'polyopvar')
     error("Distributed polynomial functional must be specified as object of type 'polyopvar'.")
@@ -152,7 +154,7 @@ end
 % Do not overwrite the degrees and exclusions specified by the user
 [degs,exclude] = ineq_degs(f,Z,opts,kst);
 % The degrees are set here, unless specified in opts.degs, or in opts.deg
-if ~isfield(opts,'degs') && ~isfield(opts,'deg')                            % DJ, 11/07/2026
+if ~isfield(opts,'degs') && ~isfield(opts,'deg')
     opts.degs = degs;
 end
 if ~isfield(opts,'exclude') && ~isempty(exclude)
@@ -175,9 +177,9 @@ function kst = kernel_stats(kst,Cop,varnames)
 % term). The other dummy variables are free.
 %
 % INPUTS
-% - kst:      struct of statistics, see the OUTPUTS of get_ineq_opts;
+% - kst:      'struct' of statistics, see the OUTPUTS of get_ineq_opts;
 % - Cop:      'intop' object, the coefficient of one distributed monomial;
-% - varnames: 1 x N cellstr, the spatial variables of f, to which the
+% - varnames: 1 x N 'cellstr', the spatial variables of f, to which the
 %             fields of kst refer;
 %
 % OUTPUTS
@@ -313,8 +315,8 @@ function otype = ineq_otype(kst)
 % NOTES of get_ineq_opts, with a warning for a partial tie.
 %
 % INPUTS
-% - kst:    struct, the statistics of the kernels of f, see the OUTPUTS of
-%           get_ineq_opts (fields ngrp, gmax, hastie used);
+% - kst:    'struct', the statistics of the kernels of f, see the OUTPUTS
+%           of get_ineq_opts (fields ngrp, gmax, hastie used);
 %
 % OUTPUTS
 % - otype:  1, 2 or 3, the option otype of `piesos_quadopvar`.
@@ -354,7 +356,7 @@ function Z = ineq_monomials(f,opts)
 %
 % INPUTS
 % - f:      'polyopvar' object, the scalar functional of get_ineq_opts;
-% - opts:   struct, the options of piesos_ineq with otype resolved
+% - opts:   'struct', the options of piesos_ineq with otype resolved
 %           (numeric): tensor-product rows if otype, or that of opts.L or
 %           opts.R, is 2 or 3 (or not given: the default 1 of
 %           piesos_sosvar);
@@ -453,19 +455,20 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function [degs,exclude] = ineq_degs(f,Z,opts,kst)
 % [DEGS,EXCLUDE] = INEQ_DEGS(F,Z,OPTS,KST) returns the monomial degrees and
-% term types of Zop for the basis Z, from the kernel statistics KST of F
-% (see the NOTES of piesos_ineq).
+% term types of Zop for the basis Z, from the kernel statistics KST of F:
+% the degrees needed to recover the kernel monomials of F with a numeric
+% coefficient, and the term types needed for the terms of F.
 %
 % INPUTS
 % - f:      'polyopvar' object, the scalar functional of get_ineq_opts;
 % - Z:      'polyopvar' object, the basis of g;
-% - opts:   struct, the options of piesos_ineq (field psatz used);
-% - kst:    struct, the statistics of the kernels of f;
+% - opts:   'struct', the options of piesos_ineq (field psatz used);
+% - kst:    'struct', the statistics of the kernels of f;
 %
 % OUTPUTS
-% - degs:   struct with fields 'in' (nf x N) and 'out' (1 x N), see the
+% - degs:   'struct' with fields 'in' (nf x N) and 'out' (1 x N), see the
 %           OUTPUTS of get_ineq_opts; 0 if Z has no spatial variables;
-% - exclude: 1 x q cell, the option exclude of monopmat per block of Zop;
+% - exclude: 1 x q 'cell', the option exclude of monopmat per block of Zop;
 %           [] if Z has no spatial variables.
 
 % Degrees and term types follow from the kernel exponents of f per spatial
@@ -534,8 +537,8 @@ function excl = exclude_types(depmat,allowed)
 % - allowed: 3 x N logical array, the term types allowed per variable;
 %
 % OUTPUTS
-% - excl:    1 x q cell, element j the exclude array of block j (false for
-%            a block without spatial variables).
+% - excl:    1 x q 'cell', element j the exclude array of block j (false
+%            for a block without spatial variables).
 
 q = size(depmat,1);
 excl = cell(1,q);

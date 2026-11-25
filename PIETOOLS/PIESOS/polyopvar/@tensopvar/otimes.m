@@ -1,7 +1,7 @@
 function C = otimes(A,B,type)
 % C = OTIMES(A,B,TYPE) returns the tensor product of the tensor-PI
-% operators A and B, so that
-%   (A*Zd(x))(s).*(B*Zd(y))(s) = (C*(Zd(x) o Zd(y)))(s).
+% operators A and B, so that, for the default TYPE=[1,2],
+%   (C*(x o y))(s) = (A*x)(s).*(B*y)(s).
 %
 % INPUTS
 % - A:      m1 x n1 'tensopvar' object (or 'sopvar', or 1);
@@ -13,14 +13,15 @@ function C = otimes(A,B,type)
 %               row dimension, requiring m1=m2. In this case, if A and B
 %               share any output variable, then a pointwise product is
 %               taken along this variable, i.e.
-%                   (Cop*v^2)(s) = (Aop*v)(s)*(Bop*v)(s).
+%                   (C*v^2)(s) = (A*v)(s)*(B*v)(s).
 %               If type(1)=2, then a Kronecker product is taken along the
 %               row dimension. In this case, if A and B share any output
 %               variable, then a tensor product is taken along this
 %               spatial direction, i.e.
-%                   (Cop*v^2)(s1,s2) = (Aop*v)(s1)*(Bop*v)(s2).
+%                   (C*v^2)(s1,s2) = (A*v)(s1)*(B*v)(s2).
 %               Likewise, type(2) specifies the product along the column
-%               dimension, for the input variables;
+%               dimension, for the input variables, requiring n1=n2 if
+%               type(2)=1;
 %
 % OUTPUTS
 % - C:      'tensopvar' object representing the tensor product of A and B;

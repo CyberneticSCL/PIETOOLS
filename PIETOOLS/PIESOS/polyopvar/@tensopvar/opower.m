@@ -2,7 +2,7 @@ function C = opower(A,d,type)
 % C = OPOWER(A,D,TYPE) returns the D-th order tensor power of the
 % tensor-PI operator A, i.e. the product A o ... o A of D copies of A, so
 % that
-%   (C*(Zd(x1) o ... o Zd(xD)))(s) = (A*Zd(x1))(s) .* ... .* (A*Zd(xD))(s)
+%   (C*(x1 o ... o xD))(s) = (A*x1)(s) .* ... .* (A*xD)(s)
 % for a pointwise product, and similarly for a tensor product.
 %
 % INPUTS
@@ -10,8 +10,8 @@ function C = opower(A,d,type)
 % - d:      nonnegative integer, the order of the product;
 % - type:   (optional) 1 x 2 array of values 1 or 2 indicating what type of
 %           product is taken along the row and column dimensions (1:
-%           elementwise, 2: tensor). Defaults to [1,2]; a scalar specifies type(1), with
-%           type(2)=2;
+%           elementwise, 2: tensor). Defaults to [1,2]; a scalar specifies
+%           type(1), with type(2)=2;
 %
 % OUTPUTS
 % - C:      'tensopvar' object representing the D-th tensor power of A,
@@ -20,8 +20,8 @@ function C = opower(A,d,type)
 % NOTES
 % - If d=0, C=1 is returned, and if d=1, C=A. If A has size 0 x 0,
 %   C = zeros(0,0) is returned.
-% - If A has a single factor, or factors of the same type as the product,
-%   the factors of d copies of each term are concatenated, so that C has
+% - If A has a single factor, or A.otype is equal to TYPE, the factors of
+%   d copies of each term are concatenated, so that C has
 %   size(A.ops,1)^d terms. Otherwise, C has a single term, with A nested
 %   as each of its d factors.
 %

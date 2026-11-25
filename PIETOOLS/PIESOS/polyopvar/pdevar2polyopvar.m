@@ -1,6 +1,7 @@
 function x = pdevar2polyopvar(u)
-% X = PDEVAR2POLYOPVAR(U) takes a pde_var object U representing a state
-% variable and returns a polyopvar object X representing the same state.
+% X = PDEVAR2POLYOPVAR(U) takes a 'pde_struct' object U, declared with
+% pde_var, representing a state variable, and returns a 'polyopvar'
+% object X representing the same state.
 %
 % INPUTS
 % - u:  'pde_struct' object representing a single state variable, which
@@ -11,7 +12,7 @@ function x = pdevar2polyopvar(u)
 % - x:  1 x 1 'polyopvar' object representing a distributed polynomial
 %       variable, named 'x1', of the same vector size as the input,
 %       depending on the same independent (spatial) variables as the
-%       input, defined on the same domain.
+%       input, defined on the same domain;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - pdevar2polyopvar

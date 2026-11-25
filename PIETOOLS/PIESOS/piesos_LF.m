@@ -37,36 +37,40 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %           degrees of the monomials Z in each of the state variables. If
 %           specified as m x 1 array, the degrees are taken to be the
 %           cumulative degrees of the monomials in all of the variables
-%           (then Z may contain more than m rows);
+%           (then Z may contain more than m rows). Degree-0 (constant)
+%           monomials are not supported;
 % - opts:   (optional) struct with fields:
 %           - 'degs': struct with fields 'in' and 'out', or an array or
 %               cell used for both, specifying the degrees of the monomials
 %               in the dummy variables (kernels of Zop) and in the primary
-%               variables (basis of Pmat(s)), respectively;
-%           - 'exclude': 3x1 boolean array indicating whether to exclude
-%               the multiplier term (exclude(1)=1), lower integral
+%               variables (basis of Pmat(s)), respectively, as in
+%               `piesos_quadopvar`. Defaults to 0;
+%           - 'exclude': 3 x 1 logical array indicating whether to
+%               exclude the multiplier term (exclude(1)=1), lower integral
 %               (exclude(2)=1), or upper integral (exclude(3)=1) from the
 %               definition of basis operator Zop;
-%           - 'psatz': 1xp array of integers specifying whether to use a
-%               psatz multiplier to enforce positivity only on the interval
-%               over which the operator integrates. If psatz=0, no such
-%               multiplier is used. If psatz=1, the matrix Pmat will be
-%               multiplied by (s-a)*(b-s), where [a,b]=Z.dom. If
-%               psatz=[0,1], we have Pmat = Pmat1 + (s-a)*(b-s)*Pmat2;
+%           - 'psatz': (only with opts.pos) 1 x N array of orders of the
+%               psatz multipliers along each spatial variable: order q
+%               gives the multipliers (s-a)^j*(b-s)^(q-j), j=0,...,q, so
+%               that Pmat(s) need only be positive semidefinite on the
+%               domain [a,b]. By default, no multiplier is used;
 %           - 'sep': scalar boolean specifying whether to enforce
 %               separability of the operator;
 %           - 'otype': type of output of Zop: 1 for pointwise products, 2
 %               for tensor products, 3 for both, see `piesos_quadopvar`.
 %               Defaults to 1;
 %           - 'pos': scalar boolean, set to true to declare V as a sum of
-%               squares (only for PDE state variables). Otherwise, Pmat is
-%               symmetric but indefinite;
+%               squares (only for PDE state variables: an error for PIE
+%               state variables). Otherwise, Pmat is symmetric but
+%               indefinite for PDE state variables, and general for PIE
+%               state variables;
 %           - 'derivative': scalar boolean, set to false to skip computing
 %               the derivative dV, which is then returned as [] (default
 %               true). It is also skipped if fewer than 3 outputs are
 %               requested. Outputs ignored with ~, as in [prog,V,~,Pmat],
-%               count as requested, as nargout includes them (MATLAB has
-%               no isargout): use this option instead;
+%               count as requested: use this option instead;
+%           Other options of `piesos_quadvar` can be used, but the
+%           operators on the left and right must be the same;
 %
 % OUTPUTS
 % - prog:   'struct' specifying the PIESOS program with the decision
@@ -78,27 +82,26 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % - dV:     scalar 'polyopvar' object representing the Lie derivative of V
 %           along solutions to the PIE, or [] if it was not computed (see
 %           opts.derivative). prog, V, Pmat and Zop do not depend on this;
-% - Pmat:   m x m cell, with Pmat{i,j} a 'dpvar' object in the primary
-%           variables, defining the matrix Pmat(s) (a block for each
-%           monomial in Z);
+% - Pmat:   r x r cell, for r the number of block rows of Zop, with
+%           Pmat{i,j} a 'dpvar' object in the primary variables, defining
+%           the matrix Pmat(s), as in `piesos_quadvar`;
 % - Zop:    m x n 'tensopmat' object representing the monomial basis
 %           operator acting on the distributed monomial basis defined by
-%           Z. If xvars has PDE and PIE state variables, Pmat and Zop are
-%           2 x 1 cells with the output for the PDE and for the PIE
-%           states;
+%           Z. If V is the sum of a functional in the PDE states and one
+%           in the PIE states, Pmat and Zop are 2 x 1 cells with the
+%           output for the PDE and for the PIE states;
 %
 % NOTES
 % - The Lie derivative composes the functional with the operators defining
-%   the PIE, also for nonlinear terms in f, the pointwise products of
-%   operators acting on the state, which give nested tensor-PI operators.
-% - The derivative is computed in the linear representation of V, as a
-%   polynomial in x with a functional as coefficient.
+%   the PIE, also for nonlinear terms in f (pointwise products of
+%   operators acting on the state, which give nested tensor-PI operators).
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_LF
 %
-% Copyright (C)2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -120,8 +123,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding, based on V3_Liediff by CR;
-% DJ, 11/22/2026: Option 'otype', defaulting to 1;
+% CR, DJ, 11/24/2026: Initial coding;
 
 % Check the options
 if nargin<=4
@@ -130,6 +132,7 @@ end
 if ~isa(opts,'struct')
     error("Options must be specified as a 'struct'.")
 end
+check_opts(opts,'piesos_LF');
 % Pointwise products by default (otype 1)
 if ~isfield(opts,'otype')
     opts.otype = 1;
@@ -357,10 +360,6 @@ if ~use_pde
     WLR = subs(subs(Vxu,names_x,strcat(names_x,'_L')),names_pde,TxR);
     WRL = subs(subs(Vxu,names_x,strcat(names_x,'_R')),names_pde,TxL);
     prog = piesos_eq(prog,WLR-WRL);
-    if isfield(opts,'pos') && opts.pos
-        % Enforce positivity using piesos_ineq
-        prog = piesos_ineq(prog,V);
-    end
 end
 
 end

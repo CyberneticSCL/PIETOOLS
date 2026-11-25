@@ -1,63 +1,64 @@
 function [Pcell_filtered_full, Pcell_filtered_nonzero] = filter_Pcell(Pcell, threshold)
-    % [PCELL_FILTERED_FULL,PCELL_FILTERED_NONZERO] = FILTER_PCELL(PCELL,
-    % THRESHOLD) removes small coefficients from the solved Gram-matrix
-    % blocks in PCELL.
-    %
-    % Each polynomial coefficient whose absolute value is strictly less
-    % than threshold is set equal to zero. Polynomial terms which become
-    % zero are then removed using cleanpoly. The dimensions and cell-array
-    % structure of Pcell are preserved.
-    %
-    % INPUTS
-    % - Pcell:      cell array containing solved polynomial Gram-matrix
-    %               blocks. Numeric blocks are also supported;
-    % - threshold:  finite, nonnegative, real scalar specifying the
-    %               absolute coefficient threshold. Coefficients with
-    %               magnitude equal to threshold are retained;
-    %
-    % OUTPUTS
-    % - Pcell_filtered_full:
-    %               filtered copy of Pcell with all coefficients of
-    %               magnitude below threshold set to zero;
-    % - Pcell_filtered_nonzero:
-    %               struct with fields 'size', 'positions' and 'values',
-    %               specifying the size of Pcell_filtered_full{1,1}, the
-    %               row and column indices of its nonzero entries, and the
-    %               values of these entries, respectively;
-    %
-    % NOTES
-    % - Pcell should first be evaluated at the PIESOS solution.
-    %   Filtering an unsolved dpvar block is not supported because its
-    %   entries still depend on unknown decision variables.
-    % - Filtering is intended only to improve readability. A threshold
-    %   that is too large may materially alter the recovered certificate.
+% [PCELL_FILTERED_FULL,PCELL_FILTERED_NONZERO] = FILTER_PCELL(PCELL,
+% THRESHOLD) removes small coefficients from the solved Gram-matrix
+% blocks in PCELL.
+%
+% Each polynomial coefficient whose absolute value is strictly less
+% than threshold is set equal to zero. Polynomial terms which become
+% zero are then removed using cleanpoly. The dimensions and cell-array
+% structure of Pcell are preserved.
+%
+% INPUTS
+% - Pcell:      'cell' containing solved 'polynomial' Gram-matrix
+%               blocks. Numeric and empty blocks are also supported;
+% - threshold:  finite, nonnegative, real scalar specifying the
+%               absolute coefficient threshold. Coefficients with
+%               magnitude equal to threshold are retained;
+%
+% OUTPUTS
+% - Pcell_filtered_full:
+%               filtered copy of Pcell with all coefficients of
+%               magnitude below threshold set to zero;
+% - Pcell_filtered_nonzero:
+%               'struct' with fields 'size', 'positions' and 'values',
+%               specifying the size of Pcell_filtered_full{1,1}, the
+%               k x 2 array of row and column indices of its k nonzero
+%               entries, and the k x 1 'cell' of these entries,
+%               respectively;
+%
+% NOTES
+% - Pcell should first be evaluated at the PIESOS solution.
+%   Filtering an unsolved 'dpvar' block throws an error, because its
+%   entries still depend on unknown decision variables.
+% - Filtering is intended only to improve readability. A threshold
+%   that is too large may materially alter the recovered certificate.
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - filter_Pcell
-    %
-    % Copyright (C) 2026 PIETOOLS Team
-    %
-    % This program is free software; you can redistribute it and/or modify
-    % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
-    % (at your option) any later version.
-    %
-    % This program is distributed in the hope that it will be useful,
-    % but WITHOUT ANY WARRANTY; without even the implied warranty of
-    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    % GNU General Public License for more details.
-    %
-    % You should have received a copy of the GNU General Public License
-    % along with this program; if not, write to the Free Software
-    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %
-    % If you modify this code, document all changes carefully and
-    % include date authorship, and a brief description of modifications.
-    %
-    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-    % CR, 10/07/2026: Initial coding.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - filter_Pcell
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% CR, DJ, 11/24/2026: Initial coding;
 
     % Check the inputs
     narginchk(2,2);
@@ -111,8 +112,13 @@ function [Pcell_filtered_full, Pcell_filtered_nonzero] = filter_Pcell(Pcell, thr
             entry = Pcell_filtered(row_idx,col_idx);
     
             % The entry is nonzero if at least one polynomial coefficient
-            % remains nonzero after filtering.
-            is_nonzero = any(entry.coefficient(:) ~= 0);
+            % remains nonzero after filtering (a numeric entry is its own
+            % coefficient).
+            if isnumeric(entry)
+                is_nonzero = entry ~= 0;
+            else
+                is_nonzero = any(entry.coefficient(:) ~= 0);
+            end
     
             if is_nonzero
                 positions(end+1,:) = [row_idx,col_idx];

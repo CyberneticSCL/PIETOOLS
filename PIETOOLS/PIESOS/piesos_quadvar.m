@@ -5,15 +5,15 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % monomials, taking the quadratic form
 %   V = <ZOPL*ZL, PMAT*ZOPR*ZR>
 % where ZOPL and ZOPR are bases of tensor-PI operators, acting on the
-% entries of ZL and ZR, and PMAT(s) is a matrix of
-% polynomials in primary variables s, parameterized by decision variables.
+% entries of ZL and ZR, and PMAT(s) is a matrix of polynomials in primary
+% variables s, parameterized by decision variables.
 % PMAT is a general matrix by default, a symmetric matrix if
 % opts.sym==true, and an SOS matrix if opts.pos==true. For ZL=ZR and
 % opts.pos==true, V is a distributed SOS polynomial.
 %
 % INPUTS
-% - prog:   PIESOS program structure in which to declare the decision
-%           variable;
+% - prog:   'struct' specifying a PIESOS program in which to declare the
+%           decision variable;
 % - ZL:     nL x 1 'polyopvar' object representing a vector of distributed
 %           polynomials, e.g. a basis of distributed monomials, acted on by
 %           the operators ZopL: block i of ZopL acts on entry i of ZL, see
@@ -36,15 +36,16 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           If psatz(i)=qi, the multipliers are (si-ai)^j*(bi-si)^(qi-j),
 %           j in {0,...,qi};
 %    degs:  array, cell, or struct with fields 'in' and 'out', specifying
-%           the degrees of the monomials in the operators ZopL and ZopR.
-%           The degrees in degs.in define the
-%           monomials in the dummy variables, in terms of which the kernels
-%           of ZopL and ZopR are defined, those in degs.out the monomials 
-%           in the primary variables, defining the basis of Pmat(s). The 
-%           same degrees are used for ZopL and ZopR, unless degs is a 
-%           struct with fields L and R, specifying the degrees of each.
-%           A field 'deg' is renamed 'degs', with a warning, unless
-%           'degs' is specified;
+%           the degrees of the monomials in the operators ZopL and ZopR,
+%           as in `piesos_quadopvar`. The degrees in degs.in define the
+%           monomials in the dummy variables, in terms of which the
+%           kernels of ZopL and ZopR are defined, those in degs.out the
+%           monomials in the primary variables, defining the basis of
+%           Pmat(s). The same degrees are used for ZopL and ZopR, unless
+%           degs is a struct with fields L and R, specifying the degrees
+%           of each. Defaults to 0. A field 'deg' is used as 'degs' if
+%           'degs' is not specified, and ignored otherwise, with a
+%           warning;
 %    L/R:   (optional) structs with fields 'degs', 'exclude', 'sep', and
 %           'otype', specifying separate options for the operators ZopL
 %           (L) and ZopR (R): 'exclude' the multiplier, lower or upper
@@ -55,12 +56,16 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           opts.L.degs and opts.R.degs, instead of opts.degs.L and
 %           opts.degs.R (specifying them for the same basis in both
 %           places is an error). If only one of L and R is specified, it
-%           is used for both. The fields 'exclude', 'sep', and 'otype' of
-%           opts are used for each operator for which L or R does not
-%           specify them (see `piesos_quadopvar`);
+%           is used for both, except that a specified opts.degs still
+%           gives the degrees of the other operator. The fields
+%           'exclude', 'sep', and 'otype' of opts are used for each
+%           operator for which L or R does not specify them;
+% exclude, sep:  (optional) options of the operators ZopL and ZopR, as in
+%           `piesos_quadopvar`;
 %   otype:  (optional) type of output of ZopL and ZopR: 1 for a pointwise
 %           product, 2 for a tensor product, 3 for both (see `monopmat`),
-%           used for both operators unless opts.L or opts.R specify it;
+%           used for both operators unless opts.L or opts.R specify it.
+%           Defaults to 1;
 %  intmat:  (optional) regions of integration of the copies si_1,...,si_di
 %           of the output variables, a 1 x N cell of qi x 2*di arrays or
 %           presets 'full' (default), 'steps', 'all', see
@@ -70,21 +75,23 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           or the pointwise part of otype 3) for only one of the entries
 %           that are monomials of the same factors in different orders,
 %           e.g. z o y and y o z (`dmonomials` with 'full'), as their
-%           pointwise products are the same function, see NOTES. Defaults
-%           to true;
+%           pointwise products are the same function, see NOTES. Dropping
+%           an entry of otype 1 is an error if degs, exclude or sep are
+%           given per entry (as cells). Defaults to true;
 %
 % OUTPUTS
-% - prog:   PIESOS program structure with the decision variables defining
-%           Pmat added;
+% - prog:   'struct' specifying the PIESOS program with the decision
+%           variables defining Pmat added (and Pmat>=0, for opts.pos);
 % - V:      scalar 'polyopvar' object representing the distributed
 %           polynomial functional
 %               V(x) = <ZopL*ZL(x), Pmat*ZopR*ZR(x)>;
-% - Pmat:   nL x nR cell, with element Pmat{i,j} an mi x nj 'dpvar' object
-%           in the primary variables, coupling the ith block row of ZopL
-%           and the jth block row of ZopR, i.e. entry i of ZL and entry j
-%           of ZR, see `piesos_quadopvar`. With regions other than the
-%           whole domain (opts.intmat), a q1 x ... x qN cell of such
-%           cells, Pmat{k1,...,kN} for rows k1,...,kN of the regions;
+% - Pmat:   rL x rR cell, for rL and rR the numbers of block rows of ZopL
+%           and ZopR, with element Pmat{i,j} an mi x nj 'dpvar' object in
+%           the primary variables, coupling the ith block row of ZopL and
+%           the jth block row of ZopR, see `piesos_quadopvar`. With
+%           regions other than the whole domain (opts.intmat), a
+%           q1 x ... x qN cell of such cells, Pmat{k1,...,kN} for rows
+%           k1,...,kN of the regions;
 % - ZopL/ZopR:  'tensopmat' objects representing the bases of operators on
 %           the entries of ZL and ZR (block i acts on the output of row i
 %           of ZL.C);
@@ -92,25 +99,24 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % NOTES
 % - Entry i of ZL is ZL_i(x) = sum_j C_ij*Z_j(x), for the monomials Z_j in
 %   the rows of ZL.Z and the coefficients ZL.C of ZL (a single term for a
-%   monomial basis). Block i of ZopL acts on the output of the coefficients
-%   of row i, so that V is defined by the operators ZopL_i*C_ij, the blocks
-%   of the product ZopL*ZL.C (mixed product), on the monomials Z_j. 
+%   monomial basis). Block i of ZopL acts on the output of the
+%   coefficients of row i, so that V is defined by the operators
+%   ZopL_i*C_ij, the blocks of the product ZopL*ZL.C (mixed product), on
+%   the monomials Z_j.
 % - The coefficients must be tensor-PI operators with a Kronecker output
 %   (otype(1)=2), so that the monomials are tensor products of the
-%   variables (x1 o x1); elementwise products, as in x1.*x1, are
-%   not supported. A factor that is itself a pointwise product, nested in a
-%   tensor product, is not supported either. The factors of a monomial must
-%   have the same size, and its states depend on the same variables.
+%   variables (x1 o x1); elementwise products, as in x1.*x1, are not
+%   supported. A factor that is itself a pointwise product, nested in a
+%   tensor product, is not supported either. The factors of a monomial
+%   must have the same size, and its states depend on the same variables.
 % - The states in ZL and ZR are matched by name, and must have the same
 %   size and domain in both.
-% - If Pmat is symmetric, ZL=ZR, and ZopL=ZopR, only the upper triangle of
-%   Pmat is used to compute V.
 % - For full generality, a basis should include distributed monomials in
 %   all orders, e.g. both y o z and z o y. For pointwise products
-%   (otype=1), however, y o z and z o y involve the same elements (perhaps
-%   in different order). The 'unique' option get's rid of these duplicate
-%   elements in the otype=1 and otype=3 case, but can be turned of if
-%   desired.
+%   (otype=1), however, y o z and z o y involve the same elements
+%   (perhaps in different order): opts.unique removes these duplicates
+%   for otype 1 and 3; set it to false to keep them.
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_quadvar
@@ -137,10 +143,7 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% DJ, 11/22/2026: Options 'intmat' (regions of integration) and 'unique'
-%                   (pointwise products once per set of factors); regions
-%                   passed to 'int' as rows of the intmat;
+% DJ, 11/24/2026: Initial coding;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -180,6 +183,7 @@ end
 if ~isa(opts,'struct')
     error("Options must be specified as a 'struct'.")
 end
+check_opts(opts,'piesos_quadvar');
 % Allow degrees to be specified using 'deg' if no 'degs' are specified
 if isfield(opts,'deg')
     if isfield(opts,'degs')
@@ -251,6 +255,13 @@ end
 % orders (opts.unique, see NOTES): an entry whose factors appear in an
 % earlier entry gets otype 2 instead of 3, or is left out for otype 1
 if ~isfield(opts,'unique') || opts.unique
+    % A lone opts.L or opts.R applies to both bases (as in piesos_quadopvar),
+    % also for the otype of each side here
+    if isfield(opts,'L') && ~isfield(opts,'R')
+        opts.R = opts.L;
+    elseif isfield(opts,'R') && ~isfield(opts,'L')
+        opts.L = opts.R;
+    end
     for side = 'LR'
         if side=='L'
             Zs = ZL;    cols = colsL;
@@ -273,9 +284,18 @@ if ~isfield(opts,'unique') || opts.unique
             continue        % no entries of the same factors in other orders
         end
         if ~all(is_kept)
-            % Options given per entry would no longer match the entries
-            has_cells = iscell(degs) || (isstruct(degs) && ...
-                any(cellfun(@(f) ~isnumeric(degs.(f)),fieldnames(degs))));
+            % Options given per entry would no longer match the entries: a
+            % cell with an element per entry, as degs, degs.in/out, or within
+            % degs.L/R (a 1 x 1 cell is used for all entries)
+            per_entry = @(D) iscell(D) && numel(D)>1;
+            has_cells = per_entry(degs);
+            if isstruct(degs)
+                for fn = fieldnames(degs)'
+                    Df = degs.(fn{1});
+                    has_cells = has_cells || per_entry(Df) || ...
+                        (isstruct(Df) && any(cellfun(@(g) per_entry(Df.(g)),fieldnames(Df))));
+                end
+            end
             for fname = {'exclude','sep'}
                 has_cells = has_cells || (isfield(opts,fname{1}) && iscell(opts.(fname{1}))) || ...
                     (isfield(opts,side) && isfield(opts.(side),fname{1}) && iscell(opts.(side).(fname{1})));
@@ -368,8 +388,16 @@ end
 % of terms are ridx, cidx, a, b
 terms = zeros(0,4);
 for k=1:numel(ridcs)
+    % A block row without rows (all its terms excluded by opts.exclude, e.g. the
+    % multiplier of a state without variables) contributes no term
+    if size(ZopL.ops{ridcs(k),blk_idcsL(ridcs(k))},1)==0 || size(ZopR.ops{cidcs(k),blk_idcsR(cidcs(k))},1)==0
+        continue
+    end
     [a,b] = ndgrid(colsL{blk_idcsL(ridcs(k))},colsR{blk_idcsR(cidcs(k))});
     terms = [terms; repmat([ridcs(k),cidcs(k)],numel(a),1),a(:),b(:)];
+end
+if isempty(terms)
+    error("All terms of the functional are excluded by the option 'exclude'.")
 end
 
 % Compute the list of monomials that appear in the distributed polynomial.
@@ -407,8 +435,8 @@ for t=1:size(terms,1)
         % the input dim. The factors are ordered as the monomial [ZL(a),ZR(b)] in
         % Z_full. For symmetric Pmat, (cidx,ridx) and (ridx,cidx) give the same term
         % m, n: row counts of the block rows ridx of ZopL and cidx of ZopR
-        m = size(ZopL.ops{ridx,blk_idcsL(ridx)},1);                         % DJ, 11/19/2026
-        n = size(ZopR.ops{cidx,blk_idcsR(cidx)},1);                         % DJ, 11/19/2026
+        m = size(ZopL.ops{ridx,blk_idcsL(ridx)},1);
+        n = size(ZopR.ops{cidx,blk_idcsR(cidx)},1);
         % Pij(1:end) as a row, for each region
         Wij = cell(1,Q);
         for k=1:Q
@@ -457,11 +485,11 @@ function [dims,depmat,cols] = coefficient_blocks(C,side)
 % variable, and the indices COLS{i} of the monomials in row i. SIDE ('L' or
 % 'R') is used in error messages.
 %
-% INPUT
+% INPUTS
 % - C:      nr x nZ 'tensopmat', the coefficients of the vector;
 % - side:   char, 'L' or 'R';
 %
-% OUTPUT
+% OUTPUTS
 % - dims:   nr x 1 array, the size of each factor of the output of row i;
 % - depmat: nr x M array, the number of copies of each output variable in
 %           the output of row i;
@@ -527,10 +555,10 @@ function T = fill_empty_params(T)
 % empty for the excluded multiplier, lower and upper terms, by zero
 % matrices of the right size.
 %
-% INPUT
+% INPUTS
 % - T:  'tensopmat', 'tensopvar' or 'sopvar' object;
 %
-% OUTPUT
+% OUTPUTS
 % - T:  the same operator, with every empty parameter of its 'sopvar'
 %       factors a sparse zero matrix.
 

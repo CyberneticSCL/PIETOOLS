@@ -1,22 +1,26 @@
 function [nU, ZU, PA, PB, mapA, mapB, unionIsA, unionIsB, dU] = unionBasis(nA, ZA, nB, ZB)
-%UNIONBASIS Merge two tensor-product monomial bases (sorted-unique names/exponents).
+%UNIONBASIS Merge two sorted-unique tensor-product monomial bases.
 %
 % Convention enforced here:
 %   Z_old = P * Z_union
 % where P is a sparse row-pick (selection) matrix:
-%   - size(P) = d_old × d_union
+%   - size(P) = d_old x d_union
 %   - each row has exactly one 1 selecting the matching union basis element
 %
-% Inputs:
+% INPUTS
 %   nA, nB : sorted-unique cellstr variable names
-%   ZA, ZB : exponent cells aligned to nA,nB, each exponent vector sorted-unique
+%   ZA, ZB : exponent cells aligned to nA, nB, each exponent vector
+%            sorted-unique
 %
-% Outputs:
-%   nU, ZU        : merged names/exponents (missing variable => exponent [0])
+% OUTPUTS
+%   nU, ZU        : merged names/exponents (a variable missing from one
+%                   operand has exponent [0] there)
 %   PA, PB        : sparse selection matrices satisfying:
 %                     Z_A = PA * Z_U,   Z_B = PB * Z_U
-%   mapA, mapB    : old tensor index -> union tensor index maps (length dA / dB)
-%   unionIsA/B    : true iff union basis equals operand basis (identity map)
+%   mapA, mapB    : old tensor index -> union tensor index maps (length
+%                   dA / dB)
+%   unionIsA,     : logical, true iff the union basis equals the basis of
+%   unionIsB        A (resp. B), i.e. the map is the identity
 %   dU            : union tensor basis size
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,7 +48,7 @@ function [nU, ZU, PA, PB, mapA, mapB, unionIsA, unionIsB, dU] = unionBasis(nA, Z
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 % ---- merge variable names (sorted union) ----
 nU = mergeSortedCellstr(nA, nB);
@@ -129,10 +133,10 @@ end
 function u = mergeSortedCellstr(a, b)
 % Sorted union of two sorted-unique cellstr arrays.
 %
-% INPUT
+% INPUTS
 % - a, b:   1 x na and 1 x nb 'cellstr', each sorted and unique;
 %
-% OUTPUT
+% OUTPUTS
 % - u:      1 x k 'cellstr', the sorted union (k <= na+nb).
 i = 1; j = 1;
 na = numel(a); nb = numel(b);
@@ -166,10 +170,10 @@ function [u, mapA, mapB, unionIsA, unionIsB] = mergeSortedUnique(a, b)
 % Merge two sorted-unique numeric vectors a,b into sorted-unique u.
 % Returns maps old->union: u(mapA(i)) = a(i), u(mapB(j)) = b(j)
 %
-% INPUT
+% INPUTS
 % - a, b:   numeric vectors of na and nb elements, each sorted and unique;
 %
-% OUTPUT
+% OUTPUTS
 % - u:          k x 1 sorted union of a and b;
 % - mapA, mapB: na x 1 and nb x 1 positions of the elements of a, b in u;
 % - unionIsA, unionIsB: logical, true if u equals a (resp. b).
@@ -220,13 +224,13 @@ function mapFull = tensorIndexMap(map_cells, nOld_sizes, nU_sizes)
 % Build old->union linear index map for tensor-product ordering.
 % Ordering matches MATLAB kron: last variable varies fastest.
 %
-% INPUT
+% INPUTS
 % - map_cells:  1 x nv cell, map_cells{r} the positions of the old
 %               exponents of variable r among its union exponents;
 % - nOld_sizes: 1 x nv array, the old number of exponents per variable;
 % - nU_sizes:   1 x nv array, the union number of exponents per variable;
 %
-% OUTPUT
+% OUTPUTS
 % - mapFull:    prod(nOld_sizes) x 1 array, the union linear index of each
 %               old linear index.
 

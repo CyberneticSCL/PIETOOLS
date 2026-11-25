@@ -1,49 +1,48 @@
 function opdeg = kernel_degree(F)
-    % OPDEG = KERNEL_DEGREE(F) returns the smallest spatial monomial degree
-    % opdeg of the basis operators U^i of a degree-2d SOS distributed
-    % polynomial <Z_d(x),P*Z_d(x)> that can equate to F: for the coefficient
-    % K_w of a monomial of distributed degree w, with maximal total kernel
-    % degree D, opdeg = max over w of ceil(max(0,(D-1)/(2*ceil(w/2)))).
-    % Coefficient
-    % operators of F that are not 'intop' objects, such as constants or
-    % decision variables, do not contribute spatial kernel degree and are
-    % assigned degree zero.
-    %
-    % INPUTS
-    % - F:      'polyopvar' object representing a functional in a single
-    %           distributed state variable, whose SOS basis degree is
-    %           required;
-    %
-    % OUTPUTS
-    % - opdeg:  smallest nonnegative integer spatial monomial degree of the
-    %           basis operators;
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - kernel_degree
-    %
-    % Copyright (C) 2026 PIETOOLS Team
-    %
-    % This program is free software; you can redistribute it and/or modify
-    % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 3 of the License, or
-    % (at your option) any later version.
-    %
-    % This program is distributed in the hope that it will be useful,
-    % but WITHOUT ANY WARRANTY; without even the implied warranty of
-    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    % GNU General Public License for more details.
-    %
-    % You should have received a copy of the GNU General Public License
-    % along with this program; if not, write to the Free Software
-    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %
-    % If you modify this code, document all changes carefully and
-    % include date authorship, and a brief description of modifications
-    %
-    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-    % CR, 09/28/2026: Initial coding.
+% OPDEG = KERNEL_DEGREE(F) returns the smallest spatial monomial degree
+% opdeg of the basis operators U^i of a degree-2d SOS distributed
+% polynomial <Z_d(x),P*Z_d(x)> that can equate to F: for the coefficient
+% K_w of a monomial of distributed degree w, with maximal total kernel
+% degree D, opdeg = max over w of ceil(max(0,(D-1)/(2*ceil(w/2)))).
+% Coefficient operators of F that are not 'intop' objects, such as
+% constants or decision variables, do not contribute spatial kernel
+% degree and are assigned degree zero.
+%
+% INPUTS
+% - F:      scalar 'polyopvar' object representing a functional in a
+%           single distributed state variable, whose SOS basis degree is
+%           required;
+%
+% OUTPUTS
+% - opdeg:  smallest nonnegative integer spatial monomial degree of the
+%           basis operators;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - kernel_degree
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% CR, 09/28/2026: Initial coding;
 
 
     % The current implementation supports FDPs in one distributed state;

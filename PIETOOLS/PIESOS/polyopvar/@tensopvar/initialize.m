@@ -1,7 +1,7 @@
 function Cop = initialize(Cop)
 % COP = INITIALIZE(COP) takes a 'tensopvar' object representing a tensor-PI
-% operator, and fills in the empty fields based on information on the PI
-% operators defining each of the factors.
+% operator, and sets the fields 'dims', 'vars', 'dom' and 'depmat' based
+% on the PI operators defining each of the factors.
 %
 % INPUTS
 % - Cop:    'tensopvar' object with field Cop.ops specified as a K x d cell
@@ -11,11 +11,13 @@ function Cop = initialize(Cop)
 % OUTPUTS
 % - Cop:    'tensopvar' object representing the same tensor-PI operator as
 %           the input, but with fields 'dims', 'vars', 'dom', and 'depmat'
-%           filled in based on the values of Cop.ops;
+%           set based on the values of Cop.ops;
 %
 % NOTES
-% - Elements of Cop.ops of type 'opvar' or 'opvar2d' are converted to
-%   'sopvar' objects.
+% - An error is thrown unless each factor has the same matrix dimensions
+%   and depends on the same variables in every term, a variable has the
+%   same domain in every factor, and, for a pointwise product along the
+%   rows (columns), all factors have the same number of rows (columns).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,9 +45,7 @@ function Cop = initialize(Cop)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% MMP, 11/22/2026: the branch for the retired classes opvar and opvar2d
-%   removed (maintainer, 11/22/2026).
+% DJ, 11/22/2026: Initial coding;
 
 
 % Extract the dimensions and domains of the factors defining the tensor-PI
@@ -61,8 +61,7 @@ for i=1:K
     for j=1:d
         % Check that the operator is of appropriate type
         op_ij = Cop.ops{i,j};
-        % (branch for the retired opvar and opvar2d removed)                % MMP, 11/22/2026
-        if ~isa(op_ij,'sopvar') && ~isa(op_ij,'tensopvar') && ~isa(op_ij,'intop')  % MMP, 11/22/2026
+        if ~isa(op_ij,'sopvar') && ~isa(op_ij,'tensopvar') && ~isa(op_ij,'intop')
             error("Factors in tensor-PI operator must be of type 'sopvar'.")
         end
 

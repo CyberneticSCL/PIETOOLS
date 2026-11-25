@@ -68,17 +68,21 @@ end
 
 function [vars,dom,depmatA_new,depmatB_new] = combine_vars(varsA,domA,depmatA,varsB,domB,depmatB)
 % Establish a unique list of variables and associated domains given the
-% variables [varsA;varsB] and domains [domA;domB]. Update the dependency
+% variables [varsA,varsB] and domains [domA;domB]. Update the dependency
 % arrays to match this full list of variables.
 %
-% INPUT
-% - varsA, varsB:     cellstr of variable names;
-% - domA, domB:       arrays of the intervals of the variables;
-% - depmatA, depmatB: arrays of the dependence on the variables;
+% INPUTS
+% - varsA, varsB:     1 x NA and 1 x NB 'cellstr' of variable names;
+% - domA, domB:       NA x 2 and NB x 2 arrays of the intervals of the
+%                     variables;
+% - depmatA, depmatB: dA x NA and dB x NB arrays of the dependence of
+%                     each factor on the variables;
 %
-% OUTPUT
-% - vars, dom:        the unique variables and their intervals;
-% - depmatA_new, depmatB_new: the dependence on vars.
+% OUTPUTS
+% - vars, dom:        1 x N 'cellstr' of the unique variables, and N x 2
+%                     array of their intervals;
+% - depmatA_new, depmatB_new: dA x N and dB x N arrays, the dependence on
+%                     vars.
 
 % Combine the variable names into a list of unique variables
 nvarA = numel(varsA);

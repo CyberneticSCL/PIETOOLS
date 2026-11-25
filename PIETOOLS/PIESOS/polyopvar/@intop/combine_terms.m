@@ -36,18 +36,17 @@ function Kop = combine_terms(Kop,degs,dims,depmat)
 %   is in canonical form: every variable is integrated from a (0) up to
 %   the next larger variable, the largest over [a,b], and multipliers
 %   [t,t] follow a variable that is not a multiplier. E.g. [0,3,0,3]
-%   becomes [0,2,0,3] + [0,3,0,1], and [2,3,0,3] becomes [0,3,0,1]. The
-%   rows of an 'intop' are ordered, so
-%   that the limits are never reversed where a cell is nonzero, and the
-%   signed integral and the integral of the indicator function agree.
-%   Integrals over more than 8 variables are not expanded (a warning is
-%   issued).
+%   becomes [0,2,0,3] + [0,3,0,1], and [2,3,0,3] becomes [0,3,0,1]. As
+%   the rows of an 'intop' are ordered, the limits are never reversed
+%   where a cell is nonzero. Integrals over more than 8 variables are not
+%   expanded (a warning is issued).
 % - In each term, the copies of the same state are ordered by decreasing
-%   order of integration (the last variable is integrated first), along the first spatial variable on which the
-%   state depends, ties by the next variable, remaining ties keeping their
-%   order. Copies of a state are interchangeable, so the terms that
-%   coincide after this relabeling are added: [0,3,0,3] with kernel k
-%   becomes [0,3,0,1] with kernel k(s1,s2)+k(s2,s1).
+%   order of integration (the last variable is integrated first), along
+%   the first spatial variable on which the state depends, ties by the
+%   next variable, remaining ties keeping their order. Copies of a state
+%   are interchangeable, so the terms that coincide after this relabeling
+%   are added: [0,3,0,3] with kernel k becomes [0,3,0,1] with kernel
+%   k(s1,s2)+k(s2,s1).
 % - The kernel of a multiplier is written in terms of the variable at
 %   which it is evaluated: a variable and the multipliers at it are
 %   represented by the lowest of them.
@@ -663,13 +662,11 @@ function is_ok = is_cell(imat)
 % form a chain, each integrated from a up to the next, the largest over
 % the full domain, and each multiplier is evaluated at one of these
 % variables.
-% Used both to find the integrals to expand into cells and the cells whose
-% multipliers are rewritten.
 %
-% INPUT
+% INPUTS
 % - imat:   ntrms x 2*d array, rows of an intmat;
 %
-% OUTPUT
+% OUTPUTS
 % - is_ok:  ntrms x 1 logical array, true for a cell in canonical form.
 d = size(imat,2)/2;
 L = imat(:,1:2:end);        U = imat(:,2:2:end);

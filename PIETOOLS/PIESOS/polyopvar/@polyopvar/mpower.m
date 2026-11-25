@@ -1,18 +1,18 @@
 function C = mpower(A,d)
 % C = MPOWER(A,D) returns the 'polyopvar' object C representing the D-th
-% power A^D of the scalar-valued distributed polynomial A.
+% power A^D of the scalar-valued distributed polynomial A, which is the
+% elementwise power A.^D.
 %
 % INPUTS
-% - A:     1 x 1 'polyopvar' object;
+% - A:     1 x 1 'polyopvar' object, not an adjoint;
 % - d:     nonnegative integer, the order of the power;
 %
 % OUTPUTS
-% - C:     'polyopvar' object representing A^D;
+% - C:     1 x 1 'polyopvar' object representing A^D, or the 'double' 1
+%          if D=0;
 %
 % NOTES
-% - Only scalar-valued polynomials are supported for now, for which A^D is
-%   the elementwise power A.^D. The matrix power of
-%   a matrix-valued polynomial is not supported.
+% - Matrix powers of matrix-valued polynomials are not supported (error).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

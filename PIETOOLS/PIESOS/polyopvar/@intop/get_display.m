@@ -9,7 +9,7 @@ function disp_struct = get_display(Kop,xname)
 % INPUTS
 % - Kop:    'intop' object representing a functional;
 % - xname:  (optional) char, the name of the function that the functional
-%           acts on. Defaults to x;
+%           acts on. Defaults to 'x';
 %
 % OUTPUTS
 % - disp_struct:      struct with the fields
@@ -28,9 +28,9 @@ function disp_struct = get_display(Kop,xname)
 % NOTES
 % - The integrals involve only dummy variables, displayed as gamma, with
 %   the number of the integrated copy as subscript if there are multiple.
-%   The kernels Kop.kernels that can be extracted for a
-%   kernel displayed by name use dummy variables named as the variables in
-%   Kop.vars with _dum appended.
+%   A kernel displayed by name, extracted by Kop.kernels{i}, is in terms
+%   of the dummy variables Kop.varnames.in_dum, {'s_dum1',...,'s_dumd'}
+%   for each variable s in Kop.vars.in.
 % - A kernel with at most 4 nonzero coefficients is displayed explicitly,
 %   if Kop is scalar-valued. Kernels of a matrix-valued functional are
 %   always displayed by name. The terms are numbered like the elements of

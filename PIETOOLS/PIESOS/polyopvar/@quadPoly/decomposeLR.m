@@ -6,17 +6,24 @@ function [L, R, info] = decomposeLR(F, tol)
 %   L(s) = (I_m ⊗ Z(s)^T) * U     depends only on s
 %   R(t) = V * (I_n ⊗ Z(t))       depends only on t
 %
-% Inputs:
-%   F       quadPoly object
-%   tol     relative tolerance for numerical rank (default 1e-14)
+% INPUTS
+%   F       m x n quadPoly object
+%   tol     (optional) relative tolerance for the numerical rank:
+%           singular values below tol*max(svals) are dropped
+%           (default 1e-14)
 %
-% Outputs:
-%   L, R    quadPoly such that F = L*R (in the quadratic-form sense)
-%   info    struct with fields: r, svals, relerr_est, method
+% OUTPUTS
+%   L, R    m x r and r x n quadPoly objects such that F = L*R (in the
+%           quadratic-form sense)
+%   info    'struct' with fields r (the rank), svals (the singular values
+%           computed), relerr_est (the relative Frobenius norm of C-U*V)
+%           and method ('svd(full)' or 'svds(grow)')
 %
-% Notes:
-%   - For L(s) we set the t-side to constant monomial 1 (Zt = {0}, nt = {}).
-%   - For R(t) we set the s-side to constant monomial 1 (Zs = {0}, ns = {}).
+% NOTES
+%   - For L(s) we set the t-side to constant monomial 1 (Zt = {0},
+%     nt = {}).
+%   - For R(t) we set the s-side to constant monomial 1 (Zs = {0},
+%     ns = {}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - decomposeLR
@@ -43,7 +50,7 @@ function [L, R, info] = decomposeLR(F, tol)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/11/2026
+% SS, 02/11/2026: Initial coding;
 
     if nargin < 2 || isempty(tol),     tol = 1e-14; end
 
@@ -147,7 +154,6 @@ function [L, R, info] = decomposeLR(F, tol)
     info.svals = s(:);
     if r > 0
         % crude relative reconstruction error estimate using Fro norm
-        % (computing norm(full(C)) can be expensive; use sparse norm if possible)
         denom = norm(C, 'fro');
         if denom > 0
             info.relerr_est = norm(C - U*V, 'fro') / denom;

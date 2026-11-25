@@ -1,19 +1,31 @@
 function [P_subs] = subs(P1, vars, vals)
-%SUBS Substitute variables in a quadPoly with tensor-decomposed exponent bases.
+%SUBS Substitute variables in a quadPoly with tensor-decomposed bases.
 %
-% % INPUTS
-% - P1:     nx1 or 1xn 'quadpoly' class object.
-% - vars:   cell array of names of vars
-% - vals:   cell array of 'double' or names of vars
-% % OUTPUTS
-% - P_subs:      'quadpoly' object evaluated at vars=vals
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% INPUTS
+% - P1:     m x n 'quadPoly' object;
+% - vars:   'char', 'string' array or 'cell' of names of left (P1.ns) or
+%           right (P1.nt) variables of P1;
+% - vals:   one value per variable, of the same size as vars: a 'double'
+%           array of scalars, or a 'cell' of scalars and variable names
+%           ('char');
+%
+% OUTPUTS
+% - P_subs: m x n 'quadPoly' object, P1 with vars replaced by vals: a
+%           variable set to a scalar is removed, a variable set to a name
+%           is renamed, and identified with a variable of that name if P1
+%           has one (their exponents add);
+%
+% NOTES
+% - A new name must start with 's' or 't' (else an error), and becomes a
+%   left variable if it starts with 's', a right variable if it starts
+%   with 't'.
+% - A name in vars that is not a variable of P1 is ignored, with a
+%   warning if its value is a scalar.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2026  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - subs
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -29,12 +41,13 @@ function [P_subs] = subs(P1, vars, vals)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% AT, 02/18/2026: Initial coding;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% AT, DJ, 11/24/2026: Initial coding;
  
 
 if ~isa(P1, 'quadPoly')
@@ -70,7 +83,7 @@ if ~isa(vals, 'cell')
 end
 
 % One value per variable
-if size(vars) ~= size(vals)
+if numel(vars) ~= numel(vals)
     error('quadPoly:subs:badType', 'number of vars and vals should be the same');
 end
 
@@ -86,15 +99,21 @@ C = P1.C;
 dim = P1.dim;
 
 
-% check vals for symbolic variables 
+% check vals for symbolic variables
 isa_symb_var = cellfun(@isa_char_or_string, vals);
+if any(isa_symb_var) && ~all(isa_symb_var)
+    % Numbers first, then names: the substitution is simultaneous, and a
+    % new name may be a variable that is set to a number, e.g.
+    % {'s1','s2'} -> {'s2',0} gives P(s2,0)
+    P_subs = subs(subs(P1, vars(~isa_symb_var), vals(~isa_symb_var)), vars(isa_symb_var), vals(isa_symb_var));
+    return
+end
 if sum(isa_symb_var) > 0
     sym_to_sym_vars = vars(isa_symb_var);
     sym_to_sym_vals = vals(isa_symb_var);
-    sym_to_num_vars = vars(~isa_symb_var);
-    sym_to_num_vals = vals(~isa_symb_var);
     
-    check_if_inputs_correct = cellfun(@(name) (name(1) == "t" || name(1) == "s"), sym_to_sym_vals);
+    % startsWith, as name(1) of a 'string' is the whole name
+    check_if_inputs_correct = cellfun(@(name) startsWith(string(name),["t","s"]), sym_to_sym_vals);
 
     if any(~check_if_inputs_correct)
         idx_wrong_val_name = find(~check_if_inputs_correct);
@@ -285,12 +304,7 @@ if sum(isa_symb_var) > 0
         end
     end
 
-    P_subs1 = quadPoly(C_new, Zs_new, Zt_new, dim_new, ns_new, nt_new, 0) ;  
-    if sum(isa_symb_var) < length(vars)
-        P_subs = subs(P_subs1, sym_to_num_vars, sym_to_num_vals);
-    else
-        P_subs = P_subs1;
-    end
+    P_subs = quadPoly(C_new, Zs_new, Zt_new, dim_new, ns_new, nt_new, 0) ;
     return
 end
 
@@ -370,10 +384,10 @@ function [ans] = isa_char_or_string(val)
 % ANS = ISA_CHAR_OR_STRING(VAL) returns true if VAL is a 'char' or a
 % 'string'.
 %
-% INPUT
+% INPUTS
 % - val:    any value;
 %
-% OUTPUT
+% OUTPUTS
 % - ans:    logical.
     if isa(val, 'char') || isa(val, 'string')
         ans = true;

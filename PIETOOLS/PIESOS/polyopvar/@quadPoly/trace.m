@@ -1,9 +1,13 @@
 function P_tr = trace(P1)
 %TRACE  Sum of diagonal elements.
-%   TRACE(A) is the sum of the diagonal elements of A, which is
-%   
-% Input P1 quadPoly obj (n times n)
-% Output sum_i obj(i, i)
+%   P_TR = TRACE(P1) is the sum of the diagonal elements of P1.
+%
+% INPUTS
+% - P1:     n x n 'quadPoly' object, or a 'double' matrix;
+%
+% OUTPUTS
+% - P_tr:   1 x 1 'quadPoly' object sum_i P1(i,i), in the monomial bases
+%           of P1; for a 'double' P1, the 'double' trace(P1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - trace
@@ -30,7 +34,7 @@ function P_tr = trace(P1)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding AT - 02/18/2026
+% AT, 02/18/2026: Initial coding;
  
 
 if isa(P1, 'double')

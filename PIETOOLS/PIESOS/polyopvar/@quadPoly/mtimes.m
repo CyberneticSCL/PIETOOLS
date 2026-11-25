@@ -4,19 +4,23 @@ function H = mtimes(F, G)
 %
 % INPUTS
 % - F:  m x n 'quadPoly' or numeric object;
-% - G:  n2 x p 'quadPoly' or numeric object. Unless F or G is scalar
-%       (m=n=1 or n2=p=1), we must have n=n2;
+% - G:  n2 x p 'quadPoly' or numeric object. Unless F or G is a numeric
+%       scalar, we must have n=n2;
 %
 % OUTPUTS
-% - H:  m x p 'quadPoly' object representing the matrix product F*G; 
+% - H:  m x p 'quadPoly' object representing the matrix product F*G (the
+%       size of the other factor if F or G is a numeric scalar);
 %
 % NOTES
 % - Left variables stay left (ns/Zs), right variables stay right (nt/Zt).
-% As such, left variables in F cannot appear on right in G, or vice versa;
+%   As such, left variables in F cannot appear on right in G, or vice
+%   versa;
 %
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2026  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - mtimes
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -32,13 +36,13 @@ function H = mtimes(F, G)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 06/25/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % ---------- Deal with numeric * quadPoly case ----------
 if isnumeric(F)
@@ -46,7 +50,7 @@ if isnumeric(F)
     return;
 elseif isa(F,'polynomial')
     if all(ismember(F.varname',[G.ns,G.nt]))
-        F = polynomial2quadPoly(F,G.ns,G.nt);
+        F = quadPoly.polynomial2quadPoly(F,G.ns,G.nt);
     else
         error("Multiplication is not supported: 'polynomial' to 'quadPoly' conversion is ambiguous.")
     end
@@ -59,7 +63,7 @@ if isnumeric(G)
     return;
 elseif isa(G,'polynomial')
     if all(ismember(G.varname',[F.ns,F.nt]))
-        G = polynomial2quadPoly(G,F.ns,F.nt);
+        G = quadPoly.polynomial2quadPoly(G,F.ns,F.nt);
     else
         error("Multiplication is not supported: 'polynomial' to 'quadPoly' conversion is ambiguous.")
     end
@@ -150,11 +154,11 @@ end
 function H = leftNumericTimes(A, F)
 % Perform multiplication of numeric A with quadPoly F
 %
-% INPUT
+% INPUTS
 % - A:      q x m 'double' matrix, or a scalar;
 % - F:      m x n 'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - H:      q x n 'quadPoly' object A*F (m x n for a scalar A).
 [q, m] = size(A);
 if q==1 && m==1
@@ -179,11 +183,11 @@ end
 function H = rightNumericTimes(F, B)
 % Perform multiplication of quadPoly F with numeric B
 %
-% INPUT
+% INPUTS
 % - F:      m x n 'quadPoly' object;
 % - B:      n x p 'double' matrix, or a scalar;
 %
-% OUTPUT
+% OUTPUTS
 % - H:      m x p 'quadPoly' object F*B (m x n for a scalar B).
 [n, p] = size(B);
 if n==1 && p==1
@@ -210,13 +214,15 @@ function [ZP, mapMats, nZP] = productBasis1D(ZA, ZB)
 % Take the product of the monomial bases defined by ZA and ZB, by summing
 % all degrees in ZA with all degrees in ZB
 %
-% INPUT
-% - ZA, ZB:   1×k cells, sorted-unique exponent vectors per variable;
+% INPUTS
+% - ZA, ZB:   1 x k cells, sorted-unique exponent vectors per variable;
 %
-% OUTPUT
-% - ZP:       1×k cells, sorted-unique sums per variable;
-% - mapMats:  1×k cells, mapMats{i} is (nAi×nBi) matrix giving index in ZP{i};
-% - nZP:      1 x k array of integers specifying the new number of exponents.
+% OUTPUTS
+% - ZP:       1 x k cell, sorted-unique sums per variable;
+% - mapMats:  1 x k cell, mapMats{i} the nAi x nBi matrix of the indices
+%             in ZP{i} of the sums ZA{i}(p)+ZB{i}(q);
+% - nZP:      1 x k array of integers specifying the new number of
+%             exponents.
 
 k = numel(ZA);
 ZP = cell(1,k);
@@ -250,7 +256,7 @@ function [rsubs,csubs,vals] = find_idcs(C,nr,nc)
 % - C:  (sparse) array of dimensions prod(nr) x prod(nc), representing
 %       coefficient matrix acting on monomials 
 %           ZL = ZL{1} o ... o ZL{m}    and     ZR = ZR{1} o ... o ZR{n}
-%       for o the Kronekcer product
+%       for o the Kronecker product;
 % - nr: 1 x m array specifying the number of elements in each monomial
 %       basis ZL{i};
 % - nc: 1 x n array specifying the number of elements in each monomial

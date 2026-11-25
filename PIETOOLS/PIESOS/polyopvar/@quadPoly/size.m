@@ -1,25 +1,26 @@
 function varargout = size(A,dim)
-% VARARGOUT = SIZE(A,DIM) returns the size of a 'quadpoly' object A along 
+% VARARGOUT = SIZE(A,DIM) returns the size of a 'quadPoly' object A along
 % dimension DIM
-% 
-% INPUTS:
-% - A:      'quadpoly' object
-% - dim:    scalar value 1 or 2 (optional input)
+%
+% INPUTS
+% - A:      'quadPoly' object
+% - dim:    (optional) scalar value 1 or 2 (else an error)
 %           - if 1, number of rows of A is returned as output
 %           - if 2, number of columns of A is returned as output
 %           - if not specified, full dimension of A will be returned
-% 
-% OUTPUTS:
-% out: scalar or 1x2 array
+%
+% OUTPUTS
+% - varargout:  scalar or 1x2 array
 %       - if one output is called and dim is specified, the size of the
-%           quadpoly matrix along the specified dimension is returned
+%           quadPoly matrix along the specified dimension is returned
 %       - if one output is called and no dim is specified, a 1x2 array
-%           specifying [row,col] dimension of the quadpoly is returned
-%       - if two outputs are called, the first output will be assigned the
-%           number of rows, and the second the number of columns
+%           specifying [row,col] dimension of the quadPoly is returned
+%       - if two outputs are called and no dim is specified, the first
+%           output will be assigned the number of rows, and the second
+%           the number of columns
 %
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - size
 %
 % Copyright (C) 2026 PIETOOLS Team
@@ -44,7 +45,7 @@ function varargout = size(A,dim)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 01/21/2026: Initial coding
+% DJ, 01/21/2026: Initial coding;
 
 if nargin ==1 % if no dim is specified, return both row and column numbers 
     out = A.dim;

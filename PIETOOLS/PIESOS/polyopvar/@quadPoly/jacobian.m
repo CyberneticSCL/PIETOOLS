@@ -1,22 +1,21 @@
 function H = jacobian(F, vars)
-%JACOBIAN compute jacobian of quadpoly object F.
+%JACOBIAN Compute the Jacobian of a quadPoly object F.
 %
 % INPUTS
-% - F:    nx1 or 1xn 'quadpoly' class object.
-% - vars:  (optional) cell array of names of vars, k of them; defaults to
-%          all variables of F, left (ns) then right (nt)
+% - F:      n x 1 or 1 x n 'quadPoly' object;
+% - vars:   (optional) 'char', 'string' array or 'cell' of k variable
+%           names; defaults to all variables of F, left (F.ns) then
+%           right (F.nt);
 %
 % OUTPUTS
-% - H:      'quadpoly' object differentiated with respect all vars: the
-%           derivatives in the k variables, stacked vertically (k x n) for
-%           a row vector F, horizontally (n x k) for a column vector F
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% - H:      'quadPoly' object, the derivatives of F in the k variables,
+%           stacked vertically (k x n) for a row vector F, horizontally
+%           (n x k) for a column vector F (k x 1 for a scalar F).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - jacobian
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -32,12 +31,13 @@ function H = jacobian(F, vars)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% AT, 02/18/2026: Initial coding;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% AT, DJ, 11/24/2026: Initial coding;
 
 % Only 'quadPoly' objects; by default all variables of F
 if ~isa(F, 'quadPoly')
@@ -53,7 +53,7 @@ end
 dim = F.dim;
 
 if (dim(1) > 1) && (dim(2) > 1)
-    error('quadPoly:jacobian:dimMismatch', 'jacobian supports only 1xn o nx1 quadpoly ')
+    error('quadPoly:jacobian:dimMismatch', 'jacobian supports only 1xn or nx1 quadpoly ')
 end
 
 % Variables as a cell array of names

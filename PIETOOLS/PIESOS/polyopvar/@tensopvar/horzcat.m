@@ -1,5 +1,5 @@
 function Pop = horzcat(varargin)
-% POP = HORZCAT(VARARGIN) takes the horizontal concatenation of tensor-PI 
+% POP = HORZCAT(VARARGIN) takes the horizontal concatenation of tensor-PI
 % operators listed in VARARGIN, e.g.
 %   POP = [varargin{1}, varargin{2}, ..., varargin{end}];
 %
@@ -11,8 +11,7 @@ function Pop = horzcat(varargin)
 %               concatenation of the input operators;
 %
 % NOTES
-% - The concatenation is taken by the 'tensopmat' version of horzcat, so
-%   inputs of type 'tensopmat', 'intop' or 'sopvar' are also supported.
+% - Inputs of type 'tensopmat', 'intop' or 'sopvar' are also supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

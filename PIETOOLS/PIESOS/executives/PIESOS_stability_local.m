@@ -1,67 +1,70 @@
 function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,settings)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [PROG_SOL,INFO] = PIESOS_stability_local(PIE,R,ALPHA,LAMBDA,LF_FORM,
-%                                                               SETTINGS)
-% tests local exponential stability, at decay rate LAMBDA, of the
-% (nonlinear) PIE with the PDE state u=T*x,
+% [PROG_SOL,INFO] = PIESOS_STABILITY_LOCAL(PIE,R,ALPHA,LAMBDA,LF_FORM,
+% SETTINGS) tests local exponential stability, at decay rate LAMBDA, of
+% the (nonlinear) PIE with the PDE state u=T*x,
 %       d/dt (T*x(t)) = f(x(t)),
 % on the ball N(u) <= R^2 in the weighted Sobolev norm with weights ALPHA,
-%   N(u) = sum_i sum_j alpha(i,j+1)*||d^j/ds^j u_i||_{L2}^2.
+% e.g. for states u_i in one spatial variable s,
+%   N(u) = sum_i sum_j alpha{i}(j+1)*||d^j/ds^j u_i||_{L2}^2.
 % It searches for a distributed polynomial Lyapunov functional V, and
 % SOS multipliers p1, p2, such that, with g = R^2 - N(u) >= 0 on the ball,
 %   V - eppos*N >= 0,                   (lower bound)
 %   C*N - V - p1*g >= 0,                (upper bound)
 %   -dV - 2*lambda*V - p2*g >= 0,       (decay on the ball)
 % for the derivative dV of V along solutions to the PIE, with the constant
-% C minimized, or specified by settings.LF.C. The same norm N is used in
-% the lower and upper bound. Then
-% every solution with N(u(0)) < rho^2, with rho = R*sqrt(eppos/C), remains
-% in the ball and satisfies
+% C minimized, or specified by settings.LF.C. Then every solution with
+% N(u(0)) < rho^2, with rho = R*sqrt(eppos/C), remains in the ball and
+% satisfies
 %   ||u(t)||_N <= sqrt(C/eppos)*exp(-lambda*t)*||u(0)||_N.
-% Here, V(u(0)) <= C*N(u(0)) < eppos*R^2, which is the minimal value of V
-% on the boundary N=R^2 of the ball, so that the sublevel set of V
-% containing u(0) lies in the ball, and V decays along solutions.
+% Here, V(u(0)) <= C*N(u(0)) < eppos*R^2, a lower bound on V on the
+% boundary N=R^2 of the ball, so that the sublevel set of V containing
+% u(0) lies in the ball, and V decays along solutions.
 %
-% INPUT
+% INPUTS
 % - PIE:        'npie_struct' object representing the PIE, without
-%               algebraic constraints (K, Kw, Ku without rows). A 'pde_struct'
-%               object is converted to a PIE. Coupled systems, with several PDE
-%               states (possibly vector-valued, or ODE states), are
-%               supported;
+%               algebraic constraints (K, Kw, Ku without rows). A
+%               'pde_struct' object is converted to a PIE, and a linear
+%               'pie_struct' object to an 'npie_struct' object. Coupled
+%               systems, with several PDE states (possibly vector-valued,
+%               or ODE states), are supported;
 % - r:          positive scalar, the radius of the ball;
-% - alpha:      the weights of the norm N: either an array, specifying the
-%               weights of all PDE states, or a cell with the array of
-%               weights of each PDE state, in the order in which the
-%               states were declared. For a state depending on N spatial
-%               variables s_1,...,s_N, the array alpha(k_1+1,...,k_N+1)
-%               is the weight of the squared L2 norm of the derivative of
-%               order k_j in s_j, j=1,...,N: a
-%               scalar for an ODE state (N=0), a vector for N=1 (use alpha
-%               = [w0,w1,...] for the weights of the derivatives of order
-%               0,1,...), and an array with N dimensions for N>1.
-%               Derivatives with zero weight are never taken. The same
-%               weights are used for each component of a vector-valued
-%               state. A component of the PIE that was obtained from a PDE
-%               state but depends on other variables, e.g. the history of
-%               a delayed state, gets only the L2 weight. For example,
-%               alpha=1 gives the L2 norm, and alpha=[1,1] the H1 norm of
-%               states depending on one variable. Defaults to 1;
+% - alpha:      (optional) the nonnegative weights of the norm N, not all
+%               zero: either an array, specifying the weights of all PDE
+%               states, or a 'cell' with the array of weights of each PDE
+%               state, in the order in which the states were declared.
+%               For a state depending on n spatial variables s_1,...,s_n,
+%               the array alpha(k_1+1,...,k_n+1) is the weight of the
+%               squared L2 norm of the derivative of order k_j in s_j,
+%               j=1,...,n: a scalar for an ODE state (n=0), a vector for
+%               n=1 (use alpha = [w0,w1,...] for the weights of the
+%               derivatives of order 0,1,...), and an array with n
+%               dimensions for n>1. Derivatives with zero weight are
+%               never taken. The same weights are used for each component
+%               of a vector-valued state. A component of the PIE that was
+%               obtained from a PDE state but depends on other variables,
+%               e.g. the history of a delayed state, gets only the L2
+%               weight, and a component obtained from no PDE state gets
+%               weight 0. For example, alpha=1 gives the L2 norm, and
+%               alpha=[1,1] the H1 norm of states depending on one
+%               variable. Defaults to 1;
 % - lambda:     (optional) nonnegative scalar, the decay rate. Defaults
 %               to 0, testing stability;
 % - LF_form:    (optional) 'pie' or 'pde', the form of the Lyapunov
 %               functional V: a functional in the PIE states x, with the
 %               lower bound V >= eppos*N enforced as an SOS constraint
-%               ('pie'), or a SOS polynomial in the PDE states u=T*x, plus
+%               ('pie'), or an SOS polynomial in the PDE states u=T*x, plus
 %               eppos*N ('pde'). The form 'pde' can only be used if the
 %               weights alpha involve no derivatives. Defaults to 'pie';
-% - settings:   (optional) 'struct' of settings, with fields LF
-%               (dist_deg, mon_deg, exclude, sep, psatz, eppos, C, lower),
-%               mult (dist_deg, mon_deg, psatz, exclude), sos (use_ineq,
-%               mon_deg, psatz, exclude), solver, simplify, tol_feas and
-%               verbose. Defaults to PIESOS_settings();
+% - settings:   (optional) 'struct' of settings, as output by
+%               PIESOS_settings, with fields LF (dist_deg, mon_deg,
+%               exclude, sep, psatz, otype, intmat, eppos, C, lower), mult
+%               (dist_deg, mon_deg, psatz, exclude, otype, intmat), sos
+%               (use_ineq, mon_deg, psatz, exclude, otype, intmat), solver,
+%               simplify, tol_feas and verbose, where LF.C cannot be Inf,
+%               and LF.lower must be 'u'. Defaults to PIESOS_settings();
 %
-% OUTPUT
-% - prog_sol:   PIESOS program structure of the solved program;
+% OUTPUTS
+% - prog_sol:   'struct' specifying the solved PIESOS program;
 % - info:       'struct' with fields
 %       feasible:   logical, true if the program was solved, so that the
 %                   test is passed;
@@ -85,7 +88,8 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 %   be used. For LF_form='pde', V satisfies the lower bound by
 %   construction.
 % - The norm N is declared using `weighted_sobolev_norm`.
-%
+% - Inputs of the PIE are set to zero, and outputs are not used.
+% - Fields of settings that PIESOS_settings does not have give a warning.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIESOS_stability_local
@@ -112,9 +116,7 @@ function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,set
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, CR, 11/09/2026: Initial coding, based on LocalStability_v2 by CR;
-% DJ, 11/22/2026: Pass settings otype and intmat; sos.mon_deg and
-%                   sos.exclude may be cells per constraint;
+% CR, DJ, 11/24/2026: Initial coding;
 
 t_start = tic;
 
@@ -131,9 +133,14 @@ end
 if nargin<6 || isempty(settings)
     settings = PIESOS_settings();
 end
+check_opts(settings,'PIESOS_stability_local',PIESOS_settings());
 % A PDE is converted to a PIE
 if isa(PIE,'pde_struct')
     PIE = convert(PIE,'silent');
+end
+if isa(PIE,'pie_struct')
+    % A linear PIE, in the format of a nonlinear one
+    PIE = npie_struct(PIE);
 end
 % The radius r is positive and lambda nonnegative; settings.LF.C is a
 % finite positive bound on V (or empty), and settings.LF.lower = 'u'
@@ -239,7 +246,7 @@ else
 end
 Popts.sep = LF.sep;
 Popts.otype = LF.otype;
-% Regions of integration (settings of before 11/20/2026 have none)
+% Regions of integration, if specified
 if isfield(LF,'intmat')
     Popts.intmat = LF.intmat;
 end

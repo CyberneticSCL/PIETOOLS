@@ -3,23 +3,22 @@ function logval = is_id_op(Cop,ztol)
 % tensor-PI operators is an identity operator.
 %
 % INPUTS
-% - Cop:    p x d 'tensopmat' object;
+% - Cop:    'tensopmat' object with p x d blocks;
 % - ztol:   (optional) scalar tolerance below which coefficients are taken
 %           to be zero, passed to 'clean_op' and to the 'is_id_op' of each
 %           block. Defaults to 1e-12;
 %
 % OUTPUTS
-% - logval: boolean specifying whether (true) or not (false) Cop is an
-%           identity operator on the function space on which it is defined;
+% - logval: logical value specifying whether (true) or not (false) Cop is
+%           an identity operator on the function space on which it is
+%           defined;
 %
 % NOTES
 % - Empty blocks Cop.ops{i,j} represent zero operators. Cop is identity iff
 %   it is square (dims.in = dims.out), every diagonal block Cop.ops{i,i} is
 %   an identity operator, and every off-diagonal block is empty or zero up
-%   to ztol.
-% - Blocks are checked individually, not through Cop.vars/Cop.depmat, since
-%   a zero off-diagonal block may still depend on variables that a diagonal
-%   block does not.
+%   to ztol. A diagonal block of type 'double', 'polynomial' or 'dpvar'
+%   must be the identity matrix up to ztol, in a row that maps to R.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

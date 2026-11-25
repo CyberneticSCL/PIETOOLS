@@ -3,18 +3,20 @@ function out = subsref(obj, S)
 %
 % Supports:
 %   - obj(i,j)   : returns a quadPoly submatrix with same bases/variables
-%   - obj(k)     : linear indexing into the m×n matrix of entries (column-major)
+%   - obj(k)     : linear indexing into the m x n matrix of entries
+%                  (column-major); for a vector k, the entries k as a
+%                  vector, oriented as in MATLAB (obj(:) is a column)
 %   - obj.field / obj.method(...) : delegated to builtin subsref
 %
 % Not supported:
 %   - {} indexing
 %
-% INPUT
+% INPUTS
 % - obj:    'quadPoly' object;
 % - S:      'struct' array of the indexing operations, as in
 %           obj(i,j), obj(k) or obj.field;
 %
-% OUTPUT
+% OUTPUTS
 % - out:    'quadPoly' object of the selected entries, or the value of
 %           the field or method.
 
@@ -43,7 +45,7 @@ function out = subsref(obj, S)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, DJ, 11/24/2026: Initial coding;
 
 switch S(1).type
     case '.'
@@ -66,12 +68,31 @@ switch S(1).type
         if numel(idx) == 1
             % Linear indexing into m×n (column-major)
             lin = idx{1};
-            if ischar(lin) && strcmp(lin, ':')
-                lin = 1:(m*n);
+            is_colon = ischar(lin) && strcmp(lin, ':');
+            if is_colon
+                lin = (1:(m*n))';
+            elseif islogical(lin)
+                lin = find(lin);
             end
-            [I,J] = ind2sub([m n], lin);
-            I = I(:);
-            J = J(:);
+            [I,J] = ind2sub([m n], lin(:));
+            if numel(lin) > 1
+                % The entries lin as a vector: a row for a row quadPoly, or
+                % for a row lin into a matrix, else a column (always for :)
+                as_row = ~is_colon && ((m==1 && n>1) || (n>1 && isrow(lin)) || (m==1 && n==1 && isrow(lin)));
+                blocks = cell(numel(lin),1);
+                for r = 1:numel(lin)
+                    blocks{r} = obj.C((I(r)-1)*ds+(1:ds), (J(r)-1)*dt+(1:dt));
+                end
+                if as_row
+                    out = quadPoly(horzcat(blocks{:}), obj.Zs, obj.Zt, [1 numel(lin)], obj.ns, obj.nt);
+                else
+                    out = quadPoly(vertcat(blocks{:}), obj.Zs, obj.Zt, [numel(lin) 1], obj.ns, obj.nt);
+                end
+                if numel(S) > 1
+                    out = subsref(out, S(2:end));
+                end
+                return;
+            end
 
         elseif numel(idx) == 2
             I = idx{1};

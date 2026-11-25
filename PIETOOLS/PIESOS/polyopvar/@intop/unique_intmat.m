@@ -10,10 +10,6 @@ function Kop = unique_intmat(Kop)
 % - Kop:    'intop' object representing the same functional as the input,
 %           with the terms associated with duplicate integrals combined;
 %
-% NOTES
-% - The parameters are sparse matrices in the same basis, so combining
-%   terms amounts to adding sparse matrices.
-%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - unique_intmat
@@ -88,12 +84,13 @@ end
 
 
 function c = add_or_set(a,b)
-% Add b to a, or set c=b if a has not been set
+% C = ADD_OR_SET(A,B) returns A+B, or B if A is empty (not yet set).
 %
-% INPUT
-% - a, b:   coefficients, a possibly empty;
+% INPUTS
+% - a:      sparse coefficient matrix, or empty;
+% - b:      sparse coefficient matrix;
 %
-% OUTPUT
+% OUTPUTS
 % - c:      a+b, or b if a is empty.
 if isempty(a)
     c = b;

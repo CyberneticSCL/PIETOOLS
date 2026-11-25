@@ -1,40 +1,33 @@
 function [nfac,nops,is_empty] = num_factors(f)
 % [NFAC,NOPS,IS_EMPTY] = NUM_FACTORS(F) returns the number of factors,
-% i.e. of columns of F.Z, that each of the distributed monomials of F
-% takes up.
+% i.e. of columns of F.Z, that each distributed monomial of F takes up.
 %
 % INPUTS
-% - f:      'polyopvar' object defined by nZ distributed monomials
-%           f.Z(i,:) = [k1,...,kd], acted on by the operators f.C.ops(:,i);
+% - f:      'polyopvar' object with nZ monomials f.Z(i,:) = [k1,...,kd],
+%           acted on by the operators f.C.ops(:,i);
 %
 % OUTPUTS
-% - nfac:   nZ x 1 array of integers, the number of columns of Z that
-%           monomial i takes up: the number of factors in the tensor-PI
+% - nfac:   nZ x 1 array of integers, the number of columns of f.Z that
+%           monomial i takes up: the number of factors of the tensor-PI
 %           operators acting on it, but at least the index of the last
-%           nonzero element of f.Z(i,:);
-% - nops:   nZ x 1 array of integers, the number of factors in the
-%           'tensopvar' objects acting on monomial i, counting also the
+%           nonzero element of f.Z(i,:), and at least 1 if a block of
+%           type 'double', 'polynomial' or 'dpvar' (a known function)
+%           acts on it;
+% - nops:   nZ x 1 array of integers, the number of factors of the
+%           'tensopvar' objects acting on monomial i, counting the
 %           factors of nested 'tensopvar' objects. Zero if no 'tensopvar'
-%           acts on monomial i, i.e. if it is acted on by 'intop' objects
-%           only (a functional), or by blocks of type 'double',
-%           'polynomial' or 'dpvar' (a known function,
-%           for which nfac(i)>=1);
+%           acts on monomial i, e.g. only functionals ('intop') or blocks
+%           of type 'double', 'polynomial' or 'dpvar';
 % - is_empty: nZ x 1 logical array, true if all operators acting on
-%           monomial i are empty (zero), so that it has no factors to
-%           count;
+%           monomial i are empty;
 %
 % NOTES
-% - Factor j of the operator acts on state f.Z(i,j), or, if f.Z(i,j)=0
-%   (also for j>size(f.Z,2)), is a multiplier from R to some function
-%   space, representing a known factor of the monomial. This is only so
-%   if nops(i)>nnz(f.Z(i,:)), i.e. if the operator has more factors than
-%   the degree of the monomial; otherwise, zeros in f.Z(i,:) are just
-%   padding, and initialize moves them to the right, so that
-%   nfac(i)=nnz(f.Z(i,:)) unless a factor acts on several states at once.
-% - The number of factors is read from the first term of the operator
-%   in the first row of f.C.ops acting on monomial i that is a
-%   'tensopvar'; initialize checks that all operators acting on the
-%   monomial agree.
+% - Factor j acts on state f.Z(i,j), or, if f.Z(i,j)=0 (also for
+%   j>size(f.Z,2)), is a multiplier from R, a known factor of the
+%   monomial. This holds only if nops(i)>nnz(f.Z(i,:)); otherwise, the
+%   zeros in f.Z(i,:) are padding, which initialize moves to the right.
+% - nops(i) is read from the first 'tensopvar' acting on monomial i;
+%   initialize checks that all operators acting on it agree.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

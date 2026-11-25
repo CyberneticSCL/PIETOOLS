@@ -1,42 +1,34 @@
 function dP = diff(P,vars,d)
-% DP = DIFF(P,VARS,D) takes the composition of the differential operator
-%   d^D/(d vars^D)
-% in the output variables VARS with the distributed polynomial P(x),
-%   DP(x) = d^D/(d vars^D) P(x)
-% VARS and D can be row vectors to simultaneously differentiate with
-% respect to multiple variables. D can also be a column vector or matrix to
-% take multiple derivatives, concatenated vertically.
+% DP = DIFF(P,VARS,D) returns the derivative of the output of the
+% distributed polynomial P with respect to the output variables VARS,
+%   DP(x) = d^D/(d vars^D) P(x).
+% VARS and D can be row vectors to differentiate with respect to several
+% variables at once, and D a matrix to take several derivatives, stacked
+% vertically.
 %
 % INPUTS
-% - P:      m x 1 'polyopvar' object representing a distributed polynomial
-%           P(x) = C*Z(x) in the states x;
-% - vars:   1 x r 'cellstr' or 'polynomial' (pvar) array specifying the
-%           names of the spatial variables, in terms of which the output of
-%           P is defined, with respect to which to take the derivative;
-% - d:      (optional) p x r array of nonnegative integers specifying the
-%           order of the derivatives to be taken with respect to each of
-%           the spatial variables. Defaults to 1;
+% - P:      m x 1 'polyopvar' object, not an adjoint;
+% - vars:   1 x r 'cellstr', char, or 'polynomial' (pvar) array, the
+%           output variables of P with respect to which to differentiate;
+% - d:      (optional) q x r array of nonnegative integers, row k the
+%           orders of differentiation in the variables vars for the k-th
+%           derivative. A scalar is used for all variables. Defaults to 1;
 %
 % OUTPUTS
-% - dP:     m*p x 1 'polyopvar' representing the derivatives of P, stacked
-%           vertically, so that dP(x) = [D1 P(x); ...; Dp P(x)] for the
-%           differential operators D1,...,Dp defined by the rows of d;
+% - dP:     q*m x 1 'polyopvar' object, the q derivatives of P stacked
+%           vertically, dP(x) = [D1 P(x); ...; Dq P(x)], for the
+%           differential operators D1,...,Dq defined by the rows of d;
 %
 % NOTES
-% - The derivative is taken of the output of P, by composing the
-%   tensor-PI operators C acting on the monomials Z(x) with the
-%   differential operator: dP(x) = (D C)*Z(x)
-%   with the same monomials Z. Differentiation with respect to the state
-%   variables of P, that is, the derivative of the polynomial in x, is not
-%   supported;
-% - Derivatives of the tensor-PI operators must again be tensor-PI
-%   operators. For instance,
-%   an error is thrown if the output of P involves a multiplier along a
-%   variable in VARS, as then the derivative involves derivatives of the
-%   states;
-% - A variable that is not an output variable of P is allowed, returning
-%   a zero polynomial;
-% - An adjoint object P (P.is_adjoint = true) gives an error;
+% - The output of P is differentiated, dP(x) = (D C)*Z(x), with the same
+%   monomials Z. Differentiation with respect to the states (the
+%   derivative of the polynomial in x) is not supported.
+% - The derivatives of the operators C must be tensor-PI operators: an
+%   error is thrown e.g. if the output of P involves a multiplier along a
+%   variable in VARS, as the derivative then involves derivatives of the
+%   states.
+% - The derivative with respect to a variable that is not an output
+%   variable of P is zero.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

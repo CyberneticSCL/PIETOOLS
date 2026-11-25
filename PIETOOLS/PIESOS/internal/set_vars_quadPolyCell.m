@@ -1,24 +1,26 @@
 function [A_out,s_idcs,t_idcs] = set_vars_quadPolyCell(A_in,ns_new,nt_new)
 % [A_OUT,S_IDCS,T_IDCS] = SET_VARS_QUADPOLYCELL(A_IN,NS_NEW,NT_NEW) takes
-% a 'quadPoly' object and expresses it in terms of variables NS_NEW and
-% NT_NEW.
+% a 'quadPoly' object, or its 'struct' form with a 'cell' of
+% coefficients, and expresses it in terms of variables NS_NEW and NT_NEW.
 %
 % INPUTS
-% - A_in:       'quadPoly' object representing a polynomial;
-% - ns_new:     1 x M cellstr specifying the new names of the left
+% - A_in:       'quadPoly' object, or 'struct' with the fields of a
+%               'quadPoly' object and a 'cell' of coefficients C,
+%               representing a polynomial;
+% - ns_new:     1 x M 'cellstr' specifying the new names of the left
 %               variables. Must include A_in.ns as a subset;
-% - nt_new:     1 x N cellstr specifying the new names of the right
+% - nt_new:     1 x N 'cellstr' specifying the new names of the right
 %               variables. Must include A_in.nt as a subset;
 %
 % OUTPUTS
-% - A_out:      'quadPoly' object representing the same polynomial as the
-%               input, but expressed in terms of the specified variables,
-%               so that
+% - A_out:      object of the same type as the input, representing the same
+%               polynomial, but expressed in terms of the specified
+%               variables, so that
 %                       A_out.ns = ns_new;    A_out.nt = nt_new;
-% - s_idcs:     1 x 2 cell, specifying the indices relating the left
+% - s_idcs:     1 x 2 'cell', specifying the indices relating the left
 %               variables in A_in to those in A_out, so that
 %                   A_out.ns(s_idcs{1}) = A_in.ns(s_idcs{2});
-% - t_idcs:     1 x 2 cell, specifying the indices relating the right
+% - t_idcs:     1 x 2 'cell', specifying the indices relating the right
 %               variables in A_in to those in A_out, so that
 %                   A_out.nt(t_idcs{1}) = A_in.nt(t_idcs{2});
 %

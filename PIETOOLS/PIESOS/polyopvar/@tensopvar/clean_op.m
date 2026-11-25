@@ -1,8 +1,8 @@
 function [Cop,is_zero] = clean_op(Cop,ztol)
-% [COP,IS_ZERO] = CLEAN_OP(COP,ZTOL) takes a 'tensopvar' object COP and
-% removes terms (rows of COP.ops) whose tensor product is zero up to the
-% specified tolerance ZTOL, i.e. terms in which at least one factor is
-% zero.
+% [COP,IS_ZERO] = CLEAN_OP(COP,ZTOL) takes a 'tensopvar' object COP,
+% cleans each factor with tolerance ZTOL, and removes terms (rows of
+% COP.ops) whose tensor product is zero up to ZTOL, i.e. terms in which at
+% least one factor is zero.
 %
 % INPUTS
 % - Cop:    'tensopvar' object representing a tensor-PI operator;
@@ -14,17 +14,10 @@ function [Cop,is_zero] = clean_op(Cop,ztol)
 % - Cop:    'tensopvar' object representing the same tensor-PI operator as
 %           the input up to the specified tolerance, with any term (row of
 %           Cop.ops) in which some factor is zero up to ztol removed. At
-%           least one term is always retained, even if every term is zero,
-%           so that Cop.matdim/vars/dom/depmat (derived from Cop.ops)
-%           remain well-defined;
-% - is_zero: true if EVERY term of the input was zero up to ztol (so Cop
-%           represents the zero operator and the single term retained for
-%           shape is itself zero); false otherwise;
+%           least one term is always retained, even if every term is zero;
+% - is_zero: 'logical', true if every term of the input was zero up to
+%           ztol, in which case Cop has a single term with zero factors;
 %
-% NOTES
-% - Each factor is cleaned via a polymorphic 'clean_op(op_ij,ztol)' call,
-%   dispatched by MATLAB to @sopvar/clean_op.m, @intop/clean_op.m, or back
-%   into this function, by op_ij's runtime class.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - clean_op

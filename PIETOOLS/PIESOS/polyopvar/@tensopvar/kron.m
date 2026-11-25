@@ -3,8 +3,10 @@ function C = kron(A,B)
 % operators A and B.
 %
 % INPUTS
-% - A:  m x n 'tensopvar' object (or 'sopvar', converted to 'tensopvar');
-% - B:  p x q 'tensopvar' object (or 'sopvar', converted to 'tensopvar');
+% - A:  m x n 'tensopvar' object (or 'sopvar', converted to 'tensopvar'),
+%       or a numeric scalar;
+% - B:  p x q 'tensopvar' object (or 'sopvar', converted to 'tensopvar'),
+%       or a numeric scalar;
 %
 % OUTPUTS
 % - C:  m*p x n*q 'tensopvar' object, representing the Kronecker product of
@@ -40,7 +42,7 @@ function C = kron(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check the inputs
 if isa(A,'sopvar')
@@ -58,6 +60,17 @@ elseif ~isa(B,'tensopvar') && ~isnumeric(B)
 end
 if isa(B,'tensopvar') && ~B.chkval
     B = initialize(B);
+end
+% A numeric scalar scales the operator; a numeric matrix is not supported
+if isnumeric(A) || isnumeric(B)
+    if isnumeric(A) && isscalar(A)
+        C = A.*B;
+    elseif isnumeric(B) && isscalar(B)
+        C = B.*A;
+    else
+        error("The Kronecker product of a 'tensopvar' object with a non-scalar numeric array is not supported.")
+    end
+    return
 end
 
 % Compute the kronecker product using a rudimentary approach

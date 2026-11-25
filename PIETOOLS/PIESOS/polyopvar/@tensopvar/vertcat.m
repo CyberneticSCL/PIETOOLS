@@ -1,5 +1,5 @@
 function Pop = vertcat(varargin)
-% POP = VERTCAT(VARARGIN) takes the vertical concatenation of tensor-PI 
+% POP = VERTCAT(VARARGIN) takes the vertical concatenation of tensor-PI
 % operators listed in VARARGIN, e.g.
 %   POP = [varargin{1}; varargin{2}; ...; varargin{end}];
 %
@@ -11,8 +11,7 @@ function Pop = vertcat(varargin)
 %               concatenation of the input operators;
 %
 % NOTES
-% - The concatenation is taken by the 'tensopmat' version of vertcat, so
-%   inputs of type 'tensopmat', 'intop' or 'sopvar' are also supported.
+% - Inputs of type 'tensopmat', 'intop' or 'sopvar' are also supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

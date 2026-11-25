@@ -1,25 +1,22 @@
 function varargout = size(f,dim)
-% VARARGOUT = SIZE(F,DIM) returns the size of the matrix-valued distributed
-% polynomial function defined by 'polyopvar' object F along dimension DIM.
+% VARARGOUT = SIZE(F,DIM) returns the size of the distributed polynomial
+% defined by the 'polyopvar' object F (its matrix dimensions f.matdim),
+% along dimension DIM.
 %
 % INPUTS
 % - f:      'polyopvar' object;
-% - dim:    (optional) scalar value 1 or 2:
-%           - if 1, number of rows of f is returned as output;
-%           - if 2, number of columns of f is returned as output;
-%           - if not specified, the full dimension of f is returned;
+% - dim:    (optional) scalar 1 or 2, to return only the number of rows
+%           (1) or of columns (2). If not specified, both are returned;
 %
 % OUTPUTS
-% - varargout:  scalar or 1 x 2 array:
-%       - if one output is called and dim is specified, the size of the
-%           function along the specified dimension is returned;
-%       - if one output is called and no dim is specified, a 1 x 2 array
-%           specifying [row,col] dimension of the polynomial is returned;
-%       - if two outputs are called, the first output will be assigned the
-%           number of rows, and the second the number of columns;
+% - varargout:  - with dim, the number of rows or columns of f;
+%               - without dim, with one output, the 1 x 2 array
+%                 [rows,columns];
+%               - without dim, with two outputs, the number of rows and
+%                 the number of columns;
 %
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - size
 %
 % Copyright (C) 2026 PIETOOLS Team

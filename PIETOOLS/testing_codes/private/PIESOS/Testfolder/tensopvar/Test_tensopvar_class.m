@@ -31,6 +31,7 @@
 %   (10) plus, minus, uminus.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ, 11/24/2026: A 'dpvar' multiplier is expected to give an error;
 
 tol = 1e-9;
 pvar s1 s2 s3 s1_1 s1_2
@@ -277,10 +278,9 @@ close_to(apply_op(1*Top,xs),Y0,tol,'(9) 1*T');
 % non-identity 'polynomial' multipliers are not supported (@sopvar/mtimes takes numeric multipliers only)
 expect_error(@() polynomial(3)*Top,'only supported if the object is the identity');
 expect_error(@() (1+s1)*Top,'only supported if the object is the identity');
-% 'dpvar' multipliers are supported (@sopvar/mtimes routes them to dpvar_op_copvar)
+% 'dpvar' multipliers are not supported: the factors cannot depend on decision variables
 dpvar da
-Td = da*Top;
-chk(isa(Td,'tensopvar') && isequal(size(Td),size(Top)),'(9) dpvar multiplier');
+expect_error(@() da*Top,'cannot depend on decision variables');                % DJ, 11/24/2026
 close_to(apply_op(polynomial(1)*Top,xs),Y0,tol,'(9) polynomial(1)*T');
 % matrix multipliers, single factor
 Ts = build_R({randpoly(3,2,{s1},2)},{{'s1'}},[2,2]);

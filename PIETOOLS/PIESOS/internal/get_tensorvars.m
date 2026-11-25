@@ -24,7 +24,7 @@ function vars_out = get_tensorvars(vars,degs,opts)
 %           if VARS is, and 'cellstr' otherwise;
 %
 % OUTPUTS
-% - vars_out:   1 x N cell, with element i the 1 x di 'cellstr'
+% - vars_out:   1 x N 'cell', with element i the 1 x di 'cellstr'
 %               {'si_1',...,'si_di'}, or the di x 1 'polynomial' vector of
 %               these variables. With option 'full', the 1 x sum(degs)
 %               'cellstr' (sum(degs) x 1 'polynomial') concatenating these
@@ -60,8 +60,7 @@ function vars_out = get_tensorvars(vars,degs,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 11/19/2026: Initial coding;
-% DJ, 11/22/2026: Build the names without num2str (faster);
+% DJ, 11/22/2026: Initial coding;
 
 % Check the options
 if nargin<3
@@ -122,8 +121,7 @@ for i=1:N
     if is_bare && degs(i)==1
         vars_out{i} = {[vars{i},sep_bare]};
     else
-        % A loop, with char(48+j) the digit j for j<10: num2str made this
-        % function ~20x slower, and it runs on every Kop.varnames call
+        % A loop, with char(48+j) the digit j for j<10
         names_i = cell(1,degs(i));
         for j=1:degs(i)
             if j<10

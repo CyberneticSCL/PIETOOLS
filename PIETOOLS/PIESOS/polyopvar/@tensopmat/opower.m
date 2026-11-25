@@ -10,8 +10,8 @@ function C = opower(A,d,type)
 % - d:      nonnegative integer, the order of the product;
 % - type:   (optional) 1 x 2 array of values 1 or 2 indicating what type of
 %           product is taken along the row and column dimensions (1:
-%           elementwise, 2: tensor). Defaults to [1,2]; a scalar specifies type(1), with
-%           type(2)=2;
+%           elementwise, 2: tensor). Defaults to [1,2]; a scalar specifies
+%           type(1), with type(2)=2;
 %
 % OUTPUTS
 % - C:      'tensopmat' object representing the D-th tensor power of A,
@@ -20,12 +20,7 @@ function C = opower(A,d,type)
 %           block);
 %
 % NOTES
-% - If d=0, C=1 is returned, and if d=1, C=A.
-% - If A has a single block that is a 'tensopvar', the power of this block
-%   is taken using 'opower' for 'tensopvar' objects. Otherwise, the blocks
-%   of different copies of A differ, and the power is computed by repeated
-%   squaring, using ceil(log2(d)) products of the powers of A, instead of
-%   d-1 products with A.
+% - If d=0, C=1 (a 'double') is returned, and if d=1, C=A.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

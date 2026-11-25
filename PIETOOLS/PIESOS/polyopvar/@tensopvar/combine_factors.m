@@ -9,16 +9,13 @@ function C = combine_factors(C)
 %
 % INPUTS
 % - C:      'tensopvar' object representing a tensor-PI operator
-%               C = sum_{i=1}^{K} Ri1 \otimes ... \otimes Rid,
-%           with a proper tensor product of the inputs (C.otype(2)=2), and
-%           either a Kronecker product (C.otype(1)=2) or a pointwise
-%           product (C.otype(1)=1) of the outputs;
+%               C = sum_{i=1}^{K} Ri1 \otimes ... \otimes Rid;
 %
 % OUTPUTS
 % - C:      'tensopvar' object representing the same operator, but with
 %           each factor that maps from R^n to R^m, with no input or output
 %           variables, merged with a neighboring 'sopvar' factor, the
-%           factor to its right, or to its left if it is the last factor.
+%           factor to its right if possible, and otherwise to its left.
 %           The merged factor acts on the Kronecker product of the inputs
 %           of the original factors. Its output is the Kronecker product
 %           of their outputs if C.otype(1)=2, and the elementwise product
@@ -29,22 +26,18 @@ function C = combine_factors(C)
 %
 % NOTES
 % - If all factors map from and to R, they are merged into a single factor.
-% - C is returned as it is if C.otype(2)=1, if C has a single factor, or if
-%   no factor maps from and to R. An elementwise product of the inputs,
-%   (A z).*(B z) for the same input z, is quadratic in z, and cannot be
-%   expressed as a single linear operator. A factor that maps from and to R
-%   is also left as it is if its neighbors are not 'sopvar' objects with
-%   numeric parameters, e.g. nested 'tensopvar' factors or 'intop' objects
-%   with decision variables, and so are those neighbors.
+% - C is returned as it is if C.otype(2)=1 (a pointwise product of the
+%   inputs), if C has a single factor, or if no factor maps from and to R.
+%   A factor that maps from and to R is also left as it is if its
+%   neighbors are not 'sopvar' objects with numeric parameters in every
+%   term, e.g. nested 'tensopvar' or 'intop' factors, and so are those
+%   neighbors.
 % - The merged factor has the variables, domains and monomial bases of the
-%   neighbor, so that the cost is that of the Kronecker product of the
-%   (sparse) parameters, linear in their number of nonzeros: it does not
-%   depend on the number of decision variables, which 'sopvar' objects do
-%   not have.
+%   neighbor.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - combine_factors (tensopvar)
+% PIETOOLS - combine_factors
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -145,27 +138,27 @@ function P = merge_sopvar(R,B,R_first,otype)
 % B, where o is the Kronecker product of the inputs, and of the outputs
 % unless OTYPE==1, in which case the outputs are multiplied elementwise.
 %
-% INPUT
+% INPUTS
 % - R:      'sopvar' object with no input or output variables, with a
 %           single parameter, a numeric m x n matrix;
 % - B:      'sopvar' object with numeric parameters, with m rows if
 %           otype==1;
-% - R_first: logical, true if R is the first factor of the product, i.e.
-%           the outer one in the Kronecker product;
+% - R_first: 'logical', true if R is the first factor of the product,
+%           i.e. the outer one in the Kronecker product;
 % - otype:  integer 1 for a pointwise product and 2 for a tensor product
 %           of the outputs;
 %
-% OUTPUT
+% OUTPUTS
 % - P:      'sopvar' object with the variables, domains and monomials of B,
 %           and with dimensions [m*B.dims(1), n*B.dims(2)], or
 %           [B.dims(1), n*B.dims(2)] if OTYPE==1. The parameters are
 %           those of B, with each entry multiplied by an entry of R.
 %           Rows and columns of the parameters are ordered with the
 %           component outer and the monomial inner, so that for R_FIRST
-%           the parameters are kron(R,Pg), or, if OTYPE==1, the row-wise
-%           Kronecker products of the rows of R and Pg. Otherwise, the
-%           index of R is moved between the components of B and the
-%           monomials, by remapping the nonzero entries;
+%           each parameter Pg of B becomes kron(R,Pg), or, if OTYPE==1,
+%           the row-wise Kronecker products of the rows of R and Pg.
+%           Otherwise, the index of R lies between the components of B
+%           and the monomials;
 
 mR = R.dims(1);     nR = R.dims(2);
 Rmat = R.params{1};

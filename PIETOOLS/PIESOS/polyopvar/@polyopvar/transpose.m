@@ -1,18 +1,18 @@
-function P = subsasgn(P,S)
-% P = SUBSASGN(P,S) is not a method of 'quadPoly': MATLAB names a method
-% after its file, so this file defines the method subsasgn_1, and an
-% assignment such as P.dim = [m,n] uses the built-in subsasgn and sets the
-% property without a check. Called as subsasgn_1(P,S), it throws an error.
+function B = transpose(A)
+% B = TRANSPOSE(A) returns the 'polyopvar' object B = A.', the same as the
+% adjoint A' (ctranspose), as distributed polynomials are real-valued, so
+% that A.'*V = A'*V = innerprod(A,V).
 %
-% INPUT
-% - P:      'quadPoly' object;
-% - S:      'struct' array of the indexing operations;
+% INPUTS
+% - A:      m x 1 'polyopvar' object, or an adjoint (A=U') with the
+%           identity as weight;
 %
-% OUTPUT
-% - none: an error is thrown.
+% OUTPUTS
+% - B:      'polyopvar' object, A';
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - subsasgn_1
+% PIETOOLS - transpose
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -36,7 +36,8 @@ function P = subsasgn(P,S)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/11/2026
+% DJ, 11/24/2026: Initial coding;
 
-error("Modification of quadPoly objects is not permitted. Use quadPoly() constructor to create new object")
+B = ctranspose(A);
+
 end

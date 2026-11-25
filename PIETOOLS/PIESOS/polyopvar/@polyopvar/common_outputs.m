@@ -1,30 +1,26 @@
 function [A_out,B_out] = common_outputs(A_in,B_in)
-% [A_OUT,B_OUT] = COMMON_OUTPUTS(A_IN,B_IN) takes two distributed
-% polynomials and lifts them to the same output space, so that they can be
-% added. The output variables are those of A_in and B_in together, and the
-% degree of each row-block in each variable is the largest of the two. The
-% output of a polynomial is constant along the variables it was not defined
-% in. A scalar-valued polynomial is also lifted to the
-% dimension of a vector-valued one, repeating the scalar in each row.
+% [A_OUT,B_OUT] = COMMON_OUTPUTS(A_IN,B_IN) lifts two distributed
+% polynomials to the same output space, so that they can be added: the
+% output variables of both, with for each row-block the larger of the two
+% degrees in each variable. A polynomial is constant along the variables
+% it was not defined in, and a scalar-valued polynomial is repeated in
+% each row of a vector-valued one.
 %
 % INPUTS
-% - A_in, B_in:     'polyopvar' objects, of the same size, or one of them
-%                   scalar-valued;
+% - A_in, B_in:     'polyopvar' objects, not adjoints, of the same size,
+%                   or one of them scalar-valued;
 %
 % OUTPUTS
 % - A_out, B_out:   'polyopvar' objects representing the same polynomials
-%                   as A_in, B_in (with a scalar repeated for each row, if
-%                   the other is vector-valued), but with the same output
-%                   space, so that
+%                   as A_in, B_in (a scalar repeated for each row of a
+%                   vector), with
 %                       A_out.dims.out = B_out.dims.out;
 %                       A_out.vars.out = B_out.vars.out;
 %                       A_out.depmat.out = B_out.depmat.out;
 %
 % NOTES
-% - The polynomials are returned unchanged if their output spaces already
-%   match, or if the dimensions of their row-blocks differ (other than for
-%   a scalar and a vector), in which case adding the polynomials throws an
-%   error.
+% - If the dimensions of the row-blocks differ (other than for a scalar
+%   and a vector), the polynomials are returned unchanged.
 % - Output variables that A_in and B_in share must have the same domain.
 %
 

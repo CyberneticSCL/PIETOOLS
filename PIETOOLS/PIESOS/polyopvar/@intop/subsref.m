@@ -11,14 +11,14 @@ function out = subsref(obj,ref)
 % OUTPUTS
 % - out:    object representing the elements of 'obj' specified by 'ref'.
 %           If ref.type='.', this will be out=obj.(ref.subs). If
-%           ref.type='()', the output will be an intop object including the
-%           elements in the indices specified by ref.subs;
+%           ref.type='()', the output will be an 'intop' object including
+%           the elements in the indices specified by ref.subs;
 %
 % NOTES
-% - For each of the parameters, the nonzeros in the selected rows and
-%   columns are relabeled, and repeated indices copy the nonzeros.
 % - Indexing with '()' accepts at most two indices (linear indexing, or
-%   row and column indices), and indexing with '{}' is not supported.
+%   row and column indices), which may be repeated; indexing with '{}' is
+%   not supported. With linear indexing, the output is a column if OBJ is
+%   a column, and has the shape of the indices otherwise.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,7 +46,7 @@ function out = subsref(obj,ref)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if isempty(ref)
     out = obj;
@@ -157,6 +157,10 @@ switch ref(1).type
             ro = mod(e-1,odim(1)) + 1;
             co = ceil(e/odim(1));
             out.params{k} = sparse((ro-1)*(nd+1)+d(tt),(co-1)*nZ+z(tt),v(tt),odim(1)*(nd+1),odim(2)*nZ);
+        end
+        % Further indexing of the selected elements, e.g. K(1,2).params
+        if numel(ref)>1
+            out = subsref(out,ref(2:end));
         end
 
     case '{}'

@@ -3,15 +3,13 @@ function C = power(A,d)
 % elementwise power A.^D of the distributed polynomial A.
 %
 % INPUTS
-% - A:     m x n 'polyopvar' object;
+% - A:     m x 1 'polyopvar' object, not an adjoint;
 % - d:     nonnegative integer, the order of the power;
 %
 % OUTPUTS
-% - C:     'polyopvar' object representing A.^D, a function of a single
-%          copy of the variables;
-%
-% NOTES
-% - A.^D is the elementwise power opower(A,D,1);
+% - C:     m x 1 'polyopvar' object representing A.^D, a function of a
+%          single copy of the output variables of A; the 'double' 1 if
+%          D=0;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

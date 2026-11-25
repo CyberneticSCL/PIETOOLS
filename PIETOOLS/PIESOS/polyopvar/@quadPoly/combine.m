@@ -2,17 +2,20 @@ function obj = combine(obj)
 %COMBINE  Canonicalize a quadPoly by:
 %  (1) sorting variable names (ns, nt) and reordering Zs/Zt accordingly,
 %  (2) removing duplicate degrees within each per-variable exponent list,
-%      and summing the corresponding coefficients in C.
+%      and summing the corresponding coefficients in C,
+%  (3) removing variables whose only degree is 0.
+% Repeated variable names are kept, not merged.
 %
 % This preserves the quadPoly tensor-product basis structure:
 %   Z(s) = kron_i s^{Zs{i}},   Z(t) = kron_j t^{Zt{j}}.
 %
-% INPUT
+% INPUTS
 % - obj:    'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - obj:    'quadPoly' object representing the same polynomial, with
-%           sorted variable names and unique degrees per variable.
+%           sorted variable names and sorted, unique degrees per
+%           variable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - combine
@@ -39,7 +42,7 @@ function obj = combine(obj)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/11/2026
+% SS, 02/11/2026: Initial coding;
 
     % ---------- normalize empties ----------
     if isempty(obj.Zs), obj.Zs = {}; end
@@ -103,14 +106,16 @@ function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
 % variables of one side of a quadPoly by name, makes the degrees of each
 % variable unique and sorted, and drops variables with only degree 0.
 %
-% INPUT
+% INPUTS
 % - Z:      1 x k cell of exponent vectors, one per variable;
-% - names:  1 x k cellstr of variable names (unnamed variables last);
+% - names:  1 x k cellstr of variable names, or empty; unnamed ('')
+%           variables are sorted last;
 %
-% OUTPUT
+% OUTPUTS
 % - Z_new, names_new: sorted-by-name variables, degrees unique/sorted;
-% - mapFull:  mapping old full tensor index -> new full tensor index;
-% - d_new:    new basis size.
+% - mapFull:  prod_i numel(Z{i}) x 1 array, the new full tensor index of
+%             each old one (1 if Z is empty);
+% - d_new:    integer, the size of the new tensor basis.
 
     % No variables => basis size 1
     if isempty(Z)
@@ -224,11 +229,11 @@ function subs = lin2subv(idx, dims)
 % SUBS = LIN2SUBV(IDX,DIMS) returns the subscripts of the linear index IDX
 % in an array of size DIMS, the last dimension varying fastest.
 %
-% INPUT
+% INPUTS
 % - idx:    positive integer;
 % - dims:   1 x k array of positive integers;
 %
-% OUTPUT
+% OUTPUTS
 % - subs:   1 x k array of subscripts.
     k = numel(dims);
     subs = zeros(1,k);
@@ -245,11 +250,11 @@ function idx = subv2lin(subs, dims)
 % IDX = SUBV2LIN(SUBS,DIMS) returns the linear index of the subscripts
 % SUBS in an array of size DIMS, the last dimension varying fastest.
 %
-% INPUT
+% INPUTS
 % - subs:   1 x k array of subscripts;
 % - dims:   1 x k array of positive integers;
 %
-% OUTPUT
+% OUTPUTS
 % - idx:    positive integer.
     k = numel(dims);
     idx = 1;
@@ -265,10 +270,10 @@ function d = basisSize(Zcell)
 % product basis defined by the exponent vectors in ZCELL (an empty
 % element counts as the constant monomial).
 %
-% INPUT
+% INPUTS
 % - Zcell:  1 x k cell of exponent vectors;
 %
-% OUTPUT
+% OUTPUTS
 % - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;

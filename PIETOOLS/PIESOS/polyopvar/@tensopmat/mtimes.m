@@ -5,7 +5,7 @@ function C = mtimes(A,B)
 %
 % INPUTS
 % - A:      m x p 'tensopmat' object (or 'tensopvar', 'intop' or
-%           'sopvar'), or an m x p 'double' matrix, or a scalar
+%           'sopvar'), or an m x p 'double' matrix, or a scalar 'double',
 %           'polynomial' or 'dpvar', representing a multiplier operator;
 % - B:      p x n 'tensopmat' object (or 'tensopvar', 'intop' or
 %           'sopvar') representing a matrix of tensor-PI operators. If A
@@ -13,7 +13,8 @@ function C = mtimes(A,B)
 %           'polynomial' or 'dpvar', in which case B*A is returned;
 %
 % OUTPUTS
-% - C:      m x n 'tensopmat' object representing the product of A with B;
+% - C:      m x n 'tensopmat' object representing the product of A with B
+%           (of the size of B if A is a scalar);
 %
 % NOTES
 % - If A is a 'tensopmat', its input function space must match the output
@@ -25,6 +26,10 @@ function C = mtimes(A,B)
 %   products of PI operators (B.depmat.out>1) is only supported if all
 %   row-blocks of B have dimension 1. Use '.*' for elementwise
 %   multiplication instead.
+% - A scalar 'dpvar' A times a block acting on R (e.g. the constant term)
+%   gives a 'dpvar' block; times an operator on functions it is not
+%   supported ('polyopvar' also refuses it for states without spatial
+%   variables).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,7 +57,7 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that multiplication is supported
 if isa(A,'sopvar') || isa(A,'tensopvar') || isa(A,'intop')
@@ -184,7 +189,7 @@ elseif isa(A,'double') || isa(A,'polynomial') || isa(A,'dpvar')
         error("Matrix multiplication with non-tensopmat objects is not supported.")
     end
 else
-    error("'tensopvar' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
+    error("'tensopmat' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
 end
 
 
@@ -259,7 +264,18 @@ else
     % Multiply each of the operators stored in B by A
     C = B;
     for i=1:numel(C.ops)
-        if ~isempty(B.ops{i})
+        if isempty(B.ops{i})
+            continue
+        elseif isa(A,'dpvar') && isa(B.ops{i},'tensopvar')
+            % A decision variable times an operator acting on R (e.g. the
+            % constant term) is a 'dpvar' block, as in constant2polyopvar;
+            % on functions, the factors would depend on decision variables
+            [P,is_ok] = tensopvar2polynomial(B.ops{i});
+            if ~is_ok
+                error("Multiplication of a decision variable ('dpvar') with a distributed polynomial in the states, e.g. c*x, is not supported; multiply a functional instead, e.g. c*(x'*x), or use c as a weight, e.g. x'*c*x.")
+            end
+            C.ops{i} = A*P;
+        else
             C.ops{i} = A*B.ops{i};
         end
     end
@@ -273,21 +289,27 @@ end
 
 
 function P = block_product(A,i,k,Bkj)
-% P = BLOCK_PRODUCT(A,I,K,BKJ) returns the product of block (I,K) of the 'tensopmat' A with the block
-% BKJ of the second factor. Two blocks of the same kind, both matrices of type 'double', 'polynomial'
-% or 'dpvar' acting on R, or both operators, are multiplied directly. For a matrix with an operator:
-% - matrix M (acting on R, mapping to its row of A) times an operator that maps to R: the matrix is
-%   converted to the multiplier operator from R (native2op), and the operators are composed;
-% - operator times a matrix, which maps R to functions: the operator is applied to the functions in
-%   the columns of the matrix (apply_to_native), the result is a matrix.
+% P = BLOCK_PRODUCT(A,I,K,BKJ) returns the product of block (I,K) of the
+% 'tensopmat' A with the block BKJ of the second factor. Two blocks of the
+% same kind, both matrices of type 'double', 'polynomial' or 'dpvar'
+% acting on R, or both operators, are multiplied directly. For a matrix
+% with an operator:
+% - matrix M (acting on R, mapping to its row of A) times an operator
+%   that maps to R: the matrix is converted to the multiplier operator
+%   from R to the output space of row I of A, and the operators are
+%   composed; this is not supported for an 'intop' (functional);
+% - operator times a matrix, which maps R to functions: the operator is
+%   applied to the functions in the columns of the matrix, and the result
+%   is a matrix.
 %
-% INPUT
+% INPUTS
 % - A:        'tensopmat' object, the first factor;
-% - i, k:     integers, the block of A;
-% - Bkj:      block (k,j) of the second factor;
+% - i, k:     integers, the row- and column-block index of the block of A;
+% - Bkj:      block (k,j) of the second factor: 'tensopvar' or 'intop'
+%             object, or matrix of type 'double', 'polynomial' or 'dpvar';
 %
-% OUTPUT
-% - P:        the product block.
+% OUTPUTS
+% - P:        the product block, an operator or a matrix acting on R.
 Aik = A.ops{i,k};
 is_natA = is_native_op(Aik);        is_natB = is_native_op(Bkj);
 if is_natA==is_natB
@@ -303,13 +325,15 @@ end
 end
 
 function P = add_blocks(P1,P2)
-% P = ADD_BLOCKS(P1,P2) returns the sum of two blocks. A matrix of type 'double', 'polynomial' or 'dpvar'
-% is added to an operator after converting the operator to a 'polynomial', if it acts on R.
+% P = ADD_BLOCKS(P1,P2) returns the sum of two blocks. A matrix of type
+% 'double', 'polynomial' or 'dpvar' is added to an operator after
+% converting the operator to a 'polynomial', which requires that it acts
+% on R; an error is thrown otherwise.
 %
-% INPUT
+% INPUTS
 % - P1, P2:   blocks (operators or matrices acting on R);
 %
-% OUTPUT
+% OUTPUTS
 % - P:        the sum block.
 is_nat1 = is_native_op(P1);         is_nat2 = is_native_op(P2);
 is_ok = true;
@@ -325,27 +349,30 @@ P = P1+P2;
 end
 
 function Y = apply_to_native(Aop,M)
-% Y = APPLY_TO_NATIVE(AOP,M) applies the operator AOP to the functions in the columns of
-% the matrix M of type 'double', 'polynomial' or 'dpvar', which maps R^k to the functions
-% in L2^n[S], and returns the matrix Y of the same type that represents
-% the composition x -> AOP*(M*x), mapping R^k to the output space of AOP.
+% Y = APPLY_TO_NATIVE(AOP,M) applies the operator AOP to the functions in
+% the columns of the matrix M of type 'double', 'polynomial' or 'dpvar',
+% which maps R^k to the functions in L2^n[S], and returns the matrix Y
+% that represents the composition x -> AOP*(M*x), mapping R^k to the
+% output space of AOP.
 %
 % INPUTS
-% - Aop:    m x n 'tensopvar' object with a single factor, or 'intop' object;
+% - Aop:    m x n 'tensopvar' object with a single factor, or 'intop'
+%           object;
 % - M:      n x k matrix of type 'double', 'polynomial' or 'dpvar';
 %
 % OUTPUTS
-% - Y:      m x k matrix of type 'polynomial', or of type 'dpvar' if M is;
+% - Y:      m x k matrix of type 'polynomial', or of type 'dpvar' if M or
+%           AOP depends on decision variables;
 %
 % NOTES
-% - For a 'dpvar' M(d;s), affine in the decision variables d, the columns are
-%   Y_c(d;s) = sum_{r,a} c_{r,a}(d) * AOP*(e_r s^a), for the coefficients c_{r,a}(d) of the
-%   monomials s^a in the rth component of the cth column of M. So AOP is only applied to the
-%   monomials appearing in M, n*na functions, and the coefficients are combined by one
-%   sparse matrix product.
-% - The output variables of AOP with a Kronecker product of the (single) factor, otype(1)=2,
-%   would be renamed s_1 by apply_op: the product of a single factor is the same pointwise,
-%   so that is used here.
+% - For a 'dpvar' M(d;s), affine in the decision variables d, column c of
+%   Y is
+%     Y_c(d;s) = sum_{r,a} c_{r,a}(d) * AOP*(e_r s^a),
+%   for c_{r,a}(d) the coefficient of the monomial s^a in row r of column
+%   c of M. AOP must then not depend on decision variables.
+% - A 'tensopvar' AOP is applied with a pointwise product along the rows,
+%   otype(1)=1, which for a single factor equals the Kronecker product but
+%   keeps the names of the output variables (not renamed to s_1).
 %
 
 if isa(Aop,'tensopvar')

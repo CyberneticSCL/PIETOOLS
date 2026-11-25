@@ -1,21 +1,21 @@
 function [P_diff] = diff(P1, vars)
-%DIFF differentiate variables in a quadPoly
-% 
+%DIFF Differentiate a quadPoly with respect to variables.
+%
 % INPUTS
-% - P1:   'quadpoly' class object, or a 'double' (derivative 0).
-% - vars:  cell array of names of vars, left (ns) or right (nt)
-%          variables of P1; a name not in P1 gives a warning and 0*P1
+% - P1:     m x n 'quadPoly' object, or a 'double' (derivative 0);
+% - vars:   'char', 'string' array or 'cell' of names of left (P1.ns) or
+%           right (P1.nt) variables of P1; a name not in P1 gives a
+%           warning and the output 0*P1;
 %
 % OUTPUTS
-% - P_diff:      'quadpoly' object differentiated with respect all vars,
-%                once in each
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% - P_diff: m x n 'quadPoly' object, P1 differentiated once with respect
+%           to each variable in vars (a repeated name counts once); the
+%           scalar 0 for a 'double' P1.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - diff
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -31,11 +31,12 @@ function [P_diff] = diff(P1, vars)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % AT, 02/18/2026: Initial coding;
 
 

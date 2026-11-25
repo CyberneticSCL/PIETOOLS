@@ -1,5 +1,5 @@
 function Pop = blkdiag(varargin)
-% POP = BLKDIAG(VARARGIN) takes the diagonal concatenation of tensor-PI 
+% POP = BLKDIAG(VARARGIN) takes the diagonal concatenation of tensor-PI
 % operators listed in VARARGIN, e.g.
 %   POP = [varargin{1},0; 0, blkdiag(varargin{2:end})];
 %
@@ -11,8 +11,7 @@ function Pop = blkdiag(varargin)
 %               of the input operators;
 %
 % NOTES
-% - The concatenation is taken by the 'tensopmat' version of blkdiag, so
-%   inputs of type 'tensopmat', 'intop' or 'sopvar' are also supported.
+% - Inputs of type 'tensopmat', 'intop' or 'sopvar' are also supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

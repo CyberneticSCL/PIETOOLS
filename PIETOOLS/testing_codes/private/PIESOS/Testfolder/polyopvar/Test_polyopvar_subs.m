@@ -59,6 +59,8 @@ function Test_polyopvar_subs()
 %   degree d>1 (compared with the tensor product evaluation) instead of
 %   expecting an error;
 % DJ, 11/02/2026: Call the new convert function;
+% DJ, 11/24/2026: case_const_partial declares its function of s3 on s3;
+%   case_ode_rows calls the library's example functions directly;
 
 cases = {@case_class, @case_const, @case_const_partial, @case_fctr, @case_fctr_function, @case_multirow, @case_name, @case_nested, @case_ode_rows, @case_var, @case_var_function, @case_vector_states};
 nfail = 0;
@@ -169,7 +171,7 @@ function case_class()
     val1 = make_val(svars,dom,'y',1,1,1);
     val2 = [val1;val1];
     % subs_var
-    expect_error(@() subs(f,yy+yy,val1),'individial states');
+    expect_error(@() subs(f,yy+yy,val1),'individual states');
     expect_error(@() subs(f,[yy;yy],val2),'unique');
     expect_error(@() subs(f,{'a','b'},val1),'Number of rows');
     expect_error(@() subs(f,{'a'},make_val(svars,dom,'y',2,1,1)),'Output space');
@@ -203,7 +205,7 @@ function case_class()
     dd = dpvar('dd');
     expect_error(@() subs(f,{'a'},dd),'decision variables');
     expect_error(@() subs(f,{'a','b'},[1,2]),'column vector');
-    expect_error(@() subs(f,yy+yy,1),'individial states');
+    expect_error(@() subs(f,yy+yy,1),'individual states');
     expect_error(@() subs(f,{'q'},1),'must be states');
     expect_error(@() subs(f,{'a','a'},[1;2]),'unique');
     expect_error(@() subs(f,{'a'},[1;2]),'Number of rows of constant');
@@ -669,7 +671,8 @@ function case_const_partial()
     f = make_f_const_partial(N,[1,2,3],dep,sz,'pw');
     expect_error_const_partial(@() subs(f,{'b'},known_fun(1+s2,{'s2'})),'Output space');
     expect_error_const_partial(@() subs(f,{'a'},known_fun(1+s1,{'s1'})),'Output space');
-    expect_error_const_partial(@() subs(f,{'b'},known_fun(1+s1,{'s3'})),'Output space');
+    s3 = polynomial({'s3'});
+    expect_error_const_partial(@() subs(f,{'b'},known_fun(1+s3(1),{'s3'})),'Output space');      % DJ, 11/24/2026
     ncases = ncases+3;
 
     %% (H) errors
@@ -1403,7 +1406,13 @@ function case_ode_rows()
     ncases = 0;
     for ex = [9,8]
         rng(500+ex);
-        PDE = examples_PDE_library_PIETOOLS_nouinput(ex);
+        % the example functions of the library, called without its prompt
+        if ex==9                                                            % DJ, 11/24/2026
+            evalc('PDE = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(0,{});');
+        else
+            evalc('PDE = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(0,{});');
+        end
+        evalc('PDE = initialize_PIETOOLS_PDE(PDE,true);');      % as the library does
         evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');            % DJ, 11/02/2026
         sz = PIE.x_tab(:,2);
         nst = numel(sz);

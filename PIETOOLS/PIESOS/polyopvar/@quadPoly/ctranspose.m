@@ -6,13 +6,13 @@ function H = ctranspose(F)
 %   H(s,t) = (I_n ⊗ Zs(s)^T) * Cnew * (I_m ⊗ Zt(t)),
 % using the SAME Zs/ns on the left and SAME Zt/nt on the right.
 %
-% Cnew is obtained by conjugate transposing only the outer (m×n) block structure of C,
-% while keeping the within-block (ds×dt) coordinates fixed.
+% Cnew is obtained by conjugate transposing only the outer (m x n) block
+% structure of C, keeping the within-block (ds x dt) coordinates fixed.
 %
-% INPUT
+% INPUTS
 % - F:      m x n 'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - H:      n x m 'quadPoly' object, F' (coefficients conjugated).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,7 +40,7 @@ function H = ctranspose(F)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 m  = F.dim(1);
 n  = F.dim(2);

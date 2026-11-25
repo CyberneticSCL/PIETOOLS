@@ -1,7 +1,7 @@
 function Cop_out = reorder_vars(Cop,var_order)
 % COP_OUT = REORDER_VARS(COP,VAR_ORDER) takes a tensor-PI operator
-% COP and reorders the integrals defining this functional to match the
-% order VAR_ORDER = [i1,...,id] of the state variables
+% COP and reorders its factors to match the order VAR_ORDER = [i1,...,id]
+% of the state variables
 %   COP_OUT*(x_{i1} o ... o x_{id}) = COP*(x1 o ... o xd)
 % where o denotes the tensor product.
 %
@@ -46,7 +46,7 @@ function Cop_out = reorder_vars(Cop,var_order)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % % Check the inputs
 if nargin<=1
@@ -57,7 +57,7 @@ if ~isa(Cop,'tensopvar')
 end
 nvars = size(Cop.ops,2);
 if ~isa(var_order,'double')
-    error("Order of variables must be specified as  d x 1 array of integers.")
+    error("Order of variables must be specified as an array of d integers.")
 elseif numel(var_order)~=nvars || ~isempty(setdiff(1:nvars,var_order))
     error("A new index must be specified for each of the variables in the functional.")
 end

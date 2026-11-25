@@ -9,8 +9,8 @@
 % Along solutions to this PDE, the energy satisfies
 %   dV = 2*<u,u_{ss}> + 2*r*||u||^2 - 2*int_0^1 u(s)^2*u_{s}(s) ds
 %      = -2*(||u_{s}||^2 - r*||u||^2),
-% since the nonlinear term integrates to zero: 
-%   int_{0}^{1} u^2*u_{s} ds = [u^3/3]_0^1.
+% since the nonlinear term integrates to zero:
+%   int_{0}^{1} u^2*u_{s} ds = [u^3/3]_0^1 = 0.
 % The PDE is therefore globally stable if 
 %   ||u_{s}||^2 - r*||u||^2 >= 0 
 % for all u, which holds if and only if r <= pi^2 = 9.8696 (by Poincare).
@@ -19,18 +19,20 @@
 % The test below enforces this positivity condition as a distributed sum
 % of squares (SOS) constraint, -dV = W >= 0, using PIESOS.
 %
-% INPUT
+% INPUTS
 % - none: the reaction rate r is set in the script;
 %
-% OUTPUT (workspace)
-% - prog_sol:   'struct', the solved PIESOS program; W, the 'polyopvar'
-%               SOS functional with -dV = W. A message states whether
-%               global stability was verified.
+% OUTPUTS (workspace)
+% - prog_sol:   'struct', the solved PIESOS program;
+% - W:          'polyopvar' object, the SOS functional with -dV = W, in
+%               terms of the decision variables (its value is
+%               piesos_getsol(prog_sol,W));
+% A message states whether global stability was verified.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - PIESOS_DEMO1
+% PIETOOLS - PIESOS_DEMO1_global_stability
 %
-% Copyright (C) 2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

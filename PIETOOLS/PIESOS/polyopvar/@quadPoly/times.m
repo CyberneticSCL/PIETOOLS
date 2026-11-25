@@ -17,7 +17,7 @@ function C = times(A,B)
 %   C(:) = diag(A(:))*B(:), so left variables in A cannot appear as right
 %   variables in B, or vice versa.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - times
 %
 % Copyright (C) 2026 PIETOOLS Team

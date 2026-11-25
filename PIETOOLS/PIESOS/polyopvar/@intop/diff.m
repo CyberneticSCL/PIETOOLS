@@ -8,12 +8,13 @@ function dKop = diff(Kop,vars,d)
 %
 % INPUTS
 % - Kop:    m x n 'intop' object representing a functional;
-% - vars:   1 x r 'cellstr' or 'polynomial' (pvar) array specifying the
-%           names of the spatial variables with respect to which to take
-%           the derivative;
+% - vars:   1 x r 'cellstr' or 'polynomial' (pvar) array, or 'char',
+%           specifying the names of the spatial variables with respect to
+%           which to take the derivative;
 % - d:      (optional) p x r array of nonnegative integers specifying the
 %           order of the derivatives to be taken with respect to each of
-%           the spatial variables. Defaults to 1;
+%           the spatial variables. A scalar is used for all variables.
+%           Defaults to 1;
 %
 % OUTPUTS
 % - dKop:   m*p x n 'intop' object representing the composition of the
@@ -22,8 +23,8 @@ function dKop = diff(Kop,vars,d)
 % NOTES
 % - A functional maps to R^m, which does not depend on any spatial
 %   variable, so for any derivative of positive order the composition is
-%   the zero operator, with the same input space as Kop. For orders of
-%   differentiation all zero, Kop is returned (repeated p times);
+%   the zero operator, with the same input space as Kop. A row of D of
+%   zeros gives Kop itself;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,7 +52,7 @@ function dKop = diff(Kop,vars,d)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/20/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that the operator is properly specified
 if ~isa(Kop,'intop')
@@ -76,9 +77,10 @@ if isempty(vars)
     dKop.params = cellfun(@(P) repmat(P,p,1),Kop.params,'UniformOutput',false);
 else
     % The output of a functional does not depend on the spatial variables:
-    % the composition is zero, with the rows of each parameter stacked p
-    % times.
-    dKop.params = cellfun(@(P) sparse(p*size(P,1),size(P,2)),Kop.params,'UniformOutput',false);
+    % a row of d of positive order gives zero, a row of zeros gives Kop,
+    % stacked in the order of the rows of d.
+    is_id = sparse(double(all(d==0,2)));
+    dKop.params = cellfun(@(P) kron(is_id,P),Kop.params,'UniformOutput',false);
 end
 
 end

@@ -4,16 +4,14 @@ function [idcs1,idcs2] = find_common_idcs(arr1,arr2,nrange)
 %
 % INPUTS
 % - arr1, arr2:     m x 1 and n x 1 numeric arrays;
-% - nrange:         (optional) scalar; specify it only if arr1 and arr2
-%                   take positive integer values in [1,nrange] (e.g.
-%                   row/column indices of two conformable
-%                   sparse-matrix-triplet structs). The values are then
-%                   used directly as labels, instead of being relabeled
-%                   by 'unique';
+% - nrange:         (optional) positive integer; specify it only if arr1
+%                   and arr2 take positive integer values in [1,nrange]
+%                   (e.g. row/column indices of two conformable sparse
+%                   matrices), which are then used directly as labels;
 %
 % OUTPUTS
-% - idcs1,idcs2:    k x 1 numeric arrays for some k<=m*n, such that i is
-%                   in idcs1 and j is in idcs2 if and only if
+% - idcs1,idcs2:    k x 1 numeric arrays for some k<=m*n, listing all
+%                   pairs (i,j) = (idcs1(l),idcs2(l)) such that
 %                       arr1(i) = arr2(j);
 %
 

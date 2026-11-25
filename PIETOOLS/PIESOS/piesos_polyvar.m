@@ -7,37 +7,39 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 % - prog:   'struct' specifying a PIESOS program;
 % - Zx:     nZ x 1 'polyopvar' object representing a basis of nZ
 %           distributed monomials in terms of which the polynomial
-%           variable "p" is to be defined. A functional acts on each
+%           variable P is to be defined. A functional acts on each
 %           monomial i, defined on the function space of the output of
 %           row i of Zx, over the spatial variables on which this row
 %           depends;
-% - opts:   (optional) struct specifying options for the operator C
-%           defining the polynomial, p = C*Zx, with fields
+% - opts:   (optional) struct specifying options for the operator Cop
+%           defining the polynomial, p = Cop*Zx, with fields
 %               'intmat':  OPTION 1: nZ x 1 cell, specifying for each of
 %                            the monomials the intmat of the functional
-%                            acting on this operator: a 'char' as in
+%                            acting on this monomial: a 'char' as in
 %                            OPTION 2, or a 1 x N cell, element i an
 %                            ntrms(i) x 2*deps(i) array of the limits of
 %                            integration of the dummy variables of
 %                            variable i, in the 'intop' format;
 %                          OPTION 2: 'char' object, one of 'full',
-%                            'no_mult', 'lower' or 'upper', specifying
-%                            what type of intmat to use for all of the
-%                            distributed monomials: all admissible
-%                            integrals, no delta terms, or only the
-%                            integral ordering the dummy variables of
-%                            each variable decreasingly (increasingly);
-%                          Here, 'no_mult' is passed on as 'nomult'.
+%                            'nomult' (or 'no_mult'), 'lower' or
+%                            'upper', as INTMAT of `piesos_intopvar`,
+%                            specifying what type of intmat to use for
+%                            all of the distributed monomials: all
+%                            admissible integrals, no delta terms, or
+%                            only the integral ordering the dummy
+%                            variables of each variable decreasingly
+%                            (increasingly);
 %                          Defaults to 'full'. A cell intmat for a
 %                          monomial must have an element for each of the
 %                          N variables in Zx.vars.out, where the
 %                          elements for variables on which the monomial
 %                          does not depend are ignored;
 %               'degs':    degrees of the monomials in the kernels of the
-%                          functionals: a struct with field 'max', the maximal
-%                          degrees, or 'full', the full arrays of
-%                          monomial degrees. A cell or array is read as
-%                          struct('max',degs). It can be specified as
+%                          functionals: a struct with field 'max', the
+%                          maximal degrees, or 'full', the full arrays of
+%                          monomial degrees, as DEGS of `piesos_intopvar`.
+%                          A cell or array is read as struct('max',degs).
+%                          It can be specified as
 %                          - nZ x 1 cell, with element i the degrees for
 %                            monomial i;
 %                          - a single struct, scalar or 1 x N array, for
@@ -68,6 +70,9 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 %               p = Cop*Zx,    Cop = [Kop_1,...,Kop_nZ]
 %           where Kop_i is the functional acting on monomial i, declared by
 %           `piesos_intopvar`;
+%
+% NOTES
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_polyvar
@@ -94,7 +99,7 @@ function [prog,p] = piesos_polyvar(prog,Zx,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 
 % Check the inputs
@@ -112,6 +117,7 @@ end
 if ~isa(opts,'struct')
     error("Options must be specified as a 'struct'.")
 end
+check_opts(opts,'piesos_polyvar');
 nZ = size(Zx.C.ops,1);
 N = numel(Zx.vars.out);
 

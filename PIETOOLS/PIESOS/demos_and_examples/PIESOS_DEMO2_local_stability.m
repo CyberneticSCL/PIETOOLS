@@ -9,8 +9,8 @@
 % The zero solution is stable if and only if r <= pi^2 = 9.8696, but not
 % globally: for r < pi^2 the PDE has an unstable steady state u*, with
 % u*_{ss} + r*u* + u*^2 = 0, whose L2 norm ||u*|| shrinks to zero as r goes
-% to pi^2. For r = 9, we have ||u*||=0.7238, so stability can be verified
-% on a ball of at most R<0.7238
+% to pi^2. For r = 9, we have ||u*||=0.7238, so stability can only be
+% verified on a ball of radius R < 0.7238.
 %
 % We test stability on the ball ||u|| <= R, by constructing a Lyapunov
 % functional V(u) = <u,P*u> + eppos*||u||^2, with P(s) >= 0 a polynomial
@@ -21,20 +21,21 @@
 % condition, dV <= 0 whenever ||u|| <= R, so that solutions starting in the
 % ball of radius rho = R*sqrt(eppos/gam) remain in the ball of radius R.
 %
-% INPUT
+% INPUTS
 % - none: the reaction rate r and the radius R are set in the script;
 %
-% OUTPUT (workspace)
-% - prog_sol:   'struct', the solved PIESOS program; V, dV, the 'polyopvar'
-%               Lyapunov functional and its derivative; gam_sol, the
-%               minimized bound gam (if feasible). A message states whether
-%               local stability was verified, and the radius rho.
-
+% OUTPUTS (workspace)
+% - prog_sol:   'struct', the solved PIESOS program;
+% - V, dV:      'polyopvar' objects, the Lyapunov functional and its
+%               derivative, in terms of the decision variables;
+% - gam_sol:    scalar, the minimized bound gam (if solved);
+% A message states whether local stability was verified, and gives the
+% radius rho.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - PIESOS_DEMO2
+% PIETOOLS - PIESOS_DEMO2_local_stability
 %
-% Copyright (C) 2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

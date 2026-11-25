@@ -18,10 +18,10 @@ function dCop = diff(Cop,vars,d)
 %           the spatial variables. Defaults to 1;
 %
 % OUTPUTS
-% - dCop:   m*p x n 'tensopmat' representing the composition of the
-%           requested differential operator with the operator Cop. The
-%           derivatives specified by the rows of d are stacked vertically,
-%           so that block (i,j) of the kth derivative is block
+% - dCop:   m*p x n 'tensopmat' object representing the composition of
+%           the requested differential operator with the operator Cop.
+%           The derivatives specified by the rows of d are stacked
+%           vertically, so that block (i,j) of the kth derivative is block
 %           (i+(k-1)*P,j) of dCop, for P the number of row-blocks of Cop;
 %
 % NOTES
@@ -29,7 +29,7 @@ function dCop = diff(Cop,vars,d)
 %   type 'tensopvar' by the product and Leibniz rules, those of type
 %   'intop' (functionals) are mapped to zero, and blocks M of type
 %   'double', 'polynomial' or 'dpvar', representing the operator x --> M*x
-%   for x in \R, are differentiated elementwise. Empty blocks remain empty;
+%   for x in R, are differentiated elementwise. Empty blocks remain empty;
 % - A block M(s) is differentiated as the function M(s)*x of s, so the
 %   output variables of a row consisting only of such blocks are those
 %   remaining in the derivative;

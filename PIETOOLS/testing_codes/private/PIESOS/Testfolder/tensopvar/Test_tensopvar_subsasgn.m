@@ -175,7 +175,7 @@ try
     Cop9{nterms+1,jc} = Cop.ops{1,jc}; %#ok<NASGU>
 catch ME
     threw = true;
-    if ~contains(ME.message,'cannot exceed number of components')
+    if ~contains(ME.message,'cannot exceed the number of terms')
         error("Trial %d: out-of-range row index errored with unexpected message: %s",trial,ME.message)
     end
 end

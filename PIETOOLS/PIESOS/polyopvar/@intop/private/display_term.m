@@ -16,17 +16,15 @@ function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 %
 % OUTPUTS
 % - term_str:   1 x n char representing the term, without its sign, e.g.
-%                   0_int^1 0_int^s2 K3(s1,s2) x(s1,s2) ds1 ds2
-%               (with the integral sign, subscripts and superscripts as
-%               unicode characters). The integrals are ordered with the
-%               outermost first, with the limits following from intmat. The lower limit precedes the
+%                   0_int^1 0_int^g2 K3(g1,g2) x(g1,g2) dg1 dg2
+%               with g for gamma, and the integral sign, subscripts and
+%               superscripts as unicode characters. The integrals are
+%               ordered with the outermost first, with the limits
+%               following from intmat. The lower limit precedes the
 %               integral symbol, and the upper limit follows it. The limits
 %               are displayed as subscripts and superscripts if they are
 %               integers or variables, and as {x}_ and ^{x} otherwise,
-%               e.g. for 0.5. In the limits, the comma between the first
-%               and second index of a variable is dropped. A dummy variable
-%               gamma is displayed as the subscript or superscript gamma in
-%               a limit, followed by its number;
+%               e.g. for 0.5;
 % - term_sign:  1 or -1, the sign of the term. Only -1 if the kernel is
 %               displayed explicitly as a single term with a negative
 %               coefficient;
@@ -43,9 +41,7 @@ function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 %   wherever sj would appear, also in the limits of other variables.
 % - The kernel is displayed explicitly if it has at most 4 nonzeros in
 %   Kop.params{k}, and Kop is scalar-valued (m=n=1). Decision variables are
-%   displayed by their names Kop.Zd. The cost does not depend on their
-%   number: only the nonzeros of Kop.params{k} are accessed.
-% - The characters are declared by their code, to keep the file ASCII.
+%   displayed by their names Kop.Zd.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - display_term
@@ -228,12 +224,14 @@ function [kern_str,ksign] = explicit_kernel(Kop,param_k,rep_idx,rep_val,dum_name
 % - Kop:        'intop' object;
 % - param_k:    m*(nd+1) x n*nZ sparse array of coefficients, as in
 %               Kop.params;
-% - rep_idx:    1 x D array of integers, with rep_idx(g)>0 the index of
-%               the dummy variable that variable g is evaluated at, and
-%               rep_idx(g)=0 if it is evaluated at the boundary value
-%               rep_val(g);
-% - rep_val:    1 x D array of doubles, see rep_idx;
-% - dum_names:  1 x D cellstr, the names of the dummy variables;
+% - rep_idx:    1 x D array of integers, for D = sum(Kop.depmat.in) the
+%               number of dummy variables, with rep_idx(g)>0 the index of
+%               the dummy variable that variable g is evaluated at (g
+%               itself if it is integrated), and rep_idx(g)=0 if it is
+%               evaluated at the boundary value rep_val(g);
+% - rep_val:    1 x D array of type 'double', the boundary values;
+% - dum_names:  1 x D cell of char, the displayed names of the integrated
+%               dummy variables (empty for the multipliers);
 %
 % OUTPUTS
 % - kern_str:   char representing the kernel. Matrix-valued kernels are

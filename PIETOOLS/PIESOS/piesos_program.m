@@ -8,15 +8,16 @@ function prog = piesos_program(vartab,decvartab)
 %               polynomial variables (state variables) of the
 %               optimization program;
 % - decvartab:  (optional) q x 1 'dpvar' array, specifying the decision
-%               variables to be used in the optimization program;
+%               variables to be used in the optimization program.
+%               Defaults to no decision variables;
 %
 % OUTPUTS
 % - prog:       'struct' specifying an optimization program in the format
-%               of SOSTOOLS, as declared by `sosprogram`, in the spatial
-%               variables of VARTAB (and the decision variables
-%               DECVARTAB), with an additional field 'pievartable',
-%               a cellstr with the names VARTAB.varname of the
-%               distributed variables;
+%               of SOSTOOLS, as declared by `sosprogram`, in the input
+%               and output spatial variables of VARTAB (and the decision
+%               variables DECVARTAB), with an additional field
+%               'pievartable', a 'cellstr' with the names VARTAB.varname
+%               of the distributed variables;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,11 +45,11 @@ function prog = piesos_program(vartab,decvartab)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check the input
 if ~isa(vartab,'polyopvar')
-    error("Distributed polynomial variables must be specified as 'polyopvar' object'.")
+    error("Distributed polynomial variables must be specified as 'polyopvar' object.")
 end
 % Initialize a program structure in the spatial and decision variables
 pvartab = polynomial(unique([vartab.vars.in,vartab.vars.out]));

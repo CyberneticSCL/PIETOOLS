@@ -25,9 +25,10 @@ function C = otimes(A,B,type)
 %
 % NOTES
 % - If A.vars.in and B.vars.in share a variable, then this is taken to be
-%   the same spatial variable in both, with the same domain. The functional
-%   C integrates over the dummy variables of both, where the dummy
-%   variables of B are numbered after those of A.
+%   the same spatial variable in both, which must have the same domain in
+%   both, or an error is thrown. The functional C integrates over the
+%   dummy variables of both, where the dummy variables of B are numbered
+%   after those of A.
 % - A constant is treated as a kernel that does not depend on the dummy
 %   variables.
 %

@@ -1,10 +1,10 @@
 function logval = isempty(obj)
 % LOGVAL = ISEMPTY(OBJ) tests whether the quadPoly OBJ is empty.
 %
-% INPUT
+% INPUTS
 % - obj:    'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - logval: logical, true if obj.C or obj.dim is empty.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +32,7 @@ function logval = isempty(obj)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/15/2026
+% SS, 02/15/2026: Initial coding;
 
 logval = isempty(obj.C) || isempty(obj.dim);
 end

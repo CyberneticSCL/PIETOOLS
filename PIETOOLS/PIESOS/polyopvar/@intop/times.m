@@ -13,11 +13,8 @@ function C = times(A,B)
 %           the multiplier A with the functional defined by B;
 %
 % NOTES
-% - For a constant ('double') multiplier A, the nonzeros of the sparse
-%   parameters are multiplied by the entry of A for their matrix row and
-%   column. For a 'polynomial' or 'dpvar' multiplier, the kernels are
-%   multiplied and expressed in the same monomials and decision variables
-%   again.
+% - A 'polynomial' or 'dpvar' A must not depend on spatial variables: the
+%   kernels of the product may only depend on the dummy variables of B.
 % - A dimension of size 1 of A or B is repeated in the elementwise product,
 %   so that A may also be a scalar. The arguments may be given in either
 %   order.

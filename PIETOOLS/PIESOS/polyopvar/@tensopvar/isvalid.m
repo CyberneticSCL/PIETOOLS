@@ -8,10 +8,10 @@ function [logval,errmsg] = isvalid(Cop)
 %           fields are of appropriate type and consistent dimensions;
 %
 % OUTPUTS
-% - logval: boolean value specifying whether (true) or not (false) the
+% - logval: 'logical' scalar specifying whether (true) or not (false) the
 %           object is properly specified;
-% - errmsg: 'string' used to declare an error message indicating what is
-%           wrong with the object if logval = false;
+% - errmsg: 'string', the error message indicating what is wrong with the
+%           object if logval = false;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,19 +39,18 @@ function [logval,errmsg] = isvalid(Cop)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Initialize
 logval = true;  % innocent until proven guilty
 errmsg = "tensopvar object is not properly specified: ";
-Cop.chkval = false;
 
 % Check that all fields are of appropriate type
 if ~isa(Cop.ops,'cell')
     errmsg = errmsg + "Field 'ops' must be specified as a m x d cell.";
     logval = false;
 elseif ~isa(Cop.vars,'struct') || ~isfield(Cop.vars,'in') || ~isfield(Cop.vars,'out')
-    errmsg = errmsg + "Field 'vars' must be specified as a struct with fields 'in' and 'out.";
+    errmsg = errmsg + "Field 'vars' must be specified as a struct with fields 'in' and 'out'.";
     logval = false;
 elseif ~isa(Cop.dom,'struct') || ~isfield(Cop.dom,'in') || ~isfield(Cop.dom,'out')
     errmsg = errmsg + "Field 'dom' must be specified as a struct with fields 'in' and 'out'.";

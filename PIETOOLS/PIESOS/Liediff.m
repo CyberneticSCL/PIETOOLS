@@ -21,13 +21,15 @@ function dV = Liediff(V,PIE)
 %           space_pde.x.varname: cellstr with the names of the PDE state
 %               variables u, associated to the PIE state variables in the
 %               rows of T, f by PIE.pde2pie.x.idx. A name shared by
-%               several rows (e.g. a delayed state and its history) is
-%               made unique by appending _i, i the row index, for every
-%               row after the first;
+%               several PIE states (e.g. a delayed state and its history)
+%               is made unique by appending _i, i the index of the PIE
+%               state, for every PIE state after the first. PDE and PIE
+%               state names must differ;
 %
 % OUTPUTS
-% - dV:     1 x 1 'polyopvar' object representing the derivative of V along
-%           the PIE, in terms of the PIE state variables PIE.space.x.varname;
+% - dV:     1 x 1 'polyopvar' object representing the derivative of V
+%           along the PIE, in terms of the PIE state variables
+%           PIE.space.x.varname;
 %
 % NOTES
 % - Each monomial of V is treated separately:
@@ -37,19 +39,19 @@ function dV = Liediff(V,PIE)
 %   - In PDE and PIE states, V(x,u)=K(x_{i1} o ... o u_{j1} o ...): the
 %     symmetry condition V(xL,T*xR)=V(xR,T*xL) for independent copies xL,
 %     xR of the PIE state is assumed to hold. Then the derivative of the
-%     factors x, which are left
-%     as is, equals that of the factors u, so that dV is twice the sum
-%     over the factors u of the terms above. The symmetry is not verified:
-%     without it, dV is not the derivative of V;
+%     factors x, which are left as is, equals that of the factors u, so
+%     that dV is twice the sum over the factors u of the terms above. The
+%     symmetry is not verified: without it, dV is not the derivative of V;
 %   - In PIE states only: an error, as d/dt x is not defined by the PIE,
-%     only d/dt (T*x). A constant term has zero derivative, and is
-%     dropped.
+%     only d/dt (T*x);
+%   - A constant term has zero derivative, and is dropped. V must have a
+%     monomial in the PDE states.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Liediff
 %
-% Copyright (C)2026  PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -71,7 +73,7 @@ function dV = Liediff(V,PIE)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check the inputs
 if ~isa(V,'polyopvar')
@@ -118,18 +120,23 @@ end
 names_u = names_pde(idcs);
 Top = PIE.T;
 fx = PIE.f;
+% A vector-valued state occupies several rows of T and f
+xrow0 = cumsum([0;PIE.space.x.dims(:)]);
 if ~isequal(idcs,1:numel(names_pde))
     % Restrict T, f to the rows of the PDE states in V
-    Top = Top(idcs,:);
-    fx = fx(idcs,:);
+    rows_u = cell2mat(arrayfun(@(i) xrow0(i)+1:xrow0(i+1),idcs,'UniformOutput',false));
+    Top = Top(rows_u,:);
+    fx = fx(rows_u,:);
 end
-Tx = Top*PIE.x;                     % row i is the PDE state names_u{i}
+Tx = Top*PIE.x;                     % rows of the PDE states names_u
+dims_u = PIE.space.x.dims(idcs);
+urow0 = cumsum([0;dims_u(:)]);
 fu = cell(numel(idcs),1);           % fu{i}: d/dt of the PDE state names_u{i}
 for i=1:numel(idcs)
-    if size(fx,1)==1
-        fu{i} = fx;                 % single row: use as is
+    if size(fx,1)==dims_u(i)
+        fu{i} = fx;                 % rows of a single state: use as is
     else
-        fu{i} = fx(i,:);
+        fu{i} = fx(urow0(i)+1:urow0(i+1),:);
     end
 end
 

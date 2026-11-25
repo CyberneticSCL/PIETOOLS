@@ -14,6 +14,10 @@ function C = plus(A,B)
 %
 % NOTES
 % - If A or B is 0, the other is returned.
+% - A and B must have the same row- and column-blocks (dims), and map
+%   between the same function spaces (vars, dom, depmat), up to the
+%   output variables of rows of blocks of type 'double', 'polynomial' or
+%   'dpvar', which are merged.
 % - A block of type 'double', 'polynomial' or 'dpvar' can be added to a
 %   block of such a type, or to a 'tensopvar' block acting on a constant
 %   monomial, which is converted to a 'polynomial'.

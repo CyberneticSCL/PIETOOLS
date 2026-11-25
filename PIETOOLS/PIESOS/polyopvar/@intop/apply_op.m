@@ -1,6 +1,6 @@
 function c = apply_op(Kop,v)
 % C = APPLY_OP(KOP,V) applies the functional KOP to the function V,
-% returning the result C
+% returning the result C.
 %
 % INPUTS
 % - Kop:    m x n 'intop' object acting on
@@ -10,17 +10,16 @@ function c = apply_op(Kop,v)
 %           or a 1 x d cell of the d factors of a monomial, see NOTES;
 %
 % OUTPUTS
-% - c:      m x p 'polynomial' array (m x p 'dpvar' array if Kop depends on
+% - c:      m x p 'polynomial' array (m x p 'dpvar' array if Kop has
 %           decision variables), representing the output of Kop upon acting
 %           on v;
 %
 % NOTES
-% - The function v must be defined in terms of the spatial variables of the
-%   functional, Kop.vars.in. If v also depends on other variables, so does
-%   c.
-% - v may also be given as a 1x1 cell {v}, the form in which a single
-%   factor of a degree-one monomial is passed on by 'apply_op' of
-%   'tensopvar' and 'tensopmat'.
+% - A polynomial v is a function of the copies s_1,...,s_d
+%   (Kop.varnames.in) of each variable s in Kop.vars.in of which Kop has d
+%   copies, or of s itself if d=1; the name s is rejected if d>1. If v
+%   also depends on other variables, so does c.
+% - v may also be given as a 1 x 1 cell {v}.
 % - For a monomial of degree d>1, v may be the 1 x d cell {v1,...,vd} of
 %   its factors, so that Kop acts on their tensor product v1 o ... o vd,
 %   the Kronecker product with the first factor slowest.
@@ -28,20 +27,6 @@ function c = apply_op(Kop,v)
 %   variable s of the factors in order, e.g. v(s_1,s_2) = v1(s_1)*v2(s_2).
 %   If fewer than d factors depend on s, Kop must have as many copies of s
 %   as there are such factors.
-% - A polynomial v is a function of the copies s_1,...,s_d of each
-%   variable s of which Kop has d copies, or of s
-%   itself if d=1. The bare name s is rejected if d>1.
-% - With the kernels expressed in terms of the monomials z(s) defined by
-%   Kop.Z.in, the integral over the region r of the kernel times v is
-%       P_r * W_r,     W_r = int_r kron(I_n,z(s))*v(s) ds,
-%   where P_r = Kop.params{r}. The integrals W_r do not depend on the
-%   decision variables: only the final product of the sparse P_r with the
-%   dense W_r involves them. As the limits of integration along a
-%   variable only involve that variable, the integral of a monomial
-%   z(s)*w(s) over the region r is the product of the integrals along the
-%   different variables. Hence, W_r follows from the integrals along each
-%   variable of the products of the monomials of z with those of v, which
-%   are contracted with the coefficients of v one variable at a time.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - apply_op
@@ -68,7 +53,7 @@ function c = apply_op(Kop,v)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % % Process the inputs
 % Check that the functional is properly specified
@@ -205,13 +190,14 @@ for i=1:N
 end
 
 % Contract with the integrals along each direction, and combine with the coefficients
-Cres = zeros(m*(nd+1),nF*p);
+% Sparse: Cres has a row per decision variable
+Cres = sparse(m*(nd+1),nF*p);
 sz_params = [size(Kop.params,1:N),1];
 Cres = apply_regions(Cres,T,dimsT,1,cell(1,0),Kop,A,sz_params,nmons,nZ,n,p,nF);
 
 % Declare the result
 if nd==0 && isempty(namesF)
-    c = polynomial(Cres);
+    c = polynomial(full(Cres));
 elseif nd==0
     % Polynomial in the other variables: monomials as rows, entry (i,l) in column (l-1)*m+i
     [ii,jj,vv] = find(Cres);
@@ -229,31 +215,35 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function Cres = apply_regions(Cres,T,dimsT,i,jidx,Kop,A,sz_params,nmons,nZ,n,p,nF)
-% Contract the tensor T, with dimensions dimsT =
-% [nmv_i,...,nmv_N,nF*n*p,nmons_1,...,nmons_{i-1}], along the first
-% dimension with the integrals A{i}{j} for each term j along direction i,
-% and add the product of the coefficients of each of the regions with the
-% integrals W_r, once all directions are integrated
+% Integrate the coefficients T of the argument v along the directions
+% i,...,N, for each combination of terms along these directions, and add
+% Kop.params{r}*W_r to Cres for each term r, where
+% W_r = int_r kron(I_n,z(s))*v(s) ds, for z(s) the monomials Kop.Z.in.
 %
-% INPUT
-% - Cres:       m*(nd+1) x nF*p array, the sum so far;
-% - T:          array of dimensions dimsT, the coefficients of the
-%               argument still to be integrated;
-% - dimsT:      array, the dimensions of T;
+% INPUTS
+% - Cres:       m*(nd+1) x nF*p sparse array, the sum so far, for nd
+%               the number of decision variables;
+% - T:          array of size dimsT, the coefficients of v, integrated
+%               along the directions 1,...,i-1;
+% - dimsT:      1 x (N+1) array, the dimensions
+%               [nmv_i,...,nmv_N,nF*n*p,nmons(1),...,nmons(i-1)] of T, for
+%               nmv_k the number of monomials of v along direction k;
 % - i:          integer, the direction to integrate next;
-% - jidx:       1 x (i-1) cell, the term along each direction done;
+% - jidx:       1 x (i-1) cell, the index of the term along each of the
+%               directions 1,...,i-1;
 % - Kop:        'intop' object;
-% - A:          1 x N cell; A{i}{j} the integrals along direction i for
-%               term j;
-% - sz_params:  array, the size of Kop.params;
+% - A:          1 x N cell, with A{k}{j} the nmons(k) x nmv_k array of
+%               integrals along direction k for term j;
+% - sz_params:  1 x (N+1) array, [size(Kop.params,1:N),1];
 % - nmons:      1 x N array, the number of monomials per direction;
 % - nZ:         integer, the total number of monomials;
 % - n, p, nF:   integers, the column dimension of Kop, the number of
 %               columns of the argument, and the number of monomials in
 %               the other variables;
 %
-% OUTPUT
-% - Cres:       the sum with the contributions of all regions added.
+% OUTPUTS
+% - Cres:       m*(nd+1) x nF*p array, the input Cres with the
+%               contributions of all terms along directions i,...,N added.
 N = numel(Kop.vars.in);
 if i>N
     % T has dimensions [nF*n*p,nmons_1,...,nmons_N]. Order the monomials with the first variable
@@ -262,7 +252,9 @@ if i>N
     Tz = reshape(Tz,[nZ,nF,n,p]);
     W = reshape(permute(Tz,[1,3,2,4]),[nZ*n,nF*p]);
     k = sub2ind(sz_params,jidx{:});
-    Cres = Cres + Kop.params{k}*W;
+    % W sparse, so that the product with the parameter (a row per decision
+    % variable) stays sparse
+    Cres = Cres + Kop.params{k}*sparse(W);
     return
 end
 nterms_i = numel(A{i});
@@ -283,18 +275,19 @@ end
 function F = integrate_term(pE,Kop,int_order,pvars,i,j)
 % Integrate the polynomial vector pE in the dummy variables of direction i
 % over the domain of term j along this direction, returning the vector of
-% values
+% values.
 %
-% INPUT
+% INPUTS
 % - pE:         nE x 1 'polynomial' of monomials in the dummy variables
 %               of direction i;
 % - Kop:        'intop' object;
 % - int_order:  1 x N cell, the order of integration (Kop.int_order);
-% - pvars:      'polynomial' variables of Kop;
+% - pvars:      1 x N cell, with element k the dk x 1 'polynomial' vector
+%               of the dummy variables of direction k;
 % - i, j:       integers, the direction and the term;
 %
-% OUTPUT
-% - F:          nE x 1 array or 'polynomial', the integrals of pE.
+% OUTPUTS
+% - F:          nE x 1 array of type 'double', the integrals of pE.
 intmat_i = Kop.intmat{i};
 di = size(int_order{i},2);
 A = intmat_i(:,1:2:end);
@@ -332,15 +325,16 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function v = kron_factors(vc,Kop)
-% V = KRON_FACTORS(VC,KOP) returns the tensor product of the factors in the 1 x d cell VC, as
-% a function of the copies s_1,...,s_ncp of each variable s of Kop, the k-th factor depending
-% on s taking the copy s_k
+% V = KRON_FACTORS(VC,KOP) returns the tensor product of the factors in
+% the 1 x d cell VC, as a function of the copies s_1,...,s_ncp of each
+% variable s of Kop, the k-th factor depending on s taking the copy s_k.
 %
-% INPUT
-% - vc:     1 x d cell of 'polynomial' factors;
+% INPUTS
+% - vc:     1 x d cell of 'polynomial' (or 'double') factors in the
+%           spatial variables Kop.vars.in;
 % - Kop:    'intop' object, defining the copies of its variables;
 %
-% OUTPUT
+% OUTPUTS
 % - v:      'polynomial', the Kronecker product of the factors.
 d = numel(vc);
 for j=1:d

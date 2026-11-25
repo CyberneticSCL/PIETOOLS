@@ -1,38 +1,45 @@
 function C = mtimes(A,B)
 % C = MTIMES(A,B) returns the 'polyopvar' object C representing the product
-% A*B of two distributed polynomials, or of a constant with a distributed
-% polynomial.
+% A*B of two distributed polynomials, or of a constant or an operator with
+% a distributed polynomial.
 %
 % INPUTS
-% - A:     'polyopvar' object, or a constant (e.g. 'double' array) such
-%          that A*B.C is defined;
-% - B:     'polyopvar' object, or a numeric scalar;
+% - A:     'polyopvar' object; or a 'double' matrix, a scalar 'polynomial'
+%          (a constant, or a function of the output variables of B) or
+%          'dpvar', or an operator ('sopvar', 'tensopvar' or
+%          'tensopmat') acting on the output of B, such that A*B.C is
+%          defined;
+% - B:     'polyopvar' object, or a scalar 'double', 'polynomial' or
+%          'dpvar';
 %
 % OUTPUTS
 % - C:     'polyopvar' object representing A*B;
 %
 % NOTES
 % - The product of two 'polyopvar' objects is only supported if one of
-%   them is scalar, and is then the elementwise product A.*B.
-% - Right-multiplication of a 'polyopvar' object A by a constant is only
-%   supported for a numeric scalar B.
-% - Left-multiplication of B by a non-scalar 'double' matrix A returns a
-%   polynomial with a single row-block, each row of which is a linear
-%   combination of the rows of B. If the rows of B map to different output
-%   spaces (e.g. R and L2[s], or L2[s1] and L2[s2]), they are first lifted
-%   to a common output space, e.g. elements of R become elements of L2[s1]
-%   that are constant in s1.
-% - Multiplication of a non-scalar matrix with a monomial on which an
-%   operator with several factors acts (e.g. x0*u) is not supported.
+%   them is scalar, and is then the elementwise product A.*B. The product
+%   of a functional with a function of the spatial variables, e.g.
+%   x*(x'*x), is not supported.
+% - A decision variable ('dpvar') c may multiply functionals and the
+%   constant term, e.g. c*(1-x'*x), but not a state, e.g. c*x, also
+%   without spatial variables; use c as a weight instead, x'*c*x.
+% - A 'polyopvar' object A can only be right-multiplied by a scalar B,
+%   and then A*B = B*A.
+% - A scalar function p(s) of the output variables multiplies pointwise,
+%   (p*B)(x)(s) = p(s)*B(x)(s).
+% - For a non-scalar 'double' matrix A, each row of A*B is a linear
+%   combination of the rows of B. Rows of B with different output spaces
+%   (e.g. R and L2[s]) are first lifted to a common one, e.g. an element
+%   of R to a function of s that is constant in s. A monomial acted on by
+%   an operator with several factors (e.g. x0*u) is not supported.
 % - If A is an adjoint (A=U'*W), A*B is
 %   - for a 'polyopvar' B, the inner product innerprod(U,W,B), a scalar
 %     'polyopvar', so that U'*B = innerprod(U,B);
 %   - for a 'double', 'polynomial' or 'dpvar' B with as many rows as A has
-%     columns, or a scalar, the adjoint U'*W*B, with weight W*B (B for the
-%     unit weight W=1), so that U'*P*V = innerprod(U,P,V). A scalar weight
-%     P represents P*eye(n).
-%   A product with an adjoint as the right factor, e.g. U*V', is not
-%   supported.
+%     columns, or a scalar, the adjoint U'*W*B, with weight W*B, so that
+%     U'*P*V = innerprod(U,P,V). A scalar weight P represents P*eye(n).
+%   An adjoint as the right factor, e.g. U*V', is only supported for a
+%   constant scalar A, with A*U'*W = U'*(W*A), e.g. 2*u'*f.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,7 +67,7 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Make sure the inner dimensions match
 if size(A,2)~=size(B,1) && ~all(size(A)==1) && ~all(size(B)==1)
@@ -69,6 +76,11 @@ end
 
 % Handle an adjoint separately: it is not a polynomial in the states
 if isa(B,'polyopvar') && B.is_adjoint
+    if ~isa(A,'polyopvar') && all(size(A)==1) && (isnumeric(A) || ((isa(A,'polynomial') || isa(A,'dpvar')) && isempty(A.varname)))
+        % A constant scalar commutes with the adjoint: A*U'*W = U'*(W*A)
+        C = B*A;
+        return
+    end
     error("Multiplication with an adjoint as the right factor, e.g. u*v', is not supported.")
 elseif isa(A,'polyopvar') && A.is_adjoint
     % The polynomial U of A=U'*W, without the weight W
@@ -99,6 +111,23 @@ if isa(A,'polyopvar') && isa(B,'polyopvar')
         error("Multiplication of matrix-valued distributed polynomials is currently not supported.")
     end
 elseif ~isa(A,'polyopvar')
+    if isa(A,'polynomial') && all(size(A)==1) && ~isempty(A.varname)
+        % A scalar function of the spatial variables of B multiplies B
+        % pointwise, as a degree-0 polynomial on the domain of B
+        C = constant2polyopvar(A,B.vars.out,B.dom.out).*B;
+        return
+    end
+    % A column times a scalar is the elementwise product, as for matrices
+    % (the operators of B may be multi-factor, which '*' does not support)
+    if isnumeric(A) && size(A,1)>1 && size(A,2)==1 && all(size(B)==1)
+        C = A.*B;
+        return
+    end
+    % A decision variable multiplies the constant term and functionals
+    % ('intop' blocks), not a state, also without spatial variables
+    if isa(A,'dpvar') && any(cellfun(@(op) ~isempty(op) && ~isa(op,'intop'),B.C.ops(:,full(any(B.Z,2)))),'all')
+        error("Multiplication of a decision variable ('dpvar') with a distributed polynomial in the states, e.g. c*x, is not supported; multiply a functional instead, e.g. c*(x'*x), or use c as a weight, e.g. x'*c*x.")
+    end
     % Multiplication of constant with polynomial
     % A row of A*B combines the rows of B, so these must map to the same
     % output space: lift them to a common one if they differ.
@@ -121,8 +150,12 @@ elseif ~isa(B,'polyopvar')
         C = A;
         C.C = A.C*B;
         return
+    elseif (isa(B,'polynomial') || isa(B,'dpvar')) && all(size(B)==1)
+        % A scalar coefficient commutes with the polynomial
+        C = B*A;
+        return
     else
-        error("Right-multiplication of polynomials is currently not supported.")
+        error("A 'polyopvar' object can only be right-multiplied by a scalar.")
     end
 end
 

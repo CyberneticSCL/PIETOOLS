@@ -9,9 +9,10 @@ function out = subsasgn(obj,ref,RHS)
 % - ref:    'struct' specifying which elements of obj to adjust;
 % - RHS:    object specifying the new value(s) of the elements specified
 %           by ref. For ref(1).type='{}', this is one of:
-%             - if ref(1).subs is a single (scalar) row,column pair: the
-%               'tensopvar' or 'intop' object, or 'double', 'polynomial'
-%               or 'dpvar' matrix, to store directly as obj.ops{i,j};
+%             - if ref(1).subs is a single (scalar) row,column pair, or
+%               a single linear index: the 'tensopvar' or 'intop'
+%               object, or 'double', 'polynomial' or 'dpvar' matrix, to
+%               store directly as obj.ops{i,j};
 %             - if ref(1).subs is a pair of index vectors, or ':' for all
 %               row- or column-blocks: a 'tensopmat' object whose .ops
 %               matches the selected shape, substituted into
@@ -20,21 +21,22 @@ function out = subsasgn(obj,ref,RHS)
 % OUTPUTS
 % - out:    'tensopmat' object with the desired component value. After a
 %           '.'-type assignment, out.chkval=false, as the fields have not
-%           been checked since they were changed (chkval itself is just set);
+%           been checked since they were changed (chkval itself is just
+%           set);
 %
 % NOTES
 % - The indices of C{i,j} count the row- and column-blocks of obj.ops.
-%   The keyword 'end' cannot be used: it evaluates
-%   to 1 for a 'tensopmat', so C{i,end}=RHS sets C{i,1}.
+%   The keyword 'end' cannot be used: it evaluates to 1 for a
+%   'tensopmat', so C{i,end}=RHS sets C{i,1}.
 % - Only '{}'-type subsasgn (replacing row/column-block(s) in obj.ops) and
 %   '.'-type subsasgn (setting a field) are supported; '()'-type subsasgn
-%   is not supported.
+%   and assignment into a block, e.g. C{i,j}.field=RHS, are not supported.
 % - After '{}'-type subsasgn, dims/vars/dom/depmat are recomputed from
-%   obj.ops, with an error if the
-%   new block(s) are inconsistent in matrix dimension, variables, or
-%   domain with the rest of the row(s)/column(s) they belong to.
+%   obj.ops, with an error if the new block(s) are inconsistent in matrix
+%   dimension, variables, or domain with the rest of the row(s)/column(s)
+%   they belong to.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - subsasgn
 %
 % Copyright (C) 2026 PIETOOLS Team
@@ -53,7 +55,7 @@ function out = subsasgn(obj,ref,RHS)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications

@@ -1,36 +1,31 @@
 function C = otimes(A,B,otype)
 % C = OTIMES(A,B,OTYPE) returns the 'polyopvar' object C representing the
-% tensor product of two distributed polynomials, or their elementwise
-% product, or the product of a constant with a distributed polynomial.
+% tensor product or the elementwise product of two distributed
+% polynomials, or the product of a constant with a distributed polynomial.
 %
 % INPUTS
-% - A:     m1 x n1 'polyopvar' object, or a constant such that A.*B.C is
+% - A:     m1 x 1 'polyopvar' object, or a constant such that A.*B.C is
 %          defined;
-% - B:     m2 x n2 'polyopvar' object, or a constant such that A.C.*B is
+% - B:     m2 x 1 'polyopvar' object, or a constant such that A.C.*B is
 %          defined;
-% - otype: (optional) scalar 1 or 2, specifying the type of product.
-%          If otype=2 (default), the tensor product is taken, so that C is
-%          the Kronecker product of A and B, with entries Ai(s1)*Bj(s2) in
-%          a copy of the variables for each factor,
-%              C(s1,s2) = A(s1) o B(s2).
-%          If otype=1, the elementwise product A.*B is taken, requiring
-%          that A and B have the same size, or that one of them is scalar,
-%          so that C is a function of a single copy of the variables,
-%              C(s) = A(s).*B(s).
-%          For a constant, the constant must be scalar if otype=2;
+% - otype: (optional) scalar 1 or 2, the type of product. Defaults to 2:
+%          - 2: the Kronecker product of A and B, with entries
+%            Ai(s1)*Bj(s2) in a copy of the output variables for each
+%            factor, C(s1,s2) = A(s1) o B(s2). A constant must then be
+%            scalar;
+%          - 1: the elementwise product, C(s) = A(s).*B(s), a function of
+%            a single copy of the output variables. A and B must have the
+%            same size, or one of them be scalar;
 %
 % OUTPUTS
 % - C:     'polyopvar' object representing the product of A and B;
 %
 % NOTES
 % - The monomials of C are the products of each monomial of A with each
-%   monomial of B, where the factors of B follow those of A.
-%   For otype=2, the output of such a monomial is a function
-%   of a copy of the variables for each factor, for otype=1 of a single
-%   copy.
-% - A.*B calls otimes(A,B,1).
-% - An adjoint is not supported as a factor, also for
-%   times, power and mpower, which call otimes or opower.
+%   monomial of B, the factors of B following those of A.
+% - Adjoints are not supported (error), nor is the product of a functional
+%   with a function of the spatial variables, e.g. x*(x'*x), or of a
+%   decision variable ('dpvar') with a state, e.g. c.*x.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +53,7 @@ function C = otimes(A,B,otype)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/22/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % An adjoint is not a polynomial in the states, so cannot be multiplied
 if (isa(A,'polyopvar') && A.is_adjoint) || (isa(B,'polyopvar') && B.is_adjoint)
@@ -80,6 +75,12 @@ if otype==1 && any(~is_dim1_A & ~is_dim1_B & sz_A~=sz_B)
 end
 
 % Account for case where one object is not a distributed polynomial
+% A decision variable multiplies the constant term and functionals
+% ('intop' blocks), not a state, also without spatial variables
+is_dpvar_state = @(c,P) isa(c,'dpvar') && any(cellfun(@(op) ~isempty(op) && ~isa(op,'intop'),P.C.ops(:,full(any(P.Z,2)))),'all');
+if (~isa(A,'polyopvar') && is_dpvar_state(A,B)) || (~isa(B,'polyopvar') && is_dpvar_state(B,A))
+    error("Multiplication of a decision variable ('dpvar') with a distributed polynomial in the states, e.g. c.*x, is not supported; multiply a functional instead, e.g. c*(x'*x), or use c as a weight, e.g. x'*c*x.")
+end
 if ~isa(A,'polyopvar')
     % Multiplication of constant with polynomial
     if otype==2 && ~all(is_dim1_A)
@@ -104,6 +105,19 @@ if ~A.chkval
 end
 if ~B.chkval
     B = initialize(B);
+end
+
+% A scalar factor of an elementwise product multiplies each row of the
+% other: repeat it to the row-blocks of the other, as the product of the
+% coefficients requires the same row-block partition
+if otype==1 && ~isequal(sz_A,sz_B)
+    if all(is_dim1_A) && sz_B(2)==1
+        Ac = arrayfun(@(d) ones(d,1)*A,B.dims.out,'UniformOutput',false);
+        A = vertcat(Ac{:});
+    elseif all(is_dim1_B) && sz_A(2)==1
+        Bc = arrayfun(@(d) ones(d,1)*B,A.dims.out,'UniformOutput',false);
+        B = vertcat(Bc{:});
+    end
 end
 
 % Express A and B in terms of the same variables
@@ -180,15 +194,15 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function is_ode = ode_monomials(P,nfac)
-% Monomials of P that consist of a single scalar state without spatial 
-% variables, with one factor
+% IS_ODE = ODE_MONOMIALS(P,NFAC) marks the monomials of P that consist of
+% a single scalar state without spatial variables, with one factor.
 %
-% INPUT
+% INPUTS
 % - P:        'polyopvar' object;
 % - nfac:     nZ x 1 array, the number of factors of each monomial;
 %
-% OUTPUT
-% - is_ode:   nZ x 1 logical array.
+% OUTPUTS
+% - is_ode:   nZ x 1 logical array, true for such a monomial.
 is_state = P.dims.in(:)==1 & ~any(P.depmat.in,2);
 [ridcs,~,vals] = find(P.Z);
 is_ode = false(size(P.Z,1),1);

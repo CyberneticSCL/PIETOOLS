@@ -1,23 +1,21 @@
 function F = horzcat(varargin)
-% F = HORZCAT(VARARGIN) takes the horizontal concatenation of distributed
-% polynomials listed in VARARGIN, e.g.
-%   F = [varargin{1}, varargin{2}, ..., varargin{end}];
+% F = HORZCAT(VARARGIN) returns the horizontal concatenation
+%   F = [varargin{1}, varargin{2}, ..., varargin{end}]
+% of distributed polynomials.
 %
 % INPUTS
-% - varargin:   'polyopvar' objects representing distributed polynomials,
-%               or numeric arrays, which are converted to constant
-%               'polyopvar' objects. Empty inputs are
-%               ignored. Adjoints can only be
-%               concatenated with other adjoints;
+% - varargin:   'polyopvar' objects, or 'double' column vectors, which are
+%               converted to constant 'polyopvar' objects. Empty inputs
+%               are ignored. Adjoints can only be concatenated with other
+%               adjoints;
 %
 % OUTPUTS
-% - F:          'polyopvar' object representing the horizontal
-%               concatenation of the input functions;
+% - F:          'polyopvar' object, the horizontal concatenation;
 %
 % NOTES
-% - The output function spaces of the inputs must match. Only scalar or
-%   column-vector-valued 'polyopvar' objects are supported, so an error
-%   is thrown if the concatenation has more than one column.
+% - Except for adjoints, matrix-valued (multi-column) 'polyopvar' objects
+%   are not supported: an error is thrown if the concatenation has more
+%   than one column. The output spaces of the inputs must match.
 % - The horizontal concatenation of adjoints A_i = U_i'*W_i is the adjoint
 %   [A_1,...,A_N] = [U_1;...;U_N]'*blkdiag(W_1,...,W_N), so that its
 %   product with [V_1;...;V_N] is the sum of the products A_i*V_i. A

@@ -38,7 +38,7 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 06/19/2026: Initial coding
+% DJ, 06/19/2026: Initial coding;
 
 % Extract the variable names
 vars1_A = A_in.ns;      vars1_B = B_in.ns;

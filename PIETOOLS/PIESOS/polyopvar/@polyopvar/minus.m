@@ -1,15 +1,19 @@
 function C = minus(A,B)
 % C = MINUS(A,B) returns the 'polyopvar' object C representing the
-% difference between the distributed polynomials defined by the
-% 'polyopvar' objects A and B.
+% difference A-B of two distributed polynomials, or of a distributed
+% polynomial and a constant.
 %
 % INPUTS
-% - A:      m x n 'polyopvar' object;
-% - B:      m x n 'polyopvar' object;
+% - A:      m x n 'polyopvar' object, or a 'double', 'polynomial' or
+%           'dpvar' column vector without spatial variables (a constant);
+% - B:      m x n 'polyopvar' object, or a 'double', 'polynomial' or
+%           'dpvar' column vector without spatial variables (a constant);
 %
 % OUTPUTS
-% - C:      m x n 'polyopvar' object representing the difference between
-%           the distributed polynomials defined by A and B;
+% - C:      m x n 'polyopvar' object representing A-B;
+%
+% NOTES
+% - C = A+(-B), so the same cases are supported as for the sum.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

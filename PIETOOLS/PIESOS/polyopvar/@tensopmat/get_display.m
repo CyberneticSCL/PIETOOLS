@@ -13,41 +13,42 @@ function disp_struct = get_display(Rop,name,expand)
 % - Rop:    'tensopmat' object, with p x d blocks;
 % - name:   (optional) char, the name of the block matrix. Defaults to
 %           'Rop';
-% - expand: (optional) logical, true if the blocks may be defined as the
-%           actual operators if they are small enough. Defaults to true;
+% - expand: (optional) logical, true if the operator may be written out,
+%           or the blocks defined as the actual operators, if they are
+%           small enough. Defaults to true;
 %
 % OUTPUTS
-% - disp_struct:      struct with the fields
+% - disp_struct:      'struct' with the fields
 %       lines:  cellstr, the lines of the display of the matrix of blocks
 %               next to the spaces;
 %       spc_in: cellstr, the spaces that the block columns act on, e.g.
 %               'L_2[0,1]';
 %       spc_out:    cellstr, the spaces that the block rows map to;
 %       notes:  cellstr, the lines that list the blocks that are not of
-%               type 'tensopvar';
-%       defs:   struct array with the fields lhs, terms and signs, for
+%               type 'tensopvar', other than scalar 'double' blocks, by
+%               type;
+%       defs:   'struct' array with the fields lhs, terms and signs, for
 %               each of the blocks that is displayed as the actual
 %               operator, in the order of the rows, with lhs the left-hand
-%               side, e.g. '(C_11 x_1)(s) =', and terms and signs as for
-%               the output disp_struct of 'tensopvar/get_display';
-%       out_args:   p x 1 cell of cellstr, the names of the output
+%               side, e.g. '(C_11 x_1)(s) =', terms the 1 x n cell of char
+%               of the terms of the right-hand side, without their sign,
+%               and signs the 1 x n array of these signs (1 or -1);
+%       out_args:   p x 1 'cell' of cellstr, the names of the output
 %               variables of each block row, with the copy as subscript if
 %               there are multiple copies;
-%       rows:   struct array with the fields lhs, terms and signs, for each
-%               block row of Rop, with lhs the left-hand side, e.g.
+%       rows:   'struct' array with the fields lhs, terms and signs, for
+%               each block row of Rop, with lhs the left-hand side, e.g.
 %               '(Rop x)_1(s) =', and terms and signs for the sum of the
-%               blocks in the row acting on x_j.
-%               Empty if
-%               the operator is not displayed explicitly, see the notes;
+%               blocks in the row acting on x_j. Empty if the operator is
+%               not written out (see NOTES);
 %       xnames: 1 x d cellstr, the names x_j of the functions that the
 %               blocks act on;
 %       xsym:   char, the name x of the function that Rop acts on, from
-%               which x_j follows;
-%       is_id:  logical, true if Rop is an identity operator,
-%               in which case 'display' shows (Rop x)_i(s) =
-%               x_i(s) for each block row i. A block that is an identity
-%               operator is defined as (C_ij x_j)(s) = x_j(s)
-%               = x_j;
+%               which x_j follows: x, or the first of u, w, v that is not
+%               the name of a variable (ignoring a number at its end);
+%       is_id:  logical, true if Rop is an identity operator, which
+%               'display' shows as (Rop x)_i(s) = x_i(s) for each block
+%               row i;
 %
 % NOTES
 % - The blocks are named C_ij, dropping i if there is only one block row,
@@ -65,18 +66,17 @@ function disp_struct = get_display(Rop,name,expand)
 % - An empty block matrix (p=0 or d=0) is displayed as NAME = [] between
 %   the spaces, with the space R^0 for the absent block columns or rows,
 %   and nothing is defined.
-% - The operator is displayed explicitly, with a row for each block row, if
-%   all blocks are scalar-valued, there are at most 5 block rows and
-%   columns, every nonzero block is a 'tensopvar' with a single factor, an
-%   'intop', or a scalar 'double' (in a row that maps to R), displayed
-%   explicitly, and each row has at most 6 terms of at most 100 characters.
-%   The blocks are then not defined.
-% - The definitions of the blocks are only given if all of the blocks of
-%   type 'tensopvar' with a single factor, or of type 'intop', can be
-%   displayed as the actual operators, acting on x_j, with 'get_display' of
-%   'tensopvar' and 'intop', and there are at most 6 of them. The
-%   other blocks, of type 'tensopvar' with more than one factor, or of
-%   other types, are not given. Then none of the definitions is given.
+% - The operator is written out, with a row for each block row, if EXPAND
+%   is true, all blocks are scalar-valued, there are at most 5 block rows
+%   and columns, every nonzero block is a 'tensopvar' with a single
+%   factor, an 'intop', or a scalar 'double' (in a row that maps to R),
+%   displayed explicitly, and each row has at most 6 terms of at most 100
+%   characters. The blocks are then not defined.
+% - Otherwise, the blocks are defined as the actual operators acting on
+%   x_j if EXPAND is true and every nonempty block that is not a 'double'
+%   is a 'tensopvar' with a single factor or an 'intop' that can be
+%   displayed explicitly, with at most 6 such blocks. If not, no block is
+%   defined.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - get_display

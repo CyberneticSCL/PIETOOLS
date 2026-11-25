@@ -13,6 +13,9 @@ function C = minus(A,B)
 % - C:      m x n 'intop' object representing the difference between the
 %           functionals defined by A and B;
 %
+% NOTES
+% - If A or B is the scalar 0 or an empty array, -B or A is returned.
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - minus

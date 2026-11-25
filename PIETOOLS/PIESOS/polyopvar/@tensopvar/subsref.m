@@ -5,7 +5,7 @@ function out = subsref(obj,ref)
 %
 % INPUTS
 % - obj:    'tensopvar' object of which to extract certain elements;
-% - ref:    struct indicating which element/fields of obj to extract;
+% - ref:    'struct' indicating which element/fields of obj to extract;
 %
 % OUTPUTS
 % - out:    object representing the elements of 'obj' specified by 'ref'.
@@ -19,7 +19,8 @@ function out = subsref(obj,ref)
 % NOTES
 % - '()'-type subsref is not supported for operators consisting of
 %   multiple terms, or with a Kronecker product (otype==2) of multiple
-%   factors along a dimension of size larger than 1.
+%   factors along a dimension of size larger than 1. Linear indexing
+%   C(k) is not supported.
 % - C.dims.in and C.dims.out return C.dims(:,2) and C.dims(:,1), the
 %   dimensions of the inputs and outputs of the factors of C.
 %
@@ -49,7 +50,7 @@ function out = subsref(obj,ref)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if isempty(ref)
     out = obj;
@@ -147,10 +148,17 @@ switch ref(1).type
         else
             error("At most two indices are supported for 'tensopvar' objects.")
         end
+        % ':' selects all terms or factors (compared as a number, it is 58)
+        if ischar(indr) && strcmp(indr,':')
+            indr = 1:ncomps;
+        end
+        if ischar(indc) && strcmp(indc,':')
+            indc = 1:ntrms;
+        end
         if any(indr>ncomps)
-            error("Row indices cannot exceed number of components.")
+            error("Row indices cannot exceed the number of terms.")
         elseif any(indc>ntrms)
-            error("Column indices cannot exceed number of monomials.")
+            error("Column indices cannot exceed the number of factors.")
         end
         % Return obj.ops{indr,indc} directly, matching cell '{}' semantics
         ref(1).subs = {indr,indc};

@@ -1,38 +1,28 @@
 function C = opower(A,d,otype)
 % C = OPOWER(A,D,OTYPE) returns the 'polyopvar' object C representing the
-% D-th order power of the distributed polynomial A, i.e. the product
-% A o ... o A of D copies of A.
+% D-th power of the distributed polynomial A, the product A o ... o A of
+% D copies of A.
 %
 % INPUTS
-% - A:     m x n 'polyopvar' object;
-% - d:     nonnegative integer, the order of the product;
-% - otype: (optional) scalar 1 or 2, specifying the type of product.
-%          If otype=2 (default), the tensor product is taken, so
-%          that C is a function of a copy of the variables for each factor,
-%              C(s1,...,sD) = A(s1) o ... o A(sD).
-%          If otype=1, the elementwise product is taken, so that C is a
-%          function of a single copy of the variables,
+% - A:     m x 1 'polyopvar' object, not an adjoint;
+% - d:     nonnegative integer, the order of the power;
+% - otype: (optional) scalar 1 or 2, the type of product. Defaults to 2:
+%          - 2: the tensor (Kronecker) product, a function of a copy of
+%            the output variables for each factor,
+%              C(s1,...,sD) = A(s1) o ... o A(sD);
+%          - 1: the elementwise product, a function of a single copy of
+%            the output variables,
 %              C(s) = A(s).*...*A(s);
 %
 % OUTPUTS
-% - C:     'polyopvar' object representing the D-th power of A;
+% - C:     'polyopvar' object representing the D-th power of A, of size
+%          m^D x 1 for otype=2, and m x 1 for otype=1. C = 1 ('double')
+%          if D=0, and C = A if D=1;
 %
 % NOTES
-% - If d=0, C=1 is returned, and if d=1, C=A.
-% - For a polynomial with output variables and without constant terms, the
-%   coefficients of C are the D-th power of those of A
-%   acting on the monomials x_{i1} o ... o x_{iD},
-%   for all combinations of D monomials of A, equal terms then combined.
-%   C has nZ^D monomials, for A with nZ monomials: the products of
-%   monomials in a different order, e.g. x1*x2 and x2*x1, are not combined.
-% - For a functional (no output variables), monomials of the same degree in
-%   each state are combined, so that the number of monomials of the power
-%   is much smaller than nZ^D, and the power is computed by repeated
-%   squaring, combining terms after each product with otimes. The same
-%   holds if A has constant terms (monomials of degree 0), as otimes
-%   merges their factors with those of other monomials.
-% - A.^D is the elementwise power opower(A,D,1).
-% - An adjoint is not supported.
+% - Monomials of C that differ only in the order of their states, e.g.
+%   x1 o x2 and x2 o x1, are combined only if A has no output variables
+%   (a functional).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,7 +50,7 @@ function C = opower(A,d,otype)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 11/06/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check the inputs: d a nonnegative integer
 if nargin<2
@@ -94,7 +84,10 @@ end
 nfac = full(nfac(:));
 is_const = nfac==1 & ~any(A.Z,2);
 
-if ~any(is_const) && any(A.depmat.out(:)) && d>1
+% Not with scalar states without spatial variables (ODE states): the power of
+% their coefficients merges their factors, which otimes splits again
+has_ode = any(A.dims.in(:)==1 & ~any(A.depmat.in,2));
+if ~any(is_const) && any(A.depmat.out(:)) && d>1 && ~has_ode
     % The coefficients are the d-th power of those of A, acting on the
     % monomials x_{i1} o ... o x_{id}, ordered as the columns of the power,
     % the first index running slowest. No column is a constant, so no

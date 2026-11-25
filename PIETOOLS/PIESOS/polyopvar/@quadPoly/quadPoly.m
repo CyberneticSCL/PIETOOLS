@@ -1,42 +1,55 @@
 classdef quadPoly
-    % This class represents polynomials in a quadratic form described
-    % below.
-    % For F(s,t) \in R^{m\times n}, in variables
-    % s = {s1, ..., sk} and t = {t1, ..., tl}, we have the form
-    % F(s,t) = (I_m ⊗ Z(s)^T) * C * (I_n ⊗ Z(t))
-    % here Z(s) = Zs1(s1) ⊗ ... ⊗ Zsk(sk)
-    %      Z(t) = Zt1(t1) ⊗ ... ⊗ Ztl(sl)
-    % where Zsi, Zti are column vectors of monomial degrees.
+% This class represents polynomials in a quadratic form described
+% below.
+% For F(s,t) \in R^{m\times n}, in variables
+% s = {s1, ..., sk} and t = {t1, ..., tl}, we have the form
+% F(s,t) = (I_m ⊗ Z(s)^T) * C * (I_n ⊗ Z(t))
+% where Z(s) = Zs1(s1) ⊗ ... ⊗ Zsk(sk)
+%       Z(t) = Zt1(t1) ⊗ ... ⊗ Ztl(tl)
+% with Zsi(si) the column vector of the monomials si^d, d in Zs{i}, and
+% Zti(ti) that of the monomials ti^d, d in Zt{i}.
+%
+% CLASS properties
+% - C:      m*d_s x n*d_t sparse coefficient matrix, for
+%           d_s = prod_i numel(Zs{i}) and d_t = prod_j numel(Zt{j});
+% - Zs:     1 x k cell, Zs{i} the sorted column vector of the exponents
+%           of variable ns{i};
+% - Zt:     1 x l cell, Zt{j} the sorted column vector of the exponents
+%           of variable nt{j};
+% - dim:    1 x 2 array [m,n];
+% - ns:     1 x k cellstr, the names of the left variables s;
+% - nt:     1 x l cellstr, the names of the right variables t;
+%           ns and nt must each be sorted, without repeated names.
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - quadPoly
-    %
-    % Copyright (C) 2026 PIETOOLS Team
-    %
-    % This program is free software; you can redistribute it and/or modify
-    % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
-    % (at your option) any later version.
-    %
-    % This program is distributed in the hope that it will be useful,
-    % but WITHOUT ANY WARRANTY; without even the implied warranty of
-    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    % GNU General Public License for more details.
-    %
-    % You should have received a copy of the GNU General Public License
-    % along with this program; if not, write to the Free Software
-    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %
-    % If you modify this code, document all changes carefully and include date
-    % authorship, and a brief description of modifications
-    %
-    % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-    % Initial coding SS - 01/16/2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - quadPoly
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% SS, DJ, 11/24/2026: Initial coding;
 
     properties
-        C; % sparse coefficent matrix,  size: dim(1)*d_s x dim(2)*d_t
+        C; % sparse coefficient matrix,  size: dim(1)*d_s x dim(2)*d_t
         Zs; % cell of exponent vectors, size: 1 x length(ns)
         % each element of cell is a SORTED column vector of size n_si
         Zt; % cell of exponent vectors, size: 1 x length(nt)
@@ -51,13 +64,15 @@ classdef quadPoly
     methods
         function obj = quadPoly(C, Zs, Zt, dim, ns, nt, presorted)
             % A simple constructor using all properties
-            % OBJ = QUADPOLY(C,ZS,ZT,DIM,NS,NT,PRESORTED) sets the properties;
+            % OBJ = QUADPOLY(C,ZS,ZT,DIM,NS,NT,PRESORTED) sets the
+            % properties as given, without sorting or consistency checks;
             % OBJ = QUADPOLY(C) converts a matrix C to a constant quadPoly
             % (no variables), or returns a 'quadPoly' C unchanged.
             %
-            % INPUT
+            % INPUTS
             % - C:          dim(1)*d_s x dim(2)*d_t coefficient matrix
-            %               (stored sparse), or an m x n matrix (one input);
+            %               (stored sparse), or an m x n matrix (one
+            %               input);
             % - Zs, Zt:     1 x numel(ns), 1 x numel(nt) cells of sorted
             %               column vectors of exponents;
             % - dim:        1 x 2 array [m,n];
@@ -65,7 +80,7 @@ classdef quadPoly
             % - presorted:  (optional) logical, unused (no sorting is
             %               performed);
             %
-            % OUTPUT
+            % OUTPUTS
             % - obj:        'quadPoly' object.
             if nargin==1
                 if isa(C,'quadPoly')
@@ -82,7 +97,7 @@ classdef quadPoly
                 end
             % Otherwise 6 inputs, or 7 with presorted
             elseif nargin<6 || nargin>7
-                error("quadPoly must have 1 or 6 inputs, nothing else.");
+                error("quadPoly must have 1, 6 or 7 inputs, nothing else.");
             elseif nargin==6
                 presorted = 0;
             end
@@ -93,12 +108,6 @@ classdef quadPoly
             obj.dim = double(dim(:).');
             obj.ns = ns;
             obj.nt = nt;
-
-            % Sorting and combining are disabled: the condition is always false
-            if ~presorted && 0
-                obj = clean(obj);
-                obj = combine(obj);
-            end
         end
     end
 
@@ -107,13 +116,15 @@ classdef quadPoly
         % will ensure that the inputs to quadPoly are in the correct
         % structure and no sorting is needed
         function obj = create(C,Zs,Zt,dim,ns,nt)
-        % OBJ = CREATE(C,ZS,ZT,DIM,NS,NT) declares a 'quadPoly' object with the
-        % properties given, without sorting; the inputs must already be sorted.
+        % OBJ = CREATE(C,ZS,ZT,DIM,NS,NT) declares a 'quadPoly' object with
+        % the properties given, without sorting; the inputs must already be
+        % sorted. Accessible only to the 'sopvar' class.
         %
-        % INPUT
-        % - C, Zs, Zt, dim, ns, nt:     the properties, as for the constructor;
+        % INPUTS
+        % - C, Zs, Zt, dim, ns, nt:   the properties, as for the
+        %                             constructor;
         %
-        % OUTPUT
+        % OUTPUTS
         % - obj:    'quadPoly' object.
             obj = quadPoly(C,Zs,Zt,dim,ns,nt,1);
         end

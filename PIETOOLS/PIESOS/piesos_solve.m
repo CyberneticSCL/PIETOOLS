@@ -7,8 +7,11 @@ function prog = piesos_solve(prog,opts)
 % - prog:       'struct' specifying a PIESOS program (based on the
 %               SOSTOOLS program structure) defining a distributed SOS
 %               program to solve;
-% - opts:       (optional) 'struct' of options to be passed to SOSTOOLS
-%               for solving the optimization program specified by PROG;
+% - opts:       (optional) options passed to `lpisolve`: a 'struct' of
+%               SOSTOOLS options (e.g. field 'solver'), or a settings
+%               'struct' whose field sos_opts is used. Defaults to
+%               prog.settings.sos_opts if present, else the SOSTOOLS
+%               defaults;
 %
 % OUTPUTS
 % - prog:       'struct' specifying the solved PIESOS program;

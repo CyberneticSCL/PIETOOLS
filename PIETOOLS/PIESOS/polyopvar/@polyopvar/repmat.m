@@ -1,22 +1,20 @@
 function P_out = repmat(P_in,varargin)
-% P_OUT = REPMAT(P_IN,REPS) or REPMAT(P_IN,R,C) tiles the 'polyopvar'
-% object P_IN REPS(1) times along dimension 1 (rows) and REPS(2) times
-% along dimension 2 (columns).
+% P_OUT = REPMAT(P_IN,REPS) or REPMAT(P_IN,R,C) stacks R = REPS(1) copies
+% of the 'polyopvar' object P_IN vertically.
 %
 % INPUTS
 % - P_in:       'polyopvar' object;
-% - varargin:   replication factors, as for the builtin 'repmat': either
-%               REPS (positive integer, or 1 x 2 array of positive
-%               integers; a scalar is used for both dimensions), or the
+% - varargin:   the replication factors, as for the builtin 'repmat':
+%               REPS, a positive integer or 1 x 2 array [R,C] of positive
+%               integers (a scalar is used for both dimensions), or the
 %               two positive integers R and C;
 %
 % OUTPUTS
-% - P_out:      'polyopvar' object representing P_in tiled REPS times;
+% - P_out:      'polyopvar' object, R copies of P_in stacked vertically;
 %
 % NOTES
-% - Only column replication factor 1 is supported: tiling along
-%   dimension 2 would produce an object with matdim(2)>1, and
-%   matrix-valued (multi-column) 'polyopvar' objects are not supported.
+% - Multi-column 'polyopvar' objects are not supported: C must be 1, so
+%   a scalar REPS other than 1 throws an error. Use repmat(P_in,R,1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - repmat

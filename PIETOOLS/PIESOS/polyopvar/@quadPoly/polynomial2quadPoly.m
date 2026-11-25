@@ -1,17 +1,20 @@
 function Q = polynomial2quadPoly(P, sNames, tNames)
 %POLYNOMIAL2QUADPOLY Convert polynomial object to quadPoly.
+% Static method, called as quadPoly.polynomial2quadPoly(P,sNames,tNames).
 %
-% Inputs:
-%   P      : polynomial object
-%   sNames : cellstr of left variables (ns)
-%   tNames : cellstr of right variables (nt)
+% INPUTS
+%   P      : m x n polynomial object (or 'double' matrix)
+%   sNames : 1 x k cellstr of left variables (ns), sorted
+%   tNames : 1 x l cellstr of right variables (nt), sorted, disjoint from
+%            sNames
 %
-% Output:
-%   Q      : quadPoly with tensor-product bases per variable.
+% OUTPUTS
+%   Q      : m x n quadPoly with tensor-product bases per variable.
 %
-% Notes:
+% NOTES
 %   - Builds Zs/Zt as unique degrees per variable seen in P.degmat.
-%   - Requires that P.varname contains only sNames∪tNames (constants allowed).
+%   - P may depend only on variables in sNames or tNames (constants
+%     allowed), else an error is thrown.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - polynomial2quadPoly
@@ -38,7 +41,7 @@ function Q = polynomial2quadPoly(P, sNames, tNames)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/11/2026
+% SS, DJ, 11/24/2026: Initial coding;
 
 if isa(P,'double')
     P = polynomial(P);
@@ -50,8 +53,15 @@ end
     n = P.matdim(2);
 
     var = P.varname(:);
-    deg = full(P.degmat);          % T×V (can be big but manageable)
+    deg = full(P.degmat);          % T×V
     coeff = sparse(P.coefficient); % T×(m*n)
+
+    % The degrees of any other variable would be dropped: error instead
+    is_other = ~ismember(var,[sNames(:);tNames(:)]) & any(deg,1).';
+    if any(is_other)
+        error('polynomial_to_quadPoly:unknownVariable', ...
+            'The polynomial depends on variables not in sNames or tNames: %s.',strjoin(var(is_other).',', '));
+    end
 
     % Map polynomial variables into left/right positions
     [tfS, posS] = ismember(sNames(:), var);
@@ -139,10 +149,10 @@ function d = basisSize(Zcell)
 % product basis defined by the exponent vectors in ZCELL (an empty
 % element counts as the constant monomial).
 %
-% INPUT
+% INPUTS
 % - Zcell:  1 x k cell of exponent vectors;
 %
-% OUTPUT
+% OUTPUTS
 % - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
@@ -158,10 +168,10 @@ function stride = kronStrides(sizes)
 % tensor-product basis with factor sizes SIZES,
 %   stride(i) = prod(sizes(i+1:end)).
 %
-% INPUT
+% INPUTS
 % - sizes:  1 x k array of positive integers;
 %
-% OUTPUT
+% OUTPUTS
 % - stride: 1 x k array, with stride(k) = 1.
     % last variable varies fastest
     stride = cumprod(sizes,2,"reverse");

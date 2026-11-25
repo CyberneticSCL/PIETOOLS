@@ -39,14 +39,14 @@ function [prog,Pmat,ZopL,ZopR,intmat] = piesos_quadopvar(prog,dims,vars,dom,depm
 %           degrees defining the operators ZopL and ZopR. Each field is
 %           itself a struct with the following fields:
 %   L/R.in: 1 x (p or q) cell, specifying the degrees of the input
-%           variables in each operator block. Each element degs.in{i} can
-%           be a di x (M or N) cell, where di depends on depmat.L/R(i,:),
-%           specifying the degrees of the monomial basis in each of the
-%           factors of each of the input variables in block i. Element
-%           in{i} can also be a di x (M or N) array, specifying the
-%           maximal monomial degree in each of the factors of each
-%           variable. If in{i} is scalar, the same degree is used for all
-%           variables;
+%           variables in each operator block, as degs.in of `monopmat`.
+%           Element in{i} can be a di x (M or N) cell, for di the number
+%           of factors, max(depmat.L/R(i,:)), specifying the monomial
+%           degrees (including 0) in each factor of each input variable
+%           in block i, a single row being used for all factors. It can
+%           also be a di x (M or N) array of maximal monomial degrees,
+%           where a single row (or a scalar, for all variables) gives the
+%           maximal degrees summed over the factors, split over them;
 %  L/R.out: 1 x (p or q) cell, specifying the degrees of the primary
 %           variables in each operator block. Each element degs.out{i}
 %           can be a 1 x P cell of column vectors, specifying the
@@ -63,127 +63,134 @@ function [prog,Pmat,ZopL,ZopR,intmat] = piesos_quadopvar(prog,dims,vars,dom,depm
 %           copies of the output variables, see NOTES. Defaults to 0;
 % - opts:   (optional) struct with fields
 %     pos:  set to true to declare Pmat as a positive semidefinite (SOS)
-%           variable. Requires output dimensions of ZopL and ZopR to
-%           match (note that output dimensions depend on monomial
-%           degrees), and the degrees degs.L.out and degs.R.out of the
-%           primary variables to match. Defaults to false;
-%     sym:  set to true to declare Pmat as a symmetric variable
-%           (Pmat(s)'=Pmat(s)). Requires output dimensions of ZopL and
-%           ZopR to match (note that output dimensions depend on
-%           monomial degrees), and degs.L.out and degs.R.out to match.
+%           variable. Requires the output dimensions of ZopL and ZopR
+%           (which depend on the monomial degrees), and the degrees
+%           degs.L.out and degs.R.out of the primary variables, to match.
 %           Defaults to false;
-%   psatz:  (only if opts.pos==true) 1 x P array of integers, specifying
-%           the maximal order of the psatz multiplier in each of the P
-%           primary variables. Here, psatz(i)=qi implies inclusion of
-%           all multipliers
+%     sym:  set to true to declare Pmat as a symmetric variable
+%           (Pmat(s)'=Pmat(s)), under the same requirements. Defaults to
+%           false;
+%   psatz:  (only if opts.pos==true, ignored otherwise) 1 x P array of
+%           integers, specifying the maximal order of the psatz
+%           multiplier in each of the P primary variables (0 in a
+%           variable on which no state depends). Here, psatz(i)=qi
+%           implies inclusion of all multipliers
 %               gj = (bi-si)^{qi-j}*(si-ai)^{j},    j in {0,...,qi}
 %           This means a total number of prod(psatz+1) terms. Can also
-%           be set to a q1 x ... x qP logical array, where now the
-%           dimensions of psatz determine the maximal order, and only the
-%           multipliers associated with true elements of psatz are
-%           included. Element k along dimension i of psatz corresponds to
-%           gj with j=k-1, so psatz(i)=qi is equivalent to a logical
-%           array of size qi+1 along dimension i. Terms are ordered by
-%           linear index in psatz. A scalar psatz is used for all
-%           variables on which some state depends. For gj of order qi,
-%           the degree in si of the basis monomials of Pmat is reduced by
-%           ceil(qi/2), so that the degree of Pmat in si does not exceed
-%           twice its degree in degs.out. On a region other than the whole
-%           domain (opts.intmat), the multipliers are instead, for each
-%           group of k copies related by the limits of the region, the
-%           products of total order k*qi of the faces of the group, e.g.
-%           of s_2-a, s_1-s_2 and b-s_1 on the triangle s_2<=s_1;
-% exclude, sep, otype:  options of the operators ZopL and ZopR, see the
-%           `monopmat` function for how these can be specified, used for
-%           each operator for which the option is not specified in opts.L
-%           or opts.R: 'exclude' a 3^N3 logical array (or a 3 x 1 array,
-%           or a 1 x q cell, one per block) of the multiplier, lower and
-%           upper integral terms to exclude along the N3 variables of both
-%           input and output; 'sep' a 1 x N3 logical array (or a 1 x q
-%           cell), true to enforce separability along a variable; 'otype'
-%           the type of product of the factors, a scalar or one per block.
-%           The value otype=2 (in otype(1)) declares a
-%           tensor-product output, and otype=3 both a pointwise and a
-%           tensor-product output, see NOTES;
+%           be set to an n1 x ... x nP logical array (not for
+%           otype(1)=2), including only the multipliers associated with
+%           true elements: element k along dimension i corresponds to gj
+%           with j=k-1 and qi=ni-1, so psatz(i)=qi is equivalent to a
+%           logical array of size qi+1 along dimension i. Terms are
+%           ordered by linear index in psatz. A scalar psatz is used for
+%           all variables on which some state depends. For gj of order
+%           qi, the degree in si of the basis monomials of Pmat is
+%           reduced by ceil(qi/2), so that the degree of Pmat in si does
+%           not exceed twice its degree in degs.out. On a region other
+%           than the whole domain (opts.intmat), the multipliers are
+%           instead, for each group of k copies related by the limits of
+%           the region, the products of total order k*qi of the faces of
+%           the group, e.g. of s_2-a, s_1-s_2 and b-s_1 on the triangle
+%           s_2<=s_1;
+% exclude, sep, otype:  options of the operators ZopL and ZopR, passed to
+%           `monopmat`, used for each operator for which the option is
+%           not specified in opts.L or opts.R: 'exclude' a 3^N3 logical
+%           array (or a 3 x 1 array, or a 1 x q cell, one per block) of
+%           the multiplier, lower and upper integral terms to exclude
+%           along the N3 variables of both input and output; 'sep' a
+%           1 x N3 logical array (or a 1 x q cell), true to enforce
+%           separability along a variable; 'otype' the type of product of
+%           the factors, a scalar or one per block, 1 by default. The
+%           value otype=2 (in otype(1)) declares a tensor-product output,
+%           and otype=3 both a pointwise and a tensor-product output, see
+%           NOTES;
 %    L/R:   (optional) structs with fields 'exclude', 'sep', and 'otype',
 %           specifying separate options for the operators ZopL and ZopR.
 %           If only one of L, R is specified, it is used for both. Fields
 %           that are not specified are taken from opts;
 %  intmat:  (optional) regions of integration of Pmat: a 1 x N cell, for
-%           the N output variables si, with element i a qi x 2*di array,
-%           a row per region of the copies si_1,...,si_di, as the field
+%           the N primary variables si (see NOTES; 'full' for a variable
+%           on which no state depends), with element i a qi x 2*di array,
+%           for di the largest number of copies of si in a block row, a
+%           row per region of the copies si_1,...,si_di, as the field
 %           intmat of an 'intop' (0 for ai, di+1 for bi, j for si_j, [j,j]
 %           for a Dirac delta at si_j), the limits of si_j only ai, bi and
-%           si_1,...,si_(j-1). A Pmat is declared for each of the
-%           q1*...*qN combinations of rows. Element i may also be a preset:
-%           'full' (the whole domain), 'steps' (each strict ordering of
-%           the copies), or 'all' (each ordering, with ties, except all
-%           copies tied, the pointwise product of otype 1). A single preset
-%           is used for all variables. Defaults to 'full';
+%           si_1,...,si_(j-1). A Pmat is declared for
+%           each of the q1*...*qN combinations of rows. Element i may
+%           also be a preset: 'full' (the whole domain), 'steps' (each
+%           strict ordering of the copies), or 'all' (each ordering, with
+%           ties, except all copies tied, the pointwise product of
+%           otype 1). A single preset or array is used for all variables.
+%           Defaults to 'full';
 %
 % OUTPUTS
 % - prog:   'struct' specifying the PIESOS program with the matrix
 %           variable Pmat added;
-% - Pmat:   p x q cell, with element Pmat{i,j} an mi x nj 'dpvar' object
+% - Pmat:   rL x rR cell, for rL and rR the numbers of block rows of ZopL
+%           and ZopR (p and q, or more with otype 3; rL=rR if opts.sym or
+%           opts.pos), with element Pmat{i,j} an mi x nj 'dpvar' object
 %           in the primary variables, where mi and nj are the numbers of
 %           rows of the ith block row of ZopL.ops and the jth block row
-%           of ZopR.ops (p=q if opts.sym or opts.pos). The cell
-%           represents the matrix Pmat(s) parameterizing
-%           Pop = ZopL'*Pmat*ZopR, with Pmat{i,j} of the form ZsL'*Q*ZsR
-%           for bases ZsL, ZsR of monomials in the primary variables, and
-%           Q general, symmetric (opts.sym) or positive semidefinite
-%           (opts.pos, an SOS matrix). With psatz multipliers g_k,
-%           Pmat = sum_k g_k*Pmat_k, where Pmat_k is of the form
-%           Zs'*Qk*Zs, with Qk >= 0 and Zs a basis of monomials in the
-%           primary variables. With regions other than the whole domain
-%           (opts.intmat), a q1 x ... x qN cell of such p x q cells, with
-%           Pmat{k1,...,kN} for rows k1,...,kN of intmat, each with its own
-%           decision variables (and psatz terms);
+%           of ZopR.ops. The cell represents the matrix Pmat(s)
+%           parameterizing Pop = ZopL'*Pmat*ZopR, with Pmat{i,j} of the
+%           form ZsL'*Q*ZsR for bases ZsL, ZsR of monomials in the
+%           primary variables, and Q general, symmetric (opts.sym) or
+%           positive semidefinite (opts.pos, an SOS matrix). With psatz
+%           multipliers g_k, Pmat = sum_k g_k*Pmat_k, where Pmat_k is of
+%           the form Zs'*Qk*Zs, with Qk >= 0 and Zs a basis of monomials
+%           in the primary variables. With regions other than the whole
+%           domain (opts.intmat), a q1 x ... x qN cell of such cells, with
+%           Pmat{k1,...,kN} for rows k1,...,kN of intmat, each with its
+%           own decision variables (and psatz terms);
 % - ZopL/ZopR:  rtot x (m or n) 'tensopmat' object representing a basis of
 %           operators of specified degrees on the declared function space,
-%           where m/n = sum(dims.L/R) and where rtot depends on the
-%           selected monomial degrees. The kernels of the operators
-%           depend only on the dummy variables;
+%           where m/n = sum_i dims.L/R(i)^di, for di the number of factors
+%           of block i (sum(dims.L/R) if every di=1), and rtot depends on
+%           the monomial degrees. The kernels of the operators depend
+%           only on the dummy variables;
 % - intmat: 1 x N cell, the regions of opts.intmat, with presets replaced
-%           by their rows;
+%           by their rows, for the output variables of Zop
+%           (ZopL.vars.out: those on which some state depends, sorted by
+%           name), the order of the dimensions of a cell Pmat;
 %
 % NOTES
 % - For dims, vars, dom, depmat and degs, if specified as an array, or if
 %   only one of the fields L, R is specified, the same value is used for
 %   ZopL and ZopR.
-% - The polynomial degree of Pmat depends on the output degree of both
-%   ZopL and ZopR, as Pmat is constructed using the `sosquadvar` function.
 % - For states depending on different variables, the operators ZopL and
 %   ZopR map to a function space in all of the variables appearing in
 %   any state of ZopL or ZopR (the primary variables). For example, for
 %   state x(s1) in ZopL and y(s1,s2) in ZopR, both map to functions of s1
 %   and s2. The primary variables are ordered as vars.L, followed by those
-%   of vars.R not in vars.L; degs.L/R.out and psatz refer to this order.
+%   of vars.R not in vars.L; degs.L/R.out, psatz and opts.intmat refer to
+%   this order.
 % - With otype(1)=2, Zop has a tensor-product (Kronecker) output: a block
 %   acting on a monomial of d factors maps to d copies of each primary
 %   variable si, named si_1,...,si_d, and V=<Zop*Z,Pmat*Zop*Z>
-%   integrates over all copies. The field degs.out gives
-%   the degrees of the basis Zs in each copy, as a scalar, a 1 x P array
-%   (for all copies of a variable), or a d x P array (a row per copy, for
-%   the largest d: blocks with fewer factors use the first rows), and a
+%   integrates over all copies. The field degs.out gives the degrees of
+%   the basis Zs in each copy, as a scalar, a 1 x P array (for all
+%   copies of a variable), or a d x P array (a row per copy, for the
+%   largest d: blocks with fewer factors use the first rows), and a
 %   psatz multiplier is used in each copy, with the same order for each
 %   copy of a variable (numeric psatz only). Specify degs.in per factor,
-%   e.g. [d;d] for N=1: a scalar is used for the first factor only.
+%   e.g. [d;d] for N=1: a scalar is a total degree, split over the
+%   factors.
 % - Variables of different otype may be used to represent different types
-%   of products. For example, int x^4 ds can only be represented using a
-%   quadopvar of otype=1, whereas (int x^2 ds)^2 can only be represented
-%   using a quadopvar of otype=2. For full generality, therefore, both
-%   types of operators may need to be included in parameterizing
+%   of products. For example, int x^4 ds can only be represented using an
+%   operator variable of otype=1, whereas (int x^2 ds)^2 can only be
+%   represented using one of otype=2. For full generality, therefore,
+%   both types of operators may need to be included in parameterizing
 %   distributed (SOS) functionals.
 % - With otype=3 for a block, Zop has a pointwise and a tensor-product
-%   block row acting on that block (one block row if the block has a single
-%   factor, for which the two coincide), so that Pmat also
-%   has cross terms between the two types of products.
-%   ZopL and ZopR may also have a different otype.
+%   block row acting on that block (one block row if the block has a
+%   single factor, for which the two coincide), so that Pmat also has
+%   cross terms between the two types of products. ZopL and ZopR may
+%   also have a different otype.
 % - The presets of opts.intmat contain no region twice. For a basis that
 %   is symmetric in the copies (of a single state, with the same degrees
 %   in each factor), regions that differ only by a permutation of the
 %   copies other than si_1 give the same terms, so fewer may be specified.
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_quadopvar
@@ -210,9 +217,7 @@ function [prog,Pmat,ZopL,ZopR,intmat] = piesos_quadopvar(prog,dims,vars,dom,depm
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% DJ, 11/22/2026: Option 'intmat' (a Pmat per region of integration);
-%                   tensor output from the built blocks;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that the inputs are appropriate
 % ZopL acts on the space (L.dims,L.vars,L.dom,L.depmat), ZopR on that of R
@@ -266,6 +271,7 @@ end
 if ~isstruct(opts)
     error("Options must be specified as a 'struct'.")
 end
+check_opts(opts,'piesos_quadopvar');
 is_pos = isfield(opts,'pos') && opts.pos;
 is_sym = is_pos || (isfield(opts,'sym') && opts.sym);
 
@@ -314,10 +320,6 @@ end
 % A multiplier in a variable on which no state depends has no meaning
 if any(npsatz(~is_used)>1)
     error("Psatz multipliers cannot be used in variables on which no state depends.")
-end
-% A psatz multiplier only has meaning for an SOS matrix
-if any(npsatz>1) && ~is_pos
-    error("Psatz multipliers can only be used if Pmat is positive semidefinite (opts.pos=true).")
 end
 % Options of ZopL, ZopR: those in opts.L, opts.R, the same for both if
 % only one is specified, and those in opts itself (exclude, sep, otype)
@@ -395,9 +397,8 @@ R.blk_idcs(ridcs,1) = cidcs;
 R.nfac = max([full(ZopR.depmat.out),ones(numel(ridcs),1)],[],2);
 % A tensor-product block row (otype(1)=2) maps to several copies of the
 % primary variables, which are then the variables of Pmat, Zs and psatz.
-% Taken from the block rows, not opts.otype (as by DJ, 11/19/2026, before
-% Zop was built): for otype 3, monopmat gives a block of one factor a
-% single row of otype 1, whose Pmat is in si, not si_1
+% Taken from the block rows, not opts.otype: for otype 3, a block of one
+% factor is a single row of otype 1, whose Pmat is in si, not si_1
 is_tens = any(cellfun(@(K) ~isempty(K) && K.otype(1)==2,[ZopL.ops(:);ZopR.ops(:)]));
 if is_tens && psatz_is_log
     error("This case is currently not supported: psatz must be specified as numeric (1 x N array of orders) for otype(1)=2.")
@@ -412,8 +413,15 @@ if isfield(opts,'intmat')
 end
 if ~iscell(intmat)
     intmat = repmat({intmat},1,numel(ncop));
-elseif numel(intmat)~=numel(ncop)
-    error("Option 'intmat' must be a 1 x N cell, for the N output variables.")
+elseif numel(intmat)~=N
+    error("Option 'intmat' must be a 1 x N cell, for the N primary variables.")
+elseif ~all(cellfun(@(A) (ischar(A) || isstring(A)) && strcmp(A,'full'),intmat(~is_used)))
+    error("Regions of integration cannot be specified for a variable on which no state depends.")
+else
+    % Given per primary variable, as psatz and degs.out: reorder to the
+    % output variables of Zop, sorted by name and only those used
+    [~,loc_Z] = ismember(ZopL.vars.out,out.vars);
+    intmat = intmat(loc_Z);
 end
 for i=1:numel(ncop)
     intmat{i} = get_intmat(intmat{i},ncop(i));
@@ -559,11 +567,11 @@ function [XL,XR] = split_LR(X,name)
 % if only one of the fields is specified, the same value is used for both.
 % NAME is used in error messages.
 %
-% INPUT
+% INPUTS
 % - X:      array, or 'struct' with fields L (or out) and/or R (or in);
 % - name:   char, the name of the input, for error messages;
 %
-% OUTPUT
+% OUTPUTS
 % - XL, XR: the values for the left and right operator.
 
 % An array is used for both
@@ -601,11 +609,11 @@ end
 function Zs = declare_Zs(degs_out,is_dep_out,varnames,red_deg)
 % ZS = DECLARE_ZS(DEGS_OUT,IS_DEP_OUT,VARNAMES,RED_DEG) declares for each
 % block row i of an operator basis a basis Zs{i} of monomials in the
-% primary variables, with exponents degs_out{i} as returned by split_degs.
-% The degree in each variable is cut by the entry of RED_DEG for that
-% variable, but to at least the minimal exponent.
+% primary variables, with exponents degs_out{i} as returned by split_degs
+% or copy_degs. The degree in each variable is cut by the entry of RED_DEG
+% for that variable, but to at least the minimal exponent.
 %
-% INPUT
+% INPUTS
 % - degs_out:   1 x q cell; degs_out{i} is a cell of column vectors of
 %               exponents, one per variable on which block row i depends;
 % - is_dep_out: q x P logical array, the primary variables of each block
@@ -613,7 +621,7 @@ function Zs = declare_Zs(degs_out,is_dep_out,varnames,red_deg)
 % - varnames:   1 x P cellstr, the names of the primary variables;
 % - red_deg:    1 x P array, the degree reduction in each variable;
 %
-% OUTPUT
+% OUTPUTS
 % - Zs:         q x 1 cell; Zs{i} is the nZ_i x 1 'polynomial' basis of
 %               block row i, or 1 if it depends on no variable.
 
@@ -754,9 +762,9 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function degs_out = copy_degs(degs,depmat_out,nfac,dep,copies,blk_idcs)
 % DEGS_OUT = COPY_DEGS(DEGS,DEPMAT_OUT,NFAC,DEP,COPIES,BLK_IDCS) splits
-% the monomial degrees DEGS into the degrees
-% of the copies of the output variables for each block row of Zop, for the
-% basis Zs of Pmat (otype(1)=2, see getvars_tensor).
+% the monomial degrees DEGS into the degrees of the copies of the output
+% variables for each block row of Zop, for the basis Zs of Pmat
+% (otype(1)=2, see getvars_tensor).
 %
 % INPUTS
 % - degs:       monomial degrees: numeric, cell, or struct with fields 'in'
@@ -932,7 +940,7 @@ function intmat = get_intmat(spec,d)
 % - spec:   q x 2*D array of integers, with the limits of s_j among 0 (a),
 %           D+1 (b) and 1,...,j-1 (s_1,...,s_(j-1)), or a preset 'full',
 %           'steps' or 'all';
-% - d:      the number of copies D;
+% - d:      nonnegative integer, the number of copies D;
 %
 % OUTPUTS
 % - intmat: q x 2*D array, a row per region;

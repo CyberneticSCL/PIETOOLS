@@ -4,8 +4,10 @@ function C = minus(A,B)
 % objects A and B.
 %
 % INPUTS
-% - A:      m x n 'tensopmat' object;
-% - B:      m x n 'tensopmat' object;
+% - A:      m x n 'tensopmat' object (or 'tensopvar', 'intop', 'sopvar',
+%           or 0);
+% - B:      m x n 'tensopmat' object (or 'tensopvar', 'intop', 'sopvar',
+%           or 0);
 %
 % OUTPUTS
 % - C:      m x n 'tensopmat' object representing the difference between

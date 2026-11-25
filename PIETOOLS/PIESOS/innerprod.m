@@ -3,36 +3,35 @@ function V = innerprod(u1,P,u2)
 % distributed polynomial functions, V = <U1,P*U2>.
 %
 % INPUTS
-% - u1,u2:  n x 1 'polyopvar' objects representing distributed polynomial
-%           functions. If u2 = [] or omitted, u2 = u1 is used;
-% - P:      n x n object of type 'double', 'polynomial', or 'dpvar', or a
+% - u1,u2:  m x 1 and n x 1 'polyopvar' objects representing distributed
+%           polynomial functions; not adjoints (u'). If u2 = [] or
+%           omitted, u2 = u1 is used;
+% - P:      m x n object of type 'double', 'polynomial', or 'dpvar', or a
 %           cell array of such blocks, partitioned as the vectors u1 and
 %           u2 (block (i,j) has size u1.dims.out(i) x u2.dims.out(j)).
 %           A 'polynomial' or 'dpvar' may depend on the spatial
 %           variables, and is then integrated along with the functions.
-%           A scalar P is used as P times the identity. If only u1 is
-%           passed, P = 1. If INNERPROD(U1,U2) is called with a
-%           'polyopvar' U2 in the second position, P = 1 and u2 = U2.
-%           The old order INNERPROD(U1,U2,P) is swapped to INNERPROD(U1,P,U2),
-%           with a warning;
+%           A scalar P is used as P times the identity (then m = n). If
+%           only u1 is passed, P = 1. If INNERPROD(U1,U2) is called with
+%           a 'polyopvar' U2 in the second position, P = 1 and u2 = U2.
+%           A call INNERPROD(U1,U2,P) with a 'polyopvar' U2 and a weight
+%           P is read as INNERPROD(U1,P,U2), with a warning;
 %
 % OUTPUTS
 % - V:      1 x 1 'polyopvar' object representing the inner product of the
-%           distributed polynomial vectors with weight P.
+%           distributed polynomial vectors with weight P;
 %
 % NOTES
 % - If u1 is not a 'polyopvar', V is computed as (u1'*P)*u2. If u2 is not
 %   a 'polyopvar', V is computed as (P*u2)'*u1.
 % - If u1 and u2 map to different output function spaces, e.g. R and
 %   L2[s], or L2[s1] and L2[s2], and P is a scalar, they are lifted to
-%   the same space: block i of
-%   u1 is constant along the output variables that block i of u2 depends
-%   on, and vice versa, so that block i is integrated over the output
-%   variables of both, e.g. <x,u> = x*int_a^b u(s) ds for x in R and u in
-%   L2[s]. For non-scalar P, this kind of lifting is already performed
-%   inherently.
-% - V = innerprod(u1,P,u2) is also computed by u1'*P*u2. u1 and u2
-%   themselves cannot be adjoints.
+%   the same space: block i of u1 is constant along the output variables
+%   that block i of u2 depends on, and vice versa, so that block i is
+%   integrated over the output variables of both, e.g.
+%   <x,u> = x*int_a^b u(s) ds for x in R and u in L2[s]. For non-scalar
+%   P, this lifting is inherent.
+% - V = innerprod(u1,P,u2) is also computed by u1'*P*u2.
 % - A weight P that depends on spatial variables is integrated along with
 %   the functions: for outputs with several copies of a variable si
 %   (tensor products, e.g. u1=u2=x1 o x2), P depends on the copies si_j,
@@ -63,7 +62,7 @@ function V = innerprod(u1,P,u2)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that the inputs are appropriate
 is_symmetric = false;
@@ -132,7 +131,7 @@ if isscalar(P) && ~isa(P,'cell')
 else
     if isa(P,"cell")
         if size(P,1)~=n_blks1 || size(P,2)~=n_blks2
-            error("Partitioning of the weight must match partioning of the vectors.")
+            error("Partitioning of the weight must match partitioning of the vectors.")
         end
         nr_arr = cellfun(@(a) size(a,1),P);
         nc_arr = cellfun(@(a) size(a,2),P);

@@ -1,47 +1,26 @@
 function [f,is_zero] = clean_poly(f,ztol)
-% [F,IS_ZERO] = CLEAN_POLY(F,ZTOL) takes a 'polyopvar' object F and removes
-% coefficients below the specified tolerance ZTOL, monomials that do not
-% contribute, and state variables that do not appear in any monomial.
+% [F,IS_ZERO] = CLEAN_POLY(F,ZTOL) removes from the 'polyopvar' object F
+% the coefficients below the tolerance ZTOL, the monomials that do not
+% contribute, and the state variables that appear in no monomial.
 %
 % INPUTS
 % - f:      'polyopvar' object representing a distributed polynomial
 %           P(x) = C*Z(x);
-% - ztol:   (optional) scalar value specifying the tolerance below which
-%           coefficients are assumed to be zero. Defaults to 1e-12;
+% - ztol:   (optional) scalar, the tolerance below which coefficients are
+%           set to zero. Defaults to 1e-12;
 %
 % OUTPUTS
-% - f:      'polyopvar' object representing the same polynomial as the
-%           input up to the specified tolerance:
-%             * consecutive factors that are multipliers from R are
-%               combined into one;
-%             * duplicate monomials (rows of f.Z) are merged, summing the
-%               operators acting on them --
-%               this can reveal a monomial that is entirely zero
-%               (duplicates that cancel), which the steps below remove;
-%             * every block of f.C is cleaned (coefficients below ztol
-%               zeroed, dead spatial variables of
-%               C dropped);
-%             * a monomial (row of f.Z, column of f.C.ops) that does not
-%               contribute -- every block in that column is zero -- is
-%               removed, unless it is the only surviving block for some
-%               output row, in which case exactly one such monomial per
-%               orphaned row is kept (zeroed) so that row's own shape
-%               stays well-defined;
-%             * trailing zero columns of f.Z are removed;
-%             * a state variable (entry of f.varname) that does not
-%               appear in any surviving monomial is removed from
-%               varname/dims.in/depmat.in, and f.Z's indices are remapped
-%               to stay contiguous;
-% - is_zero: true if every coefficient of f is zero up to ztol, i.e. f
-%           represents the identically-zero polynomial; false otherwise;
+% - f:      'polyopvar' object representing the same polynomial up to the
+%           tolerance ztol, with consecutive multipliers from R combined,
+%           duplicate monomials (rows of f.Z) merged, coefficients below
+%           ztol set to zero, unused spatial variables of f.C dropped,
+%           zero monomials and trailing zero columns of f.Z removed, and
+%           states that appear in no monomial removed;
+% - is_zero: logical, true if all coefficients of f are zero up to ztol;
 %
 % NOTES
-% - Dropping a dead monomial or state does not change the polynomial P
-%   represents: its evaluation only reads the state values through the
-%   nonzero entries of the surviving rows of Z, so a removed state is
-%   never read by a surviving monomial, and a removed monomial is zero.
-% - Monomial removal precedes state removal: a state may appear to be
-%   used only because it appears in a monomial that is itself removed.
+% - A row-block of f.C of which all blocks are zero keeps one (zero)
+%   monomial, so that its dimensions remain defined.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

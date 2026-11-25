@@ -1,22 +1,15 @@
 function F = vertcat(varargin)
-% F = VERTCAT(VARARGIN) takes the vertical concatenation of distributed
-% polynomials listed in VARARGIN, e.g.
-%   F = [varargin{1}; varargin{2}; ...; varargin{end}];
+% F = VERTCAT(VARARGIN) returns the vertical concatenation
+%   F = [varargin{1}; varargin{2}; ...; varargin{end}]
+% of distributed polynomials.
 %
 % INPUTS
-% - varargin:   'polyopvar' objects representing distributed polynomials,
-%               or numeric arrays, which are converted to constant
-%               'polyopvar' objects. Empty inputs are
-%               ignored;
+% - varargin:   'polyopvar' objects, not adjoints, or 'double' column
+%               vectors, which are converted to constant 'polyopvar'
+%               objects. Empty inputs are ignored;
 %
 % OUTPUTS
-% - F:          'polyopvar' object representing the vertical
-%               concatenation of the input functions;
-%
-% NOTES
-% - The input function spaces of the coefficients defining the
-%   polynomials (C.dims.in, C.vars.in and C.depmat.in) must match.
-% - Adjoint inputs (is_adjoint = true) give an error.
+% - F:          'polyopvar' object, the vertical concatenation;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,7 +37,7 @@ function F = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Return an empty 'polyopvar' object if no inputs are specified
 if nargin==0
@@ -88,12 +81,6 @@ for i=2:nargin
     end
     % Express the operators in terms of the same basis
     [F,B] = common_basis(F,B);
-    % Make sure the output domains match
-    if ~isequal(B.C.dims.in,F.C.dims.in)...
-        || ~isequal(B.C.vars.in,F.C.vars.in)...
-            || ~isequal(B.C.depmat.in,F.C.depmat.in)
-        error("Input function spaces of the coefficients defining the polynomials must match for vertical concatenation.")
-    end
     % Output dimensions and dependencies of the concatenation, determined before F.C is
     % assigned, which sets the output space of F to that of the new coefficients
     dims_out = [F.dims.out; B.dims.out];

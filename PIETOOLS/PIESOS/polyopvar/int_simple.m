@@ -1,30 +1,32 @@
 function Eint = int_simple(E,ivar,x1,x2)
-% EINT = INT_SIMPLE(E,IVAR,X1,X2) integrates the dpvar or polynomial E in
-% independent variable IVAR from lower limit X1 to upper limit X2
+% EINT = INT_SIMPLE(E,IVAR,X1,X2) integrates the 'dpvar' or 'polynomial'
+% object E over the variable IVAR, from the lower limit X1 to the upper
+% limit X2.
 %
-% NOTE: This function is distinct from the standard "int" functions in that
-% it allows only (scalar) 'pvar' or 'double' expressions for the upper and
-% lower limit. More complicated expressions will produce an error!
-% 
-% INPUTS:
-% E: A dpvar or polynomial class object
-% ivar: A scalar pvar variable (1x1 polynomial object)
-% x1: Either a scalar pvar variable or scalar value
-%       - If a pvar variable, it cannot match input "var"
-%       - This input provides the lower limit of the definite integral
-% x2: Either a scalar pvar variable or scalar value
-%       - If a pvar variable, it cannot match input "var"
-%       - This input provides the upper limit of the definite integral
-% 
-% OUTPUTS:
-% Eint: integrated dpvar object: Eint = int_x1^x2 (E) d dx
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% INPUTS
+% - E:      m x n 'dpvar' or 'polynomial' object (or 'double' array), the
+%           integrand;
+% - ivar:   1 x 1 'pvar' object, or 'char' name, specifying the variable
+%           of integration;
+% - x1:     scalar 'double' (or constant 'polynomial'), or 1 x 1 'pvar'
+%           object other than ivar, the lower limit of the integral;
+% - x2:     scalar 'double' (or constant 'polynomial'), or 1 x 1 'pvar'
+%           object other than ivar, the upper limit of the integral;
+%
+% OUTPUTS
+% - Eint:   m x n object of the same class as E ('polynomial' for a
+%           'double' E), representing int_{x1}^{x2} E d(ivar);
+%
+% NOTES
+% - Unlike the standard 'int' functions, only a scalar 'pvar' or 'double'
+%   is allowed for each limit; other expressions throw an error.
+% - For a 'dpvar' E, coefficients of absolute value below 1e-15 are set to
+%   zero.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - int_simple
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -40,25 +42,20 @@ function Eint = int_simple(E,ivar,x1,x2)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ, MP, SS - 04/14/2022
-% DJ, 05/23/22 - Allow inputs of class 'double'
-% DJ, 01/28/26 - Convert constants specified as 'polynomial' to 'double';
-% MMP, 11/08/26 - Moved unchanged from opvar/2D/ to misc/: it acts on
-%   'polynomial' and 'dpvar' only, PIESOS (@intop/apply_op) calls it, and
-%   opvar/ is being retired (opvar removal plan, Phase 6).
-% MMP, 11/19/2026: Release comment pass (comment-only).
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% DJ, MMP, SS, 11/24/2026: Initial coding;
 
 if nargin<4
     error('At least 4 input arguments are required')
-elseif nargin<5
-    tol = 1e-15;    % Coefficients below tolerance are set to zero
 end
+tol = 1e-15;    % Coefficients below tolerance are set to zero
 
-% Conver inputs of class 'double' to 'polynomial'
+% Convert inputs of class 'double' to 'polynomial'
 if isa(E,'double')
     E = polynomial(E);
 end

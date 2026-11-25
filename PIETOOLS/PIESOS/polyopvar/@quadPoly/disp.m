@@ -4,17 +4,21 @@ function disp(obj)
 % Representation:
 %   F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t))
 % where
-%   Zs(s) = Zs{1}(s1) ⊗ ... ⊗ Zs{ks}(s_ks),  Zs{i} stores exponents for variable ns{i}
-%   Zt(t) = Zt{1}(t1) ⊗ ... ⊗ Zt{kt}(t_kt),  Zt{j} stores exponents for variable nt{j}
+%   Zs(s) = Zs{1}(s1) ⊗ ... ⊗ Zs{ks}(s_ks),
+%   Zt(t) = Zt{1}(t1) ⊗ ... ⊗ Zt{kt}(t_kt),
+% with Zs{i} the exponents of variable ns{i}, Zt{j} those of nt{j}.
 %
 % This function formats each matrix entry F(i,j) as a sum of monomials
-% in the left variables (ns) and right variables (nt).
+% in the left variables (ns) and right variables (nt), and prints the
+% matrix in the command window.
 %
-% INPUT
+% INPUTS
 % - obj:    'quadPoly' object;
 %
-% OUTPUT
-% - none: the entries of obj are printed in the command window.
+% NOTES
+% - Coefficients are shown with 2 significant digits. In the name of a
+%   right variable, a leading t is shown as the symbol theta; trailing
+%   digits of variable names are shown as subscripts.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - disp
@@ -41,7 +45,7 @@ function disp(obj)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 % Print the formatted matrix
 fprintf('%s\n', format(obj));
@@ -51,10 +55,10 @@ function s = format(obj)
 % S = FORMAT(OBJ) returns the display of the 'quadPoly' OBJ, each entry a
 % sum of monomials in the left and right variables.
 %
-% INPUT
+% INPUTS
 % - obj:    'quadPoly' object of dimension [m,n];
 %
-% OUTPUT
+% OUTPUTS
 % - s:      string, a title line and one line per row of the matrix.
 m  = obj.dim(1);
 n  = obj.dim(2);
@@ -129,12 +133,12 @@ end
 function e = tensorExpAt(Zcell, idx)
 %TENSOREXPAT Return exponent vector for tensor basis index idx (1-based).
 %
-% INPUT
+% INPUTS
 % - Zcell:  1 x k cell, each Zcell{q} is an exponent list for variable q;
-% - idx:    positive integer, linear index in the Kronecker basis ordering
-%           consistent with MATLAB kron, i.e., last variable varies fastest;
+% - idx:    positive integer, linear index in the Kronecker basis
+%           ordering of MATLAB kron (the last variable varies fastest);
 %
-% OUTPUT
+% OUTPUTS
 % - e:      k x 1 exponent vector aligned with Zcell order.
 
 k = numel(Zcell);
@@ -162,13 +166,13 @@ function ms = monomStr(e, names, greekTheta)
 % with exponents E in the variables NAMES (x1, x2, ... if empty), with
 % subscripts and superscripts.
 %
-% INPUT
-% - e:          1 x k array of exponents;
+% INPUTS
+% - e:          k x 1 array of exponents;
 % - names:      1 x k cellstr of variable names;
-% - greekTheta: logical, true to display a name starting with t (or
-%               theta) with the symbol theta;
+% - greekTheta: logical, true to display a leading t of a name as the
+%               symbol theta;
 %
-% OUTPUT
+% OUTPUTS
 % - ms:         string, "1" for the constant monomial.
 if isempty(names)
     names = arrayfun(@(k) sprintf('x%d',k), 1:numel(e), 'UniformOutput', false);
@@ -216,11 +220,11 @@ function ts = termStr(a, ms, mt)
 % TS = TERMSTR(A,MS,MT) returns the string of the term a*ms*mt, for the
 % coefficient A and the monomial strings MS (left) and MT (right).
 %
-% INPUT
+% INPUTS
 % - a:      scalar coefficient;
 % - ms, mt: strings of the left and right monomials;
 %
-% OUTPUT
+% OUTPUTS
 % - ts:     string of the term.
 % Product of the nonconstant monomials
 if ms=="1" && mt=="1"
@@ -256,10 +260,10 @@ function expr = joinTerms(terms)
 % EXPR = JOINTERMS(TERMS) joins the term strings TERMS into a sum, with
 % the signs of negative terms, skipping the terms "0".
 %
-% INPUT
+% INPUTS
 % - terms:  string array of terms;
 %
-% OUTPUT
+% OUTPUTS
 % - expr:   string of the sum.
 % Skip zero terms; append a negative term as a subtraction
 expr = "";

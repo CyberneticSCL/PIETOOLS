@@ -1,7 +1,7 @@
 function dRop = diff(Rop,vars,d)
 % DROP = DIFF(ROP,VARS,D) takes the composition of the tensor-PI operator
 % ROP with a Dth order differential operator in variables VARS
-%   DROP = d^D/(d vars^D) o ROP
+%   DROP = d^D/(d vars^D) * ROP
 % VARS and D can be row vectors to simultaneously differentiate with
 % respect to multiple variables. D can also be a column vector or matrix to
 % take multiple derivatives, concatenated vertically.
@@ -10,34 +10,34 @@ function dRop = diff(Rop,vars,d)
 % - Rop:    m x n 'tensopvar' object representing a tensor-PI operator;
 % - vars:   1 x r 'cellstr' or 'polynomial' (pvar) array specifying the
 %           names of the spatial variables with respect to which to take
-%           the derivative;
+%           the derivative (a 'char' for r=1);
 % - d:      (optional) p x r array of nonnegative integers specifying the
 %           order of the derivatives to be taken with respect to each of
-%           the spatial variables. Defaults to 1;
+%           the spatial variables. A scalar is used for all variables.
+%           Defaults to 1;
 %
 % OUTPUTS
-% - dRop:   m*p x n 'tensopvar' representing the composition of the
-%           requested differential operator with the tensor-PI operator
-%           Rop;
+% - dRop:   m*p x n 'tensopvar' object representing the composition of
+%           the requested differential operator with the tensor-PI
+%           operator Rop;
 %
 % NOTES
-% - For derivatives of higher order, or in multiple variables, the general
-%   Leibniz rule is used: d^D(f1*...*fJ) is the sum over all splits a of
-%   the derivatives over the factors (a(j,k) the order of factor j in the
-%   kth variable), with the multinomial coefficient, for each variable,
-%       D!/(a(1,k)!...a(J,k)!)
-%   times the product of the derivatives d^a(j,:) fj. Terms in which a
-%   factor that does not depend on the variable is differentiated are
+% - The derivative of a product of factors follows the general Leibniz
+%   rule: dRop has a term for each split of the orders D over the
+%   factors, with orders a(j,k) of factor j in the kth variable, scaled by
+%   the multinomial coefficients D(k)!/(a(1,k)!...a(J,k)!). Terms in which
+%   a factor is differentiated in a variable it does not depend on are
 %   zero, and are dropped;
-% - The factors are differentiated with 'diff' for 'sopvar', so a factor
-%   with a multiplier part in a differentiated variable throws an error;
+% - A factor whose derivative is not a PI operator, e.g. one with a
+%   multiplier part in a differentiated variable, gives an error;
 % - A nested factor (a 'tensopvar' object as factor of Rop) is
 %   differentiated recursively, by the same Leibniz rule applied to its own
 %   factors. Its derivative is again a nested factor, which can have more
 %   terms than the factor itself;
-% - Type-2 tensor products of the outputs of multiple factors are not
-%   supported, as the outputs depend on different copies of the variable.
-%   This holds at every level of nesting;
+% - The factors must be 'sopvar' or 'tensopvar' objects. A tensor product
+%   of the outputs of multiple factors (otype(1)=2) is not supported, as
+%   the outputs depend on different copies of the variable. This holds at
+%   every level of nesting;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,19 +91,19 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function [dRop,is_zero] = diff_tensopvar(Rop,vars,d)
 % [DROP,IS_ZERO] = DIFF_TENSOPVAR(ROP,VARS,D) returns the derivative of the
-% tensor-PI operator ROP, for VARS a 1 x r cellstr of unique names and D a
-% p x r array of nonnegative integers.
+% tensor-PI operator ROP, for VARS a 1 x r 'cellstr' of unique names and D
+% a p x r array of nonnegative integers.
 % IS_ZERO is true if the derivative is known to be zero, and DROP then is
 % the zero operator.
 %
-% INPUT
+% INPUTS
 % - Rop:      'tensopvar' object;
-% - vars:     1 x r cellstr of variable names;
+% - vars:     1 x r 'cellstr' of variable names;
 % - d:        p x r array of nonnegative derivative orders;
 %
-% OUTPUT
-% - dRop:     'tensopvar' object, the derivative;
-% - is_zero:  logical.
+% OUTPUTS
+% - dRop:     'tensopvar' object, the p derivatives stacked vertically;
+% - is_zero:  'logical', true if dRop is known to be zero.
 if ~Rop.chkval
     Rop = initialize(Rop);
 end
@@ -261,21 +261,23 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function C = stack_nested(B,is_valid)
-% C = STACK_NESTED(B,IS_VALID) returns the vertical concatenation of the
-% nested operators B{rr}, rr=1,...,p, with zero rows for rr with
-% IS_VALID(rr)=false (vertcat of 'tensopvar' objects returns a 'tensopmat').
-% The operators B{rr} can have different terms, so the stack is the sum of
-% the operators [0;..;B{rr};..;0], each term of which is the stack of
-%   [0;F1] .* [F2;F2] .* ...
-% for a pointwise product, so that the term is zero outside of block row rr.
-% Differentiation does not change the dimensions and variables of nested
-% factors, so all B{rr} have the same number of columns.
+% C = STACK_NESTED(B,IS_VALID) returns, as a 'tensopvar' object, the
+% vertical concatenation of the nested operators B{rr}, rr=1,...,p, with
+% zero rows for each rr with IS_VALID(rr)=false (vertcat of 'tensopvar'
+% objects returns a 'tensopmat'). The operators B{rr} can have different
+% terms, so the stack is the sum of the operators [0;..;B{rr};..;0], each
+% term of which is the stack of
+%   [0;..;F1;..;0] .* [F2;..;F2] .* ...
+% for a pointwise product, so that the term is zero outside of block row
+% rr.
 %
-% INPUT
-% - B:        1 x p cell of nested 'tensopvar' operators;
-% - is_valid: 1 x p logical array;
+% INPUTS
+% - B:        p x 1 cell of nested 'tensopvar' operators with the same
+%             number of columns and variables (derivatives of the same
+%             factor); B{rr} is not used if IS_VALID(rr) is false;
+% - is_valid: p x 1 'logical' array;
 %
-% OUTPUT
+% OUTPUTS
 % - C:        'tensopvar' object, the stack.
 p = numel(B);
 rr_valid = find(is_valid(:))';

@@ -4,29 +4,20 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 %
 % INPUTS
 % - Aop:    p x m 'intop' object representing a PI functional;
-% - Bop:    m x n 'tensopvar' object representing a tensor-PI operator.
-%           The factors of Bop may be 'tensopvar' objects themselves, e.g.
+% - Bop:    m x n 'tensopvar' object representing a tensor-PI operator,
+%           with Bop.vars.out, Bop.dom.out, and Bop.deps.out equal to
+%           Aop.vars.in, Aop.dom.in, and Aop.depmat.in. The factors of Bop
+%           are 'sopvar' objects, or 'tensopvar' objects themselves, e.g.
 %           the pointwise product of operators as a factor in a Kronecker
-%           product, see get_params;
+%           product;
 %
 % OUTPUTS
 % - Cop:    p x n 'intop' object representing the composition of Aop and
-%           Bop;
+%           Bop, with the decision variables Aop.Zd;
 %
 % NOTES
-% - Elementwise products of the input states of Bop (Bop.otype(2)=1) are
-%   not supported.
-% - The coefficients of Aop are taken directly from the sparse matrices
-%   Aop.params, in the monomials Aop.Z.in. These form a tensor product over
-%   the variables, but not over the dummy variables of each variable, so
-%   they are first embedded in the tensor product over all dummy variables.
-% - The composition is computed on the coefficients, represented as structs
-%   with fields i,j,v,m,n (the nonzero values and their row and column
-%   indices). The coefficients of Cop are declared as sparse matrices in
-%   the monomials of the dummy variables of Cop, with the decision
-%   variables Aop.Zd.
-% - Monomials that are not used by any of the integrals of Cop are removed
-%   from the monomials Cop.Z.in.
+% - Elementwise products of the input states of Bop (Bop.otype(2)=1), and
+%   factors of Bop of type 'intop', are not supported.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - mtimes_tensopvar
@@ -53,12 +44,12 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that the functional is properly specified.
 if ~isa(Aop,'intop')
     error("Functional must be specified as an object of type 'intop'.")
-elseif ~Aop.chkval || ~isvalid(Aop)
+elseif ~Aop.chkval && ~isvalid(Aop)
     error("Operation is not supported: The functional is not properly declared.")
 end
 
@@ -539,7 +530,7 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function [params,intmat] = get_params(Rop,vars,varnames,dtot,degs_out,degs_in,prune)
 % Extract the parameters and intervals of integration defining the
-% tensor-PI operator Rop
+% tensor-PI operator Rop.
 %
 % INPUTS
 % - Rop:        'tensopvar' object representing a tensor-PI operator;
@@ -555,17 +546,30 @@ function [params,intmat] = get_params(Rop,vars,varnames,dtot,degs_out,degs_in,pr
 %               names of the dummy variables associated with each spatial
 %               input variable to the operator;
 %        out:   1 x M cell, with each element a cellstr specifying the
-%               names of the dummy variables associated with each spatial
-%               output variable to the operator;
-% - dtot:       1 x N3 array specifying the total degree of each of the
-%               3-PI variables as it appears in the operator
+%               names of the copies of each spatial output variable of the
+%               operator;
+% - dtot:       1 x N3 array of integers, for each 3-PI variable the number
+%               of its output copies plus its input dummy variables;
 % - degs_out,degs_in:   (optional) 1 x M and 1 x N arrays of integers, with
-%               for each output and input variable the index of the dummy
-%               variable associated with the first factor in Rop. Default
-%               to ones, but differ for a nested operator (see below);
-% - prune:      (optional) boolean, set to false to retain the parameters
+%               for each output and input variable the index of the copy,
+%               resp. dummy variable, used by the first factor in Rop.
+%               Default to ones, but differ for a nested operator;
+% - prune:      (optional) logical, set to false to retain the parameters
 %               for all of the integrals defining the factors, also if they
 %               are zero in each term. Defaults to true;
+%
+% OUTPUTS
+% - params:     struct (a 'quadPoly' with cell coefficients) with fields
+%               'C' (q1 x ... x qN3 cell of sparse coefficient matrices,
+%               for qi the number of rows of intmat{i}), 'Zs'/'Zt' (shared
+%               monomial bases), 'dim', 'ns'/'nt';
+% - intmat:     1 x N3 cell indicating the intervals of integration along
+%               each of the 3-PI type variables in the operator. Element
+%               intmat{i} is a qi x 2*di array of integers, for di the
+%               number of input dummy variables of variable i, specifying
+%               the lower and upper limit of each, with 0 and dtot(i)+1
+%               denoting the boundaries of the domain, and 1,...,dtot(i)
+%               the output copies followed by the input dummy variables;
 %
 % NOTES
 % - A factor of Rop may be a 'tensopvar' object itself, e.g. the pointwise
@@ -575,18 +579,7 @@ function [params,intmat] = get_params(Rop,vars,varnames,dtot,degs_out,degs_in,pr
 %   then extracted by recursion, continuing the numbering of the dummy
 %   variables for the factors preceding it: the factors of a pointwise
 %   product share the output dummy variable, but have a different input
-%   dummy variable, which is what the products of the parameters use;
-%
-% OUTPUTS
-% - params:     struct (a 'quadPoly' with cell coefficients) with
-%               fields 'C' (n_ints{1} x ... x n_ints{N3} cell of sparse
-%               coefficient matrices), 'Zs'/'Zt' (shared monomial bases),
-%               'dim', 'ns'/'nt';
-% - intmat:     1 x N3 cell indicating the intervals of integration along
-%               each of the 3-PI type variables in the operator. 
-%               Element intmat{i} is a n_ints{i} x 2*dtot(i) array of 
-%               integers, specifying the upper and lower bounds of the
-%               interval of integration for each variable
+%   dummy variable, which is what the products of the parameters use.
 %
 
 % Extract the individual factors defining the operator
@@ -691,7 +684,7 @@ for i=1:ntrms
                 degs_in_j(idcs_in) = degs_in_j(idcs_in)+degs_N.in(idcs_N);
             end
         elseif isa(ops{i,j},'intop')
-            error("This case is currently not supported.")
+            error("Composition with a 'tensopvar' that has a functional ('intop') as factor is not supported.")
         else
             % % The operator is specified as 'sopvar' object
             % Extract the variables defining the operator
@@ -831,23 +824,20 @@ function P = int_params(P,intmat,pvars)
 % Integrate P over the domain specified by intmat.
 %
 % INPUTS
-% - P:      'quadPoly' object to integrate
-% - intmat: 1 x 2*d array of integers, specifying intervals of integration
-%           in `intop` format;
-% - pvars:  1 x d+2 cellstr array, specifying the names of the variables
-%           defining the limits of integration, where pvars(2:end-1) are
-%           the actual variable names, and pvars(1), pvars(end) define the
-%           lower and upper boundaries of the domain on which the variable
-%           exist;
+% - P:      'quadPoly' object to integrate;
+% - intmat: 1 x 2*d array of integers, specifying the intervals of
+%           integration of d variables, as a row of the field intmat of an
+%           'intop' object;
+% - pvars:  1 x (d+2) cell, with pvars(2:end-1) the names of the d
+%           variables, and pvars{1} and pvars{end} the lower and upper
+%           boundaries of the domain on which these variables exist;
 %
 % OUTPUTS
-% - P:      'quadPoly' object representing the desired integral of the
-%           input P. Integration is performed with respect to each of the
-%           variables listed in pvars(2:end-1), where variable pvars(i+1)
-%           is integrated over domain pvars(intmat(2*i-1)) up to 
-%           pvars(intmat(2*i)). If the upper and lower limits match, the
-%           variable is evaluated at pvars(intmat(2*i)) instead (as per
-%           'intop' format);
+% - P:      'quadPoly' object representing the integral of the input P,
+%           in which each variable pvars(i+1) is integrated from
+%           pvars(intmat(2*i-1)+1) to pvars(intmat(2*i)+1). If these
+%           limits match, the variable is evaluated at
+%           pvars(intmat(2*i)+1) instead;
 
 % Split lower and upper boundaries of the domains
 int_order = get_int_order(intmat);
@@ -879,12 +869,14 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function [coeffs,ZL,ZR] = quad_expand_quadPoly(params,varnames)
-% Express all parameters in the cell in terms of the same basis of
-% monomials Z, so that params{k} = ZL*coeffs{k}*ZR;
+% Express all parameters in terms of the same bases of monomials, so that
+% params{k} = (I_m o ZL)*coeffs{k}*(I_n o ZR) for m x n params{k}, with o
+% the Kronecker product.
 %
 % INPUTS
-% - params:     cell of 'quadPoly' objects, or a struct representing a
-%               'quadPolyCell' object, with the parameters;
+% - params:     cell of 'quadPoly' objects, a 'quadPoly' object, or a
+%               struct representing a 'quadPoly' object with a cell of
+%               coefficients C, with the parameters;
 % - varnames:   struct with fields 'in' and 'out', specifying the names of
 %               the input and output variables of the parameters;
 %
@@ -895,6 +887,10 @@ function [coeffs,ZL,ZR] = quad_expand_quadPoly(params,varnames)
 % - ZL,ZR:      'quadPoly' objects representing the monomial bases in the
 %               output variables, as a row, and in the input variables, as
 %               a column;
+%
+% NOTES
+% - For a 'quadPoly' or struct input, its variables params.ns and params.nt
+%   must equal varnames.out and varnames.in.
 %
 
 % Get the coefficients and monomial degrees defining the operator
@@ -962,18 +958,18 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function B = mtimes_kronR(A,C)
-% Compute the product A*(Im o C) for A a coefficient matrix or 'dpvar'
-% object, C a sparse coefficient matrix, and o the Kronecker product
-% NOTE: A and C should be specified as structs, representing sparse
-% matrices (or dpvar objects) by the nonzero values and the row/column
-% indices in which they appear
+% Compute the product B = A*(I_m o C) of sparse matrices given as structs
+% with fields i, j, v, m, n (row indices, column indices and values of
+% the nonzeros, and size), for o the Kronecker product and m = A.n/C.m.
+% A 1 x 1 matrix A is a scalar factor: B = A*C.
 %
-% INPUT
-% - A:      'struct' of a sparse matrix or 'dpvar' (fields i, j, v, m, n);
+% INPUTS
+% - A:      'struct' of a sparse matrix, e.g. the coefficients of a
+%           'dpvar' (fields i, j, v, m, n);
 % - C:      'struct' of a sparse coefficient matrix;
 %
-% OUTPUT
-% - B:      'struct' of the product A*(Im o C).
+% OUTPUTS
+% - B:      'struct' of the product A*(I_m o C).
 
 % Get the dimension of the coefficient matrices and identity matrix
 n = C.m;    p = C.n;
@@ -1048,17 +1044,15 @@ end
 
 
 function C = mtimes_kronL(A,B,n)
-% Compute the product A*(B o I_n) of sparse coefficient matrices, specified
-% as structs, with o the Kronecker product, without forming (B o I_n),
-% which has nnz(B)*n nonzeros: column (b-1)*n+z of A (block b, monomial z)
-% is mapped to the columns (j-1)*n+z for the nonzeros (b,j) of B, so the
-% join is over the rows of B only
+% Compute the product C = A*(B o I_n) of sparse matrices given as structs
+% with fields i, j, v, m, n, for o the Kronecker product.
 %
-% INPUT
-% - A, B:   'struct' of sparse matrices (fields i, j, v, m, n);
+% INPUTS
+% - A, B:   'struct' of sparse matrices (fields i, j, v, m, n), with
+%           A.n = n*B.m;
 % - n:      integer, the size of the identity I_n;
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'struct' of the product A*(B o I_n).
 
 % Multiplication with 0 returns 0
@@ -1099,12 +1093,12 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function C = mtimes_spstruct(A,B)
 % Take the matrix product of two sparse matrices, specified as structs with
-% fields i, j, v, m, n;
+% fields i, j, v, m, n. A may also be the 'double' 1, giving C = B.
 %
-% INPUT
+% INPUTS
 % - A, B:   'struct' of sparse matrices (fields i, j, v, m, n);
 %
-% OUTPUT
+% OUTPUTS
 % - C:      'struct' of the product A*B.
 
 % The first factor can be 1, the initial value of a product
@@ -1149,14 +1143,16 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function C = plus_spstruct(A,B)
-% Take the sum of two sparse matrices, specified as structs with
-% fields i, j, v, m, n;
+% Take the sum of two sparse matrices, specified as structs with fields
+% i, j, v, m, n. A may also be the 'double' 0, giving C = B.
 %
-% INPUT
+% INPUTS
 % - A, B:   'struct' of sparse matrices of the same size;
 %
-% OUTPUT
-% - C:      'struct' of the sum A+B.
+% OUTPUTS
+% - C:      'struct' of the sum A+B. Its positions (i,j) may repeat, the
+%           values then adding up; the field nref counts the entries after
+%           the last summation of repeated positions.
 
 % The first term can be 0, the initial value of a sum
 if isequal(A,0)
@@ -1206,21 +1202,19 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function intmat = switch_ints(intmat,varsA)
-% INTMAT = SWITCH_INTS(INTMAT,VARA) takes a set of intervals of
+% INTMAT = SWITCH_INTS(INTMAT,VARSA) takes a set of intervals of
 % integration for some variables s1,...,sd in [a,b], and declares a new set
 % of intervals that add up to the same integral, but now with none of the
-% limits of integration involving varsA(end)
+% limits of integration involving varsA(end).
 %
 % INPUTS
-% - intmat: 1 x 2*d array of integers ranging from 0 to d+1, with elements
-%           (i,i+1) for in 1:2:2*d-1 specifying the lower and upper limits
-%           of the interval of integration of variable i. Here
-%           intmat(2*i-1,2*i) = [l,u] implies si is integrated over
-%           [sl,su], where we set s0=a and sd = b;
+% - intmat: 1 x 2*d array of integers ranging from 0 to d+1, with
+%           intmat([2*i-1,2*i]) = [l,u] implying that si is integrated
+%           over [sl,su], where s0=a and s_{d+1}=b;
 % - varsA:  1 x m array for m<=d specifying which variables should not
 %           appear in the limit of integration. If m>1, only the last
 %           variable is actively removed from the limits of integration,
-%           and the variables varA(1:end-1) are assumed to have been
+%           and the variables varsA(1:end-1) are assumed to have been
 %           removed in an earlier call to this function, and are therefore
 %           ignored here;
 %
@@ -1229,7 +1223,7 @@ function intmat = switch_ints(intmat,varsA)
 %           integration, so that the sum of the integrals (with the same
 %           kernel) returns the same integral as specified by the input
 %           intmat, but now with none of the limits of integration
-%           involving varA(end);
+%           involving varsA(end);
 %           
 
 
@@ -1335,11 +1329,11 @@ function intmat = canonical_intmat(intmat)
 % Express the integrals as int_{a}^{si}
 %
 % INPUTS
-% - intmat: n x 2*d array of integers specifying intervals of integration
-%           per 'intop' format'. At least one of the integrals must be over
-%           the full spatial interval [a,b] of the variable 
-%           (intmat(i,2*j-1)=0 and intmat(i,2*j)=d+1 for some j=j(i) in 
-%           each row i);
+% - intmat: n x 2*d array of integers specifying intervals of integration,
+%           as the rows of the field intmat of an 'intop' object. At least
+%           one of the integrals must be over the full spatial interval
+%           [a,b] of the variable (intmat(i,2*j-1)=0 and intmat(i,2*j)=d+1
+%           for some j=j(i) in each row i);
 %
 % OUTPUTS
 % - intmat: n x 2*d array of integers, specifying the same full domain of
@@ -1348,8 +1342,8 @@ function intmat = canonical_intmat(intmat)
 %           interval;
 %
 % NOTES
-% - Only works for the particular setting considered in `mtimes_tensopvar`,
-% may not work for more general cases;
+% - Only works for the particular setting considered in
+%   'mtimes_tensopvar', and may not work for more general cases.
 %
 % EXAMPLE
 % For intmat = [0,4,0,3,1,4], we have the integral
@@ -1396,10 +1390,8 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function out = hcat_cellstr(c)
 % OUT = HCAT_CELLSTR(C) horizontally concatenates a 1 x K cell of cellstr
-% objects, C{1},...,C{K}, always returning a cellstr -- unlike the plain
-% '[c{:}]', which degrades to a 0x0 double (not a 1x0 cell) whenever C
-% itself has zero elements, since '[ ]' with no expanded arguments
-% defaults to double.
+% objects, C{1},...,C{K}, always returning a cellstr: a 1 x 0 cell if C
+% is empty.
 %
 % INPUTS
 % - c:      1 x K cell, with each element a 1 x ni cellstr object;
@@ -1432,10 +1424,10 @@ function [Zgrid,Zdegs] = grid_basis(Zin)
 % the array of all combinations of the degrees ZDEGS of the dummy variables
 % of variable i, the first dummy variable changing slowest.
 %
-% INPUT
+% INPUTS
 % - Zin:    1 x N cell of arrays of monomial degrees;
 %
-% OUTPUT
+% OUTPUTS
 % - Zgrid:  1 x N cell of arrays of all combinations of the degrees;
 % - Zdegs:  cell of column vectors, the degrees in each dummy variable.
 
@@ -1463,10 +1455,10 @@ function Zgrid = cartesian_grid(Dk)
 % degrees in the cell DK of column vectors, one column for each of the
 % cells, the first changing slowest.
 %
-% INPUT
+% INPUTS
 % - Dk:     cell of column vectors of degrees;
 %
-% OUTPUT
+% OUTPUTS
 % - Zgrid:  array of all combinations, a column per cell.
 
 Zgrid = zeros(1,0);

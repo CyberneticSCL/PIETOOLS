@@ -3,9 +3,9 @@ function Top = sopvar2tensopvar(Pop,type)
 % representing the same operator as the input 'sopvar' object POP.
 %
 % INPUTS
-% - Pop:    m x n 'sopvar' object representing a PI operator, or a cell
-%           array of operators specifying the factors (columns) in each
-%           term (row) of a tensor-PI operator;
+% - Pop:    m x n 'sopvar' object representing a PI operator, or a 'cell'
+%           of operators specifying the factors (columns) in each term
+%           (row) of a tensor-PI operator;
 % - type:   (optional) 1 x 2 array of integers 1 or 2, specifying the type
 %           of product of the factors to take along the row (type(1)) and
 %           column (type(2)) dimensions, where 1 means an elementwise

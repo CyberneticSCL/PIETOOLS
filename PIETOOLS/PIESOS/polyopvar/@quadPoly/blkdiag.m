@@ -1,20 +1,20 @@
 function Fdiag = blkdiag(varargin)
-% F = blkdiag(varargin) generates a block diagonal quadpoly objects using
-% varargs as the blocks on the diagonal
-% 
+% FDIAG = BLKDIAG(VARARGIN) generates a block diagonal 'quadPoly' object
+% with the inputs as the blocks on the diagonal.
+%
 % INPUTS
-% - varargin:   'quadpoly' class objects.
-% 
+% - varargin:   'quadPoly' objects, or numeric matrices (treated as
+%               constant quadPoly);
+%
 % OUTPUTS
-% - Fdiag:      'quadpoly' object with each of the parameters definined as the
-%               block diagonal concatenation of the input quadpoly
-% 
-% NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
+% - Fdiag:      'quadPoly' object, the block diagonal concatenation of
+%               the inputs in the union of their monomial bases; a single
+%               input is returned unchanged.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - blkdiag
+%
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -30,12 +30,13 @@ function Fdiag = blkdiag(varargin)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% AT, 02/18/2026: Initial coding;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% AT, DJ, 11/24/2026: Initial coding;
 
 if nargin==1
     Fdiag=varargin{1};
@@ -44,7 +45,7 @@ else % sequentially creating a block diagonal matrix
     for k = 1:nargin
         if isa(varargin{k},'quadPoly')
             Q{k} = varargin{k};
-        elseif isnumeric(X)
+        elseif isnumeric(varargin{k})
             A = sparse(varargin{k});
             Q{k} = quadPoly(A, {}, {}, size(A), {}, {});
         else

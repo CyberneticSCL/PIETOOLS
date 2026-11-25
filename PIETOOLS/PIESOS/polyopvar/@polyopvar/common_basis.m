@@ -1,24 +1,21 @@
 function [A_out,B_out] = common_basis(A_in,B_in)
-% [A_OUT,B_OUT] = COMMON_BASIS(A_IN,B_IN) takes two distributed polynomials
-% and expresses them in terms of the same basis of distributed monomials.
+% [A_OUT,B_OUT] = COMMON_BASIS(A_IN,B_IN) expresses two distributed
+% polynomials in terms of the same distributed monomials.
 %
 % INPUTS
-% - A_in, B_in:     m x n 'polyopvar' objects;
+% - A_in, B_in:     'polyopvar' objects, not adjoints;
 %
 % OUTPUTS
-% - A_out, B_out:   m x n 'polyopvar' objects representing the same
-%                   distributed polynomials as A_in, B_in, respectively,
-%                   but expressed in terms of the same basis of
-%                   monomials, so that
+% - A_out, B_out:   'polyopvar' objects representing the same
+%                   polynomials as A_in, B_in, respectively, with
 %                       A_out.varname = B_out.varname;
 %                       A_out.Z = B_out.Z;
 %                       A_out.vars = B_out.vars;
-%                       A_out.depmat = B_out.depmat;
+%                       A_out.depmat.in = B_out.depmat.in;
 %
 % NOTES
-% - If a polynomial has several terms with the same monomial (equal rows
-%   of Z), the operators acting on them are added, so that A_out, B_out
-%   have unique monomials.
+% - Operators acting on equal monomials (rows of Z) of the same
+%   polynomial are added, so that A_out, B_out have unique monomials.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -103,16 +100,17 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
 function ops_new = place_ops(ops,idcs,nZ)
-% Place column k of the cell array OPS in column IDCS(k) of an array with NZ columns. If the monomials
-% of several columns are equal (duplicates in Z), the operators acting on them are added.
+% OPS_NEW = PLACE_OPS(OPS,IDCS,NZ) places column k of the 'cell' OPS in
+% column IDCS(k) of a 'cell' with NZ columns, adding the operators of
+% columns placed in the same column (equal monomials).
 %
-% INPUT
-% - ops:      cell of operators, a column per monomial;
-% - idcs:     array, the new column of each column of ops;
+% INPUTS
+% - ops:      nr x n 'cell' of operators, a column per monomial;
+% - idcs:     n x 1 array, the new column of each column of ops;
 % - nZ:       integer, the number of columns of the result;
 %
-% OUTPUT
-% - ops_new:  cell with nZ columns.
+% OUTPUTS
+% - ops_new:  nr x nZ 'cell' of operators.
 ops_new = cell(size(ops,1),nZ);
 ops_new(:,idcs) = ops;
 [u,~,ic] = unique(idcs);

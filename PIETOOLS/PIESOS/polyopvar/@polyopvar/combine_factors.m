@@ -1,42 +1,30 @@
 function f = combine_factors(f)
-% F = COMBINE_FACTORS(F) combines consecutive factors of the operators
-% acting on the monomials of F that are multipliers from R, i.e. that are
-% associated with consecutive zeros in F.Z, into a single factor, e.g.
+% F = COMBINE_FACTORS(F) combines each run of consecutive factors of the
+% operators acting on a monomial of F that are multipliers from R
+% (consecutive zeros in F.Z) into a single factor, e.g.
 %   F.Z(i,:) = [1,0,0,2]  -->  F.Z(i,:) = [1,0,2].
 %
 % INPUTS
-% - f:      'polyopvar' object representing a distributed polynomial,
-%           possibly with factors that are multipliers from R;
+% - f:      'polyopvar' object;
 %
 % OUTPUTS
-% - f:      'polyopvar' object representing the same distributed
-%           polynomial, but with each run of consecutive factors that are
-%           multipliers from R in the operators acting on a monomial
-%           replaced by a single factor. The multiplier of this factor is
-%           the elementwise product of the multipliers in the run, mapping
-%           to the function space of all variables on which any factor in
-%           the run depends (the maximum of the dependency arrays of the
-%           factors). The zeros in the monomial that correspond to the run
-%           are replaced by a single zero;
+% - f:      'polyopvar' object representing the same polynomial. A run is
+%           replaced by the multiplier from R by the elementwise product
+%           of the functions of its multipliers, in all variables on
+%           which any of them depends;
 %
 % NOTES
-% - Except as in the next note, only 'tensopvar' operators with
-%   otype(1)=1 are supported, i.e. for which the outputs of the factors
-%   are multiplied pointwise (the product of the multipliers is then the
-%   multiplier of the product of the factors). Nested 'tensopvar'
-%   factors, and multipliers depending on decision variables, are not
-%   supported either. A monomial acted on by such an operator (in any of
-%   the rows of F.C) is left as it is, no error is thrown, and the other
-%   monomials are still reduced.
-% - A monomial of which all factors act on the constant state (no state in
-%   F.Z(i,:), all zeros) is not reduced to a single factor, but to a
-%   single block of type 'polynomial' in each of the rows of F.C, a known
-%   function, by converting the operators acting on it
-%   (tensopvar2polynomial), which also supports a Kronecker product of
-%   the factors in different variables. If an operator cannot be
-%   converted, the monomial is reduced as above, or left as it is.
-% - Monomials with no consecutive multipliers from R, and monomials acted
-%   on by functionals ('intop'), are left as they are.
+% - Only 'tensopvar' operators for which the outputs of the factors are
+%   multiplied pointwise (otype(1)=1) are supported, without nested
+%   'tensopvar' factors, and without decision variables in the
+%   multipliers. A monomial acted on by another operator (in any row of
+%   F.C) is left as it is, without error.
+% - A monomial without states (F.Z(i,:) all zeros) is instead reduced to
+%   a single block of type 'polynomial' in each row of F.C, if all
+%   operators acting on it can be converted (tensopvar2polynomial, which
+%   also supports a Kronecker product of factors in different
+%   variables). Otherwise, it is reduced as above, or left as it is.
+% - Monomials acted on by functionals ('intop') are left as they are.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,16 +129,17 @@ end
 
 
 function [col,is_done] = convert_column(col)
-% [COL,IS_DONE] = CONVERT_COLUMN(COL) converts each of the operators in the cell COL, the blocks acting
-% on a monomial of which all factors act on the constant state, to a polynomial (tensopvar2polynomial).
-% Blocks that are empty, or already of type polynomial/double/dpvar, are kept. IS_DONE is false, and COL
-% empty, if one block cannot be converted (as Z is the same for all blocks): then none is.
+% [COL,IS_DONE] = CONVERT_COLUMN(COL) converts each operator in COL, the
+% blocks acting on a monomial without states, to a 'polynomial'
+% (tensopvar2polynomial). Empty blocks, and blocks of type 'double',
+% 'polynomial' or 'dpvar', are kept. If one block cannot be converted,
+% none is, as all blocks act on the same monomial.
 %
-% INPUT
-% - col:      cell of the operators acting on one monomial;
+% INPUTS
+% - col:      nr x 1 'cell' of the operators acting on one monomial;
 %
-% OUTPUT
-% - col:      the converted cell ([] if a block cannot be converted);
+% OUTPUTS
+% - col:      the converted 'cell', or [] if a block cannot be converted;
 % - is_done:  logical, true if all blocks were converted.
 is_done = true;
 for r=1:numel(col)
@@ -168,18 +157,20 @@ end
 
 
 function [col,is_done] = combine_column(col,grp)
-% [COL,IS_DONE] = COMBINE_COLUMN(COL,GRP) combines the factors of the tensor-PI operators in the
-% cell COL, the blocks acting on a single monomial, such that factor j is combined with the
-% other factors with the same value GRP(j), which are consecutive multipliers from R. IS_DONE is
-% false, and COL empty, if this is not supported for one of the operators: with otype(1)=2, with
-% nested factors, or with multipliers that depend on decision variables.
+% [COL,IS_DONE] = COMBINE_COLUMN(COL,GRP) multiplies the factors j of the
+% tensor-PI operators in COL, the blocks acting on one monomial, that have
+% the same group GRP(j), consecutive multipliers from R, into one factor.
+% If this is not supported for one of the operators (otype(1)=2, nested
+% factors, or multipliers that depend on decision variables), none is
+% changed: IS_DONE is false and COL is [].
 %
-% INPUT
-% - col:      cell of the tensor-PI operators acting on one monomial;
-% - grp:      array, the group of each factor;
+% INPUTS
+% - col:      nr x 1 'cell' of the operators acting on one monomial;
+% - grp:      1 x n nondecreasing array of integers, the group of each of
+%             the n factors;
 %
-% OUTPUT
-% - col:      the cell with the factors combined ([] if not supported);
+% OUTPUTS
+% - col:      the 'cell' with the factors combined ([] if not supported);
 % - is_done:  logical, true if all operators were combined.
 is_done = true;
 ng = grp(end);
@@ -230,16 +221,19 @@ end
 
 
 function [Pop,is_done] = multiply_multipliers(fctrs)
-% [POP,IS_DONE] = MULTIPLY_MULTIPLIERS(FCTRS) takes a 1 x L cell of multipliers from R to L2,
-% 'sopvar' objects, and returns the multiplier from R to L2 of the elementwise product of the
-% functions that they map the dummy input 1 to, in the variables on which any of them depends.
-% IS_DONE is false if a factor is no multiplier from R, or depends on decision variables.
+% [POP,IS_DONE] = MULTIPLY_MULTIPLIERS(FCTRS) returns the multiplier
+% from R that maps 1 to the elementwise product of the functions to which
+% the multipliers FCTRS map 1, in all variables on which any of them
+% depends. IS_DONE is false if a factor is not a multiplier from R
+% ('sopvar' with one column and no input variables), or depends on
+% decision variables.
 %
-% INPUT
-% - fctrs:    1 x L cell of 'sopvar' multipliers from R;
+% INPUTS
+% - fctrs:    1 x L 'cell' of 'sopvar' multipliers from R;
 %
-% OUTPUT
-% - Pop:      'sopvar' multiplier of the product ([] if not supported);
+% OUTPUTS
+% - Pop:      'sopvar' multiplier from R of the product ([] if not
+%             supported);
 % - is_done:  logical, true if the product was formed.
 is_done = true;     Pop = [];
 vars_out = cell(1,0);       dom_out = zeros(0,2);

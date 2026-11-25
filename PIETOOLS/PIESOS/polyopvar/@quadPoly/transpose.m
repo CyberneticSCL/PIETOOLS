@@ -1,18 +1,18 @@
 function H = transpose(F)
-%transpose Transpose of quadPoly.
+%TRANSPOSE Transpose of quadPoly.
 %
 % If F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t)),
-% then H(s,t) = F(s,t)' is represented as
+% then H(s,t) = F(s,t).' is represented as
 %   H(s,t) = (I_n ⊗ Zs(s)^T) * Cnew * (I_m ⊗ Zt(t)),
 % using the SAME Zs/ns on the left and SAME Zt/nt on the right.
 %
-% Cnew is obtained by transposing only the outer (m×n) block structure of C,
-% while keeping the within-block (ds×dt) coordinates fixed.
+% Cnew is obtained by transposing only the outer (m x n) block structure
+% of C, keeping the within-block (ds x dt) coordinates fixed.
 %
-% INPUT
+% INPUTS
 % - F:      m x n 'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - H:      n x m 'quadPoly' object, F.'.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,7 +40,7 @@ function H = transpose(F)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 m  = F.dim(1);
 n  = F.dim(2);

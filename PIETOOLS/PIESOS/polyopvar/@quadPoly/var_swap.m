@@ -1,19 +1,22 @@
 function P = var_swap(P, var1, var2)
-%VAR_SWAP Swap one left variable's exponent with one right variable's exponent
-% in a quadPoly stored with tensor-product monomial bases (cell Zs/Zt).
+%VAR_SWAP Swap one left variable's exponent with one right variable's
+% exponent in a quadPoly stored with tensor-product monomial bases (cell
+% Zs/Zt).
 %
-% If var1 is not in P.ns, it is appended as a constant-only variable (degree 0).
-% If var2 is not in P.nt, it is appended as a constant-only variable (degree 0).
+% If var1 is not in P.ns, it is appended to P.ns as a constant-only
+% variable (degree 0), and likewise var2 to P.nt; an appended name is not
+% sorted into place.
 %
-% After swapping, redundant degrees are merged and C is remapped accordingly.
+% After swapping, each exponent list keeps only the degrees that appear,
+% and C is remapped accordingly.
 %
-% INPUT
-% - P:      'quadPoly' object;
-% - var1:   char, the name of a left variable (in P.ns or new);
-% - var2:   char, the name of a right variable (in P.nt or new);
+% INPUTS
+% - P:      m x n 'quadPoly' object;
+% - var1:   'char', the name of a left variable (in P.ns or new);
+% - var2:   'char', the name of a right variable (in P.nt or new);
 %
-% OUTPUT
-% - P:      'quadPoly' object with the exponents of var1 and var2
+% OUTPUTS
+% - P:      m x n 'quadPoly' object with the exponents of var1 and var2
 %           swapped.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,7 +44,7 @@ function P = var_swap(P, var1, var2)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/20/2026
+% SS, 01/20/2026: Initial coding;
 
     ns = P.ns; nt = P.nt;
     Zs = P.Zs; Zt = P.Zt;
@@ -162,10 +165,10 @@ function d = basisSize(Zcell)
 % product basis defined by the exponent vectors in ZCELL (an empty
 % element counts as the constant monomial).
 %
-% INPUT
+% INPUTS
 % - Zcell:  1 x k cell of exponent vectors;
 %
-% OUTPUT
+% OUTPUTS
 % - d:      positive integer, the product of their lengths (1 if empty).
     if isempty(Zcell), d = 1; return; end
     d = 1;
@@ -178,13 +181,14 @@ end
 
 function subs = tensorDecomp(idx, sizes)
 % SUBS = TENSORDECOMP(IDX,SIZES) returns the subscripts of the linear
-% indices IDX in an array of size SIZES, the last dimension varying fastest.
+% indices IDX in an array of size SIZES, the last dimension varying
+% fastest.
 %
-% INPUT
+% INPUTS
 % - idx:    vector of linear indices in 1..prod(sizes);
 % - sizes:  1 x k array of positive integers;
 %
-% OUTPUT
+% OUTPUTS
 % - subs:   length(idx) x k array of subscripts (1-based).
     idx = idx(:) - 1;
     k = numel(sizes);
@@ -200,11 +204,11 @@ function deg = subsToDegrees(subs, Zcell)
 % DEG = SUBSTODEGREES(SUBS,ZCELL) returns the degrees at the positions SUBS
 % in the exponent lists ZCELL (an empty list counts as the degree 0).
 %
-% INPUT
+% INPUTS
 % - subs:   L x k array of positions;
 % - Zcell:  1 x k cell of exponent vectors;
 %
-% OUTPUT
+% OUTPUTS
 % - deg:    L x k array of degrees.
     L = size(subs,1);
     k = size(subs,2);
@@ -220,11 +224,11 @@ function [Znew, posMap] = rebuildBasisFromDegrees(Zold, degUsed)
 % [ZNEW,POSMAP] = REBUILDBASISFROMDEGREES(ZOLD,DEGUSED) sets, for each
 % variable i, Znew{i} = unique(degUsed(:,i),'sorted') (0 if empty).
 %
-% INPUT
+% INPUTS
 % - Zold:     1 x k cell of exponent vectors (only its length is used);
 % - degUsed:  L x k array of the degrees used;
 %
-% OUTPUT
+% OUTPUTS
 % - Znew:     1 x k cell of sorted unique degree vectors;
 % - posMap:   1 x k cell of empty arrays (not filled).
     k = numel(Zold);
@@ -241,11 +245,11 @@ function subs = degreesToSubs(deg, Zcell)
 % SUBS = DEGREESTOSUBS(DEG,ZCELL) returns the positions of the degrees DEG
 % in the exponent lists ZCELL; a degree missing from its list is an error.
 %
-% INPUT
+% INPUTS
 % - deg:    L x k array of degrees;
 % - Zcell:  1 x k cell of exponent vectors;
 %
-% OUTPUT
+% OUTPUTS
 % - subs:   L x k array of positions in the lists of Zcell.
     L = size(deg,1);
     k = size(deg,2);
@@ -266,11 +270,11 @@ function idx = subv2lin_rows(subs, sizes)
 % subscripts SUBS in an array of size SIZES, the last dimension varying
 % fastest.
 %
-% INPUT
+% INPUTS
 % - subs:   L x k array of subscripts (1-based);
 % - sizes:  1 x k array of positive integers;
 %
-% OUTPUT
+% OUTPUTS
 % - idx:    L x 1 array of linear indices in 1..prod(sizes).
     L = size(subs,1);
     k = numel(sizes);

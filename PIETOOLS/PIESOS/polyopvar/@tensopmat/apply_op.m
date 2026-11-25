@@ -5,19 +5,20 @@ function Y = apply_op(Cop,X)
 %
 % INPUTS
 % - Cop:    'tensopmat' object with p x d blocks;
-% - X:      1 x d cell, with X{j} the input to which the blocks in column
-%           j are applied. For a block of type 'double', 'polynomial' or
-%           'dpvar', X{j} is a vector or matrix in R (or a 1 x 1 cell
-%           containing it), which the block multiplies. For an operator
-%           block, X{j} is the input passed to its 'apply_op' (to
-%           'apply_sopvar' for a 'sopvar');
+% - X:      1 x d 'cell', with X{j} the input to which the blocks in
+%           column j are applied. For a block of type 'double',
+%           'polynomial' or 'dpvar', X{j} is a vector or matrix in R (or
+%           a 1 x 1 cell containing it), which the block multiplies. For
+%           an operator block, X{j} is the input passed to its 'apply_op'
+%           (to 'apply_sopvar' for a 'sopvar');
 %
 % OUTPUTS
-% - Y:      polynomial array representing the vertical concatenation of
-%           the outputs of the p row-blocks;
+% - Y:      'polynomial' array (or 'dpvar', if a block depends on
+%           decision variables) representing the vertical concatenation
+%           of the outputs of the p row-blocks;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - apply_op (tensopmat)
+% PIETOOLS - apply_op
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -41,7 +42,7 @@ function Y = apply_op(Cop,X)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 if ~isa(Cop,'tensopmat')
     error("First argument must be of type 'tensopmat'.")
@@ -77,6 +78,10 @@ for i=1:p
             Yij = apply_op(Cop.ops{i,j},X{j});
         end
         Yi = Yi + Yij;
+    end
+    if all(cellfun('isempty',Cop.ops(i,:)))
+        % A row-block without operators is zero, of its row dimension
+        Yi = zeros(Cop.dims.out(i),1);
     end
     Yblocks{i} = Yi;
 end

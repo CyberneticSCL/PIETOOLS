@@ -1,18 +1,18 @@
 function H = vertcat(varargin)
-%vertcat Vertical concatenation [A; B; C; ...] for quadPoly.
+%VERTCAT Vertical concatenation [A; B; C; ...] for quadPoly.
 %
-% Inputs:
-%   varargin: cell structure of polynomials to be concatenated {A,B,C...}
+% INPUTS
+%   varargin: 'quadPoly' objects to be concatenated, A, B, C, ..., or
+%             numeric matrices (treated as constant quadPoly)
 %
-% Outputs:
-%   H: quadPoly object representing [A;B;C...]
-% Rules:
+% OUTPUTS
+%   H: quadPoly object representing [A;B;C;...]
+%
+% NOTES
 %   - All inputs must have the same number of columns (matrix dimension n).
-%   - Left variables (ns/Zs) stay on the left; right variables (nt/Zt) stay on the right.
+%   - Left variables (ns/Zs) stay on the left; right variables (nt/Zt)
+%     stay on the right.
 %   - Bases are merged (union) across all inputs before concatenation.
-%   - Uses unionBasis convention: Z_old = P * Z_union (row-pick), but we lift via maps.
-%
-% Supports mixing numeric matrices with quadPoly (numeric treated as constant quadPoly).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - vertcat
@@ -39,14 +39,14 @@ function H = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, DJ, 11/24/2026: Initial coding;
 
 % ---- Convert all inputs to quadPoly ----
 Q = cell(size(varargin));
 for k = 1:nargin
     if isa(varargin{k},'quadPoly')
         Q{k} = varargin{k};
-    elseif isnumeric(X)
+    elseif isnumeric(varargin{k})
         A = sparse(varargin{k});
         Q{k} = quadPoly(A, {}, {}, size(A), {}, {});
     else

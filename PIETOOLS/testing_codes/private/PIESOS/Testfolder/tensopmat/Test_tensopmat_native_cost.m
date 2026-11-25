@@ -10,13 +10,22 @@
 % except the sum, must not be more than a factor 20 slower (plus 0.2 s).
 % The sum of two 'dpvar' merges their lists of decision variables, which
 % is linear in q, and is only reported. The peak memory of the session is
-% reported and must stay below 4 GB.
+% reported and must stay below 4 GB, if this test raises it.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Check the peak memory only if this test raised it, so
+%   that earlier tests in the same session do not fail it;
 
 % NOTES
 % - The peak-memory check uses System.Diagnostics (.NET, Windows); where
 %   that is unavailable the check is skipped (pws=0).
+
+% Peak working set before this test: a later peak below it is not this test's
+try
+    pws0 = System.Diagnostics.Process.GetCurrentProcess().PeakWorkingSet64/2^30;
+catch
+    pws0 = 0;
+end
 
 Ks = 1:4;
 qs = [1e3,1e5,1e6];
@@ -77,7 +86,7 @@ try
 catch
     pws = 0;
 end
-if pws>4
+if pws>4 && pws>pws0                                                        % DJ, 11/24/2026
     error("Test_tensopmat_native_cost failed: peak memory %.2f GB.",pws)
 end
 bad = T(:,end,1:nflat) > 20*T(:,1,1:nflat)+0.2;

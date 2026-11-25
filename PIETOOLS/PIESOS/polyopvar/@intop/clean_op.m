@@ -1,17 +1,17 @@
 function [Kop,is_zero_op] = clean_op(Kop,ztol)
 % [KOP,IS_ZERO_OP] = CLEAN_OP(KOP,ZTOL) sets the coefficients of the
-% 'intop' object KOP that are below the tolerance ZTOL to zero, and
-% discards the terms in the functional that are zero.
+% 'intop' object KOP of magnitude at most ZTOL to zero, and discards the
+% terms in the functional that are zero.
 %
 % INPUTS
 % - Kop:    'intop' object representing a PI functional;
-% - ztol:   (optional) scalar value specifying the tolerance below which
-%           coefficients are assumed to be zero. Defaults to 1e-12;
+% - ztol:   (optional) scalar 'double', the tolerance: coefficients of
+%           magnitude at most ztol are set to zero. Defaults to 1e-12;
 %
 % OUTPUTS
 % - Kop:    'intop' object representing the same functional as the input up
 %           to the specified tolerance, with coefficients in Kop.params
-%           of magnitudes smaller than ztol set to 0. If all terms
+%           of magnitude at most ztol set to 0. If all terms
 %           involving a particular integral in the functional (particular
 %           row of Kop.intmat{i} for some i) are zero, this integral (row
 %           in Kop.intmat{i}) is removed -- except the last remaining row
@@ -19,11 +19,6 @@ function [Kop,is_zero_op] = clean_op(Kop,ztol)
 %           coefficients) so Kop.matdim stays correct;
 % - is_zero_op: true if every entry of Kop.params is zero up to ztol, i.e.
 %           Kop represents the zero functional; false otherwise;
-%
-% NOTES
-% - The coefficients are cleaned as 'P.*(abs(P)>ztol)', and tested for
-%   being zero as 'nnz(P)==0', so that only the nonzeros of the sparse
-%   matrix P are accessed.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

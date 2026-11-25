@@ -4,7 +4,7 @@ function C = mtimes(A,B)
 % tensor-PI operator defined by B.
 %
 % INPUTS
-% - A:      m x p 'double', 'polynomial', or 'dpvar' object representing
+% - A:      m x p 'double' or 'polynomial' object representing
 %           some multiplier operator to multiply with B, or a 'tensopvar'
 %           object (or 'sopvar', converted to 'tensopvar');
 % - B:      p x n 'tensopvar' object acting on some degree-d distributed
@@ -16,27 +16,24 @@ function C = mtimes(A,B)
 %           the tensor-PI operator defined by B;
 %
 % NOTES
-% - If B involves more than one factor (size(B.ops,2)>1), a multiplier A
-%   must be a scalar. A general (non-scalar) matrix A rescales only the
-%   first factor of each term (ops{i,1}), which represents the product A*B
-%   correctly when there is only one factor, and for a scalar A
-%   regardless of the number of factors (scalar multiplication commutes
-%   with the tensor-product structure). For a general matrix A and a
-%   multi-factor B, A would need a Kronecker structure, e.g.
-%   kron(A,I,I,...), which this function does not construct.
+% - A multiplier A multiplies the first factor of each term of B. If B
+%   has more than one factor (size(B.ops,2)>1), A must be a scalar.
 % - A 'polynomial' multiplier is only supported if it is the identity
-%   (then B is returned); other multipliers must be 'double' or 'dpvar'.
+%   (then B is returned), and a 'dpvar' multiplier is not supported (the
+%   factors cannot depend on decision variables); other multipliers must
+%   be 'double'.
 % - If A and B are both 'tensopvar' objects with the same number of factors
 %   (and proper tensor products, A.otype(2)==B.otype(1)==2), the factors
 %   are composed one by one, by the mixed product property
 %       (A1 o ... o Ad)(B1 o ... o Bd) = A1B1 o ... o AdBd.
-%   For different numbers of factors, the factors acting on R are first
-%   merged into their neighbors; if the numbers still differ, an error is
-%   thrown.
+%   For different numbers of factors, the factors acting on R (without
+%   spatial variables) are first merged into their neighbors; if the
+%   numbers still differ, an error is thrown.
 % - If A is nested (a factor of A is a 'tensopvar' acting on several of the
-%   factors of the monomial) and B has a factor for each leaf
-%   factor of A (num_factors(A)), the factors of B are distributed over the
-%   nested factors of A, term by term, and composed recursively.
+%   factors of the monomial) and B has a factor for each leaf factor of A
+%   (num_factors(A)), the factors of B are distributed over the nested
+%   factors of A, term by term, and composed recursively. If B has nested
+%   factors and A has none, an error is thrown.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - mtimes
@@ -63,11 +60,12 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that multiplication is supported
-if ~isa(B,'tensopvar') && all(size(B)==1)
-    % Allow right-multiplication with a scalar
+if (isnumeric(B) || isa(B,'polynomial') || isa(B,'dpvar')) && all(size(B)==1)
+    % Allow right-multiplication with a scalar; a 1x1 operator ('sopvar')
+    % is composed below, as B*A would compose in the wrong order
     C = B*A;
     return
 end
@@ -187,7 +185,10 @@ if isa(A,'tensopvar')
 else
     % @sopvar/mtimes supports numeric and 'dpvar' multipliers, but not 'polynomial' (identity returned above)
     if isa(A,'polynomial')
-        error("Multiplication of a tensopvar with a 'polynomial' object is only supported if the object is the identity; other multipliers must be of type 'double' or 'dpvar'.")
+        error("Multiplication of a tensopvar with a 'polynomial' object is only supported if the object is the identity; other multipliers must be of type 'double'.")
+    elseif isa(A,'dpvar')
+        % The factors of a 'tensopvar' cannot depend on decision variables
+        error("Multiplication of a 'tensopvar' with a 'dpvar' is not supported: the factors of a 'tensopvar' cannot depend on decision variables.")
     end
 
     % Multiply each of the operators stored in B by A
@@ -211,20 +212,23 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
 function C = mtimes_nested(A,B)
-% C = MTIMES_NESTED(A,B) returns the composition of the nested 'tensopvar' A, with factors that are
-% 'tensopvar' objects acting on several of the factors of the monomial, with the 'tensopvar' B that has one
-% factor for each leaf factor of A (num_factors(A)=size(B.ops,2)), each term of B acting on the leaf factors
-% of A in order. Each factor Fj of a term of A with n leaf factors is composed with the n consecutive factors
-% of the term of B, which are taken together as an operator of their own (the Kronecker product of their
-% outputs, as for a mixed product (F1 o ... o Fd)(B1 o ... o Bd) = F1B1 o ... o FdBd): recursively if Fj is
-% itself nested. Composition is bilinear, so each pair of terms of A and B gives a term of C, with the
-% outputs of the factors of A combined as in A (A.otype(1)), and the inputs of the factors of B as in B.
+% C = MTIMES_NESTED(A,B) returns the composition A*B of the nested
+% 'tensopvar' A, with factors that are 'tensopvar' objects acting on
+% several of the factors of the monomial, with the 'tensopvar' B that has
+% a factor for each leaf factor of A (num_factors(A)=size(B.ops,2)).
+% Each factor Fj of a term of A with n leaf factors is composed
+% (recursively, if Fj is nested) with the next n factors of a term of B,
+% taken together as one 'tensopvar' with the product types B.otype, as
+% for a mixed product (F1 o ... o Fd)(B1 o ... o Bd) = F1B1 o ... o FdBd.
+% Each pair of terms of A and B gives a term of C, with C.otype =
+% [A.otype(1),B.otype(2)]. If A has more than one factor, A.otype(2)=2
+% and B.otype(1)=2 are required.
 %
-% INPUT
+% INPUTS
 % - A:        nested 'tensopvar' object;
 % - B:        'tensopvar' object with a factor per leaf factor of A;
 %
-% OUTPUT
+% OUTPUTS
 % - C:        'tensopvar' object, the composition A*B.
 [KA,dA] = size(A.ops);      [KB,dB] = size(B.ops);
 % B can be split between several factors of A only if it has a Kronecker product of its outputs, as for

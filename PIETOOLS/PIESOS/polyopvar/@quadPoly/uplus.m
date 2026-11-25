@@ -1,10 +1,10 @@
 function A = uplus(A)
-% Trivial. Do nothing. Given A, returns +A
+% A = UPLUS(A) returns +A, i.e. the quadPoly A unchanged.
 %
-% INPUT
+% INPUTS
 % - A:      'quadPoly' object;
 %
-% OUTPUT
+% OUTPUTS
 % - A:      the same object.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,6 +32,6 @@ function A = uplus(A)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 01/16/2026
+% SS, 01/16/2026: Initial coding;
 
 end

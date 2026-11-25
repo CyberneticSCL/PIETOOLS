@@ -11,17 +11,18 @@ function C = otimes(A,B,type)
 %           product is taken along the row and column dimensions. Defaults
 %           to [1,2]; a scalar specifies type(1), with type(2)=2.
 %               If type(1)=1, then a pointwise product is taken along the
-%               row dimension, requiring m1=m2. In this case, if A and B
-%               share any output variable, then a pointwise product is
-%               taken along this variable, i.e.
-%                   (Cop*v^2)(s) = (Aop*v)(s)*(Bop*v)(s).
+%               row dimension, requiring m1=m2, with the same row-blocks.
+%               In this case, if A and B share any output variable, then a
+%               pointwise product is taken along this variable, i.e.
+%                   (C*v^2)(s) = (A*v)(s)*(B*v)(s).
 %               If type(1)=2, then a Kronecker product is taken along the
 %               row dimension. In this case, if A and B share any output
 %               variable, then a tensor product is taken along this
 %               spatial direction, i.e.
-%                   (Cop*v^2)(s1,s2) = (Aop*v)(s1)*(Bop*v)(s2).
+%                   (C*v^2)(s1,s2) = (A*v)(s1)*(B*v)(s2).
 %               Likewise, type(2) specifies the product along the column
-%               dimension, for the input variables;
+%               dimension, for the input variables (type(2)=1 requiring
+%               n1=n2, with the same column-blocks);
 %
 % OUTPUTS
 % - C:      'tensopmat' object representing the tensor product of A and B;
@@ -52,7 +53,7 @@ function C = otimes(A,B,type)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % By default, perform Kronecker product along columns but pointwise product
 % along rows
@@ -102,6 +103,9 @@ end
 % Check that the dimensions are appropriate for elementwise multiplication
 if type(1)==1 && ~isequal(size(A,1),size(B,1))
     error("Row dimensions of operators must match for elementwise multiplication.")
+elseif type(1)==1 && ~isequal(A.dims.out(:),B.dims.out(:))
+    % The blocks are multiplied pairwise, so the row-blocks must match
+    error("Elementwise multiplication requires the same row-blocks in both factors, e.g. y.*[x;x] for a 2x1 state y is not supported.")
 elseif type(2)==1 && ~isequal(size(A,2),size(B,2)) 
     error("Column dimensions of operators must match for elementwise multiplication.")
 end
@@ -204,20 +208,30 @@ end
 end
 
 function C = otimes_op(A,B,type,XA,iA,XB,iB)
-% Tensor product of two operators, where a scalar constant (a 'tensopvar'
-% consisting of a 'sopvar' without variables, representing a degree-0
-% monomial) multiplies the kernels of the other operator, as a double would.
-% A is block iA of the 'tensopmat' XA, B block iB of XB (row indices), for the output space of a
-% block of type double/polynomial/dpvar, which is converted to an operator (native2op)
+% C = OTIMES_OP(A,B,TYPE,XA,IA,XB,IB) returns the tensor product of two
+% blocks A and B. Two matrices of type 'double', 'polynomial' or 'dpvar'
+% acting on R give a matrix. A single such matrix is first converted to
+% the multiplier operator from R to the output space of its row-block,
+% row-block IA of XA for A, or IB of XB for B. A scalar constant (a
+% 'tensopvar' consisting of a 'sopvar' without variables, representing a
+% degree-0 monomial) multiplies the kernels of an 'intop' (functional),
+% as a double would, and two such constants are multiplied for TYPE(1)=1.
+% A matrix with an 'intop' is only supported for a scalar constant, and
+% an 'intop' with any other non-constant block is not supported. An empty
+% block (the zero operator) gives an empty block.
 %
-% INPUT
+% INPUTS
 % - A, B:     blocks (operators or matrices acting on R);
 % - type:     1 x 2 array, the product along the rows and the columns;
-% - XA, iA:   the 'tensopmat' of A and the row index of A in it;
-% - XB, iB:   the 'tensopmat' of B and the row index of B in it;
+% - XA, iA:   the 'tensopmat' of A and the row-block index of A in it;
+% - XB, iB:   the 'tensopmat' of B and the row-block index of B in it;
 %
-% OUTPUT
+% OUTPUTS
 % - C:        the tensor product block.
+if (isa(A,'double') && isempty(A)) || (isa(B,'double') && isempty(B))
+    C = [];         % an empty block is the zero operator
+    return
+end
 if is_native_op(A) && is_native_op(B)
     C = otimes_native(A,B,type);        % two matrices acting on R
     return
@@ -245,40 +259,46 @@ elseif type(1)==1 && is_constant(A) && is_constant(B)
     % a Kronecker product (e.g. composing the factors of a monomial in subs), the two
     % factors must be kept, as one may be a state without spatial variables.
     C = mat2tensopvar(A.ops{1}.params{1}.*B.ops{1}.params{1});
+elseif xor(isa(A,'intop'),isa(B,'intop'))
+    % Neither 'tensopvar' nor 'intop' supports a functional times a
+    % non-constant operator, e.g. x*(x'*x)
+    error("The product of a functional (e.g. x'*x) with a function of the spatial variables (e.g. a state x(s), as in x*(x'*x)) is not supported.")
 else
     C = otimes(A,B,type);
 end
 end
 
 function is_const = is_constant(A)
-% Check whether A is a scalar constant: a 'tensopvar' of a single 'sopvar'
-% without variables (a degree-0 monomial)
+% IS_CONST = IS_CONSTANT(A) checks whether A is a scalar constant: a
+% 1 x 1 'tensopvar' of a single 'sopvar' without variables (a degree-0
+% monomial)
 %
-% INPUT
+% INPUTS
 % - A:        block of a 'tensopmat';
 %
-% OUTPUT
-% - is_const: logical.
+% OUTPUTS
+% - is_const: logical, true if A is a scalar constant.
 is_const = isa(A,'tensopvar') && isscalar(A.ops) && isa(A.ops{1},'sopvar') && ...
             all(size(A)==1) && isempty(A.ops{1}.vars.in) && isempty(A.ops{1}.vars.out) && ...
             isscalar(A.ops{1}.params);
 end
 
 function C = otimes_native(A,B,type)
-% C = OTIMES_NATIVE(A,B,TYPE) returns the tensor product of two matrices A, B of
-% type 'double', 'polynomial' or 'dpvar', acting on R: for type(1)=1 the rows are
-% multiplied pointwise (as the product of the functions, requiring equal numbers of
-% rows), for type(1)=2 the Kronecker product is taken; the same for the columns
-% with type(2). The result is the matrix of products A(r1,c1)*B(r2,c2) in the
-% row-column order of the Kronecker product, with r1=r2 (c1=c2) for a pointwise
-% product.
+% C = OTIMES_NATIVE(A,B,TYPE) returns the tensor product of two matrices
+% A, B of type 'double', 'polynomial' or 'dpvar', acting on R: for
+% type(1)=1 the rows are multiplied pointwise (as the product of the
+% functions, requiring equal numbers of rows), for type(1)=2 the
+% Kronecker product is taken; the same for the columns with type(2). The
+% result is the matrix of products A(r1,c1)*B(r2,c2) in the row-column
+% order of the Kronecker product, with r1=r2 (c1=c2) for a pointwise
+% product. A Kronecker product along the rows is only supported if A and
+% B share no spatial variable.
 %
-%
-% INPUT
+% INPUTS
 % - A, B:     'double', 'polynomial' or 'dpvar' matrices;
 % - type:     1 x 2 array, the product along the rows and the columns;
 %
-% OUTPUT
+% OUTPUTS
 % - C:        matrix of the products.
 
 % A Kronecker product along the rows requires disjoint variables

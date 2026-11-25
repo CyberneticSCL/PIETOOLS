@@ -6,12 +6,12 @@ function Pop = mat2tensopvar(Pmat,vars,dom)
 % INPUTS
 % - Pmat:   m x n 'double' or 'polynomial' array, representing a multiplier
 %           operator;
-% - vars:   (optional) struct with fields
-%     in:   1 x N cellstr array specifying the names of the input variables
+% - vars:   (optional) 'struct' with fields
+%     in:   1 x N 'cellstr' specifying the names of the input variables
 %           to the operator;
-%    out:   1 x M cellstr array specifying the names of the output
-%           variables to the operator. Defaults to no variables;
-% - dom:    (optional) struct with fields
+%    out:   1 x M 'cellstr' specifying the names of the output variables
+%           to the operator. Defaults to no variables;
+% - dom:    (optional) 'struct' with fields
 %    in:    N x 2 'double' array specifying the intervals on which the
 %           input variables are defined;
 %   out:    M x 2 'double' array specifying the intervals on which the

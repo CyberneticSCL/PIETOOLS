@@ -1,22 +1,27 @@
 function Q = Sym2quadPoly(Fsym, sVars, tVars)
-%Sym2quadPoly Convert symbolic polynomial/matrix to quadPoly object.
+%SYM2QUADPOLY Convert symbolic polynomial/matrix to quadPoly object.
 %
-%   Q = Sym2quadPoly(Fsym, sVars, tVars)
-%
-% Inputs:
-%   Fsym  : sym scalar or sym matrix (m x n)
-%   sVars : sym vector [s1 ... sk] (may be empty)
-%   tVars : sym vector [t1 ... tl] (may be empty)
-%
-% Output:
-%   Q : quadPoly with fields C, Zs, Zt, dim, ns, nt
+%   Q = quadPoly.Sym2quadPoly(Fsym, sVars, tVars)   (static method)
 %
 % Representation:
 %   F(s,t) = (I_m ⊗ Z(s)^T) * C * (I_n ⊗ Z(t))
-% where Z(s) = Zs1(s1) ⊗ ... ⊗ Zsk(sk), each Zsi is monomials of degrees in Zs{i}.
+% where Z(s) = Zs1(s1) ⊗ ... ⊗ Zsk(sk), each Zsi the monomials in si of
+% the degrees in Zs{i}, and Z(t) likewise.
 %
-% Notes:
-%   - Coefficients must be convertible to double. If not, error.
+% INPUTS
+%   Fsym  : sym scalar or sym matrix (m x n)
+%   sVars : (optional) sym vector [s1 ... sk], sorted by name (default
+%           empty)
+%   tVars : (optional) sym vector [t1 ... tl], sorted by name (default
+%           empty)
+%
+% OUTPUTS
+%   Q : m x n quadPoly with fields C, Zs, Zt, dim, ns, nt
+%
+% NOTES
+%   - Fsym may contain no symbolic variables other than sVars and tVars,
+%     and its coefficients must be convertible to finite doubles; else an
+%     error is thrown.
 %   - Degree sets Zs{i}, Zt{j} are inferred from monomials present in Fsym.
 %   - Ordering matches MATLAB kron ordering: last variable varies fastest.
 
@@ -45,7 +50,7 @@ function Q = Sym2quadPoly(Fsym, sVars, tVars)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% Initial coding SS - 02/11/2026
+% SS, 02/11/2026: Initial coding;
 
     if ~isa(Fsym, 'sym')
         error('Fsym must be a symbolic (sym) scalar or matrix.');

@@ -64,8 +64,7 @@ function Z = dmonomials(vartab,degs,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
-% DJ, 11/22/2026: Option 'full': monomials in each order of their factors;
+% DJ, 11/22/2026: Initial coding;
 
 % Check that the variables are specified as 'polyopvar'
 if ~isa(vartab,'polyopvar')

@@ -3,20 +3,25 @@ function C = plus(A,B)
 % of the tensor-PI operators defined by the 'tensopvar' objects A and B.
 %
 % INPUTS
-% - A:      m x n 'tensopvar' object (or 0, or empty);
-% - B:      m x n 'tensopvar' object (or 0, or empty);
+% - A:      m x n 'tensopvar' object (or 'sopvar', 'dpvar', 0, or empty);
+% - B:      m x n 'tensopvar' object (or 'sopvar', 'dpvar', 0, or empty);
 %
 % OUTPUTS
 % - C:      m x n 'tensopvar' object representing the sum of the
-%           tensor-PI operators defined by A and B;
+%           tensor-PI operators defined by A and B ('dpvar' for a constant
+%           plus a 'dpvar');
 %
 % NOTES
-% - If A or B is 0 or empty, the other is returned.
+% - A constant multiplier (no variables) plus a 'dpvar' constant is
+%   returned as a 'dpvar'.
+% - If A or B is 0 or empty, the other is returned. Otherwise, A and B
+%   must have the same matrix dimensions, variables, domains and degrees
+%   (deps).
 % - If A and B both have a single factor, the factors are added.
-% - If A and B have factors of the same dimensions and dependencies, their
-%   terms (rows of ops) are concatenated.
-% - Otherwise, A and B are kept as the two terms of a nested operator, with
-%   a single factor {A;B}.
+% - If A and B have factors of the same dimensions and dependencies, and
+%   the same otype, their terms (rows of ops) are concatenated.
+% - Otherwise, A and B are kept as the two terms of an operator with a
+%   single, nested factor, C.ops = {A;B}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus
@@ -43,7 +48,7 @@ function C = plus(A,B)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that the inputs are appropriate
 if isequal(A,0) || isempty(A)
@@ -52,6 +57,19 @@ if isequal(A,0) || isempty(A)
 elseif isequal(B,0) || isempty(B)
     C = A;
     return
+end
+% A constant multiplier (no variables, one 'sopvar' factor) plus a 'dpvar'
+% constant is the 'dpvar' constant of their sum
+if isa(A,'dpvar') || isa(B,'dpvar')
+    if isa(A,'dpvar')
+        D = A;      T = B;
+    else
+        D = B;      T = A;
+    end
+    if isa(T,'tensopvar') && isempty(T.vars.in) && isempty(T.vars.out) && isequal(size(T.ops),[1,1]) && isa(T.ops{1},'sopvar') && isscalar(T.ops{1}.params)
+        C = D + full(T.ops{1}.params{1});
+        return
+    end
 end
 if ~isa(A,'tensopvar')
     try A = tensopvar(A);

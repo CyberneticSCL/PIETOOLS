@@ -28,14 +28,14 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %           be equal;
 % - degs:   (optional) struct with fields
 %       'in':   1 x q cell, specifying the degrees of the input variables
-%               in each operator block. Each element degs.in{i} can be a
-%               di x N cell, where di depends on depmat(i,:), specifying
-%               the degrees of the monomial basis in each of the factors
-%               of each of the input variables in block i. Element
-%               degs.in{i} can also be a di x N array, specifying the
-%               maximal monomial degree in each of the factors of each
-%               variable. If degs.in{i} is scalar, the same degree is
-%               used for all variables;
+%               in each operator block, as degs.in of `monopmat`. Element
+%               degs.in{i} can be a di x N cell, for di the number of
+%               factors, max(depmat(i,:)), specifying the monomial
+%               degrees (including 0) in each factor of each variable in
+%               block i, a single row being used for all factors. It can
+%               also be a di x N array of maximal monomial degrees, where
+%               a single row (or a scalar, for all variables) gives the
+%               maximal degrees summed over the factors, split over them;
 %       'out':  1 x q cell, specifying the degrees of the primary
 %               variables in each operator block. Each element
 %               degs.out{i} can be a 1 x N cell of column vectors,
@@ -51,23 +51,22 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %       to 0;
 % - opts:   (optional) struct with fields
 %       'psatz':  1 x N array of integers, specifying the maximal order
-%               of the psatz multiplier in each of the spatial
-%               variables. Here, psatz(i)=qi implies inclusion of all
-%               multipliers
+%               of the psatz multiplier in each of the spatial variables
+%               (0 in a variable on which no state depends). Here,
+%               psatz(i)=qi implies inclusion of all multipliers
 %                   gj = (bi-si)^{qi-j}*(si-ai)^{j},   j in {0,...,qi}
 %               This means a total number of prod(psatz+1) terms. Can
-%               also be set to a q1 x ... x qN logical array, where now
-%               the dimensions of psatz determine the maximal order, and
-%               only the multipliers associated with true elements of
-%               psatz are included. Element k along dimension i of psatz
-%               corresponds to gj with j=k-1, so psatz(i)=qi is
-%               equivalent to a logical array of size qi+1 along
-%               dimension i. Terms are ordered by linear index in
-%               psatz. A scalar psatz is used for all variables on which
-%               some state depends. For gj of order qi, the degree in si
-%               of the basis monomials of Pmat is reduced by ceil(qi/2),
-%               so that the degree of Pmat in si does not exceed twice
-%               its degree in degs.out;
+%               also be set to an n1 x ... x nN logical array (not for
+%               tensor-product outputs, otype(1)=2), including only the
+%               multipliers associated with true elements: element k
+%               along dimension i corresponds to gj with j=k-1 and
+%               qi=ni-1, so psatz(i)=qi is equivalent to a logical array
+%               of size qi+1 along dimension i. Terms are ordered by
+%               linear index in psatz. A scalar psatz is used for all
+%               variables on which some state depends. For gj of order
+%               qi, the degree in si of the basis monomials of Pmat is
+%               reduced by ceil(qi/2), so that the degree of Pmat in si
+%               does not exceed twice its degree in degs.out;
 %       'exclude':  1 x q cell, specifying for each of the operator
 %               blocks whether any terms need to be excluded. Element
 %               opts.exclude{i} can be a 3^N3(i) logical array, where
@@ -77,40 +76,46 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %               multiplier term (k=1), lower integral term (k=2), or
 %               upper integral term (k=3), along spatial variable j in
 %               the list of 3-PI variables (intersect(vars.in,vars.out)).
-%               If exclude is a 3 x 1 array, it is applied in every
-%               variable on which a state depends, and a term is excluded
-%               if its type is excluded in any of these variables (e.g.
-%               exclude = [0;0;1] excludes every term with an upper
-%               integral). Variables a state does not depend on are
-%               ignored;
+%               A single 3^N3 logical array, for the N3 variables on
+%               which some state depends, may also be specified, for all
+%               blocks. If exclude is a 3 x 1 array, it is applied in
+%               every variable on which a state depends, and a term is
+%               excluded if its type is excluded in any of these
+%               variables (e.g. exclude = [0;0;1] excludes every term
+%               with an upper integral). Variables a state does not
+%               depend on are ignored;
 %       'sep':  1 x q cell, specifying for each of the operator blocks
 %               whether to enforce separability along each of the
 %               variables. Element opts.sep{i} is a 1 x N3(i) logical
 %               array, specifying for each of the 3-PI variables whether
 %               the operator is separable along that variable, meaning
 %               that the kernel in the upper and lower integrals is the
-%               same;
-%       'otype':  integer in {1,2} specifying whether to take the proper
-%               tensor product (otype = 2) or the pointwise product
-%               (otype = 1) of the 3-PI operators in constructing the
-%               tensor-PI operator basis. If otype==1, then d_out =
-%               depmat.out. If otype==2, then d_out = d*depmat.out,
-%               where d = max(depmat.in(i,:)). For otype==2, Pmat is a
-%               matrix in the d copies si_1,...,si_d of each variable si;
+%               same. A single 1 x N3 logical array (or scalar) may also
+%               be specified, for all blocks;
+%       'otype':  1, 2 or 3, specifying whether to take the pointwise
+%               product (1), the proper tensor product (2), or both (3)
+%               of the 3-PI operators in constructing the tensor-PI
+%               operator basis, as in `monopmat`. Defaults to 1. For
+%               otype 2, Pmat is a matrix in the d copies si_1,...,si_d
+%               of each variable si, for d the largest max(depmat(i,:));
+%       Other options of `piesos_quadopvar` (e.g. 'intmat') can be used,
+%       but the operators on the left and right must be the same;
 %
 % OUTPUTS
 % - prog:   'struct' specifying the PIESOS program with the positive
 %           semidefinite matrix variable added;
-% - Pmat:   q x q cell, with element Pmat{i,j} an mi x mj 'dpvar' object
-%           in the primary variables, where mi is the number of rows of
-%           the ith block row of Zop.ops. The cell represents the SOS
-%           matrix Pmat(s) parameterizing Pop = Zop'*Pmat*Zop. With
+% - Pmat:   r x r cell, for r the number of block rows of Zop (q, or more
+%           with otype 3), with element Pmat{i,j} an mi x mj 'dpvar'
+%           object in the primary variables, where mi is the number of
+%           rows of the ith block row of Zop.ops. The cell represents the
+%           SOS matrix Pmat(s) parameterizing Pop = Zop'*Pmat*Zop. With
 %           psatz multipliers g_k, Pmat = sum_k g_k*Pmat_k, where Pmat_k
 %           is of the form Zs'*Qk*Zs, with Qk >= 0 and Zs a basis of
 %           monomials in the primary variables;
 % - Zop:    m x n 'tensopmat' object representing a basis of operators of
-%           specified degrees on the declared function space, where n =
-%           sum(dims) and where m depends on the selected monomial
+%           specified degrees on the declared function space, where
+%           n = sum_i dims(i)^di, for di the number of factors of block i
+%           (n = sum(dims) if every di=1), and m depends on the monomial
 %           degrees. The kernels of the operators depend only on the
 %           dummy variables;
 %
@@ -121,11 +126,12 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %   dependence of Pop on the primary variables is parameterized by the
 %   SOS matrix Pmat.
 % - For states depending on different variables, the operators Zop map
-%   to a function space in all of the variables appearing in the state.
+%   to a function space in all of the variables appearing in any state.
 %   For example, for state x(s1) and y(s1,s2), Zop maps x to a function
 %   of both s1 and s2.
 % - The operator is declared by `piesos_quadopvar`, with opts.pos=true,
 %   for the same function space and operators on the left and right.
+% - Unrecognized fields of opts give a warning (PIESOS:unknownOption).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_poslpivar
@@ -152,7 +158,7 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 % Check that the inputs are appropriate
 if isstruct(dims) && isfield(dims,'in')
@@ -193,6 +199,7 @@ end
 if ~isstruct(opts)
     error("Options must be specified as a 'struct'.")
 end
+check_opts(opts,'piesos_poslpivar');
 
 % Use piesos_quadopvar with 'pos' option to declare positive semidefinite
 % operator

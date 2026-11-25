@@ -28,6 +28,8 @@
 %   (lift_output) and adds a scalar to each row of a vector: check the
 %   values of x+a, a+x, x-a, a-x, and of [x;y]+x, instead of expecting an
 %   error or only warning;
+% DJ, 11/24/2026: A scalar times a vector multiplies each row: check the
+%   value of x*[x;y] instead of expecting an error;
 
 % NOTES:
 % - Adding a number to a function of spatial variables (x+a, a+x, x-a,
@@ -175,7 +177,7 @@ expect_error(@() 'a'+x,'not supported');
 expect_error(@() [x;y]+[x;y;z],'Dimensions');
 expect_error(@() [x;y]*[x;y],'Incorrect dimensions');
 expect_error(@() [x;y;z]*[x;y],'Incorrect dimensions');
-expect_error(@() x*[x;y],'Row dimensions of operators must match');      % scalar * vector of polynomials is not expanded
+chk_close(ev(x*[x;y],v),[v.x*v.x;v.x*v.y],tol,'(4) x*[x;y] (scalar times each row)');         % DJ, 11/24/2026
 
 %% (5) vertcat and horzcat
 for rep=1:3

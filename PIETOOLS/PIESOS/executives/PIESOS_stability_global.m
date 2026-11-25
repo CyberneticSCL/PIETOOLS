@@ -1,12 +1,11 @@
 function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [PROG_SOL,INFO] = PIESOS_stability_global(PIE,LAMBDA,LF_FORM,SETTINGS)
+% [PROG_SOL,INFO] = PIESOS_STABILITY_GLOBAL(PIE,LAMBDA,LF_FORM,SETTINGS)
 % tests global exponential stability, at decay rate LAMBDA, of the
 % (nonlinear) PIE with the PDE state u=T*x,
 %       d/dt (T*x(t)) = f(x(t)).
-% It searches for a distributed polynomial Lyapunov functional V(x), of the
-% form <Zop*Z(.),Pmat*Zop*Z(.)> with Z(.)=[.,...,.^d] and Pmat>=0, in
-% the PIE states x or in the PDE states u (see LF_FORM), such that
+% It searches for a distributed polynomial Lyapunov functional V(x), of
+% the form <Zop*Z(.),Pmat*Zop*Z(.)> with Z(.)=[.,...,.^d], in the PIE
+% states x or in the PDE states u (LF_FORM), such that
 %   V >= eppos*||u||^2,
 % and such that, for all x, the derivative dV of V along solutions to the
 % PIE satisfies
@@ -14,8 +13,8 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 % This is enforced as a distributed SOS constraint. Then V(t) decays as
 % exp(-2*lambda*t), and so does ||u(t)||^2 <= V(t)/eppos. If V is
 % quadratic (settings.LF.dist_deg=1), also an upper bound V <= C*||u||^2
-% can be enforced, with the constant C minimized or specified (see
-% settings.LF.C), so that
+% can be enforced, with the constant C minimized or specified
+% (settings.LF.C), so that
 %   ||u(t)|| <= sqrt(C/eppos)*exp(-lambda*t)*||u(0)||.
 % For settings.LF.lower='x_pde', the lower bound is instead
 %   V >= eppos*||x_pde||^2,
@@ -24,10 +23,11 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 % remains in terms of u. Then, only the actual state is bounded,
 %   ||x_pde(t)|| <= sqrt(C/eppos)*exp(-lambda*t)*||u(0)||.
 %
-% INPUT
+% INPUTS
 % - PIE:        'npie_struct' object representing the PIE, without
 %               algebraic constraints (K, Kw, Ku without rows). A
-%               'pde_struct' object is converted to a PIE;
+%               'pde_struct' object is converted to a PIE, and a linear
+%               'pie_struct' object to an 'npie_struct' object;
 % - lambda:     (optional) nonnegative scalar, the decay rate. Defaults
 %               to 0, testing stability;
 % - LF_form:    (optional) 'pie' or 'pde', the form of the Lyapunov
@@ -35,13 +35,15 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 %               lower bound V >= eppos*||u||^2 enforced as an SOS
 %               constraint ('pie'), or V = (SOS polynomial in the PDE
 %               states u=T*x) + eppos*||u||^2 ('pde'). Defaults to 'pie';
-% - settings:   (optional) 'struct' of settings, with fields LF
-%               (dist_deg, mon_deg, exclude, sep, psatz, eppos, C, lower),
-%               sos (use_ineq, mon_deg, psatz, exclude), solver, simplify,
-%               tol_feas and verbose. Defaults to PIESOS_settings();
+% - settings:   (optional) 'struct' of settings, as output by
+%               PIESOS_settings, with fields LF (dist_deg, mon_deg,
+%               exclude, sep, psatz, otype, intmat, eppos, C, lower), sos
+%               (use_ineq, mon_deg, psatz, exclude, otype, intmat), solver,
+%               simplify, tol_feas and verbose. Defaults to
+%               PIESOS_settings();
 %
-% OUTPUT
-% - prog_sol:   PIESOS program structure of the solved program;
+% OUTPUTS
+% - prog_sol:   'struct' specifying the solved PIESOS program;
 % - info:       'struct' with fields
 %       feasible:   logical, true if the program was solved, so that the
 %                   test is passed;
@@ -67,8 +69,8 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 %   It is not if an ODE state was declared after the PDE states, so that
 %   X_pde permutes the states (tensopmat composition error), in which case
 %   x_pde and u have the same norm, and 'u' is equivalent.
-%
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% - Inputs of the PIE are set to zero, and outputs are not used.
+% - Fields of settings that PIESOS_settings does not have give a warning.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIESOS_stability_global
@@ -94,9 +96,8 @@ function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 11/09/2026: Initial coding;
-% DJ, 11/22/2026: Pass settings otype and intmat; sos.mon_deg may be a
-%                   cell of degrees per constraint;
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% DJ, 11/24/2026: Initial coding;
 
 t_start = tic;
 
@@ -110,8 +111,13 @@ end
 if nargin<4 || isempty(settings)
     settings = PIESOS_settings();
 end
+check_opts(settings,'PIESOS_stability_global',PIESOS_settings());
 if isa(PIE,'pde_struct')
     PIE = convert(PIE,'silent');
+end
+if isa(PIE,'pie_struct')
+    % A linear PIE, in the format of a nonlinear one
+    PIE = npie_struct(PIE);
 end
 states = lower(char(LF_form));
 LF = settings.LF;
@@ -152,7 +158,9 @@ u_low = u;
 f_low = f;
 if strcmp(lb_state,'x_pde')
     u_low = PIE.x_pde;
-    f_low = PIE.f_pde;
+    if strcmp(states,'pde')
+        f_low = PIE.f_pde;      % only the 'pde' form uses its derivative
+    end
 end
 
 % Initialize the program, minimizing the constant C in the upper bound on V
@@ -177,7 +185,7 @@ else
 end
 Popts.sep = LF.sep;
 Popts.otype = LF.otype;
-% Regions of integration (settings of before 11/20/2026 have none)
+% Regions of integration, if specified
 if isfield(LF,'intmat')
     Popts.intmat = LF.intmat;
 end

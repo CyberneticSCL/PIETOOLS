@@ -10,8 +10,8 @@ function [A,B] = sync_basis(A,B)
 %
 % OUTPUTS
 % - A:      'intop' object representing the same functional as the input
-%           A, expressed in terms of the monomials Z.in and the decision
-%           variables Zd that A and B share;
+%           A, expressed in terms of the unions of the monomials Z.in and
+%           of the decision variables Zd of A and B;
 % - B:      'intop' object representing the same functional as the input
 %           B, with B.Z.in = A.Z.in and B.Zd = A.Zd;
 %

@@ -14,13 +14,13 @@ function varargout = size(A,dim)
 %       - if one output is called and dim is specified, the size of the
 %           operator along the specified dimension is returned;
 %       - if one output is called and no dim is specified, a 1 x 2 array
-%           specifying the [row,col] dimension of the tensopvar is
+%           specifying the [row,col] dimension of the 'tensopvar' is
 %           returned;
 %       - if two outputs are called, the first output will be assigned the
 %           number of rows, and the second the number of columns;
 %
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - size
 %
 % Copyright (C) 2026 PIETOOLS Team

@@ -4,10 +4,12 @@ function prog = piesos_eq(prog,f,tol)
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program;
-% - f:      'polyopvar' object representing a distributed polynomial,
-%           with coefficients of type 'dpvar' or 'intop';
+% - f:      'polyopvar' object representing a scalar or column-vector
+%           distributed polynomial, with coefficients of type 'dpvar' or
+%           'intop'; not an adjoint (u'). Every row is set to zero;
 % - tol:    (optional) scalar value specifying the tolerance below which
-%           coefficients of F are taken to be zero. Defaults to 1e-14;
+%           coefficients of F are taken to be zero. Defaults to 1e-14
+%           (also if empty);
 %
 % OUTPUTS
 % - prog:   'struct' specifying the same PIESOS program as the input, but
@@ -39,7 +41,7 @@ function prog = piesos_eq(prog,f,tol)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% DJ, 10/15/2026: Initial coding;
+% DJ, 11/24/2026: Initial coding;
 
 
 if ~isa(f,'polyopvar')
@@ -58,19 +60,27 @@ if nargin<3 || isempty(tol)
 end
 f = clean_poly(f,tol);
 
-for ii=1:size(f.degmat,1)
-    % Consider only the term involving monomial ii
-    Kfun_ii = f;
-    Kfun_ii.Z = f.Z(ii,:);
-    Kfun_ii.C.ops = f.C.ops(ii);
-    if isa(Kfun_ii.C.ops{1},'dpvar')
+for ii=1:numel(f.C.ops)
+    % Consider only the coefficient of one row block and one monomial; a
+    % zero (or empty) numeric coefficient gives no constraint
+    Kop_ii = f.C.ops{ii};
+    if isnumeric(Kop_ii) && ~any(Kop_ii(:))
+        continue
+    elseif isa(Kop_ii,'dpvar')
         % Require coefficients to be zero
-        prog = soseq(prog,Kfun_ii.C.ops{1});
-    elseif isa(Kfun_ii.C.ops{1},'intop')
+        prog = soseq(prog,Kop_ii);
+    elseif isa(Kop_ii,'tensopvar') && isempty(Kop_ii.vars.in) && isempty(Kop_ii.vars.out) && isequal(size(Kop_ii.ops),[1,1]) && isa(Kop_ii.ops{1},'sopvar') && isscalar(Kop_ii.ops{1}.params)
+        % A numeric constant term c: the constraint c = 0, infeasible for
+        % nonzero c
+        cval = full(Kop_ii.ops{1}.params{1});
+        if any(cval(:))
+            prog = soseq(prog,polynomial(cval));
+        end
+    elseif isa(Kop_ii,'intop')
         % The variables are the dummy variables of the kernels; {:} is applied to
         % a copy, as chained {:} on an empty cell errors in subsref, and
         % [cell(1,0),..] keeps a cellstr when there are no variables
-        Kop_dum = Kfun_ii.C.ops{1}.varnames.in_dum;
+        Kop_dum = Kop_ii.varnames.in_dum;
         Kop_varname = reshape([cell(1,0),Kop_dum{:}],[],1);
         if isa(prog.vartable,'polynomial')
             is_missing = ~ismember(Kop_varname,prog.vartable.varname);
@@ -80,7 +90,6 @@ for ii=1:size(f.degmat,1)
             prog.vartable = [prog.vartable; Kop_varname(is_missing)];
         end
         % Require the coefficient operator acting on the monomial to be zero
-        Kop_ii = Kfun_ii.C.ops{1};
         % The kernels are a cell of polynomial/dpvar objects; soseq takes one expression at a time
         Kop_kernels = kernels(Kop_ii);
         for k=1:numel(Kop_kernels)

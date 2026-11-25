@@ -1,15 +1,14 @@
 function Kop_out = reorder_vars(Kop,var_order)
-% KOP_OUT = REORDER_VARS(KOP,VAR_ORDER) reorders the integrals defining the
-% PI functional KOP to match the specified order VAR_ORDER, so that
-%   KOP_OUT*(x_{i1} o ... o x_{id}) = KOP*(x1 o ... o xd)
-% where o denotes the tensor product.
+% KOP_OUT = REORDER_VARS(KOP,VAR_ORDER) permutes the dummy variables of
+% each spatial variable in the PI functional KOP, so that dummy variable j
+% of variable i in KOP_OUT is dummy variable VAR_ORDER{i}(j) in KOP.
 %
 % INPUTS
 % - Kop:        m x n 'intop' object representing a functional on
 %               L2[[a1,b1]^{d1} x ... x [aN,bN]^{dN}];
-% - var_order:  1 x N cell, with each element a 1 x di array specifying the
-%               new order of the different degrees of each spatial
-%               variable. If N=1, may also be specified as a 1 x d1 array;
+% - var_order:  1 x N cell, with element i a permutation of 1:di, the new
+%               order of the dummy variables of variable i. If N=1, may
+%               also be specified as a 1 x d1 array;
 %
 % OUTPUTS
 % - Kop_out:    m x n 'intop' object representing the same functional as
@@ -20,12 +19,10 @@ function Kop_out = reorder_vars(Kop,var_order)
 %   spatial variables in Kop is equivalent to reordering the state
 %   variables,
 %      KOP_OUT*(x_{i1} o ... o x_{id}) = KOP*(x1 o ... o xd)
-%   for VAR_ORDER = [i1,...,id]. However, for multivariate or vector-valued
-%   state variables, such a reordering of the spatial variables is not
+%   for VAR_ORDER = [i1,...,id]. For multivariate or vector-valued state
+%   variables, such a reordering of the spatial variables is not
 %   sufficient.
-% - The dummy variables of a variable are the columns of the monomial
-%   degrees Z.in{i}, so reordering them only permutes these columns. The
-%   coefficient matrices Kop.params are not changed.
+% - Only Kop.Z.in and Kop.intmat change; Kop.params is unchanged.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - reorder_vars
