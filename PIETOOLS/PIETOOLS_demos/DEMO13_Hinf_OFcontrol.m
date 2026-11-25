@@ -118,98 +118,91 @@ Ieps = mat2copvar_sop(blkdiag(blk{:}),dmi,spi,dom);
 nvp = PIE.dim;
 max_raise = settings.sop.max_raise;  max_raise = max_raise(min(nvp,end));
 dw_Q      = settings.sop.dw_Q;          dw_Q = dw_Q(min(nvp,end));
-for dw = 0:max_raise
-    % LPI program on the variables and domain of the PIE, with the settings;
-    % the field sopeq records the rows of each equality constraint
-    prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),dom,settings);
-    prog.sopeq = {};
-    [prog,gamv] = lpidecvar(prog,'gam');           % gam >= 0, minimized
-    prog = lpi_ineq_sop(prog,gamv);
-    prog = lpisetobj(prog,gamv);
-    % Lyapunov variables R, V >= eppos I on the state (the output space of
-    % T'), with the degrees of the storage row of the settings (POSCOPVAR
-    % with DEG omitted)
-    [prog,R] = poscopvar(prog,T');
-    R = R + Ieps;
-    [prog,V] = poscopvar(prog,T');
-    V = V + Ieps;
-    % get_lpivar_degs_sop(R): reads the monomial degrees actually used in the
-    %   positive operator R (multiplier, integral kernels), returned in the
-    %   format lpivar_cdopvar expects, so the free variables below get the
-    %   same degrees as R (dQ from R for Q,Bn,Dn; dU from V for U,An,Cn).
-    dQ = get_lpivar_degs_sop(R);
-    dU = get_lpivar_degs_sop(V);
-    %% indefinite operator variables Q,U,An,Bn,Cn,Dn.
-    % Lyapunov variables:  Q_cl = [Q S; S S], for functional <x,Rx>==<x,T*Qx>.
-    %  Define U := (Q − S)^{-1}, such that V = T U. The congruence transform
-    %  U_cl = [I U; 0 −U] linearizes the closed-loop inequality.
-    % Each free operator takes the output and input spaces of an operator of
-    % the same shape: Q those of T (state -> state), U and An those of R
-    % (state -> state), Bn those of Cy' (y -> state), Cn those of Bu'
-    % (state -> u), Dn those of (Cy*Bu)' (y -> u).
-    [prog,Q]  = lpivar_cdopvar(prog,T,dQ);
-    [prog,U]  = lpivar_cdopvar(prog,R,dU);
-    % controller variables (AK,BK,CK,DK) defined as:
-    %  (assumes D22 = 0)
-    %   An := Q'*(A + Bu*DK*Cy - Bu*CK)*U + S'*(BK*Cy - AK)*U
-    %   Bn := Q'*Bu*DK + S'*BK
-    %   Cn := (DK*Cy - CK)*U
-    %   Dn := DK
-    % (AK,BK,CK,DK are recovered from the solution at the end).
-    [prog,An] = lpivar_cdopvar(prog,R,dU);
-    [prog,Bn] = lpivar_cdopvar(prog,Cy',dQ);
-    [prog,Cn] = lpivar_cdopvar(prog,Bu',dU);
-    [prog,Dn] = lpivar_cdopvar(prog,(Cy*Bu)',dQ);
-    %% declare the operator equality and inequality constraints.
-    Tc = T'*T;
-    prog = lpi_eq_sop(prog,T'*Q - R);              % T'Q = R
-    prog = lpi_eq_sop(prog,Tc*U - V);              % T'T U = V
-    % KYP operator blocks
-    P11 = Q'*A + Bn*Cy;           P11 = P11 + P11';
-    P12 = An + (A + Bu*Dn*Cy)'*T;
-    P13 = Q'*Bw + Bn*Dyw;
-    P14 = Cz' + Cy'*Dn'*Dzu';
-    P22 = T'*(A*U + Bu*Cn);       P22 = P22 + P22';
-    P23 = T'*(Bw + Bu*Dn*Dyw);
-    P24 = U'*Cz' + Cn'*Dzu';
-    P34 = Dzw' + Dyw'*Dn'*Dzu';
-    Km = [P11,  P12,   P13,        P14;
-          P12', P22,   P23,        P24;
-          P13', P23',  -(gamv*Iw), P34;
-          P14', P24',  P34',       -(gamv*Iz)];
-    Cp = [R, Tc;
-             Tc', V];                          % coupling [R T'T; T'T V] >= 0
-    % Slack options: degrees like R, weight raise dw_Q + dw, margin of the settings
-    o = struct('like',R,'dw',dw_Q+dw,'margin',settings.sop.margin,'cap',[]);
-    prog = lpi_ineq_sop(prog,-Km,o);               % Km <= 0
-    prog = lpi_ineq_sop(prog,Cp,o);                % Cp >= 0
-    % Solve with the solver options of the settings
-    prog = lpisolve(prog,settings.sos_opts);
+% LPI program on the variables and domain of the PIE, with the settings;
+% the field sopeq records the rows of each equality constraint
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),dom,settings);
+prog.sopeq = {};
+[prog,gamv] = lpidecvar(prog,'gam');           % gam >= 0, minimized
+prog = lpi_ineq_sop(prog,gamv);
+prog = lpisetobj(prog,gamv);
+% Lyapunov variables R, V >= eppos I on the state (the output space of
+% T'), with the degrees of the storage row of the settings (POSCOPVAR
+% with DEG omitted)
+[prog,R] = poscopvar(prog,T');
+R = R + Ieps;
+[prog,V] = poscopvar(prog,T');
+V = V + Ieps;
+% get_lpivar_degs_sop(R): reads the monomial degrees actually used in the
+%   positive operator R (multiplier, integral kernels), returned in the
+%   format lpivar_cdopvar expects, so the free variables below get the
+%   same degrees as R (dQ from R for Q,Bn,Dn; dU from V for U,An,Cn).
+dQ = get_lpivar_degs_sop(R);
+dU = get_lpivar_degs_sop(V);
+%% indefinite operator variables Q,U,An,Bn,Cn,Dn.
+% Lyapunov variables:  Q_cl = [Q S; S S], for functional <x,Rx>==<x,T*Qx>.
+%  Define U := (Q − S)^{-1}, such that V = T U. The congruence transform
+%  U_cl = [I U; 0 −U] linearizes the closed-loop inequality.
+% Each free operator takes the output and input spaces of an operator of
+% the same shape: Q those of T (state -> state), U and An those of R
+% (state -> state), Bn those of Cy' (y -> state), Cn those of Bu'
+% (state -> u), Dn those of (Cy*Bu)' (y -> u).
+[prog,Q]  = lpivar_cdopvar(prog,T,dQ);
+[prog,U]  = lpivar_cdopvar(prog,R,dU);
+% controller variables (AK,BK,CK,DK) defined as:
+%  (assumes D22 = 0)
+%   An := Q'*(A + Bu*DK*Cy - Bu*CK)*U + S'*(BK*Cy - AK)*U
+%   Bn := Q'*Bu*DK + S'*BK
+%   Cn := (DK*Cy - CK)*U
+%   Dn := DK
+% (AK,BK,CK,DK are recovered from the solution at the end).
+[prog,An] = lpivar_cdopvar(prog,R,dU);
+[prog,Bn] = lpivar_cdopvar(prog,Cy',dQ);
+[prog,Cn] = lpivar_cdopvar(prog,Bu',dU);
+[prog,Dn] = lpivar_cdopvar(prog,(Cy*Bu)',dQ);
+%% declare the operator equality and inequality constraints.
+Tc = T'*T;
+prog = lpi_eq_sop(prog,T'*Q - R);              % T'Q = R
+prog = lpi_eq_sop(prog,Tc*U - V);              % T'T U = V
+% KYP operator blocks
+P11 = Q'*A + Bn*Cy;           P11 = P11 + P11';
+P12 = An + (A + Bu*Dn*Cy)'*T;
+P13 = Q'*Bw + Bn*Dyw;
+P14 = Cz' + Cy'*Dn'*Dzu';
+P22 = T'*(A*U + Bu*Cn);       P22 = P22 + P22';
+P23 = T'*(Bw + Bu*Dn*Dyw);
+P24 = U'*Cz' + Cn'*Dzu';
+P34 = Dzw' + Dyw'*Dn'*Dzu';
+Km = [P11,  P12,   P13,        P14;
+      P12', P22,   P23,        P24;
+      P13', P23',  -(gamv*Iw), P34;
+      P14', P24',  P34',       -(gamv*Iz)];
+Cp = [R, Tc;
+         Tc', V];                          % coupling [R T'T; T'T V] >= 0
+% Slack options: degrees like R, weight raise dw_Q + dw, margin of the settings
+o = struct('like',R,'dw',dw_Q+max_raise,'margin',settings.sop.margin,'cap',[]);
+prog = lpi_ineq_sop(prog,-Km,o);               % Km <= 0
+prog = lpi_ineq_sop(prog,Cp,o);                % Cp >= 0
+% Solve with the solver options of the settings
+prog = lpisolve(prog,settings.sos_opts);
 
-    % Solver status: primal and dual infeasibility, numerical error
-    si = prog.solinfo.info;   pinf = 0;  dinf = 0;  nerr = 0;      % missing flag = 0
-    if isfield(si,'pinf')
-        pinf = double(si.pinf);
-    end      % 1: primal infeasible
-    if isfield(si,'dinf')
-        dinf = double(si.dinf);
-    end      % 1: dual infeasible
-    if isfield(si,'numerr')
-        nerr = double(si.numerr);
-    end      % 1: inaccurate, 2: failed
-    gam = double(lpigetsol_sop(prog,gamv));
-    ok = pinf~=1 && dinf~=1 && nerr<=1;            % optimal or inaccurate
-    % Stop when certified, at the last raise, or when the solve neither
-    % failed nor was primal infeasible
-    if ok || dw==max_raise || ~(nerr==2 || pinf==1)
-        break
-    end
-end
+% Solver status: primal and dual infeasibility, numerical error
+si = prog.solinfo.info;   pinf = 0;  dinf = 0;  nerr = 0;      % missing flag = 0
+if isfield(si,'pinf')
+    pinf = double(si.pinf);
+end      % 1: primal infeasible
+if isfield(si,'dinf')
+    dinf = double(si.dinf);
+end      % 1: dual infeasible
+if isfield(si,'numerr')
+    nerr = double(si.numerr);
+end      % 1: inaccurate, 2: failed
+gam = double(lpigetsol_sop(prog,gamv));
+ok = pinf~=1 && dinf~=1 && nerr<=1;            % optimal or inaccurate
 % gam is a bound only when the solver certified it: warn otherwise; print gam
 if ~ok
     warning('LPI not certified (pinf=%d dinf=%d numerr=%d).',pinf,dinf,nerr);
 end
-fprintf('Hinf_OFcontrol_demo13: gam = %.8g (certified: %d, dw = %d)\n',gam,ok,dw);
+fprintf('Hinf_OFcontrol_demo13: gam = %.8g (certified: %d, dw = %d)\n',gam,ok,dw_Q+max_raise);
 %% controller structure with the solved variables   
 % getsol_lpivar_sop(prog,X) needs the operator variable X itself, not its name,
 % so the variables are listed next to their names.
