@@ -42,6 +42,7 @@ function PDE_out = minus(PDE_1,PDE_2)
 %
 % Initial coding DJ - 06/23/2024
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Terms minus an equation L==R give L==R+T;
 
 % % Check that the first input is of suitable type.
 if isa(PDE_1,'state')
@@ -71,6 +72,11 @@ end
 if isnumeric(PDE_2) && all(all(PDE_2==0))
     % PDE_1 - 0 = PDE_1;
     PDE_out = PDE_1;
+    return
+elseif isa(PDE_2,'pde_struct') && isa(PDE_1,'pde_struct') && is_pde_term(PDE_1) && ~is_pde_term(PDE_2)
+    % Terms T minus an equation L==R: T-L==-R, i.e. L==R+T, adding the
+    % terms to the right-hand side
+    PDE_out = plus(PDE_2,PDE_1);                                            % DJ, 11/23/2026
     return
 elseif isa(PDE_2,'pde_struct')
     % % Replace PDE_2 with -PDE_2, by changing the sign of all the 

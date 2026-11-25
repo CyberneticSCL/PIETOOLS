@@ -52,6 +52,9 @@ function PDE_out = subs(PDE_in,vars,locs)
 %                   single free term, see also update to "pde_var";
 % DJ, 02/18/2026: Add support for substitution of nonlinear terms;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/22/2026: Replace substituted variables in vars; fix limits check;
+% DJ, 11/23/2026: Reject time advances; remove a term whose integral gets
+%                   equal limits;
 
 
 % % % Process the inputs
@@ -113,8 +116,9 @@ locs = polynomial(locs);
 is_fixed_loc = true(nvars,1);       % Keep track of which variables are replaced with an actual position.
 for kk=1:nvars
     if is_t_subs(kk)                                                        % DJ, 12/16/2024
-        if ~isa(locs(kk),'polynomial') || isdouble(locs(kk)) || ~isdouble(pvar('t')-locs(kk))
-            error("Temporal delay should be specified as 'subs(x,t,t-a)' for positive scalar a.")
+        if ~isa(locs(kk),'polynomial') || isdouble(locs(kk)) || ~isdouble(pvar('t')-locs(kk)) ||...
+                double(pvar('t')-locs(kk))<0                                % DJ, 11/23/2026
+            error("Temporal delay should be specified as 'subs(x,t,t-a)' for scalar a>=0; an advance subs(x,t,t+a) is not supported.")
         else
             % Store the value of the delay in locs
             locs(kk) = pvar('t')-locs(kk);
@@ -204,8 +208,13 @@ for ii=1:numel(PDE_out.free)
                     % If partial integral is performed, replace that variable
                     % too.
                     if isfield(fctr_jj,'I') && numel(fctr_jj.I)>=var_idx 
-                        if ~isempty(fctr_jj.I{var_idx}) && ispolynomial(fctr_jj.I{var_idx})
+                        if ~isempty(fctr_jj.I{var_idx}) && isa(fctr_jj.I{var_idx},'polynomial') % DJ, 11/22/2026
                             fctr_jj.I{var_idx} = subs(fctr_jj.I{var_idx},vars(ll),locs(ll));
+                            % An integral over [c,c] is zero
+                            if isequal(fctr_jj.I{var_idx}(1),fctr_jj.I{var_idx}(2))
+                                rm_term = true;                             % DJ, 11/23/2026
+                                break
+                            end
                         end
                     end
                 end
@@ -226,20 +235,25 @@ for ii=1:numel(PDE_out.free)
     end
     % Remove zero-terms
     PDE_out.free{ii}.term = PDE_out.free{ii}.term(~rm_list);
-    % Update the list of variables on which the equation depends.
+    % Update the list of variables on which the equation depends: a
+    % substituted variable is removed, and a variable substituted for it
+    % is added.
     if isfield(PDE_out.free{ii},'vars')
         vars_ii = PDE_out.free{ii}.vars;
-        retain_vars = true(size(vars_ii,1),1);
-        for ll=1:size(vars_ii,1)
-            % Check if integration is performed with variable vars_ii(ll); 
-            is_subs_var = isequal(vars_ii(ll),vars);
-            if any(is_subs_var) && is_fixed_loc(is_subs_var)
-                % If the variable is evaluated at a fixed position,
-                % dependence on this variable is removed.
-                retain_vars(ll) = false;
+        vnames_ii = arrayfun(@(l) vars_ii(l).varname{1},1:size(vars_ii,1),'UniformOutput',false);
+        vnames_subs = arrayfun(@(k) vars(k).varname{1},1:nvars,'UniformOutput',false);
+        [is_subs_var,idcs] = ismember(vnames_ii,vnames_subs);               % DJ, 11/22/2026
+        vnames_new = vnames_ii(~is_subs_var);
+        for l=find(is_subs_var)
+            if ~is_fixed_loc(idcs(l)) && ~is_t_subs(idcs(l))
+                vnames_new = [vnames_new, locs(idcs(l)).varname];           % DJ, 11/22/2026
             end
         end
-        PDE_out.free{ii}.vars = vars_ii(retain_vars);
+        if isempty(vnames_new)
+            PDE_out.free{ii}.vars = polynomial(zeros(0,1));
+        else
+            PDE_out.free{ii}.vars = polynomial(unique(vnames_new(:)));
+        end
     end
 end
 

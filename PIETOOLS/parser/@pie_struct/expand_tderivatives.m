@@ -50,7 +50,8 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 %   constraint involves components with different numbers of derivatives.
 % - The expansion is not supported for equations with p_i>1 that involve
 %   inputs in T (boundary inputs), as these would require derivatives of
-%   the inputs, or for constraints involving inputs, Kw and Ku.
+%   the inputs, for constraints involving inputs, Kw and Ku, or for a map
+%   pde2pie.x.C with blocks outside the diagonal.
 % - The maps pde2pie of the new components are those of the component they
 %   derive from, with the order of the temporal derivative increased.
 
@@ -88,6 +89,7 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 %                   constraints;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: Use pie2pde.X (was x), and adjust pie2pde.T;
+% DJ, 11/23/2026: Error for a map pde2pie.x.C with off-diagonal blocks;
 
 % % % Check the inputs
 if nargin<2
@@ -135,6 +137,13 @@ if any(any(Tin_nz(is_exp,:)))
 end
 if any(any([nz_blocks(PIE.Kw),nz_blocks(PIE.Ku)]))
     error("expand_tderivatives:constraintInputs","Expansion of higher-order temporal derivatives is not supported for constraints involving inputs.")
+end
+% The map pde2pie.x.C must be block diagonal, each component deriving from
+% the single PDE component pde2pie.x.idx
+Cmap = PIE.pde2pie.x.C;
+if isa(Cmap,'copvar') && size(Cmap.C,1)==nb &&...
+        any(any(nz_blocks(Cmap) & ~eye(size(Cmap.C))))                      % DJ, 11/23/2026
+    error("expand_tderivatives:mapOffDiagonal","Expansion of higher-order temporal derivatives is not supported for a map pde2pie.x.C with blocks outside the diagonal.")
 end
 
 

@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pde_struct
+classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?sopvar,?copvar,?dpvar,?polynomial}) pde_struct % DJ, 11/22/2026
 % pde_struct is a class of objects used to describe PDE systems in
 % PIETOOLS 2022a. It has the following fields:
 %
@@ -82,6 +82,7 @@ classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pd
 % DJ, 02/17/2026: Add "is_nonlinear" field;
 % DJ (CC), 11/13/2026: Copy the field tau of a struct to tau (was dom);
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/22/2026: Make 'sopvar' and 'copvar' inferior, for C*PDE;
 
     
 properties

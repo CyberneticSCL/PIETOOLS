@@ -2,9 +2,9 @@ function settings = PIESOS_settings(preset)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SETTINGS = PIESOS_settings(PRESET) returns the settings of the PIESOS
 % executives, PIESOS_stability_global and PIESOS_stability_local, as a
-% 'struct'. PIESOS_sublevel only uses LF.mon_deg, sos.mon_deg(3), sos.psatz(3)
-% and the solver fields. Change the fields of the output to adjust the
-% settings, e.g.
+% 'struct'. PIESOS_sublevel only uses LF.mon_deg, sos.mon_deg(3),
+% sos.psatz(3), sos.otype, sos.intmat and the solver fields. Change the
+% fields of the output to adjust the settings, e.g.
 %   settings = PIESOS_settings('light');
 %   settings.LF.mon_deg = 4;
 %   settings.sos.use_ineq = false;
@@ -33,6 +33,12 @@ function settings = PIESOS_settings(preset)
 %     LF.sep        logical, true to enforce separable kernels in Zop;
 %     LF.psatz      nonnegative integer, order of the psatz multipliers in
 %                   the SOS matrix defining V;
+%     LF.otype      1, 2 or 3, the output of Zop in V: pointwise (1) or
+%                   tensor (2) products, or both (3), see piesos_quadopvar;
+%     LF.intmat     'full', 'steps' or 'all', or a 1 x N cell: the regions
+%                   of integration of the Gram forms in V, each with its
+%                   own SOS matrix, see piesos_quadopvar. Only used with
+%                   tensor products (otype 2 or 3);
 %     LF.eppos      positive scalar, the weight of the lower bound
 %                   V >= eppos*N(u) on V, with N the norm of the test;
 %     LF.C          [], Inf or positive scalar, the constant C in the upper
@@ -60,6 +66,9 @@ function settings = PIESOS_settings(preset)
 %     mult.exclude  3 x 1 logical, the terms to exclude from the operators
 %                   of p1, p2, as LF.exclude. By default, [1;0;0] only
 %                   allows integral operators;
+%     mult.otype    1, 2 or 3, the output of the operators of p1, p2, as
+%                   LF.otype;
+%     mult.intmat   regions of integration of p1, p2, as LF.intmat;
 %
 %   SOS constraints on V (lower bound, if not satisfied by construction),
 %   on the upper bound C*N(u)-V-p1*g, and on the derivative -dV-2*lambda*V-
@@ -77,13 +86,26 @@ function settings = PIESOS_settings(preset)
 %                   variables in the kernels of the operators of the SOS
 %                   polynomials of the lower bound, upper bound and
 %                   derivative condition, respectively. NaN to let
-%                   piesos_ineq select the degree (use_ineq only);
+%                   piesos_ineq select the degree (use_ineq only). Or a
+%                   1 x 3 cell of opts.degs of piesos_ineq, e.g. with
+%                   degrees per factor ([d;d]), as a scalar degree is
+%                   split over the factors (see monopmat). Not for
+%                   PIESOS_sublevel;
 %     sos.psatz     1 x 3 array, orders of the psatz multipliers in the
 %                   SOS polynomials;
 %     sos.exclude   3 x 1 logical, the terms to exclude from the operators
 %                   of the SOS polynomials, as LF.exclude (only used if
 %                   use_ineq is false, otherwise they follow from the
-%                   kernels of the polynomial);
+%                   kernels of the polynomial). Or, with use_ineq, a 1 x 3
+%                   cell of opts.exclude of piesos_ineq per constraint
+%                   ([] to let it choose), e.g. per block of the basis
+%                   (PIESOS_stability_local only);
+%     sos.otype     1, 2 or 3, the output of the operators of the SOS
+%                   polynomials, as LF.otype, or 'auto' (default) to
+%                   choose it from the structure of each polynomial (see
+%                   piesos_ineq);
+%     sos.intmat    regions of integration of the SOS polynomials, as
+%                   LF.intmat (opts.intmat of piesos_ineq);
 %
 %   Solver
 %     solver        char, the SDP solver (e.g. 'mosek', 'sedumi'), or ''
@@ -126,7 +148,9 @@ function settings = PIESOS_settings(preset)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ (CC), 11/09/2026: Initial coding;
+% DJ, 11/09/2026: Initial coding;
+% DJ, 11/22/2026: Fields otype and intmat of LF, mult, sos; sos.mon_deg
+%                   and sos.exclude as cells;
 
 % Default preset
 if nargin<1 || isempty(preset)
@@ -139,6 +163,8 @@ settings.LF.mon_deg = 3;
 settings.LF.exclude = 'auto';
 settings.LF.sep = false;
 settings.LF.psatz = 0;
+settings.LF.otype = 1;
+settings.LF.intmat = 'full';
 settings.LF.eppos = 1;
 settings.LF.C = [];
 settings.LF.lower = 'u';        % lower bound in u=T*x, or in x_pde
@@ -148,12 +174,16 @@ settings.mult.dist_deg = [0,1];
 settings.mult.mon_deg = [3,3];
 settings.mult.psatz = [0,0];
 settings.mult.exclude = [1;0;0];
+settings.mult.otype = 1;
+settings.mult.intmat = 'full';
 
 % SOS constraints
 settings.sos.use_ineq = true;
 settings.sos.mon_deg = [3,3,4];
 settings.sos.psatz = [1,1,1];
 settings.sos.exclude = [1;0;0];
+settings.sos.otype = 'auto';
+settings.sos.intmat = 'full';
 
 % Solver
 settings.solver = '';

@@ -141,6 +141,8 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 11/02/2026: Initial coding;
+% DJ, 11/23/2026: sourceConstrained error also names boundary values
+%   of states of higher order, which lift_BVP_sources now lifts too;
 
 % % % Check the inputs
 msg = "Options should be specified as 'no_decouple', 'all_inputs', 'blocks' or 'nonlinear'.";
@@ -347,7 +349,10 @@ for g=1:numel(PDEs)
         end
         % The only inputs of the group are lifted states of lower dimension
         if strcmp(ME.identifier,'compose_Tmaps:inputsConstrained') && any(dec.w_idcs{g}>nw0) && ~any(dec.w_idcs{g}<=nw0) && isempty(dec.u_idcs{g})
-            error('convert_PIETOOLS_BVP:sourceConstrained',"Boundary conditions with a state of lower dimension (e.g. an ODE state) are not supported if there are more conditions than the order of the states.")
+            % A source may also be the boundary value of a state of higher
+            % order in the other variables, as data of the BC of the other
+            % state, which then has a surplus condition
+            error('convert_PIETOOLS_BVP:sourceConstrained',"Boundary conditions with a state of lower dimension (e.g. an ODE state), or with a boundary value of a state of higher order in the other variables, are not supported if the state they constrain then has more conditions than its order. Such a term is taken as data of the boundary condition of the state of lower dimension or order, not as a condition on its own state.")  % DJ, 11/23/2026
         end
         rethrow(ME)
     end

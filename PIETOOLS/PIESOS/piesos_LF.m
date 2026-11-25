@@ -55,6 +55,9 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %               psatz=[0,1], we have Pmat = Pmat1 + (s-a)*(b-s)*Pmat2;
 %           - 'sep': scalar boolean specifying whether to enforce
 %               separability of the operator;
+%           - 'otype': type of output of Zop: 1 for pointwise products, 2
+%               for tensor products, 3 for both, see `piesos_quadopvar`.
+%               Defaults to 1;
 %           - 'pos': scalar boolean, set to true to declare V as a sum of
 %               squares (only for PDE state variables). Otherwise, Pmat is
 %               symmetric but indefinite;
@@ -118,6 +121,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding, based on V3_Liediff by CR;
+% DJ, 11/22/2026: Option 'otype', defaulting to 1;
 
 % Check the options
 if nargin<=4
@@ -125,6 +129,10 @@ if nargin<=4
 end
 if ~isa(opts,'struct')
     error("Options must be specified as a 'struct'.")
+end
+% Pointwise products by default (otype 1)
+if ~isfield(opts,'otype')
+    opts.otype = 1;
 end
 % Skip the derivative if it is not requested (also for the recursive calls below)
 if isfield(opts,'derivative') && ~(isscalar(opts.derivative) && (islogical(opts.derivative) || isnumeric(opts.derivative)))

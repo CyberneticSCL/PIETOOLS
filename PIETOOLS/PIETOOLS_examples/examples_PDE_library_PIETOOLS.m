@@ -141,6 +141,7 @@
 %   executive runs through PIETOOLS_auto_execute_sop; the forms of the tests
 %   are reset with the flags; the 2-D message names st; table of contents
 %   (test, form, stability notion of each case), help and license revised.
+% DJ (CC), 11/23/2026: Error for an index of no example;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1459,6 +1460,12 @@ end
 if GUI~=0
  disp('No GUI representation available for this system.')
 end
+%--------------------------------------------------------------------------
+    otherwise
+% No example has this index, e.g. an index computed in floating point, such
+% as by 4.1:0.1:4.5, which need not be exactly 4.2
+    error(['No example has the index %.17g. The examples have the indices 1 through 72,',...
+           ' and the variants 2.1-2.4, 4.1-4.5, 13.1 and 13.2.'],index)     % DJ (CC), 11/23/2026
 
 %__________________________________________________________________________
 %==========================================================================

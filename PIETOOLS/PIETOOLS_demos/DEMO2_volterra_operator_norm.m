@@ -47,6 +47,7 @@
 %   variables s1, s1_dum (the variables of Top in the 11/04/2026 entry).
 %   Top was an opvar, converted by OP2COPVAR_SOP, so the demo stopped
 %   without the opvar class; T is the container the conversion returned.
+% DJ, 11/23/2026: Declare T using `get_op`;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -57,20 +58,16 @@ echo on
 % % Define Volterra operator
 % %  (Top*x)(s) = int_{a}^{s} x(r) dr    s in [a,b]
 a=0;    b=1; 
-% opvar Top;                                                                % MMP, 11/05/2026 (was)
-% Top.R.R1 = 1; Top.I = [a,b];                                              % MMP, 11/05/2026 (was)
-% The operator as a container, from its 4-PI kernels: R1 = 1 alone, on      % MMP, 11/05/2026
-% L2[a,b] with no R^n space (dims [0 0; 1 1]); s1_dum is the dummy of s1.   % MMP, 11/05/2026
+% The operator is applied to a PDE variable x in L2[a,b], and extracted     % DJ, 11/23/2026
+% from the resulting term with "get_op".
 pvar s1 s1_dum                                                              % MMP, 11/05/2026
-T = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,[a,b]);            % MMP, 11/05/2026
+x = pde_var(s1,[a,b]);
+T = get_op(int(x(s1_dum),s1_dum,[a,s1]));
 
 % =============================================
 % === Declare the LPI
 
 % % Initialize LPI program
-% T = op2copvar_sop(Top);            % the operator as a container            % DJ (CC), 10/30/2026  % MMP, 11/05/2026 (was)
-% prob = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
-% prob = lpiprogram(Top.vars,Top.I);                                        % MMP, 11/05/2026 (was)
 prob = lpiprogram([s1,s1_dum],[a,b]);                                       % MMP, 11/05/2026
 
 % % Declare decision variables:

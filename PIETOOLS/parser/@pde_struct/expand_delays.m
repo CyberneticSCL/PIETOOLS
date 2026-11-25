@@ -88,6 +88,8 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % DJ (CC), 11/13/2026: Replace a term of a single factor as a whole,
 %                   fixing delayed inputs;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Map the integrals of a delayed object to the variables of
+%                   the new state, also if evaluated at a boundary;
 
 if nargin==1
     suppress_summary = false;
@@ -298,7 +300,9 @@ for ii=1:ncomps
             Rindx = term_jj.u;
             state_idx = Rindx + nx + numel(PDE.w);  % u inputs are assigned indices nx+nw+1 through nx+nw+nu
         end
-       
+        % Variables of the delayed object, one per element of term_jj.I
+        has_vars_R = logical(PDE.([Robj,'_tab'])(Rindx,3:2+nvars));         % DJ, 11/23/2026
+
         % Distinguish case where delay is a fixed real value, and where
         % delay is distributed.
         if isa(delay,'double') || isdouble(delay)
@@ -327,6 +331,10 @@ for ii=1:ncomps
                     new_loc = PDE.vars(:,1)';
                     new_loc(tau_idx) = -delay;  % Evaluate at s=-delay
                     term_jj.loc = new_loc(has_vars_delay_state);
+                    % Integrals on the variables of the new state, which
+                    % lacks those at which the object is at a boundary
+                    I_new = cell(nvars,1);      I_new(has_vars_R) = term_jj.I;
+                    term_jj.I = I_new(has_vars_delay_state);                % DJ, 11/23/2026
                     term_jj.delay = 0;
                 else
                     % The combination of Robj and delay does not occur yet,
@@ -347,6 +355,8 @@ for ii=1:ncomps
                     new_loc = PDE.vars(:,1)';
                     new_loc(tau_idx) = -delay;  % Evaluate at s=-delay
                     term_jj.loc = new_loc(has_vars_delay_state);
+                    I_new = cell(nvars,1);      I_new(has_vars_R) = term_jj.I;
+                    term_jj.I = I_new(has_vars_delay_state);                % DJ, 11/23/2026
                     term_jj.delay = 0;
                 end
             else
@@ -388,6 +398,8 @@ for ii=1:ncomps
                 new_loc = PDE.vars(:,1)';
                 new_loc(tau_idx) = -delay;  % Evaluate at s=-delay
                 term_jj.loc = new_loc(has_vars_delay_state);
+                I_new = cell(nvars,1);      I_new(has_vars_R) = term_jj.I;
+                term_jj.I = I_new(has_vars_delay_state);                    % DJ, 11/23/2026
                 term_jj.delay = 0;
             end
         else
@@ -409,13 +421,11 @@ for ii=1:ncomps
                 % Determine which spatial variables Robj and the delayed
                 % state depend on.
                 has_vars_delay_state = logical(PDE.x_tab(new_state_idx,3:2+nvars));
-                has_vars_Robj = has_vars_delay_state;
-                has_vars_Robj(tau_idx) = false;
                 
                 % Define the new integral.
                 new_int = cell(nvars,1);
                 new_int{tau_idx} = [-delay,0];
-                new_int(has_vars_Robj) = term_jj.I;
+                new_int(has_vars_R) = term_jj.I;                            % DJ, 11/23/2026
                 
                 % Set the new term: 
                 % int_{-delay}^{0} d/dr Robj(t+s) ds = int_{-delay}^{0} xnew(t,s) ds
@@ -438,13 +448,11 @@ for ii=1:ncomps
                 % Determine which spatial variables Robj and the delayed
                 % state depend on.
                 has_vars_delay_state = logical(PDE.x_tab(new_state_idx,3:2+nvars));
-                has_vars_Robj = has_vars_delay_state;
-                has_vars_Robj(tau_idx) = false;
                 
                 % Define the new integral.
                 new_int = cell(nvars,1);
                 new_int{tau_idx} = [-delay,0];
-                new_int(has_vars_Robj) = term_jj.I;
+                new_int(has_vars_R) = term_jj.I;                            % DJ, 11/23/2026
                 
                 % Set the new term:
                 % int_{-delay}^{0} d/dr Robj(t+s,r) ds = int_{-delay}^{0} xnew(t,s,r) ds

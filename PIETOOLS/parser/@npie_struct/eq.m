@@ -13,9 +13,11 @@ function logval = eq(objA, objB)
 % Identical operators are equal. Otherwise, operators are compared by
 % taking their difference, and checking whether it is zero. Operators of
 % different types, or acting on different function spaces, are not equal.
-% For polynomials (polyopvar), the difference may not be recognized as zero
-% (e.g. for nonlinear terms), in which case the PIEs are not considered
-% equal.
+% The spatial variables may be listed in any order. The polynomials f, gz
+% and gy are compared after the operators; their difference may not be
+% recognized as zero, e.g. for the factors of a nonlinear term in another
+% order (x*x_s and x_s*x). The PIEs are then not considered equal, and the
+% warning 'npie_struct:eqUndecided' is issued.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - eq
@@ -45,12 +47,9 @@ function logval = eq(objA, objB)
 %
 % DJ, 10/29/2026: Initial coding;
 
-% The operators and polynomials compared, by field name
-PI_list = {'T','Tw','Tu',...
-           'f','Bw','Bu',...
-           'gz','Dzw','Dzu',...
-           'gy','Dyw','Dyu',...
-           'K','Kw','Ku'};
+% The operators, and then the polynomials, compared, by field name
+PI_list = {'T','Tw','Tu','Bw','Bu','Dzw','Dzu','Dyw','Dyu','K','Kw','Ku',...
+           'f','gz','gy'};
 
 % Objects other than 'npie_struct' are not equal; then the variables and
 % domain, and each operator in turn
@@ -58,7 +57,10 @@ if ~isa(objA,'npie_struct') || ~isa(objB,'npie_struct')
     logval = false;
     return
 end
-logval = isequal(objA.space.vars,objB.space.vars) && isequal(objA.dom,objB.dom);
+% The same variables and domains, in any order
+[is_var,loc] = ismember(objA.space.vars,objB.space.vars);
+logval = numel(objA.space.vars)==numel(objB.space.vars) && all(is_var) &&...
+            isequal(objA.dom,objB.dom(loc,:));
 for name = PI_list
     opA = objA.(name{1});
     opB = objB.(name{1});
@@ -83,6 +85,13 @@ for name = PI_list
             is_zero = false;
         end
         logval = logval && is_zero;
+        % A difference of polynomials not shown to be zero does not
+        % prove the PIEs differ
+        if ~is_zero && isa(opA,'polyopvar')
+            warning('npie_struct:eqUndecided',['The polynomials "',name{1},'" of the PIEs could not be shown to be equal;',...
+                ' they may still be equal, e.g. with the factors of a nonlinear term in another order (x*x_s and x_s*x).',...
+                ' The PIEs are considered not equal.'])
+        end
     else
         % Other classes: equal only if identical
         logval = logval && isequal(opA,opB);

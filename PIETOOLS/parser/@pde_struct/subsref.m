@@ -2,6 +2,8 @@ function val = subsref(PDE,prop)
 % SUBSREF allows properties and elements of the "pde_struct" object PDE to
 % be retrieved. The function is automatically called when calling
 % e.g. PDE(i,j) or PDE.obj for a "pde_struct" PDE.
+% The function also acts to perform variable substitution, e.g.
+%   x(t-1,s1_dum,s2) = subs(subs(x,s1,s1_dum),t,t-1);
 %
 % INPUTS:
 % - PDE:    A pde_struct object of which to extract a property/element.
@@ -25,9 +27,14 @@ function val = subsref(PDE,prop)
 % function. However, in the display, certain coefficients are shown as
 % C_{ij}, so we added a feature to extract these coefficients by calling
 % PDE.C{i,j}.
+% With at least one 'polynomial' argument, PDE(...) evaluates a PDE
+% variable, or terms of which all states and inputs depend on the same
+% variables s1,...,sn, at the given variables or positions: x(s1_dum,s2)
+% substitutes s1_dum for s1, and x(s1,0) substitutes 0 for s2. An
+% additional first argument is the time: x(t-1,s1,s2) substitutes t-1 for t.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022 PIETOOLS Team
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -57,6 +64,7 @@ function val = subsref(PDE,prop)
 % DJ, 10/28/2026: Do not copy tdiff=nan (state without equation) to the
 %                   extracted term;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Evaluate PDE variables and terms as x(t-1,s1_dum,s2);
 
 
 % % % If the object is a single PDE variable, we have a separate case for
@@ -67,6 +75,15 @@ function val = subsref(PDE,prop)
 % features such as '()' type subsasgn may be introduced in later updates.
 if strcmp(prop(1).type,'{}')
     error("''{}'' type subsref is currently not supported for 'pde_struct' class objects.")
+elseif strcmp(prop(1).type,'()') && any(cellfun(@(r) isa(r,'polynomial'),prop(1).subs)) % DJ, 11/23/2026
+    % % Evaluate a PDE variable, or terms in a single list of variables, at
+    % % the given positions or variables: x(s1_dum,s2) substitutes s1_dum
+    % % for s1.
+    val = eval_pde(PDE,prop(1).subs,is_var,obj);                            % DJ, 11/23/2026
+    % Perform remaining subsref.
+    if numel(prop)>1
+        val = subsref(val,prop(2:end));
+    end
 elseif strcmp(prop(1).type,'()')
     % % Allow terms to be retrieved by calling PDE(i,j);
     % % Process the inputs
@@ -308,3 +325,87 @@ elseif strcmp(prop(1).type,'.')
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function val = eval_pde(PDE,args,is_var,obj)
+% VAL = EVAL_PDE(PDE,ARGS,IS_VAR,OBJ) evaluates a PDE variable, or terms of
+% which all states and inputs depend on the same variables s1,...,sn, at
+% the variables or positions in ARGS, substituting each variable sk not
+% evaluated at itself: x(s1_dum,s2) substitutes s1_dum for s1. An
+% additional first argument is the time: x(t-1,s1,s2) substitutes t-1 for t.
+%
+% INPUT
+% - PDE:    'pde_struct' object, a PDE variable or free terms;
+% - args:   1 x n or 1 x (n+1) cell of 'polynomial' or 'double' scalars,
+%           the positions at which to evaluate each variable sk, optionally
+%           preceded by the time;
+% - is_var: logical scalar, true if PDE is a single PDE variable;
+% - obj:    char, the type of the PDE variable ('x','u','w','y','z') if
+%           is_var is true;
+%
+% OUTPUT
+% - val:    'pde_struct' object, the PDE variable or terms after
+%           substitution;
+
+% Determine the spatial variables, in order, of the variable or terms.
+if is_var
+    vars_obj = PDE.(obj){1}.vars;
+elseif ~isempty(PDE.free)
+    vars_obj = [];      vnames_obj = {};
+    for ii=1:numel(PDE.free)
+        if ~isfield(PDE.free{ii},'term'),   continue;   end
+        for jj=1:numel(PDE.free{ii}.term)
+            for kk=1:numel(PDE.free{ii}.term{jj})
+                fctr = PDE.free{ii}.term{jj}(kk);
+                for obj_k = {'x','u','w','y','z'}
+                    if isfield(fctr,obj_k{1}) && ~isempty(fctr.(obj_k{1}))
+                        vars_k = PDE.(obj_k{1}){fctr.(obj_k{1})}.vars;
+                    end
+                end
+                % Finite-dimensional states and inputs do not vary.
+                vnames_k = arrayfun(@(l) vars_k(l,1).varname{1},1:size(vars_k,1),'UniformOutput',false);
+                if isempty(vnames_k)
+                    continue
+                elseif isempty(vnames_obj)
+                    vars_obj = vars_k;  vnames_obj = vnames_k;
+                elseif ~isequal(vnames_k,vnames_obj)
+                    error("Terms can only be evaluated if all their states and inputs depend on the same variables, in the same order.")
+                end
+            end
+        end
+    end
+else
+    error("Only PDE variables and terms can be evaluated.")
+end
+% One argument per spatial variable, plus optionally a first temporal
+% argument.
+nvars = size(vars_obj,1);
+if numel(args)==nvars+1
+    t_arg = polynomial(args{1});    args = args(2:end);
+elseif numel(args)==nvars
+    t_arg = [];
+else
+    error("Evaluation requires one argument per spatial variable (%d), optionally preceded by a temporal argument.",nvars)
+end
+% Substitute each variable not evaluated at itself, and the time.
+vars_subs = cell(0,1);      locs = cell(0,1);
+for k=1:nvars
+    arg_k = polynomial(args{k});
+    if ~isequal(arg_k,vars_obj(k,1))
+        vars_subs{end+1,1} = vars_obj(k,1);                                 %#ok<AGROW>
+        locs{end+1,1} = arg_k;                                              %#ok<AGROW>
+    end
+end
+if ~isempty(t_arg) && ~isequal(t_arg,pvar('t'))
+    vars_subs{end+1,1} = pvar('t');     locs{end+1,1} = t_arg;
+end
+val = PDE;
+if ~isempty(vars_subs)
+    val = subs(PDE,vertcat(vars_subs{:}),vertcat(locs{:}));
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

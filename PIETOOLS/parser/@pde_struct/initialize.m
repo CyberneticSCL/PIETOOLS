@@ -232,6 +232,8 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % DJ, 11/08/2026: Bugfix in case a state depends on all spatial variables
 %                   but lists them in incorrect order;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Accept a dummy variable of an integral of an input,
+%                   replacing it with the dummy variable of the PDE;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -1262,8 +1264,21 @@ for ii=1:numel(PDE.(obj))
                 end
                 Rloc = polynomial(Rloc);
             elseif isfield(term_ll,'loc')
-                % The term involves an input --> no spatial position may be 
-                % specified.
+                % The term involves an input --> no spatial position may be
+                % specified, other than the dummy variable of an integral.
+                % A dummy variable that is not a variable of the PDE is
+                % replaced with the dummy variable of the PDE, also in the
+                % coefficients.
+                if size(term_ll.loc,1)==1 && size(term_ll.loc,2)==nvars_Rcomp && size(Rvar_order,1)==1 && isfield(term_ll,'C')
+                    loc_R = polynomial(term_ll.loc(Rvar_order));
+                    vars_R = PDE.vars(has_vars_Rcomp,:);
+                    is_dum = arrayfun(@(k) ispvar(loc_R(k)) && ~ismember(loc_R(k).varname{1},PDE.vars.varname),1:nvars_Rcomp);
+                    if any(is_dum)
+                        PDE.(obj){ii}.term{jj}(ll).C = subs(polynomial(term_ll.C),loc_R(is_dum),vars_R(is_dum,2)); % DJ, 11/23/2026
+                        loc_R(is_dum) = vars_R(is_dum,2);
+                        term_ll.loc(Rvar_order) = loc_R;
+                    end
+                end
                 if  ~isempty(term_ll.loc) &&...
                     ((length(term_ll.loc)~=nvars && size(term_ll.loc,2)~=nvars_Rcomp) || ...
                     (length(term_ll.loc)==nvars && ~all(isequal(polynomial(term_ll.loc(Gvar_order)),PDE.vars(:,1)') | isequal(polynomial(term_ll.loc(Gvar_order)),PDE.vars(:,2)'))) || ...

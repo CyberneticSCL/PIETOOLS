@@ -34,6 +34,9 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 %               (b_i-s_i)^(qi-j), j=0,..,qi;
 %           - 'sep': scalar boolean specifying whether to enforce
 %               separability of the operator;
+%           - 'otype': type of output of Zop: 1 for pointwise products, 2
+%               for tensor products, 3 for both, see `piesos_quadopvar`.
+%               Defaults to 1;
 %           Other options of `piesos_quadvar` can be used, but the
 %           operators on the left and right must be the same (opts.L, 
 %           opts.R, degs.L, degs.R);
@@ -77,6 +80,7 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/22/2026: Option 'otype', defaulting to 1;
 
 % Verify that the monomials are appropriately specified
 if ~isa(Z,'polyopvar')
@@ -95,8 +99,12 @@ if ~isa(opts,'struct')
     error("Options must be specified as a 'struct'.")
 end
 
-% Declare the SOS functional using piesos_quadvar
+% Declare the SOS functional using piesos_quadvar, by default with
+% pointwise products only (otype 1)
 opts.pos = true;
+if ~isfield(opts,'otype')
+    opts.otype = 1;
+end
 [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,Z,[],opts);
 
 % V is a sum of squares only if the operators on the left and right are the

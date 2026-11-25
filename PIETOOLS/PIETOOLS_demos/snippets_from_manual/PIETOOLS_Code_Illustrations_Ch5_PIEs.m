@@ -5,14 +5,16 @@
 % The blocks convert a heat equation with integral BCs and a wave equation
 % with the same BCs, a DDE with two distributed delays, and a heat
 % equation with boundary control and outputs to PIEs; declare PIEs from
-% 'copvar' operators (piess); and impose a state feedback, a Luenberger
-% estimator and estimator-based feedback (closedLoopPIE, pielft). Lines
-% without a semicolon print the PIE structures and their fields.
+% 'copvar' operators (piess), each extracted (get_op) from the PDE terms
+% that it produces when applied to PDE variables; and impose a state
+% feedback, a Luenberger estimator and estimator-based feedback 
+% (closedLoopPIE, pielft). Lines without a semicolon print the PIE 
+% structures and their fields.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
 %
-% Copyright (C)2025  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -38,12 +40,12 @@
 % DJ, 12/30/2024: Initial coding;
 % DJ, 01/07/2025: Add some commenting;
 % DJ, 12/11/2025: Add wave equation;
-% DB, MMP, 11/21/2026: Changes since PIETOOLS 2025: the operators of the PIEs
-%   of 5.5 are 'copvar' objects built by pi4_copvar_sop on s, s_dum and
-%   dom = [0,1], the constant and polynomial blocks included (B1 of PIE2;
-%   A, Tu, B1, D12, D22 of PIE3), in place of opvar objects, scalars and
-%   polynomials; help text revised.
-% DJ, 11/21/2026: In 5.5.3-5.5.4, T has R1 = -s_dum, R2 = -s; B1 acts on w;
+% DB, MMP, DJ, 11/23/2026: Changes since PIETOOLS 2025: the operators of
+%   the PIEs of 5.5 are extracted from the PDE terms that they produce when
+%   when applied to a PDE variable v in L2[0,1], the constant and
+%   polynomial blocks included (B1 of PIE2; A, Tu, B1, D12, D22 of PIE3); 
+%   in 5.5.3-5.5.4, T has kernel -theta for theta < s and -s for theta > s, 
+%   and B1 of PIE3 acts on the disturbance w; help text revised.
 
 % Clear the workspace
 clear
@@ -104,77 +106,62 @@ PIE = convert(PDE,'pie')
 
 
 %% 5.5.1 Declaring a simple PIE
-% opvar T A;                                                                % DB, MMP, 11/21/2026 (was)
-% T.I = [0,1];    A.I = [0,1];                                              % DB, MMP, 11/21/2026 (was)
-% T.R.R1 = 1;                                                               % DB, MMP, 11/21/2026 (was)
-% A.R.R0 = 2;     A.R.R1 = 10;                                              % DB, MMP, 11/21/2026 (was)
-% Operators are declared as copvar objects, with "pi4_copvar_sop(P,Q1,Q2,R,dims,s,s_dum,dom)" % DB, MMP, 11/21/2026
+% Operators are applied to a PDE variable v in L2[0,1], and extracted from
+% the resulting terms with "get_op"; v(s_dum) is v evaluated at the dummy
+% variable of integration s_dum
 pvar s s_dum;       dom = [0,1];                                            % DB, MMP, 11/21/2026
-T = pi4_copvar_sop([],[],[],{[],1,[]},[0 0;1 1],s,s_dum,dom);               % DB, MMP, 11/21/2026
-A = pi4_copvar_sop([],[],[],{2,10,[]},[0 0;1 1],s,s_dum,dom);               % DB, MMP, 11/21/2026
+v = pde_var(s,dom);                                                         % DJ, 11/23/2026
+T = get_op(int(v(s_dum),s_dum,[0,s]));
+A = get_op(2*v + 10*int(v(s_dum),s_dum,[0,s]));
 
 % PIE T*v_t = A*v
 PIE1 = piess(T,A)
 
 %% 5.5.2 Declaring a PIE with disturbances and outputs
-% opvar C;                                                                  % DB, MMP, 11/21/2026 (was)
-% C.I = [0,1];    s = C.var1;                                               % DB, MMP, 11/21/2026 (was)
-% C.Q1 = 1-s;                                                               % DB, MMP, 11/21/2026 (was)
-
-% PIE2 = piess(T,A,5*s,C,0)                                                 % DB, MMP, 11/21/2026 (was)
-C = pi4_copvar_sop([],1-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);             % DB, MMP, 11/21/2026
-B1 = pi4_copvar_sop([],[],5*s,{[],[],[]},[0 1;1 0],s,s_dum,dom);            % DB, MMP, 11/21/2026
+% C*v = int_0^1 (1-s)*v(s) ds, and B1*w = 5*s*w for a disturbance w, as a
+% function of s on the domain of v (second argument of get_op)
+w = pde_var();                                                              % DJ, 11/23/2026
+C = get_op(int((1-s)*v,s,[0,1]));
+B1 = get_op(5*s*w,v);
 
 % PIE T*v_t = A*v + B1*w,  z = C*v + 0*w; print it and its field B1
 PIE2 = piess(T,A,B1,C,0)                                                    % DB, MMP, 11/21/2026
 PIE2.B1
 
 %% 5.5.3 Declaring a PIE with actuation and sensing
-% opvar T C1 C2;                                                            % DB, MMP, 11/21/2026 (was)
-% T.I = [0,1];        C1.I = [0,1];    C2.I = [0,1];                        % DB, MMP, 11/21/2026 (was)
-% s = T.var1;         theta = T.var2;                                       % DB, MMP, 11/21/2026 (was)
-% T.R.R1 = -s;        T.R.R2 = -theta;                                      % DB, MMP, 11/21/2026 (was)
-% C1.Q1 = 0.5*s^2-s;  C2.Q1 = -s;                                           % DB, MMP, 11/21/2026 (was)
+% T*v = -int_0^s s_dum*v(s_dum) ds_dum - int_s^1 s*v(s_dum) ds_dum
+T = get_op(-int(s_dum*v(s_dum),s_dum,[0,s]) - int(s*v(s_dum),s_dum,[s,1])); % DJ, 11/23/2026
+C1 = get_op(int((0.5*s^2-s)*v,s,[0,1]));
+C2 = get_op(-int(s*v,s,[0,1]));
 
-% A = 0.5;    Tu = 1;     B1 = s*(2-s);                                     % DB, MMP, 11/21/2026 (was)
-% D12 = 1;    D22 = 1;                                                      % DB, MMP, 11/21/2026 (was)
-T = pi4_copvar_sop([],[],[],{[],-s_dum,-s},[0 0;1 1],s,s_dum,dom);          % DJ, 11/21/2026
-C1 = pi4_copvar_sop([],0.5*s^2-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);      % DB, MMP, 11/21/2026
-C2 = pi4_copvar_sop([],-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);             % DB, MMP, 11/21/2026
-
-A = pi4_copvar_sop([],[],[],{0.5,[],[]},[0 0;1 1],s,s_dum,dom);             % DB, MMP, 11/21/2026
-Tu = pi4_copvar_sop([],[],1,{[],[],[]},[0 1;1 0],s,s_dum,dom);              % DB, MMP, 11/21/2026
-B1 = pi4_copvar_sop([],[],s*(2-s),{[],[],[]},[0 1;1 0],s,s_dum,dom);        % DB, MMP, 11/21/2026
-D12 = pi4_copvar_sop(1,[],[],{[],[],[]},[1 1;0 0],s,s_dum,dom);             % DB, MMP, 11/21/2026
+% Tu*u = u and B1*w = s*(2-s)*w as functions of s on the domain of v, and
+% D12*u = u, for a control input u
+u = pde_var();                                                              % DJ, 11/23/2026
+A = get_op(0.5*v);
+Tu = get_op(u,v);
+B1 = get_op(s*(2-s)*w,v);
+D12 = get_op(u);
 D22 = D12;                                                                  % DB, MMP, 11/21/2026
 
 % PIE d/dt (T*v + Tu*u) = A*v + B1*w + 0*u,  z = C1*v + D12*u,  y = C2*v + D22*u
-% PIE3 = piess({T,0,Tu},A,{0,B1},{C1;C2},{0,D12;0,D22});                    % DJ, 11/21/2026 (was)
 PIE3 = piess({T,0,Tu},A,{B1,0},{C1;C2},{0,D12;0,D22});                      % DJ, 11/21/2026
 
 %% 5.5.4 Taking Interconnections of PIEs
 % Impose the feedback law u(t)=K*v(t)
-% opvar K;                                                                  % DB, MMP, 11/21/2026 (was)
-% K.I = [0,1];    K.Q1 = 1;                                                 % DB, MMP, 11/21/2026 (was)
-K = pi4_copvar_sop([],1,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);               % DB, MMP, 11/21/2026
+K = get_op(int(v,s,[0,1]));                                                 % DJ, 11/23/2026
 PIE3_CL1 = closedLoopPIE(PIE3,K)
 
 % Construct a Luenberger estimator with gain L*(vhat(t)-v(t))
-% opvar L;        s = L.var1;                                               % DB, MMP, 11/21/2026 (was)
-% L.I = [0,1];    L.Q2 = s*(1-s);                                           % DB, MMP, 11/21/2026 (was)
-L = pi4_copvar_sop([],[],s*(1-s),{[],[],[]},[0 1;1 0],s,s_dum,dom);         % DB, MMP, 11/21/2026
+% L*e = s*(1-s)*e for the output error e, as a function of s on the domain
+% of v
+e = pde_var(1);                                                             % DJ, 11/23/2026
+L = get_op(s*(1-s)*e,v);
 PIE3_CL2 = closedLoopPIE(PIE3,L,'observer')
 
 % Construct an estimator with as output the control law
-% opvar T A C1;                                                             % DB, MMP, 11/21/2026 (was)
-% T.I = [0,1];    A.I = [0,1];    C1.I = [0,1];                             % DB, MMP, 11/21/2026 (was)
-% s = T.var1;         theta = T.var2;                                       % DB, MMP, 11/21/2026 (was)
-% T.R.R1 = -s;        T.R.R2 = -theta;                                      % DB, MMP, 11/21/2026 (was)
-% A.R.R0 = 0.5;       A.R.R1 = -s*(1-s)*theta;    A.R.R2 = A.R.R1;          % DB, MMP, 11/21/2026 (was)
-% C1.Q1 = 0.5*s^2-s;                                                        % DB, MMP, 11/21/2026 (was)
-T = pi4_copvar_sop([],[],[],{[],-s_dum,-s},[0 0;1 1],s,s_dum,dom);          % DJ, 11/21/2026
-A = pi4_copvar_sop([],[],[],{0.5,-s*(1-s)*s_dum,-s*(1-s)*s_dum},[0 0;1 1],s,s_dum,dom); % DB, MMP, 11/21/2026
-C1 = pi4_copvar_sop([],0.5*s^2-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);      % DB, MMP, 11/21/2026
+T = get_op(-int(s_dum*v(s_dum),s_dum,[0,s]) - int(s*v(s_dum),s_dum,[s,1])); % DJ, 11/23/2026
+A = get_op(0.5*v - int(s*(1-s)*s_dum*v(s_dum),s_dum,[0,1]));
+C1 = get_op(int((0.5*s^2-s)*v,s,[0,1]));
 PIE3_est = piess(T,A,{[],-L},{C1;K})
 % Take interconnection to impose estimator based feedback
 PIE3_CL3 = pielft(PIE3,PIE3_est)

@@ -72,6 +72,9 @@ function Test_piesos_quadvar()
 %                        polynomial is returned, instead of the error;
 % DJ (CC), 11/19/2026: case_operator_options: a top-level exclude applies
 %                        when opts.L specifies sep only (piesos_quadopvar);
+% DJ (CC), 11/20/2026: case_ode_state: the basis [x1*xo;xo*x1] with
+%                        opts.unique=false, and the default leaving xo*x1
+%                        out; dmonomials 'full' keeps an ODE factor in place;
 
 % NOTES
 % - piesos_sosvar wraps piesos_quadvar, so the comparison with it only
@@ -857,7 +860,14 @@ run_check('[xo;x1]',S,[xo;S.x1],[],dg(0,1),140);
 run_check('[xo;xo^2;x1]',S,[xo;otimes(xo,xo);S.x1],[],dg(0,1),150);                                                                   % DJ (CC), 11/08/2026
 run_check('[xo^2;xo^3]',S,[otimes(xo,xo);otimes(otimes(xo,xo),xo)],[],dg(0,0),151);                                                   % DJ (CC), 11/08/2026
 run_check('[xo;xo*x1]',S,[xo;otimes(xo,S.x1)],[],dg(0,1),152);                                                                        % DJ (CC), 11/08/2026
-run_check('[x1*xo;xo*x1]',S,[otimes(S.x1,xo);otimes(xo,S.x1)],[],dg(0,1),153);                                                        % DJ (CC), 11/08/2026
+% both orders of x1*xo: with opts.unique (default) xo*x1 is left out, as its   % DJ (CC), 11/20/2026
+% pointwise rows are those of x1*xo; the composition is checked without it
+run_check('[x1*xo;xo*x1]',S,[otimes(S.x1,xo);otimes(xo,S.x1)],[],setfield(dg(0,1),'unique',false),153);                              %#ok<SFLD> DJ (CC), 11/20/2026
+[~,~,Pm,ZopLu] = piesos_quadvar(piesos_program(S.all),[otimes(S.x1,xo);otimes(xo,S.x1)],[],dg(0,1));   % DJ (CC), 11/20/2026
+assert(isequal(size(Pm),[1,1]) && size(ZopLu.ops,2)==1,'[x1*xo;xo*x1]: with opts.unique, xo*x1 must be left out.');                  % DJ (CC), 11/20/2026
+% dmonomials 'full' keeps an ODE factor in its place: x1*xo in one order     % DJ (CC), 11/20/2026
+Zfull = dmonomials([S.x1;xo],[1 1],'full');                                                                                          % DJ (CC), 11/20/2026
+assert(size(Zfull.Z,1)==1,'dmonomials full: x1*xo must have a single order (xo has no spatial variables).');                        % DJ (CC), 11/20/2026
 run_check('[xo*x1*x1]',S,otimes(otimes(xo,S.x1),S.x1),[],dg(0,1),154);                                                                % DJ (CC), 11/08/2026
 run_check('[x1*xo*x1]',S,otimes(otimes(S.x1,xo),S.x1),[],dg(0,1),155);                                                                % DJ (CC), 11/08/2026
 run_check('[xo;xo^2;xo*x1;x1;x1^2] , ZL~=ZR',S,[xo;otimes(xo,xo);otimes(xo,S.x1)],[S.x1;otimes(xo,S.x1)],dg(0,1),156);                 % DJ (CC), 11/08/2026
@@ -872,9 +882,10 @@ run_check('[x1 o yo]',S2,otimes(S.x1,yo),[],dg(0,1),159);                       
 S3 = S;     S3.all = [S.y;yo;xo];     S3.X.yo = [1.1;-0.7];
 run_check('[y o yo]',S3,otimes(S.y,yo),[],dg(0,1),160);                                                                              % DJ (CC), 11/08/2026
 run_check('[yo o y]',S3,otimes(yo,S.y),[],dg(0,1),161);                                                                              % DJ (CC), 11/08/2026
-run_check('[y o yo;yo o y;y]',S3,[otimes(S.y,yo);otimes(yo,S.y);S.y],[],dg(0,1),162);                                                % DJ (CC), 11/08/2026
+% (both orders of the same factors: opts.unique=false, so that both are kept, see above)   % DJ (CC), 11/20/2026
+run_check('[y o yo;yo o y;y]',S3,[otimes(S.y,yo);otimes(yo,S.y);S.y],[],setfield(dg(0,1),'unique',false),162);                       %#ok<SFLD> DJ (CC), 11/20/2026
 run_check('[y o xo o y], scalar ODE state between vector PDE states',S3,otimes(otimes(S.y,xo),S.y),[],dg(0,1),163);                   % DJ (CC), 11/08/2026
-run_check('[xo o y o y;y o y o xo]',S3,[otimes(otimes(xo,S.y),S.y);otimes(otimes(S.y,S.y),xo)],[],dg(0,1),164);                      % DJ (CC), 11/08/2026
+run_check('[xo o y o y;y o y o xo]',S3,[otimes(otimes(xo,S.y),S.y);otimes(otimes(S.y,S.y),xo)],[],setfield(dg(0,1),'unique',false),164);    %#ok<SFLD> DJ (CC), 11/20/2026
 % with coefficients: a matrix on the vector ODE state and an operator on the vector PDE state, for which the
 % Kronecker product of the two depends on the order (the input of the merged factor is kron(.,.))
 Tm = rand_sopvar([2,2],vars,dom,1);     fm = apply_sopvar(Tm,S.X.y);

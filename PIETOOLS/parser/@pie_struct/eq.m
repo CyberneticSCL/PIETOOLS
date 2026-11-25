@@ -43,6 +43,7 @@ function logval=eq(objA, objB)
 % Initial coding PIETOOLS Team (PIETOOLS 2021b; in the repository since 12/31/2021)
 % DJ, 10/29/2026: Update to new pie_struct structure;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/23/2026: Compare the spatial variables in any order;
 
 
 % List of the operators to compare.
@@ -55,7 +56,10 @@ PI_list = {'T', 'Tw', 'Tu',...
 logval = 0;
 
 if isa(objA,'pie_struct')&&isa(objB,'pie_struct')
-    if ~isequal(objA.space.vars,objB.space.vars) || ~isequal(objA.dom,objB.dom)
+    % The same variables and domains, in any order
+    [is_var,loc] = ismember(objA.space.vars,objB.space.vars);
+    if numel(objA.space.vars)~=numel(objB.space.vars) || ~all(is_var) ||...
+            ~isequal(objA.dom,objB.dom(loc,:))                              % DJ, 11/23/2026
         logval = 1;
     end
     for i=PI_list
