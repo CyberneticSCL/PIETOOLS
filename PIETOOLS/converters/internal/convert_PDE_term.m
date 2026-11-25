@@ -189,7 +189,7 @@ if is_input
     comp_idx = fctr.(ty);  obj_tab = PDE.([ty,'_tab']);
     fld_name = ['I',ty];
     if ~isfield(Tops,fld_name) || numel(Tops.(fld_name))<comp_idx || isempty(Tops.(fld_name){comp_idx})
-        error("The operators Tops.%s{%d} mapping the fundamental inputs to the input of the PDE are not available; this input may be decomposed in a boundary condition, so that it cannot be used elsewhere.",fld_name,comp_idx)
+        error("Input %s{%d} appears in a boundary condition, where it is represented by its derivatives (fundamental inputs), and also elsewhere in the PDE. This is only supported if the input is its own fundamental input, e.g. if it has no spatial variables.",ty,comp_idx)
     end
     Tops_rows.(ty) = Tops.(fld_name){comp_idx};
 else

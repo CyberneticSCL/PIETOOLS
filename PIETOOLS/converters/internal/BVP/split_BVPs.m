@@ -222,7 +222,9 @@ for i=1:N
     n_tot = sum((1:d).*n(2:end));               % number of boundary values
     row0 = [0,cumsum(nrow)];
     if row0(end)<n_tot
-        dir_error(i,['The number of boundary conditions (',num2str(row0(end)),') should be at least the total order of the states (',num2str(n_tot),').'])
+        dir_error(i,['The number of boundary conditions (',num2str(row0(end)),') should be at least the total order of the states (',num2str(n_tot),'). ',...
+            'The order of a state along ',var_names{i,1},' is the largest of the order declared in pde_var, the order of its derivatives along ',var_names{i,1},...
+            ', and one more than the order of a derivative evaluated at a boundary (e.g. x_s(0) requires order 2).'])
     end
     % Columns of E: [D_{j}u_{j}(a);D_{j}u_{j}(b)] for each order j, of F:
     % u_{j}; lab_E, lab_F give the state of each column

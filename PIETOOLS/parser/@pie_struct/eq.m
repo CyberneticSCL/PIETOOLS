@@ -68,7 +68,7 @@ if isa(objA,'pie_struct')&&isa(objB,'pie_struct')
             % Neither of the operators has been specified, or both have no rows.
             continue
         end
-        % Operators of different types (e.g. opvar and copvar), or acting
+        % Operators of different types (e.g. copvar and double), or acting
         % on different spaces, are not equal.
         try is_equal = logical(opA==opB);
         catch, is_equal = false;

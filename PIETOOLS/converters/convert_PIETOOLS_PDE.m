@@ -43,8 +43,9 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   K*xf=0 ties them to x_pde.
 % - The inputs in the BCs are decomposed into fundamental inputs
 %   (derivatives of the PDE inputs); the other inputs are their own
-%   fundamental inputs. An input in a BC and elsewhere in the PDE is not supported,
-%   and pie2pde.W, pie2pde.U only map the inputs that are not decomposed.
+%   fundamental inputs. An input in a BC can be used elsewhere in the PDE
+%   only if it is its own fundamental input (e.g. no spatial variables);
+%   pie2pde.W, pie2pde.U only map the inputs that are not decomposed.
 %   Inputs can only appear linearly.
 % - Delays are modeled by transport states, and higher-order temporal
 %   derivatives by additional states, described by pde2pie.x.delay and

@@ -234,6 +234,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/23/2026: Accept a dummy variable of an integral of an input,
 %                   replacing it with the dummy variable of the PDE;
+% DJ, 11/25/2026: Error for a PDE without state variables;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -259,6 +260,9 @@ if ~isempty(PDE.free)
             error("Initialization is not supported: the PDE structure still involves free terms, not linked to any differential equation, output signal, or boundary condition.")
         end
     end
+end
+if isempty(PDE.x)                                                           % DJ, 11/25/2026
+    error("Initialization is not supported: the PDE has no state variables. Declare at least one state, e.g. x = pde_var(s,[0,1]), with an equation or boundary conditions.")
 end
 ncomps_x = length(PDE.x);
 
@@ -1817,8 +1821,8 @@ while ii<=n_eqs
                 
                 % Cval can have variables that appear in the LHS component.
                 Lcomp_varname = global_vars(has_vars_Lcomp,1).varname;            
-                % Currently, opvar and opvar2d objects only use dummy variables
-                % in partial integrals, not integrals over the full domain. As
+                % Dummy variables are used only in partial integrals; over
+                % the full domain, the primary variable is integrated. As
                 % such, dummy variables in Cval corresponding to spatial
                 % dimensions that are integrated out should be
                 % replaced with primary variables as well.

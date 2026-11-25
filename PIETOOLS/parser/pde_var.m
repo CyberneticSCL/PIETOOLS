@@ -76,6 +76,7 @@ function out_var = pde_var(varargin)
 % DJ, 01/03/2025: Declare a "free" term representing the output variable;
 % DJ, 01/04/2025: Allow order of differentiability to be set for states;
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% DJ, 11/25/2026: Reject the time variable t as a spatial variable;
 
 % % % Deal with the case the function is used as e.g.
 % % %   pde_var x1 x2 x3 input w1 w2
@@ -199,6 +200,9 @@ if ~isempty(vars) && ~any(size(vars)==1)
     error('Spatial variables for the desired object should be specified as array of size nx1.')
 else
     vars = vars(:);
+end
+if ismember('t',vars.varname)                                               % DJ, 11/25/2026
+    error("Variable 't' is the time, and cannot be a spatial variable; use another name.")
 end
 nvars = size(vars,1);
 

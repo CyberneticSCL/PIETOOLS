@@ -53,6 +53,7 @@ function PDE_out = eq(LHS,RHS)
 %                   also squashes nonlinear terms;
 % DJ, 11/25/2026: Explain in the row-mismatch error that equations for
 %                   single components are not supported;
+% DJ, 11/25/2026: Remove equations without terms, e.g. 0*x(0)==0, as 0==0;
 
 % % % Process the inputs
 
@@ -160,8 +161,9 @@ end
 % % % Loop over all equations
 PDE_out = RHS;
 for ii=1:numel(RHS.free)
-    if isempty(RHS.free{ii})                                                % DJ, 08/22/2025
-        % Remove equations 0==0
+    if isempty(RHS.free{ii}) || ~isfield(RHS.free{ii},'term') || isempty(RHS.free{ii}.term) % DJ, 11/25/2026
+        % Remove equations 0==0, also if the terms have been removed, as in
+        % 0*x(0)==0
         continue
     end
     % % Check if the first term corresponds to a "left-hand side object",

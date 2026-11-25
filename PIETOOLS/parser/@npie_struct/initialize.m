@@ -21,7 +21,7 @@ function PIE = initialize(PIE)
 %   has not been specified is initialized as a zero operator between the
 %   spaces specified by the other operators.
 % - Operators other than the polynomials that are not of type 'tensopmat',
-%   e.g. 'opvar' or 'sopvar' objects, are converted to 'tensopmat' objects.
+%   e.g. 'sopvar' objects, are converted to 'tensopmat' objects.
 %   The polynomials f, gz, and gy must be specified as 'polyopvar' objects,
 %   and are never converted.
 % - The output function spaces of all operators mapping to the same type of
@@ -122,7 +122,7 @@ for k=1:numel(opnames)
             error(['PIE.',fname,' should be specified as a ''polyopvar'' object (was: ',class(Pop),').'])
         end
     elseif ~isa(Pop,'tensopmat')
-        % Convert e.g. opvar and sopvar objects to tensopmat
+        % Convert e.g. sopvar objects to tensopmat
         PIE.(fname) = tensopmat(Pop);
     end
 end

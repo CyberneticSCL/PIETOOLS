@@ -4,10 +4,11 @@
 % against its own conventions: (i) eq(P,I) on the class's own 'plus'
 % (basis union, kron(eye(dims),.) ordering), for 0-3 spatial variables
 % and randomly enlarged/padded monomial bases; (ii) for 1D, the kernels
-% of sopvar2opvar(P). Requires PIESOS_2D (not polyopvar) and PIETOOLS on
+% P.kernels. Requires PIESOS_2D (not polyopvar) and PIETOOLS on
 % the MATLAB path.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ, 11/25/2026: Cross-check on P.kernels, as sopvar2opvar is retired;
 %
 % NOTES:
 % - 'intop' kernels are coefficients of monomials in the dummy variables,
@@ -142,8 +143,10 @@ nchk = nchk+1;  chk(is_id_op(Ph),false,"sopvar nonsquare dims");
 Z0 = 0*Ia;
 nchk = nchk+1;  chk(is_id_op(Z0),false,"sopvar zero");
 
-% 1D cross-check against sopvar2opvar kernels (independent of the sopvar
-% coefficient-ordering conventions used in is_id_op)
+% 1D cross-check against the kernels P.kernels (independent of the sopvar
+% coefficient-ordering conventions used in is_id_op): R0 = K{1} on the
+% diagonal s1_dum = s1, R1 = K{2}, R2 = K{3}
+s1_dum = polynomial({'s1_dum'});
 for p=1:2
   for trial=1:30
     ZL = {rand_basis(true)};   ZR = {rand_basis(true)};
@@ -160,16 +163,12 @@ for p=1:2
     if rand<0.3,  params{2}(1,1) = 1;  end
     if rand<0.2 && p*nL>=1,  params{1}(end,1) = params{1}(end,1)+1;  end
     P = sopvar(params,struct('in',{{'s1'}},'out',{{'s1'}}),ZL,ZR,struct('in',[0 1],'out',[0 1]),[p p]);
-    try
-        Rop = sopvar2opvar(P);
-    catch
-        continue
-    end
-    R0 = Rop.R.R0 - eye(p);
+    K = cellfun(@polynomial,P.kernels,'UniformOutput',false);               % DJ, 11/25/2026
+    R0 = polynomial(subs(K{1},s1_dum,s1)) - eye(p);     % subs may return a double
     sem = isempty(nonzeros(R0.C)) || max(abs(nonzeros(R0.C)))<1e-12;
-    sem = sem && (isempty(nonzeros(Rop.R.R1.C)) || max(abs(nonzeros(Rop.R.R1.C)))<1e-12);
-    sem = sem && (isempty(nonzeros(Rop.R.R2.C)) || max(abs(nonzeros(Rop.R.R2.C)))<1e-12);
-    nchk = nchk+1;  chk(is_id_op(P),sem,"sopvar vs sopvar2opvar p="+p+" trial="+trial);
+    sem = sem && (isempty(nonzeros(K{2}.C)) || max(abs(nonzeros(K{2}.C)))<1e-12);
+    sem = sem && (isempty(nonzeros(K{3}.C)) || max(abs(nonzeros(K{3}.C)))<1e-12);
+    nchk = nchk+1;  chk(is_id_op(P),sem,"sopvar vs P.kernels p="+p+" trial="+trial);
   end
 end
 
