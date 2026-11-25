@@ -1,0 +1,8 @@
+  passed: (10) poscopvar without DEG: the storage rows of 6 tiers, 4 configurations
+  passed: (11) the row rules in 4 configurations, 7 variants, 5 refusals
+  passed: (12) PIETOOLS_stability_sop at light: certified, its storage the row of entry 1
+  passed: (13) a space in 4 variables reads entry 3 (the row of (11), light)
+test_settings_prog_sop passed (13 checks).
+settings test 7.7 s
+test_executives_sop: 20 checks passed
+executive test 23.8 s

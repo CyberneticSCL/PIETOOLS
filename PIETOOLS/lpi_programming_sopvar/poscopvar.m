@@ -90,8 +90,11 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % gives DEG and the include and sep it implies, which OPTIONS may then not
 % set.
 % Fields other than len_R are 1 x 3 cells, entry e for a space in e
-% variables, the last entry for every higher e; lengths are lengths of
-% monomial vectors, 0 = absent (a pattern with a zero length is dropped):
+% variables, the last entry for every higher e: a row, word or row of
+% codes shorter than the number of variables extends to the directions
+% beyond it when its entries agree (an error otherwise); lengths are
+% lengths of monomial vectors, 0 = absent (a pattern with a zero length
+% is dropped):
 %   len_R      scalar, the multiplier length on R^q (default 1: identity);
 %   len_inc    1 x e, d1: incomplete moments, pattern c (lower integral);
 %   len_com    1 x e, d2: complete moments, pattern b;
@@ -305,14 +308,16 @@ for k = 1:M
         end
     elseif iscell(pt)   % words over a, b, c
         A = zeros(numel(pt),n);
-        for i = 1:numel(pt),    w = pt{i};    A(i,:) = (w=='b')*1 + (w=='c')*2 + 1;   end
-    else
-        A = pt;
+        for i = 1:numel(pt),    w = pt{i};    A(i,:) = fit_len((w=='b')*1 + (w=='c')*2 + 1,n);   end
+    else                % rows of codes, each fitted to the directions
+        A = zeros(size(pt,1),n);
+        for i = 1:size(pt,1),   A(i,:) = fit_len(pt(i,:),n);    end
     end
     % Lengths of this entry; drop a pattern with a zero length in any
     % direction
     d1 = fit_len(row.len_inc{e},n);   d2 = fit_len(row.len_com{e},n);   d3 = row.len_sos{e};
-    if size(d3,2)~=n,   d3 = repmat(d3(:,1),1,n);    end
+    % Rows a, b, c of len_sos fitted to the directions
+    d3 = cell2mat(arrayfun(@(a) fit_len(d3(a,:),n),(1:size(d3,1))','UniformOutput',false));
     keep = true(size(A,1),1);
     for i = 1:size(A,1)
         for d = 1:n
@@ -342,7 +347,8 @@ for k = 1:M
     if nd(k)==0,    deg{k} = struct('int',row.len_R-1);    continue;   end
     e = e_of(k);    n = nd(k);  idx = find(own(k,:));
     d1 = fit_len(row.len_inc{e},n);   d2 = fit_len(row.len_com{e},n);   d3 = row.len_sos{e};
-    if size(d3,2)~=n,   d3 = repmat(d3(:,1),1,n);    end
+    % Rows a, b, c of len_sos fitted to the directions
+    d3 = cell2mat(arrayfun(@(a) fit_len(d3(a,:),n),(1:size(d3,1))','UniformOutput',false));
     A = pats{k};    rows = zeros(size(A));   dk = cell(1,size(A,1));
     for i = 1:size(A,1)
         % Owned directions: the code and the degrees in s (mult) and
@@ -384,12 +390,17 @@ end
 
 
 function v = fit_len(v,n)
-% V = FIT_LEN(V,N) a row of N lengths from a scalar or a row of N.
-% INPUT  v:  double, a scalar or N entries;   n: double, the row length.
-% OUTPUT v:  double, 1 x N; an error for any other number of entries.
+% V = FIT_LEN(V,N) a row of N lengths or codes from a scalar, a row of N,
+% or a shorter row of equal entries: entry 3 of a field of lpi.pos serves
+% every space in 3 or more variables, so its row extends to the directions
+% beyond it when its entries agree; unequal entries assign nothing there.
+% INPUT  v:  double, a scalar, N entries, or fewer that are all equal;
+%        n:  double, the row length.
+% OUTPUT v:  double, 1 x N; an error for any other row.
 v = reshape(v,1,[]);
 if isscalar(v),     v = repmat(v,1,n);
+elseif numel(v)<n && all(v==v(1)),  v = repmat(v(1),1,n);
 elseif numel(v)~=n
-    error("A length row of lpi.pos has "+numel(v)+" entries for a space in "+n+" variables.")
+    error("A row of lpi.pos has "+numel(v)+" entries for a space in "+n+" variables.")
 end
 end

@@ -1,0 +1,43 @@
+--- pipe (2026-11-24 03:23:45)
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s₁,s₂,s₃)  <--  (∂/∂s₁)² (∂/∂s₂)² (∂/∂s₃)²  x(t,s₁,s₂,s₃)
+n=3 convert 2.0 s; PIE.dim 3; T copvar [1 1]; A copvar
+Warning: option  N is not defined. Setting to a default value of 8
+Warning: option  tf is not defined. Setting to a default value of 1
+Warning: option  intScheme is not defined. Setting to a default value of 1
+Warning: option  Norder is not defined. Setting to a default value of 2
+Warning: option  dt is not defined. Setting to a default value of 0.01
+Warning: option  ploteig is not defined. Setting to a default value of no
+Warning: option  ifexact is not defined. Setting to a default value of 0
+Solving PDE problem
+
+Encountered 1 state component: 
+ x(t,s1,s2,s3),    of size 1, differentiable up to order (2,2,2) in variables (s1,s2,s3);
+
+Encountered 6 boundary conditions: 
+ F₁(t,s2,s3) = 0,   of size 1;
+ F₂(t,s2,s3) = 0,   of size 1;
+ F₃(t,s1,s3) = 0,   of size 1;
+ F₄(t,s1,s3) = 0,   of size 1;
+ F₅(t,s1,s2) = 0,   of size 1;
+ F₆(t,s1,s2) = 0,   of size 1;
+
+The order of the state components x has not changed.
+n=3 PIESIM ERR 0.6 s: Unrecognized field name "nx".
+n=3 light lpivar_cdopvar(T,1) 0.1 s, 1000 dvars
+n=3 light storage 0.2 s, 4225 dvars
+n=3 light D = T'PA + A'PT 50.5 s
+n=3 light lpi_ineq_sop: dw 1, cap [2 2 2]
+ - lpi_ineq_sop: 7000000 decision variables in the certificate (Gram blocks [1000 1000 1000 1000 1000 1000 1000], sized from opts.like); 7004225 in the program.
+n=3 light lpi_ineq_sop ERR 83.5 s: Input matrix must be a numeric array, character array, or string array.
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s₁,s₂,s₃,s₄)  <--  (∂/∂s₁)² (∂/∂s₂)² (∂/∂s₃)² (∂/∂s₄)²  x(t,s₁,s₂,s₃,s₄)
+n=4 convert 2.5 s; PIE.dim 4; T copvar [1 1]; A copvar
+n=4 light lpivar_cdopvar(T,1) 0.0 s, 10000 dvars
+n=4 light storage 0.6 s, 66049 dvars

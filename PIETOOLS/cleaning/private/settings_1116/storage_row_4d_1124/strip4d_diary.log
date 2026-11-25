@@ -1,0 +1,14 @@
+--- strip4d (2026-11-24 03:34:06)
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s₁,s₂,s₃,s₄)  <--  (∂/∂s₁)² (∂/∂s₂)² (∂/∂s₃)² (∂/∂s₄)²  x(t,s₁,s₂,s₃,s₄)
+T'*T (copvar) 2.6 s
+T'*A (copvar) 2.4 s
+stripped storage 0.3 s, 4 dvars
+T'*P 5.4 s
+(T'*P)*A 133.5 s
+D = TPA + TPA' 2.5 s
+lpi_ineq_sop: dw 1, cap [2 2 2 2]
+ - lpi_ineq_sop: 150994944 decision variables in the certificate (Gram blocks [4096 4096 4096 4096 4096 4096 4096 4096 4096], sized from opts.like); 150994948 in the program.

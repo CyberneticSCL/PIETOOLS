@@ -1,0 +1,19 @@
+--- exec3d (2026-11-24 03:28:23)
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s₁,s₂,s₃)  <--  (∂/∂s₁)² (∂/∂s₂)² (∂/∂s₃)²  x(t,s₁,s₂,s₃)
+(a) D composed 49.3 s
+ - lpi_ineq_sop: 7000000 decision variables in the certificate (Gram blocks [1000 1000 1000 1000 1000 1000 1000], sized from opts.like); 7004225 in the program.
+(a) lpi_ineq_sop ERR 85.8 s
+Error using mat2str (line 46)
+Input matrix must be a numeric array, character array, or string array.
+
+Error in probe3d_exec (line 39)
+    fprintf('(a) slack built %.1f s, %d dvars, degrees %s\n',toc(t0),size(p3.decvartable,1),mat2str(li.degrees));
+                                                                                            ^^^^^^^^^^^^^^^^^^^
+ - lpi_ineq_sop: 7000000 decision variables in the certificate (Gram blocks [1000 1000 1000 1000 1000 1000 1000], sized from opts.like); 7004225 in the program.
+Size: 7004225   105850
+ 
+

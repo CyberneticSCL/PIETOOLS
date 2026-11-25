@@ -1,0 +1,19 @@
+--- before: C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/lpi_programming_sopvar/poscopvar.m (2026-11-24 01:55:51)
+n=3 stripped   OK      0.81 s  ndv        4  rows [1 1 1 1 1;1 4 4 4 1]
+n=3 light      OK      0.20 s  ndv     4225  rows [1 1 1 1 1;1 4 4 4 64]
+n=3 custom     OK      0.08 s  ndv     4225  rows [1 1 1 1 1;1 4 4 4 64]
+n=3 heavy      OK      0.03 s  ndv     4225  rows [1 1 1 1 1;1 4 4 4 64]
+n=3 veryheavy  OK      0.14 s  ndv     4225  rows [1 1 1 1 1;1 4 4 4 64]
+n=3 extreme    OK      0.08 s  ndv        1  rows [1 1 1 1 1]
+n=4 stripped   ERR  A length row of lpi.pos has 3 entries for a space in 4 variables.
+n=4 light      ERR  A length row of lpi.pos has 3 entries for a space in 4 variables.
+n=4 custom     ERR  A length row of lpi.pos has 3 entries for a space in 4 variables.
+n=4 heavy      ERR  A length row of lpi.pos has 3 entries for a space in 4 variables.
+n=4 veryheavy  ERR  A length row of lpi.pos has 3 entries for a space in 4 variables.
+n=4 extreme    ERR  Unable to perform assignment because the size of the left side is 1-by-4 and the size of the right side is 1-by-3.
+n=5 stripped   ERR  A length row of lpi.pos has 3 entries for a space in 5 variables.
+n=5 light      ERR  A length row of lpi.pos has 3 entries for a space in 5 variables.
+n=5 custom     ERR  A length row of lpi.pos has 3 entries for a space in 5 variables.
+n=5 heavy      ERR  A length row of lpi.pos has 3 entries for a space in 5 variables.
+n=5 veryheavy  ERR  A length row of lpi.pos has 3 entries for a space in 5 variables.
+n=5 extreme    ERR  Unable to perform assignment because the size of the left side is 1-by-5 and the size of the right side is 1-by-3.
