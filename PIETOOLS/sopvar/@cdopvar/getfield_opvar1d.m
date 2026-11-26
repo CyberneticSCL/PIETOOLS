@@ -82,7 +82,7 @@ function val = getfield_opvar1d(P,fname)
 
 % Check the structure of P and the field name
 if ~is_opvar1d(P)
-    error('cdopvar:notOpvar1d',['The operator does not have the structure of a ''dopvar'', '...
+    error('cdopvar:notOpvar1d',['The operator does not have the 1-D field layout (P, Q1, Q2, R) of an operator '...
         'R^m x L2^n[a,b] -> R^p x L2^q[a,b]; see ''is_opvar1d''.'])
 end
 if ~(ischar(fname) || (isstring(fname) && isscalar(fname)))
@@ -135,7 +135,7 @@ switch fname
             val = val.(fname(3:end));
         end
     otherwise
-        error('cdopvar:badField',['''%s'' is not a field of a ''dopvar''; use one of '...
+        error('cdopvar:badField',['''%s'' is not in the 1-D field layout; use one of '...
             '''P'', ''Q1'', ''Q2'', ''R'', ''R.R0'', ''R.R1'', ''R.R2'', ''I'', '...
             '''var1'', ''var2'', ''dim''.'],fname)
 end

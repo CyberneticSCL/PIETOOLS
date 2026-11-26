@@ -10,16 +10,17 @@ function p0_f2(pass, which_src)
 % - <label>.mat: label; rec (source, class of PIE.T, number of variables,
 %   status, seconds, note); fix, one entry per nonempty operator of the 12
 %   (T, Tw, Tu, A, Bw, Bu, Cz, Dzw, Dzu, Cy, Dyw, Dyu) with
-%     name, X        the operator as a 'copvar' (op2copvar_sop of an opvar);
+%     name, X        the operator, a 'copvar';
 %     seed, xin      the seed and the test functions (P0_APPLY, q = 3);
 %     pts, Y         points and outputs, Y{i} dim_out(i) x 3 x 5, computed
 %                    block by block with apply_sopvar (the sopvar definition);
-%     legacy         true when the PIE holds opvar operators (legacy formats);
-%     Yop, relerr    for legacy operators, apply_opvar on the opvar at the same
-%                    points and max|Y-Yop|/max(1,max|Y|);
-%     dump           for legacy operators, the opvar fields as a plain struct
-%                    (P, Q1, Q2, R0, R1, R2, dim, I, variable names), readable
-%                    without the opvar class;
+%     legacy         false; until 11/26/2026, true when the PIE held opvar
+%                    operators (legacy formats);
+%     Yop, relerr    [] and NaN; until 11/26/2026, for legacy operators,
+%                    apply_opvar on the opvar at the same points and
+%                    max|Y-Yop|/max(1,max|Y|);
+%     dump           []; until 11/26/2026, for legacy operators, the opvar
+%                    fields as a plain struct;
 %   info (P0_PATH).
 % - index.csv: one line per PIE.
 %
@@ -105,57 +106,33 @@ end
 function f = p0_fixop(Xin, name, label)
 % One operator: [] when absent or without rows or columns.
 f = [];
-legacy = isa(Xin,'opvar') || isa(Xin,'opvar2d');
-if legacy
-    if sum(Xin.dim(:,1))==0 || sum(Xin.dim(:,2))==0,    return,     end
-    X = op2copvar_sop(Xin);
-elseif isa(Xin,'copvar')
+% BEGIN MMP, 11/26/2026: deleted: the branch for opvar and opvar2d inputs,
+% converted by op2copvar_sop (retired 11/26; the classes left the path on
+% 11/08). Once copvar is renamed opvar, containers would take that branch on
+% the rename export only, and F2 would differ for a harness reason. The
+% output keeps the field legacy, always false.
+legacy = false;
+if isa(Xin,'copvar')
     X = Xin;
 else
     return                                  % [] or a numeric placeholder
 end
+% END MMP, 11/26/2026
 if sum(X.dim_out)==0 || sum(X.dim_in)==0,   return,     end
 seed = p0_seed([label,'|',name]);
 f = struct('name',name,'X',X,'seed',seed,'xin',[],'pts',[],'Y',[],'nb',0, ...
            'legacy',legacy,'Yop',[],'relerr',NaN,'dump',[],'err','');
 try
     [f.xin, f.pts, f.Y, f.nb] = p0_apply(X, 3, 5, seed);
-    if legacy && isa(Xin,'opvar')
-        f.dump = struct('P',Xin.P,'Q1',Xin.Q1,'Q2',Xin.Q2,'R0',Xin.R.R0,'R1',Xin.R.R1, ...
-                        'R2',Xin.R.R2,'dim',Xin.dim,'I',Xin.I, ...
-                        'var1',{Xin.var1.varname},'var2',{Xin.var2.varname});
-        f.Yop = p0_apply_opvar(Xin, X, f.xin, f.pts);
-        num = 0;    den = 1;
-        for i = 1:numel(f.Y)
-            num = max(num, max(abs(f.Y{i}(:) - f.Yop{i}(:))));
-            den = max(den, max(abs(f.Y{i}(:))));
-        end
-        f.relerr = num/den;
-    end
+    % MMP, 11/26/2026: deleted: for an opvar input, its fields as a plain
+    % struct (dump) and apply_opvar at the same points (Yop, relerr).
 catch ME
     f.err = p0_errstr(ME);
 end
 end
 
-function Yop = p0_apply_opvar(Xop, X, xin, pts)
-% apply_opvar (the opvar definition) on the container's test functions,
-% stacked in the opvar's order (R^n components, then L2), at the same points.
-isRin = ~any(X.space_in,2);     isRout = ~any(X.space_out,2);
-v = [];
-for j = [find(isRin); find(~isRin)]'
-    xj = xin{j};
-    if isa(xj,'double'),    xj = polynomial(xj);    end
-    v = [v; xj];                                                            %#ok<AGROW>
-end
-y = apply_opvar(Xop, v);
-Yop = cell(numel(X.dim_out),1);
-off = 0;
-for i = [find(isRout); find(~isRout)]'
-    yi = y(off+(1:X.dim_out(i)),:);
-    off = off + X.dim_out(i);
-    Yop{i} = p0_evalpoly(yi, X.vars(X.space_out(i,:)), pts{i});
-end
-end
+% MMP, 11/26/2026: deleted: P0_APPLY_OPVAR, apply_opvar on an opvar input at
+% the points of the container (its one caller was the branch deleted above).
 
 function s = p0_seed(str)
 c = double(str);

@@ -57,6 +57,11 @@ function T = transl_mod(T,I)
 % YP, MMP, 11/21/2026: Changes since PIETOOLS 2025: T may be a 'struct' of
 %   its kernels as well as an 'opvar' (error message revised); the field
 %   T.I is no longer set to I; help and comments revised.
+% MMP, 11/26/2026: Each kernel is translated in a local K and assigned to
+%   T once. The setter of a container rejects a kernel in the auxiliary
+%   variables sbar, thetabar, so a 1-D container, admitted by the check
+%   once copvar is renamed opvar, stopped at T.Q1. Structs give the same
+%   kernels as before.
 
 
 if nargin==1
@@ -85,19 +90,31 @@ s = T.var1;     theta = T.var2;                                             % DJ
 sbar = pvar([s.varname{1},'_bar']);
 thetabar = pvar([theta.varname{1},'_bar']);
 
-T.Q1 = ((b-a)/(d-c))*subs(T.Q1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));
-T.Q1 = subs(T.Q1, sbar, s);
+% Each kernel goes through K: assigning it to T in sbar, thetabar would     % MMP, 11/26/2026
+% fail for a container, whose setter admits only the variables of T.        % MMP, 11/26/2026
+% T.Q1 = ((b-a)/(d-c))*subs(T.Q1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));   % MMP, 11/26/2026 (was)
+% T.Q1 = subs(T.Q1, sbar, s);                                               % MMP, 11/26/2026 (was)
+K = ((b-a)/(d-c))*subs(T.Q1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));        % MMP, 11/26/2026
+T.Q1 = subs(K, sbar, s);                                                    % MMP, 11/26/2026
 
-T.Q2 = subs(T.Q2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));
-T.Q2 = subs(T.Q2, sbar, s);
+% T.Q2 = subs(T.Q2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));                 % MMP, 11/26/2026 (was)
+% T.Q2 = subs(T.Q2, sbar, s);                                               % MMP, 11/26/2026 (was)
+K = subs(T.Q2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));                      % MMP, 11/26/2026
+T.Q2 = subs(K, sbar, s);                                                    % MMP, 11/26/2026
 
-T.R.R0 = subs(T.R.R0, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));
-T.R.R0 = subs(T.R.R0, sbar, s);
+% T.R.R0 = subs(T.R.R0, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));             % MMP, 11/26/2026 (was)
+% T.R.R0 = subs(T.R.R0, sbar, s);                                           % MMP, 11/26/2026 (was)
+K = subs(T.R.R0, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));                    % MMP, 11/26/2026
+T.R.R0 = subs(K, sbar, s);                                                  % MMP, 11/26/2026
     
-T.R.R1 = ((b-a)/(d-c))*subs(subs(T.R.R1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c));
-T.R.R1 = subs(subs(T.R.R1, sbar, s),thetabar, theta);
+% T.R.R1 = ((b-a)/(d-c))*subs(subs(T.R.R1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c)); % MMP, 11/26/2026 (was)
+% T.R.R1 = subs(subs(T.R.R1, sbar, s),thetabar, theta);                     % MMP, 11/26/2026 (was)
+K = ((b-a)/(d-c))*subs(subs(T.R.R1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c)); % MMP, 11/26/2026
+T.R.R1 = subs(subs(K, sbar, s),thetabar, theta);                            % MMP, 11/26/2026
 
-T.R.R2 = ((b-a)/(d-c))*subs(subs(T.R.R2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c));
-T.R.R2 = subs(subs(T.R.R2, sbar, s),thetabar,theta);
+% T.R.R2 = ((b-a)/(d-c))*subs(subs(T.R.R2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c)); % MMP, 11/26/2026 (was)
+% T.R.R2 = subs(subs(T.R.R2, sbar, s),thetabar,theta);                      % MMP, 11/26/2026 (was)
+K = ((b-a)/(d-c))*subs(subs(T.R.R2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c)); % MMP, 11/26/2026
+T.R.R2 = subs(subs(K, sbar, s),thetabar,theta);                             % MMP, 11/26/2026
 
 end

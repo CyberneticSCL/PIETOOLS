@@ -91,7 +91,7 @@ function val = getfield_opvar2d(P,fname)
 % and the field name
 [is_2d,idx_out,idx_in] = is_opvar2d(P);
 if ~is_2d
-    error('cdopvar:notOpvar2d',['The operator does not have the structure of a ''dopvar2d'', '...
+    error('cdopvar:notOpvar2d',['The operator does not have the 2-D field layout (R00 to R22) of an operator '...
         'R x L2[x] x L2[y] x L2[x,y] -> R x L2[x] x L2[y] x L2[x,y]; see ''is_opvar2d''.'])
 end
 if ~(ischar(fname) || (isstring(fname) && isscalar(fname)))
@@ -126,7 +126,7 @@ switch fname
     otherwise
         [i,j] = find(strcmp(nm,fname));
         if isempty(i)
-            error('cdopvar:badField',['''%s'' is not a field of a ''dopvar2d''; use one of '...
+            error('cdopvar:badField',['''%s'' is not in the 2-D field layout; use one of '...
                 'R00, R0x, R0y, R02, Rx0, Rxx, Rxy, Rx2, Ry0, Ryx, Ryy, Ry2, R20, '...
                 'R2x, R2y, R22, I, var1, var2, dim.'],fname)
         end

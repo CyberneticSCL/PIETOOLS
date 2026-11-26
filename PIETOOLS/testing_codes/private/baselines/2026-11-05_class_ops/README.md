@@ -10,6 +10,11 @@ Files: `private/bench_class_ops.m` (benchmark), `private/analyze_class_ops.m` (s
 record once the opvar classes are retired. `scaling/` holds scaling-plot data and figures (operation
 time against q, stability-LPI parsing time against the Lyapunov degree), with its own README.
 
+**Note, 11/26/2026.** The opvar and dopvar part of `private/bench_class_ops.m` no longer runs: those
+classes left the path on 11/08/2026. Once `copvar` and `cdopvar` are renamed `opvar` and `dopvar`,
+its calls `opvar()` and `dopvar()` would build containers and time them under the 2025 labels. The
+benchmark times no container, so it cannot check the timing of that rename.
+
 ## Scope
 
 **Operators.** Single-block operators on L2^n[0,1],

@@ -69,7 +69,7 @@ function P = setfield_opvar1d(P,fname,val)
 
 % Check the structure of P and the field name; default variable name s
 if ~is_opvar1d(P)
-    error('copvar:notOpvar1d',['The operator does not have the structure of an ''opvar'', '...
+    error('copvar:notOpvar1d',['The operator does not have the 1-D field layout (P, Q1, Q2, R) of an operator '...
         'R^m x L2^n[a,b] -> R^p x L2^q[a,b]; see ''is_opvar1d''.'])
 end
 if ~(ischar(fname) || (isstring(fname) && isscalar(fname)))
@@ -95,13 +95,13 @@ switch fname
     case {'I','var1','var2'}
         % One spatial variable: one row of I, one variable
         if (strcmp(fname,'I') && size(val,1)~=1) || (~strcmp(fname,'I') && numel(val)~=1)
-            error('copvar:badValue','An ''opvar'' has one spatial variable: ''%s'' must have one row.',fname)
+            error('copvar:badValue','The 1-D field layout has one spatial variable: ''%s'' must have one row.',fname)
         end
         P = setfield_opvar2d(P,fname,val,[],opts);
     case 'dim'
         error('copvar:setDim','''dim'' follows from the components; set those instead.')
     otherwise
-        error('copvar:badField',['''%s'' is not a field of an ''opvar''; use one of '...
+        error('copvar:badField',['''%s'' is not in the 1-D field layout; use one of '...
             '''P'', ''Q1'', ''Q2'', ''R'', ''R.R0'', ''R.R1'', ''R.R2'', ''I'', '...
             '''var1'', ''var2''.'],fname)
 end

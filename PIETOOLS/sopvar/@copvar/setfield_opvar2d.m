@@ -93,7 +93,7 @@ end
 % P must have the spaces R, L2[x], L2[y], L2[x,y] of an 'opvar2d'
 [is_2d,idx_out,idx_in] = is_opvar2d(P);
 if ~is_2d
-    error('copvar:notOpvar2d',['The operator does not have the structure of an ''opvar2d'', '...
+    error('copvar:notOpvar2d',['The operator does not have the 2-D field layout (R00 to R22) of an operator '...
         'R x L2[x] x L2[y] x L2[x,y] -> R x L2[x] x L2[y] x L2[x,y]; see ''is_opvar2d''.'])
 end
 if ~(ischar(fname) || (isstring(fname) && isscalar(fname)))
@@ -174,7 +174,7 @@ end
 % % A component Rij; its parameters form a cell of size sz
 [i,j] = find(strcmp(Rnames,fname));
 if isempty(i)
-    error('copvar:badField',['''%s'' is not a field of an ''opvar2d''; use one of '...
+    error('copvar:badField',['''%s'' is not in the 2-D field layout; use one of '...
         'R00, R0x, R0y, R02, Rx0, Rxx, Rxy, Rx2, Ry0, Ryx, Ryy, Ry2, R20, '...
         'R2x, R2y, R22, I, var1, var2.'],fname)
 end

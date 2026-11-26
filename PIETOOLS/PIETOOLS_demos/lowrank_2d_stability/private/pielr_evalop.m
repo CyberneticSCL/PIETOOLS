@@ -12,18 +12,20 @@ function X = pielr_evalop(prog,X)                                           % CC
 % (pielr_evalgram's header).  One dispatcher keeps both dimensions on the fast
 % sparse path and keeps the two from drifting.
 %
-% An already-substituted object (opvar / opvar2d / double) passes through.
+% An already-substituted object (copvar, sopvar, double, polynomial) passes
+% through.
 %
 % CC, 11/22/2026: the dopvar and dopvar2d branches deleted (unreachable since
 %   the opvar classes left the path, f83486c8; pielr_evalgram retired with
 %   pielr_certify, maintainer: "port or retire"). Containers and dpvar remain.
+% MMP, 11/26/2026: the opvar and opvar2d tests of the pass-through deleted,
+%   with the sentence on them in the container block: dead since f83486c8,
+%   and once copvar is renamed opvar the containers return above anyway.
 
 % BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
 % no decision variable; a 'cdopvar' or 'sdopvar' is substituted by
 % GETSOL_LPIVAR_SOP, which reads prog.solinfo.RRx against prog.decvartable --
-% the vector pielr_opcheck writes there before calling this.  Checked first:
-% the opvar classes below left the path (f83486c8) and their isa tests now
-% return false rather than error.
+% the vector pielr_opcheck writes there before calling this.                % MMP, 11/26/2026
 if isa(X,'copvar') || isa(X,'sopvar')
     return                                  % nothing to substitute
 end
@@ -31,7 +33,8 @@ if isa(X,'cdopvar') || isa(X,'sdopvar')
     X = getsol_lpivar_sop(prog,X);   return
 end
 % END CC, 11/08/2026
-if isa(X,'opvar') || isa(X,'opvar2d') || isa(X,'double') || isa(X,'polynomial')
+% if isa(X,'opvar') || isa(X,'opvar2d') || isa(X,'double') || isa(X,'polynomial') % MMP, 11/26/2026 (was)
+if isa(X,'double') || isa(X,'polynomial')                                   % MMP, 11/26/2026
     return                                  % nothing to substitute
 end
 dtab = prog.decvartable;
