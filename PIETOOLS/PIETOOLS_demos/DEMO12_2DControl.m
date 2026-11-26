@@ -23,15 +23,15 @@
 % `lpivar_cdopvar`. A feedback law K is then reconstructed from Z = K*P
 % using `getController_sop`.
 %
-% The PIE is converted by `pie2copvar` to a 'pie_struct' whose operators
-% are 'copvar' objects. The LPI program is declared on PIE.vars and
+% The PIE that `convert` returns is a 'pie_struct' whose operators are
+% 'copvar' objects. The LPI program is declared on PIE.vars and
 % PIE.dom; P takes its spaces and domain from T', on which it acts in
 % T*P*T', and Z those of B', since Z = K*P maps the state to the input.
 %
 % The script solves the LPI for alpha = 0.1 with P >= 1e-4*I, stops with
 % an error if the solver reports infeasibility, a numerical error or a
 % feasibility ratio more than 0.1 from 1, reconstructs K by quadratic
-% programming, and prints a residual of Z = K*P. Workspace: PIE, PIEc, the
+% programming, and prints a residual of Z = K*P. Workspace: PIE, the
 % solved program prog, Psol, Zsol, and the controller Ksop, Kop.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,8 +78,7 @@ PDE_t = [diff(x,'t')==lam*x+c1*diff(x,s1,2)+c2*diff(x,s2,2)+b*u;
          subs(x,s2,0)==0; subs(x,s2,1)==0];
 % Convert to a PIE with 'copvar' operators; extract T, A and Bu
 PIE = convert(PDE_t,'pie');
-PIEc = pie2copvar(PIE);
-T = PIEc.T; A = PIEc.A; B = PIEc.Bu;
+T = PIE.T; A = PIE.A; B = PIE.Bu;
 
 %% Positive PI Lyapunov variable and free auxiliary feedback variable.
 prog = lpiprogram(PIE.vars,PIE.dom);

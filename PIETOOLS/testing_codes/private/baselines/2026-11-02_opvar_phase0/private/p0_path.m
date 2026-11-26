@@ -50,9 +50,12 @@ for k = 1:numel(names)
     w = w(endsWith(w,'.m') & ~contains(w,'Shadowed'));
     if strcmp(names{k},'convert')
         ok = any(contains(w,'@pde_struct')) && all(startsWith(w,ROOT));
+%   elseif isempty(w) && any(strcmp(names{k},{'apply_opvar', ...            % MMP, 11/26/2026 (was)
+%           'convert_PIETOOLS_PDE_sopvar','pie2opvar'}))                    % MMP, 11/26/2026 (was)
     elseif isempty(w) && any(strcmp(names{k},{'apply_opvar', ...
-            'convert_PIETOOLS_PDE_sopvar','pie2opvar'}))                    % MMP, 11/08/2026
+            'convert_PIETOOLS_PDE_sopvar','pie2opvar','op2copvar_sop'}))    % MMP, 11/26/2026
         % Retired (apply_opvar by f83486c8, the converters by 6757b6d3);    % MMP, 11/08/2026
+        % op2copvar_sop retired on 11/26/2026                               % MMP, 11/26/2026
         % older exports still have them and take the else branch            % MMP, 11/08/2026
         ok = true;                                                          % MMP, 11/08/2026
     else

@@ -85,6 +85,10 @@
 %   is the first output of C1, selected by a copvar matrix; PIESIM takes
 %   uinput.ic as an array, no ndiff, and returns solution.timedep.primary
 %   and regulated as cells; help text revised.
+% MMP, 11/26/2026: the call of op2copvar_sop on L and K deleted: lpiscript_sop
+%   returns containers, which op2copvar_sop returned unchanged, and the
+%   function is retired. "Converted to copvar objects by op2copvar_sop" in
+%   the entry of 11/21/2026 no longer holds.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -137,7 +141,8 @@ settings = lpisettings_sop('heavy');                                        % YP
 %            zhat(t) = C1*vhat(t);
 %               u(t) = K*vhat(t);
 % and take LFT with PIE
-Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers % YP, DJ, MMP, 11/21/2026
+% Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers % MMP, 11/26/2026 (was)
+% Lval and Kval are containers as lpiscript_sop returns them                % MMP, 11/26/2026
 Sel = mat2copvar_sop([1,0],struct('out',1,'in',2),struct('out',{{{}}},'in',{{{}}}),struct('vars',{C1.vars},'dom',C1.dom));   % first output % YP, DJ, MMP, 11/21/2026
 %   PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});                      % YP, DJ, MMP, 11/21/2026 (was)
 PIE_est = piess(T,A+Lval*C2,-Lval,{Sel*C1;Kval});                           % YP, DJ, MMP, 11/21/2026

@@ -59,8 +59,11 @@ function qform(PIE,settings,like)
 LIMIT = 1e7;
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);
-Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);
-Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11);
+% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+% containers as they are; op2copvar_sop returned them unchanged             % MMP, 11/26/2026
+Tm = PIE.T;  Am = PIE.A;                                                    % MMP, 11/26/2026
+Bw = PIE.B1; Cz = PIE.C1;  Dzw = PIE.D11;                                   % MMP, 11/26/2026
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 [sp,dm] = copvar_space_list(Tm,'out');
 % Degree caps of P*T, P the storage of the settings with its margin,

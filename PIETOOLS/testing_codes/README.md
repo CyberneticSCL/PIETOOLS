@@ -95,7 +95,7 @@ changed:
 Functions that only tests call, kept as code under test or user functions: `Liediff`,
 `piesos_lpivar` and `piesos_poslpivar` (`PIESOS/sosprogramming/`); `kernel_degree` and
 `polyopvar_equal` (`PIESOS/Examples/LocalStability/`); `subs_dvar_sop` and the `examples/` of
-`lpi_programming_sopvar`; `opvar2d2copvar`, `pie2copvar` and `int2copvar`; the heatNd demo routines (all but `heatNd_apply`
+`lpi_programming_sopvar`; `int2copvar`; the heatNd demo routines (all but `heatNd_apply`
 moved here on 11/10/2026, below);
 the DEMOs that `run_phase0.sh` runs; and `pielr_ipm_ref` in the low-rank `private/`, which
 `pielr_bench` reaches through `pielr_private`.

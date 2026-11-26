@@ -101,3 +101,33 @@ Moved with `mv`, so the git index still lists the original paths; `mv` back rest
   - 2-D stability stays available through `pielr_solve` (container builders). The live files edited
     with this move: `pielr_path.m` (assert list), `private/restrict_solve.m` (the adapter is
     required), `private/pielr_evalop.m` (two unreachable `opvar` branches deleted).
+
+## Moved 11/26/2026
+
+Moved with `mv`, paths below `PIETOOLS/` kept, ahead of the rename of `copvar` and `cdopvar` to
+`opvar` and `dopvar` (maintainer decisions C3, C4 and D4; plan and review in
+`cleaning/private/rename_copvar_opvar_1125/`).
+
+- **Legacy terms converter**, into `converters/legacy/` here: `convert_PIETOOLS_PDE_terms_internal.m`
+  (SS, 12/05/2022).
+  - No file calls it. It declares its operators by lines such as `opvar Aop_PDE Bop_PDE;`, so since
+    the class left the path on 11/08/2026 it stopped at the first of them. After the rename those
+    lines would build empty containers and fail later, at the `.dim` assignments (measured).
+- **Legacy state/terms input format**, into `parser/legacy/` here: the class folders `@state` (20
+  files) and `@terms` (14 files).
+  - No live code constructs a `state` or `terms` object, and `terms2pde_struct` raises "Objects of
+    type 'terms' (a legacy input format) are no longer supported" (DJ, 11/25/2026). Since 11/08/2026
+    the first operation on a state, `x+x` or `-x`, stopped at `opvar T;` (measured).
+  - After the rename those lines would have run with a warning, and a legacy script would have got
+    further, on a path never tested.
+  - `parser/legacy/@sys` stays, since `convert_PIETOOLS_PDE` accepts a `sys` object. The tests
+    `isa(x,'state')` and `isa(x,'terms')` in `@sys` and in the `pde_struct` operators now return
+    false.
+- **Converters that returned containers unchanged**, into `converters/operator_converters/` here:
+  `op2copvar_sop.m` (its input unchanged since 11/22/2026) and `pie2copvar.m` (a container PIE
+  unchanged; otherwise `initialize`, which accepts only containers since b1211608).
+  - Renamed, they would read `op2opvar` and `pie2opvar`; `pie2opvar` named the opposite conversion
+    until 6757b6d3.
+  - Their calls were deleted from DEMO7, DEMO12 and the three copies of the baseline harness
+    `hd_qform.m`. `pie2copvar` left the path assertions of the four `lb_setup.m` copies, and
+    `op2copvar_sop` joined the retired names in `p0_path.m`.
