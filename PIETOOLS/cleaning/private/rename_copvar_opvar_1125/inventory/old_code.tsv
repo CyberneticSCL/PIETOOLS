@@ -1,0 +1,57 @@
+PIESIM	PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:70:if ~isa(T,'opvar') && ~isstruct(T)                                          % YP, MMP, 11/21/2026
+PIESIM	PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:71:    error("First argument must be a struct of kernels or an opvar object"); % YP, MMP, 11/21/2026
+PIETOOLS_demos	PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:34:if isa(X,'opvar') || isa(X,'opvar2d') || isa(X,'double') || isa(X,'polynomial')
+PIETOOLS_demos	PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:38:if isa(X,'opvar') || isa(X,'dopvar')
+PIETOOLS_demos	PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:43:    error('pielr_maxop:input','expected an opvar/opvar2d (or dopvar variant), got %s',class(X));
+PIETOOLS_demos	PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:26:    error('pielr_solve:input','PIE must carry T and A (opvar or opvar2d objects).');
+PIETOOLS_demos	PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:29:if ~(isa(Top,'opvar') || is2) || ~(isa(Aop,'opvar') || isa(Aop,'opvar2d'))
+PIETOOLS_demos	PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:30:    error('pielr_solve:input','PIE.T and PIE.A must be opvar or opvar2d objects.');
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:227:    opvar Thatop Tvop;
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:238:    opvar Aop_ODE;
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:252:    opvar Aop_PDE Bop_PDE;
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:265:    opvar Top_vbd;
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:276:    opvar ZZ1 ZZ2 Inp;
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:288:    opvar Ixwuf; Ixwuf.dim = [no+nw+nu+nr no+nw+nu; 0 np];
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:296:    opvar Top Twop Tuop; %LHS opvars
+converters	PIETOOLS/converters/legacy/convert_PIETOOLS_PDE_terms_internal.m:301:    opvar Aop B1op B2op C1op C2op D11op D12op D21op D22op; % RHS opvars
+parser	PIETOOLS/parser/legacy/@state/int.m:89:    opvar T; s.type = '.'; s.subs = 'veclength'; T.I = dom;
+parser	PIETOOLS/parser/legacy/@state/minus.m:61:opvar T; 
+parser	PIETOOLS/parser/legacy/@state/mtimes.m:64:opvar T;
+parser	PIETOOLS/parser/legacy/@state/plus.m:58:opvar T; T.R.R0 = permMatsA+permMatsB;
+parser	PIETOOLS/parser/legacy/@state/state2terms.m:39:opvar T; T.R.R0 = eye(sum(subsref(obj,s)));
+parser	PIETOOLS/parser/legacy/@state/uminus.m:43:opvar T; T.R.R0 = -eye(sum(subsref(objA,s)));
+parser	PIETOOLS/parser/legacy/@state/uplus.m:43:opvar T; T.R.R0 = eye(sum(subsref(objA,s)));
+parser	PIETOOLS/parser/legacy/@terms/int.m:78:opvar T; T.var2 = var;
+parser	PIETOOLS/parser/legacy/@terms/mtimes.m:62:opvar T; 
+parser	PIETOOLS/parser/legacy/@terms/terms.m:38:    operator opvar;
+parser	PIETOOLS/parser/legacy/@terms/vertcat.m:61:    opvar zeroAB zeroBA;
+sopvar	PIETOOLS/sopvar/@cdopvar/getfield_opvar1d.m:85:    error('cdopvar:notOpvar1d',['The operator does not have the structure of a ''dopvar'', '...
+sopvar	PIETOOLS/sopvar/@cdopvar/setfield_opvar1d.m:72:    error('cdopvar:notOpvar1d',['The operator does not have the structure of a ''dopvar'', '...
+sopvar	PIETOOLS/sopvar/@cdopvar/setfield_opvar1d.m:98:            error('cdopvar:badValue','A ''dopvar'' has one spatial variable: ''%s'' must have one row.',fname)
+sopvar	PIETOOLS/sopvar/@copvar/getfield_opvar1d.m:79:    error('copvar:notOpvar1d',['The operator does not have the structure of an ''opvar'', '...
+sopvar	PIETOOLS/sopvar/@copvar/setfield_opvar1d.m:72:    error('copvar:notOpvar1d',['The operator does not have the structure of an ''opvar'', '...
+sopvar	PIETOOLS/sopvar/@copvar/setfield_opvar1d.m:98:            error('copvar:badValue','An ''opvar'' has one spatial variable: ''%s'' must have one row.',fname)
+testing_codes	PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm/bl_suites.m:69:   'EXACTLY against the banked baseline: a change to dpvar, opvar, poslpivar, ' ...
+testing_codes	PIETOOLS/testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:253:if isa(P,'opvar') || (isa(P,'copvar') && is_opvar1d(P))                     % MMP, 11/23/2026
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_classes.m:39:    if any(strcmp(ks{j},{'opvar','dopvar','opvar2d','dopvar2d'}))
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_compare.m:53:fprintf(fid,'\n== F2 (label, status a/b, outputs, opvar outputs)\n');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:108:legacy = isa(Xin,'opvar') || isa(Xin,'opvar2d');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:123:    if legacy && isa(Xin,'opvar')
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:23:grid_table(fid,T,'const','opvar','sopvar');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:24:grid_table(fid,T,'dvarB','dopvar','sdopvar');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:26:q_table(fid,T,'dvarQ','dopvar','sdopvar');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:27:q_table(fid,T,'dvarN','dopvar','sdopvar');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:28:q_table(fid,T,'dvarS','dopvar','sdopvar');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:31:fprintf(fid,'\n### inv\n\n| n | d | opvar t (s) | sopvar t (s) | ratio | opvar resid | sopvar resid |\n|---|---|---|---|---|---|---|\n');
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:57:            R = add(R,'const',n,d,0,0,ops{k,1},'opvar', @() ops{k,2}(A,B));
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:80:                R = add(R,lbl,n,d,qq,nnzD,ops{k,1},'dopvar', @() ops{k,2}(D,E,A));
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:98:        R = add(R,'inv',n,d,0,0,'inv','opvar', @() inv(A));
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:116:    R = [R; struct('part','check','op',ops{k,1},'cls','opvar/sopvar','agree',e)]; %#ok<AGROW>
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:129:    R = [R; struct('part','check','op',ops{k,1},'cls','dopvar/sdopvar','agree',e)]; %#ok<AGROW>
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:209:D = dopvar();
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:225:P = opvar();    P.I = D.I;  P.var1 = D.var1;    P.var2 = D.var2;
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:37:sty = struct('dopvar',{{'o',[0 0.45 0.74]}},'sdopvar',{{'v',[0.20 0.63 0.17]}});
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:45:    for c = ["dopvar","sdopvar"]
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:60:for c = ["dopvar","sdopvar"]
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:71:for c = ["dopvar","sdopvar"]
+testing_codes	PIETOOLS/testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:86:lab = struct('legacy','opvar/dopvar (legacy)','sop_stock','sopvar/sdopvar, stock SDP','sop','sopvar/sdopvar');

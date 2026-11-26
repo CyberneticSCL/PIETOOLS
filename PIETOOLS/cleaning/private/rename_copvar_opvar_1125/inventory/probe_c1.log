@@ -1,0 +1,65 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\converters\legacy\2D] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+[Warning: Function inv has the same name as a MATLAB built-in. We suggest you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 96)
+In probe_c1 (line 5)
+In run (line 112)] 
+transl_mod   : C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\PIESIM\PIESIM_routines\PIESIM_Setup\transl_mod.m
+transl_mod_c : C:\Users\mpeet\AppData\Local\Temp\claude\363c499c6332a503\874c85cb-c18d-4876-bea3-39cdd053e21f\scratchpad\ren1125\transl_mod_c.m
+
+  ans = Pop = [] : [ R ] --> [ R ]
+
+[Warning: A copvar has no field 'I'; setting it changes the blocks as for an 'opvar' or 'opvar2d'. Setting components this way may not be supported in future versions.] 
+[> In indexing (line 151)
+In probe_c1 (line 15)
+In run (line 112)] 
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (2) in variables (s);
+
+Encountered 2 boundary conditions: 
+ F(t) = 0, of size 1;
+ F(t) = 0, of size 1;
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   xf(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+== built, all kernels on [0,2]: class copvar, is_opvar1d 1
+[Warning: A copvar has no field 'P'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future versions.] 
+[> In indexing (line 117)
+In probe_c1>kernels_of (line 52)
+In probe_c1 (line 35)
+In run (line 112)] 
+  container path: error [copvar:badKernelVar] 'Q1' depends on 's_bar'; it may only depend on {s}.
+
+== heat PIE.T: class copvar, is_opvar1d 1
+  container path: error [copvar:badKernelVar] 'R.R1' depends on 's_bar'; it may only depend on {s, s_dum}.
+
+== heat PIE.A: class copvar, is_opvar1d 1
+  container path ran; result class copvar, I = [0 2]
+  P   max|container - struct| = 0   (max|struct| = 0)
+  Q1  max|container - struct| = 0   (max|struct| = 0)
+  Q2  max|container - struct| = 0   (max|struct| = 0)
+  R0  max|container - struct| = 0   (max|struct| = 1)
+  R1  max|container - struct| = 0   (max|struct| = 0)
+  R2  max|container - struct| = 0   (max|struct| = 0)
+
+last warning: [copvar:opvarField] A copvar has no field 'P'; it is computed from the blocks as for an 'opvar' or 'opvar2d'. Extracting components this way may not be supported in future versions.

@@ -1,0 +1,43 @@
+current	kind	location	code_callers_toolbox_files	code_callers_test_files	new_name	2025_counterpart	note
+copvar	class	sopvar/@copvar	86	36	opvar	opvar/@opvar	folder sopvar/@copvar -> sopvar/@opvar
+cdopvar	class	sopvar/@cdopvar	47	11	dopvar	opvar/@dopvar	folder sopvar/@cdopvar -> sopvar/@dopvar
+poscopvar	function	lpi_programming_sopvar	17	10	poslpivar	lpi_programming/poslpivar.m	D3; signature differs from 2025 (H3)
+lpivar_cdopvar	function	lpi_programming_sopvar	19	17	lpivar	lpi_programming/lpivar.m	signature differs from 2025 (H3)
+mat2copvar_sop	function	sopvar/constructors	10	1	mat2opvar	opvar/mat2opvar.m	signature differs from 2025 (H3)
+rand_copvar	test utility	testing_codes/private/sopvar/Testfolder	0	6	rand_opvar	opvar/rand_opvar.m	signature differs from 2025 (H3)
+eye_copvar_sop	function	sopvar/constructors	8	6	eye_opvar	-	2025 pattern <op>_opvar
+zeros_copvar_sop	function	sopvar/constructors	3	1	zeros_opvar	-	2025 pattern <op>_opvar
+pi4_copvar_sop	function	sopvar/constructors	4	0	pi4_opvar	-
+int2copvar	function	sopvar/constructors	0	1	int2opvar	-	2025 pattern X2opvar
+qp_copvar	function	executives_sopvar/utility_functions	4	1	qp_opvar	-	Talitsky; QP examples call it
+op2copvar_sop	function	converters/operator_converters	1	5	(retire)	-	D4: returns its input since 11/22; else op2opvar
+pie2copvar	function	converters/operator_converters	1	4	(retire)	-	D4: returns a container PIE unchanged; else pie2opvar
+lpi_eq_cdopvar	internal	lpi_programming_sopvar/misc	1	9	lpi_eq_dopvar	-
+poscopvar_direct	internal	lpi_programming_sopvar/misc	2	6	poslpivar_direct	-	follows poscopvar
+poscopvar_lift	internal	lpi_programming_sopvar/misc	0	0	poslpivar_lift	-	D5: no caller in code
+posmult_cdopvar	internal	lpi_programming_sopvar/misc	1	0	posmult_dopvar	-	D5: called only by poscopvar_lift
+copquadvar	internal	lpi_programming_sopvar/misc	1	2	opquadvar	-	D5: toolbox use is error text in poscopvar_lift only
+lift_copvar	internal	lpi_programming_sopvar/misc	3	0	lift_opvar	-
+cat_copvar_grid	internal	sopvar/misc	6	0	cat_opvar_grid	-
+derive_copvar_meta	internal	sopvar/misc	2	0	derive_opvar_meta	-
+dpvar_op_copvar	internal	sopvar/misc	16	0	dpvar_op_opvar	-
+eq_copvar	internal	sopvar/misc	2	0	eq_opvar	-
+mat2copvar_grid	internal	sopvar/misc	6	1	mat2opvar_grid	-
+merge_copvar_registry	internal	sopvar/misc	6	0	merge_opvar_registry	-
+split_copvar	internal	sopvar/misc	1	0	split_opvar	-
+verify_copvar_meta	internal	sopvar/misc	2	0	verify_opvar_meta	-
+copvar_space_list	internal	sopvar/misc/conventions	19	10	opvar_space_list	-
+parse_copvar_spaces	internal	sopvar/misc/conventions	10	0	parse_opvar_spaces	-
+copvar2tensopmat	internal	PIESOS/polyopvar	1	0	opvar2tensopmat	-	Declan code (D7)
+tensopmat2copvar	internal	PIESOS/polyopvar	1	0	tensopmat2opvar	-	Declan code (D7)
+mtimes_copvar	private	parser/@pde_struct/private	1	0	mtimes_opvar	-	Declan code (D7)
+is_id_cdopvar	subroutine	sopvar/@cdopvar/get_display.m:381	1	0	is_id_dopvar	-	local function
+check_copvar	subroutine	testing_codes/private/sopvar/Testfolder/Test_int_sopvar.m:164	0	1	check_opvar	-	local function, 10 uses
+maxabs_copvar	subroutine	testing_codes/private/baselines/2026-11-18_studies/private/post_verify.m:160	0	1	maxabs_opvar	-	local function in a baseline harness (H10)
+apply_cop	subroutine	testing_codes/private/converters/tests: pie_test_utils.m:62, test_mixed_domain_pde.m:954, test_parser_edge_cases.m:367	0	3	apply_opvar	-	local function, 29 uses; a local name shadows the @intop method apply_op, hence not apply_op
+rand_cdopvar	test utility	testing_codes/private/sopvar/Testfolder	0	2	rand_dopvar	-
+Test_copvar	test	testing_codes/private/sopvar/Testfolder	0	1	Test_opvar	-
+Test_cdopvar	test	testing_codes/private/sopvar/Testfolder	0	1	Test_dopvar	-
+Test_qp_copvar_nd	test script	testing_codes/private/sopvar/Testfolder	0	1	Test_qp_opvar_nd	-
+test_copquadvar_faces	test	testing_codes/private/PIETOOLS_demos/sopvar_demos	0	1	test_opquadvar_faces	-	follows copquadvar (D5)
+poslpivar_sop	internal	executives_sopvar/utility_functions	2	1	poslpivar_legacy	-	C7 (maintainer 11/26): translates the stock 1-D degree format; descriptive name, clears the _sop-pass clash

@@ -1,0 +1,14 @@
+area	files	lines	code_lines(.m)	comment_or_text_lines	tokens
+cleaning	496	4972	824	4148	5800
+orphaned_file	17	214	29	185	273
+testing_codes	113	1435	356	1079	1692
+toolbox:(root)	3	3	0	3	3
+toolbox:.claude	1	2	0	2	2
+toolbox:PIESOS	2	24	10	14	25
+toolbox:PIETOOLS_demos	24	121	55	66	131
+toolbox:PIETOOLS_examples	3	13	2	11	13
+toolbox:converters	17	124	61	63	132
+toolbox:executives_sopvar	23	289	111	178	332
+toolbox:lpi_programming_sopvar	17	176	67	109	214
+toolbox:parser	16	117	56	61	133
+toolbox:sopvar	94	732	306	426	897
