@@ -11,7 +11,8 @@ The H2 comment pass of step 1 (done 11/26) committed 11/27 (1d9737e1); step 4 do
 origin unchanged at f75d2f6c. Case C8 (`tests_1d`) moved to `orphaned_file/private` on 11/26,
 committed 11/27 (3315e9f9). Phase 1 dry run on an export, 11/26, and applied to the checkout,
 11/27 (`phase1/README.md`): every check of step 3 passes on both; committed 11/27 (ae2b95c1).
-Phase 1b committed 11/27 (abfb0e83, `phase1b/README.md`). None pushed. Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
+Phase 1b committed 11/27 (abfb0e83, `phase1b/README.md`); Phase 2 committed 11/27
+(`phase2/README.md`; manual drafts skipped, maintainer). None pushed. Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
 subroutine table: `rename_table.tsv` (Section 6).
 
 ## 1. Scope

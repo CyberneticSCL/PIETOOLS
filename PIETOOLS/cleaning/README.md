@@ -4,6 +4,12 @@ Files staged for removal before the public release (maintainer decision, 10/23/2
 been deleted: every file below is a `git mv` of a tracked file, and `git mv <moved path> <original
 path>` restores it.
 
+Names: on 11/27/2026 (ae2b95c1) the containers `copvar` and `cdopvar` were renamed `opvar` and
+`dopvar`, with the functions, subroutines and tests named after them
+(`private/rename_copvar_opvar_1125/rename_table.tsv`). The entries below keep the names of their
+date, and the files in `private/` were not renamed: a `copvar` there is today's `opvar`, an
+`opvar` there the retired class of 2025.
+
 The moved files sit in `private/`, which `genpath` (and so `pietools_path_update`) skips with
 everything below it; MATLAB never searches the subfolders of a private folder. None of them is on
 the MATLAB path, which matters: `dead_code/` holds an older `rand_sdopvar.m` that would otherwise

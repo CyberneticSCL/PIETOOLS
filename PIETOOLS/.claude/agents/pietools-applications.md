@@ -60,11 +60,12 @@ you run.
 ## Writing scripts
 
 - Example and demo scripts call only user-level functions: the PDE/PIE front end,
-  `convert`, the executives, `lpiscript`, PIESIM, the stock LPI functions (`lpiprogram`,
-  `poslpivar`, `lpivar`, `lpi_ineq`, `lpi_eq`, `lpisolve`, ...) and the root of
-  `lpi_programming_sopvar` (`lpiprogram_sop`, `lpi_ineq_sop`, `lpi_eq_sop`, `poscopvar`,
-  `lpivar_cdopvar`, `lpigetsol_sop`, `getsol_lpivar_sop`). Never `misc/`, `private/`,
-  `claude_tests/` or test helpers.
+  `convert`, the executives, PIESIM, and the root of `lpi_programming_sopvar` (`lpiprogram`,
+  `lpidecvar`, `poslpivar`, `lpivar`, `lpi_ineq_sop`, `lpi_eq_sop`, `lpisetobj`, `lpisolve`,
+  `lpigetsol_sop`, `getsol_lpivar_sop`, `lpiscript_sop`). Since 11/27/2026 `poslpivar` and
+  `lpivar` are the container functions (formerly `poscopvar`, `lpivar_cdopvar`); a call in
+  their 2025 form stops with an error. Never `misc/`, `private/`, `claude_tests/` or test
+  helpers.
 - Match the header, licence block and modification log of the files in
   `PIETOOLS_demos/`. Comments state what and why, tersely.
 - New scripts go in the scratchpad or a location the maintainer names, not in

@@ -7,6 +7,19 @@ cleaned"; the maintainer then placed the folder in `PIETOOLS/` rather than in th
 testing folder a private subfolder."), as in `cleaning/`. Nothing was deleted: every tracked file
 here is a `git mv`, and `git mv testing_codes/private/<path> <path>` restores one.
 
+## Names since 11/27/2026
+
+On 11/27/2026 (ae2b95c1) the containers `copvar` and `cdopvar` were renamed `opvar` and `dopvar`,
+with the functions, subroutines and tests named after them
+(`cleaning/private/rename_copvar_opvar_1125/rename_table.tsv`); the files in `private/` carry the
+new names. The records below keep the names of their date. Renamed here: `Test_copvar`,
+`Test_cdopvar`, `Test_qp_copvar_nd`, `rand_copvar`, `rand_cdopvar`, `test_copquadvar_faces`, now
+`Test_opvar`, `Test_dopvar`, `Test_qp_opvar_nd`, `rand_opvar`, `rand_dopvar`,
+`test_opquadvar_faces`; in the toolbox, among others, `poscopvar`, `lpivar_cdopvar`,
+`mat2copvar_sop`, `int2copvar`, `copquadvar`, now `poslpivar`, `lpivar`, `mat2opvar`,
+`int2opvar`, `opquadvar`. Since abfb0e83 a call of `poslpivar`, `lpivar` or `mat2opvar` in its
+2025 form stops with an error (`private/lpi_programming_sopvar/tests/test_call2025_sop.m`).
+
 ## Off the path
 
 `pietools_path_update` adds `genpath` of `PIETOOLS/`, and `genpath` skips every folder named
