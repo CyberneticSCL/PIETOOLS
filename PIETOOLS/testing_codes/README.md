@@ -56,6 +56,10 @@ Moved out again on 11/09/2026 (maintainer): the 13 files of `PIESOS/Examples/` (
 and `LocalStability/` rows above) went to `cleaning/private/dead_code/PIETOOLS/PIESOS/Examples/`, with the
 example scripts they belong to; see `cleaning/README.md`.
 
+Moved out again on 11/26/2026 (maintainer, case C8 of the opvar rename): the 26 files of
+`PIETOOLS_demos/lowrank_2d_stability/tests_1d/` went to `orphaned_file/private/` with the same path.
+They build 2025 `opvar` programs; see `orphaned_file/private/README.md`.
+
 Also moved, with `mv`: 1,042 untracked files (55 MB), the fixture data of
 `baselines/2026-11-02_opvar_phase0/` (`F1/` 292, `F2/` 688, `F4/` 22, `logs/` 40). The harness reads
 them from its own folder; `testing_codes/baselines/.gitignore` keeps them out of git, as the old

@@ -105,7 +105,7 @@ Moved with `mv`, so the git index still lists the original paths; `mv` back rest
 ## Moved 11/26/2026
 
 Moved with `mv`, paths below `PIETOOLS/` kept, ahead of the rename of `copvar` and `cdopvar` to
-`opvar` and `dopvar` (maintainer decisions C3, C4 and D4; plan and review in
+`opvar` and `dopvar` (maintainer decisions C3, C4, C8 and D4; plan and review in
 `cleaning/private/rename_copvar_opvar_1125/`).
 
 - **Legacy terms converter**, into `converters/legacy/` here: `convert_PIETOOLS_PDE_terms_internal.m`
@@ -131,3 +131,14 @@ Moved with `mv`, paths below `PIETOOLS/` kept, ahead of the rename of `copvar` a
   - Their calls were deleted from DEMO7, DEMO12 and the three copies of the baseline harness
     `hd_qform.m`. `pie2copvar` left the path assertions of the four `lb_setup.m` copies, and
     `op2copvar_sop` joined the retired names in `p0_path.m`.
+- **Low-rank 1-D regression suite**, into `testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/`
+  here: `tests_1d/` (26 files).
+  - It builds and checks 2025 `opvar` programs: `build_stab_st` calls `poslpivar(prog,Top.dim,…)`,
+    `mat2opvar` and `lpi_eq`, and `gate1d` and `opcheck` call `lpigetsol`. None of these resolves on
+    the path since 11/08/2026 (f83486c8).
+  - After the rename, its `poslpivar` calls would reach the renamed `poscopvar` and stop with the
+    migration error of D6.
+  - No live file calls the suite. The low-rank package builds its 1-D programs itself
+    (`private/build_stab_1d.m`, `build_l2gain_1d.m`, `build_poincare_1d.m`). Comments in four package
+    files and in `testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/BENCH.md` cite the suite
+    by its old folder.
