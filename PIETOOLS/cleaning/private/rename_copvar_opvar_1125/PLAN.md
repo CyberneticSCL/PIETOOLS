@@ -9,9 +9,9 @@ Status: plan; decisions D1â€“D8 taken on 11/26 (Section 4). Phase 0 steps 1 (C1â
 implemented, tested and committed on 11/26 (a67b402f, c341990e, records 8198c35d; `REVIEW_PHASE0.md`).
 The H2 comment pass of step 1 (done 11/26) committed 11/27 (1d9737e1); step 4 done on 11/26; step 5:
 origin unchanged at f75d2f6c. Case C8 (`tests_1d`) moved to `orphaned_file/private` on 11/26,
-committed 11/27 (3315e9f9). None pushed. Phase 1 dry run on an export, 11/26 (`phase1/README.md`):
-every check of step 3 passes; the checkout is not renamed. Every count below was
-measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
+committed 11/27 (3315e9f9). Phase 1 dry run on an export, 11/26, and applied to the checkout,
+11/27 (`phase1/README.md`): every check of step 3 passes on both; committed 11/27 (ae2b95c1).
+None pushed. Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
 subroutine table: `rename_table.tsv` (Section 6).
 
 ## 1. Scope

@@ -21,6 +21,8 @@ Maintainer, 11/26/2026: "proceed to phase 1". The rename was run on an export ou
   from `ren_apply.pl`. Their map is a sed script (`map.sed`) generated from `rename_table.tsv`.
 - `ren_mcheck.m`: checks 3d and 3e. `ren_ccmp.m`: `checkcode` messages of each changed file,
   before and after.
+- `cmp_tree.pl ROOT EXPORT IGNORED [D_EXPORT D_ROOT]` (11/27): every file of the checkout against
+  its copy in an export, outside `cleaning/`; text files after CRLF → LF, as git stores them.
 
 ## Dry run (`dryrun_1126/`)
 
@@ -60,3 +62,28 @@ After the Phase 0 commits, with every MATLAB session closed and OneDrive sync pa
 2. `ren_apply.pl PIETOOLS apply MM/DD/YYYY existing35.txt REPORTDIR`.
 3. Every live file must equal its copy in `C:/wt1126ren/new` byte for byte; only the date of the
    32 D1 lines may differ. Then `ren_mcheck.m` on the checkout, and the commit on approval.
+
+## Applied to the checkout, 11/27/2026
+
+Maintainer, 11/27/2026: "proceed to the next phase", after the Phase 0 commits 1d9737e1 (H2),
+3315e9f9 (C8) and 4ac5c66d (records).
+- Conditions (H7): the MATLAB desktop opened on 11/21 was running but idle (0.07 s of CPU in 8 s),
+  and OneDrive was running. The moves go file by file, so no folder is renamed. The three folders
+  they emptied (`sopvar/@copvar`, `sopvar/@cdopvar/private`, `sopvar/@cdopvar`) were removed with
+  `rmdir` without error.
+- Before the moves, the checkout equals `C:/wt1126ren/base` in all 2,784 files outside `cleaning/`
+  (the 1,364 git-ignored files aside).
+- `ren_apply.pl paths` gives `dryrun_1126/paths.tsv`. Its 4 UNKNOWN lines name git-ignored baseline
+  records (`testing_codes/private/baselines/2026-11-02_opvar_phase0/`, `DEMO11_CdopvarControl`),
+  which stay as written.
+- The 97 files moved with `mv`, not `git mv`, so that nothing is staged before the commit.
+- `ren_apply.pl apply 11/27/2026` (`apply_1127/`): every report equals its dry-run copy; a second
+  run changes nothing.
+- After: the checkout equals `C:/wt1126ren/new` in all 2,784 files, the D1 date aside. `git status`
+  lists 168 modified, 97 deleted and 97 new files, exactly the expected sets; no new path is
+  git-ignored.
+- `ren_mcheck.m` on the checkout: 3d 0 defects, 3e 0 errors.
+
+Committed 11/27 as ae2b95c1 (maintainer: "commit them and continue to phase 1b"): 362 paths
+staged by name, 265 files, +2,277 −2,213 – the 2,213 mapped lines plus the 32 two-line D1
+entries. Git detects the 97 moves as renames.
