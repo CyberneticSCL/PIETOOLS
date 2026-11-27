@@ -12,7 +12,8 @@ origin unchanged at f75d2f6c. Case C8 (`tests_1d`) moved to `orphaned_file/priva
 committed 11/27 (3315e9f9). Phase 1 dry run on an export, 11/26, and applied to the checkout,
 11/27 (`phase1/README.md`): every check of step 3 passes on both; committed 11/27 (ae2b95c1).
 Phase 1b committed 11/27 (abfb0e83, `phase1b/README.md`); Phase 2 committed 11/27
-(`phase2/README.md`; manual drafts skipped, maintainer). None pushed. Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
+(`phase2/README.md`; manual drafts skipped, maintainer); Phase 3 run 11/27 on exports of 4ac5c66d
+and abfb0e83: every SDP equal bit for bit, F1/F2 differences 0 (`phase3/README.md`). Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
 subroutine table: `rename_table.tsv` (Section 6).
 
 ## 1. Scope

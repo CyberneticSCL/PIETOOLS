@@ -1,0 +1,39 @@
+tree C:\wt1127\new; opvar = C:\wt1127\new\PIETOOLS\sopvar\@opvar\opvar.m
+
+== cell 3: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+== cell 4: %% 3.1.1 Declaring 3-PI Operators
+   A: opvar, size [2 2]
+   B: opvar, size [2 1]
+   R0: polynomial, size [2 1]
+   R1: polynomial, size [2 1]
+   R2: polynomial, size [2 1]
+   s: polynomial, size [1 1]
+   s_dum: polynomial, size [1 1]
+
+== cell 5: %% 3.1.4 Declaring 4-PI Operators
+   ERROR: Dummy variables must have the default names, the spatial variables with '_dum' appended: s_dum. Set var1 first to use other names.
+   C: opvar, size [0 0]
+   Q1: polynomial, size [1 1]
+   Q2: polynomial, size [2 2]
+   tt: polynomial, size [1 1]
+
+== cell 6: %% 3.2.1 Declaring 9-PI Operators
+   ERROR: Undefined function 'opvar2d' for input arguments of type 'char'.
+   N12: polynomial, size [2 2]
+   s1: polynomial, size [1 1]
+   s2: polynomial, size [1 1]
+
+== cell 7: %% 3.2.2 Declaring General 2D PI Operators
+   ERROR: Undefined function 'opvar2d' for input arguments of type 'char'.
+   R22_11: polynomial, size [1 1]
+   R2x_0: polynomial, size [1 1]
+   R2x_1: polynomial, size [1 1]
+   Rx0: polynomial, size [2 1]
+   Rx2_1: polynomial, size [2 1]
+   Rxx_0: polynomial, size [2 1]
+   Rxx_2: polynomial, size [2 1]
+   nu: polynomial, size [1 1]
+   theta: polynomial, size [1 1]
+   x: polynomial, size [1 1]
+   y: polynomial, size [1 1]

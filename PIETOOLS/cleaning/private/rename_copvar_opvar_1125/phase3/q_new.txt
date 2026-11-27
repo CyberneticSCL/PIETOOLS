@@ -1,0 +1,55 @@
+T1|cv_test_get_op|testing_codes/private/converters/tests|test_get_op|testing_codes/private
+T1|cv_test_parser_bug_reproducers|testing_codes/private/converters/tests|test_parser_bug_reproducers|testing_codes/private
+T1|cv_test_parser_edge_cases|testing_codes/private/converters/tests|test_parser_edge_cases|testing_codes/private
+T1|snip_ch3|PIETOOLS_demos/snippets_from_manual|PIETOOLS_Code_Illustrations_Ch3_PI_Operators|
+T1|snip_ch5|PIETOOLS_demos/snippets_from_manual|PIETOOLS_Code_Illustrations_Ch5_PIEs|
+T1|snip_ch7|PIETOOLS_demos/snippets_from_manual|PIETOOLS_Code_Illustrations_Ch7_LPI_Programming|
+T1|sop_test_executives_sop|testing_codes/private/executives_sopvar/tests|test_executives_sop|testing_codes/private
+T1|lps_test_translators_sop|testing_codes/private/lpi_programming_sopvar/tests|test_translators_sop|testing_codes/private
+T1|lps_test_dpvar_ops_sop|testing_codes/private/lpi_programming_sopvar/tests|test_dpvar_ops_sop|testing_codes/private
+T1|lps_test_settings_prog_sop|testing_codes/private/lpi_programming_sopvar/tests|test_settings_prog_sop|testing_codes/private
+T1|lps_test_lpi_eq_sop|testing_codes/private/lpi_programming_sopvar/tests|test_lpi_eq_sop|testing_codes/private
+T1|lps_test_lpi_ineq_sop|testing_codes/private/lpi_programming_sopvar/tests|test_lpi_ineq_sop|testing_codes/private
+T1|lps_test_getsol_sop|testing_codes/private/lpi_programming_sopvar/tests|test_getsol_sop|testing_codes/private
+T1|lps_test_endtoend_sop|testing_codes/private/lpi_programming_sopvar/tests|test_endtoend_sop|testing_codes/private
+T1|lps_test_tier1_fixes_sop|testing_codes/private/lpi_programming_sopvar/tests|test_tier1_fixes_sop|testing_codes/private
+T1|lps_test_dpvar_hinf_chain_sop|testing_codes/private/lpi_programming_sopvar/tests|test_dpvar_hinf_chain_sop|testing_codes/private
+T1|lps_e2e_stability_1d|testing_codes/private/lpi_programming_sopvar/tests|e2e_stability_1d|testing_codes/private
+T1|lps_e2e_hinf_gain_1d|testing_codes/private/lpi_programming_sopvar/tests|e2e_hinf_gain_1d|testing_codes/private
+T1|lps_test_call2025_sop|testing_codes/private/lpi_programming_sopvar/tests|test_call2025_sop|testing_codes/private
+T2|cls_Test_opvar|testing_codes/private/sopvar/Testfolder|Test_opvar|testing_codes/private
+T2|cls_Test_dopvar|testing_codes/private/sopvar/Testfolder|Test_dopvar|testing_codes/private
+T2|cls_Test_qp_opvar_nd|testing_codes/private/sopvar/Testfolder|Test_qp_opvar_nd|testing_codes/private
+T2|sv_Test_int2sopvar|testing_codes/private/sopvar/Testfolder|Test_int2sopvar|testing_codes/private
+T2|sv_Test_int_sopvar|testing_codes/private/sopvar/Testfolder|Test_int_sopvar|testing_codes/private
+T2|sv_Test_mat2sopvar|testing_codes/private/sopvar/Testfolder|Test_mat2sopvar|testing_codes/private
+T2|sv_Test_sopvar_diff|testing_codes/private/sopvar/Testfolder|Test_sopvar_diff|testing_codes/private
+T2|sv_test_compose_sopvar|testing_codes/private/sopvar/Testfolder|test_compose_sopvar|testing_codes/private
+T2|sv_test_sopvar_kron|testing_codes/private/sopvar/Testfolder|test_sopvar_kron|testing_codes/private
+T2|sv_test_subs_sopvar|testing_codes/private/sopvar/Testfolder|test_subs_sopvar|testing_codes/private
+T2|hnd_test_pie|testing_codes/private/PIETOOLS_demos/sopvar_demos|test_heatNd_pie|testing_codes/private
+T2|ROOT_PIETOOLS_FI|.|PIETOOLS_FI|
+T2|FI_test_examples_FI_library|testing_codes/private/PIETOOLS_examples|test_examples_FI_library|testing_codes/private
+T2|PIESOS_DEMO2|PIESOS/demos_and_examples|PIESOS_DEMO2_local_stability|
+T2|pz_Test_get_ineq_opts|testing_codes/private/PIESOS/sosprogramming/Testfolder|Test_get_ineq_opts|testing_codes/private
+T2|pz_Test_tensopvar_int_weights|testing_codes/private/PIESOS/Testfolder/tensopvar|Test_tensopvar_int_weights|testing_codes/private
+T2|pz_Test_PIESOS_sublevel|testing_codes/private/PIESOS/Testfolder|Test_PIESOS_sublevel|testing_codes/private
+T2|pz_Test_piesos_tensor_gram|testing_codes/private/PIESOS/sosprogramming/Testfolder|Test_piesos_tensor_gram|testing_codes/private
+T2|pz_Test_piesos_quadvar|testing_codes/private/PIESOS/sosprogramming/Testfolder|Test_piesos_quadvar|testing_codes/private
+D|demo01|PIETOOLS_demos|DEMO1_stability_and_simulation; d3_ws(getenv('D3_WS'))|
+D|demo02|PIETOOLS_demos|DEMO2_volterra_operator_norm; d3_ws(getenv('D3_WS'))|
+D|demo03|PIETOOLS_demos|DEMO3_poincare_inequality; d3_ws(getenv('D3_WS'))|
+D|demo04|PIETOOLS_demos|DEMO4_stability_parameter_bisection; d3_ws(getenv('D3_WS'))|
+D|demo05|PIETOOLS_demos|DEMO5_Hinf_optimal_estimator; d3_ws(getenv('D3_WS'))|
+D|demo06|PIETOOLS_demos|DEMO6_Hinf_optimal_control; d3_ws(getenv('D3_WS'))|
+D|demo07|PIETOOLS_demos|DEMO7_observer_based_control; d3_ws(getenv('D3_WS'))|
+D|demo08|PIETOOLS_demos|DEMO8_H2norm; d3_ws(getenv('D3_WS'))|
+D|demo09|PIETOOLS_demos|DEMO9_L2_gain_analysis; d3_ws(getenv('D3_WS'))|
+D|demo10|PIETOOLS_demos|DEMO10_PBC; d3_ws(getenv('D3_WS'))|
+D|demo11|PIETOOLS_demos|DEMO11_poincare_inequality_2D; d3_ws(getenv('D3_WS'))|
+D|demo12|PIETOOLS_demos|DEMO12_2DControl; d3_ws(getenv('D3_WS'))|
+D|demo13|PIETOOLS_demos|DEMO13_Hinf_OFcontrol; d3_ws(getenv('D3_WS'))|
+D|demo14|PIETOOLS_demos|DEMO14_trace_inequality; d3_ws(getenv('D3_WS'))|
+D|demo15|PIETOOLS_demos|DEMO15_trace_inequality_2D; d3_ws(getenv('D3_WS'))|
+P|P0_F1|testing_codes/private/baselines/2026-11-02_opvar_phase0/private|setenv('P0_ROOT','C:\wt1127\new\PIETOOLS'); p0_f1(7)|testing_codes/private
+P|P0_F2|testing_codes/private/baselines/2026-11-02_opvar_phase0/private|setenv('P0_ROOT','C:\wt1127\new\PIETOOLS'); p0_f2(7)|testing_codes/private

@@ -1,0 +1,60 @@
+row                              status o/n    SDPs o/n  verdict
+cv_test_get_op                   OK/OK         0/0       no SDP
+cv_test_parser_bug_reproducers   OK/OK         0/0       no SDP
+cv_test_parser_edge_cases        OK/OK         0/0       no SDP
+snip_ch3                         OK/OK         0/0       no SDP
+snip_ch5                         OK/OK         0/0       no SDP
+snip_ch7                         OK/OK         1/1       IDENTICAL
+sop_test_executives_sop          OK/OK         19/19     IDENTICAL
+lps_test_translators_sop         OK/OK         0/0       no SDP
+lps_test_dpvar_ops_sop           OK/OK         0/0       no SDP
+lps_test_settings_prog_sop       OK/OK         2/2       IDENTICAL
+lps_test_lpi_eq_sop              OK/OK         0/0       no SDP
+lps_test_lpi_ineq_sop            OK/OK         4/4       IDENTICAL
+lps_test_getsol_sop              OK/OK         2/2       IDENTICAL
+lps_test_endtoend_sop            OK/OK         2/2       IDENTICAL
+lps_test_tier1_fixes_sop         OK/OK         0/0       no SDP
+lps_test_dpvar_hinf_chain_sop    OK/OK         1/1       IDENTICAL
+lps_e2e_stability_1d             OK/OK         1/1       IDENTICAL
+lps_e2e_hinf_gain_1d             OK/OK         1/1       IDENTICAL
+lps_test_call2025_sop            -/OK          0/0       in one run only
+cls_Test_opvar                   OK/OK         0/0       no SDP
+cls_Test_dopvar                  OK/OK         0/0       no SDP
+cls_Test_qp_opvar_nd             OK/OK         0/0       no SDP
+sv_Test_int2sopvar               OK/OK         0/0       no SDP
+sv_Test_int_sopvar               OK/OK         0/0       no SDP
+sv_Test_mat2sopvar               OK/OK         0/0       no SDP
+sv_Test_sopvar_diff              OK/OK         0/0       no SDP
+sv_test_compose_sopvar           OK/OK         0/0       no SDP
+sv_test_subs_sopvar              OK/OK         0/0       no SDP
+hnd_test_pie                     OK/OK         0/0       no SDP
+ROOT_PIETOOLS_FI                 OK/OK         1/1       IDENTICAL
+FI_test_examples_FI_library      OK/OK         15/15     IDENTICAL
+PIESOS_DEMO2                     OK/OK         1/1       IDENTICAL
+pz_Test_get_ineq_opts            OK/OK         3/3       IDENTICAL
+pz_Test_tensopvar_int_weights    OK/OK         0/0       no SDP
+pz_Test_PIESOS_sublevel          OK/OK         9/9       IDENTICAL
+pz_Test_piesos_tensor_gram       OK/OK         22/22     IDENTICAL
+pz_Test_piesos_quadvar           OK/OK         0/0       no SDP
+demo01                           OK/OK         1/1       IDENTICAL
+demo02                           OK/OK         1/1       IDENTICAL
+demo03                           OK/OK         1/1       IDENTICAL
+demo04                           OK/OK         8/8       IDENTICAL
+demo05                           OK/OK         1/1       IDENTICAL
+demo06                           OK/OK         1/1       IDENTICAL
+demo07                           OK/OK         3/3       IDENTICAL
+demo08                           OK/OK         1/1       IDENTICAL
+demo09                           OK/OK         1/1       IDENTICAL
+demo10                           OK/OK         1/1       IDENTICAL
+demo11                           OK/OK         1/1       IDENTICAL
+demo12                           OK/OK         1/1       IDENTICAL
+demo13                           OK/OK         2/2       IDENTICAL
+demo14                           OK/OK         1/1       IDENTICAL
+demo15                           OK/OK         1/1       IDENTICAL
+P0_F1                            OK/OK         0/0       no SDP
+P0_F2                            OK/OK         0/0       no SDP
+e2e_heat3d                       OK/OK         1/1       IDENTICAL
+sv_test_sopvar_kron              OK/OK         0/0       no SDP
+
+rows in both runs: 55; identical SDP sequences (or none): 55; status differs: 0
+SDPs identical bit for bit (A, b, c, K, x, y): 110, in 219 records

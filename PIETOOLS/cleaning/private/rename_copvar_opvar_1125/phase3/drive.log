@@ -1,0 +1,33 @@
+2026-11-27 05:06:28 start old T1 attempt 1 (0 of 18 done)
+2026-11-27 05:11:21 end old T1 exit 0
+2026-11-27 05:11:21 start old T2 attempt 1 (0 of 19 done)
+2026-11-27 05:19:35 end old T2 exit 0
+2026-11-27 05:19:35 start old D attempt 1 (0 of 15 done)
+2026-11-27 05:24:32 end old D exit 0
+2026-11-27 05:24:32 start old P attempt 1 (0 of 2 done)
+2026-11-27 05:30:06 end old P exit 0
+2026-11-27 05:30:06 start new T1 attempt 1 (0 of 19 done)
+2026-11-27 05:30:30 start old D attempt 1 (0 of 15 done)
+2026-11-27 05:35:24 end old D exit 0
+2026-11-27 05:35:24 all done
+2026-11-27 05:35:29 end new T1 exit 0
+2026-11-27 05:35:29 start new T2 attempt 1 (0 of 19 done)
+2026-11-27 05:37:17 end new T2 exit 0
+2026-11-27 05:37:17 start new T2 attempt 2 (8 of 19 done)
+2026-11-27 05:43:14 end new T2 exit 0
+2026-11-27 05:43:14 start new D attempt 1 (0 of 15 done)
+2026-11-27 05:48:09 end new D exit 0
+2026-11-27 05:48:09 start new P attempt 1 (0 of 2 done)
+2026-11-27 05:53:43 end new P exit 0
+2026-11-27 05:53:43 all done
+2026-11-27 05:53:49 finish: start
+2026-11-27 05:55:32 finish: comparisons done
+2026-11-27 05:55:32 start old X attempt 1 (0 of 1 done)
+2026-11-27 06:14:08 end old X exit 0
+2026-11-27 06:14:08 start new X attempt 1 (0 of 1 done)
+2026-11-27 06:32:34 end new X exit 0
+2026-11-27 06:32:34 all done
+2026-11-27 06:33:27 finish: all done
+2026-11-27 06:33:43 start new T2 attempt 1 (18 of 19 done)
+2026-11-27 06:34:42 end new T2 exit 0
+2026-11-27 06:34:42 all done
