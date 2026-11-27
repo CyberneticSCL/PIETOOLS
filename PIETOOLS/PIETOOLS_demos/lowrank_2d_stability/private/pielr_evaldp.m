@@ -4,7 +4,7 @@ function p = pielr_evaldp(V,dtab,RRx)                                       % CC
 % Body moved VERBATIM from the local function evaldp inside pielr_evalgram.m
 % (CC, 09/19/2026), which is now one of two real callers: the 1-D evaluator
 % pielr_evalop needs the identical per-cell arithmetic over the 6 leaves of a
-% dopvar, and duplicating it would let the two copies drift -- exactly the
+% 2025 dopvar, and duplicating it would let the two copies drift -- exactly the
 % failure this package already hit with the forked tests_1d core.
 %
 % Only dpvar cells carry decision variables; empty/double/polynomial cells
@@ -17,6 +17,9 @@ function p = pielr_evaldp(V,dtab,RRx)                                       % CC
 % kron(I_m,[1 d']) -- and COLUMNS matrix-column outer, monomial inner.
 % Nothing is ever full()'d on the decision-variable axis: rows of C are the
 % ~q dimension (CLAUDE.md section 2).
+%
+% MMP, 11/26/2026: "a dopvar" above reads "a 2025 dopvar", so that it does not
+%   describe the container once cdopvar is renamed dopvar (comment-only).
 
 if isempty(V) || isa(V,'double') || isa(V,'polynomial')
     p = V;  return

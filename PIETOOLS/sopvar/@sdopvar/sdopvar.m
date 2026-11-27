@@ -141,7 +141,7 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar
         ZR = {};
         Zd = {};
         params = struct('A', {0},'B', {});  % represents C(d) = unvec(A + B'*d)
-        % for an m-by-n decision opvar, A is size m*n-by-1, B is size nd-by-m*n.
+        % for an m-by-n decision operator, A is size m*n-by-1, B is size nd-by-m*n.
     end
     properties(Dependent,Hidden)
         kernels;    % cell of the kernels defined by params, see get.kernels

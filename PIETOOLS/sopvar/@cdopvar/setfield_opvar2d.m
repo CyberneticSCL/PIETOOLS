@@ -3,15 +3,15 @@ function P = setfield_opvar2d(P,fname,val,cidx,opts)
 % P = setfield_opvar2d(P,fname,val) sets the field fname of the PI operator
 %   P: R^m0 x L2^mx[x] x L2^my[y] x L2^m2[x,y]
 %                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y]
-% as if P were a 'dopvar2d' object, with the components Rij mapping the
+% as if P were a 2025 'dopvar2d' object, with the components Rij mapping the
 % space j to the space i (i,j = 0, x, y, 2), so that P.(fname) then
 % returns val.
 %
 % INPUT
-% P:      cdopvar class object with the structure of a 'dopvar2d': at most
+% P:      cdopvar class object with the 2-D field layout: at most
 %         two spatial variables, and the block rows (columns) ordered by
 %         space, first R, then L2[x], then L2[y], then L2[x,y]
-% fname:  char or string, the name of a 'dopvar2d' field: 'R00', ...,
+% fname:  char or string, a field name of the 2-D layout: 'R00', ...,
 %         'R22', 'I', 'var1' or 'var2'
 % val:    the value of the field:
 %         'Rij':    ni x mj 'double', 'polynomial' or 'dpvar', or a cell of
@@ -90,7 +90,7 @@ end
 if ~isfield(opts,'label')
     opts.label = fname;
 end
-% P must have the spaces R, L2[x], L2[y], L2[x,y] of a 'dopvar2d'
+% P must have the spaces R, L2[x], L2[y], L2[x,y] of the 2-D layout
 [is_2d,idx_out,idx_in] = is_opvar2d(P);
 if ~is_2d
     error('cdopvar:notOpvar2d',['The operator does not have the 2-D field layout (R00 to R22) of an operator '...

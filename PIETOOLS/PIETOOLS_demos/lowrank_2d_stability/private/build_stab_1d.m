@@ -12,8 +12,8 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 % settings decide the program.
 %
 % INPUT
-% - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'copvar' (or 'opvar',
-%          'opvar2d') operators T and A;
+% - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'copvar'
+%          operators T and A;
 % - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
 %          dd12, options1, options12, override1 (storage), dd2, dd3,
 %          options2, options3, override2 (slack), eppos, eppos2, epneg, and in
@@ -42,6 +42,8 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 %   takes the storage from prog.settings.lpi.pos, and a program without
 %   settings gets the light tier's row at every tier (measured: storage
 %   Gram 22 -> 20 on lib-beam-eb at heavy, 11 -> 10 at pielr_settings(3,1)).
+% MMP, 11/26/2026: "(or 'opvar', 'opvar2d')" dropped from the help of PIE: the
+%   build takes containers only since the 11/08/2026 entry (comment-only).
 
 % BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026)
 if nargin<3 || isempty(dual), dual = false; end

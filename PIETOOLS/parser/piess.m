@@ -123,6 +123,10 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 % DJ, 11/23/2026: Pass the variables of all copvar operators to the PIE;
 % DJ, 11/25/2026: Do not accept the retired 'opvar' and 'opvar2d' classes,
 %                   and ask for 'copvar' operators in the error messages;
+% MMP, 11/26/2026: two comments on the removed construction from operators
+%                   of the 2025 'opvar' class name that class as such, so that
+%                   they still read correctly once copvar is renamed opvar
+%                   (comment-only);
 
 
 % % % Process the inputs
@@ -319,13 +323,13 @@ elseif ~is_op(Dyuop)                                                        % DJ
 end
 
 % % % The operators, and which of them are copvar objects (the branch for   % MMP, 11/22/2026
-% opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)       % MMP, 11/22/2026
+% 2025 opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)  % MMP, 11/22/2026
 Pops = {Top,Twop,Tuop; Aop,Bwop,Buop; Czop,Dzwop,Dzuop; Cyop,Dywop,Dyuop};  % DJ (CC), 10/30/2026
 is_cop = cellfun(@(P) isa(P,'copvar'),Pops);                                % DJ (CC), 10/30/2026
 
 % % % BEGIN construction from copvar operators, DJ (CC), 10/30/2026
-% The construction from opvar operators that was here (DJ, 12/20/2024 -
-% 10/29/2026) was removed with the opvar classes. The PIE is now built from
+% The construction from 2025 opvar operators that was here (DJ, 12/20/2024 -
+% 10/29/2026) was removed with the 2025 opvar classes. The PIE is now built from
 % the operators as they are; initialize checks the spaces.
 fnames = {'T','Tw','Tu'; 'A','Bw','Bu'; 'Cz','Dzw','Dzu'; 'Cy','Dyw','Dyu'};
 % Type of component in the rows (x,x,z,y) and columns (x,w,u) of Pops.

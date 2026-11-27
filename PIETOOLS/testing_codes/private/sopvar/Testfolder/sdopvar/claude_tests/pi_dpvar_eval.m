@@ -4,7 +4,7 @@ function P = pi_dpvar_eval(D,dvars,dval)
 %
 % The 'dpvar' class provides 'subs' for independent variables only, so this
 % fills in the missing operation. It is used to compare operators returned by
-% 'poslpivar' against those returned by 'possopvar'.
+% the 2025 'poslpivar' against those returned by 'possopvar'.
 %
 % INPUTS
 % - D:      'dpvar' object;
@@ -15,6 +15,7 @@ function P = pi_dpvar_eval(D,dvars,dval)
 % - P:      'polynomial' object of the same dimensions as D;
 %
 % MP, 08/22/2026: Initial coding
+% MMP, 11/26/2026: the help names the 2025 poslpivar (comment-only).
 
 if ~isa(D,'dpvar')
     error("Input must be a 'dpvar' object.")

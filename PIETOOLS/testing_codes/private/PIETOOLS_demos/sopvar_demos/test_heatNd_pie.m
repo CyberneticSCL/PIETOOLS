@@ -20,7 +20,7 @@ function R = test_heatNd_pie(dostock)
 %      (r - lambda1) T phi1 for the lowest mode (quadrature, nq = 20);
 %  (f) N = 2 only: T against the paper's printed Ex. 3 kernel (four terms);
 %  (g) DOSTOCK (default true), N = 1, 2: STOCK convert(PDE,'pie') T and A
-%      (containers, read through their opvar / opvar2d fields), each
+%      (containers, read through their 1-D / 2-D layout fields), each
 %      evaluated from ITS OWN class definition by
 %      the local quadrature below (no converter), applied to the same
 %      polynomial at the same points, against the container T and A.
@@ -40,6 +40,8 @@ function R = test_heatNd_pie(dostock)
 % MMP, 11/26/2026: the 'opvar' test of STOCK_APPLY dropped: the class is
 %   retired, and once copvar is renamed opvar it would send every container,
 %   2-D and 3-D ones included, to the 1-D branch.
+% MMP, 11/26/2026: the help of (g) and of STOCK_APPLY names the 1-D and 2-D
+%   field layouts and the 2025 classes that define them (comment-only).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(dostock),    dostock = true;     end
@@ -245,8 +247,8 @@ Ts = PIE.T;     As = PIE.A;
 end
 
 function y = stock_apply(P,f,S)
-% Stock opvar (1-D) / opvar2d (2-D) PI operator on L2 applied by
-% quadrature, from each class's own definition (opvar.m / opvar2d.m):
+% PI operator on L2 in the 1-D or 2-D field layout, applied by
+% quadrature, from the definitions of the 2025 opvar and opvar2d classes:
 % 1-D  (P v)(s) = R0 v(s) + int_a^s R1(s,t) v(t) dt + int_s^b R2(s,t) v(t) dt,
 % 2-D  (P v)(x,y) = sum_{i,j} R22{i,j} applied with row i the x-direction
 %      and column j the y-direction, 1 multiplier, 2 int_a^x, 3 int_x^b.

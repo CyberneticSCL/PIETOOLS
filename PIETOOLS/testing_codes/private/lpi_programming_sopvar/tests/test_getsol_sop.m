@@ -166,6 +166,8 @@ function R = test_getsol_sop(parts)
 %                  lpisettings_sop with cx_settings, a (was) comment line
 %                  removed, a note on the "legacy gamma" reworded; code
 %                  unchanged.
+% MMP, 11/26/2026: a clause on P1, left from the deletion of 11/08/2026,
+%                  dropped (comment-only).
 
 % Default: all four parts; one part given as char
 if nargin<1 || isempty(parts),  parts = {'i','ii','iii','iv'};  end
@@ -781,7 +783,7 @@ prog = lpiprogram(s,theta,[0 1]);
 [prog,Pc] = lpivar_cdopvar(prog,struct('out',[1;1],'in',[1;1]), ...
             struct('out',{{{},{'s'}}},'in',{{{},{'s'}}}),[0 1],2);   % cdopvar in this program
 % A known decision vector and a solver report, so the program reads as
-% solved; the fixed opvar of P1
+% solved.
 N = numel(prog.decvartable);
 prog.solinfo.RRx = randn(N+2,1);                    % 2 entries past decvartable, as a slack
 prog.solinfo.info = struct('pinf',0,'dinf',0,'numerr',0);

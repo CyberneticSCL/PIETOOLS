@@ -4,7 +4,7 @@ function val = getfield_opvar2d(P,fname)
 % would have if the PI operator
 %   P: R^m0 x L2^mx[x] x L2^my[y] x L2^m2[x,y]
 %                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y]
-% were an 'opvar2d' object, with components
+% were a 2025 'opvar2d' object, with components
 %   [ R00  R0x  R0y  R02 ]
 %   [ Rx0  Rxx  Rxy  Rx2 ]
 %   [ Ry0  Ryx  Ryy  Ry2 ]
@@ -17,10 +17,10 @@ function val = getfield_opvar2d(P,fname)
 % [a,x] or [c,y] (i,j=2), or over [x,b] or [y,d] (i,j=3) in x and in y.
 %
 % INPUT
-% P:      copvar class object with the structure of an 'opvar2d': at most
+% P:      copvar class object with the 2-D field layout: at most
 %         two spatial variables, and the block rows (columns) ordered by
 %         space, first R, then L2[x], then L2[y], then L2[x,y]
-% fname:  char or string, the name of an 'opvar2d' field: 'R00', 'R0x',
+% fname:  char or string, a field name of the 2-D layout: 'R00', 'R0x',
 %         'R0y', 'R02', 'Rx0', 'Rxx', 'Rxy', 'Rx2', 'Ry0', 'Ryx', 'Ryy',
 %         'Ry2', 'R20', 'R2x', 'R2y', 'R22', 'I', 'var1', 'var2' or 'dim'
 %
@@ -49,8 +49,8 @@ function val = getfield_opvar2d(P,fname)
 %   the output variables and the dummy variables of the input variables.
 %   The parameters of a block form a 3 x ... x 3 cell, one direction per
 %   variable in both spaces, sorted, so x before y as in
-%   'opvar2d'. A variable only in the input space is
-%   integrated over its whole domain, and 'opvar2d' names it as var1, so
+%   the 2025 class. A variable only in the input space is
+%   integrated over its whole domain, and the 2025 class names it as var1, so
 %   its dummy is renamed (e.g. Rxy in x and y, not y_dum).
 % - A structurally zero block ([]) gives zeros.
 
@@ -129,7 +129,7 @@ switch fname
         % cell) and y (columns) if the variable is in both spaces
         sz = [1+2*(has_x(i) && has_x(j)), 1+2*(has_y(i) && has_y(j))];
         K = assemble_kernels(P,idx_out==i,idx_in==j,sz);
-        % A variable only in the input space keeps its own name in 'opvar2d'
+        % A variable only in the input space keeps its own name in the 2025 class
         rn = find([has_x(j) && ~has_x(i), has_y(j) && ~has_y(i)]);
         for k=1:numel(K)
             vnames = K{k}.varname;
@@ -157,7 +157,7 @@ function K = assemble_kernels(P,rows,cols,sz)
 % P.C(rows,cols) into one 'polynomial' per parameter.
 %
 % INPUT
-% P:    copvar class object, opvar2d-like
+% P:    copvar class object with the 2-D field layout
 % rows: M x 1 logical, the block rows to stack
 % cols: N x 1 logical, the block columns to stack
 % sz:   1 x 2 array, the size of the cell of parameters of each block:

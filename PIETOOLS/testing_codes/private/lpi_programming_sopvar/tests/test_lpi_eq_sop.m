@@ -23,7 +23,7 @@ function R = test_lpi_eq_sop()
 %       message and identifier that the routine called directly raises;
 %       for a 'polynomial', a 'double' and a 'struct', the identifier
 %       lpi_eq_sop:class;
-%   (5) none since 11/08/2026: it checked a 'dopvar' with the option 'foo'
+%   (5) none since 11/08/2026: it checked a 2025 'dopvar' with the option 'foo'
 %       against LPI_EQ, both retired.
 %
 % INPUT
@@ -87,6 +87,7 @@ function R = test_lpi_eq_sop()
 %                (4), (5), OUTPUT.
 % MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): two (was) comment
 %                lines removed; code unchanged.
+% MMP, 11/26/2026: help (5) reads "a 2025 'dopvar'" (comment-only).
 
 % No warnings for non-canonical multipliers; variables; check counter
 warning('off','sopvar:noncanonicalMultiplier');

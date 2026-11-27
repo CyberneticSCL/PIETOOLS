@@ -11,8 +11,8 @@ function [fn,fa] = bl_sop(exec)                                             % CC
 %   fa:    cell, its form argument ({} for an executive with one form).
 %
 % Why: convert returns a pie_struct of 'copvar' operators since 3df33dcc
-% (10/29/2026), which every stock executive rejects (Top.dim), and the opvar
-% removal retires executives/. The names in bl_cases stay the case labels.
+% (10/29/2026), which every stock executive rejects (Top.dim), and the 2025
+% opvar removal retires executives/. The names in bl_cases stay the case labels.
 % Forms as the consolidation of 10/28/2026 maps the stock executives (headers
 % of PIETOOLS_stability_sop, _Hinf_gain_sop, _H2_norm_sop). A stock 2-D
 % executive maps to the form of its LPI: 'stability_2D' was the P form (K.f =
@@ -20,6 +20,9 @@ function [fn,fa] = bl_sop(exec)                                             % CC
 % _non_coercive. The container executives pose other SDPs than the stock ones
 % (block partition, slack sizing), so values banked on the stock path
 % (bl_expect.tsv, results/2026-09-24) do not carry over.
+%
+% MMP, 11/26/2026: "the opvar removal" reads "the 2025 opvar removal", for the
+%   rename copvar -> opvar (comment-only).
 
 M = {'PIE2PDEstability',          'PIETOOLS_stability_sop',      {'Q'};
      'PIE2PDEstability_dual',     'PIETOOLS_stability_sop',      {'Qd'};

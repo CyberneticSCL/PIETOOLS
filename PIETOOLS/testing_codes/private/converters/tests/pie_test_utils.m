@@ -21,6 +21,8 @@ function varargout = pie_test_utils(cmd,varargin)
 %                 directly (single spatial variable); replaces the 'opvar' interface of the
 %                 tests (PIE.F, PIE.misc.periodic) that the converter no
 %                 longer has;
+% MMP, 11/26/2026: the help of SOPVAR2STRUCT names the 1-D field layout of
+%                 the 2025 'opvar' class (comment-only);
 
 switch cmd
     case 'xf',          [varargout{1:nargout}] = fund_state(varargin{:});
@@ -104,8 +106,9 @@ end
 end
 
 function P = sopvar2struct(B)
-% Fields of the 'opvar' of a sopvar block of a single variable, as a struct:
-% dim, I, var1, var2, P, Q1, Q2 and R.R0, R.R1, R.R2 (as in sopvar2opvar)
+% Fields of a sopvar block of a single variable in the 1-D field layout of
+% the 2025 'opvar' class, as a struct: dim, I, var1, var2, P, Q1, Q2 and
+% R.R0, R.R1, R.R2
 dims = B.dims;      vars = B.vars;      dom = B.dom;
 sv = unique([vars.in,vars.out]);
 if numel(sv)>1

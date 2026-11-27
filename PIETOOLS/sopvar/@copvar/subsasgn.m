@@ -1,7 +1,7 @@
 function P = subsasgn(P,s,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % P = SUBSASGN(P,S,VAL) assigns into a 'copvar': dot assignment is the
-% builtin, except for the 'opvar' and 'opvar2d' field names described
+% builtin, except for the field names of the 1-D and 2-D layouts described
 % below; paren assignment P(...) = VAL is an error.
 %
 % INPUTS
@@ -33,7 +33,7 @@ function P = subsasgn(P,s,varargin)
 %   block in place (65 us on that params{1}):
 %       X = P.C{i,j};  P.C{i,j} = [];  X.params{k}(r,c) = v;  P.C{i,j} = X;
 %
-% The fields of an 'opvar' (P, Q1, Q2, R) and of an 'opvar2d' (R00 to R22),
+% The fields of the 2025 'opvar' (P, Q1, Q2, R) and 'opvar2d' (R00 to R22),
 % and I, var1, var2, are set in a container with that structure:
 % P.Q1 = X, P.R.R1 = X and P.R22{2,3} = X set that component or parameter;
 % P.Q1(1,2) = X reads the field, assigns into it and sets it. The first
@@ -89,7 +89,7 @@ end
 if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,hidden))
     error(message('MATLAB:class:SetProhibited',s(1).subs,'''copvar'''))
 end
-% Support setting fields of an 'opvar' (1D) or 'opvar2d' (2D), which are
+% Support setting fields of the 1-D or 2-D layout, which are
 % not actual properties of the class.
 f1 = {'P','Q1','Q2','R'};
 f2 = {'R00','R0x','R0y','R02','Rx0','Rxx','Rxy','Rx2',...
@@ -102,7 +102,7 @@ if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
         error('copvar:fieldListAssign','Assign one value to the field ''%s''.',fname)
     end
     val = varargin{1};
-    % A shared field is set as for an 'opvar' if P is opvar-like and the
+    % A shared field is set as in the 1-D layout if P has it and the
     % value has one variable
     if any(strcmp(fname,f0))
         use1 = is_opvar1d(P) && size(val,1)<=1;
@@ -135,7 +135,7 @@ if strcmp(s(1).type,'.') && any(strcmp(s(1).subs,[f0,f1,f2]))
         if ~isempty(cidx),  cur = cur{cidx{:}};     end
         val = subsasgn(cur,rest,val);
     end
-    % Write the value into the blocks: 'opvar' (1-D) or 'opvar2d' (2-D)
+    % Write the value into the blocks: 1-D or 2-D
     % layout, the latter labelled with the parameter index for messages
     if use1
         P = setfield_opvar1d(P,target,val);

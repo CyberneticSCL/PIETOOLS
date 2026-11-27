@@ -24,7 +24,7 @@ function R = test_translators_sop()
 %         1e-12 (1 + |trace|), for a free operator on R^3, a free operator
 %         W on R^2 x L2[s1], Mz*W*Mz' (Mz a random fixed operator), the
 %         identity on R^3 x L2[s1] and the identity on L2^2[s1] (trace 0);
-%   (vi)  none since 11/08/2026: it built its operators as 'opvar'
+%   (vi)  none since 11/08/2026: it built its operators as 2025 'opvar'
 %         objects (opvar2copvar), retired.
 %
 % INPUT
@@ -102,6 +102,7 @@ function R = test_translators_sop()
 %                11/12/2026 (mult 1, int 1, joint 2, sep 0), which role 'lf'
 %                reads; the tiers hold the storage row since 11/18/2026, on
 %                which 'lf' errored. Help to match.
+% MMP, 11/26/2026: help (vi) reads "2025 'opvar' objects" (comment-only).
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter

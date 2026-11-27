@@ -1,6 +1,6 @@
 function X = pielr_evalop(prog,X)                                           % CC, 09/23/2026
 % PIELR_EVALOP  Substitute a decision vector into ANY LPI decision object,
-% dispatching on its class: dopvar (1-D, 6 leaves), dopvar2d (2-D, 36 leaves),
+% dispatching on its class: a 'cdopvar' or 'sdopvar' operator,
 % or a bare dpvar (a scalar decision variable such as the l2gain gamma).
 %
 % WHY.  Verification has to push the candidate back through the real operators
@@ -21,6 +21,8 @@ function X = pielr_evalop(prog,X)                                           % CC
 % MMP, 11/26/2026: the opvar and opvar2d tests of the pass-through deleted,
 %   with the sentence on them in the container block: dead since f83486c8,
 %   and once copvar is renamed opvar the containers return above anyway.
+% MMP, 11/26/2026: the first help line names the classes the code dispatches
+%   on since the 11/22/2026 entry (comment-only).
 
 % BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
 % no decision variable; a 'cdopvar' or 'sdopvar' is substituted by

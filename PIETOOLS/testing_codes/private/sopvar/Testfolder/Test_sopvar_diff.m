@@ -5,9 +5,9 @@
 % evaluates the kernels from the class definition and shares no code with
 % diff for sopvar, so this is not a round-trip test. Also checks: errors
 % for derivatives that are not PI operators, cancellation of boundary
-% terms, stacked derivatives, non-output variables, and the 1D opvar 'diff'
-% with option 'pure' as an independent implementation of the same Leibniz
-% rule.
+% terms, stacked derivatives, non-output variables, and the Leibniz rule for
+% a lower and an upper integral, evaluated with 'polynomial' calculus only,
+% as an independent implementation.
 % (MMP, 11/13/2026: the last check is now the Leibniz rule in closed form,
 % evaluated with 'polynomial' calculus; see the header log.)
 %
@@ -22,6 +22,8 @@
 %   upper integral, evaluated with 'polynomial' calculus only, which shares
 %   no code with diff or apply_sopvar. The operator is built with int2sopvar
 %   from the same random kernels R1, R2;
+% MMP, 11/26/2026: the help names the Leibniz-rule check of the 11/13/2026
+%   entry in place of the retired 1D 'opvar' diff (comment-only).
 
 rng(7);
 tol = 1e-9;

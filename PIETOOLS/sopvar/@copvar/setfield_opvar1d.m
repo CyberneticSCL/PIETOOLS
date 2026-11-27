@@ -2,17 +2,17 @@ function P = setfield_opvar1d(P,fname,val)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % P = setfield_opvar1d(P,fname,val) sets the field fname of the PI operator
 %   P: R^m x L2^n[a,b] -> R^p x L2^q[a,b]
-% as if P were an 'opvar' object, acting as
+% as if P were a 2025 'opvar' object, acting as
 %   [ P    Q1 ] [ u ]       (P u + int_a^b Q1(s) x(s) ds )
 %   [ Q2   R  ] [ x ] (s) = (Q2(s) u + R0(s) x(s) + int_a^s R1(s,t) x(t) dt
 %                                    + int_s^b R2(s,t) x(t) dt ),
 % so that P.(fname) then returns val.
 %
 % INPUT
-% P:      copvar class object with the structure of an 'opvar': at most
+% P:      copvar class object with the 1-D field layout: at most
 %         one spatial variable, and every block row (column) of R before
 %         every block row (column) of L2
-% fname:  char or string, the name of an 'opvar' field: 'P', 'Q1', 'Q2',
+% fname:  char or string, a field name of the 1-D layout: 'P', 'Q1', 'Q2',
 %         'R', 'R.R0', 'R.R1', 'R.R2', 'I', 'var1' or 'var2'
 % val:    the value of the field:
 %         'P':      p x m 'double', constant;
@@ -31,13 +31,13 @@ function P = setfield_opvar1d(P,fname,val)
 % P:      the copvar with the field set
 %
 % NOTES:
-% - The fields are those of 'opvar2d' on the one variable x = s: P is R00,
+% - The fields are those of the 2-D layout on the one variable x = s: P is R00,
 %   Q1 is R0x, Q2 is Rx0, and R is Rxx with R.R0-R.R2 its parameters 1-3,
-%   and each is set as that 'opvar2d' field. A component on a space of
+%   and each is set as that field of the 2-D layout. A component on a space of
 %   dimension 0 adds a block row (column) for it, the other components in
 %   it being zero.
 % - Without a spatial variable, s is the variable the kernel names, else
-%   's', on [0,1], as for a new 'opvar'.
+%   's', on [0,1], as in the 2025 class.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - setfield_opvar1d (copvar)
@@ -78,7 +78,7 @@ end
 fname = char(fname);
 opts = struct('vars',{{'s'}},'label',fname);
 
-% The 'opvar2d' field on x = s; one variable for I, var1, var2
+% The field of the 2-D layout on x = s; one variable for I, var1, var2
 switch fname
     case 'P',       P = setfield_opvar2d(P,'R00',val,[],opts);
     case 'Q1',      P = setfield_opvar2d(P,'R0x',val,[],opts);

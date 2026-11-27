@@ -19,7 +19,7 @@ function n = numArgumentsFromSubscript(P,s,ctx)
 % only the first element of a comma list such as {P.C{:}} or [P.C{:}]. The
 % builtin count returns every element, as for a class without the
 % overload. A read starting with '()' is the slice P(I,J), one object,
-% so it counts 1. So does a read of a 'dopvar' or 'dopvar2d' field, P.Q1,
+% so it counts 1. So does a read of a field of the 1-D or 2-D layout, P.Q1,
 % P.R22{2,3}, which 'subsref' computes and serves as one value; the
 % builtin count errors on it, as it is not a property.
 
@@ -52,7 +52,7 @@ function n = numArgumentsFromSubscript(P,s,ctx)
 % Initial coding MMP, 09/29/2026
 
 % The slice P(I,J) is one object; assignment keeps the builtin count.
-% So is a 'dopvar'/'dopvar2d' field, which 'subsref' serves as one value.
+% So is a field of the 1-D or 2-D layout, which 'subsref' serves as one value.
 opfields = {'P','Q1','Q2','R','I','var1','var2','dim','R00','R0x','R0y',...
     'R02','Rx0','Rxx','Rxy','Rx2','Ry0','Ryx','Ryy','Ry2','R20','R2x','R2y','R22'};
 if ctx~=matlab.indexing.IndexingContext.Assignment && (strcmp(s(1).type,'()') ...

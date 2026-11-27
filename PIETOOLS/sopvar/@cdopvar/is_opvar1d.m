@@ -1,7 +1,7 @@
 function logval = is_opvar1d(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % logval = is_opvar1d(P) checks whether the PI operator P has the structure
-% of a 'dopvar' object,
+% of a 2025 'dopvar' object (the 1-D field layout),
 %   P: R^m x L2^n[a,b] -> R^p x L2^q[a,b].
 %
 % INPUT
@@ -18,8 +18,8 @@ function logval = is_opvar1d(P)
 % - P may have several block rows of R, and several of L2[a,b], e.g. one
 %   block row per group of PDE states. Stacked in order, they are
 %   R^p and L2^q. A block row of R after one of L2 would put components of
-%   R^p after those of L2^q, which a 'dopvar' cannot represent, so that P
-%   is not opvar-like. The same holds for the block columns.
+%   R^p after those of L2^q, which the 2025 class cannot represent, so that P
+%   lacks the 1-D field layout. The same holds for the block columns.
 % - A block row or column with zero components is ignored, as it holds no
 %   component to order.
 % - Only the metadata of P is read, not its blocks or decision variables.
@@ -52,7 +52,7 @@ function logval = is_opvar1d(P)
 %
 % DJ, 11/15/2026: Initial coding;
 
-% A 'dopvar' has a single spatial variable, s in [a,b]
+% The 1-D field layout has a single spatial variable, s in [a,b]
 logval = false;
 if numel(P.vars)>1
     return

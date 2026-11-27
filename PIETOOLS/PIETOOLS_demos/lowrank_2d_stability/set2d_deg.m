@@ -15,8 +15,8 @@ function s2d = set2d_deg(Dup,dmult)
 % non-constant multiplier while the physics and the negativity block are
 % untouched.
 %
-% psatz is OFF everywhere (LF_use_psatz = 0, eq_use_psatz = [0;0]): poslpivar's
-% psatz=1 REPLACES the plain term rather than adding to it, and enabling it
+% psatz is OFF everywhere (LF_use_psatz = 0, eq_use_psatz = [0;0]): in the 2025
+% poslpivar, psatz=1 REPLACES the plain term rather than adding to it, and enabling it
 % made whole measured studies infeasible.  Keeping it off also keeps the block
 % count at 2 (LF, eq) so per-block ranks map 1:1 onto operators.
 %
@@ -29,6 +29,8 @@ function s2d = set2d_deg(Dup,dmult)
 % MMP, 11/17/2026: the stock 2-D struct from SETTINGS_2D_STOCK('light'):
 %   the tiers carry no settings_2d since 11/17/2026 (work package 5); the
 %   same values.
+% MMP, 11/26/2026: the psatz remark names the 2025 poslpivar, on which it was
+%   measured, so that it does not describe the renamed poscopvar (comment-only).
 if nargin<2, dmult = []; end
 % The 2-D storage of the container 'light' preset: equal to
 % settings_PIETOOLS_light_2D(), which is leaving the path.

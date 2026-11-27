@@ -1,7 +1,7 @@
 function [logval,idx_out,idx_in] = is_opvar2d(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [logval,idx_out,idx_in] = is_opvar2d(P) checks whether the PI operator P
-% has the structure of a 'dopvar2d' object,
+% has the structure of a 2025 'dopvar2d' object (the 2-D field layout),
 %   P: R^m0 x L2^mx[x] x L2^my[y] x L2^m2[x,y]
 %                           -> R^n0 x L2^nx[x] x L2^ny[y] x L2^n2[x,y].
 %
@@ -23,10 +23,10 @@ function [logval,idx_out,idx_in] = is_opvar2d(P)
 % - Any of the dimensions may be zero.
 % - P may have several block rows of each space, e.g. one block row per
 %   group of PDE states. Stacked in order, they are the
-%   spaces of the 'dopvar2d'. A block row of a space before one of an
+%   spaces of the 2-D field layout. A block row of a space before one of an
 %   earlier space (e.g. L2[x,y] before L2[x]) would change the order of the
-%   components, which a 'dopvar2d' cannot represent, so that P is not
-%   opvar2d-like. The same holds for the block columns.
+%   components, which the 2025 class cannot represent, so that P lacks the
+%   2-D field layout. The same holds for the block columns.
 % - A block row or column with zero components is ignored, as it holds no
 %   component to order.
 % - Only the metadata of P is read, not its blocks or decision variables.
@@ -59,7 +59,7 @@ function [logval,idx_out,idx_in] = is_opvar2d(P)
 %
 % DJ, 11/15/2026: Initial coding;
 
-% A 'dopvar2d' has two spatial variables, x and y
+% The 2-D field layout has two spatial variables, x and y
 logval = false;     idx_out = [];       idx_in = [];
 if numel(P.vars)>2
     return

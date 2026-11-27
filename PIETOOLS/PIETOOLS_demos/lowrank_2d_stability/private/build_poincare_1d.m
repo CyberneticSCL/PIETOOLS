@@ -10,8 +10,8 @@ function [prog,H] = build_poincare_1d(PIE,st,~)                            % CC,
 % by ST.poincare.dbump, and the psatz term ('auto') or none.
 %
 % INPUT
-% - PIE:   'pie_struct' object of the 1-D PIE above, with 'copvar' (or
-%          'opvar') operators T and C1;
+% - PIE:   'pie_struct' object of the 1-D PIE above, with 'copvar'
+%          operators T and C1;
 % - st:    'struct' of settings; read are poincare.psatz (logical, default
 %          true: the term with the weight (s-a)(b-s)), poincare.dbump
 %          (nonnegative integer, default 0: added to the weight degree), and
@@ -34,6 +34,8 @@ function [prog,H] = build_poincare_1d(PIE,st,~)                            % CC,
 %   LPI_INEQ_SOP (lift degree from the support, weight degree raised by
 %   dbump), not degbalance(P) + dbump on every slot, and the psatz term sits
 %   one weight degree lower: the program differs from the 09/23/2026 one.
+% MMP, 11/26/2026: "(or 'opvar')" dropped from the help of PIE: the build takes
+%   containers only since the 11/08/2026 entry (comment-only).
 
 % BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026
 % and 09/24/2026)

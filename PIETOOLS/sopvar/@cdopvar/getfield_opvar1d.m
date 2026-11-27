@@ -3,16 +3,16 @@ function val = getfield_opvar1d(P,fname)
 % val = getfield_opvar1d(P,fname) returns the value that the field fname
 % would have if the PI operator
 %   P: R^m x L2^n[a,b] -> R^p x L2^q[a,b]
-% were a 'dopvar' object, acting as
+% were a 2025 'dopvar' object, acting as
 %   [ P    Q1 ] [ u ]       (P u + int_a^b Q1(s) x(s) ds )
 %   [ Q2   R  ] [ x ] (s) = (Q2(s) u + R0(s) x(s) + int_a^s R1(s,t) x(t) dt
 %                                    + int_s^b R2(s,t) x(t) dt ).
 %
 % INPUT
-% P:      cdopvar class object with the structure of a 'dopvar': at most
+% P:      cdopvar class object with the 1-D field layout: at most
 %         one spatial variable, and every block row (column) of R before
 %         every block row (column) of L2
-% fname:  char or string, the name of a 'dopvar' field: 'P', 'Q1', 'Q2',
+% fname:  char or string, a field name of the 1-D layout: 'P', 'Q1', 'Q2',
 %         'R', 'R.R0', 'R.R1', 'R.R2', 'I', 'var1', 'var2' or 'dim'
 %
 % OUTPUT
@@ -40,16 +40,16 @@ function val = getfield_opvar1d(P,fname)
 %   the output variable var1 and the dummy variable var2. For R, the
 %   parameters 1, 2, 3 of a block are the multiplier and the integrals over
 %   [a,s] and [s,b], giving R0, R1, R2. The kernel of Q1 is in the dummy variable
-%   alone, which is renamed to var1, as a 'dopvar' defines Q1 in var1.
+%   alone, which is renamed to var1, as the 2025 class defines Q1 in var1.
 % - A block may be 'sdopvar', 'sopvar' (no decision variables, kernels
 %   'polynomial') or []. Each component is returned as 'dpvar', as the
-%   components of a 'dopvar' are, also if no block of it has decision
+%   components of the 2025 class are, also if no block of it has decision
 %   variables.
 % - A structurally zero block ([]) gives zeros. An absent space gives a
-%   component with zero rows or columns, as 'dopvar' does for a zero
+%   component with zero rows or columns, as the 2025 class does for a zero
 %   dimension.
 % - If P has no spatial variable, P: R^m -> R^p, then 'I' is 0 x 2, and
-%   'var1', 'var2' are s and s_dum, the default variables of a new 'dopvar'
+%   'var1', 'var2' are s and s_dum, the defaults of the 2025 class
 %   (P does not depend on them), so that s = P.var1 works on a new cdopvar.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,7 +101,7 @@ switch fname
     case 'I'
         val = P.dom;
     case 'var1'
-        % Without a variable, the default s of a new 'dopvar'
+        % Without a variable, the default s of the 2025 class
         val = polynomial(vname);
         if isempty(vname),  val = polynomial({'s'});    end
     case 'var2'
@@ -151,7 +151,7 @@ function K = assemble_kernels(P,rows,cols,nk)
 % P.C(rows,cols) into one 'dpvar' per parameter.
 %
 % INPUT
-% P:    cdopvar class object, opvar-like
+% P:    cdopvar class object with the 1-D field layout
 % rows: M x 1 logical, the block rows to stack
 % cols: N x 1 logical, the block columns to stack
 % nk:   number of parameters of each block: 1 for P, Q1, Q2, and 3 for R

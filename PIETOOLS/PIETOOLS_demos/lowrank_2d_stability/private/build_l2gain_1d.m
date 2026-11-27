@@ -16,7 +16,7 @@ function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC
 % makes the LPI a feasibility test at that gain.
 %
 % INPUT
-% - PIE:   'pie_struct' object of a 1-D PIE with 'copvar' (or 'opvar')
+% - PIE:   'pie_struct' object of a 1-D PIE with 'copvar'
 %          operators T, A, B1, C1, D11 and Tw = 0;
 % - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
 %          dd12, options1, options12, override1 (storage), dd2, dd3,
@@ -44,6 +44,8 @@ function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC
 %   the executives since 11/12/2026: since 11/17/2026 EXEC_TOOLS_SOP takes
 %   the storage from prog.settings.lpi.pos, and a program without settings
 %   gets the light tier's row at every tier.
+% MMP, 11/26/2026: "(or 'opvar')" dropped from the help of PIE: the build takes
+%   containers only since the 11/08/2026 entry (comment-only).
 
 % BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026
 % and 09/24/2026)
