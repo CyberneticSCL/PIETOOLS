@@ -10,16 +10,16 @@ function [prog,X] = exec_kmult_sop(prog,X,K,T,dom,like)
 %
 % INPUT
 % - prog:   'struct', the LPI program;
-% - X:      'cdopvar' object, the block of a negativity condition that acts
+% - X:      'dopvar' object, the block of a negativity condition that acts
 %           on the state, from and to the input space of T;
-% - K:      'copvar' object, the constraint K x = 0 on the state;
-% - T:      'copvar' object, the operator T of the PIE;
+% - K:      'opvar' object, the constraint K x = 0 on the state;
+% - T:      'opvar' object, the operator T of the PIE;
 % - dom:    nv x 2 double, the domain of the spatial variables;
-% - like:   'cdopvar' object, the storage operator whose degrees Z takes.
+% - like:   'dopvar' object, the storage operator whose degrees Z takes.
 %
 % OUTPUT
 % - prog:   'struct', the program with the decision variables of Z;
-% - X:      'cdopvar' object, X + K'*Z + Z'*K.
+% - X:      'dopvar' object, X + K'*Z + Z'*K.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -51,8 +51,8 @@ function [prog,X] = exec_kmult_sop(prog,X,K,T,dom,like)
 
 % Z free, from the state space (input space of T) to the output space of K,
 % with the degrees of the storage
-[spK,dmK] = copvar_space_list(K,'out');     [spI,dmI] = copvar_space_list(T,'in');
-[prog,Z] = lpivar_cdopvar(prog,struct('out',dmK,'in',dmI),struct('out',{spK},'in',{spI}),dom,get_lpivar_degs_sop(like));
+[spK,dmK] = opvar_space_list(K,'out');     [spI,dmI] = opvar_space_list(T,'in');
+[prog,Z] = lpivar(prog,struct('out',dmK,'in',dmI),struct('out',{spK},'in',{spI}),dom,get_lpivar_degs_sop(like));
 % The multiplier, zero on ker K
 X = X + K'*Z + Z'*K;
 end

@@ -24,7 +24,7 @@ function results = test_pde_var_components()
 %      sides of separate states and outputs, zero rows;
 %  12. matrices times nonlinear terms (non-square, zero), x.*y, s.*x,
 %      and errors for other factors;
-%  13. PIEs from copvar operators (piess), and errors for other types.
+%  13. PIEs from opvar operators (piess), and errors for other types.
 %
 % Run as: results = test_pde_var_components;
 %
@@ -442,8 +442,8 @@ PIE = cv([diff(x,t)==diff(x,s,2)+[1;0]*w; z==int(x(1),s,[0,1]); subs(x,s,0)==0; 
 P1 = piess(PIE.T,PIE.A,PIE.Bw,PIE.Cz,PIE.Dzw);
 assert(P1.T==PIE.T && P1.A==PIE.A && P1.Bw==PIE.Bw && P1.Cz==PIE.Cz && P1.Dzw==PIE.Dzw,'piess changed the operators.');
 P2 = piess(eye(2),-eye(2));
-assert(isa(P2,'pie_struct') && isa(P2.T,'copvar'),'piess with matrices should give a PIE with copvar operators.');
+assert(isa(P2,'pie_struct') && isa(P2.T,'opvar'),'piess with matrices should give a PIE with opvar operators.');
 expect_error(@() piess(struct('a',1),1),'Operators Top','piess(struct,1)');
-expect_error(@() initialize(setfield(pie_struct(),'T',struct('a',1))),'copvar','PIE.T a struct');
+expect_error(@() initialize(setfield(pie_struct(),'T',struct('a',1))),'opvar','PIE.T a struct');
 expect_error(@() terms2pde_struct([]),'legacy','terms2pde_struct');
 end

@@ -19,7 +19,7 @@ function R = test_heatNd_lpi()
 %      accuracy (coefficient residual), R >= 0 and -(P*A+A*P+2kP*T) >= 0 on
 %      random test functions and on the lowest mode, by quadrature
 %      (HEATND_APPLY), and P*T >= ep^2 T*T there;
-%  (6) TEST_COPQUADVAR_FACES (the face-weighted positive variables; was
+%  (6) TEST_OPQUADVAR_FACES (the face-weighted positive variables; was
 %      HEATND_TEST_POSW, retired with heatNd_posw);
 %  (7) kappa = r + k: the LITERAL Cor. 35 (15b), P*A + A*P + 2kP*T with A =
 %      rT + A0 composed by the classes, gives the same SDP as HEATND_LPI's
@@ -61,8 +61,8 @@ R = struct('check',{},'val',{},'ok',{});
 % heatNd_test_posw();                                                       % MMP, 09/27/2026 (was)
 % R(end+1) = struct('check','(6) heatNd_test_posw','val',0,'ok',true);      % MMP, 09/27/2026 (was)
 % RNG saved/restored: later draws no longer depend on (6)'s draw count.     % MMP, 09/27/2026
-rs = rng;   test_copquadvar_faces();    rng(rs);                            % MMP, 09/27/2026
-R(end+1) = struct('check','(6) test_copquadvar_faces','val',0,'ok',true);   % MMP, 09/27/2026
+rs = rng;   test_opquadvar_faces();    rng(rs);                             % MMP, 09/27/2026
+R(end+1) = struct('check','(6) test_opquadvar_faces','val',0,'ok',true);    % MMP, 09/27/2026
 ep = 0.1;
 % % % (1) counts.
 for N = 1:2
@@ -163,7 +163,7 @@ for N = 1:2
         pr = heatNd_pie(N,r);   k = 0.3;
         [~,mb] = heatNd_lpi(pr,0,[],ep,ob);     B = mb.base;
         PA = B.P'*pr.A;                                 % Cor. 35 as printed
-        Dl = heatNd_sdp(lpi_eq_cdopvar(B.prog,(PA+PA') + k*B.X2 + B.Q,'symmetric'));
+        Dl = heatNd_sdp(lpi_eq_dopvar(B.prog,(PA+PA') + k*B.X2 + B.Q,'symmetric'));
         o2 = ob;    o2.base = B;
         Dk = heatNd_sdp(heatNd_lpi(pr,0,k,ep,o2));      % kappa build, r = r
         Dz = heatNd_sdp(heatNd_lpi(p0,0,r+k,ep,o0));    % kappa build, r = 0, own base
@@ -293,7 +293,7 @@ s = svd(full(At'*At));  r = nnz(s > max(s)*1e-12);
 end
 
 function [amax,scale] = coefres(X,names,vals)
-% Largest kernel coefficient of the 1x1 'cdopvar' X at the decision values,
+% Largest kernel coefficient of the 1x1 'dopvar' X at the decision values,
 % and the no-cancellation scale max(|A| + |B||d|) (lpi_eq_sdopvar NOTES:
 % by the canonical multiplier form X == 0 iff every coefficient is 0).
 B = X.C{1};     zd = cellstr(string(B.Zd));
@@ -311,7 +311,7 @@ end
 end
 
 function Y = subsd(X,names,vals)
-% Fixed operator X(d) of a 1x1 'cdopvar' (params = unvec(A + B'd), sdopvar.m).
+% Fixed operator X(d) of a 1x1 'dopvar' (params = unvec(A + B'd), sdopvar.m).
 B = X.C{1};     zd = cellstr(string(B.Zd));
 [tf,loc] = ismember(zd(:),names(:));    d = zeros(numel(zd),1);    d(tf) = vals(loc(tf));
 nL = prod(cellfun(@numel,B.ZL));    nR = prod(cellfun(@numel,B.ZR));
@@ -323,7 +323,7 @@ for g = 1:numel(prm)
     if ~isempty(Bg),    a = a + Bg'*d;  end
     prm{g} = reshape(full(a),m,n);
 end
-Y = copvar({sopvar(prm,B.vars,B.ZL,B.ZR,B.dom,B.dims)});
+Y = opvar({sopvar(prm,B.vars,B.ZL,B.ZR,B.dom,B.dims)});
 end
 
 function [X,w] = qgrid(dom,n)

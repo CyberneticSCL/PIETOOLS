@@ -12,7 +12,7 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 % settings decide the program.
 %
 % INPUT
-% - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'copvar'
+% - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'opvar'
 %          operators T and A;
 % - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
 %          dd12, options1, options12, override1 (storage), dd2, dd3,
@@ -21,9 +21,9 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 % - dual:  (optional) logical, true for form 'Pd' (default false).
 % OUTPUT
 % - prog:  'struct', the unsolved LPI program;
-% - H:     'struct' with fields Top, Aop ('copvar', T and A), Pop ('cdopvar',
-%          P including the margin), Dop ('cdopvar', the negativity
-%          operator), Deop ('cdopvar', the slack N), eppos ('double' vector of
+% - H:     'struct' with fields Top, Aop ('opvar', T and A), Pop ('dopvar',
+%          P including the margin), Dop ('dopvar', the negativity
+%          operator), Deop ('dopvar', the slack N), eppos ('double' vector of
 %          the margin of each space), epneg, epfac ('double', the factor c),
 %          dual, st, PIE.
 %

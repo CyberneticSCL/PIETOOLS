@@ -51,6 +51,8 @@
 %   with the trace of C1*W*C1' by trace_rn_sop, in place of poslpivar,
 %   lpi_ineq and trace(Aux.P); lpigetsol_sop reads the solution; help text
 %   revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 
 % Clear the workspace and figures; print each line as it runs
@@ -91,7 +93,7 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % DJ
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable W>=0 with default polynomial degrees up to 3.
-[prog,W] = poscopvar(prog,T',3);        % W on the input spaces of T        % DJ, MMP, 11/21/2026
+[prog,W] = poslpivar(prog,T',3);        % W on the input spaces of T        % DJ, MMP, 11/21/2026
 
 % % Set inequality constraints:
 % %   A W T* + T W A* + B1 B1* <= 0

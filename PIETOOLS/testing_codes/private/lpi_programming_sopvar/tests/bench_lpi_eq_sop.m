@@ -1,12 +1,12 @@
 function T = bench_lpi_eq_sop(qs,Ns,reps)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % T = BENCH_LPI_EQ_SOP(QS,NS,REPS) measures the wall time and peak memory
-% of lpi_eq_sop(prog,P) and of lpi_eq_cdopvar(prog,P), the routine it
-% dispatches to, for a square 'cdopvar' decision operator P, over a sweep
+% of lpi_eq_sop(prog,P) and of lpi_eq_dopvar(prog,P), the routine it
+% dispatches to, for a square 'dopvar' decision operator P, over a sweep
 % of the number q of decision variables and N of spatial variables, and
 % the wall time of lpiprogram. For each N in NS and
 % q in QS, P maps L2^n[s1,...,sN] to itself, [0,1] in each variable, and
-% is declared by lpivar_cdopvar at degree 2 (N = 1) or 1 (N >= 2) on the
+% is declared by lpivar at degree 2 (N = 1) or 1 (N >= 2) on the
 % program lpiprogram([s1;...;sN],[],D), with
 % n = max(1,round(sqrt(q/c1))), c1 the number of decision variables at
 % n = 1. The two routines run alternately, REPS times each, the least wall
@@ -27,7 +27,7 @@ function T = bench_lpi_eq_sop(qs,Ns,reps)
 % OUTPUT
 % - T:      'table' with one row per (N,q) and columns N, n, q (the number
 %           of decision variables of P, numel(P.Zd)), t_sop and t_direct
-%           (seconds, lpi_eq_sop and lpi_eq_cdopvar), ratio
+%           (seconds, lpi_eq_sop and lpi_eq_dopvar), ratio
 %           (t_sop/t_direct), rows (the equality rows of the program),
 %           peak_sop_MB and peak_direct_MB (PeakMem in MB, NaN for q below
 %           max(QS)); one printed line per row and per lpiprogram timing.
@@ -85,18 +85,18 @@ for N = Ns
     D = repmat([0 1],N,1);
     % Decision variables per component pair at degree d: count once at n = 1.
 %     [~,P1] = lpivar_cdopvar(lpiprogram_sop(vars,D),1,{vars},D,dg(N));     % MMP, 11/04/2026 (was)
-    [~,P1] = lpivar_cdopvar(lpiprogram(polynomial(vars(:)),[],D),1,{vars},D,dg(N)); % MMP, 11/04/2026
+    [~,P1] = lpivar(lpiprogram(polynomial(vars(:)),[],D),1,{vars},D,dg(N)); % MMP, 11/04/2026
     c1 = numel(P1.Zd);
     for q = qs
         % Component count for about q decision variables; the program and P
         n = max(1,round(sqrt(q/c1)));
 %         [prog,P] = lpivar_cdopvar(lpiprogram_sop(vars,D),n,{vars},D,dg(N)); % MMP, 11/04/2026 (was)
-        [prog,P] = lpivar_cdopvar(lpiprogram(polynomial(vars(:)),[],D),n,{vars},D,dg(N)); % MMP, 11/04/2026
+        [prog,P] = lpivar(lpiprogram(polynomial(vars(:)),[],D),n,{vars},D,dg(N)); % MMP, 11/04/2026
         % Least wall time of each routine over REPS alternating calls
         tq = inf(1,2);
         for r = 1:reps
             t0 = tic;   pa = lpi_eq_sop(prog,P);        tq(1) = min(tq(1),toc(t0));
-            t0 = tic;   pb = lpi_eq_cdopvar(prog,P);    tq(2) = min(tq(2),toc(t0));
+            t0 = tic;   pb = lpi_eq_dopvar(prog,P);    tq(2) = min(tq(2),toc(t0));
         end
         % The two programs must be equal; count the equality rows
         same = isequal(pa.expr.At,pb.expr.At) && isequal(pa.expr.b,pb.expr.b);
@@ -106,11 +106,11 @@ for N = Ns
         pk = [NaN NaN];
         if q==max(qs)
             pk(1) = peak_mb(@() lpi_eq_sop(prog,P),'lpi_eq_sop');
-            pk(2) = peak_mb(@() lpi_eq_cdopvar(prog,P),'lpi_eq_cdopvar');
+            pk(2) = peak_mb(@() lpi_eq_dopvar(prog,P),'lpi_eq_dopvar');
         end
         % Record and print the row
         rows = [rows; N, n, numel(P.Zd), tq, tq(1)/tq(2), nr, pk];                  %#ok<AGROW>
-        fprintf('N=%d n=%4d q=%8d: lpi_eq_sop %.4f s, lpi_eq_cdopvar %.4f s (x%.3f), rows %d, peak %.1f / %.1f MB\n',...
+        fprintf('N=%d n=%4d q=%8d: lpi_eq_sop %.4f s, lpi_eq_dopvar %.4f s (x%.3f), rows %d, peak %.1f / %.1f MB\n',...
             N,n,numel(P.Zd),tq(1),tq(2),tq(1)/tq(2),nr,pk(1),pk(2));
         clear prog P pa pb
     end

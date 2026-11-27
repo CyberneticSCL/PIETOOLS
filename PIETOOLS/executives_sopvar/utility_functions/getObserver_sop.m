@@ -10,14 +10,14 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 % space, and the product the composition of the containers.
 %
 % INPUT
-% - P:      'copvar' object, the
+% - P:      'opvar' object, the
 %           solved Lyapunov operator, with the same spaces and dimensions in
-%           and out. P may be an N-D copvar, in any number of spatial
+%           and out. P may be an N-D opvar, in any number of spatial
 %           variables and with any spaces; the inverse (method 'inv') exists
 %           in one spatial variable for R^k x L2^m[s] with at most one R^k
 %           and one L2 space, and in several for a separable P; otherwise
 %           the method 'qp' is required;
-% - Z:      'copvar' object, the solved free operator, from R^ny
+% - Z:      'opvar' object, the solved free operator, from R^ny
 %           to the spaces of P, R^ny -> R^k x L2^m[s] in 1-D; for the method
 %           'qp' also N-D (the spatial variables of P and Z);
 % - opts:   (optional) 'struct', each field optional. The options of the
@@ -42,7 +42,7 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %                        quadratic program.
 %
 % OUTPUT
-% - L:      'copvar' object, R^ny -> R^k x L2^m[s];
+% - L:      'opvar' object, R^ny -> R^k x L2^m[s];
 % - Lop:    [], kept so that [L,~,INFO] calls keep the position of INFO; the
 %           gain is L;
 % - info:   for the method 'inv', 'struct' of the inverse, with fields N, h
@@ -55,7 +55,7 @@ function [L,Lop,info] = getObserver_sop(P,Z,opts)
 %           a 1 x ny cell, the diagnostics of the quadratic program for each
 %           of the ny columns of Z (without its matrices H and f).
 %
-% See also GETCONTROLLER_SOP, COPVAR/INV, QP_COPVAR.
+% See also GETCONTROLLER_SOP, OPVAR/INV, QP_OPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -109,9 +109,9 @@ if strcmpi(method,'qp')
     for j = 1:ny
         % column selector e_j: R^1 -> R^ny
         % as a container on R, with the variable registry of Z
-        Ej = mat2copvar_sop(full(sparse(j,1,1,ny,1)),struct('out',ny,'in',1),...
+        Ej = mat2opvar(full(sparse(j,1,1,ny,1)),struct('out',ny,'in',1),...
                  struct('out',{{{}}},'in',{{{}}}),struct('vars',{Z.vars},'dom',Z.dom));
-        [Xj,info.qp{j}] = qp_copvar(P,Z*Ej,qo);
+        [Xj,info.qp{j}] = qp_opvar(P,Z*Ej,qo);
         info.qp{j}.H = [];   info.qp{j}.f = [];     % keep the diagnostics, not the n x n matrix
         Ejt = Ej';
         if j==1,    Lc = Xj*Ejt;    else,   Lc = Lc + Xj*Ejt;   end

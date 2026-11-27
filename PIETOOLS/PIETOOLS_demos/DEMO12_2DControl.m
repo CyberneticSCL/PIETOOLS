@@ -1,7 +1,7 @@
 % DEMO12_2DControl.m
 %
 % This document illustrates how PIETOOLS can be used for state-feedback
-% stabilization of an unstable 2D reaction-diffusion PDE, using 'copvar'
+% stabilization of an unstable 2D reaction-diffusion PDE, using 'opvar'
 % and 'sopvar' operators.
 % Specifically, we consider the following system, with one distributed
 % actuator u:
@@ -20,11 +20,11 @@
 %   s.t.        P>=0,
 %       (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0
 % where P is a positive operator, and Z is a free operator declared using
-% `lpivar_cdopvar`. A feedback law K is then reconstructed from Z = K*P
+% `lpivar`. A feedback law K is then reconstructed from Z = K*P
 % using `getController_sop`.
 %
 % The PIE that `convert` returns is a 'pie_struct' whose operators are
-% 'copvar' objects. The LPI program is declared on PIE.vars and
+% 'opvar' objects. The LPI program is declared on PIE.vars and
 % PIE.dom; P takes its spaces and domain from T', on which it acts in
 % T*P*T', and Z those of B', since Z = K*P maps the state to the input.
 %
@@ -76,15 +76,15 @@ b = s1*(1-s1)*s2*(1-s2);
 PDE_t = [diff(x,'t')==lam*x+c1*diff(x,s1,2)+c2*diff(x,s2,2)+b*u;
          subs(x,s1,0)==0; subs(x,s1,1)==0;
          subs(x,s2,0)==0; subs(x,s2,1)==0];
-% Convert to a PIE with 'copvar' operators; extract T, A and Bu
+% Convert to a PIE with 'opvar' operators; extract T, A and Bu
 PIE = convert(PDE_t,'pie');
 T = PIE.T; A = PIE.A; B = PIE.Bu;
 
 %% Positive PI Lyapunov variable and free auxiliary feedback variable.
 prog = lpiprogram(PIE.vars,PIE.dom);
-[prog,P] = poscopvar(prog,T',0);        % P on the input spaces of T
-P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4
-[prog,Z] = lpivar_cdopvar(prog,B',2);   % Z with the spaces of B'
+[prog,P] = poslpivar(prog,T',0);        % P on the input spaces of T
+P = P + 1e-4*eye_opvar(P);              % enforce P>=1e-4
+[prog,Z] = lpivar(prog,B',2);           % Z with the spaces of B'
 
 %% Dual LPI: (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0.
 APBZ = A*P+B*Z;

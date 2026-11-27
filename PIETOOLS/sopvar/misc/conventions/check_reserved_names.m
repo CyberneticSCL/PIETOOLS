@@ -15,7 +15,7 @@ function check_reserved_names(vars)
 %
 % Cost: one regexp over the registry, one name per spatial direction.
 %
-% See also PARSE_COPVAR_SPACES, COPQUADVAR, SOPQUADVAR, LPIVAR_CDOPVAR.
+% See also PARSE_OPVAR_SPACES, OPQUADVAR, SOPQUADVAR, LPIVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

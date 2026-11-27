@@ -68,8 +68,8 @@ else
 end
 if ~isempty(PIE)
 %   sinfo.size = mat2str(PIE.T.dim(:,1)');                                  % Phase 0, 11/02/2026 (was)
-    if isa(PIE.T,'copvar')                                                  % Phase 0, 11/02/2026
-        sinfo.size = mat2str(PIE.T.dim_out(:)');    % copvar has no .dim    % Phase 0, 11/02/2026
+    if isa(PIE.T,'opvar')                                                   % Phase 0, 11/02/2026
+        sinfo.size = mat2str(PIE.T.dim_out(:)');    % opvar has no .dim    % Phase 0, 11/02/2026
     else                                                                    % Phase 0, 11/02/2026
         sinfo.size = mat2str(PIE.T.dim(:,1)');                              % Phase 0, 11/02/2026
     end                                                                     % Phase 0, 11/02/2026

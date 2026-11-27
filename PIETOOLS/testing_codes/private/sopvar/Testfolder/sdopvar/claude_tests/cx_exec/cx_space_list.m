@@ -1,6 +1,6 @@
 function [sp,dm] = cx_space_list(P,side)
 % [SP,DM] = CX_SPACE_LIST(P,SIDE) lists a container's output ('out') or
-% input ('in') spaces as poscopvar / lpivar_cdopvar take them: one cellstr of
+% input ('in') spaces as poslpivar / lpivar take them: one cellstr of
 % variable names per space ({} for R^n), and the component counts. Same as
 % the helper of the same job in test_copvar_kyp.
 %

@@ -46,7 +46,7 @@ function varargout = examples_FI_library_PIETOOLS(varargin)
 %
 %   The Heisenberg-type and Ehrling (Landau-Kolmogorov) inequalities, which
 %   come from products of norms, are not in this library. The eigenvalues and
-%   eigenfunctions computed with qp_copvar (Dirichlet problem x = lambda*x_ss,
+%   eigenfunctions computed with qp_opvar (Dirichlet problem x = lambda*x_ss,
 %   clamped beam eigenfunctions) are in the folder
 %   PIETOOLS_examples/Examples_Library/QP_Examples.
 %

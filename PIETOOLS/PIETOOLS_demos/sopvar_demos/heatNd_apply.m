@@ -15,7 +15,7 @@ function y = heatNd_apply(P,f,S,nq)
 % C_gam are (component outer, ZL monomial inner), columns likewise.
 %
 % INPUT
-% - P:  'sopvar', or a 1x1 'copvar' (its block is used);
+% - P:  'sopvar', or a 1x1 'opvar' (its block is used);
 % - f:  handle, f(X) with X an n x numel(P.vars.in) array of points,
 %       columns in P.vars.in order; returns n x p (p = P.dims(2));
 % - S:  ns x numel(P.vars.out) evaluation points, columns in vars.out order;
@@ -55,8 +55,8 @@ function y = heatNd_apply(P,f,S,nq)
 %
 % Initial coding MMP, 09/27/2026
 
-% The 'sopvar' block of a 'copvar'; default number of nodes
-if isa(P,'copvar'),     P = P.C{1,1};   end
+% The 'sopvar' block of an 'opvar'; default number of nodes
+if isa(P,'opvar'),     P = P.C{1,1};   end
 if nargin<4 || isempty(nq),     nq = 12;    end
 % Shared variables S3 (sorted) and input-only variables S1, with their
 % positions in vars.in and vars.out

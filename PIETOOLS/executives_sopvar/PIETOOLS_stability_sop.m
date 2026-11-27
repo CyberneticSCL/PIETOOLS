@@ -5,7 +5,7 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %
 %       T x_t = A x
 %
-% by searching for a Lyapunov certificate, posed as an LPI on 'cdopvar'
+% by searching for a Lyapunov certificate, posed as an LPI on 'dopvar'
 % operators and solved as an SDP. FORM selects the LPI:
 %
 %   'P'   P >= eppos I,          T'*P*A + A'*P*T + 2*epneg*T'*P*T <= 0;
@@ -40,8 +40,8 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
-%             variables, initialized when its T is not yet a 'copvar'
-%             object; T and A 'copvar' objects, and K a 'copvar' object
+%             variables, initialized when its T is not yet an 'opvar'
+%             object; T and An 'opvar' objects, and K an 'opvar' object
 %             (the constraint K x = 0 on the state) or empty; its other
 %             operators are not used;
 % - settings: (optional) 'struct' of LPI settings:
@@ -65,7 +65,7 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - P:        'copvar' object, the solved positive operator ([] when the
+% - P:        'opvar' object, the solved positive operator ([] when the
 %             solver returned no solution);
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
@@ -74,8 +74,8 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %               form, epneg, eppos, nv   the LPI posed and the dimension;
-%               storage    'copvar' object, the solved P;
-%               D, N       'cdopvar' objects, the derivative operator
+%               storage    'opvar' object, the solved P;
+%               D, N       'dopvar' objects, the derivative operator
 %                          (with K'*Z + Z'*K when K is used) and the slack;
 %               maxre      double, in 1-D with settings.sop.witness the
 %                          largest real part of the eigenvalues of the
@@ -146,7 +146,7 @@ if nargin<3 || isempty(form),   form = 'P';     end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_stability_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 fe = any(strcmp(form,{'FP','FQ'}));         % finite-energy forms
 if nargin<2 || isempty(settings)
     if PIE.dim>=2                           % the 2-D defaults in N-D too
@@ -173,7 +173,7 @@ end
 % if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end                       % MMP, 11/21/2026 (was)
 % if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end                       % MMP, 11/21/2026 (was)
 % The constraint K x = 0 on the state, if any (empty for most PIEs)
-Km = PIE.K;     hasK = isa(Km,'copvar') && size(Km,1)>0;
+Km = PIE.K;     hasK = isa(Km,'opvar') && size(Km,1)>0;
 % The dual forms test the PIE without K, which is not sufficient for
 % % stability: with K, 'Pd' and 'Qd' are posed as 'P' and 'Q'               % MMP, 11/21/2026 (was)
 % stability: with K, 'Pd' and 'Qd' are errors (another form would certify   % MMP, 11/21/2026
@@ -219,7 +219,7 @@ if fe && epneg==0
     error('PIETOOLS_stability_sop:epneg','Finite energy stability check requires settings.epneg >0. Please change your settings.');
 end
 
-% The PIE operators, 'copvar' objects
+% The PIE operators, 'opvar' objects
 Tm = PIE.T;     Am = PIE.A;
 % 'Qd' in two or more variables: 'Q' on the dual pair, since (T')'*Q = T*Q  % MMP, 11/21/2026
 % and (A')'*Q + Q'*A' = A*Q + Q'*A'                                         % MMP, 11/21/2026
@@ -230,7 +230,7 @@ if dq && strcmp(form,'Qd'),  Tm = Tm';  Am = Am';  end                      % MM
 [prog,aux] = lpi_solve_loop_sop(@assemble,st,label);
 cl = aux.classify;
 
-% The solved storage, as a 'copvar'
+% The solved storage, as an 'opvar'
 Psol = [];  P = [];
 try
     Psol = getsol_lpivar_sop(prog,aux.Pm);
@@ -263,7 +263,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj ([] here: a feasibility
-        %               LPI), Pm ('cdopvar' P), Dm (the derivative
+        %               LPI), Pm ('dopvar' P), Dm (the derivative
         %               operator), Nm (the slack), li (the info of the
         %               slack), form.
         % New program; record the equality rows when the dual is kept
@@ -301,7 +301,7 @@ end
                 % Also 'Qd' (T, A their adjoints, set above) and 'FQ' in    % MMP, 11/21/2026
                 % two or more variables                                     % MMP, 11/21/2026
                 q = qdeg;   if isnumeric(q),   q(1) = q(1) + dwq;   end
-                [prog,Qm] = lpivar_cdopvar(prog,Tm,q);   % deg_Q + ladder
+                [prog,Qm] = lpivar(prog,Tm,q);           % deg_Q + ladder
                 % T'*Q self-adjoint; P its symmetric part, = T'*Q on the
                 % equality, written symmetric for the inequality
                 prog = lpi_eq_sop(prog,Tm'*Qm - Qm'*Tm);
@@ -326,8 +326,8 @@ end
             case 'Qd'
                 [prog,Pm] = tl.storage(prog,Tm,'out');
                 Pm = Pm + eppos(2)*(Tm*Tm');
-                [spO,dmO] = copvar_space_list(Tm,'in');     [spI,dmI] = copvar_space_list(Tm,'out');
-                [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
+                [spO,dmO] = opvar_space_list(Tm,'in');     [spI,dmI] = opvar_space_list(Tm,'out');
+                [prog,Qm] = lpivar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
                 prog = lpi_eq_sop(prog,Tm*Qm - Pm);
                 Dm = Am*Qm + Qm'*Am';
                 if epneg~=0,    Dm = Dm + epfac*epneg*Pm;   end
@@ -339,8 +339,8 @@ end
                 % P >= 0 with no margin, Q free with T'*Q = P, as 'Q'; the
                 % decay term on T'T
                 [prog,Pm] = tl.storage(prog,Tm,'in');
-                [spO,dmO] = copvar_space_list(Tm,'out');    [spI,dmI] = copvar_space_list(Tm,'in');
-                [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
+                [spO,dmO] = opvar_space_list(Tm,'out');    [spI,dmI] = opvar_space_list(Tm,'in');
+                [prog,Qm] = lpivar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
                 prog = lpi_eq_sop(prog,Tm'*Qm - Pm);
                 Dm = Am'*Qm + Qm'*Am + epfac*epneg*(Tm'*Tm);
         end
@@ -349,8 +349,8 @@ end
         % state space to the output space of K, x'(K'*Z + Z'*K)x = 0 when
         % K x = 0, so Dm + K'*Z + Z'*K <= 0 gives Dm <= 0 on ker K.
         if hasK && any(strcmp(form,{'P','Q','FP','FQ'}))
-            [spK,dmK] = copvar_space_list(Km,'out');    [spI,dmI] = copvar_space_list(Tm,'in');
-            [prog,Zm] = lpivar_cdopvar(prog,struct('out',dmK,'in',dmI),struct('out',{spK},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
+            [spK,dmK] = opvar_space_list(Km,'out');    [spI,dmI] = opvar_space_list(Tm,'in');
+            [prog,Zm] = lpivar(prog,struct('out',dmK,'in',dmI),struct('out',{spK},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
             Dm = Dm + Km'*Zm + Zm'*Km;
         end
         % Dm <= 0: the 'stock' slack and an equality, or the slack sized from P

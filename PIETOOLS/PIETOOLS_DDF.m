@@ -80,6 +80,8 @@
 %   DDE (DDE2DDF = 1) is converted by convert_PIETOOLS_DDE2PIE_legacy or,
 %   with DDF_min = 1, through its minimal DDF; sosineq_on removed; help and
 %   comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -305,7 +307,7 @@ end
 %%%%%%%%%%% Calling the Executives %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
-% The container executives (PIETOOLS_*_sop) take the copvar PIE of the      % MMP, 11/21/2026
+% The container executives (PIETOOLS_*_sop) take the opvar PIE of the      % MMP, 11/21/2026
 % conversion above; outputs as named below, then an info struct             % MMP, 11/21/2026
 if stability==1
 %   [prog, P] = PIETOOLS_stability(PIE,settings);                           % MMP, 11/21/2026 (was)

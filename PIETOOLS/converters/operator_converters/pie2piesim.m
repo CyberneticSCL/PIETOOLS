@@ -71,7 +71,7 @@ function PIE_out = pie2piesim(PIE)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding MMP, 11/04/2026
 
-% Operators as 'copvar' objects; at most 2 spatial variables
+% Operators as 'opvar' objects; at most 2 spatial variables
 if ~isa(PIE,'pie_struct')
     error("The PIE should be a linear PIE, of type 'pie_struct'.")
 elseif ~PIE.is_initialized
@@ -134,12 +134,12 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function Pop = assemble_op(Pc,vnames,vars,dom)
-% POP = ASSEMBLE_OP(PC,VNAMES,VARS,DOM) returns the 'copvar' operator PC as
+% POP = ASSEMBLE_OP(PC,VNAMES,VARS,DOM) returns the 'opvar' operator PC as
 % a struct of kernels, the spaces of each kind stacked in the order R,
 % L2[s1], L2[s2], L2[s1,s2].
 %
 % INPUT
-% - Pc:     'copvar' object;
+% - Pc:     'opvar' object;
 % - vnames: 1 x N cellstr, the names of the spatial variables (N <= 2);
 % - vars:   N x 2 'polynomial', the spatial and dummy variables;
 % - dom:    N x 2 'double', the interval of each variable;

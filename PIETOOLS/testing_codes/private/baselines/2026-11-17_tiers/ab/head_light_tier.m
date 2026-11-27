@@ -111,21 +111,21 @@ function st = head_light_tier()
 % now LPISETTINGS_STOCK_SOP; and section 4 of 10/29/2026, settings_nd =
 % struct('LF_int',1,'LF_mult',0), now entry 3.
 % A vector holds the entries for 1, 2, and 3 or more spatial variables.
-% P = Z'*Q*Z, Q >= 0, on each space (POSCOPVAR): on R^n the identity
+% P = Z'*Q*Z, Q >= 0, on each space (POSLPIVAR): on R^n the identity
 % basis; on an L2 space the multiplier basis of degree mult and integral
 % bases of degree int in each variable and joint in total (int < 0: none):
 % in one variable the lower and upper integrals, or with sep = 1 one
 % integral over the whole interval; in two or more one full integral,
 % separable in every direction. The executives read entries 1 and 3
 % (POSLPIVAR_SETTINGS_SOP, EXEC_TOOLS_SOP; two variables: settings_2d,
-% section 2), POSCOPVAR without DEG the entry of each space.
+% section 2), POSLPIVAR without DEG the entry of each space.
 st.lpi.pos = struct('mult',[1 0 0],'int',[1 1 1],'joint',[2 2 2],'sep',0);
-% Z, the free operator of the synthesis LPIs (LPIVAR_CDOPVAR): one degree
-% specification per dimension, in a form LPIVAR_CDOPVAR takes; in one
+% Z, the free operator of the synthesis LPIs (LPIVAR): one degree
+% specification per dimension, in a form LPIVAR takes; in one
 % variable [d1 d2 d3], d1 the degree of the multiplier and of the maps to
 % and from R^n, d3 and d2 those of the integral kernels in s and in the
 % integration variable. The executives read entries 1 and 3,
-% LPIVAR_CDOPVAR without DEG the entry of its largest space.
+% LPIVAR without DEG the entry of its largest space.
 st.lpi.var = struct('deg',{{[2 2 2],1,1}});
 % END MMP, 11/12/2026
 
@@ -157,7 +157,7 @@ d2{3,3} = [0 1 1 2;1 1 1 2;1 1 1 2;2 2 2 2];        % Z2^bb
 % (1), Ryy{2} = Ryy{3} (2), R22{2,1} = R22{3,1} (3), R22{1,2} = R22{1,3}
 % (4), R22{2,j} = R22{3,j} for j = 2,3 (5), R22{i,2} = R22{i,3} for
 % i = 2,3 (6), with R22{i,j} the parameter of Z2^{ij}; psatz 1 weights Q
-% by the domain, 2 by a disk (rejected by POSCOPVAR). Each nonzero entry
+% by the domain, 2 by a disk (rejected by POSLPIVAR). Each nonzero entry
 % of LF_use_psatz adds a term of the options LF_opts_psatz{j} and the
 % degrees LF_deg_psatz{j}.
 s2.is2D = 1;

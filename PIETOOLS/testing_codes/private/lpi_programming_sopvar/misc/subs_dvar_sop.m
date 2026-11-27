@@ -6,8 +6,8 @@ function Xsol = subs_dvar_sop(X,dnames,dvals)
 % variables are DNAMES, with the values DVALS.
 %
 % INPUT
-% - X:      the object to substitute in: an 'sdopvar', 'cdopvar' or 'dpvar'
-%           object; a 'sopvar', 'copvar', 'polynomial' or 'double' object;
+% - X:      the object to substitute in: an 'sdopvar', 'dopvar' or 'dpvar'
+%           object; a 'sopvar', 'opvar', 'polynomial' or 'double' object;
 %           a 'char' decision variable name; or a 'cell' of these (see
 %           NOTES);
 % - dnames: 'cellstr' or string array of distinct decision variable names,
@@ -18,17 +18,17 @@ function Xsol = subs_dvar_sop(X,dnames,dvals)
 % OUTPUT
 % - Xsol:   X with every decision variable named in DNAMES replaced by its
 %           value; the decision variables of X not named stay decision
-%           variables. An 'sdopvar' or 'cdopvar' X gives a 'sopvar' or
-%           'copvar' object when DNAMES names all of its decision
-%           variables, else an 'sdopvar' or 'cdopvar' object on the
+%           variables. An 'sdopvar' or 'dopvar' X gives a 'sopvar' or
+%           'opvar' object when DNAMES names all of its decision
+%           variables, else an 'sdopvar' or 'dopvar' object on the
 %           others; a 'dpvar' X gives a 'polynomial' object (all named) or
 %           a 'dpvar' object on the others; a 'char' name gives a
 %           'polynomial' object, its value when it is named; a 'cell' is
-%           substituted entry by entry; a 'sopvar', 'copvar', 'polynomial'
+%           substituted entry by entry; a 'sopvar', 'opvar', 'polynomial'
 %           or 'double' X is returned as it is.
 %
 % NOTES
-% A 'cell' X that holds no 'sopvar', 'sdopvar', 'copvar' or 'cdopvar'
+% A 'cell' X that holds no 'sopvar', 'sdopvar', 'opvar' or 'dopvar'
 % object, at any depth, may hold only 'dpvar', 'polynomial', 'double' and
 % 'char' objects and cells of them, and its 'polynomial' entries are
 % substituted. DNAMES not a 'cellstr' or string array, or DVALS not numeric

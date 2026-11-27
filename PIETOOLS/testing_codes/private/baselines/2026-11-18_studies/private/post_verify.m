@@ -108,9 +108,9 @@ if direct
         op0 = {struct('like_li',aux.lip,'ref',aux.Pm)};
         Rp = tpos - getsol_lpivar_sop(prog,aux.Npm);   % its residual in the solve
         if aux.lip.margin>0,  Rp = Rp + aux.lip.margin*aux.lip.eD;  end
-        tmax = maxabs_copvar(tpos);
-        zt0 = min(maxabs_copvar(Rp) + 1e-12*tmax, 1e-7*tmax);       % as ztol for -D below
-        pre = sprintf('%sP margin: residual of the solve %.2g, eppos2 %.3g; ',pre,maxabs_copvar(Rp),e2);
+        tmax = maxabs_opvar(tpos);
+        zt0 = min(maxabs_opvar(Rp) + 1e-12*tmax, 1e-7*tmax);        % as ztol for -D below
+        pre = sprintf('%sP margin: residual of the solve %.2g, eppos2 %.3g; ',pre,maxabs_opvar(Rp),e2);
     else                                % an executive without aux.lip: sized as the solve sized it
         dws = info.dw;  if strcmp(st.sop.raise_Q,'deg'),  dws = 0;  end
         op0 = {struct('dw',dws,'margin',st.sop.margin,'cap',tl.capfor(Pn))};
@@ -132,7 +132,7 @@ end
 Nn = getsol_lpivar_sop(prog,aux.Nm);
 Rn = -getsol_lpivar_sop(prog,aux.Dm) - Nn;
 if isfield(aux.li,'margin') && aux.li.margin>0,  Rn = Rn + aux.li.margin*aux.li.eD;  end
-rmax = maxabs_copvar(Rn);   dmax = maxabs_copvar(Dn);
+rmax = maxabs_opvar(Rn);   dmax = maxabs_opvar(Dn);
 ztol = min(rmax + 1e-12*dmax, 1e-7*dmax);
 pre = sprintf('%sresidual of the solve %.2g, largest D %.2g; ',pre,rmax,dmax);
 % -D: the slack of the solve, then one sized from the support of -D, one
@@ -157,8 +157,8 @@ end
 pre = sprintf('%s%s; slack entries %s (solve: %d)',pre,att,mat2str(cellfun(@(s) s.ndec,li)),aux.li.ndec);
 end
 
-function m = maxabs_copvar(D)
-% M = MAXABS_COPVAR(D) the largest |coefficient| of the 'copvar' object D.
+function m = maxabs_opvar(D)
+% M = MAXABS_OPVAR(D) the largest |coefficient| of the 'opvar' object D.
 m = 0;
 for k = 1:numel(D.C)
     B = D.C{k};
@@ -172,7 +172,7 @@ end
 
 function [E,drop] = zero_unreached(E)
 % [E,DROP] = ZERO_UNREACHED(E) sets to zero the constant coefficients of the
-% 'cdopvar' object E that carry no decision variable, the rows "0 = residue"
+% 'dopvar' object E that carry no decision variable, the rows "0 = residue"
 % of E == 0: entries of params.A whose column of params.B is zero, and a
 % fixed 'sopvar' block entirely. DROP the largest |coefficient| set to zero.
 % Zeroing keeps the canonical multiplier form (a zero is canonical).
@@ -255,14 +255,14 @@ function [prog,li] = slack_like(prog,P,o)
 % zeroed (zero_unreached; LI.drop the largest value zeroed, LI.ndec the
 % number of slack variables of this rebuild).
 li = o.like_li;   ref = P;   if isfield(o,'ref') && ~isempty(o.ref),  ref = o.ref;  end
-[sp,dm] = copvar_space_list(ref,'out');     % the spaces of the operator of the solve
+[sp,dm] = opvar_space_list(ref,'out');      % the spaces of the operator of the solve
 dom = struct('vars',{ref.vars},'dom',ref.dom);
 popts = struct('psatz',li.terms.codes,'psatz_offset',li.terms.offsets);
 if isfield(li.terms,'rows') && ~isempty(li.terms.rows)
     popts.psatz_rows = li.terms.rows;   popts.psatz_rows_offset = li.terms.rows_offsets;
 end
 if ~isempty(li.include) && any(~cellfun(@isempty,li.include)),  popts.include = li.include;  end
-[prog,Pop] = poscopvar_direct(prog,dm,sp,dom,li.deg,popts);
+[prog,Pop] = poslpivar_direct(prog,dm,sp,dom,li.deg,popts);
 if li.margin>0,  P = P + li.margin*li.eD;  end
 [E,li.drop] = zero_unreached(P - Pop);
 prog = lpi_eq_sop(prog,E,'symmetric');

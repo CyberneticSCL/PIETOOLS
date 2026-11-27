@@ -29,7 +29,7 @@ function pie = heatNd_pie(N,r,bc,dom)
 % i.e. lower cell (th<=s) h+s-th, upper cell (th>s) h; on [0,1] these are
 % the paper's Ex. 3 kernels (DD: th(s-1), s(th-1); DN: -th, -s).
 %
-% Built directly as a 1x1 'copvar' on L2[s1..sN]: T_i commute and act in
+% Built directly as a 1x1 'opvar' on L2[s1..sN]: T_i commute and act in
 % disjoint variables, so the kernel of T is the product of 1-D kernels,
 %   params{g1..gN} = kron(C^1_{g1},...,C^N_{gN}),  ZL = ZR = {[0;1]}^N,
 % (ZL(s) = kron_i ZL_i(s_i), first variable slowest, sopvar.m header), and
@@ -45,8 +45,8 @@ function pie = heatNd_pie(N,r,bc,dom)
 % - dom: (optional) N x 2, row i = [a_i b_i]; default [0 1] rows.
 %
 % OUTPUT struct PIE
-% - T, A:   1x1 'copvar' on L2[s1..sN];
-% - A0:     1x1 'copvar', A at r = 0 (A = r T + A0), used by HEATND_LPI;
+% - T, A:   1x1 'opvar' on L2[s1..sN];
+% - A0:     1x1 'opvar', A at r = 0 (A = r T + A0), used by HEATND_LPI;
 % - vars:   1 x N cellstr {'s1',...}; dom (N x 2); bc; r; N;
 % - op1:    1 x N struct array of the 1-D factors (ZL, ZR, C = {mult,
 %           lower, upper} coefficient matrices, K(s,th) = [1 s] C [1;th]);
@@ -105,11 +105,11 @@ end
 Id = struct('ZL',0,'ZR',0,'C',{{1,0,0}});      % identity in one direction
 
 % % % T and A as tensor products of the 1-D factors.
-T = copvar({kronop(num2cell(op1),vars,dom)});
+T = opvar({kronop(num2cell(op1),vars,dom)});
 A0 = [];                                        % A at r = 0
 for i = 1:N
     fac = num2cell(op1);    fac{i} = Id;        % prod_{j~=i} T_j (x) I_i
-    Ai = copvar({kronop(fac,vars,dom)});
+    Ai = opvar({kronop(fac,vars,dom)});
     if isempty(A0),     A0 = Ai;    else,   A0 = A0 + Ai;   end
 end
 A = r*T + A0;

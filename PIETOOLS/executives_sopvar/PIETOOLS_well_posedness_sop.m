@@ -5,7 +5,7 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %
 %       T x_t = A x
 %
-% by the LPI, posed on 'cdopvar' operators and solved as an SDP,
+% by the LPI, posed on 'dopvar' operators and solved as an SDP,
 %
 %   P >= eppos I,  R >= I,
 %   T'*P*A + A'*P*T - 2*omega*T'*P*T <= 0,
@@ -18,8 +18,8 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in one spatial variable,
-%             initialized when its T is not yet a 'copvar' object; T and A
-%             'copvar' objects; its other operators are not used; K empty
+%             initialized when its T is not yet an 'opvar' object; T and An
+%             'opvar' objects; its other operators are not used; K empty
 %             (a constraint K x = 0 on the state, e.g. periodic BCs, is an
 %             error); a PIE in two or more variables is an error;
 % - settings: (optional) 'struct' of LPI settings:
@@ -37,7 +37,7 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - P, R:     'copvar' objects, the solved P and R ([] when the solver
+% - P, R:     'opvar' objects, the solved P and R ([] when the solver
 %             returned no solution);
 % - omega:    double, the omega of the LPI;
 % - info:     'struct' with fields
@@ -47,7 +47,7 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %               omega, eppos   as posed;
-%               D1, D2     'cdopvar' objects, the two constrained operators;
+%               D1, D2     'dopvar' objects, the two constrained operators;
 %               maxre      double, with settings.sop.witness the largest
 %                          real part of the eigenvalues of the Legendre
 %                          discretization of (A,T), else NaN;
@@ -96,11 +96,11 @@ end
 label = 'well_posedness_sop';
 st = exec_sop_settings(settings);
 if ~isa(PIE,'pie_struct'),  error('PIETOOLS_well_posedness_sop:pie','The PIE should be a ''pie_struct''.');  end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 if PIE.dim>=2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of PDEs in two or more variables is currently not supported.');   end
 % With a constraint K x = 0 (auxiliary states) the range of T - A is a
 % proper subspace: the surjectivity condition below cannot hold
-if isa(PIE.K,'copvar') && size(PIE.K,1)>0
+if isa(PIE.K,'opvar') && size(PIE.K,1)>0
     error('PIETOOLS_well_posedness_sop:K','PIEs with an algebraic constraint K are not supported.');
 end
 
@@ -116,7 +116,7 @@ if ~isempty(st.sop.max_raise_feas)
     st.sop.max_raise = st.sop.max_raise_feas(1);    % the 1-D entry
 end
 
-% The PIE operators, 'copvar' objects
+% The PIE operators, 'opvar' objects
 Tm = PIE.T;     Am = PIE.A;
 
 % Build and solve, raising the slack degrees while the solver returns
@@ -124,7 +124,7 @@ Tm = PIE.T;     Am = PIE.A;
 [prog,aux] = lpi_solve_loop_sop(@assemble,st,label);
 cl = aux.classify;
 
-% The solved P and R, as 'copvar' objects
+% The solved P and R, as 'opvar' objects
 P = [];     R = [];
 try
     P = getsol_lpivar_sop(prog,aux.Pm);
@@ -156,7 +156,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj ([]: a feasibility LPI), Pm,
-        %               Rm ('cdopvar' P and R), Dm1, Dm2 (the two
+        %               Rm ('dopvar' P and R), Dm1, Dm2 (the two
         %               constrained operators), li (the info of the slack of
         %               Dm1, with degrees2 the degrees of the slack of Dm2).
         % New program; record the equality rows when the dual is kept

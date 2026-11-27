@@ -19,14 +19,14 @@ function P = setdvars(P,Zd,loc)
 % - P:      the same operator with P.Zd = Zd;
 %
 % NOTES
-% A 'cdopvar' container holds one decision variable list for all of its
+% A 'dopvar' container holds one decision variable list for all of its
 % blocks; this puts a block onto such a list.
 %
 % Cost: O(nnz(B)) per parameter, plus, without LOC, an O(q) search of the
 % names to locate the old rows. Returns immediately when P.Zd already
 % equals Zd.
 %
-% See also CHANGEDECVAR, SYNC_BASIS, COPVAR.
+% See also CHANGEDECVAR, SYNC_BASIS, OPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

@@ -101,7 +101,7 @@ vars_1 = struct('in',{{'s1'}},'out',{{'s1'}});      dom_1 = struct('in',dom1,'ou
 x1 = build_poly(randn(1,1,5),{'s1'},2);
 Pop = int2sopvar(s1-s1_dum,vars_1,dom_1,{dom1(1),'s1'});
 check_equal(apply_sopvar(Pop,x1),int((s1-th)*subs(x1,s1,th),th,dom1(1),s1),tol);
-Pop = int2copvar(s1-s1_dum,vars_1,dom_1,{dom1(1),'s1'});            % as copvar
+Pop = int2opvar(s1-s1_dum,vars_1,dom_1,{dom1(1),'s1'});             % as opvar
 check_equal(apply_sopvar(Pop.C{1,1},x1),int((s1-th)*subs(x1,s1,th),th,dom1(1),s1),tol);
 % % % End of changes DJ (CC), 11/08/2026
 
@@ -125,7 +125,7 @@ Q_s.nt = {'s1','s2'};
 check_equal(apply_sopvar(int2sopvar(Q_s,vars,dom,{'s1','s1';dom1(1),dom1(2)}),x),...
     expected_int(Pk_s*x_d,vars.in,{'s1_d','s2_d'},{'ss','ab'},dom1),tol);
 
-%% Variables and domains as for copvar: the same for the input and the output
+%% Variables and domains as for opvar: the same for the input and the output
 vars_c = {'s1','s2'};       dom_c = repmat(dom1,2,1);
 vars_s = struct('in',{vars_c},'out',{vars_c});
 dom_s = struct('in',dom_c,'out',dom_c);
@@ -140,12 +140,12 @@ end
 Pop = int2sopvar(Kc,vars_c,dom_c);
 assert(isequal(sort(Pop.vars.in),vars_c) && isequal(sort(Pop.vars.out),vars_c),"Input and output variables should both be vars.")
 
-%% int2copvar: the same operator, as the block of a 1 x 1 copvar
-Pop = int2copvar(Kc,vars_c,dom_c,lims_c);
+%% int2opvar: the same operator, as the block of a 1 x 1 opvar
+Pop = int2opvar(Kc,vars_c,dom_c,lims_c);
 info = verify(Pop);
-assert(isa(Pop,'copvar') && isequal(size(Pop,'block'),[1,1]) && info.true==1,"Output should be a valid 1 x 1 copvar.")  % DJ, 11/18/2026
+assert(isa(Pop,'opvar') && isequal(size(Pop,'block'),[1,1]) && info.true==1,"Output should be a valid 1 x 1 opvar.")    % DJ, 11/18/2026
 check_equal(apply_sopvar(Pop.C{1,1},x),Pexp,tol);
-Pop = int2copvar(Kc,vars_s,dom_s);      % without integration domain
+Pop = int2opvar(Kc,vars_s,dom_s);       % without integration domain
 check_equal(apply_sopvar(Pop.C{1,1},x),apply_sopvar(int2sopvar(Kc,vars_s,dom_s),x),tol);
 
 %% Inputs that are refused

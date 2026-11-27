@@ -24,7 +24,7 @@ if isstruct(PIE) && isfield(PIE,'type') && strcmpi(PIE.type,'pie') && isfield(PI
 end
 % BEGIN MMP, 11/26/2026: deleted, CC 09/23/2026: the repackaging of a bare
 % struct whose T and A are opvar or opvar2d objects into T, A, vars, dom and
-% dim. Those classes left the path (f83486c8); once copvar is renamed opvar,
+% dim. Those classes left the path (f83486c8); once opvar is renamed opvar,
 % a bare struct of 1-D containers would pass its class test, on a path never
 % exercised.
 error('pielr_solve:input',['PIE must be a ''pde_struct'', a ''pie_struct'', or a ' ...

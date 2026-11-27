@@ -134,7 +134,7 @@ function S = stab_resid(prog,H)
 % instead of trusting the assembled equality rows.
 % BEGIN CC, 11/08/2026: container operators.  Deleted: the opvar2d branch
 % (PIETOOLS_stability_2D arithmetic plus clean_opvar at ztol 1e-12) and the
-% opvar branch, both 09/23/2026; 'copvar' arithmetic serves 1-D and 2-D in one
+% opvar branch, both 09/23/2026; 'opvar' arithmetic serves 1-D and 2-D in one
 % branch, with the 2-D factor 2 on epneg carried as H.epfac (build_stab_1d).
 Pop  = pielr_evalop(prog,H.Pop);
 Deop = pielr_evalop(prog,H.Deop);

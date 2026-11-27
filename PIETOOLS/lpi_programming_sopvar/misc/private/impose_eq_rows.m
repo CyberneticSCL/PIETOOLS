@@ -30,7 +30,7 @@ function prog = impose_eq_rows(prog,Eq)
 % EQ.pos is not checked against prog.decvartable: a wrong pos puts the
 % coefficients on the wrong decision variables.
 %
-% See also COLLECT_EQ_ROWS, LPI_EQ_SDOPVAR, LPI_EQ_CDOPVAR, SOSEQ.
+% See also COLLECT_EQ_ROWS, LPI_EQ_SDOPVAR, LPI_EQ_DOPVAR, SOSEQ.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

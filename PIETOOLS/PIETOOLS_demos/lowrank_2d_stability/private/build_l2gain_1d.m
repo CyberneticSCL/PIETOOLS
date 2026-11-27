@@ -16,7 +16,7 @@ function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC
 % makes the LPI a feasibility test at that gain.
 %
 % INPUT
-% - PIE:   'pie_struct' object of a 1-D PIE with 'copvar'
+% - PIE:   'pie_struct' object of a 1-D PIE with 'opvar'
 %          operators T, A, B1, C1, D11 and Tw = 0;
 % - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
 %          dd12, options1, options12, override1 (storage), dd2, dd3,
@@ -25,10 +25,10 @@ function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC
 % - dual:  (optional) logical, true for form 'Qd' (default false).
 % OUTPUT
 % - prog:  'struct', the unsolved LPI program;
-% - H:     'struct' with fields Top, Aop, Bwop, Czop, Dzwop ('copvar', T, A,
-%          B1, C1, D11), Iw, Iz ('copvar' identities on w and z), Rop
-%          ('cdopvar', R), Qop ('cdopvar', Q), Dop ('cdopvar', the KYP
-%          operator), Deop ('cdopvar', the slack N), gam ('dpvar', or
+% - H:     'struct' with fields Top, Aop, Bwop, Czop, Dzwop ('opvar', T, A,
+%          B1, C1, D11), Iw, Iz ('opvar' identities on w and z), Rop
+%          ('dopvar', R), Qop ('dopvar', Q), Dop ('dopvar', the KYP
+%          operator), Deop ('dopvar', the slack N), gam ('dpvar', or
 %          'double' with ST.gamfix), dual, st, PIE.
 %
 % CHANGE LOG
@@ -83,8 +83,8 @@ else
 end
 % Storage R >= 0 (no margin in the 'Q' forms), Q free, coupling T'Q = R (or TQ = R)
 [prog,Rm] = tl.storage(prog,Tm,'out');
-[sp,dm] = copvar_space_list(Tm,'out');
-[prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+[sp,dm] = opvar_space_list(Tm,'out');
+[prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
 if ~dual
     prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
     Km = [-(gamv*Iw),   Dzw',       Bw'*Qm;

@@ -55,7 +55,7 @@ function [Rinv,info] = inv(R,opts)
 % through INFO and a warning; the formulas then give a large residual rather
 % than an error.
 %
-% See also COPVAR/INV, GK_GRID, CHEBFIT_MONO, GETCONTROLLER_DIRECT_SOP,
+% See also OPVAR/INV, GK_GRID, CHEBFIT_MONO, GETCONTROLLER_DIRECT_SOP,
 % INV_OPVAR_2, INV_OPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

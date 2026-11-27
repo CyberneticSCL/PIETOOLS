@@ -12,7 +12,7 @@ function Pcat = vertcat(varargin)
 %
 % OUTPUTS
 % Pcat:     'sdopvar' object of dimension [sum of output dimensions,
-%           A.dims(2)]; with a 'dpvar' entry, a 'cdopvar' container
+%           A.dims(2)]; with a 'dpvar' entry, a 'dopvar' container
 %
 % NOTES:
 % All N operands are synchronized in ONE pass by 'sync_basis' and then
@@ -64,7 +64,7 @@ end
 % dpvar entry: an input-space -> R^{rows} block, so the result
 % is a container.
 if any(cellfun(@(a) isa(a,'dpvar'),varargin))
-    Pcat = dpvar_op_copvar('vertcat',varargin{:});
+    Pcat = dpvar_op_opvar('vertcat',varargin{:});
     return
 end
 

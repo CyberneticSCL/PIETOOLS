@@ -78,6 +78,8 @@ function PIE = convert(PDE,out_type)
 %                   pie2pde.X, T, Tw, Tu; print a heading and summary;
 % DJ, 11/25/2026: Order the components of xf of a BVP by their number of
 %                   variables, as for a PDE with dynamics;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 % We support only PDE to PIE conversion. The second argument is 'pie', or
 % flags of the converter, with the 'pie' left out.
@@ -165,13 +167,13 @@ end
 % columns of T and K, and the rows of the map to xf, are permuted.
 [~,perm] = sort(sum(info.space.x.depmat,2)','ascend');                      % DJ, 11/25/2026
 if ~isequal(perm,1:numel(perm))
-    Tops.x = copvar(Tops.x.C(:,perm));
+    Tops.x = opvar(Tops.x.C(:,perm));
     if size(Kops.x,1)>0
-        Kops.x = copvar(Kops.x.C(:,perm));
+        Kops.x = opvar(Kops.x.C(:,perm));
     end
     Dmap.x.idx = Dmap.x.idx(perm);
     Dmap.x.diff = Dmap.x.diff(perm,:,:);
-    Dmap.x.C = copvar(Dmap.x.C.C(perm,:));
+    Dmap.x.C = opvar(Dmap.x.C.C(perm,:));
     info.space.x.dims = info.space.x.dims(perm);
     info.space.x.depmat = info.space.x.depmat(perm,:);
 end
@@ -224,7 +226,7 @@ C_blocks = cell(ncomp);
 for c=1:ncomp
     C_blocks{c,c} = Dmap.x.C.C{c,idx_x(c)};
 end
-pde2pie.x.C = copvar(C_blocks);
+pde2pie.x.C = opvar(C_blocks);
 % The inputs: the PDE inputs, their derivatives, positions and operators
 for ty = {'w','u'}
     ninp = numel(Dmap.(ty{1}).idx);
@@ -246,7 +248,7 @@ X_blocks = cell(nx);
 for k=1:nx
     X_blocks{k,k} = identity_op(x_sp(k));
 end
-pie2pde.X = copvar(X_blocks);
+pie2pde.X = opvar(X_blocks);
 pie2pde.T = Tops.x;     pie2pde.Tw = Tops.w;    pie2pde.Tu = Tops.u;
 PIE.pie2pde = pie2pde;
 

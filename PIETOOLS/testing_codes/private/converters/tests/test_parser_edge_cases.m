@@ -364,11 +364,11 @@ end
 e = err<1e-8;
 end
 
-function y = apply_cop(P,xf)
-% Y = APPLY_COP(P,XF) applies the 'copvar' operator P to polynomial
+function y = apply_opvar(P,xf)
+% Y = APPLY_OPVAR(P,XF) applies the 'opvar' operator P to polynomial
 % functions, block by block.
 % INPUT
-% - P:      'copvar' object with m x n blocks;
+% - P:      'opvar' object with m x n blocks;
 % - xf:     n x 1 cell of 'polynomial' functions, one per block column;
 % OUTPUT
 % - y:      m x 1 cell of 'polynomial' functions, P*xf by block row.
@@ -619,9 +619,9 @@ try
             X2v = X2 + violate*(1+randn*s)*(s-a)*(s-b);
             xf = {diff(X1,s,2); diff(X2v,s,2)};     xf = xf(idx);
             x_pde = {X1; X2v};                      x_pde = x_pde(idx);
-            Tx = apply_cop(PIE.T,xf);
+            Tx = apply_opvar(PIE.T,xf);
             err_T = max(err_T,max(cellfun(@(p,q) max_coeff(p-q),Tx,x_pde)));
-            Kx = max(cellfun(@max_coeff,apply_cop(PIE.K,xf)));
+            Kx = max(cellfun(@max_coeff,apply_opvar(PIE.K,xf)));
             if violate, min_K = min(min_K,Kx); else, err_K = max(err_K,Kx); end
         end
     end

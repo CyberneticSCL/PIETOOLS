@@ -65,6 +65,8 @@
 %   with its default options, in place of poslpivar and lpi_ineq with
 %   opts.psatz = 2; lpigetsol_sop reads the solution; the predefined
 %   executive is lpiscript_sop; help text revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace and figures; print each line as it runs
 clc; clear; close all; clear stateNameGenerator
@@ -134,7 +136,7 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % YP
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-[prog,P] = poscopvar(prog,T,1);         % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
+[prog,P] = poslpivar(prog,T,1);         % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
 
 % % Set inequality constraints:
 % %   Q <= 0

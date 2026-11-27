@@ -12,7 +12,7 @@ function [Pblk,Px] = convert_PDE_term(term,Tops,PDE,opts)
 %           D, loc, C, I (and delay), as the terms of a PDE;
 % - Tops:   struct with fields
 %           - x:    nx x 1 cell, with Tops.x{k}{alpha+1} the 1 x nV
-%                   'copvar' (or 'tensopmat') xf --> D^{alpha}x_k, for the
+%                   'opvar' (or 'tensopmat') xf --> D^{alpha}x_k, for the
 %                   derivative orders alpha of the state x_k;
 %           - w,u:  the same for wf and uf ([] if no such inputs);
 %           - Iw,Iu:    (if the term involves inputs w_r or u_r) cells
@@ -276,8 +276,8 @@ for obj_type={'x','w','u'}
     if isempty(P_row)
         continue
     end
-    % Tops are 'copvar' (linear PDE) or 'tensopmat' (nonlinear PDE) rows
-    if isa(P_row,'copvar')
+    % Tops are 'opvar' (linear PDE) or 'tensopmat' (nonlinear PDE) rows
+    if isa(P_row,'opvar')
         ncols = size(P_row.C,2);       B_cell = P_row.C(1,:);
         depmat_in = P_row.space_in;       vars_cols = P_row.vars;    dom_cols = P_row.dom;     dims_cols = P_row.dim_in;
     else

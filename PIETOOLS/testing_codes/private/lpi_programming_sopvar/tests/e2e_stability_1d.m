@@ -12,7 +12,7 @@ function out = e2e_stability_1d(plant,level)                                % MM
 % lpigetsol_sop, and checks them, erroring at the first failed check:
 %   (1) MOSEK numerr 0 and pinf 0; rel_b = ||At'x - b||/||b|| <= 1e-6 at
 %       x = solinfo.RRx; the least eigenvalue of the Gram blocks at least
-%       -1e-8 times the largest; the extracted operators are 'copvar'
+%       -1e-8 times the largest; the extracted operators are 'opvar'
 %       objects;
 %   (2) the rows of T'*Q - P = 0 and of D + N = 0 ('symmetric'), imposed
 %       by lpi_eq_sop on a copy of the program without constraints, have
@@ -140,7 +140,7 @@ Ds = lpigetsol_sop(prog,ops.D);     Ns = lpigetsol_sop(prog,ops.N);
 E1 = ops.T'*ops.Q - ops.P;          E2 = ops.D + ops.N;     % as imposed
 E1s = lpigetsol_sop(prog,E1);       E2s = lpigetsol_sop(prog,E2);
 t_extract = toc(t0);
-chk(all(cellfun(@(X) isa(X,'copvar'),{Ps,Qs,Ds,Ns,E1s,E2s})),'(1) extracted operators not fixed')
+chk(all(cellfun(@(X) isa(X,'opvar'),{Ps,Qs,Ds,Ns,E1s,E2s})),'(1) extracted operators not fixed')
 
 % (2) extraction against the SDP rows, per relation.
 % r1 = rows_at(prog,E1,{});   r2 = rows_at(prog,E2,{'symmetric'});          % MMP, 11/07/2026 (was)
@@ -196,7 +196,7 @@ function [r,d] = rows_at(prog,E,o)                                          % MM
 % prog.solinfo.RRx, of the rows that lpi_eq_sop(.,E,O{:}) imposes on a copy
 % of PROG with no expressions, and that, D, of the rows it does not write
 % because each is f times a written one (DUP_RES).
-% INPUT  prog: 'struct', a solved LPI program; E: 'cdopvar' object, the
+% INPUT  prog: 'struct', a solved LPI program; E: 'dopvar' object, the
 %        constraint operator; o: 'cell', the options of lpi_eq_sop ({} or
 %        {'symmetric'}).
 % OUTPUT r, d: 'double'.

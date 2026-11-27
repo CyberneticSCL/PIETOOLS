@@ -44,6 +44,8 @@ function logval=eq(objA, objB)
 % DJ, 10/29/2026: Update to new pie_struct structure;
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/23/2026: Compare the spatial variables in any order;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 
 % List of the operators to compare.
@@ -68,7 +70,7 @@ if isa(objA,'pie_struct')&&isa(objB,'pie_struct')
             % Neither of the operators has been specified, or both have no rows.
             continue
         end
-        % Operators of different types (e.g. copvar and double), or acting
+        % Operators of different types (e.g. opvar and double), or acting
         % on different spaces, are not equal.
         try is_equal = logical(opA==opB);
         catch, is_equal = false;

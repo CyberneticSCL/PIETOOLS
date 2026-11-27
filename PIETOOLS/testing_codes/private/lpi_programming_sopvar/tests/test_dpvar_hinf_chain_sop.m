@@ -12,12 +12,12 @@ function R = test_dpvar_hinf_chain_sop(plant)
 %
 % on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq_sop;
 % R and N the positive operators of the 'lf' and 'slack' settings
-% (poslpivar_settings_sop); Q free (lpivar_cdopvar at the degrees
-% get_lpivar_degs_sop reads off R); I_w, I_z from eye_copvar_sop; the two
-% equalities by lpi_eq_cdopvar, the second 'symmetric'. It solves the LPI
+% (poslpivar_settings_sop); Q free (lpivar at the degrees
+% get_lpivar_degs_sop reads off R); I_w, I_z from eye_opvar; the two
+% equalities by lpi_eq_dopvar, the second 'symmetric'. It solves the LPI
 % at lpisettings_sop('light') with MOSEK and checks it against the recorded
 % solve of stock PIETOOLS_Hinf_gain on the same PIE and settings:
-%   (1) K is a 'cdopvar' with gam among its decision variables; when z is
+%   (1) K is a 'dopvar' with gam among its decision variables; when z is
 %       in R^1, K equals (eq) the operator with the 'dpvar' -gam in place
 %       of -gam*I_z;
 %   (2) the two SDPs have the same number of decision variables and the
@@ -45,7 +45,7 @@ function R = test_dpvar_hinf_chain_sop(plant)
 % After the last check, a failed check is an error
 % ('test_dpvar_hinf_chain_sop:failed'). Requires MOSEK. The stock solve is
 % recorded for PLANT {'io1'} only, since the stock executive fails on PIEs
-% with 'copvar' operators; another plant is an error
+% with 'opvar' operators; another plant is an error
 % ('test_dpvar_hinf_chain_sop:plant').
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -143,11 +143,11 @@ t = tic;
 % Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
 % Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);                    % MMP, 11/07/2026 (was)
 % Dzw = opvar2copvar(PIE.Dzw);                                              % MMP, 11/07/2026 (was)
-Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026
+Tm = PIE.T;     Am = PIE.A;                 % 'opvar' since initialize     % MMP, 11/07/2026
 Bw = PIE.Bw;    Cz = PIE.Cz;    Dzw = PIE.Dzw;                              % MMP, 11/07/2026
 % [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
-[spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
-Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
+[spw,dmw] = opvar_space_list(Bw,'in');     [spz,dmz] = opvar_space_list(Cz,'out'); % MMP, 10/06/2026
+Iw = eye_opvar(dmw,spw,PIE.dom);   Iz = eye_opvar(dmz,spz,PIE.dom);
 % Program on the variables of the PIE; gam >= 0 a decision variable, the
 % objective
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
@@ -162,9 +162,9 @@ prog = lpisetobj(prog,gam);
 % [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
 [prog,Rm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
 Qdeg = get_lpivar_degs_sop(Rm);                                             % MMP, 10/06/2026
-[sp,dm] = copvar_space_list(Tm,'out');                                      % MMP, 10/06/2026
-[prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,Qdeg);
-prog = lpi_eq_cdopvar(prog,Tm'*Qm - Rm);
+[sp,dm] = opvar_space_list(Tm,'out');                                       % MMP, 10/06/2026
+[prog,Qm] = lpivar(prog,dm,sp,PIE.dom,Qdeg);
+prog = lpi_eq_dopvar(prog,Tm'*Qm - Rm);
 % (1) KYP operator K; with z in R^1, the form with the raw 'dpvar' entry
 % -gam must equal it
 Km = [-gam*Iw,     Dzw',       Bw'*Qm;
@@ -176,11 +176,11 @@ if all(cellfun(@isempty,spz)) && sum(dmz)==1
             Qm'*Bw,     Cz',    Am'*Qm + Qm'*Am];
     ck(eq(Km,Km2),'KYP operator: -gam*Iz equals the raw dpvar entry -gam');
 end
-ck(isa(Km,'cdopvar') && any(strcmp(Km.Zd,'gam')),'KYP operator carries gam');
+ck(isa(Km,'dopvar') && any(strcmp(Km.Zd,'gam')),'KYP operator carries gam');
 % N >= 0 ('slack' settings) on the spaces of K; N + K = 0
 % prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
 [prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
-prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');   % Deop + Dop = 0         % MMP, 10/06/2026
+prog = lpi_eq_dopvar(prog,Nm + Km,'symmetric');    % Deop + Dop = 0         % MMP, 10/06/2026
 ta = toc(t);
 % Solve the container program
 t = tic;

@@ -16,7 +16,7 @@ function loc = dvar_rows(dvars_old,dmap)
 % NOTES
 % A name of DVARS_OLD that is not a key of DMAP is an error.
 %
-% See also SOPQUADVAR, COPQUADVAR.
+% See also SOPQUADVAR, OPQUADVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

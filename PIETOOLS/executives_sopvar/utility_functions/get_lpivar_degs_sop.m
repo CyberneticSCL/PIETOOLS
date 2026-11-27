@@ -2,10 +2,10 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % QDEG = GET_LPIVAR_DEGS_SOP(ROP,TOP) returns the degrees of the free
 % operator Q of an LPI, read off the positive operator ROP. An ROP that is
-% not a 'copvar' or 'cdopvar' object is an error
+% not an 'opvar' or 'dopvar' object is an error
 % (get_lpivar_degs_sop:class).
 %
-% For a container ROP ('copvar', 'cdopvar'), each parameter cell of a
+% For a container ROP ('opvar', 'dopvar'), each parameter cell of a
 % block has the coefficient A + B'*d (d the decision variables; A for a
 % 'sopvar' block) between the monomial bases ZL of the output variables
 % and ZR of the input variables, and only the monomials of a nonzero entry
@@ -25,7 +25,7 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %     side only.
 %
 % INPUT
-% - Rop:  'copvar' or 'cdopvar' object with 'sopvar' and 'sdopvar' blocks;
+% - Rop:  'opvar' or 'dopvar' object with 'sopvar' and 'sdopvar' blocks;
 % - Top:  (optional) not used.
 %
 % OUTPUT
@@ -33,7 +33,7 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %         with a block over two or more variables, a 'struct' with fields
 %         mult (double), int (1x2 double), out and in (double).
 %
-% See also LPIVAR_CDOPVAR, POSLPIVAR_SOP.
+% See also LPIVAR, POSLPIVAR_LEGACY.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -64,8 +64,8 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 % Initial coding MMP, 10/06/2026
 
 % Only a container
-if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))
-    error('get_lpivar_degs_sop:class','Rop should be a copvar or cdopvar object; got %s.',class(Rop))
+if ~(isa(Rop,'opvar') || isa(Rop,'dopvar'))
+    error('get_lpivar_degs_sop:class','Rop should be an opvar or dopvar object; got %s.',class(Rop))
 end
 % A block over two or more variables on a side: the per-role caps of the
 % N-D reading
@@ -137,7 +137,7 @@ function deg = qdeg_nd(Rm)
 % cell, the exponents of its left and right monomials in each shared
 % variable go to 'mult' (gamma_k = 1, left only) or 'int' (gamma_k = 2, 3);
 % in an output-only variable to 'out', in an input-only one to 'in'.
-% INPUT  Rm:  'copvar' or 'cdopvar' object.
+% INPUT  Rm:  'opvar' or 'dopvar' object.
 % OUTPUT deg: 'struct' with fields mult (double), int (1x2 double, [left
 %             right]), out and in (double).
 deg = struct('mult',0,'int',[0 0],'out',0,'in',0);

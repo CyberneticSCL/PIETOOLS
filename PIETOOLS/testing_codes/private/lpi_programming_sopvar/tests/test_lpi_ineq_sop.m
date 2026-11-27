@@ -3,11 +3,11 @@ function test_lpi_ineq_sop
 % TEST_LPI_INEQ_SOP tests LPI_INEQ_SOP, solving with MOSEK when installed
 % and SeDuMi otherwise, and errors at the first failed check, with rel_b =
 % ||At'*x - b||/||b|| the relative equality residual of a solved program:
-%   (1) the fixed 'copvar' Pt on L2[0,1] with kernel 2 - max(s,t), equal to
+%   (1) the fixed 'opvar' Pt on L2[0,1] with kernel 2 - max(s,t), equal to
 %       V'*V + L'*L for (V x) = int_0^1 x and (L x)(s) = int_0^s x, is
 %       certified with the default degrees and terms: rel_b <= 1e-6;
 %   (2) for the PIE T v_t = A0 v of u_t = u_s1s1 on [0,1], u = 0 at s1 = 0
-%       and s1 = 1, and a free 'cdopvar' P of degree 1, the LPI
+%       and s1 = 1, and a free 'dopvar' P of degree 1, the LPI
 %       P'*T = T'*P, P'*T + T'*P - 2*ep^2*T'*T >= 0 (ep = 0.1) and
 %       -(P'*A0 + A0'*P + kappa*(P'*T + T'*P)) >= 0, both inequalities
 %       imposed by LPI_INEQ_SOP, is feasible at kappa = 9 (rel_b <= 1e-6
@@ -27,7 +27,7 @@ function test_lpi_ineq_sop
 %       reads from Pt'*Pt, with more decision variables than Pt read by
 %       the same rule (opts.wmin = 0), and a 'double' opts.like is refused;
 %   (7) for X1 = -(T'*P1*A0 + A0'*P1*T) and X1 - T'*P2*T on the PIE of
-%       (2), P1 and P2 of POSCOPVAR at degrees 2 and 3: info.ndec equals
+%       (2), P1 and P2 of POSLPIVAR at degrees 2 and 3: info.ndec equals
 %       the growth of prog.decvartable in the five calls of (7), and
 %       sum(N.*(N+1)/2) the decision variables of Pop in (1), (3), the
 %       given deg of (4), (6) and those calls; X1 is sized from P1, with
@@ -107,7 +107,7 @@ npass = 0;
 vars = {'s1'};  dom = [0 1];
 ZL = {[0;1]};   ZR = {[0;1]};
 params = reshape({sparse(2,2),sparse([2 0;-1 0]),sparse([2 -1;0 0])},[3 1 1]);
-Pt = copvar({sopvar(params,struct('out',{vars},'in',{vars}),ZL,ZR,struct('out',dom,'in',dom),[1 1])});
+Pt = opvar({sopvar(params,struct('out',{vars},'in',{vars}),ZL,ZR,struct('out',dom,'in',dom),[1 1])});
 % Pt >= 0, solved; the residual
 % prog = lpiprogram_sop(Pt);                                                % MMP, 11/04/2026 (was)
 prog = lpiprogram(polynomial(vars(:)),[],dom);                              % MMP, 11/04/2026
@@ -129,7 +129,7 @@ for i = 1:2
     % P free, P'*T self-adjoint, the two inequalities; solve
 %     prog = lpiprogram_sop(vars,dom);                                      % MMP, 11/04/2026 (was)
     prog = lpiprogram(polynomial(vars(:)),[],dom);                          % MMP, 11/04/2026
-    [prog,P] = lpivar_cdopvar(prog,1,{vars},dom,1);
+    [prog,P] = lpivar(prog,1,{vars},dom,1);
     PT = P'*pie.T;  PA = P'*pie.A0;  TT = pie.T'*pie.T;
     E1 = PT + PT' - 2*ep^2*TT;                  % 2 (P*T - ep^2 T*T), self-adjoint form
     prog = lpi_eq_sop(prog,PT-PT','symmetric');
@@ -222,21 +222,21 @@ fprintf('  passed: (6) like: lift %s weight %s from the given operator (own %s %
         mat2str(il.degrees.D),mat2str(il.degrees.w),mat2str(inf1.degrees.D),mat2str(inf1.degrees.w),numel(Pl.Zd),numel(Pr.Zd)); % MMP, 11/10/2026
 npass = npass+1;
 
-%% (7) the count before the build; the support of poscopvar's operators     % MMP, 10/21/2026
+%% (7) the count before the build; the support of poslpivar's operators     % MMP, 10/21/2026
 % (a) info.ndec, counted before anything is declared, is the growth of
 %     prog.decvartable (N^2 per Gram block) in the calls below, and Pop
 %     has N(N+1)/2 distinct names per block in (1), (3), (4), (6) and below;
-% (b) a target that depends on an operator of 'poscopvar' is sized from it
+% (b) a target that depends on an operator of 'poslpivar' is sized from it
 %     (prog.sop_pos), exactly as with opts.like = that operator; without
 %     the record it is sized from the target, with more variables;
 % (c) a target that depends on two such operators is sized from both,
 %     exactly as with opts.like = {P1,P2}.
-% Two operators of poscopvar; targets on P1 and on P1 and P2
+% Two operators of poslpivar; targets on P1 and on P1 and P2
 pie1 = heatNd_pie(1,0);
 % prog = lpiprogram_sop(pie1.vars,pie1.dom);                                % MMP, 11/04/2026 (was)
 prog = lpiprogram(polynomial(pie1.vars(:)),[],pie1.dom);                    % MMP, 11/04/2026
-[prog,P1] = poscopvar(prog,1,{pie1.vars},pie1.dom,2);
-[prog,P2] = poscopvar(prog,1,{pie1.vars},pie1.dom,3);
+[prog,P1] = poslpivar(prog,1,{pie1.vars},pie1.dom,2);
+[prog,P2] = poslpivar(prog,1,{pie1.vars},pie1.dom,3);
 X1 = -(pie1.T'*P1*pie1.A0 + pie1.A0'*P1*pie1.T);
 X12 = X1 - pie1.T'*P2*pie1.T;
 % The five calls: from the record, from opts.like, without the record
@@ -256,12 +256,12 @@ if ~isequal(grow,nd) || ~all(cnt)
           mat2str(grow),mat2str(nd),mat2str(find(~cnt)'));
 end
 % (b) and (c): the sources and the degrees
-if ~(strcmp(i7a.sized_from,'1 operator(s) of poscopvar') && isequal(i7a.deg,i7b.deg) ...
+if ~(strcmp(i7a.sized_from,'1 operator(s) of poslpivar') && isequal(i7a.deg,i7b.deg) ...
         && numel(N7a.Zd)==numel(N7b.Zd) && strcmp(i7c.sized_from,'the operator') && numel(N7c.Zd)>numel(N7a.Zd))
-    error('test_lpi_ineq_sop: (7b) a target on an operator of poscopvar should be sized from it.');
+    error('test_lpi_ineq_sop: (7b) a target on an operator of poslpivar should be sized from it.');
 end
-if ~(strcmp(i7d.sized_from,'2 operator(s) of poscopvar') && isequal(i7d.deg,i7e.deg) && numel(N7d.Zd)==numel(N7e.Zd))
-    error('test_lpi_ineq_sop: (7c) a target on two operators of poscopvar should be sized from both.');
+if ~(strcmp(i7d.sized_from,'2 operator(s) of poslpivar') && isequal(i7d.deg,i7e.deg) && numel(N7d.Zd)==numel(N7e.Zd))
+    error('test_lpi_ineq_sop: (7c) a target on two operators of poslpivar should be sized from both.');
 end
 fprintf('  passed: (7) counted = declared %s; from P1 %d (= like %d) against %d from the target; from P1, P2 %d (= like %d)\n',...
         mat2str(nd),i7a.ndec,i7b.ndec,i7c.ndec,i7d.ndec,i7e.ndec);

@@ -275,8 +275,8 @@ end
 
 
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
-% The container executives (PIETOOLS_*_sop), which take the copvar PIE      % MMP, 11/04/2026
-% that both converters return; the stock ones stop on a copvar (no          % MMP, 11/04/2026
+% The container executives (PIETOOLS_*_sop), which take the opvar PIE      % MMP, 11/04/2026
+% that both converters return; the stock ones stop on an opvar (no          % MMP, 11/04/2026
 % field dim). Each returns the outputs of the stock executive in the        % MMP, 11/04/2026
 % same order, then an info struct. PIETOOLS_H2_controller, called           % MMP, 11/04/2026
 % before, does not exist.                                                   % MMP, 11/04/2026

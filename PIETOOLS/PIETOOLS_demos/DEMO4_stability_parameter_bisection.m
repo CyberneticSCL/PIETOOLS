@@ -52,6 +52,8 @@
 %   poscopvar(prog,T,2) + 1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place
 %   of poslpivar and lpi_ineq; the predefined executive is lpiscript_sop;
 %   help text revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
@@ -91,8 +93,8 @@ for iter = 1:n_iters
     
     % % Declare decision variables:
     % %   P:L2-->L2,    P>0
-    [prog,P] = poscopvar(prog,T,2);         % P on the output spaces of T   % DJ, MMP, 11/21/2026
-    P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4               % DJ, MMP, 11/21/2026
+    [prog,P] = poslpivar(prog,T,2);         % P on the output spaces of T   % DJ, MMP, 11/21/2026
+    P = P + 1e-4*eye_opvar(P);              % enforce P>=1e-4               % DJ, MMP, 11/21/2026
     
     % % Set inequality constraints:
     % %   A'*P*T + T'*P*A <= 0

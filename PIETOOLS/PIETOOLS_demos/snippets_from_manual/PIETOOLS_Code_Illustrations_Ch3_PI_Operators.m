@@ -1,7 +1,7 @@
 % This document illustrates how PIETOOLS can be used to declare PI
 % operators in 1D and 2D, acting on coupled finite- and
 % infinite-dimensional vectors.
-% The script declares, as 'copvar' objects, the 3-PI operators A and B and
+% The script declares, as 'opvar' objects, the 3-PI operators A and B and
 % the 4-PI operator C on intervals, the 9-PI operators D and E on
 % rectangles, and the 2D PI operator F, whose blocks map between R, L2[x]
 % and L2[x,y]. Each operator is extracted (get_op) from the PDE terms that
@@ -35,13 +35,15 @@
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % DJ, 12/30/2024: Initial coding;
 % DJ, 11/23/2026: Declare the operators from PDE terms with get_op;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace
 clear
 
 %% 3.1.1 Declaring 3-PI Operators
 
-% Declare a copvar object representing the 3-PI operator
+% Declare an opvar object representing the 3-PI operator
 % A: L2^2[-1,1] --> L2^2[-1,1] defined by
 %   (A*v)(s) = [int_{-1}^{s} v1(th) + 2*v2(th) dth]
 %              [int_{-1}^{s} 3*v1(th) + 4*v2(th) dth]
@@ -53,7 +55,7 @@ pvar s s_dum
 v = pde_var(2,s,[-1,1]);                                                    % DJ, 11/23/2026
 A = get_op(int([1,2; 3,4]*v(s_dum),s_dum,[-1,s]));
 
-% Declare a copvar object representing the 3-PI operator
+% Declare an opvar object representing the 3-PI operator
 % B: L2[0,1] --> L2^2[0,1] defined by
 %   (B*v)(s) = [v(s)    ] + int_{0}^{s} [2s v(th)    ] dth
 %              [s^2 v(s)]               [s(s-th)v(th)]
@@ -71,7 +73,7 @@ B = get_op(R0*v + int(R1*v(s_dum),s_dum,[0,s]) ...
 
 %% 3.1.4 Declaring 4-PI Operators
 
-% Declare a copvar object representing the 4-PI operator
+% Declare an opvar object representing the 4-PI operator
 % C: R^2 x L2[0,3] --> R x L2^2[0,3], defined by
 %   (C*q)(s) = [-x1 +2*x2 +int_{0}^{3}(3-s^2)*v(s)ds                              ]
 %              [-s*x2 +v(s) +int_{0}^{s}(s-th)*v(th)dth +int_{s}^{3}s*v(th)dth    ]
@@ -90,7 +92,7 @@ C = get_op([P*x + int(Q1*v,s,[0,3]);
 
 %% 3.2.1 Declaring 9-PI Operators
 
-% Declare a copvar object representing the 9-PI operator
+% Declare an opvar object representing the 9-PI operator
 % D: L2^2[[0,1]x[1,2]] --> L2^2[[0,1]x[1,2]] defined by
 %   D*v(x,y) = int_{0}^{x} int_{y}^{2} [x^2*v1(th,nu) +x*y*v2(th,nu)] dnu dth 
 %                                      [x*y*v1(th,nu) +y^2*v2(th,nu)]
@@ -100,7 +102,7 @@ N12 = [s1^2, s1*s2; s1*s2, s2^2];
 v = pde_var(2,[s1;s2],[0,1; 1,2]);
 D = get_op(int(N12*v(s1_dum,s2_dum),[s1_dum;s2_dum],[0,s1; s2,2]));         % DJ, 11/23/2026
 
-% Declare a copvar object representing the 9-PI operator
+% Declare an opvar object representing the 9-PI operator
 % E: L2[[0,1]x[-1,1]] --> L2[[0,1]x[-1,1]] defined by
 %   E*v(x,y) = x^2*y^2*v(x,y) +int_{-1}^{y}x*(y-nu)*v(x,nu) dnu
 %               +int_{x}^{1}(x-th)*y*v(th,y)dth
@@ -116,7 +118,7 @@ E = get_op(N00*v + int(N01*v(s1,s2_dum),s2_dum,[-1,s2]) ...
 
 
 %% 3.2.2 Declaring General 2D PI Operators
-% Declare a copvar object representing the 2D PI operator
+% Declare an opvar object representing the 2D PI operator
 % F: R x L2[0,2] x L2[[0,2]x[2,3]] --> L2^2[0,2] x L2[[0,2]x[2,3]] defined by
 %   F*v(x,y) 
 %   = [v0 +x*v1(x) +int_{x}^{2}v1(th) dth +int_{0}^{x}int_{2}^{3}y*v(th,y) dy dth] 

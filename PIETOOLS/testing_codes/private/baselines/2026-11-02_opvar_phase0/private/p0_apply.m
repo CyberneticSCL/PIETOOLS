@@ -5,7 +5,7 @@ function [xin, pts, Y, nb] = p0_apply(X, q, P, seed)
 % at P random points of its domain.
 %
 % INPUT
-% - X:      'copvar' without decision variables;
+% - X:      'opvar' without decision variables;
 % - q:      double, number of test functions (columns);
 % - P:      double, number of evaluation points per output component;
 % - seed:   double, seed of the random stream (test functions and points).

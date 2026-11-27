@@ -17,12 +17,12 @@ classdef (InferiorClasses={?dpvar,?polynomial}) pie_struct                  % DJ
 %
 % - PIE.T, PIE.Tw, PIE.Tu, PIE.A, PIE.Bw, PIE.Bu, PIE.Cz, PIE.Dzw, PIE.Dzu,
 %   PIE.Cy, PIE.Dyw, PIE.Dyu:
-%               copvar objects representing the operators in the equations
+%               opvar objects representing the operators in the equations
 %               above, e.g. Dyu maps the actuator input u to the observed
 %               output y. Operators that have not been specified are initialized as
 %               zero operators;
 % - PIE.K, PIE.Kw, PIE.Ku:
-%               copvar objects representing the algebraic constraint on the
+%               opvar objects representing the algebraic constraint on the
 %               fundamental state. After initialize, these have no rows if
 %               the PIE has no constraint. The constraint is only partially
 %               supported: vertcat and horzcat concatenate the constraints,
@@ -78,7 +78,7 @@ classdef (InferiorClasses={?dpvar,?polynomial}) pie_struct                  % DJ
 %               identifying the PDE components as in PDE.x{i}.ID, so that
 %               row i of ID, dims, and depmat describes the same component;
 % - PIE.pie2pde:
-%               struct with fields X, T, Tw, Tu, W, U, Y, Z, with copvar
+%               struct with fields X, T, Tw, Tu, W, U, Y, Z, with opvar
 %               objects representing X_pde, T_pde, Tw_pde, Tu_pde, W_pde,
 %               U_pde, Y_pde and Z_pde, with a row for each PDE component
 %               and a column for each PIE component (unset if zero). The
@@ -107,7 +107,7 @@ classdef (InferiorClasses={?dpvar,?polynomial}) pie_struct                  % DJ
 %               component i is the history of a PDE component, depending on
 %               the k-th spatial variable on domain [-tau,0], so that
 %                   x_i(t,s_k) = Dop x_{pde,idx(i)}(t+s_k);
-%          C:   copvar object with a row for each PIE component, applied
+%          C:   opvar object with a row for each PIE component, applied
 %               after the derivatives and evaluation, e.g. multiplication
 %               by a coefficient, or an integral operator (e.g. the
 %               averages F*x_pde for periodic BCs, see PIE.misc.periodic).
@@ -190,6 +190,8 @@ classdef (InferiorClasses={?dpvar,?polynomial}) pie_struct                  % DJ
 % DJ, 11/20/2026: pie2pde fields X, T, Tw, Tu, W, U, Y, Z (were x, w, u,
 %                   y, z), with T, Tw, Tu the maps to the PDE state;
 % DJ, 11/25/2026: Drop the retired 'opvar2d' class from InferiorClasses;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 properties
     % The dynamics

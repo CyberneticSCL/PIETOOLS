@@ -41,7 +41,7 @@ function prog = lpi_eq_sdopvar(prog,P,opts)
 % prog.decvartable, and OPTS other than 'symmetric' are errors. To impose
 % P == Q, call LPI_EQ_SDOPVAR(PROG,P-Q).
 %
-% See also LPI_EQ_SOP, LPI_EQ_CDOPVAR, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ,
+% See also LPI_EQ_SOP, LPI_EQ_DOPVAR, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ,
 %          SDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

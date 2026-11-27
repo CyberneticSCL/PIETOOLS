@@ -11,7 +11,7 @@ function Pcat = horzcat(varargin)
 %
 % OUTPUTS
 % Pcat:     'sdopvar' object of dimension [A.dims(1), sum of input
-%           dimensions]; with a 'dpvar' entry, a 'cdopvar' container
+%           dimensions]; with a 'dpvar' entry, a 'dopvar' container
 %
 % NOTES:
 % All N operands are synchronized in ONE pass by 'sync_basis' and then
@@ -61,7 +61,7 @@ end
 % dpvar entry: an R^{cols} -> output-space block, so the result
 % is a container.
 if any(cellfun(@(a) isa(a,'dpvar'),varargin))
-    Pcat = dpvar_op_copvar('horzcat',varargin{:});
+    Pcat = dpvar_op_opvar('horzcat',varargin{:});
     return
 end
 

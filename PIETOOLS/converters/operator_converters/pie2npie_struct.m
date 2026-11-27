@@ -7,7 +7,7 @@ function PIE_out = pie2npie_struct(PIE_in)
 % INPUTS
 % - PIE_in:     'pie_struct' object representing a linear PIE in any
 %               number of spatial variables, with the operators as
-%               'copvar' objects (it is initialized if it is not yet);
+%               'opvar' objects (it is initialized if it is not yet);
 %
 % OUTPUTS
 % - PIE_out:    'npie_struct' representing the same PIE as the input,
@@ -86,7 +86,7 @@ end
 % the operators.
 space_pie = PIE_in.space;      
 space_pie.k = struct('dims',[],'depmat',[]);
-cop_convert = @(P,so,vo,si,vi) copvar2tensopmat(P,struct('out',so.dims,'in',si.dims),...
+cop_convert = @(P,so,vo,si,vi) opvar2tensopmat(P,struct('out',so.dims,'in',si.dims),...
         struct('out',{vo},'in',{vi}),struct('out',so.depmat,'in',si.depmat));
 
 % Convert the operators to 'tensopmat' objects
@@ -116,7 +116,7 @@ for obj = obj_types
     for f = setdiff(fieldnames(p2p)','C','stable')
         PIE_out.pde2pie.(obj{1}).(f{1}) = p2p.(f{1});
     end
-    if isfield(p2p,'C') && isa(p2p.C,'copvar')
+    if isfield(p2p,'C') && isa(p2p.C,'opvar')
         PIE_out.pde2pie.(obj{1}).C = cop_convert(p2p.C,space_pie.(obj{1}),vnames,space_pie.k,[]);
     end
 end
@@ -126,7 +126,7 @@ p2p_maps = {'X','x','x'; 'T','x','x'; 'Tw','x','w'; 'Tu','x','u';
             'W','w','w'; 'U','u','u'; 'Y','y','y'; 'Z','z','z'};
 for m = 1:size(p2p_maps,1)
     [fname,row_ty,col_ty] = p2p_maps{m,:};
-    if isfield(PIE_in.pie2pde,fname) && isa(PIE_in.pie2pde.(fname),'copvar')
+    if isfield(PIE_in.pie2pde,fname) && isa(PIE_in.pie2pde.(fname),'opvar')
         PIE_out.pie2pde.(fname) = cop_convert(PIE_in.pie2pde.(fname),space_pde.(row_ty),space_pde.vars,space_pie.(col_ty),vnames);
     end
 end

@@ -10,7 +10,7 @@ function [fn,fa] = bl_sop(exec)                                             % CC
 %   fn:    char, the executive in executives_sopvar;
 %   fa:    cell, its form argument ({} for an executive with one form).
 %
-% Why: convert returns a pie_struct of 'copvar' operators since 3df33dcc
+% Why: convert returns a pie_struct of 'opvar' operators since 3df33dcc
 % (10/29/2026), which every stock executive rejects (Top.dim), and the 2025
 % opvar removal retires executives/. The names in bl_cases stay the case labels.
 % Forms as the consolidation of 10/28/2026 maps the stock executives (headers

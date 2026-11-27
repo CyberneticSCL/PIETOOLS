@@ -34,8 +34,8 @@ function R = heatNd_poincare(pie,spec,popts)
 % least what the Poincare LPI at the matching basis does (README sec. 11).
 %
 % LPI. Find G = Z*M Z + sum_g Z* g M_g Z, M, M_g >= 0, with G - Q(lam) = 0
-% ('lpi_eq_cdopvar' 'symmetric': G and Q(lam) are self-adjoint by
-% construction). Z: 'poscopvar' tensor degree SPEC.d (a, c <= d per
+% ('lpi_eq_dopvar' 'symmetric': G and Q(lam) are self-adjoint by
+% construction). Z: 'poslpivar' tensor degree SPEC.d (a, c <= d per
 % direction, no joint cap), multi-indices
 %   L2      all-integral only, {2,3}^N: LOSSLESS IN EXACT ARITHMETIC - the
 %           target has no multiplier cell, and a PSD block whose diagonal
@@ -51,9 +51,9 @@ function R = heatNd_poincare(pie,spec,popts)
 %           I (x) T_ihat^2 has the identity in s_i, so all-integral alone
 %           would leave its multiplier cell uncovered (0 = b ~= 0).
 % Both are the 'eq_opts_sopvar' support rule on the target (R.include_eqopts
-% records the comparison). Generators SPEC.gen: 'none'; 'product' ('poscopvar'
+% records the comparison). Generators SPEC.gen: 'none'; 'product' ('poslpivar'
 % psatz = 1, prod_i (th_i-a_i)(b_i-th_i)); 'faces' (the 2N linear face
-% weights (th_i-a_i)/L_i, (b_i-th_i)/L_i by 'poscopvar' psatz = 2i+1 /
+% weights (th_i-a_i)/L_i, (b_i-th_i)/L_i by 'poslpivar' psatz = 2i+1 /
 % 2i+2 (formerly the copy HEATND_POSW, bitwise the same SDPs), SPEC.faces
 % N x 2 logical to restrict; the heat 'linear' Psatz), each its own M_g >= 0
 % at the FULL degree d.
@@ -101,7 +101,7 @@ function R = heatNd_poincare(pie,spec,popts)
 % OUTPUT struct R: spec, N, bc, dom, mu (exact for this sel), lambda1, include,
 %   include_eqopts (true if equal to 'eq_opts_sopvar's), sep (its sep),
 %   shape (m, nx, Kf, Ks, nnz, zero_rows, uncovered: zero rows of At with b
-%   ~= 0 at some lam, ndup: the equations LPI_EQ_CDOPVAR leaves out as
+%   ~= 0 at some lam, ndup: the equations LPI_EQ_DOPVAR leaves out as
 %   multiples of a written one, so m + ndup is the number of nonzero
 %   equations), affine (At_same, b_err, lams), t (s: ops, target,
 %   posvar, eq (per build), sdp, total), mem (MB, process peak private
@@ -255,17 +255,17 @@ inc_eq = isequal(sortrows(Iinc),sortrows(eo.include));
 t0 = tic;
 prog = make_prog(vars,dom);
 po = struct('include',{{Iinc}});
-[prog,G] = poscopvar(prog,1,vars,dom,spec.d,po);
+[prog,G] = poslpivar(prog,1,vars,dom,spec.d,po);
 nblk = 1;
 switch spec.gen
     case 'none'
     case 'product'
         pp = po;    pp.psatz = 1;
-        [prog,G2] = poscopvar(prog,1,vars,dom,spec.d,pp);
+        [prog,G2] = poslpivar(prog,1,vars,dom,spec.d,pp);
         G = G + G2;     nblk = 2;
     case 'faces'
         fc = spec.faces;    if isempty(fc),     fc = true(N,2);     end
-        % Face (i,e): poscopvar psatz 2i+1 (e=1) / 2i+2 (e=2), weight       % MMP, 09/27/2026
+        % Face (i,e): poslpivar psatz 2i+1 (e=1) / 2i+2 (e=2), weight       % MMP, 09/27/2026
         % (th_i-a_i)/L_i / (b_i-th_i)/L_i at theta; i indexes the SORTED    % MMP, 09/27/2026
         % registry, which vars = s1..sN is (heatNd_pie: N <= 9), as dom     % MMP, 09/27/2026
         % row order assumes too.                                            % MMP, 09/27/2026
@@ -276,7 +276,7 @@ switch spec.gen
 %               pg = po;    pg.gfun = gi{e};                                % MMP, 09/27/2026 (was)
 %               [prog,Gg] = heatNd_posw(prog,1,vars,dom,spec.d,pg);         % MMP, 09/27/2026 (was)
                 pg = po;    pg.psatz = 2*i+e;                               % MMP, 09/27/2026
-                [prog,Gg] = poscopvar(prog,1,vars,dom,spec.d,pg);           % MMP, 09/27/2026
+                [prog,Gg] = poslpivar(prog,1,vars,dom,spec.d,pg);           % MMP, 09/27/2026
                 G = G + Gg;     nblk = nblk+1;
             end
         end
@@ -290,7 +290,7 @@ D = cell(1,3);
 prog.sopeq = {};            % row record on: its dup lists give shape.ndup  % MMP, 11/10/2026
 for j = 1:3
     t0 = tic;
-    p = lpi_eq_cdopvar(prog,G - (Q0 + lams(j)*Q1),'symmetric');     t.eq(j) = toc(t0);
+    p = lpi_eq_dopvar(prog,G - (Q0 + lams(j)*Q1),'symmetric');     t.eq(j) = toc(t0);
     if j==1                 % equations left out as multiples (At is fixed) % MMP, 11/10/2026
         ndup = sum(arrayfun(@(e) numel(e.dup.col),p.sopeq{end}.entries));   % MMP, 11/10/2026
     end                                                                     % MMP, 11/10/2026

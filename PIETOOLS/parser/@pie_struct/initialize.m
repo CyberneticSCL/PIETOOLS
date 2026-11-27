@@ -5,13 +5,13 @@ function PIE = initialize(PIE)
 % is well-defined and consistent.
 %
 % INPUT
-%   PIE:    "pie_struct" class object, with operators specified as 'copvar'
+%   PIE:    "pie_struct" class object, with operators specified as 'opvar'
 %           objects.
 %
 % OUTPUT
 %   PIE:    "pie_struct" class object describing the same system as the
 %           input, with the operators T, Tw, Tu, A, Bw, Bu, Cz, Dzw, Dzu,
-%           Cy, Dyw, Dyu, K, Kw, and Ku of type 'copvar', with the function
+%           Cy, Dyw, Dyu, K, Kw, and Ku of type 'opvar', with the function
 %           spaces PIE.space specified for each of the components, and with
 %           the field PIE.is_initialized set to true.
 %
@@ -83,6 +83,8 @@ function PIE = initialize(PIE)
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/25/2026: Remove the conversion of the retired 'opvar' and
 %                   'opvar2d' classes;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 % Names of the operators, with the output (row) space of the operator
 % specified by the row type, and the input (column) space by the column.
@@ -117,7 +119,7 @@ end
 T = PIE.T;
 if is_unset(T)
     error("PIE.T is a mandatory element of PIE structure and cannot be defaulted to zero");
-elseif isa(T,'copvar')                                                      % DJ, 11/25/2026
+elseif isa(T,'opvar')                                                       % DJ, 11/25/2026
     if isempty(PIE.space.vars)
         PIE.space.vars = T.vars;
         PIE.space.dom = T.dom;
@@ -130,7 +132,7 @@ elseif isa(T,'copvar')                                                      % DJ
         PIE.space.dom = dom;
     end
 else
-    error("PIE.T should be specified as a 'copvar' object.")
+    error("PIE.T should be specified as an 'opvar' object.")
 end
 vnames = PIE.space.vars;
 dom = PIE.space.dom;
@@ -141,7 +143,7 @@ end
 
 
 % % % Check that the operators are appropriately specified, and convert
-% % % them to copvar objects.
+% % % them to opvar objects.
 for k = 1:numel(opnames)
     fname = opnames{k};
     Pop = PIE.(fname);
@@ -151,11 +153,11 @@ for k = 1:numel(opnames)
             error(['PIE.',fname,' is a mandatory element of PIE structure and cannot be defaulted to zero']);
         end
         continue
-    elseif isa(Pop,'copvar')                                                % DJ, 11/25/2026
+    elseif isa(Pop,'opvar')                                                 % DJ, 11/25/2026
         op_vars = Pop.vars;
         op_dom = Pop.dom;
     else
-        error(['PIE.',fname," should be specified as a 'copvar' object."])
+        error(['PIE.',fname," should be specified as an 'opvar' object."])
     end
     % The variables and domain of the operator must match those of the PIE.
     [is_pie_var,loc] = ismember(op_vars,vnames);
@@ -191,7 +193,7 @@ for ii=1:numel(opnames)
             depmat_op = PIE.(fname).space_in;
             dims = PIE.(fname).dim_in(:);
         end
-        % The registry of the copvar is sorted, so permute to the order of
+        % The registry of the opvar is sorted, so permute to the order of
         % the variables in the PIE.
         [~,loc] = ismember(PIE.(fname).vars,vnames);
         depmat = false(size(depmat_op,1),nvars);
@@ -237,7 +239,7 @@ for ii=1:numel(opnames)
     [r,c] = ind2sub(size(opnames),ii);
     depmat_out = spaces.(row_type{r}).depmat;
     depmat_in = spaces.(col_type{c}).depmat;
-    % The registry of the copvar consists of the variables on which at
+    % The registry of the opvar consists of the variables on which at
     % least one of the spaces depends, sorted alphabetically.
     used = any(depmat_out,1) | any(depmat_in,1);
     [reg,idx] = sort(reshape(vnames(used),1,[]));
@@ -247,7 +249,7 @@ for ii=1:numel(opnames)
     meta = struct('vars',{reg},'dom',dom_used(idx,:),...
                   'space_out',depmat_out,'space_in',depmat_in,...
                   'dim_out',spaces.(row_type{r}).dims,'dim_in',spaces.(col_type{c}).dims);
-    PIE.(fname) = copvar(cell(size(depmat_out,1),size(depmat_in,1)),meta);
+    PIE.(fname) = opvar(cell(size(depmat_out,1),size(depmat_in,1)),meta);
 end
 
 
@@ -279,11 +281,11 @@ for obj_type = {'x','w','u','z','y'}
     obj = obj_type{1};
     ncomps = numel(PIE.space.(obj).dims);
     for field = fieldnames(PIE.pde2pie.(obj))'
-        % A copvar map (pde2pie.(obj).C) has one block row per component,
-        % but size(copvar,1) is its total row dimension.
+        % An opvar map (pde2pie.(obj).C) has one block row per component,
+        % but size(opvar,1) is its total row dimension.
         map_k = PIE.pde2pie.(obj).(field{1});
         nrows = size(map_k,1);
-        if isa(map_k,'copvar'),     nrows = size(map_k,1,'block');      end % DJ, 11/18/2026
+        if isa(map_k,'opvar'),     nrows = size(map_k,1,'block');      end % DJ, 11/18/2026
         if ~isempty(map_k) && nrows~=ncomps
             error(['The number of rows of PIE.pde2pie.',obj,'.',field{1},' does not match the number of components in PIE.space.',obj,'.'])
         end

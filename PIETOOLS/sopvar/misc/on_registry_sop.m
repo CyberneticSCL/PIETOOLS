@@ -8,8 +8,8 @@ function X = on_registry_sop(X,R)
 % registry.
 %
 % INPUTS
-% - X:  'copvar' or 'cdopvar' object;
-% - R:  'copvar' or 'cdopvar' object whose registry contains that of X;
+% - X:  'opvar' or 'dopvar' object;
+% - R:  'opvar' or 'dopvar' object whose registry contains that of X;
 %
 % OUTPUTS
 % - X:  the same operator on the registry of R, of the class of the input.
@@ -57,7 +57,7 @@ so = false(size(X.C,1),numel(R.vars));  so(:,loc) = X.space_out;
 si = false(size(X.C,2),numel(R.vars));  si(:,loc) = X.space_in;
 meta.vars = R.vars;     meta.dom = R.dom;
 meta.space_out = so;    meta.space_in = si;
-if isa(X,'cdopvar'),    X = cdopvar(X.C,meta);
-else,                   X = copvar(X.C,meta);
+if isa(X,'dopvar'),    X = dopvar(X.C,meta);
+else,                   X = opvar(X.C,meta);
 end
 end

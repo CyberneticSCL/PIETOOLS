@@ -3,7 +3,7 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % [PROG,P] = POSLPIVAR_SETTINGS_2D_SOP(PROG,X,ST,ROLE,SIDE,PIE) declares
 % the positive operator P = P0 + P1 + ... that the 2-D LPI settings in ST
 % define for ROLE on the SIDE spaces of the container X, each term a
-% positive semidefinite 'cdopvar' Z'*(g*Q)*Z, Q >= 0: Z the identity on an
+% positive semidefinite 'dopvar' Z'*(g*Q)*Z, Q >= 0: Z the identity on an
 % R^n space and, on an L2[x,y] space, the basis operators Z2^{ij} of the
 % settings that are kept, their degree caps translated to multi-indices
 % and caps of each basis operator; g the psatz weight of the options of
@@ -30,7 +30,7 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % INPUT
 % - prog:   'struct', the LPI program to which the decision variables are
 %           added;
-% - X:      'copvar' or 'cdopvar' object whose SIDE spaces P maps, each R^n,
+% - X:      'opvar' or 'dopvar' object whose SIDE spaces P maps, each R^n,
 %           L2[x], L2[y] or L2[x,y] (x, y the two variables of the PIE);
 % - st:     'struct' of LPI settings: an LPI settings struct with field
 %           settings_2d, or the 2-D settings struct itself (field
@@ -59,7 +59,7 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % OUTPUT
 % - prog:   'struct', the program with the decision variables and Gram
 %           constraints of P0, P1, ... added in that order;
-% - P:      'cdopvar' object, the sum of the terms.
+% - P:      'dopvar' object, the sum of the terms.
 %
 % NOTES
 % Errors: ROLE 'slack' with use_sosineq set; a ROLE other than 'lf' and
@@ -106,17 +106,17 @@ function [prog,P] = poslpivar_settings_2d_sop(prog,X,st,role,side,PIE)
 % SIDE spaces of X
 S = settings_2d_sop(st);
 dom = struct();     dom.vars = reshape(PIE.vars(:,1).varname,1,[]);    dom.dom = PIE.dom;
-[sp,dm] = copvar_space_list(X,side);
+[sp,dm] = opvar_space_list(X,side);
 switch role
     case 'lf'
         % P0, then one term per psatz entry in use; pos2d reads the variable
         % names of the PIE to tell an L2[x] space from an L2[y] space
         [deg,co] = pos2d(S.LF_deg,S.LF_opts,sp,dom.vars);
-        [prog,P] = poscopvar(prog,dm,sp,dom,deg,co);
+        [prog,P] = poslpivar(prog,dm,sp,dom,deg,co);
         for j = 1:numel(S.LF_use_psatz)
             if S.LF_use_psatz(j)~=0
                 [deg,co] = pos2d(S.LF_deg_psatz{j},S.LF_opts_psatz{j},sp,dom.vars);
-                [prog,P2] = poscopvar(prog,dm,sp,dom,deg,co);
+                [prog,P2] = poslpivar(prog,dm,sp,dom,deg,co);
                 P = P + P2;
             end
         end
@@ -131,13 +131,13 @@ switch role
         % separations added to its own
         eq_opts = eqopts2d(X,S.eq_opts,1e-12,dom.vars);
         [deg,co] = pos2d(S.eq_deg,eq_opts,sp,dom.vars);
-        [prog,P] = poscopvar(prog,dm,sp,dom,deg,co);
+        [prog,P] = poslpivar(prog,dm,sp,dom,deg,co);
         for j = 1:numel(S.eq_use_psatz)
             if S.eq_use_psatz(j)~=0
                 o = S.eq_opts_psatz{j};
                 o.exclude = o.exclude | eq_opts.exclude;    o.sep = o.sep | eq_opts.sep;
                 [deg,co] = pos2d(S.eq_deg_psatz{j},o,sp,dom.vars);
-                [prog,P2] = poscopvar(prog,dm,sp,dom,deg,co);
+                [prog,P2] = poslpivar(prog,dm,sp,dom,deg,co);
                 P = P + P2;
             end
         end
@@ -210,7 +210,7 @@ for k = 1:numel(sp)
     if isempty(v)
         if exc(1)
             error('poslpivar_settings_2d_sop:exclude1',['exclude(1) drops the R^n basis; '...
-                  'poscopvar needs one basis operator per space.']);
+                  'poslpivar needs one basis operator per space.']);
         end
         deg{k} = struct('int',[0 0]);
     elseif numel(v)==1
@@ -273,7 +273,7 @@ end
 % No basis left: one basis operator per space is needed
 if isempty(o.LF.deg)
     error('poslpivar_settings_2d_sop:exclude1d',['exclude(%d:%d) drops every basis of the '...
-          'L2 space in %s alone; poscopvar needs one basis operator per space.'],3*d-1,3*d+1,f{d}(2));
+          'L2 space in %s alone; poslpivar needs one basis operator per space.'],3*d-1,3*d+1,f{d}(2));
 end
 % The scalar caps of each basis operator laid over the registry
 deg = cell(1,numel(o.LF.deg));
@@ -308,7 +308,7 @@ function eq_opts = eqopts2d(Km,eq_opts,ztol,xy)
 %                  exclude([13 15]) or exclude([14 16]) unset;
 % zero meaning no coefficient above 1e-12 in magnitude, and a difference
 % <= ZTOL holding in every coefficient.
-% INPUT  Km:      'copvar' or 'cdopvar' object with the same spaces in and
+% INPUT  Km:      'opvar' or 'dopvar' object with the same spaces in and
 %                 out (the output spaces are read);
 %        eq_opts: 'struct' with fields exclude (1x16) and sep (1x6);
 %        ztol:    'double', the tolerance of the differences;
@@ -374,7 +374,7 @@ function tf = all_zero(Km,idx,q)
 % TF = ALL_ZERO(KM,IDX,Q) is true when parameter cell Q of every block
 % (i,j) of KM, i and j in IDX, has no coefficient above 1e-12 in magnitude
 % (an empty block counts as zero).
-% INPUT  Km:  'copvar' or 'cdopvar' object;
+% INPUT  Km:  'opvar' or 'dopvar' object;
 %        idx: 'double' array, space indices;
 %        q:   'double', the parameter cell.
 % OUTPUT tf:  'logical'.
@@ -392,7 +392,7 @@ function tf = diff_le(Km,idx,q1,q2,ztol)
 % with i and j in IDX, parameter cell Q1 minus cell Q2 is at most ZTOL in
 % every coefficient, constant and decision part (in each cell the
 % coefficients up to ZTOL in magnitude taken as zero).
-% INPUT  Km:     'copvar' or 'cdopvar' object;
+% INPUT  Km:     'opvar' or 'dopvar' object;
 %        idx:    'double' array, space indices;
 %        q1, q2: 'double', parameter cells;
 %        ztol:   'double', the tolerance.

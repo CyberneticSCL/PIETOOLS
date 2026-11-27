@@ -5,7 +5,7 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %
 %       T x_t = A x + B1 w,      z = C1 x,
 %
-% by an LPI on 'cdopvar' operators, solved as an SDP that minimizes gam.
+% by an LPI on 'dopvar' operators, solved as an SDP that minimizes gam.
 % FORM selects the LPI; R and W are positive operators, Q a free operator:
 %
 %   'c'    R >= 0, T*Q = R, W >= 0 on the space of z, gam >= trace(W),
@@ -27,8 +27,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
-%             variables, initialized when its T is not yet a 'copvar'
-%             object; T, A, B1 and C1 'copvar' objects; Tw zero or absent
+%             variables, initialized when its T is not yet an 'opvar'
+%             object; T, A, B1 and C1 'opvar' objects; Tw zero or absent
 %             (no disturbance at the boundary); K, Kw, Ku empty or without
 %             rows; its other operators are not used;
 % - settings: (optional) 'struct' of LPI settings:
@@ -47,11 +47,11 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - W:        'copvar' object, the solved W ([] when
+% - W:        'opvar' object, the solved W ([] when
 %             the solver returned no solution);
 % - gam:      double, the certified bound on the H2 norm; NaN when the
 %             solver returned no value;
-% - R, Q:     'copvar' objects, the solved R and Q in the forms
+% - R, Q:     'opvar' objects, the solved R and Q in the forms
 %             'c' and 'o'; [] in 'cco' and 'oco';
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
@@ -119,7 +119,7 @@ if nargin<3 || isempty(form),       form = 'c';     end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_H2_norm_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 label = ['H2_norm_sop ' form];
 
 % Complete the options of the executives and read the tools of the
@@ -135,13 +135,13 @@ end
 % The constraint K x = 0 on the state, if any (empty for most PIEs). 'c'
 % % and 'cco' have no term for it: posed as 'o' and 'oco'                   % MMP, 11/21/2026 (was)
 % and 'cco' have no term for it: an error                                   % MMP, 11/21/2026
-Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+Kcon = PIE.K;   hasK = isa(Kcon,'opvar') && size(Kcon,1)>0;
 % PIEs with an algebraic constraint (K, Kw, Ku with rows) are not supported
-if any(cellfun(@(n) isa(PIE.(n),'copvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
+if any(cellfun(@(n) isa(PIE.(n),'opvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
     error('PIETOOLS_H2_norm_sop:algebraicConstraint','The H2 norm LPI is not supported for PIEs with algebraic constraints.');
 end
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
-if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
+if hasK && isa(PIE.Kw,'opvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_H2_norm_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
 end
 % if hasK && strcmp(form,'c'),    form = 'o';     end                       % MMP, 11/21/2026 (was)
@@ -156,7 +156,7 @@ qform = any(strcmp(form,{'c','o'}));
 dwbase = st.sop.dw_P;   if qform,    dwbase = st.sop.dw_Q;   end
 eppos = tl.eppos;
 
-% The PIE operators, 'copvar' objects, and the identities on w and z
+% The PIE operators, 'opvar' objects, and the identities on w and z
 Tm = PIE.T;     Am = PIE.A;
 Bw = PIE.B1;    Cz = PIE.C1;
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
@@ -169,7 +169,7 @@ gam_lpi = cl.obj;
 gam = gam_lpi;
 if any(strcmp(form,{'cco','oco'})),     gam = sqrt(gam_lpi);    end
 
-% The solved W (and R, Q), as 'copvar' objects
+% The solved W (and R, Q), as 'opvar' objects
 W = [];     R = [];     Q = [];
 try
     W = getsol_lpivar_sop(prog,aux.Wm);
@@ -208,7 +208,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam), Rm, Qm,
-        %               Wm ('cdopvar' R, Q, W; Rm, Qm [] in 'cco', 'oco'), li
+        %               Wm ('dopvar' R, Q, W; Rm, Qm [] in 'cco', 'oco'), li
         %               (the info of the slack of the negativity
         %               constraint), form.
         % New program; record the equality rows when the dual is kept
@@ -224,9 +224,9 @@ end
         switch form
             case 'c'
                 % R = T*Q >= 0, W >= 0 on the space of z
-                [sp,dm] = copvar_space_list(Tm,'out');
+                [sp,dm] = opvar_space_list(Tm,'out');
                 [prog,Rm] = tl.storage(prog,Tm,'out');
-                [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+                [prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm*Qm - Rm);
                 [prog,Wm] = wdecl(prog,Cz,'out');
                 Dneg = [-(gamv*Iw),  Bw';
@@ -236,9 +236,9 @@ end
                 like = Rm;  tr = trace_rn_sop(Wm);
             case 'o'
                 % R = T'*Q >= 0, W >= 0 on the space of w
-                [sp,dm] = copvar_space_list(Tm,'out');
+                [sp,dm] = opvar_space_list(Tm,'out');
                 [prog,Rm] = tl.storage(prog,Tm,'out');
-                [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+                [prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm'*Qm - Rm);
                 [prog,Wm] = wdecl(prog,Bw,'in');
                 % The state block, with K'*Z + Z'*K if K is given
@@ -290,18 +290,18 @@ end
         % [PROG,WM] = WDECL(PROG,X,SIDE) declares W >= 0 on the SIDE space of
         % X in the forms 'c' and 'o'.
         % INPUT  prog:  'struct', the LPI program;
-        %        X:     'copvar' object (C1 for 'c', B1 for 'o');
+        %        X:     'opvar' object (C1 for 'c', B1 for 'o');
         %        side:  char, 'out' or 'in'.
         % OUTPUT prog:  'struct', the program with the Gram matrices of W;
-        %        Wm:    'cdopvar' object, W.
+        %        Wm:    'dopvar' object, W.
         % 1-D: the degrees {1,[1 1 1],[1 1 1]}; two or more variables: the
         % storage when a space has variables, else the identity basis on R^n
         if nv==1
-            [prog,Wm] = poslpivar_sop(prog,X,[],struct(),side,PIE.dom);
+            [prog,Wm] = poslpivar_legacy(prog,X,[],struct(),side,PIE.dom);
         elseif any(any(X.(['space_' side])))
             [prog,Wm] = tl.storage(prog,X,side);
         else
-            [prog,Wm] = poslpivar_sop(prog,X,[],struct(),side);
+            [prog,Wm] = poslpivar_legacy(prog,X,[],struct(),side);
         end
     end
 
@@ -309,7 +309,7 @@ end
         % WM = ADD_EPPOS2D(WM) adds eppos I on R^n and on the space in every
         % variable to W, in every dimension (1-D: both spaces; 2-D:
         % blkdiag(eppos(1) I, 0, 0, eppos(4) I)).
-        % INPUT/OUTPUT  Wm: 'cdopvar' object, W.
+        % INPUT/OUTPUT  Wm: 'dopvar' object, W.
             % One margin per variable subset, zero on the partial ones, of
             % which 1-D has none
             e = eppos(:);   if isscalar(e),     e = e*ones(2^nv,1);     end

@@ -51,7 +51,7 @@ function C = mtimes(A,B)
 % dpvar factor: a constant multiplier, handled before any work; the
 % composition below is untouched.
 if isa(A,'dpvar') || isa(B,'dpvar')
-    C = dpvar_op_copvar('mtimes',A,B);
+    C = dpvar_op_opvar('mtimes',A,B);
     return
 end
 if isa(A,'sdopvar') 

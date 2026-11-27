@@ -34,7 +34,7 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 %             Bpv, Drv) and BC (cells Ebb, Ebp; Ebv); missing ones zero.
 %
 % OUTPUT
-%   PIE_out:  'pie_struct', initialized: the twelve 'copvar' operators on
+%   PIE_out:  'pie_struct', initialized: the twelve 'opvar' operators on
 %             R^nx x L2^np[dom], np = sum(n_pde); the 'char' message
 %             'Cannot convert to PIE' if no PDE state is differentiable
 %             (N < 1), or 'Singular B_T: ...' if the boundary conditions
@@ -80,6 +80,8 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 %   pie_op: the zero operator for an empty channel); the PIE is initialized;
 %   the opvar code, the zero filling of DJ, 09/29/2021 included, is
 %   commented out; help and comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
@@ -355,8 +357,8 @@ if ~singularET
 %     Top.P = eye(no);    Top.Q2 = tmp(1:np,1:no);
     % MMP, 11/21/2026: END the opvar construction of the operators, commented out
 
-    % MMP, 11/21/2026: BEGIN the operators as 'copvar' containers
-    pi4 = @(P,Q1,Q2,R,dims) pi4_copvar_sop(P,Q1,Q2,R,dims,s1,s1_dum,X);
+    % MMP, 11/21/2026: BEGIN the operators as 'opvar' containers
+    pi4 = @(P,Q1,Q2,R,dims) pi4_opvar(P,Q1,Q2,R,dims,s1,s1_dum,X);
     O = PDE.ODE;
     % The PDE subsystem [r; X_t] = M*[v; x_f], M = Aop_PDE*TDop
     % + Bop_PDE_sliced + Bop_PDE(:,X_b)*TBVop (TbigP before Vop_out_extended)
@@ -397,7 +399,7 @@ if ~singularET
     Top  = pi4(eye(no),zeros(no,np),Q2T(:,1:no),{G0,RT+L1,RT},[no no; np np]);
     Twop = pi4(zeros(no,nw),[],Q2T(:,no+(1:nw)),{[],[],[]},[no nw; np 0]);
     Tuop = pi4(zeros(no,nu),[],Q2T(:,no+nw+(1:nu)),{[],[],[]},[no nu; np 0]);
-    % MMP, 11/21/2026: END the operators as 'copvar' containers
+    % MMP, 11/21/2026: END the operators as 'opvar' containers
 else
 % do nothing
 % fill the singular case formulae
@@ -424,7 +426,7 @@ PIE_out.T = Top;   PIE_out.Tw = Twop;   PIE_out.Tu = Tuop;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
-% Spaces and maps from the copvar operators                                 % MMP, 11/21/2026
+% Spaces and maps from the opvar operators                                 % MMP, 11/21/2026
 PIE_out = initialize(PIE_out);                                              % MMP, 11/21/2026
 
 % %remove temporary opvars
@@ -447,14 +449,14 @@ function Pop = pie_op(P0,L,MV,dims,pi4)
 % (an empty channel, such as D11 with no regulated output), which a sum or
 % product of containers does not represent.
 % INPUT  P0:    'double', the block of the ODE matrices (R -> R);
-%        L, MV: 'copvar' objects, the input spaces of L the output spaces
+%        L, MV: 'opvar' objects, the input spaces of L the output spaces
 %               of MV ([] when DIMS has no input space);
 %        dims:  2 x 2 'double', [q0 p0; q1 p1], the finite-dimensional and
 %               L2 dimensions of the output (column 1) and input (column 2);
-%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) the 'copvar' operator
+%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) the 'opvar' operator
 %               with blocks P, Q1, Q2, R = {R0,R1,R2} and dimensions DIMS,
 %               in the variables and domain of the PIE.
-% OUTPUT Pop:   'copvar' object.
+% OUTPUT Pop:   'opvar' object.
 if sum(dims(:,1))==0 || sum(dims(:,2))==0
     Pop = pi4(zeros(dims(1,1),dims(1,2)),[],[],{[],[],[]},dims);
 else

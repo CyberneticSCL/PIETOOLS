@@ -54,13 +54,13 @@ function O = heatNd_poincare_ops(pie,doI0,O)
 % OUTPUT struct O
 % - N, vars, dom, bc, r, mu (1 x N: exact per-direction Poincare constants
 %   pie.exact.lambda: pi^2/L^2 DD, pi^2/(4L^2) DN/ND), lambda1 (= sum mu);
-% - T (pie.T), A0 (sum of the A_i built here), A{i}, DT{i} (1x1 'copvar');
+% - T (pie.T), A0 (sum of the A_i built here), A{i}, DT{i} (1x1 'opvar');
 % - dK (1 x N struct: ZL, ZR, C = {mult, lower, upper} of dT_i/ds_i);
 % - I0 (DOI0): struct array (check, err, tol, ok), and O.I0ok.
 % Compositions (T*T, (D_iT)*(D_iT), ...) are formed by HEATND_POINCARE for
 % the selected target only.
 %
-% Cost: 2N+1 tensor-product 'copvar' of 3^N cells, 2^N nonzero, of size
+% Cost: 2N+1 tensor-product 'opvar' of 3^N cells, 2^N nonzero, of size
 % <= 2^N x 2^N; no decision variables. I0 adds O(N) compositions and a
 % quadrature of ns * 3^N * nq^N kernel evaluations per application.
 %
@@ -87,9 +87,9 @@ end
 A = cell(1,N);  DT = cell(1,N);     A0 = [];
 for i = 1:N
     fac = num2cell(pie.op1);    fac{i} = Id;    % prod_{j~=i} T_j (x) I_i
-    A{i} = copvar({kronop(fac,vars,dom)});
+    A{i} = opvar({kronop(fac,vars,dom)});
     fac{i} = dK(i);                             % (dT_i/ds_i) (x) prod_{j~=i} T_j
-    DT{i} = copvar({kronop(fac,vars,dom)});
+    DT{i} = opvar({kronop(fac,vars,dom)});
     if isempty(A0),     A0 = A{i};  else,   A0 = A0 + A{i};     end
 end
 O = struct('N',N,'vars',{vars},'dom',dom,'bc',{bc},'r',pie.r,'mu',pie.exact.lambda, ...
@@ -252,7 +252,7 @@ end
 
 
 function n = cn(X)
-% Largest |coefficient| of a 1x1 'copvar' over all cells (0 if zero).
+% Largest |coefficient| of a 1x1 'opvar' over all cells (0 if zero).
 B = X.C{1,1};   n = 0;
 if isempty(B),  return,     end
 for g = 1:numel(B.params)

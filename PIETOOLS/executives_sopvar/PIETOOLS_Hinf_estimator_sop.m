@@ -6,7 +6,7 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %       T x_t + Tw w_t = A x + B1 w,   z = C1 x + D11 w,   y = C2 x + D21 w
 %
 % and a bound GAM on the L2 gain from w to the estimation error of z, by
-% the LPI, posed on 'cdopvar' operators and solved as an SDP that minimizes
+% the LPI, posed on 'dopvar' operators and solved as an SDP that minimizes
 % gam,
 %
 %   P >= eppos I,  Z free,  PB = P*B1 + Z*D21,  PA = P*A + Z*C2,
@@ -24,8 +24,8 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
-%             variables, initialized when its T is not yet a 'copvar'
-%             object; T, Tw, A, B1, C1, D11, C2 and D21 'copvar' objects (Tw
+%             variables, initialized when its T is not yet an 'opvar'
+%             object; T, Tw, A, B1, C1, D11, C2 and D21 'opvar' objects (Tw
 %             may be absent), and K, Kw, Ku empty or without rows; its
 %             other operators are not used; in two or more variables, Tw
 %             and B1 not both nonzero; C2 with at least one row (a sensed
@@ -49,13 +49,13 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - L:        'copvar' object, the observer gain from
+% - L:        'opvar' object, the observer gain from
 %             y to the state ([] when the solver returned no solution, and
 %             in 3 or more variables, where no gain extraction exists: the
 %             LPI is solved and P, Z are returned);
 % - gam:      double, the certified bound; with GAIN, GAIN when certified and
 %             Inf otherwise; NaN when the solver returned no value;
-% - P, Z:     'copvar' objects, the solved P and Z;
+% - P, Z:     'opvar' objects, the solved P and Z;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
 %                          'unbounded', 'unknown' or 'residual' (cuADMM,
@@ -64,8 +64,8 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                          'inaccurate';
 %               form ('est'), gam, gam_fixed, nv;
 %               P, Z       as the outputs; Psol, Zsol the same objects;
-%               K          'cdopvar' object, the LPI operator;
-%               G          'copvar' object, the gain L (one or two
+%               K          'dopvar' object, the LPI operator;
+%               G          'opvar' object, the gain L (one or two
 %                          variables; [] otherwise); inv  'struct', the
 %                          diagnostics of the computation of L (output INFO
 %                          of GETOBSERVER_SOP: for the method 'qp' the field
@@ -117,7 +117,7 @@ if nargin>=3 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_estimator_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 label = 'Hinf_estimator_sop';
 
 % Complete the options of the executives and read the tools of the
@@ -133,16 +133,16 @@ end
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 eppos = tl.eppos;
 
-% The PIE operators, 'copvar' objects, and the identities on w and z
+% The PIE operators, 'opvar' objects, and the identities on w and z
 Tm = PIE.T;     Am = PIE.A;
 % The constraint K x = 0 on the state, if any (empty for most PIEs)
-Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+Kcon = PIE.K;   hasK = isa(Kcon,'opvar') && size(Kcon,1)>0;
 % PIEs with an algebraic constraint (K, Kw, Ku with rows) are not supported
-if any(cellfun(@(n) isa(PIE.(n),'copvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
+if any(cellfun(@(n) isa(PIE.(n),'opvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
     error('PIETOOLS_Hinf_estimator_sop:algebraicConstraint','The H-infinity estimator synthesis LPI is not supported for PIEs with algebraic constraints.');
 end
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
-if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
+if hasK && isa(PIE.Kw,'opvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_Hinf_estimator_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
 end
 Bw = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
@@ -164,7 +164,7 @@ elseif certified,   gam = gfix;
 else,               gam = Inf;
 end
 
-% The solved P and Z, as 'copvar' objects, and the gain L, an approximation
+% The solved P and Z, as 'opvar' objects, and the gain L, an approximation
 % of P^{-1}*Z, in one or two variables
 L = [];     P = [];     Z = [];     Psol = [];  Zsol = [];  Gc = [];    iinv = [];
 try
@@ -204,7 +204,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam, [] at a
-        %               fixed gain), Pm, Zm ('cdopvar' P and Z), Km (the LPI
+        %               fixed gain), Pm, Zm ('dopvar' P and Z), Km (the LPI
         %               operator), Nm (the slack), li (the info of the
         %               slack), form.
         % New program; record the equality rows when the dual is kept
@@ -221,9 +221,9 @@ end
         % P >= eppos I, and Z free from y to the state
         [prog,Pm] = tl.storage(prog,Tm,'out');
         if ~all(eppos==0),  Pm = Pm + tl.eye(1,eppos);  end
-        [spx,dmx] = copvar_space_list(Cy,'in');
-        [spy,dmy] = copvar_space_list(Cy,'out');
-        [prog,Zm] = lpivar_cdopvar(prog,struct('out',dmx,'in',dmy),struct('out',{spx},'in',{spy}),tl.dom,tl.zdeg);
+        [spx,dmx] = opvar_space_list(Cy,'in');
+        [spy,dmy] = opvar_space_list(Cy,'out');
+        [prog,Zm] = lpivar(prog,struct('out',dmx,'in',dmy),struct('out',{spx},'in',{spy}),tl.dom,tl.zdeg);
         % The LPI operator, with the terms of a boundary disturbance
         Dyw_r = on_registry_sop(Dyw,Zm);
         PB = Pm*Bw + Zm*Dyw_r;      PA = Pm*Am + Zm*Cy;

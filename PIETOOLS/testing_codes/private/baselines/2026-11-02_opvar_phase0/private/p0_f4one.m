@@ -10,7 +10,7 @@ function p0_f4one(name, pass)
 % OUTPUT (files)
 % - <name>.mat: vars, a struct of the script's variables after it ends
 %   (classes kept: double, single, logical, char, string, cell, struct,
-%   sym, polynomial, dpvar, copvar, cdopvar, sopvar, pie_struct, pde_struct;
+%   sym, polynomial, dpvar, opvar, dopvar, sopvar, pie_struct, pde_struct;
 %   names starting with 'prog' and arrays over 50 MB are dropped); rec
 %   (status, seconds, note); info (P0_PATH).
 % - index.csv: name, status, seconds, and every real scalar variable as
@@ -58,7 +58,7 @@ end
 vars = struct();
 p0_w__ = whos;
 keep = {'double','single','logical','char','string','cell','struct','sym','polynomial', ...
-        'dpvar','copvar','cdopvar','sopvar','sdopvar','pie_struct','pde_struct'};
+        'dpvar','opvar','dopvar','sopvar','sdopvar','pie_struct','pde_struct'};
 for p0_k__ = 1:numel(p0_w__)
     p0_n__ = p0_w__(p0_k__).name;
     if startsWith(p0_n__,'p0_') || startsWith(p0_n__,'prog') || strcmp(p0_n__,'P0_DEMO'),   continue,   end

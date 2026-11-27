@@ -86,7 +86,7 @@ prob = lpiprogram(H0op.vars,H0op.dom);
 [prob,gam] = lpidecvar(prob,'gam');     % scalar decision variable
 % X maps the constraint space to the space of xf, with the output and input
 % spaces of Kop'; monomial degree 1
-[prob,X] = lpivar_cdopvar(prob,Kop',1);
+[prob,X] = lpivar(prob,Kop',1);
 
 % % Set inequality constraint:
 % %   gam*(H1'H1 + H2'H2) - H0'H0 - X*K - K'*X' >= 0

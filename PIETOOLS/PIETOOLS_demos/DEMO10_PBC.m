@@ -82,10 +82,10 @@ K = PIE.K;
 % Initialize lpiprogram
 prog = lpiprogram(PIE.vars,PIE.dom);
 % Lyapunov decision PI variable (coercive), on the output spaces of T
-[prog,P] = poscopvar(prog,T,struct('int',3,'mult',3,'joint',3));
-P = P + 1e-4*eye_copvar_sop(T);
+[prog,P] = poslpivar(prog,T,struct('int',3,'mult',3,'joint',3));
+P = P + 1e-4*eye_opvar(T);
 % Lagrange decision PI variable (indefinite)
-[prog,X] = lpivar_cdopvar(prog,K',6);   % X with the spaces of K'
+[prog,X] = lpivar(prog,K',6);           % X with the spaces of K'
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
 % all x(s,t) : Kx(s,t)=0, a <= s <= b
 Q = A'*P*T + T'*P*A + 2*alpha*T'*P*T + X*K + K'*X';

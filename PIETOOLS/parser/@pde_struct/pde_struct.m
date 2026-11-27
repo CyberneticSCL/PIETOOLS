@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?state,?terms,?sopvar,?copvar,?dpvar,?polynomial}) pde_struct % DJ, 11/25/2026
+classdef (InferiorClasses={?state,?terms,?sopvar,?opvar,?dpvar,?polynomial}) pde_struct % DJ, 11/25/2026
 % pde_struct is a class of objects used to describe PDE systems in
 % PIETOOLS 2022a. It has the following fields:
 %
@@ -85,6 +85,8 @@ classdef (InferiorClasses={?state,?terms,?sopvar,?copvar,?dpvar,?polynomial}) pd
 % DJ, 11/22/2026: Make 'sopvar' and 'copvar' inferior, for C*PDE;
 % DJ, 11/25/2026: Drop the retired 'opvar' and 'opvar2d' classes from
 %                   InferiorClasses;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
     
 properties

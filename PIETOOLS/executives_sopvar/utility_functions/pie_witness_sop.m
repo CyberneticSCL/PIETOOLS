@@ -39,7 +39,7 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 % - opts:   (optional) 'struct' with the optional fields N_cheb (double,
 %           the Legendre degree N, default 24) and nfreq (double, default
 %           240);
-% - Y:      (optional) 'copvar' object whose diagonal block (WBLK,WBLK) is
+% - Y:      (optional) 'opvar' object whose diagonal block (WBLK,WBLK) is
 %           a 'sopvar' object on the space of w: on R^nwf its matrix, on
 %           L2^nwd[s] its multiplier, lower kernel and, if stored, upper
 %           kernel (else the adjoint of the lower kernel); default []: no
@@ -250,7 +250,7 @@ function al = dual_alignment(Y,wblk,W,nwf,nwd,sq,wq)
 % Frobenius inner product of the symmetrized block (WBLK,WBLK) of Y with
 % the covariance real(w0*w0') of the worst input w0: on R^NWF, or at the
 % nodes SQ with each entry weighted by the quadrature weights WQ.
-% INPUT  Y:        'copvar' object; wblk: double, the block index;
+% INPUT  Y:        'opvar' object; wblk: double, the block index;
 %        W:        'struct', the output W, fields wcoef and wgrid;
 %        nwf, nwd: double, the finite and distributed components of w;
 %        sq, wq:   double, the Gauss-Legendre nodes and weights.

@@ -1,4 +1,4 @@
-% Semantic tests of the 'subs' methods of sopvar and copvar. For random
+% Semantic tests of the 'subs' methods of sopvar and opvar. For random
 % operators P with input variables S3,S1 and output variables S2,S3, all of
 % the form of 'sopvar', the output of Q=subs(P,s_k,val) applied to a random
 % polynomial u
@@ -103,7 +103,7 @@ for i=1:3
         C{i,j} = rand_op(names,doms,cols{j},rows{i},rowdim(i),coldim(j),{'s1'},val);
     end
 end
-P = copvar(C);
+P = opvar(C);
 Q = subs(P,'s1',val);
 uu = {rand_poly([P.dim_in(1),1],cols{1},2),rand_poly([P.dim_in(2),1],cols{2},2)};
 e = 0;

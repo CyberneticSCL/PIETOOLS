@@ -83,6 +83,8 @@
 %   a pie_struct; the predefined alternative is lpiscript_sop; PIESIM takes
 %   uinput.ic as one vector, no ndiff, and returns solution.timedep.primary
 %   and regulated as cells; help text revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -127,9 +129,9 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % YP
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
 popts.sep = 0;                  % lower and upper kernels independent
-[prog,P] = poscopvar(prog,T,4,popts);   % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
+[prog,P] = poslpivar(prog,T,4,popts);   % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
 % Indefinite operator variable Z: \R-->L2
-[prog,Z] = lpivar_cdopvar(prog,C2',4);  % Z with the spaces of C2'          % YP, DJ, MMP, 11/21/2026
+[prog,Z] = lpivar(prog,C2',4);          % Z with the spaces of C2'          % YP, DJ, MMP, 11/21/2026
 
 % % Set inequality constraints:
 % %   Q <= 0

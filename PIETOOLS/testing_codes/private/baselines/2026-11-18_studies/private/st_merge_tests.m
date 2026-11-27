@@ -1,7 +1,7 @@
 function st_merge_tests(what)
 % ST_MERGE_TESTS(WHAT) runs the checks of the fast-forward to origin/ndopvar
 % 7764389f (11/18/2026) that the harness rows (st_run 'M1L', 'M2L') do not
-% cover: the container unit tests that 7d0acf2c (copvar size) updated, plus
+% cover: the container unit tests that 7d0acf2c (opvar size) updated, plus
 % the QP and getsol tests; the 17 examples of examples_FI_library_PIETOOLS
 % (12fd1c3e); and DEMO11_poincare_inequality_2D (7764389f). Results are
 % printed to the log only, on lines that begin with '## '.
@@ -22,7 +22,7 @@ end                                                                         % MM
 R = strrep(R,'\','/');                                                      % MMP, 11/23/2026
 cd(R);  pietools_path_update;
 % The helpers of the tests are off the path with the rest of
-% testing_codes/private: rand_copvar, rand_cdopvar (Testfolder); rand_sopvar,
+% testing_codes/private: rand_opvar, rand_dopvar (Testfolder); rand_sopvar,
 % rand_sdopvar (Testfolder/sdopvar); pi_poly_grid (sdopvar/claude_tests);
 % cx_plant (claude_tests/cx_exec); subs_dvar_sop (lpi_programming_sopvar/misc)
 TF = fullfile(R,'testing_codes','private','sopvar','Testfolder');
@@ -30,12 +30,12 @@ addpath(TF,fullfile(TF,'sdopvar'),fullfile(TF,'sdopvar','claude_tests'), ...
         fullfile(TF,'sdopvar','claude_tests','cx_exec'), ...
         fullfile(R,'testing_codes','private','lpi_programming_sopvar','misc'));
 % One resolution of the container class, inside the main checkout
-w = strrep(which('copvar'),'\','/');    fprintf('## copvar resolves to %s\n',w);
-if ~startsWith(w,R),  error('st_merge_tests:path','copvar outside the main checkout');  end
-tests = {'sopvar/Testfolder','Test_copvar';
-         'sopvar/Testfolder','Test_cdopvar';
+w = strrep(which('opvar'),'\','/');    fprintf('## opvar resolves to %s\n',w);
+if ~startsWith(w,R),  error('st_merge_tests:path','opvar outside the main checkout');  end
+tests = {'sopvar/Testfolder','Test_opvar';
+         'sopvar/Testfolder','Test_dopvar';
          'sopvar/Testfolder','Test_int2sopvar';
-         'sopvar/Testfolder','Test_qp_copvar_nd';
+         'sopvar/Testfolder','Test_qp_opvar_nd';
          'lpi_programming_sopvar/tests','test_dpvar_ops_sop';
          'lpi_programming_sopvar/tests','test_getsol_sop'};
 for k = 1:size(tests,1)

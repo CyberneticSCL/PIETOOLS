@@ -1,10 +1,10 @@
 function varargout = pie_test_utils(cmd,varargin)
 % PIE_TEST_UTILS Helpers for the exact, solver-free conversion tests of 1D
-% PDEs with periodic and other boundary conditions, on the 'copvar' PIEs
+% PDEs with periodic and other boundary conditions, on the 'opvar' PIEs
 % of the converter.
 %
 % The PIE state xf is a cell with a block for each component of the PIE,
-% as the operators T, A, K are 'copvar' objects with a block row/column for
+% as the operators T, A, K are 'opvar' objects with a block row/column for
 % each of these components. The helpers evaluate these operators exactly on
 % polynomials, block by block.
 %
@@ -26,7 +26,7 @@ function varargout = pie_test_utils(cmd,varargin)
 
 switch cmd
     case 'xf',          [varargout{1:nargout}] = fund_state(varargin{:});
-    case 'apply',       [varargout{1:nargout}] = apply_cop(varargin{:});
+    case 'apply',       [varargout{1:nargout}] = apply_opvar(varargin{:});
     case 'aux',         [varargout{1:nargout}] = aux_idcs(varargin{:});
     case 'pde_state',   [varargout{1:nargout}] = pde_state(varargin{:});
     otherwise,          error('Unknown command "%s".',cmd);
@@ -61,7 +61,7 @@ for b=1:nb
 end
 end
 
-function y = apply_cop(P,v)
+function y = apply_opvar(P,v)
 % y{r} = sum_c P.C{r,c}*v{c}
 C = P.C;
 y = cell(size(C,1),1);

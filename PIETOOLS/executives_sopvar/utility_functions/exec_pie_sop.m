@@ -1,10 +1,10 @@
 function PIE = exec_pie_sop(PIE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIE = EXEC_PIE_SOP(PIE) returns the PIE with every operator a 'copvar'
-% object or 0. A PIE whose T is not yet a 'copvar' object is initialized.
-% A container PIE, whose T is a 'copvar' object (in any number of spatial
+% PIE = EXEC_PIE_SOP(PIE) returns the PIE with every operator an 'opvar'
+% object or 0. A PIE whose T is not yet an 'opvar' object is initialized.
+% A container PIE, whose T is an 'opvar' object (in any number of spatial
 % variables), is returned with every absent operator ([]) set to the
-% double 0, so that the zero tests Op==0 (a logical scalar for a 'copvar'
+% double 0, so that the zero tests Op==0 (a logical scalar for an 'opvar'
 % and for 0) hold for it as for an initialized PIE.
 %
 % INPUT
@@ -12,17 +12,17 @@ function PIE = exec_pie_sop(PIE)
 %             T*x_t + Tw*w_t + Tu*u_t = A*x  + B1*w  + B2*u,
 %                                   z = C1*x + D11*w + D12*u,
 %                                   y = C2*x + D21*w + D22*u,
-%         with T a 'copvar' object and each other operator a 'copvar'
+%         with T an 'opvar' object and each other operator an 'opvar'
 %         object or [] (absent), or not yet initialized; for a
 %         container PIE, vars (nv x 2 'polynomial', the spatial variables
 %         and their dummies) and dom (nv x 2 double) define the dimension
 %         nv = PIE.dim.
 %
 % OUTPUT
-% - PIE:  'pie_struct' object: the initialized PIE when T is not a 'copvar'; for a
+% - PIE:  'pie_struct' object: the initialized PIE when T is not an 'opvar'; for a
 %         container PIE, the input with each of T, Tw, Tu, A, B1, B2, C1,
 %         D11, D12, C2, D21, D22 that is [] replaced by 0.
-%         Every operator of the output is a 'copvar' object or 0.
+%         Every operator of the output is an 'opvar' object or 0.
 %
 % NOTES
 % A PIE other than a 'pie_struct', and a container PIE whose vars and dom
@@ -60,8 +60,8 @@ function PIE = exec_pie_sop(PIE)
 if ~isa(PIE,'pie_struct')
     error('exec_pie_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-% A PIE not yet initialized (T not a 'copvar' object): initialize it
-if ~isa(PIE.T,'copvar')
+% A PIE not yet initialized (T not an 'opvar' object): initialize it
+if ~isa(PIE.T,'opvar')
     PIE = initialize(PIE);
     return
 end
@@ -70,7 +70,7 @@ if ~(PIE.dim>=1)
     error('exec_pie_sop:dim',['A container PIE needs vars (nv x 2 ''polynomial'') and dom ' ...
           '(nv x 2) of the same length nv >= 1.']);
 end
-% Absent operators to 0. Only [] is replaced: a 'copvar' with no space on a
+% Absent operators to 0. Only [] is replaced: an 'opvar' with no space on a
 % side (an empty channel) stays as it is.
 ops = {'T','Tw','Tu','A','B1','B2','C1','D11','D12','C2','D21','D22'};
 for k = 1:numel(ops)

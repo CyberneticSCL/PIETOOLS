@@ -4,7 +4,7 @@ function results = test_convert_PIETOOLS_PDE_periodic()
 % Add PIETOOLS and the converters directory to the MATLAB path, then run
 % results = test_convert_PIETOOLS_PDE_periodic. No SDP solver is required.
 %
-% The PIEs are 'copvar' operators on the components of the PIE state xf,
+% The PIEs are 'opvar' operators on the components of the PIE state xf,
 % see PIE.pde2pie. The tests evaluate the operators exactly on polynomials
 % (pie_test_utils), and check the defining identities, instead of the number
 % of auxiliary states, or the choice of their coordinates:
@@ -286,7 +286,7 @@ for k = 1:4
     PDE.BC{k} = struct('term', {{struct('x',1,'loc',locations{k})}});
 end
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-assert(isa(PIE.T,'copvar'), 'The 2D PIE must be a copvar.');
+assert(isa(PIE.T,'opvar'), 'The 2D PIE must be an opvar.');
 assert(isempty(PIE.K) || isempty(PIE.K.C), ...
     'Ordinary 2D PDE conversion must leave K empty.');
 assert(isequal(size(PIE.T.C),[1,1]), 'Ordinary 2D Dirichlet has a single state.');
@@ -373,7 +373,7 @@ end
 function q = apply_F(PIE, b, f)
 % The map xf_b = C_b*(derivative), applied to f
 Cb = PIE.pde2pie.x.C.C{b,b};
-tmp = pie_test_utils('apply', copvar({Cb}), {f});
+tmp = pie_test_utils('apply', opvar({Cb}), {f});
 q = tmp{1};
 end
 

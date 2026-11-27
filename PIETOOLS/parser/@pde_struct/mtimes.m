@@ -5,7 +5,7 @@ function PDE_out = mtimes(C,PDE_in)
 % INPUT
 % - C:          mxn object of type 'polynomial' or 'double', represting a
 %               matrix of coefficients with which to multiply terms in the
-%               PDE, or 'sopvar' or 'copvar' object of input dimension n,
+%               PDE, or 'sopvar' or 'opvar' object of input dimension n,
 %               representing a PI operator to apply to the terms (not to
 %               outputs).
 % - PDE_in:     'pde_struct' object corresponding to either a single PDE
@@ -53,6 +53,8 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 11/24/2026: Split a non-square matrix such as [1;0] times a nonlinear
 %                   term over its columns, also if it equals c*eye(m,n);
 % DJ, 11/25/2026: Remove multiplication with the retired 'opvar' class;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 % % % Process the inputs
 
@@ -79,8 +81,8 @@ if isa(C,'pde_struct')
     end
     PDE_out = times_pdes(C,PDE_in);
     return
-elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'sopvar') && ~isa(C,'copvar') % DJ, 11/25/2026
-    error("The first factor in the product should be of type 'pde_struct', 'double', 'polynomial', 'sopvar' or 'copvar'.") % DJ, 11/22/2026
+elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'sopvar') && ~isa(C,'opvar') % DJ, 11/25/2026
+    error("The first factor in the product should be of type 'pde_struct', 'double', 'polynomial', 'sopvar' or 'opvar'.") % DJ, 11/22/2026
 elseif isa(C,'double') || isa(C,'polynomial')                               % DJ, 11/22/2026
     C = polynomial(C);
 end
@@ -98,8 +100,8 @@ PDE_out = PDE_in;
 
 % % % Deal with the case that the factor is a PI operator, requiring
 % % % (partial) integrals to be taken.
-if isa(C,'sopvar') || isa(C,'copvar')                                       % DJ, 11/25/2026
-    PDE_out = mtimes_copvar(C,PDE_in);                                      % DJ, 11/22/2026
+if isa(C,'sopvar') || isa(C,'opvar')                                        % DJ, 11/25/2026
+    PDE_out = mtimes_opvar(C,PDE_in);                                       % DJ, 11/22/2026
     return
 end
 

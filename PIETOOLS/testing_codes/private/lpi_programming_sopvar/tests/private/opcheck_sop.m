@@ -1,6 +1,6 @@
 function out = opcheck_sop(mode,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% OUT = OPCHECK_SOP(MODE,...) evaluates FIXED PI operators ('copvar' or
+% OUT = OPCHECK_SOP(MODE,...) evaluates FIXED PI operators ('opvar' or
 % 'sopvar' objects) by their action on nt random polynomial test functions
 % x_t: each block is applied by Gauss-Legendre quadrature of its kernel
 % definition (HEATND_APPLY; sopvar document Sec. 4), and norms and inner
@@ -23,15 +23,15 @@ function out = opcheck_sop(mode,varargin)
 %
 % INPUT
 % - mode:   char, 'res', 'psd', 'weak' or 'coef';
-% - L, R:   'copvar' or 'sopvar' objects with the same input spaces and the
+% - L, R:   'opvar' or 'sopvar' objects with the same input spaces and the
 %           same output spaces;
-% - P:      'copvar' or 'sopvar' object; for 'psd' its output spaces must
+% - P:      'opvar' or 'sopvar' object; for 'psd' its output spaces must
 %           equal its input spaces;
 % - TERMS:  K x 3 cell {c_1,U_1,V_1; ...; c_K,U_K,V_K}: c_k double; U_k and
-%           V_k 'copvar' or 'sopvar' objects on the input spaces of X with
+%           V_k 'opvar' or 'sopvar' objects on the input spaces of X with
 %           the same output spaces, or [] for the identity on the input
 %           spaces of X;
-% - X:      'copvar' or 'sopvar' object, whose input spaces carry x_t and
+% - X:      'opvar' or 'sopvar' object, whose input spaces carry x_t and
 %           y_u;
 % - OPTS:   (optional) 'struct' with the optional fields nt (double, the
 %           number of test functions, default 6), deg (double, the largest
@@ -50,7 +50,7 @@ function out = opcheck_sop(mode,varargin)
 % direction. The state of the random number generator is restored on
 % return. An unknown MODE ('opcheck_sop:mode') and an operator of another
 % class ('opcheck_sop:class') are errors; in 'weak', a 'sopvar' U_k with a
-% nonempty V_k is not converted to a 'copvar' and is an error.
+% nonempty V_k is not converted to an 'opvar' and is an error.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -191,12 +191,12 @@ end
 
 function P = as_c(P)
 % P = AS_C(P) returns a 'sopvar' block as the 1 x 1 container of itself and
-% a 'copvar' unchanged; any other class is an error.
-% INPUT  P: 'copvar' or 'sopvar' object.
-% OUTPUT P: 'copvar' object.
-if isa(P,'sopvar'),     P = copvar({P});    end
-if ~isa(P,'copvar')
-    error('opcheck_sop:class','Fixed operators only (copvar or sopvar); got %s.',class(P))
+% an 'opvar' unchanged; any other class is an error.
+% INPUT  P: 'opvar' or 'sopvar' object.
+% OUTPUT P: 'opvar' object.
+if isa(P,'sopvar'),     P = opvar({P});    end
+if ~isa(P,'opvar')
+    error('opcheck_sop:class','Fixed operators only (opvar or sopvar); got %s.',class(P))
 end
 end
 
@@ -205,7 +205,7 @@ function F = test_funcs(P,o)
 % input spaces of P: on input space j, 5 monomials of degree 0..O.deg in
 % each variable, with N(0,1) coefficients for each of its P.dim_in(j)
 % components.
-% INPUT  P: 'copvar' object; o: 'struct' of options, fields nt and deg.
+% INPUT  P: 'opvar' object; o: 'struct' of options, fields nt and deg.
 % OUTPUT F: 1 x o.nt cell; F{t} 1 x N cell of 'struct' with fields vars
 %           (cellstr, the variables of input space j), deg (5 x numel(vars)
 %           double, the exponents) and coef (5 x P.dim_in(j) double).
@@ -223,7 +223,7 @@ end
 function G = out_grid(P,nq)
 % G = OUT_GRID(P,NQ) returns the tensor Gauss-Legendre grid of each output
 % space of P.
-% INPUT  P: 'copvar' object; nq: double, the nodes per direction.
+% INPUT  P: 'opvar' object; nq: double, the nodes per direction.
 % OUTPUT G: 1 x M cell; G{i} 'struct' with fields vars (cellstr), X
 %           (nq^nd x nd double, the points) and w (nq^nd x 1 double, the
 %           weights), nd the number of variables of output space i.
@@ -233,7 +233,7 @@ end
 function G = in_grid(P,nq)
 % G = IN_GRID(P,NQ) returns the tensor Gauss-Legendre grid of each input
 % space of P.
-% INPUT  P: 'copvar' object; nq: double, the nodes per direction.
+% INPUT  P: 'opvar' object; nq: double, the nodes per direction.
 % OUTPUT G: 1 x N cell; G{j} 'struct' with fields vars (cellstr), X
 %           (nq^nd x nd double, the points) and w (nq^nd x 1 double, the
 %           weights), nd the number of variables of input space j.
@@ -271,7 +271,7 @@ end
 function Y = act(U,F,G,nq)
 % Y = ACT(U,F,G,NQ) returns U x_t on the grids G for every test function
 % x_t of F; U = [] is the identity, x_t evaluated on G.
-% INPUT  U:  'copvar' object or []; F: test functions (TEST_FUNCS); G:
+% INPUT  U:  'opvar' object or []; F: test functions (TEST_FUNCS); G:
 %            grids (GRID_OF), on the output spaces of U or, for U = [], on
 %            the spaces of F; nq: double, the nodes per direction of the
 %            kernel integrals.
@@ -288,7 +288,7 @@ function Y = apply_c(P,F,G,nq)
 % Y = APPLY_C(P,F,G,NQ) returns Y{t}{i} = (P x_t)_i on G{i}, the sum over j
 % of block (i,j) applied to x_t,j by HEATND_APPLY, for every test function
 % x_t.
-% INPUT  P:  'copvar' object; F: test functions (TEST_FUNCS) on the input
+% INPUT  P:  'opvar' object; F: test functions (TEST_FUNCS) on the input
 %            spaces of P; G: grids (GRID_OF) on the output spaces of P;
 %        nq: double, the nodes per direction of the kernel integrals.
 % OUTPUT Y:  1 x numel(F) cell; Y{t} 1 x M cell, Y{t}{i} size(G{i}.X,1) x

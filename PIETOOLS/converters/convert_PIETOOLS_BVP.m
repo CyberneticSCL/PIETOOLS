@@ -25,7 +25,7 @@ function [Tops,Kops,Dmap,info] = convert_PIETOOLS_BVP(PDE,diffs,opts)
 %           not text, and opts otherwise;
 %
 % OUTPUT
-% The operators are 'copvar' objects, or 'tensopmat' objects for a
+% The operators are 'opvar' objects, or 'tensopmat' objects for a
 % nonlinear PDE or with 'nonlinear'. The components of xf (the columns of
 % Tops and Kops, the rows of Dmap) are those of info.fund, which may stack
 % the states of a group, or, with 'blocks' or 'tensopmat', a block for
@@ -362,8 +362,8 @@ end
 % The fundamental state of the PDE is xf = [xf_1;...;xf_G],
 % stacking those of the groups, and the rows of the states of a group are
 % zero in the columns of the other groups. The BCs, states and inputs of
-% the groups are replaced by those of the PDE (using dec) in info. A
-% 'copvar' needs a block in each row and column to define its spaces, so
+% the groups are replaced by those of the PDE (using dec) in info. An
+% 'opvar' needs a block in each row and column to define its spaces, so
 % the blocks that no group defines are zero operators, which are only
 % declared where needed for this.
 nG = numel(PDEs);
@@ -495,7 +495,7 @@ for ty={'x','w','u'}
                 for c=find(cellfun(@isempty,row))
                     row{c} = zero_op(blk_ref.dims(1),col_spaces(c),blk_ref.vars.out,blk_ref.dom.out);
                 end
-                Rk{lidx} = copvar(row);
+                Rk{lidx} = opvar(row);
             end
             R_cell{dec.x_idcs{g}(k_grp)} = Rk;
         end
@@ -509,7 +509,7 @@ for ty={'x','w','u'}
         for g=1:nG
             F_blocks(off(g)+(1:ncols_g(g)),dec.x_idcs{g}) = sol(g).Fop.C;
         end
-        Fop = copvar(F_blocks);
+        Fop = opvar(F_blocks);
         % K: the constraints of each group, in the columns of its state;
         % the columns without a block (of other groups) are zero
         K_blocks = cell(0,ncols_tot);
@@ -523,7 +523,7 @@ for ty={'x','w','u'}
             for c=find(all(cellfun(@isempty,K_blocks),1))
                 K_blocks{1,c} = zero_op(blk_ref.dims(1),col_spaces(c),blk_ref.vars.out,blk_ref.dom.out);
             end
-            Kops.K = copvar(K_blocks);
+            Kops.K = opvar(K_blocks);
         end
     end
 end
@@ -698,7 +698,7 @@ if any(multi)
             Pc{free(j),j} = mat2sopvar(eye(f.dim),struct('in',{f.vars},'out',{f.vars}),struct('in',f.dom,'out',f.dom));
         end
         Pc(pinned,:) = Q(:,free);
-        P = copvar(Pc);
+        P = opvar(Pc);
         % Substitute xf = P*xf_free in the maps, the constraints and F
         for k=1:nx
             for l=find(~cellfun(@isempty,Rops.x{k}(:)))'
@@ -708,12 +708,12 @@ if any(multi)
         if ~isempty(Kops.K)
             Kops.K = Kops.K*P;
         end
-        Fop = copvar(Fop.C(free,:));
+        Fop = opvar(Fop.C(free,:));
         info.fund = fund(free);
     end
     % Append the new constraints K_rows, in xf_free
     if ~isempty(K_rows)
-        K_new = copvar(K_rows);
+        K_new = opvar(K_rows);
         if ~isempty(pinned)
             K_new = K_new*P;
         end
@@ -812,7 +812,7 @@ if is_an_opt('all_inputs')
         % zero_cols(k): zero operator from the new inputs to the states k
         if n_fund>0 && ~isempty(inter)
             new_in = inputs(n_fund+1:end);
-            zero_cols = @(k) zeros_copvar_sop(struct('out',PDE.x_tab(k,2),'in',[new_in.dim]'),struct('out',{spaces_x(k)},'in',{{new_in.vars}}),dom_pde);
+            zero_cols = @(k) zeros_opvar(struct('out',PDE.x_tab(k,2),'in',[new_in.dim]'),struct('out',{spaces_x(k)},'in',{{new_in.vars}}),dom_pde);
             for k=1:numel(Rops.(obj_type))
                 Zcols_k = zero_cols(k);
                 for l=find(~cellfun(@isempty,Rops.(obj_type){k}(:)))'      % computed derivatives
@@ -838,7 +838,7 @@ if is_an_opt('all_inputs')
             dep_mask = logical(tab(r,3:2+N));
             Mat = zeros(tab(r,2),sum([inputs.dim]));
             Mat(:,sum([inputs(1:c_r-1).dim])+(1:tab(r,2))) = eye(tab(r,2));
-            Iin{r} = mat2copvar_sop(Mat,struct('out',tab(r,2),'in',[inputs.dim]'),struct('out',{{vars_pde(dep_mask)}},'in',{{inputs.vars}}),dom_pde);
+            Iin{r} = mat2opvar(Mat,struct('out',tab(r,2),'in',[inputs.dim]'),struct('out',{{vars_pde(dep_mask)}},'in',{{inputs.vars}}),dom_pde);
         end
         info.(['I',obj_type]) = Iin;
         info.inputs.(obj_type) = inputs;
@@ -861,16 +861,16 @@ else
 end
 
 % % % Return the operators as 'tensopmat' objects for a nonlinear PDE, with
-% % % a block for each state, and as 'copvar' objects for a linear PDE
+% % % a block for each state, and as 'opvar' objects for a linear PDE
 % A nonlinear PDE needs a block for each state: the columns of the maps
 % from xf and the rows of F are split according to info.blocks (inputs
 % are already single columns). A linear PDE keeps the merged objects.
 use_nonlin = PDE.is_nonlinear || is_an_opt('nonlinear');
 is_split = use_nonlin || is_an_opt('blocks');
 if is_split
-    split_op = @(P,rsplit,csplit) split_copvar(P,rsplit,csplit);
+    split_op = @(P,rsplit,csplit) split_opvar(P,rsplit,csplit);
     if use_nonlin
-        split_op = @(P,rsplit,csplit) tensopmat(split_copvar(P,rsplit,csplit,'tensopmat'));
+        split_op = @(P,rsplit,csplit) tensopmat(split_opvar(P,rsplit,csplit,'tensopmat'));
     end
     % csplit{c}: the index sets of the components of xf_c forming the
     % blocks
@@ -971,7 +971,7 @@ for types={'w','u'}
             dim_pde = PDE.([obj_type,'_tab'])(inputs(c).pde,2);
             C_blocks{c,c} = mat2sopvar(full(sparse(1:inputs(c).dim,inputs(c).sel,1,inputs(c).dim,dim_pde)),struct('in',{inputs(c).vars},'out',{inputs(c).vars}),struct('in',inputs(c).dom,'out',inputs(c).dom));
         end
-        Dmap.(obj_type).C = copvar(C_blocks);
+        Dmap.(obj_type).C = opvar(C_blocks);
         if is_split
             Dmap.(obj_type).C = split_op(Dmap.(obj_type).C,[],[]);
         end
@@ -988,14 +988,14 @@ info.input_maps = struct('w',~isempty(Tops.w),'u',~isempty(Tops.u));
 Kx = Kops.K;
 Kops = struct('x',Kx,'w',[],'u',[]);
 % zero_map and the empty row space no_rows: 'tensopmat' (nonlinear) or
-% 'copvar' (linear)
+% 'opvar' (linear)
 if use_nonlin
     [vars_srt,ord] = sort(vars_pde);
     zero_map = @(P,sp) mat2tensopmat(zeros(sum(P.dims.out),sum(sp.dims)),struct('in',sp.dims,'out',P.dims.out),...
         struct('in',{vars_srt},'out',{P.vars.out}),struct('in',space.dom(ord,:),'out',P.dom.out),struct('in',double(sp.depmat(:,ord)),'out',P.depmat.out));
     no_rows = struct('dims',struct('out',zeros(0,1)),'vars',struct('out',{cell(1,0)}),'dom',struct('out',zeros(0,2)),'depmat',struct('out',zeros(0,0)));
 else
-    zero_map = @(P,sp) zeros_copvar_sop(struct('out',P.dim_out,'in',sp.dims),...
+    zero_map = @(P,sp) zeros_opvar(struct('out',P.dim_out,'in',sp.dims),...
         struct('out',{arrayfun(@(i) P.vars(P.space_out(i,:)),1:numel(P.dim_out),'UniformOutput',false)},'in',{arrayfun(@(i) vars_pde(sp.depmat(i,:)),1:numel(sp.dims),'UniformOutput',false)}),...
         struct('vars',{vars_pde},'dom',space.dom));
     no_rows = struct('dim_out',zeros(0,1),'vars',{cell(1,0)},'space_out',false(0,0));
@@ -1039,7 +1039,7 @@ for ty={'w','u'}
                 Kb{alg_in.pos(q),c} = row{c};
             end
         end
-        Kops.(ty{1}) = copvar(Kb);
+        Kops.(ty{1}) = opvar(Kb);
     end
     if ~isempty(Tops.(ty{1}))
         continue

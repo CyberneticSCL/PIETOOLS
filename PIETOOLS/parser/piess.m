@@ -1,7 +1,7 @@
 function PIE = piess(Top,Aop,Bop,Cop,Dop)
 % PIE = PIESS(TOP,AOP,BOP,COP,DOP) takes a set of PI operators, and
 % constructs the associated PIE representation. Declaring Top through Dop
-% as 'copvar' objects, the output PIE is a 'pie_struct' object
+% as 'opvar' objects, the output PIE is a 'pie_struct' object
 % representing a "5-PIE",
 %
 %   d/dt Top*v(t) = Aop*v(t) + Bop*w(t)
@@ -26,37 +26,37 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 % with dimensions and domain again determined by the input operators.
 %
 % INPUT
-% - Top:    nv x nv 'copvar' object representing the
+% - Top:    nv x nv 'opvar' object representing the
 %           PI operator defining the left-hand side of a 5-PIE.
 %           Alternatively, a 1x3 cell {Tvop,Twop,Tuop} with all elements 
-%           'copvar' objects of dimensions 
+%           'opvar' objects of dimensions 
 %           {nv x nv, nv x nw, nv x nu}, representing the left-hand
 %           side of a 12-PI. The operators Twop and Tuop can also be set
 %           equal to [], in which case they will default to 0 operators
 %           of suitable dimensions;
-% - Aop:    nv x nv 'copvar' object representing the state
+% - Aop:    nv x nv 'opvar' object representing the state
 %           operator in both 5-PIE and 12-PIE dynamics.
-% - Bop:    nv x nw 'copvar' object representing the
+% - Bop:    nv x nw 'opvar' object representing the
 %           input PI operator defining the contribution of disturbances w 
 %           to the PDE dynamics.
 %           Alternatively, a 1x2 cell {Bwop,Buop} with both elements 
-%           'copvar' objects of dimensions 
+%           'opvar' objects of dimensions 
 %           {nv x nw, nv x nu}, representing the contribution of 
 %           disturbances and controlled inputs to the PDE dynamics;
 %           Defaults to [], returning 0 operator(s) of suitable dimensions;
-% - Cop:    nz x nv 'copvar' object representing the
+% - Cop:    nz x nv 'opvar' object representing the
 %           output PI operator defining the contribution of the state v 
 %           to the regulated output z.
 %           Alternatively, a 2x1 cell {Czop;Cyop} with both elements 
-%           'copvar' objects of dimensions 
+%           'opvar' objects of dimensions 
 %           {nz x nv, ny x nv}, representing the contribution of 
 %           the state to the regulated and controlled output.
 %           Defaults to [], returning 0 operator(s) of suitable dimensions;
-% - Dop:    nz x nw 'copvar' object representing the
+% - Dop:    nz x nw 'opvar' object representing the
 %           feedthrough PI operator defining the effect of the 
 %           disturbance w to the regulated output z.
 %           Alternatively, a 2x2 cell {Dzwop, Dzuop; Dywop, Dyuop} with 
-%           all elements 'copvar' objects of dimensions 
+%           all elements 'opvar' objects of dimensions 
 %           {nz x nw, nz x nu; ny x nw, ny x nu}, representing the
 %           feedthrough from each type of input to each type of output.
 %           Defaults to [], returning 0 operator(s) of suitable dimensions;
@@ -66,15 +66,15 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %           the specified operators. The specified operators will be stored
 %           in the PIE structure under the appropriate fields, so that e.g.
 %           PIE.T = Top, PIE.Tw = Twop, PIE.A = Aop, etc.. The PIE is
-%           initialized, so that the operators are 'copvar' objects.
+%           initialized, so that the operators are 'opvar' objects.
 %
 % NOTES
-% - The operators are 'copvar' objects, the type of the operators of a
+% - The operators are 'opvar' objects, the type of the operators of a
 % 'pie_struct'.
 % - Matrices are interpreted as constant multipliers between the spaces of
-% the 'copvar' operators acting on the same components, or between R^n if
-% there are none. Top and Aop must be specified, unless no operator is a
-% 'copvar' object; then any unspecified operator is set to 0.
+% the 'opvar' operators acting on the same components, or between R^n if
+% there are none. Top and Aop must be specified, unless no operator is an
+% 'opvar' object; then any unspecified operator is set to 0.
 % - Only linear PIEs, of type 'pie_struct', are supported.
 % - Passing a single argument "PIE = piess(Top)", the input Top will be
 % interpreted as operator Dzwop from disturbance to regulated output, and a
@@ -127,6 +127,8 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %                   of the 2025 'opvar' class name that class as such, so that
 %                   they still read correctly once copvar is renamed opvar
 %                   (comment-only);
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 
 % % % Process the inputs
@@ -157,8 +159,8 @@ elseif nargin>5
 end
 
 % % Extract operators defining the PIE.
-% Types of object accepted as operator ('copvar' is the default).           % DJ (CC), 10/30/2026
-is_op = @(P) isa(P,'copvar') || isa(P,'polynomial') || isa(P,'double');     % DJ, 11/25/2026
+% Types of object accepted as operator ('opvar' is the default).           % DJ (CC), 10/30/2026
+is_op = @(P) isa(P,'opvar') || isa(P,'polynomial') || isa(P,'double');      % DJ, 11/25/2026
 % Operators Top s.t u = Top*v + Twop*w + Tuop*u
 Twop = [];      Tuop = [];
 if isa(Top,'cell')
@@ -172,31 +174,31 @@ if isa(Top,'cell')
         Twop = Top{2};
         Top = Top{1};
     else
-        error("Operators Top defining the fundamental map should be defined as a single 'copvar' object or 1x3 cell {Top,Twop,Tuop} of 'copvar' objects.")
+        error("Operators Top defining the fundamental map should be defined as a single 'opvar' object or 1x3 cell {Top,Twop,Tuop} of 'opvar' objects.")
     end
 end
 if isequal(Top,0) || isempty(Top)
     Top = [];
 %   elseif ~isa(Top,'opvar') && ~isa(Top,'opvar2d') && ~isa(Top,'polynomial') && ~isa(Top,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Top)                                                          % DJ (CC), 10/30/2026
-    error("Operators Top defining the fundamental map should be defined as a single 'copvar' object or 1x3 cell {Top,Twop,Tuop} of 'copvar' objects.")
+    error("Operators Top defining the fundamental map should be defined as a single 'opvar' object or 1x3 cell {Top,Twop,Tuop} of 'opvar' objects.")
 end
 if (isa(Twop,'double') && isequal(Twop,0)) || isempty(Twop)
     Twop = [];
 %   elseif ~isa(Twop,'opvar') && ~isa(Twop,'opvar2d') && ~isa(Twop,'polynomial') && ~isa(Twop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Twop)                                                         % DJ (CC), 10/30/2026
-    error("Operators Top defining the fundamental map should be defined as a single 'copvar' object or 1x3 cell {Top,Twop,Tuop} of 'copvar' objects.")
+    error("Operators Top defining the fundamental map should be defined as a single 'opvar' object or 1x3 cell {Top,Twop,Tuop} of 'opvar' objects.")
 end
 if (isa(Tuop,'double') && isequal(Tuop,0)) || isempty(Tuop)
     Tuop = [];
 %   elseif ~isa(Tuop,'opvar') && ~isa(Tuop,'opvar2d') && ~isa(Tuop,'polynomial') && ~isa(Tuop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Tuop)                                                         % DJ (CC), 10/30/2026
-    error("Operators Top defining the fundamental map should be defined as a single 'copvar' object or 1x3 cell {Top,Twop,Tuop} of 'copvar' objects.")
+    error("Operators Top defining the fundamental map should be defined as a single 'opvar' object or 1x3 cell {Top,Twop,Tuop} of 'opvar' objects.")
 end
 % Operator Aop
 if isa(Aop,'cell')
     if ~isscalar(Aop)
-        error("Operator Aop defining the PIE dynamics should be defined as a single 'copvar' object.")
+        error("Operator Aop defining the PIE dynamics should be defined as a single 'opvar' object.")
     else
         Aop = Aop{1};
     end
@@ -205,7 +207,7 @@ if (isa(Aop,'double') && isequal(Aop,0)) || isempty(Aop)
     Aop = [];
 %   elseif ~isa(Aop,'opvar') && ~isa(Aop,'opvar2d') && ~isa(Aop,'polynomial') && ~isa(Aop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Aop)                                                          % DJ (CC), 10/30/2026
-    error("Operator Aop defining the PIE dynamics should be defined as a single 'copvar' object.")
+    error("Operator Aop defining the PIE dynamics should be defined as a single 'opvar' object.")
 end
 % Operator Bop
 Bwop = Bop;     Buop = [];      % assume no controlled input by default
@@ -216,20 +218,20 @@ if isa(Bop,'cell')
         Bwop = Bop{1};
         Buop = Bop{2};
     else
-        error("Input operators Bop should be defined as a single 'copvar' object Bwop or 1x2 cell {Bwop,Buop} of 'copvar' objects.")
+        error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of 'opvar' objects.")
     end
 end
 if (isa(Bwop,'double') && isequal(Bwop,0)) || isempty(Bwop)
     Bwop = [];
 %   elseif ~isa(Bwop,'opvar') && ~isa(Bwop,'opvar2d') && ~isa(Bwop,'polynomial') && ~isa(Bwop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Bwop)                                                         % DJ (CC), 10/30/2026
-    error("Input operators Bop should be defined as a single 'copvar' object Bwop or 1x2 cell {Bwop,Buop} of 'copvar' objects.")
+    error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of 'opvar' objects.")
 end
 if (isa(Buop,'double') && isequal(Buop,0)) || isempty(Buop)
     Buop = [];
 %   elseif ~isa(Buop,'opvar') && ~isa(Buop,'opvar2d') && ~isa(Buop,'polynomial') && ~isa(Buop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Buop)                                                         % DJ (CC), 10/30/2026
-    error("Input operators Bop should be defined as a single 'copvar' object Bwop or 1x2 cell {Bwop,Buop} of 'copvar' objects.")
+    error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of 'opvar' objects.")
 end
 % Operator Cop
 Czop = Cop;     Cyop = [];      % assume no controlled input by default
@@ -240,20 +242,20 @@ if isa(Cop,'cell')
         Czop = Cop{1};
         Cyop = Cop{2};
     else
-        error("Output operators Cop should be defined as a single 'copvar' object Czop or 2x1 cell {Czop;Cyop} of 'copvar' objects.")
+        error("Output operators Cop should be defined as a single 'opvar' object Czop or 2x1 cell {Czop;Cyop} of 'opvar' objects.")
     end
 end
 if (isa(Czop,'double') && isequal(Czop,0)) || isempty(Czop)
     Czop = [];
 %   elseif ~isa(Czop,'opvar') && ~isa(Czop,'opvar2d') && ~isa(Czop,'polynomial') && ~isa(Czop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Czop)                                                         % DJ (CC), 10/30/2026
-    error("Output operators Cop should be defined as a single 'copvar' object Czop or 2x1 cell {Czop;Cyop} of 'copvar' objects.")
+    error("Output operators Cop should be defined as a single 'opvar' object Czop or 2x1 cell {Czop;Cyop} of 'opvar' objects.")
 end
 if (isa(Cyop,'double') && isequal(Cyop,0)) || isempty(Cyop)
     Cyop = [];
 %   elseif ~isa(Cyop,'opvar') && ~isa(Cyop,'opvar2d') && ~isa(Cyop,'polynomial') && ~isa(Cyop,'double')  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Cyop)                                                         % DJ (CC), 10/30/2026
-    error("Output operators Cop should be defined as a single 'copvar' object Czop or 2x1 cell {Czop;Cyop} of 'copvar' objects.")
+    error("Output operators Cop should be defined as a single 'opvar' object Czop or 2x1 cell {Czop;Cyop} of 'opvar' objects.")
 end
 % Operator Dop
 Dzwop = Dop;    Dzuop = [];
@@ -269,7 +271,7 @@ if isa(Dop,'cell')
         Dzwop = Dop{1,1};   Dzuop = Dop{1,2};
         Dywop = Dop{2,1};   Dyuop = Dop{2,2};
     else
-        error("Feedthrough operators Dop should be declared as a single 'copvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'copvar' objects.")
+        error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
     end
 %   elseif isa(Dop,'opvar') || isa(Dop,'opvar2d') || isa(Dop,'double') || isa(Dop,'polynomial')  % DJ (CC), 10/30/2026 (was)
 elseif is_op(Dop)                                                           % DJ (CC), 10/30/2026
@@ -295,39 +297,39 @@ elseif is_op(Dop)                                                           % DJ
         end
     end
 else
-    error("Feedthrough operators Dop should be declared as a single 'copvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'copvar' objects.")
+    error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
 end
 if isa(Dzwop,'double') && (isempty(Dzwop) || isequal(Dzwop,0))
     Dzwop = [];
 %   elseif ~(isa(Dzwop,'opvar') || isa(Dzwop,'opvar2d') || isa(Dzwop,'double') || isa(Dzwop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Dzwop)                                                        % DJ (CC), 10/30/2026
-    error("Feedthrough operators Dop should be declared as a single 'copvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'copvar' objects.")
+    error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
 end
 if isa(Dzuop,'double') && (isempty(Dzuop) || isequal(Dzuop,0))
     Dzuop = [];
 %   elseif ~(isa(Dzuop,'opvar') || isa(Dzuop,'opvar2d') || isa(Dzuop,'double') || isa(Dzuop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Dzuop)                                                        % DJ (CC), 10/30/2026
-    error("Feedthrough operators Dop should be declared as a single 'copvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'copvar' objects.")
+    error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
 end
 if isa(Dywop,'double') && (isempty(Dywop) || isequal(Dywop,0))
     Dywop = [];
 %   elseif ~(isa(Dywop,'opvar') || isa(Dywop,'opvar2d') || isa(Dywop,'double') || isa(Dywop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Dywop)                                                        % DJ (CC), 10/30/2026
-    error("Feedthrough operators Dop should be declared as a single 'copvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'copvar' objects.")
+    error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
 end
 if isa(Dyuop,'double') && (isempty(Dyuop) ||  isequal(Dyuop,0))
     Dyuop = [];
 %   elseif ~(isa(Dyuop,'opvar') || isa(Dyuop,'opvar2d') || isa(Dyuop,'double') || isa(Dyuop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
 elseif ~is_op(Dyuop)                                                        % DJ (CC), 10/30/2026
-    error("Feedthrough operators Dop should be declared as a single 'copvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'copvar' objects.")
+    error("Feedthrough operators Dop should be declared as a single 'opvar' object Dzwop or 2x2 cell {Dzwop,Dzuop;Dywop,Dyuop} of 'opvar' objects.")
 end
 
-% % % The operators, and which of them are copvar objects (the branch for   % MMP, 11/22/2026
-% 2025 opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)  % MMP, 11/22/2026
+% % % The operators, and which of them are opvar objects (the branch for   % MMP, 11/22/2026
+% 2025 opvar operators without an opvar one, DJ (CC), 10/30/2026, removed)  % MMP, 11/22/2026
 Pops = {Top,Twop,Tuop; Aop,Bwop,Buop; Czop,Dzwop,Dzuop; Cyop,Dywop,Dyuop};  % DJ (CC), 10/30/2026
-is_cop = cellfun(@(P) isa(P,'copvar'),Pops);                                % DJ (CC), 10/30/2026
+is_cop = cellfun(@(P) isa(P,'opvar'),Pops);                                 % DJ (CC), 10/30/2026
 
-% % % BEGIN construction from copvar operators, DJ (CC), 10/30/2026
+% % % BEGIN construction from opvar operators, DJ (CC), 10/30/2026
 % The construction from 2025 opvar operators that was here (DJ, 12/20/2024 -
 % 10/29/2026) was removed with the 2025 opvar classes. The PIE is now built from
 % the operators as they are; initialize checks the spaces.
@@ -337,7 +339,7 @@ rtype = repmat([1;1;2;3],1,3);
 ctype = repmat(1:3,4,1);
 is_mat = cellfun(@(P) (isa(P,'double') || isa(P,'polynomial')) && ~isempty(P),Pops);
 
-% Registry of the variables of all copvar operators, and their domain.
+% Registry of the variables of all opvar operators, and their domain.
 cop = Pops(is_cop);
 vars_all = cellfun(@(P) P.vars,cop(:)','UniformOutput',false);
 dom_all = cellfun(@(P) P.dom,cop(:),'UniformOutput',false);
@@ -345,7 +347,7 @@ dom_all = cellfun(@(P) P.dom,cop(:),'UniformOutput',false);
 dom = cat(1,zeros(0,2),dom_all{:});
 meta = struct('vars',{reshape(vars,1,[])},'dom',dom(idx,:));
 
-% Convert matrices to copvar, between the spaces of the other operators.
+% Convert matrices to opvar, between the spaces of the other operators.
 spc = @(D,s) arrayfun(@(k) D.vars(D.(['space_',s])(k,:)),1:numel(D.(['dim_',s])),'UniformOutput',false);
 for k = reshape(find(is_mat),1,[])
     Mat = double(Pops{k});
@@ -359,7 +361,7 @@ for k = reshape(find(is_mat),1,[])
     if ~isempty(idc)
         dims.in = Pops{idc}.dim_in;         spaces.in = spc(Pops{idc},'in');
     end
-    Pops{k} = mat2copvar_sop(Mat,dims,spaces,meta);
+    Pops{k} = mat2opvar(Mat,dims,spaces,meta);
 end
 
 % The PIE of the operators, initialized
@@ -371,6 +373,6 @@ end
 % variable on which no state component depends
 PIE.space.vars = meta.vars;     PIE.space.dom = meta.dom;                   % DJ, 11/23/2026
 PIE = initialize(PIE);
-% % % END construction from copvar operators, DJ (CC), 10/30/2026
+% % % END construction from opvar operators, DJ (CC), 10/30/2026
 
 end

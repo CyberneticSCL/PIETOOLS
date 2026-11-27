@@ -1,12 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_QP_Ex_Dirichlet_Eigenvalue_Problem.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Dirichlet eigenvalue problem solved with qp_copvar. This file is meant to
+% Dirichlet eigenvalue problem solved with qp_opvar. This file is meant to
 % be run from the Matlab editor window. It computes the eigenfunctions of
 %
 %       x = lambda*x_ss,        x(0) = x(b) = 0,        on [0,b],
 %
-% with the least squares solver qp_copvar, for the known eigenvalues
+% with the least squares solver qp_opvar, for the known eigenvalues
 % lambda_n = -(b/(n*pi))^2, and compares them with the exact eigenfunctions
 % x_n = sqrt(2/b)*sin(n*pi*s/b), n = 1, 2, ...
 %
@@ -20,7 +20,7 @@
 %       are not computed here.
 %  Eigenfunctions:  v = x_ss is a multiple of sin(n*pi*s/b), so v(0) = 0, and
 %       the normalization is v(0) = 0, v'(0) = 1: v = s + s^2*Z with Z a
-%       polynomial of degree 14. For each lambda, qp_copvar solves the least
+%       polynomial of degree 14. For each lambda, qp_opvar solves the least
 %       squares problem  min_Z ||(T - lambda*I)(s + s^2*Z)||^2 = ||A Z - B||^2
 %       with A = (T - lambda*I) S^2 and B = -(T - lambda*I) s (S the
 %       multiplication by s, and s the function s as a map from R to L_2);
@@ -118,7 +118,7 @@ lams = -(b./(pi*(1:nm)')).^2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % v = x_ss is a multiple of sin(n*pi*s/b), so v(0) = 0 and the normalization
 % is v(0) = 0, v'(0) = 1: v = s + s^2*Z with Z a polynomial of degree 14.
-% For each lambda, qp_copvar solves the least squares problem
+% For each lambda, qp_opvar solves the least squares problem
 %   min_Z ||(T - lambda*I)(s + s^2*Z)||^2 = ||A Z - B||^2,
 %   A = (T - lambda*I) S^2,   B = -(T - lambda*I) s,
 % (S the multiplication by s, s the function s as an R -> L2 map); then x = T v = lambda*v
@@ -136,7 +136,7 @@ qopts = struct('deg',14,'basis','legendre','assembly','apply','solver','backslas
 sg = linspace(0,b,400)';
 Xvals = zeros(400,nm);   Vvals = zeros(400,nm);   Xex = zeros(400,nm);
 for k = 1:nm
-    Zk = qp_copvar(TS2 - lams(k)*(Sm*Sm),lams(k)*Es - TEs,qopts);
+    Zk = qp_opvar(TS2 - lams(k)*(Sm*Sm),lams(k)*Es - TEs,qopts);
     blk = Zk.C{1,1};
     cz = full(blk.params{1});   ez = blk.ZL{1}(:);     % monomial coefficients of Z
     c = zeros(17,1);   c(2) = 1;                       % v = s + s^2*Z

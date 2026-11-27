@@ -22,7 +22,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           (not supported) argument comp_order;
 %
 % OUTPUT
-% - PIE:    'pie_struct' object with 'copvar' operators for a linear PDE,
+% - PIE:    'pie_struct' object with 'opvar' operators for a linear PDE,
 %           'npie_struct' object with 'tensopmat' operators if the PDE is
 %           nonlinear or the flag 'nonlinear' is set. The components of
 %           xf are the blocks of the solution of the BCs (one for each
@@ -98,6 +98,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: Take all constraints (K, Kw, Ku) from
 %                   convert_PIETOOLS_BVP; new pie2pde fields;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 % % % Pass PDEs in the legacy formats to the legacy converters, and
 % % % convert other structures to pde_struct
@@ -188,14 +190,14 @@ end
 get_space = @(obj_tab,i) struct('vars',{vars_pde(logical(obj_tab(i,3:2+N)))},'dom',PDE.dom(logical(obj_tab(i,3:2+N)),:),'dim',obj_tab(i,2));
 identity_op = @(s) mat2sopvar(eye(s.dim),struct('in',{s.vars},'out',{s.vars}),struct('in',s.dom,'out',s.dom));
 zero_op = @(row_sp,col_sp) mat2sopvar(zeros(row_sp.dim,col_sp.dim),struct('in',{col_sp.vars},'out',{row_sp.vars}),struct('in',col_sp.dom,'out',row_sp.dom));
-% The operators are 'copvar' objects (linear PDE) or 'tensopmat' objects
+% The operators are 'opvar' objects (linear PDE) or 'tensopmat' objects
 % (nonlinear PDE); get_blocks extracts the cell of 'sopvar' blocks of an
 % operator.
 if is_nonlinear
     cell2op = @tensopmat;
     get_blocks = @(P) cellfun(@(o) o.ops{1},P.ops,'UniformOutput',false);
 else
-    cell2op = @copvar;
+    cell2op = @opvar;
     get_blocks = @(P) P.C;
 end
 select_cell = @(c,h) c{1+h};

@@ -6,9 +6,9 @@ function R = test_lpi_eq_sop()
 %   (1) for 12 cases, lpi_eq_sop(prog,P,opts{:}) returns the program, equal
 %       field by field (same_val_sop: 'polynomial' and 'dpvar' objects by
 %       their stored arrays), that the routine for the class of P returns
-%       when called directly, and adds equality rows; P is a 'cdopvar' from
-%       lpivar_cdopvar on L2[s], R x L2[s], L2[s1,s2] or L2[s1,s2,s3], or
-%       its sum with its adjoint (lpi_eq_cdopvar); the 'sdopvar' block of
+%       when called directly, and adds equality rows; P is a 'dopvar' from
+%       lpivar on L2[s], R x L2[s], L2[s1,s2] or L2[s1,s2,s3], or
+%       its sum with its adjoint (lpi_eq_dopvar); the 'sdopvar' block of
 %       the first, of its sum with its adjoint, or of the last
 %       (lpi_eq_sdopvar); or the 'dpvar' g - 1 (soseq); opts is
 %       {'symmetric'} for the 5 self-adjoint P and {} for the others;
@@ -16,10 +16,10 @@ function R = test_lpi_eq_sop()
 %       many rows; for the 4 container P that are not self-adjoint (on
 %       L2[s] and L2[s1,s2,s3], and their 'sdopvar' blocks), the call with
 %       'symmetric' adds fewer rows than without;
-%   (3) the 1x1 'cdopvar' on L2[s] and its 'sdopvar' block add the same
+%   (3) the 1x1 'dopvar' on L2[s] and its 'sdopvar' block add the same
 %       rows (At and b);
-%   (4) for a fixed 'copvar', a fixed 'sopvar', and the option 'foo' with a
-%       'cdopvar' and with an 'sdopvar', lpi_eq_sop raises the error
+%   (4) for a fixed 'opvar', a fixed 'sopvar', and the option 'foo' with a
+%       'dopvar' and with an 'sdopvar', lpi_eq_sop raises the error
 %       message and identifier that the routine called directly raises;
 %       for a 'polynomial', a 'double' and a 'struct', the identifier
 %       lpi_eq_sop:class;
@@ -97,18 +97,18 @@ n = 0;
 % % % Programs and decision operators.
 % p1 = lpiprogram_sop(s,th,[0 1]);                                          % MMP, 11/04/2026 (was)
 p1 = lpiprogram(s,th,[0 1]);                                                % MMP, 11/04/2026
-[p1,Pc1] = lpivar_cdopvar(p1,1,{{'s'}},[0 1],2);
+[p1,Pc1] = lpivar(p1,1,{{'s'}},[0 1],2);
 % [p1,Pd1] = lpivar(p1,[1 1;1 1],[2 2 2]);                                  % MMP, 11/08/2026 (was)
 [p1,g] = lpidecvar(p1,'g');
-[p1,Pc5] = lpivar_cdopvar(p1,[1;1],{{},{'s'}},[0 1],1);   % R^1 x L2[s], 2 x 2
+[p1,Pc5] = lpivar(p1,[1;1],{{},{'s'}},[0 1],1);           % R^1 x L2[s], 2 x 2
 % p2 = lpiprogram_sop([s1;s2],[th1;th2],[0 1;0 2]);                         % MMP, 11/04/2026 (was)
 p2 = lpiprogram([s1;s2],[th1;th2],[0 1;0 2]);                               % MMP, 11/04/2026
-[p2,Pc2] = lpivar_cdopvar(p2,1,{{'s1','s2'}},[0 1;0 2],1);
+[p2,Pc2] = lpivar(p2,1,{{'s1','s2'}},[0 1;0 2],1);
 % [p2,Pd2] = lpivar(p2,[0 0;0 0;0 0;1 1],1);                                % MMP, 11/08/2026 (was)
 v3 = {'s1','s2','s3'};  D3 = [0 1;0 2;0 3];
 % p3 = lpiprogram_sop(v3,D3);                                               % MMP, 11/04/2026 (was)
 p3 = lpiprogram(polynomial(v3(:)),[],D3);                                   % MMP, 11/04/2026
-[p3,Pc3] = lpivar_cdopvar(p3,1,{v3},D3,1);
+[p3,Pc3] = lpivar(p3,1,{v3},D3,1);
 % A self-adjoint container and its block; the blocks of Pc1 and Pc3
 Sc1 = Pc1+Pc1';   Sb1 = Sc1.C{1,1};    Bc1 = Pc1.C{1,1};    Bc3 = Pc3.C{1,1};
 % fprintf('classes: %s %s %s %s %s %s\n',class(Pc1),class(Pd1),class(Pc5),class(Pc2),class(Pd2),class(Pc3)); % MMP, 11/08/2026 (was)
@@ -118,14 +118,14 @@ fprintf('classes: %s %s %s %s\n',class(Pc1),class(Pc5),class(Pc2),class(Pc3)); %
 
 % % % Dispatch table: {program, P, direct routine, opts or {}}.
 C = { ...
-  p1, Pc1,          @lpi_eq_cdopvar, {};
-  p1, Sc1,          @lpi_eq_cdopvar, {'symmetric'};
-  p1, Pc5,          @lpi_eq_cdopvar, {};
-  p1, Pc5+Pc5',     @lpi_eq_cdopvar, {'symmetric'};
-  p2, Pc2,          @lpi_eq_cdopvar, {};
-  p2, Pc2+Pc2',     @lpi_eq_cdopvar, {'symmetric'};
-  p3, Pc3,          @lpi_eq_cdopvar, {};
-  p3, Pc3+Pc3',     @lpi_eq_cdopvar, {'symmetric'};
+  p1, Pc1,          @lpi_eq_dopvar, {};
+  p1, Sc1,          @lpi_eq_dopvar, {'symmetric'};
+  p1, Pc5,          @lpi_eq_dopvar, {};
+  p1, Pc5+Pc5',     @lpi_eq_dopvar, {'symmetric'};
+  p2, Pc2,          @lpi_eq_dopvar, {};
+  p2, Pc2+Pc2',     @lpi_eq_dopvar, {'symmetric'};
+  p3, Pc3,          @lpi_eq_dopvar, {};
+  p3, Pc3+Pc3',     @lpi_eq_dopvar, {'symmetric'};
   p1, Bc1,          @lpi_eq_sdopvar, {};
   p1, Sb1,          @lpi_eq_sdopvar, {'symmetric'};
   p3, Bc3,          @lpi_eq_sdopvar, {};
@@ -174,18 +174,18 @@ for k = [1 7 9 11]                                                          % MM
         k,nrows(pa)-nrows(C{k,1}),rows(k))                                  % MMP, 11/01/2026
     n = n+1;                                                                % MMP, 11/01/2026
 end                                                                         % MMP, 11/01/2026
-% A cdopvar and its one block: the same rows through the two routines.
+% A dopvar and its one block: the same rows through the two routines.
 pa = lpi_eq_sop(p1,Pc1);    pb = lpi_eq_sop(p1,Pc1.C{1,1});
 [Aa,ba] = rows_of(pa,nrows(p1));    [Ab,bb] = rows_of(pb,nrows(p1));
-assert(isequal(Aa,Ab) && isequal(ba,bb),'cdopvar and its block give different rows')
+assert(isequal(Aa,Ab) && isequal(ba,bb),'dopvar and its block give different rows')
 n = n+1;
 
 % % % Errors: each is the routine's own.
 pvar x
 E = { ...
-  p1, copvar({sopvar2fixed(Pc1.C{1,1})}),   @lpi_eq_cdopvar, {};
+  p1, opvar({sopvar2fixed(Pc1.C{1,1})}),   @lpi_eq_dopvar, {};
   p1, sopvar2fixed(Pc1.C{1,1}),             @lpi_eq_sdopvar, {};
-  p1, Pc1,                                  @lpi_eq_cdopvar, {'foo'};
+  p1, Pc1,                                  @lpi_eq_dopvar, {'foo'};
   p1, Pc1.C{1,1},                           @lpi_eq_sdopvar, {'foo'}};
 % Rows of the table until 11/08/2026, against the retired lpi_eq (checked   % MMP, 11/08/2026
 % after the loop by lpi_eq_sop's own identifier):                           % MMP, 11/08/2026

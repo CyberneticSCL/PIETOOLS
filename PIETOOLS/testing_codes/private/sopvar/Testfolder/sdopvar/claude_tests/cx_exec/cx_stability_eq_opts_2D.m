@@ -6,7 +6,7 @@ function eq_opts = cx_stability_eq_opts_2D(Qm,eq_opts,ztol)
 % the negativity slack from the zero structure of Qop. No container version
 % exists; eq_opts_sopvar is deliberately weaker (a nested, larger cone).
 %
-% Scope: QM a 1x1 'cdopvar' on L2[s1,s2] (a PIE whose state is purely 2-D
+% Scope: QM a 1x1 'dopvar' on L2[s1,s2] (a PIE whose state is purely 2-D
 % distributed). Its one sdopvar block has a 3x3 gamma cell over (s1,s2) that
 % is opvar2d's R22{i,j} cell for cell (opvar2d2sopvar copies the 3-way split
 % whole), so the stock rules apply cell for cell:

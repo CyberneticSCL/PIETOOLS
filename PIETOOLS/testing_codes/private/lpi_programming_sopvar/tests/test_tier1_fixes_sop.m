@@ -17,8 +17,8 @@ function test_tier1_fixes_sop()
 %       returns a 'sopvar' acting as bz to 1e-14 relative; for the
 %       'sdopvar' gam*bb with the last column of its first B parameter
 %       removed, it raises the error 'getsol_lpivar_sop:badB';
-%   (3) for a 'cdopvar' Q on L2[s] from lpivar_cdopvar at random values,
-%       lpigetsol_sop of the nested cell {{Q},Q} returns the 'copvar'
+%   (3) for a 'dopvar' Q on L2[s] from lpivar at random values,
+%       lpigetsol_sop of the nested cell {{Q},Q} returns the 'opvar'
 %       lpigetsol_sop(prog,Q) in both places.
 %
 % INPUT
@@ -76,7 +76,7 @@ nchk = 0;
 
 % ------------------------------------------ a block with a scalar-0 cell
 rng(1);
-b0 = rand_copvar(struct('out',{{{'s'}}},'in',{{{'s'}}}),struct('out',2,'in',2),[0 1],1,0.9);
+b0 = rand_opvar(struct('out',{{{'s'}}},'in',{{{'s'}}}),struct('out',2,'in',2),[0 1],1,0.9);
 bb = b0.C{1,1};     prm = bb.params;    prm{2} = 0;
 bz = sopvar(prm,bb.vars,bb.ZL,bb.ZR,bb.dom,bb.dims);
 assert(isscalar(bz.params{2}) && nnz(bz.params{1}) && nnz(bz.params{3}),...
@@ -141,11 +141,11 @@ nchk = nchk+1;
 % nested cells of container decision operators
 % prog = lpiprogram_sop({'s'},[0 1]);                                       % MMP, 11/04/2026 (was)
 prog = lpiprogram(polynomial({'s'}),[0 1]);                                 % MMP, 11/04/2026
-[prog,Q] = lpivar_cdopvar(prog,1,{{'s'}},[0 1],1);
+[prog,Q] = lpivar(prog,1,{{'s'}},[0 1],1);
 prog.solinfo = struct('RRx',randn(numel(prog.decvartable),1),'x',[],'info',1);
 Qs = lpigetsol_sop(prog,Q);
 r = lpigetsol_sop(prog,{{Q},Q});
-assert(isa(r{1}{1},'copvar') && isequal(r{1}{1},Qs) && isequal(r{2},Qs),'(3) nested cell {{Q},Q}');
+assert(isa(r{1}{1},'opvar') && isequal(r{1}{1},Qs) && isequal(r{2},Qs),'(3) nested cell {{Q},Q}');
 nchk = nchk+1;
 
 % Summary

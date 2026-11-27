@@ -30,7 +30,7 @@ function [Y,info] = lpigetdual_sop(prog,tag)
 % - tag:    'double', the index of the record in prog.sopeq.
 %
 % OUTPUT
-% - Y:      'copvar' object with M x N blocks: for each record entry, block
+% - Y:      'opvar' object with M x N blocks: for each record entry, block
 %           (i,j) a 'sopvar' object with the dims, vars, ZL, ZR and dom of
 %           block (i,j) of P, whose parameter cells listed in cells hold the
 %           multipliers at the positions cols and 0 elsewhere, its other
@@ -53,7 +53,7 @@ function [Y,info] = lpigetdual_sop(prog,tag)
 % PROG without the record TAG or without a nonempty prog.solinfo.y, and a
 % record whose rows exceed numel(prog.solinfo.y), are errors. So is a
 % record with no entry in some row or column of the block grid: the
-% 'copvar' constructor cannot size that row or column.
+% 'opvar' constructor cannot size that row or column.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -124,7 +124,7 @@ if r-1~=rec.rows(2)
     error('lpigetdual_sop:count','Row count mismatch: consumed %d, recorded %d.',r-rec.rows(1),nrow);
 end
 % The container and the multipliers of this equality
-Y = copvar(C);
+Y = opvar(C);
 info = struct('y',y(rec.rows(1):rec.rows(2)),'rows',rec.rows,'nrow',nrow,'blocks',blocks, ...
               'norm1',sum(abs(y(rec.rows(1):rec.rows(2)))),'symmetric',rec.symmetric);
 end

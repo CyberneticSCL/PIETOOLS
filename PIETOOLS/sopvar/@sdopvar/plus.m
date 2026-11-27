@@ -47,7 +47,7 @@ function C = plus(A,B)
 % A numeric scalar is the same as a constant dpvar scalar: scalar*I.
 if isa(A,'dpvar') || isa(B,'dpvar') || ...
         (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))
-    C = dpvar_op_copvar('plus',A,B);
+    C = dpvar_op_opvar('plus',A,B);
     return
 end
 % The sum is the batch sum of two operands, which checks the operands,

@@ -34,7 +34,7 @@ function out = stab_mirror(PIE,st)
 
 if ~isa(PIE,'pie_struct'), error('stab_mirror:type','PIE must be a pie_struct'); end
 % CC, 11/07/2026 (start): the executive's setup, then its 'Q' assemble at dw 0
-PIE = exec_pie_sop(PIE);                    % every operator a copvar
+PIE = exec_pie_sop(PIE);                    % every operator an opvar
 st  = exec_sop_settings(st);                % container options completed
 tl  = exec_tools_sop(PIE,st);   st.sop = tl.sop;
 % if tl.nv~=1, error('stab_mirror:nv','1-D only: %d variables pose ''Q'' as ''P''',tl.nv); end % CC, 11/17/2026 (was)
@@ -54,14 +54,14 @@ if st.sop.keepdual, prog.sopeq = {};    end
 % % P >= eppos2*T'*T, Q free with T'*Q = P
 % [prog,Pop] = tl.storage(prog,Top,'in');
 % Pop = Pop + eppos(2)*(Top'*Top);
-% [spO,dmO] = copvar_space_list(Top,'out');   [spI,dmI] = copvar_space_list(Top,'in');
-% [prog,Qop] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pop));
+% [spO,dmO] = opvar_space_list(Top,'out');   [spI,dmI] = opvar_space_list(Top,'in');
+% [prog,Qop] = lpivar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pop));
 % prog = lpi_eq_sop(prog,Top'*Qop - Pop);
 % Q free with the shape of T; T'*Q self-adjoint, P its symmetric part
 % [prog,Qop] = lpivar_cdopvar(prog,Top,st.lpi.var.deg{min(tl.nv,end)});     % CC, 11/18/2026 (was); CC, 11/17/2026
 qdeg = st.sop.deg_Q;    if isempty(qdeg),   qdeg = st.lpi.var.deg;  end     % CC, 11/18/2026
 if ~iscell(qdeg),   qdeg = {qdeg};  end                                     % CC, 11/18/2026
-[prog,Qop] = lpivar_cdopvar(prog,Top,qdeg{min(tl.nv,end)});                 % CC, 11/18/2026
+[prog,Qop] = lpivar(prog,Top,qdeg{min(tl.nv,end)});                         % CC, 11/18/2026
 prog = lpi_eq_sop(prog,Top'*Qop - Qop'*Top);
 Pop = 0.5*(Top'*Qop + Qop'*Top);
 % P >= eppos2*T'*T, by a slack sized from its own support

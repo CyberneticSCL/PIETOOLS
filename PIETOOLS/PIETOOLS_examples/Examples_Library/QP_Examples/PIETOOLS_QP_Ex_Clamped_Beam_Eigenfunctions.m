@@ -1,13 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_QP_Ex_Clamped_Beam_Eigenfunctions.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Clamped beam eigenfunctions computed with qp_copvar. This file is meant to
+% Clamped beam eigenfunctions computed with qp_opvar. This file is meant to
 % be run from the Matlab editor window. For the eigenvalue problem
 %
 %       u_ss = lambda*u_ssss,       u(0) = u(b) = u_s(0) = u_s(b) = 0,
 %
 % on [0,b], and given eigenvalues lambda, it computes the eigenfunctions u
-% with the least squares solver qp_copvar. The eigenvalues are precomputed
+% with the least squares solver qp_opvar. The eigenvalues are precomputed
 % and defined manually in Step 1 (six values for b = 1, scaled by b^2); they
 % are the largest-magnitude eigenvalues of this problem, the largest being
 % lambda_1 = -(b/(2*pi))^2 (buckling load of the clamped column; the
@@ -22,13 +22,13 @@
 %       with the clamped boundary conditions), and A = P + I with P v = u_ss,
 %       so P = PIE.A - I. The eigenvalue problem reads (P - lambda*I) v = 0.
 %  The least squares problem  min ||(P - lambda*I) X||^2  s.t.  X(0) = 1  is
-%       solved by qp_copvar itself, with the constraint built into the unknown,
+%       solved by qp_opvar itself, with the constraint built into the unknown,
 %       X = 1 + s*Z with Z a polynomial of degree 15:
 %
 %           min_Z ||A Z - B||^2,   A = (P - lambda*I) S,   B = -(P - lambda*I) 1,
 %
 %       where S is the multiplication by s and 1 the constant function (an R -> L_2
-%       map). qp_copvar returns Z (assembly 'apply', Legendre basis), X = v is the
+%       map). qp_opvar returns Z (assembly 'apply', Legendre basis), X = v is the
 %       eigenfunction, u = T v is computed with apply_sopvar and normalized to
 %       ||u||_{L2} = 1. The signs of modes 1, 3, 4, 5 are flipped.
 %  Only the first 6 modes are used (the polynomial of degree 16 resolves about
@@ -137,7 +137,7 @@ E1 = get_op(x0,y);
 % P*S and P*1, the two pieces of (P - lambda*I)(1 + s*Z) = P*1 + P*S*Z - lambda*(1 + s*Z)
 PS = P*Sm;   PE = P*E1;
 
-% X = 1 + s*Z with Z of degree deg-1: qp_copvar solves the least squares problem in Z
+% X = 1 + s*Z with Z of degree deg-1: qp_opvar solves the least squares problem in Z
 qopts = struct('deg',deg-1,'basis','legendre','assembly','apply','solver','backslash');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,9 +148,9 @@ sg = linspace(0,b,400)';
 Uvals = zeros(400,nm);   Vvals = zeros(400,nm);   bcs = zeros(nm,2);
 sgn = ones(1,nm);   sgn(intersect([1 3 4 5],1:nm)) = -1;
 for k = 1:nm
-    % QP by qp_copvar: min_Z ||(P - lambda*I)(1 + s*Z)||^2, i.e. ||A Z - B||^2 with
+    % QP by qp_opvar: min_Z ||(P - lambda*I)(1 + s*Z)||^2, i.e. ||A Z - B||^2 with
     % A = (P - lambda*I)*S and B = -(P - lambda*I)*1; then v = X = 1 + s*Z, X(0) = 1
-    Zk = qp_copvar(PS - lams(k)*Sm,lams(k)*E1 - PE,qopts);
+    Zk = qp_opvar(PS - lams(k)*Sm,lams(k)*E1 - PE,qopts);
     blk = Zk.C{1,1};
     cz = full(blk.params{1});   ez = blk.ZL{1}(:);     % monomial coefficients of Z, exponents 0..deg-1
     c = zeros(deg+1,1);   c(1) = 1;                    % v = 1 + s*Z in monomials of s

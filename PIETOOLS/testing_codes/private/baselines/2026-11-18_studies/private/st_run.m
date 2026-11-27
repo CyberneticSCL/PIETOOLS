@@ -22,7 +22,7 @@ function st_run(tag)
 %     'D2Pl'    light, two-variable stability rows in form 'P'
 %     'GallQh', 'GallPh'  heavy, every H-infinity gain row in form 'Q', 'P'
 %     'M1L', 'M2L'        light, after the fast-forward to origin 7764389f
-%               (copvar size, 7d0acf2c): the 1-D rows (control L1ctl) and the
+%               (opvar size, 7d0acf2c): the 1-D rows (control L1ctl) and the
 %               two-variable rows of B1c0 under 40 s (control B1c0)
 %     Phase B of the per-example settings (maintainer 11/19: "all examples
 %     should have optimized settings files"; cleaning/private/

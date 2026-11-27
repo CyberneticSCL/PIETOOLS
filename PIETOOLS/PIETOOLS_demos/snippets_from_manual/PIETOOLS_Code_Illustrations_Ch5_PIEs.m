@@ -5,7 +5,7 @@
 % The blocks convert a heat equation with integral BCs and a wave equation
 % with the same BCs, a DDE with two distributed delays, and a heat
 % equation with boundary control and outputs to PIEs; declare PIEs from
-% 'copvar' operators (piess), each extracted (get_op) from the PDE terms
+% 'opvar' operators (piess), each extracted (get_op) from the PDE terms
 % that it produces when applied to PDE variables; and impose a state
 % feedback, a Luenberger estimator and estimator-based feedback 
 % (closedLoopPIE, pielft). Lines without a semicolon print the PIE 
@@ -46,6 +46,8 @@
 %   polynomial blocks included (B1 of PIE2; A, Tu, B1, D12, D22 of PIE3); 
 %   in 5.5.3-5.5.4, T has kernel -theta for theta < s and -s for theta > s, 
 %   and B1 of PIE3 acts on the disturbance w; help text revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace
 clear

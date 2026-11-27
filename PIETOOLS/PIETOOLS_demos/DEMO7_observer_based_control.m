@@ -89,6 +89,8 @@
 %   returns containers, which op2copvar_sop returned unchanged, and the
 %   function is retired. "Converted to copvar objects by op2copvar_sop" in
 %   the entry of 11/21/2026 no longer holds.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -143,7 +145,7 @@ settings = lpisettings_sop('heavy');                                        % YP
 % and take LFT with PIE
 % Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers % MMP, 11/26/2026 (was)
 % Lval and Kval are containers as lpiscript_sop returns them                % MMP, 11/26/2026
-Sel = mat2copvar_sop([1,0],struct('out',1,'in',2),struct('out',{{{}}},'in',{{{}}}),struct('vars',{C1.vars},'dom',C1.dom));   % first output % YP, DJ, MMP, 11/21/2026
+Sel = mat2opvar([1,0],struct('out',1,'in',2),struct('out',{{{}}},'in',{{{}}}),struct('vars',{C1.vars},'dom',C1.dom));        % first output % YP, DJ, MMP, 11/21/2026
 %   PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});                      % YP, DJ, MMP, 11/21/2026 (was)
 PIE_est = piess(T,A+Lval*C2,-Lval,{Sel*C1;Kval});                           % YP, DJ, MMP, 11/21/2026
 PIE_CL = pielft(PIE,PIE_est);

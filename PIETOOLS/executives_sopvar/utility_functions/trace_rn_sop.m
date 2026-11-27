@@ -3,7 +3,7 @@ function tr = trace_rn_sop(X)
 % TR = TRACE_RN_SOP(X) returns the trace of the finite-dimensional part of
 % the square PI operator X:
 %
-%   X 'copvar', 'cdopvar'     the sum of the traces of the diagonal blocks
+%   X 'opvar', 'dopvar'     the sum of the traces of the diagonal blocks
 %                             X.C{k,k} whose space k has no spatial
 %                             variable: for an m x m 'sdopvar' block with
 %                             coefficient unvec(A + B'*d), d the decision
@@ -12,12 +12,12 @@ function tr = trace_rn_sop(X)
 %                             block, trace(params{1}).
 %
 % INPUT
-% - X:    'copvar' or 'cdopvar'
+% - X:    'opvar' or 'dopvar'
 %         object, square.
 %
 % OUTPUT
 % - tr:   a 1 x 1 'dpvar' over the decision variables X.Zd
-%         (none for a 'copvar'), the constant 0 when every space of X has a
+%         (none for an 'opvar'), the constant 0 when every space of X has a
 %         spatial variable.
 %
 % NOTES
@@ -26,7 +26,7 @@ function tr = trace_rn_sop(X)
 % variables, or has decision variables other than X.Zd is an error, as is
 % an 'sdopvar' block whose A is nonzero and has other than m*m entries.
 %
-% See also LPI_INEQ_SOP, POSLPIVAR_SOP, LPIVAR_CDOPVAR.
+% See also LPI_INEQ_SOP, POSLPIVAR_LEGACY, LPIVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -56,13 +56,13 @@ function tr = trace_rn_sop(X)
 %
 % Initial coding MMP, 10/06/2026
 
-% A container ('copvar' or 'cdopvar') only
-if ~(isa(X,'copvar') || isa(X,'cdopvar'))
-    error('trace_rn_sop:class','X must be a copvar or cdopvar.')
+% A container ('opvar' or 'dopvar') only
+if ~(isa(X,'opvar') || isa(X,'dopvar'))
+    error('trace_rn_sop:class','X must be an opvar or dopvar.')
 end
 % Container: the constant a and the decision coefficients b of the trace,
 % over the decision list of X
-if isa(X,'cdopvar'),    Zd = X.Zd(:);   else,   Zd = cell(0,1);     end
+if isa(X,'dopvar'),    Zd = X.Zd(:);   else,   Zd = cell(0,1);     end
 q = numel(Zd);
 a = 0;      b = sparse(q,1);
 isR = ~any(X.space_out,2);                  % spaces with no variable: R^q

@@ -3,7 +3,7 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % takes a PIE with evolution equations of higher order in time, and adds
 % components for the temporal derivatives of the state, so that the PIE is
 % first order in time. This works for any number of spatial variables, and
-% for PIEs with a constraint K*x=0, as it operates on the 'copvar'
+% for PIEs with a constraint K*x=0, as it operates on the 'opvar'
 % operators directly, with a block for each component of the state.
 %
 % INPUT
@@ -90,6 +90,8 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: Use pie2pde.X (was x), and adjust pie2pde.T;
 % DJ, 11/23/2026: Error for a map pde2pie.x.C with off-diagonal blocks;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 % % % Check the inputs
 if nargin<2
@@ -141,7 +143,7 @@ end
 % The map pde2pie.x.C must be block diagonal, each component deriving from
 % the single PDE component pde2pie.x.idx
 Cmap = PIE.pde2pie.x.C;
-if isa(Cmap,'copvar') && size(Cmap.C,1)==nb &&...
+if isa(Cmap,'opvar') && size(Cmap.C,1)==nb &&...
         any(any(nz_blocks(Cmap) & ~eye(size(Cmap.C))))                      % DJ, 11/23/2026
     error("expand_tderivatives:mapOffDiagonal","Expansion of higher-order temporal derivatives is not supported for a map pde2pie.x.C with blocks outside the diagonal.")
 end
@@ -189,21 +191,21 @@ for i=1:nb
         A_new{first(i)+l,first(i)+l+1} = identity_op(i);
     end
 end
-PIE.T = copvar(T_new,meta_subset(PIE.T,parent_idx,parent_idx));
-PIE.A = copvar(A_new,meta_subset(PIE.A,parent_idx,parent_idx));
+PIE.T = opvar(T_new,meta_subset(PIE.T,parent_idx,parent_idx));
+PIE.A = opvar(A_new,meta_subset(PIE.A,parent_idx,parent_idx));
 % The rows of the operators on the inputs move to host(i) as well, and the
 % columns of the operators on the state are those of x_pie_{c,0}
 for fname = {'Tw','Tu','Bw','Bu'}
     P = PIE.(fname{1});
     blocks_new = cell(nnew,size(P.C,2));
     blocks_new(host,:) = P.C;
-    PIE.(fname{1}) = copvar(blocks_new,meta_subset(P,parent_idx,1:size(P.C,2)));
+    PIE.(fname{1}) = opvar(blocks_new,meta_subset(P,parent_idx,1:size(P.C,2)));
 end
 for fname = {'Cz','Cy'}
     P = PIE.(fname{1});
     blocks_new = cell(size(P.C,1),nnew);
     blocks_new(:,first) = P.C;
-    PIE.(fname{1}) = copvar(blocks_new,meta_subset(P,1:size(P.C,1),parent_idx));
+    PIE.(fname{1}) = opvar(blocks_new,meta_subset(P,1:size(P.C,1),parent_idx));
 end
 
 
@@ -233,7 +235,7 @@ if nK>0
             K_new{q,first(c)+K_rows(q,2)} = K.C{K_rows(q,1),c};
         end
     end
-    PIE.K = copvar(K_new,meta_subset(K,K_rows(:,1),parent_idx));
+    PIE.K = opvar(K_new,meta_subset(K,K_rows(:,1),parent_idx));
 else
     PIE.K = [];
 end
@@ -254,17 +256,17 @@ end
 if size(pde2pie_s.x.tdiff,1)==nb
     pde2pie_s.x.tdiff = pde2pie_s.x.tdiff(parent_idx) + tdiff_ord;
 end
-if isa(pde2pie_s.x.C,'copvar') && size(pde2pie_s.x.C.C,1)==nb
+if isa(pde2pie_s.x.C,'opvar') && size(pde2pie_s.x.C.C,1)==nb
     blocks_new = cell(nnew,nnew);
     for k=1:nnew
         blocks_new{k,k} = pde2pie_s.x.C.C{parent_idx(k),parent_idx(k)};
     end
-    pde2pie_s.x.C = copvar(blocks_new,meta_subset(pde2pie_s.x.C,parent_idx,parent_idx));
+    pde2pie_s.x.C = opvar(blocks_new,meta_subset(pde2pie_s.x.C,parent_idx,parent_idx));
 end
 % The PDE state from the new T*x_pie+Tw*w+Tu*u, see NOTES
 pie2pde_s = PIE.pie2pde;
 X_old = pie2pde_s.X;
-if isa(X_old,'copvar') && size(X_old.C,2)==nb
+if isa(X_old,'opvar') && size(X_old.C,2)==nb
     X_nz = nz_blocks(X_old);
     X_new = cell(size(X_old.C,1),nnew);
     % Column i of X_old: on the components first(c) composed with
@@ -290,14 +292,14 @@ if isa(X_old,'copvar') && size(X_old.C,2)==nb
             end
         end
     end
-    pie2pde_s.X = copvar(X_new,meta_subset(X_old,1:size(X_old.C,1),parent_idx));
+    pie2pde_s.X = opvar(X_new,meta_subset(X_old,1:size(X_old.C,1),parent_idx));
 end
 % The map T_pde acts on the components x_{c,0} = first(c), as Cz and Cy
 P = pie2pde_s.T;
-if isa(P,'copvar') && size(P.C,2)==nb                                       % DJ, 11/20/2026
+if isa(P,'opvar') && size(P.C,2)==nb                                        % DJ, 11/20/2026
     blocks_new = cell(size(P.C,1),nnew);
     blocks_new(:,first) = P.C;
-    pie2pde_s.T = copvar(blocks_new,meta_subset(P,1:size(P.C,1),parent_idx));
+    pie2pde_s.T = opvar(blocks_new,meta_subset(P,1:size(P.C,1),parent_idx));
 end
 % Store the new spaces and maps, and initialize the PIE
 PIE.space = space;

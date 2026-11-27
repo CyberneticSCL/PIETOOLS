@@ -1,14 +1,14 @@
 function [da,db] = dup_res(prog,ma)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [DA,DB] = DUP_RES(PROG,MA) returns the residual norms of the equations
-% that LPI_EQ_CDOPVAR did not write because each is f times a written one
+% that LPI_EQ_DOPVAR did not write because each is f times a written one
 % (prog.sopeq, entries.dup): sqrt(sum (f*r)^2), r the residual of the
 % written row at x = prog.solinfo.RRx; DA over the records that start in
 % the first MA rows of prog.expr, DB over the rest.
 %
 % INPUT
 % - prog:   'struct', a solved LPI program with the field sopeq, which
-%           LPI_EQ_CDOPVAR fills when it exists (set prog.sopeq = {} before
+%           LPI_EQ_DOPVAR fills when it exists (set prog.sopeq = {} before
 %           the equalities);
 % - ma:     'double', the number of rows of the first equalities; Inf puts
 %           every record in DA.

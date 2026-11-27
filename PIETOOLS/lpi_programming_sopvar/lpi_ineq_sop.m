@@ -1,8 +1,8 @@
 function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PROG,POP,INFO] = LPI_INEQ_SOP(PROG,P,OPTS) adds to the LPI program PROG
-% the constraint P >= 0 for a self-adjoint PI operator P. For a 'cdopvar'
-% or 'copvar' P on X = L_2^{m_1}[s^1] x ... x L_2^{m_M}[s^M] (an empty s^k
+% the constraint P >= 0 for a self-adjoint PI operator P. For a 'dopvar'
+% or 'opvar' P on X = L_2^{m_1}[s^1] x ... x L_2^{m_M}[s^M] (an empty s^k
 % is R^{m_k}), it declares the positive operator
 %
 %       Pop = sum_c Z_c'*(g_c*Q_c)*Z_c,     Q_c >= 0,
@@ -29,11 +29,11 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % INPUT
 % - prog:  'struct', the LPI program; read are decvartable and, if
 %          present, settings.lpi.ineq, sop_pos (cell of the positive
-%          'cdopvar' operators declared in PROG) and sopeq (cell of the
+%          'dopvar' operators declared in PROG) and sopeq (cell of the
 %          records of equality rows);
-% - P:     'cdopvar' or 'copvar' object, square (the same output and input
+% - P:     'dopvar' or 'opvar' object, square (the same output and input
 %          spaces) and self-adjoint (not checked), the operator to make
-%          positive; for a 'copvar' P the constraint certifies P >= 0. A
+%          positive; for an 'opvar' P the constraint certifies P >= 0. A
 %          'dpvar' or 'polynomial' P is imposed as an SOS inequality; any
 %          other class is an error;
 % - opts:  (optional) 'struct' with the optional fields below, or an LPI
@@ -95,10 +95,10 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          <= cap_inc_d on the lower and upper basis
 %                          operators ('auto': Dmax_d - 1); default: those
 %                          of the tier, if any (false, none);
-%            like          'cdopvar' or 'copvar' object, or a cell of them,
+%            like          'dopvar' or 'opvar' object, or a cell of them,
 %                          with variables among those of P: their pooled
 %                          support is read instead of that of P. Default
-%                          for a 'cdopvar' P without deg: the operators of
+%                          for a 'dopvar' P without deg: the operators of
 %                          prog.sop_pos with variables among those of P
 %                          whose decision variables P carries (tested on
 %                          up to five of them); if there is none, P;
@@ -131,7 +131,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % - prog:  'struct', the program with the Gram matrices of Pop declared
 %          positive semidefinite and P - Pop == 0 imposed; for a 'dpvar'
 %          or 'polynomial' P, the program with the SOS inequality;
-% - Pop:   'cdopvar' object on the spaces of P, the positive operator Pop
+% - Pop:   'dopvar' object on the spaces of P, the positive operator Pop
 %          ([] for a 'dpvar' or 'polynomial' P);
 % - info:  'struct' with fields
 %            deg         the degree specification used: a 1 x M cell of
@@ -151,7 +151,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %            tag         double, the index in prog.sopeq of the record of
 %                        P - Pop == 0 (0 when PROG has no field sopeq);
 %            margin      double, the margin used;
-%            eD          'copvar' object, eD ([] for margin 0);
+%            eD          'opvar' object, eD ([] for margin 0);
 %            N           double row, the Gram dimension of each term;
 %            ndec        double, sum(N.^2), the entries Pop adds to
 %                        prog.decvartable (Pop has N.*(N+1)/2 distinct
@@ -159,11 +159,11 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %            sized_from  char, the source of the degrees: 'the operator',
 %                        'opts.like', 'opts.deg', or, for the default
 %                        like, the number of operators of prog.sop_pos
-%                        found followed by ' operator(s) of poscopvar';
+%                        found followed by ' operator(s) of poslpivar';
 %            cap         double row, opts.cap ([] when none);
 %          for a 'dpvar' or 'polynomial' P, struct('legacy',true).
 %
-% See also SOSINEQ, LPI_EQ_SOP, POSCOPVAR_DIRECT, GET_LIFT_DEGS,
+% See also SOSINEQ, LPI_EQ_SOP, POSLPIVAR_DIRECT, GET_LIFT_DEGS,
 %          EQ_OPTS_SOPVAR, LPIPROGRAM.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -202,10 +202,10 @@ if nargin<3,    opts = [];  end
 
 % % % Not a container: 'dpvar', 'polynomial' as an SOS inequality; others
 % an error
-if ~(isa(P,'cdopvar') || isa(P,'copvar'))
+if ~(isa(P,'dopvar') || isa(P,'opvar'))
     if isa(P,'dpvar') || isa(P,'polynomial'),   prog = sosineq(prog,P);
     else
-        error('lpi_ineq_sop:class','P should be a copvar, cdopvar, dpvar or polynomial object; got %s.',class(P))
+        error('lpi_ineq_sop:class','P should be an opvar, dopvar, dpvar or polynomial object; got %s.',class(P))
     end
     Pop = [];   info = struct('legacy',true);
     return
@@ -264,7 +264,7 @@ if ~isfield(opts,'dw') || isempty(opts.dw)
 end
 
 % % % Spaces: the variable names and dimensions of each space, the domain
-[sp,dm] = copvar_space_list(P,'out');
+[sp,dm] = opvar_space_list(P,'out');
 dom = struct('vars',{P.vars},'dom',P.dom);
 M = numel(sp);
 
@@ -278,7 +278,7 @@ src = 'the operator';
 hasopt = @(f) isfield(opts,f) && ~isempty(opts.(f));
 if hasopt('like'),  src = 'opts.like';  end
 if hasopt('deg'),   src = 'opts.deg';   end
-if ~hasopt('like') && ~hasopt('deg') && isfield(prog,'sop_pos') && isa(P,'cdopvar')
+if ~hasopt('like') && ~hasopt('deg') && isfield(prog,'sop_pos') && isa(P,'dopvar')
     zP = dvar_names(P);     like = {};
     for i = 1:numel(prog.sop_pos)
         L = prog.sop_pos{i};    zL = dvar_names(L);
@@ -288,7 +288,7 @@ if ~hasopt('like') && ~hasopt('deg') && isfield(prog,'sop_pos') && isa(P,'cdopva
     end
     if ~isempty(like)
         opts.like = like;
-        src = sprintf('%d operator(s) of poscopvar',numel(like));
+        src = sprintf('%d operator(s) of poslpivar',numel(like));
     end
 end
 
@@ -399,14 +399,14 @@ if prune && any(~cellfun(@isempty,include)),   popts.include = include;    end
 % no map) and printed, so an oversized program shows before the build and
 % the solve.
 eopts = popts;  eopts.estimate = true;
-[~,~,~,einfo] = poscopvar_direct(prog,dm,sp,dom,deg,eopts);
+[~,~,~,einfo] = poslpivar_direct(prog,dm,sp,dom,deg,eopts);
 % Counted as prog.decvartable counts them: N^2 per Gram block of dimension
 % N (the N(N+1)/2 of einfo.ndec are the distinct names of Pop).
 nd = sum(einfo.N.^2);
 fprintf(' - lpi_ineq_sop: %d decision variables in the certificate (Gram blocks %s, sized from %s); %d in the program.\n',...
         nd,mat2str(einfo.N),src,numel(prog.decvartable)+nd);
 % Declare Pop, every term in one call
-[prog,Pop,~,pinfo] = poscopvar_direct(prog,dm,sp,dom,deg,popts);
+[prog,Pop,~,pinfo] = poslpivar_direct(prog,dm,sp,dom,deg,popts);
 % % % The e_D margin (opts.margin = eps > 0): certify P + eps*e_D >= 0 with
 % e_D = A'A the energy of the lift A of the plain term. A regularisation:
 % the certified statement is the perturbed one.
@@ -424,7 +424,7 @@ if isfield(opts,'margin') && ~isempty(opts.margin) && opts.margin>0
         end
     end
     % The lift at that degree, e_D = A_D'*A_D, and the perturbed target
-    A_D = lift_copvar(dm,sp,dom,dl,lopt);
+    A_D = lift_opvar(dm,sp,dom,dl,lopt);
     eD = A_D'*A_D;
     P = P + margin*eD;
 end
@@ -439,10 +439,10 @@ end
 
 
 function z = dvar_names(X)
-% Z = DVAR_NAMES(X) the decision names of a 'cdopvar': every 'sdopvar'
+% Z = DVAR_NAMES(X) the decision names of a 'dopvar': every 'sdopvar'
 % block holds the one list of the container; {} for a fixed operator.
-% INPUT  X: 'cdopvar' or 'copvar' object.
-% OUTPUT z: cellstr, the decision variable names ({} for a 'copvar').
+% INPUT  X: 'dopvar' or 'opvar' object.
+% OUTPUT z: cellstr, the decision variable names ({} for an 'opvar').
 z = {};
 for i = 1:numel(X.C)
     if isa(X.C{i},'sdopvar'),   z = X.C{i}.Zd;  return,     end

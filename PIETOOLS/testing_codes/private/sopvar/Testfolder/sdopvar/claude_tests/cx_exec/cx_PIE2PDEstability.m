@@ -1,6 +1,6 @@
 function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PROG = CX_PIE2PDESTABILITY(PIE,ST) builds, with copvar/cdopvar only, the
+% PROG = CX_PIE2PDESTABILITY(PIE,ST) builds, with opvar/dopvar only, the
 % LPI of executives/PIETOOLS_PIE2PDEstability.m (Q form, Cor. 7.1, the
 % default 'stability' executive):
 %
@@ -11,13 +11,13 @@ function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MM
 % to the DIRECT-form PIETOOLS_stability_2D, so this goes to cx_stability_2D),
 % 81-99 (settings), 105 (program), 112-120 (P), 123-125 (Q and T'Q = P),
 % 137 (D), 148-163 (equality). Not mirrored: line 150 (sosineq_on=1, no
-% container lpi_ineq, errors) and line 170 (no getsol for cdopvar).
+% container lpi_ineq, errors) and line 170 (no getsol for dopvar).
 %
 % Container specifics:
 % - Qdeg = get_lpivar_degs(Pop,Top) (line 123) has no container overload;
-%   cx_stability_lpivar_degs reads the same maxima off the cdopvar P.
-% - Q from lpivar_cdopvar with lpivar's [d1 d2 d3] convention, which
-%   reproduces lpivar exactly in 1-D (lpivar_cdopvar.m:47-50, 429-430).
+%   cx_stability_lpivar_degs reads the same maxima off the dopvar P.
+% - Q from lpivar with lpivar's [d1 d2 d3] convention, which
+%   reproduces lpivar exactly in 1-D (lpivar.m:47-50, 429-430).
 % - P lives on T's INPUT spaces (T'*T, T'*Q: in -> in).
 %
 % Initial coding MMP, 09/25/2026
@@ -101,7 +101,7 @@ if isfield(st,'eppos2') && ~isempty(st.eppos2),  eppos2 = st.eppos2;  else,  epp
 % (sosineq_on left the settings: the transcription poses the equality path) % MMP, 11/12/2026
 
 % Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
-Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026
+Tm = PIE.T;     Am = PIE.A;                 % 'opvar' since initialize     % MMP, 11/07/2026
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);        % line 105
 
 % P = P1 (+P2) + eppos2*T'*T, lines 112-120.
@@ -117,10 +117,10 @@ Pm = Pm + eppos2*Tm'*Tm;                            % stock association (eppos2*
 % Qdeg = cx_stability_lpivar_degs(Pm);                                      % MMP, 10/06/2026 (was)
 % [spO,dmO] = cx_space_list(Tm,'out');    [spI,dmI] = cx_space_list(Tm,'in'); % MMP, 10/06/2026 (was)
 Qdeg = get_lpivar_degs_sop(Pm);                                             % MMP, 10/06/2026
-[spO,dmO] = copvar_space_list(Tm,'out');    [spI,dmI] = copvar_space_list(Tm,'in'); % MMP, 10/06/2026
-[prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI), ...
+[spO,dmO] = opvar_space_list(Tm,'out');    [spI,dmI] = opvar_space_list(Tm,'in'); % MMP, 10/06/2026
+[prog,Qm] = lpivar(prog,struct('out',dmO,'in',dmI), ...
                            struct('out',{spO},'in',{spI}),PIE.dom,Qdeg);
-prog = lpi_eq_cdopvar(prog,Tm'*Qm - Pm);            % NOT symmetric (line 125)
+prog = lpi_eq_dopvar(prog,Tm'*Qm - Pm);             % NOT symmetric (line 125)
 
 % D, line 137.
 Dm = Am'*Qm + Qm'*Am;
@@ -135,7 +135,7 @@ end
 %     Nm = Nm + N2m;                                                        % MMP, 10/06/2026 (was)
 % end                                                                       % MMP, 10/06/2026 (was)
 [prog,Nm] = poslpivar_settings_sop(prog,Dm,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
-prog = lpi_eq_cdopvar(prog,Dm+Nm,'symmetric');
+prog = lpi_eq_dopvar(prog,Dm+Nm,'symmetric');
 % Operators the two lpi_eq relations constrain, for operator-level checks   % MMP, 09/29/2026
 ops = struct('T',Tm,'A',Am,'P',Pm,'Q',Qm,'D',Dm,'N',Nm);                    % MMP, 09/29/2026
 end

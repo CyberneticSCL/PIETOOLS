@@ -13,8 +13,8 @@ function [Pcat] = horzcat(varargin)
 % - Pcat:       'sopvar' object representing [A_1,...,A_n], with dims(2)
 %               the sum of those of the inputs, and with ZL, ZR the unions
 %               of the monomial bases of the inputs. A container if any
-%               input is a 'dpvar': 'cdopvar' when the 'dpvar' has
-%               decision variables, 'copvar' otherwise.
+%               input is a 'dpvar': 'dopvar' when the 'dpvar' has
+%               decision variables, 'opvar' otherwise.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
@@ -53,7 +53,7 @@ end
 % dpvar entry: an R^{cols} -> output-space block, so the result
 % is a container.
 if any(cellfun(@(a) isa(a,'dpvar'),varargin))
-    Pcat = dpvar_op_copvar('horzcat',varargin{:});
+    Pcat = dpvar_op_opvar('horzcat',varargin{:});
     return
 end
 

@@ -1,9 +1,9 @@
 function test_dpvar_ops_sop()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TEST_DPVAR_OPS_SOP tests the container constructors EYE_COPVAR_SOP,
-% ZEROS_COPVAR_SOP and MAT2COPVAR_SOP, and mtimes, plus, minus, horzcat and
-% vertcat with a 'dpvar' operand (a scalar, a matrix or a constant) and a
-% 'copvar', 'cdopvar', 'sopvar' or 'sdopvar' operand, on 1, 2 and 3 spatial
+% TEST_DPVAR_OPS_SOP tests the container constructors EYE_OPVAR,
+% ZEROS_OPVAR and MAT2OPVAR, and mtimes, plus, minus, horzcat and
+% vertcat with a 'dpvar' operand (a scalar, a matrix or a constant) and an
+% 'opvar', 'dopvar', 'sopvar' or 'sdopvar' operand, on 1, 2 and 3 spatial
 % variables. Each result is fixed at random decision values (A + B'*d in
 % each parameter cell) and applied to a random polynomial test function
 % (all monomials of degree at most 2 in each variable) at 5 random points
@@ -12,28 +12,28 @@ function test_dpvar_ops_sop()
 % output must equal the output the operation defines from the operands, to
 % 1e-9 relative to the larger of 1 and the largest expected value:
 %   (a) the quadrature agrees with APPLY_SOPVAR (exact integration) on
-%       random 1 x 1 'copvar' objects with shared, output-only and
+%       random 1 x 1 'opvar' objects with shared, output-only and
 %       input-only variables and with R^2 on either side, on outputs
 %       larger than 1e-3;
-%   (b) with s1, s2, s3 on [0,1], [-1,2], [0,0.5]: EYE_COPVAR_SOP on
+%   (b) with s1, s2, s3 on [0,1], [-1,2], [0,0.5]: EYE_OPVAR on
 %       R^1 x L2^2 (x L2^1[s1] for 2 and 3 variables) acts as the identity
-%       with diagonal blocks only; ZEROS_COPVAR_SOP from
+%       with diagonal blocks only; ZEROS_OPVAR from
 %       L2^2 x R^1 x L2^1[s1] to R^2 x L2^1 is == 0, acts as zero and has
-%       at most M + N - 1 nonempty blocks; MAT2COPVAR_SOP between the same
-%       spaces gives a 'copvar' for a 3 x 4 'double' and a 'cdopvar' on
+%       at most M + N - 1 nonempty blocks; MAT2OPVAR between the same
+%       spaces gives an 'opvar' for a 3 x 4 'double' and a 'dopvar' on
 %       the names gam, h1, h2 for a 3 x 4 'dpvar' affine in them, each
 %       acting as the matrix does (a multiplier in a shared variable,
 %       constant in an output-only one, integrated over an input-only
 %       one);
-%   (c) on X: R^1 x L2^2 -> R^1 x L2^2, a 'copvar' and a 'cdopvar' with 3
+%   (c) on X: R^1 x L2^2 -> R^1 x L2^2, an 'opvar' and a 'dopvar' with 3
 %       decision variables, all variables on [0,1]: gam*X, X*gam, -gam*X,
 %       (2*gam-0.5)*X, dpvar(2.5)*X; gam + X, X - gam, gam - X as X plus or
 %       minus gam*I, and 1e-3 + X as X + 1e-3*I; X + D and D - X for a
 %       3 x 3 'dpvar' D as a multiplier; D*X with one output space and X*D with one input space;
 %       [-gam, D', B'; D, -gam, C; B, C', A], [-gam, B'; B, Pd] with a
-%       'cdopvar' Pd, [D21, A] (a constant function) and [D12; A] (an
+%       'dopvar' Pd, [D21, A] (a constant function) and [D12; A] (an
 %       integral); the products, the sums and [D21, Xb] for a 'sopvar'
-%       block Xb; the class of each result ('copvar' or 'sopvar' for a
+%       block Xb; the class of each result ('opvar' or 'sopvar' for a
 %       constant 'dpvar') and its decision-variable list;
 %   (d) none since 11/08/2026: it compared the operations of (c) with the
 %       'opvar' classes, now retired.
@@ -53,7 +53,7 @@ function test_dpvar_ops_sop()
 % the last check when any check failed.
 %
 % NOTES
-% Requires RAND_COPVAR, RAND_CDOPVAR, APPLY_SOPVAR and PI_POLY_GRID
+% Requires RAND_OPVAR, RAND_DOPVAR, APPLY_SOPVAR and PI_POLY_GRID
 % (sopvar/Testfolder) on the path.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -152,12 +152,12 @@ TOL = 1e-9;
         % CKOK(P,MSG) checks 'verify' of a container and the canonical
         % multiplier form of every block AS RETURNED, A and B for a
         % decision block.
-        % INPUT  P: 'copvar', 'cdopvar', 'sopvar' or 'sdopvar' object;
+        % INPUT  P: 'opvar', 'dopvar', 'sopvar' or 'sdopvar' object;
         %        msg: char, the label of the check.
         % OUTPUT none; the checks counted by CK.
         % 'verify' of a container, whose blocks are then checked; otherwise
         % the block alone
-        if isa(P,'copvar') || isa(P,'cdopvar')
+        if isa(P,'opvar') || isa(P,'dopvar')
             info = verify(P);
             ck(info.true==1,[msg ': verify ' strjoin(info.flags',' | ')]);
             B = P.C;
@@ -192,10 +192,10 @@ for nd = 1:3
     v = arrayfun(@(k) sprintf('s%d',k),1:nd,'UniformOutput',false);
     roles = {{v,v},{{'s1'},v},{v,{'s1'}},{v,{}},{{},v}};
     for r = 1:numel(roles)
-        % A random 1 x 1 copvar of this role, its output by 'act' on a test
+        % A random 1 x 1 opvar of this role, its output by 'act' on a test
         % function at random points
         so = roles{r}{1};   si = roles{r}{2};
-        P = rand_copvar(struct('out',{{so}},'in',{{si}}),struct('out',2,'in',2),dom1,2,0.8);
+        P = rand_opvar(struct('out',{{so}},'in',{{si}}),struct('out',2,'in',2),dom1,2,0.8);
         mb = metadata(P);   xf = rand_funs(mb,2);   T = rand_pts(mb);
         Y = act(P,xf,T);
         % The test function as a polynomial, apply_sopvar on it, its result
@@ -227,8 +227,8 @@ for nd = 1:3
     else,       sp = {{},v,{'s1'}}; dm = [1;2;1];
     end
     % Identity: class, verify, canonical form, action, diagonal blocks only
-    I = eye_copvar_sop(dm,sp,dstr);
-    ck(isa(I,'copvar'),sprintf('nd=%d eye class',nd));
+    I = eye_opvar(dm,sp,dstr);
+    ck(isa(I,'opvar'),sprintf('nd=%d eye class',nd));
     ckok(I,sprintf('nd=%d eye',nd));
     meta = metadata(I);
     xf = rand_funs(meta,2);     T = rand_pts(meta);
@@ -240,7 +240,7 @@ for nd = 1:3
     ss = struct('out',{so},'in',{si});
     % Zero operator: verify and canonical form, == 0, the number of
     % nonempty blocks, a zero action
-    Z = zeros_copvar_sop(ds,ss,dstr);
+    Z = zeros_opvar(ds,ss,dstr);
     ckok(Z,sprintf('nd=%d zeros',nd));
     ck(Z==0,sprintf('nd=%d zeros == 0',nd));
     ck(nnz(~cellfun(@isempty,Z.C))<=numel(so)+numel(si)-1,sprintf('nd=%d zeros fill count',nd));
@@ -249,29 +249,29 @@ for nd = 1:3
     ck(all(cellfun(@(y) all(y(:)==0),Yz)),sprintf('nd=%d zeros action',nd));
     % Constant matrix, integral blocks included (L2 -> R^2).
     Mn = randn(3,4);
-    Mc = mat2copvar_sop(Mn,ds,ss,dstr);
-    ck(isa(Mc,'copvar'),sprintf('nd=%d mat class',nd));
+    Mc = mat2opvar(Mn,ds,ss,dstr);
+    ck(isa(Mc,'opvar'),sprintf('nd=%d mat class',nd));
     ckok(Mc,sprintf('nd=%d mat',nd));
     ckval(act(Mc,xz,Tz),const_act(Mn,mz,xz,Tz),sprintf('nd=%d mat action',nd));
     % dpvar matrix: affine in gam, h1, h2.
     Dm = rand_dp(3,4,gam,h);
-    Md = mat2copvar_sop(Dm,ds,ss,dstr);
-    ck(isa(Md,'cdopvar'),sprintf('nd=%d dpvar mat class',nd));
+    Md = mat2opvar(Dm,ds,ss,dstr);
+    ck(isa(Md,'dopvar'),sprintf('nd=%d dpvar mat class',nd));
     ck(isempty(setxor(Md.Zd,Dm.dvarname)),sprintf('nd=%d dpvar mat Zd',nd));
     ckok(Md,sprintf('nd=%d dpvar mat',nd));
     ckval(act(fix_op(Md,NAMES,VALS),xz,Tz),const_act(dp_val(Dm,NAMES,VALS),mz,xz,Tz),...
         sprintf('nd=%d dpvar mat action',nd));
     % Refusals.
-    ckerr(@() mat2copvar_sop(Mn,ds,ss,dstr,struct('mult_only',true)),...
-        'mat2copvar_grid:integral',sprintf('nd=%d mult_only refuses Q1',nd));
-    ckerr(@() mat2copvar_sop(randn(3,3),ds,ss,dstr),'mat2copvar_grid:size',...
+    ckerr(@() mat2opvar(Mn,ds,ss,dstr,struct('mult_only',true)),...
+        'mat2opvar_grid:integral',sprintf('nd=%d mult_only refuses Q1',nd));
+    ckerr(@() mat2opvar(randn(3,3),ds,ss,dstr),'mat2opvar_grid:size',...
         sprintf('nd=%d mat size',nd));
     pv = polynomial(v(1));
-    ckerr(@() mat2copvar_sop(gam*pv*ones(3,4),ds,ss,dstr),'mat2copvar_grid:spatial',...
+    ckerr(@() mat2opvar(gam*pv*ones(3,4),ds,ss,dstr),'mat2opvar_grid:spatial',...
         sprintf('nd=%d spatial dpvar',nd));
-    ckerr(@() eye_copvar_sop(ds,ss,dstr),'eye_copvar_sop:notSquare',sprintf('nd=%d eye nonsquare',nd));
+    ckerr(@() eye_opvar(ds,ss,dstr),'eye_opvar:notSquare',sprintf('nd=%d eye nonsquare',nd));
 end
-% Deleted: in 1-D, mat2copvar_sop and eye_copvar_sop against                % MMP, 11/08/2026
+% Deleted: in 1-D, mat2opvar and eye_opvar against                % MMP, 11/08/2026
 % opvar2copvar(mat2opvar(...)) (MMP, 09/29/2026); both are checked by       % MMP, 11/08/2026
 % their action above, and mat2opvar is retired.                             % MMP, 11/08/2026
 
@@ -279,13 +279,13 @@ end
 % The dpvar operands, check (c)
 for nd = 1:3
     fprintf('--- dpvar operators, %d spatial variable(s)\n',nd);
-    % R^1 x L2^2[s1..s_nd] to itself: a copvar X and a cdopvar Xd with 3
+    % R^1 x L2^2[s1..s_nd] to itself: an opvar X and a dopvar Xd with 3
     % decision variables; the names and values of Xd appended
     v = arrayfun(@(k) sprintf('s%d',k),1:nd,'UniformOutput',false);
     sp = struct('out',{{{},v}},'in',{{{},v}});
     dm = struct('out',[1;2],'in',[1;2]);
-    X  = rand_copvar(sp,dm,dom1,1,0.7);
-    Xd = rand_cdopvar(sp,dm,dom1,1,3,0.7);
+    X  = rand_opvar(sp,dm,dom1,1,0.7);
+    Xd = rand_dopvar(sp,dm,dom1,1,3,0.7);
     NAMES = [{'gam','h1','h2'}, reshape(Xd.Zd,1,[])];
     VALS  = [VALS(1:3), randn(1,numel(Xd.Zd))];
     % Outputs of X, of Xd at the values and of the identity, on the same
@@ -301,7 +301,7 @@ for nd = 1:3
     tag = @(s) sprintf('nd=%d %s',nd,s);
 
     % Scalar products.
-    R = gam*X;      ck(isa(R,'cdopvar'),tag('gam*X class'));   ckok(R,tag('gam*X'));
+    R = gam*X;      ck(isa(R,'dopvar'),tag('gam*X class'));   ckok(R,tag('gam*X'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([gv 0],YX,YX),tag('gam*X'));
     R = X*gam;      ckok(R,tag('X*gam'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([gv 0],YX,YX),tag('X*gam'));
@@ -309,15 +309,15 @@ for nd = 1:3
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([-gv 0],YX,YX),tag('-gam*X'));
     R = (a1*gam + a0)*X;    ckok(R,tag('(2gam-0.5)*X'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([av 0],YX,YX),tag('(2gam-0.5)*X'));
-    R = dpvar(2.5)*X;       ck(isa(R,'copvar'),tag('const dpvar*X is copvar'));
+    R = dpvar(2.5)*X;       ck(isa(R,'opvar'),tag('const dpvar*X is opvar'));
     ckval(act(R,xf,T),lin([2.5 0],YX,YX),tag('const dpvar*X'));
-    R = dpvar(2.5)*Xd;      ck(isa(R,'cdopvar'),tag('const dpvar*Xd class'));
+    R = dpvar(2.5)*Xd;      ck(isa(R,'dopvar'),tag('const dpvar*Xd class'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([2.5 0],YXd,YXd),tag('const dpvar*Xd'));
-    ckerr(@() gam*Xd,'cdopvar:decisionTimesDecision',tag('gam*Xd refused'));
-    ckerr(@() Xd*gam,'cdopvar:decisionTimesDecision',tag('Xd*gam refused'));
+    ckerr(@() gam*Xd,'dopvar:decisionTimesDecision',tag('gam*Xd refused'));
+    ckerr(@() Xd*gam,'dopvar:decisionTimesDecision',tag('Xd*gam refused'));
 
     % Sums: scalar is scalar*I on the square operator.
-    R = gam + X;    ck(isa(R,'cdopvar'),tag('gam+X class'));   ckok(R,tag('gam+X'));
+    R = gam + X;    ck(isa(R,'dopvar'),tag('gam+X class'));   ckok(R,tag('gam+X'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([1 gv],YX,Ix),tag('gam+X'));
     R = X - gam;    ckok(R,tag('X-gam'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([1 -gv],YX,Ix),tag('X-gam'));
@@ -329,11 +329,11 @@ for nd = 1:3
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([1 gv],YXd,Ix),tag('Xd+gam'));
     R = gam - Xd;   ckok(R,tag('gam-Xd'));
     ckval(act(fix_op(R,NAMES,VALS),xf,T),lin([-1 gv],YXd,Ix),tag('gam-Xd'));
-    R = dpvar(1e-3) + X;    ck(isa(R,'copvar'),tag('dpvar(1e-3)+X is copvar'));
+    R = dpvar(1e-3) + X;    ck(isa(R,'opvar'),tag('dpvar(1e-3)+X is opvar'));
     ckval(act(R,xf,T),lin([1 1e-3],YX,Ix),tag('dpvar(1e-3)+X'));
 %   ckerr(@() 1e-3 + X,'plus:badInput',tag('numeric summand refused, as before')); % MMP, 11/23/2026 (was)
     % A numeric scalar is scalar*I, as dpvar(1e-3) above (921aed59)         % MMP, 11/23/2026
-    R = 1e-3 + X;   ck(isa(R,'copvar'),tag('1e-3+X is copvar'));            % MMP, 11/23/2026
+    R = 1e-3 + X;   ck(isa(R,'opvar'),tag('1e-3+X is opvar'));              % MMP, 11/23/2026
     ckval(act(R,xf,T),lin([1 1e-3],YX,Ix),tag('1e-3+X'));                   % MMP, 11/23/2026
     % Full-size matrix: a multiplier split by the dimensions; the
     % R^1 <- L2 block (row 1, cols 2:3) would be an integral and is zero.
@@ -346,25 +346,25 @@ for nd = 1:3
     % Refused: a summand with a nonzero R^1 <- L2 entry, mismatched sizes,
     % a scalar plus a non-square operator
     Dq = rand_dp(3,3,gam,h);    Dq(1,2) = gam;
-    ckerr(@() X + Dq,'mat2copvar_grid:integral',tag('X+Dm with an integral block refused'));
+    ckerr(@() X + Dq,'mat2opvar_grid:integral',tag('X+Dm with an integral block refused'));
     ckerr(@() X + rand_dp(2,2,gam,h),'plus:dimMismatch',tag('X+Dm size mismatch'));
-    Xr = rand_copvar(struct('out',{{{},v}},'in',{{v}}),struct('out',[1;2],'in',2),dom1,1,0.7);
+    Xr = rand_opvar(struct('out',{{{},v}},'in',{{v}}),struct('out',[1;2],'in',2),dom1,1,0.7);
     ckerr(@() gam + Xr,'plus:dimMismatch',tag('gam+nonsquare refused'));
 
     % Matrix products: D*X needs one output space, X*D one input space.
     % X1 from R^1 x L2^1 to L2^2: Dm*X1 and dpvar(Mn)*X1 scale its output
-    X1 = rand_copvar(struct('out',{{v}},'in',{{{},v}}),struct('out',2,'in',[1;1]),dom1,1,0.7);
+    X1 = rand_opvar(struct('out',{{v}},'in',{{{},v}}),struct('out',2,'in',[1;1]),dom1,1,0.7);
     m1 = metadata(X1);  x1 = rand_funs(m1,2);   T1 = rand_pts(m1);  Y1 = act(X1,x1,T1);
     Dm = rand_dp(3,2,gam,h);    Dv = dp_val(Dm,NAMES,VALS);
-    R = Dm*X1;      ck(isa(R,'cdopvar'),tag('Dm*X1 class'));  ckok(R,tag('Dm*X1'));
+    R = Dm*X1;      ck(isa(R,'dopvar'),tag('Dm*X1 class'));  ckok(R,tag('Dm*X1'));
     T1o = T1;       % the output space is X1's, with 3 components
     ckval(act(fix_op(R,NAMES,VALS),x1,T1o),{Y1{1}*Dv.'},tag('Dm*X1'));
     Mn = randn(3,2);
-    R = dpvar(Mn)*X1;   ck(isa(R,'copvar'),tag('dpvar(M)*X1 is copvar'));
+    R = dpvar(Mn)*X1;   ck(isa(R,'opvar'),tag('dpvar(M)*X1 is opvar'));
     ckval(act(R,x1,T1),{Y1{1}*Mn.'},tag('dpvar(M)*X1'));
     ckerr(@() Mn*X1,'mtimes:nonScalarNumeric',tag('numeric matrix factor refused, as before'));
     % X2 from L2^2 to R^1 x L2^1: X2*D2 on x3 is X2 on the function D2*x3
-    X2 = rand_copvar(struct('out',{{{},v}},'in',{{v}}),struct('out',[1;1],'in',2),dom1,1,0.7);
+    X2 = rand_opvar(struct('out',{{{},v}},'in',{{v}}),struct('out',[1;1],'in',2),dom1,1,0.7);
     m2 = metadata(X2);  T2 = rand_pts(m2);
     D2 = rand_dp(2,3,gam,h);    D2v = dp_val(D2,NAMES,VALS);
     x3 = rand_funs(struct('vars',{m2.vars},'space_in',m2.space_in,'dim_in',3),2);
@@ -375,25 +375,25 @@ for nd = 1:3
     % decision
     ckerr(@() Dm*X,'mtimes:ambiguousMatrix',tag('Dm*X with two row spaces'));
     ckerr(@() rand_dp(3,3,gam,h)*X1,'mtimes:dimMismatch',tag('Dm*X1 inner dims'));
-    Xd1 = rand_cdopvar(struct('out',{{v}},'in',{{{},v}}),struct('out',2,'in',[1;1]),dom1,1,2,0.7);
-    ckerr(@() Dm*Xd1,'cdopvar:decisionTimesDecision',tag('Dm*Xd1 refused'));
+    Xd1 = rand_dopvar(struct('out',{{v}},'in',{{{},v}}),struct('out',2,'in',[1;1]),dom1,1,2,0.7);
+    ckerr(@() Dm*Xd1,'dopvar:decisionTimesDecision',tag('Dm*Xd1 refused'));
 
     % Concatenation, the DEMO5 shape [-gam, D', B'; D, -gam, C; B, C', A].
     % Dp: R^1 -> R^1, Bp: R^1 -> L2^2, Cp: L2^2 -> R^1, Ap: L2^2 -> L2^2
     sR = {{}};  sL = {v};
-    Dp = rand_copvar(struct('out',{sR},'in',{sR}),struct('out',1,'in',1),dom1,1,1);
-    Bp = rand_copvar(struct('out',{sL},'in',{sR}),struct('out',2,'in',1),dom1,1,1);
-    Cp = rand_copvar(struct('out',{sR},'in',{sL}),struct('out',1,'in',2),dom1,1,1);
-    Ap = rand_copvar(struct('out',{sL},'in',{sL}),struct('out',2,'in',2),dom1,1,0.7);
+    Dp = rand_opvar(struct('out',{sR},'in',{sR}),struct('out',1,'in',1),dom1,1,1);
+    Bp = rand_opvar(struct('out',{sL},'in',{sR}),struct('out',2,'in',1),dom1,1,1);
+    Cp = rand_opvar(struct('out',{sR},'in',{sL}),struct('out',1,'in',2),dom1,1,1);
+    Ap = rand_opvar(struct('out',{sL},'in',{sL}),struct('out',2,'in',2),dom1,1,0.7);
     Dpt = Dp';  Bpt = Bp';  Cpt = Cp';
     Q = [-gam, Dpt, Bpt; Dp, -gam, Cp; Bp, Cpt, Ap];
-    ck(isa(Q,'cdopvar') && isequal(size(Q,'block'),[3 3]),tag('DEMO5 shape class and grid'));  % DJ, 11/18/2026
+    ck(isa(Q,'dopvar') && isequal(size(Q,'block'),[3 3]),tag('DEMO5 shape class and grid'));   % DJ, 11/18/2026
     ckok(Q,tag('DEMO5 shape'));
     O = {-gam, Dpt, Bpt; Dp, -gam, Cp; Bp, Cpt, Ap};
     mq = metadata(Q);   xq = rand_funs(mq,2);   Tq = rand_pts(mq);
     ckval(act(fix_op(Q,NAMES,VALS),xq,Tq),grid_act(O,xq,Tq,NAMES,VALS),tag('DEMO5 shape'));
     % A decision block beside a dpvar entry: Zd merge.
-    Pd = rand_cdopvar(struct('out',{sL},'in',{sL}),struct('out',2,'in',2),dom1,1,3,0.7);
+    Pd = rand_dopvar(struct('out',{sL},'in',{sL}),struct('out',2,'in',2),dom1,1,3,0.7);
     NAMES = [NAMES, reshape(Pd.Zd,1,[])];   VALS = [VALS, randn(1,numel(Pd.Zd))];
     Q2 = [-gam, Bpt; Bp, Pd];
     ckok(Q2,tag('[-gam,B''; B,Pd]'));
@@ -412,12 +412,12 @@ for nd = 1:3
     mr = metadata(R);   xr = rand_funs(mr,2);   Tr = rand_pts(mr);
     ckval(act(fix_op(R,NAMES,VALS),xr,Tr),grid_act({D12;Ap},xr,Tr,NAMES,VALS),tag('[D12; A]'));
     % Refused: mismatched rows or columns, a numeric entry; a constant
-    % dpvar entry gives a copvar
+    % dpvar entry gives an opvar
     ckerr(@() [gam, Ap],'horzcat:dimMismatch',tag('[gam, A] rows'));
     ckerr(@() [gam; Ap],'vertcat:dimMismatch',tag('[gam; A] columns'));
-    R = [Ap, dpvar(zeros(2,1))];   ck(isa(R,'copvar'),tag('[A, dpvar(zeros)] is copvar'));
+    R = [Ap, dpvar(zeros(2,1))];   ck(isa(R,'opvar'),tag('[A, dpvar(zeros)] is opvar'));
     ckok(R,tag('[A, dpvar(zeros)]'));
-    ckerr(@() [Ap, zeros(2,1)],'copvar:horzcatBadOperand',tag('numeric entry refused, as before'));
+    ckerr(@() [Ap, zeros(2,1)],'opvar:horzcatBadOperand',tag('numeric entry refused, as before'));
 
     % Block level: sopvar / sdopvar operands.
     % The L2^2 -> L2^2 blocks of X and Xd; their spaces as metadata, test
@@ -439,9 +439,9 @@ for nd = 1:3
     Db = rand_dp(3,2,gam,h);    Dbv = dp_val(Db,NAMES,VALS);
     R = Db*Xb;      ck(isa(R,'sdopvar'),tag('Db*Xb is sdopvar'));
     ckval(act(fix_op(R,NAMES,VALS),xb,Tb),{Yb{1}*Dbv.'},tag('Db*Xb'));
-    ckerr(@() gam*Xdb,'cdopvar:decisionTimesDecision',tag('gam*Xdb refused'));
+    ckerr(@() gam*Xdb,'dopvar:decisionTimesDecision',tag('gam*Xdb refused'));
     D21b = rand_dp(2,1,gam,h);
-    R = [D21b, Xb];     ck(isa(R,'cdopvar') && isequal(size(R,'block'),[1 2]),tag('[D21, Xb] is a 1x2 container'));  % DJ, 11/18/2026
+    R = [D21b, Xb];     ck(isa(R,'dopvar') && isequal(size(R,'block'),[1 2]),tag('[D21, Xb] is a 1x2 container'));   % DJ, 11/18/2026
     ckok(R,tag('[D21, Xb]'));
     mr = metadata(R);   xr = rand_funs(mr,2);   Tr = rand_pts(mr);
     ckval(act(fix_op(R,NAMES,VALS),xr,Tr),grid_act({D21b,Xb},xr,Tr,NAMES,VALS),tag('[D21, Xb]'));
@@ -451,7 +451,7 @@ end
 
 % Deleted: check (d) (MMP, 09/29/2026), the operations of (c) on random     % MMP, 11/08/2026
 % 'opvar' objects against the container results, and mat2opvar against      % MMP, 11/08/2026
-% mat2copvar_sop on a 'dpvar' matrix; the opvar classes are retired.        % MMP, 11/08/2026
+% mat2opvar on a 'dpvar' matrix; the opvar classes are retired.        % MMP, 11/08/2026
 
 % The counts; an error when any check failed
 fprintf('test_dpvar_ops_sop: %d passed, %d failed\n',npass,nfail);
@@ -495,12 +495,12 @@ end
 function P = fix_op(P,names,vals)
 % P = FIX_OP(P,NAMES,VALS) substitutes decision values: C = unvec(A + B'*d)
 % per gamma cell, for every 'sdopvar' block, by the kernel definition of
-% the 'sdopvar' class; an 'sdopvar' becomes a 'sopvar', a 'cdopvar' a
-% 'copvar', and a fixed object is returned unchanged.
-% INPUT  P:     'sdopvar', 'cdopvar' or fixed object; names: cellstr,
+% the 'sdopvar' class; an 'sdopvar' becomes a 'sopvar', a 'dopvar' an
+% 'opvar', and a fixed object is returned unchanged.
+% INPUT  P:     'sdopvar', 'dopvar' or fixed object; names: cellstr,
 %               decision variable names, containing those of P; vals:
 %               double, vals(k) the value of names{k}.
-% OUTPUT P:     'sopvar', 'copvar' or the input.
+% OUTPUT P:     'sopvar', 'opvar' or the input.
 if isa(P,'sdopvar')
     % Values in the order of P.Zd; each cell's A + B'*d reshaped to
     % dims(1)*|ZL| x dims(2)*|ZR|, an empty cell a sparse zero
@@ -515,14 +515,14 @@ if isa(P,'sdopvar')
         prm{k} = reshape(a + b.'*d,P.dims(1)*NL,P.dims(2)*NR);
     end
     P = sopvar(prm,P.vars,P.ZL,P.ZR,P.dom,P.dims);
-elseif isa(P,'cdopvar')
-    % Every nonempty block, then a copvar with the metadata of P
+elseif isa(P,'dopvar')
+    % Every nonempty block, then an opvar with the metadata of P
     C = P.C;
     for k = 1:numel(C)
         if ~isempty(C{k}),  C{k} = fix_op(C{k},names,vals);  end
     end
     m = metadata(P);
-    P = copvar(C,rmfield(m,'Zd'));
+    P = opvar(C,rmfield(m,'Zd'));
 end
 end
 
@@ -592,10 +592,10 @@ end
 
 
 function Y = act(P,xf,T)
-% Y = ACT(P,XF,T) returns the output of the FIXED operator P (copvar or
+% Y = ACT(P,XF,T) returns the output of the FIXED operator P (opvar or
 % sopvar) on the test functions xf at the points T, by quadrature of the
 % kernel definition.
-% INPUT  P:  'copvar' or 'sopvar' object; xf: 'struct' array of RAND_FUNS,
+% INPUT  P:  'opvar' or 'sopvar' object; xf: 'struct' array of RAND_FUNS,
 %            one test function per input space; T: 1 x M cell of points
 %            (RAND_PTS), columns in the order of P.vars (sorted vars.out
 %            for a 'sopvar').
@@ -733,7 +733,7 @@ function Y = grid_act(O,xf,T,names,vals)
 % sum_j O{i,j} applied to x_j, a dpvar entry by its value as a constant
 % block between the row's and column's spaces, an operator entry fixed at
 % the values.
-% INPUT  O:     M x N cell of 'dpvar', 'copvar', 'cdopvar', 'sopvar' or
+% INPUT  O:     M x N cell of 'dpvar', 'opvar', 'dopvar', 'sopvar' or
 %               'sdopvar' entries, the operator entries with one row and
 %               one column space; xf: 'struct' array of RAND_FUNS, one per
 %               column; T: 1 x M cell of points (RAND_PTS); names: cellstr;
@@ -777,7 +777,7 @@ function vo = row_vars(O,i)
 % OUTPUT vo: cellstr (1 x 0 when none).
 for j = 1:size(O,2)
     o = O{i,j};
-    if isa(o,'copvar') || isa(o,'cdopvar'),     vo = o.vars(o.space_out(1,:));  return
+    if isa(o,'opvar') || isa(o,'dopvar'),     vo = o.vars(o.space_out(1,:));  return
     elseif isa(o,'sopvar') || isa(o,'sdopvar'), vo = sort(o.vars.out);          return
     end
 end

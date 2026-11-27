@@ -36,7 +36,7 @@ function [Tops,Kop,Fop,info] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,so
 %           which are then passed through;
 %
 % OUTPUT
-% All operators are 'copvar' objects, with the nV components xf_c of xf
+% All operators are 'opvar' objects, with the nV components xf_c of xf
 % as columns.
 % - Tops:   struct with fields x, w, u: q x 1 cells, with
 %           x{k}{alpha_1+1,...,alpha_N+1} the 1 x nV operator
@@ -612,7 +612,7 @@ for ty=itypes
         Tops.(ty{1}) = R_inputs.(ty{1});
     end
 end
-Fop = copvar(F_blocks);
+Fop = opvar(F_blocks);
 Kop = [];
 if ~isempty(K_blocks)
     % Every column of the container needs a block to define its space
@@ -620,7 +620,7 @@ if ~isempty(K_blocks)
     for c=find(all(cellfun(@isempty,K_blocks),1))
         K_blocks{1,c} = mat2sopvar(zeros(blk_ref.dims(1),fund(c).dim),struct('in',{fund(c).vars},'out',{blk_ref.vars.out}),struct('in',fund(c).dom,'out',blk_ref.dom.out));
     end
-    Kop = copvar(K_blocks);
+    Kop = opvar(K_blocks);
 end
 
 % % % Information on the components of xf, and the inputs; nK>m along a
@@ -638,7 +638,7 @@ function R_stacked = stack_rows(Rops_1D,n,a,d_i,perm_back)
 % into a single operator to the derivative of order a of all components.
 %
 % INPUT
-% - Rops_1D:    (d_i+1) x (d_i+1) cell of 'copvar' objects, e.g. the
+% - Rops_1D:    (d_i+1) x (d_i+1) cell of 'opvar' objects, e.g. the
 %           operators Rops.R1 of the 1D solution, with Rops_1D{j+1,a+1}
 %           mapping the 1D fundamental state to the derivative of order a
 %           of the n(j+1) states of order j;
@@ -691,7 +691,7 @@ function Rk = state_diffs(ops_stacked,Dk,alphas,select_rows)
 %           operator on the stacked states;
 %
 % OUTPUT
-% - Rk:    cell of size Dk+1, with Rk{alpha+1} a 1 x ncols 'copvar' object
+% - Rk:    cell of size Dk+1, with Rk{alpha+1} a 1 x ncols 'opvar' object
 %           mapping to D^{alpha}x for the state x, for all alpha<=Dk,
 %           indexed linearly (first direction fastest);
 ncols = size(ops_stacked,1);
@@ -701,7 +701,7 @@ for a=find(all(alphas<=Dk,2))'
     for c=1:ncols
         blocks_row{c} = select_rows(ops_stacked{c,a});
     end
-    Rk{1+sum(alphas(a,:).*cumprod([1,Dk(1:end-1)+1]))} = copvar(blocks_row);
+    Rk{1+sum(alphas(a,:).*cumprod([1,Dk(1:end-1)+1]))} = opvar(blocks_row);
 end
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

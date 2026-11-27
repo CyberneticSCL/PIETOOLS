@@ -8,7 +8,7 @@ function tl = exec_tools_sop(PIE,st)
 % the per-direction bounds of the slack bases.
 %
 % INPUT
-% - PIE:  'pie_struct' object, each operator a 'copvar' object or 0
+% - PIE:  'pie_struct' object, each operator an 'opvar' object or 0
 %         (absent), in any number nv >= 1 of variables;
 % - st:   'struct' of LPI settings:
 %           1-D  eppos, eppos2, epneg (each optional), lpi.var.deg{1}, the
@@ -53,7 +53,7 @@ function tl = exec_tools_sop(PIE,st)
 %           storage        function handle, [prog,P] = storage(prog,X,side):
 %                          declares the positive operator of the settings
 %                          on the SIDE ('out' or 'in') spaces of the
-%                          'copvar' X; P is a 'cdopvar' object; from the
+%                          'opvar' X; P is a 'dopvar' object; from the
 %                          storage row in every dimension when lpi.pos of
 %                          the program settings carries len_com, else as
 %                          above;
@@ -61,15 +61,15 @@ function tl = exec_tools_sop(PIE,st)
 %                          declares the 'stock' slack of an inequality on
 %                          the spaces of X; an error without 'stock'
 %                          settings (N-D, and 2-D without settings_2d);
-%           eye            function handle, E = eye(side,e): the 'copvar'
+%           eye            function handle, E = eye(side,e): the 'opvar'
 %                          operator diag(e_k I) on the output (SIDE 1) or
 %                          input (SIDE 2) spaces of PIE.T; e a scalar, or
 %                          2^nv weights, the weight of a space being entry
 %                          1 + sum_k 2^(k-1) over the positions k in
 %                          PIE.vars of its variables;
 %           ident          function handle, I = ident(Bop,side): the
-%                          identity 'copvar' on the output (SIDE 1) or input
-%                          (SIDE 2) space of the 'copvar' or 'cdopvar' Bop;
+%                          identity 'opvar' on the output (SIDE 1) or input
+%                          (SIDE 2) space of the 'opvar' or 'dopvar' Bop;
 %           zdeg           the degrees of a free operator: 1-D
 %                          lpi.var.deg{1}; 2-D a 'struct' with the largest
 %                          entry of settings_2d.Zop_deg on every role; N-D
@@ -183,7 +183,7 @@ cdom = PIE.dom;     if nv>=2,   cdom = tl.dom;  end % the domain of a container
 % diag(e_k I) on the state spaces of the PIE, side 1 the PDE state, 2 the
 % fundamental state
 tl.eye   = @(side,e) eye_container(PIE,side,e,cdom);
-tl.ident = @(Bop,side) ident_op(Bop,side,cdom);    % copvar Bop only
+tl.ident = @(Bop,side) ident_op(Bop,side,cdom);    % opvar Bop only
 % The options of this dimension: each per-dimension vector among dw_feas,
 % dw_P, dw_Q, max_raise, max_raise_feas, cap_delta and max_raise_Q reduced
 % to its entry min(nv,end), the last entry serving every higher
@@ -204,7 +204,7 @@ end
 tl.capfor = @(X) [];
 cd = [];    if isstruct(tl.sop) && isfield(tl.sop,'cap_delta'),     cd = tl.sop.cap_delta;  end
 if ~isempty(cd) && ~isnan(cd)
-    Tc = PIE.T;     [~,~,ti] = get_lift_degs(Tc,struct());  % a 'copvar'
+    Tc = PIE.T;     [~,~,ti] = get_lift_degs(Tc,struct());  % an 'opvar'
     ct = max(ti.Jmax,0) + cd;
     tl.capfor = @(X) cap_for(X,Tc.vars,ct);
 end
@@ -212,8 +212,8 @@ end
 
 function Im = eye_container(PIE,side,e,dom)
 % IM = EYE_CONTAINER(PIE,SIDE,E,DOM) returns diag(e_k I_{n_k}) on the
-% spaces of the container T of a container PIE as a 'copvar' object.
-% INPUT  PIE:   'pie_struct' object, T a 'copvar' object;
+% spaces of the container T of a container PIE as an 'opvar' object.
+% INPUT  PIE:   'pie_struct' object, T an 'opvar' object;
 %        side:  1 (the output spaces of PIE.T) or 2 (its input spaces);
 %        e:     double, a scalar for every space, or 2^nv weights: the
 %               weight of a space is entry 1 + sum_k 2^(k-1) over the
@@ -221,10 +221,10 @@ function Im = eye_container(PIE,side,e,dom)
 %               2-D the spaces R, L2[x], L2[y], L2[x,y]);
 %        dom:   the domain of the container (1 x 2 double, or a 'struct'
 %               with fields vars and dom).
-% OUTPUT Im:    'copvar' object, block k e_k I on space k.
+% OUTPUT Im:    'opvar' object, block k e_k I on space k.
 % The spaces of that side, the variable names in the order of PIE.vars
 sd = {'out','in'};
-[sp,dm] = copvar_space_list(PIE.T,sd{side});
+[sp,dm] = opvar_space_list(PIE.T,sd{side});
 vn = reshape(PIE.vars(:,1).varname,1,[]);
 % One weight per space: the scalar, or the entry of its variable subset
 if isscalar(e)
@@ -238,24 +238,24 @@ end
 % The block-diagonal constant matrix as a container multiplier
 blocks = cell(1,numel(sp));
 for k = 1:numel(sp),    blocks{k} = w(k)*eye(dm(k));   end
-Im = mat2copvar_sop(blkdiag(blocks{:}),dm,sp,dom);
+Im = mat2opvar(blkdiag(blocks{:}),dm,sp,dom);
 end
 
 function I = ident_op(Bop,side,cdom)
-% I = IDENT_OP(BOP,SIDE,CDOM) returns the identity 'copvar' on the output
+% I = IDENT_OP(BOP,SIDE,CDOM) returns the identity 'opvar' on the output
 % (SIDE 1) or input (SIDE 2) spaces of BOP.
-% INPUT  Bop:   'copvar' or 'cdopvar' object;
+% INPUT  Bop:   'opvar' or 'dopvar' object;
 %        side:  1 or 2;
 %        cdom:  the domain of the container.
-% OUTPUT I:     'copvar' object.
-if isa(Bop,'copvar') || isa(Bop,'cdopvar')
+% OUTPUT I:     'opvar' object.
+if isa(Bop,'opvar') || isa(Bop,'dopvar')
     sd = {'out','in'};
-    [sp,dm] = copvar_space_list(Bop,sd{side});
-    I = eye_copvar_sop(dm,sp,cdom);
+    [sp,dm] = opvar_space_list(Bop,sd{side});
+    I = eye_opvar(dm,sp,cdom);
 else
-    % Every PIE operator is a 'copvar' or 0: anything else, such as the 0
+    % Every PIE operator is an 'opvar' or 0: anything else, such as the 0
     % of an absent channel, has no spaces to read
-    error('exec_tools_sop:ident','BOP should be a ''copvar'' or ''cdopvar'' object.');
+    error('exec_tools_sop:ident','BOP should be a ''opvar'' or ''dopvar'' object.');
 end
 end
 
@@ -296,17 +296,17 @@ function [prog,P] = pos_nd(prog,X,side,S,dom)
 % full-integral one with caps S.LF_int per variable and 2*S.LF_int in
 % total, the identity basis on R^n; the term codes S.LF_psatz.
 % INPUT  prog:  'struct', the LPI program;
-%        X:     'copvar' or 'cdopvar' object;
+%        X:     'opvar' or 'dopvar' object;
 %        side:  char, 'out' or 'in';
 %        S:     'struct', as SETTINGS_ND returns;
 %        dom:   'struct' with fields vars and dom, the domain of P.
 % OUTPUT prog:  'struct', the program with the Gram matrices of P;
-%        P:     'cdopvar' object.
-[sp,dm] = copvar_space_list(X,side);
+%        P:     'dopvar' object.
+[sp,dm] = opvar_space_list(X,side);
 % An explicit degree specification
 if ~isempty(S.LF_deg)
     co = S.LF_opts;     if ~isfield(co,'psatz'),    co.psatz = S.LF_psatz;  end
-    [prog,P] = poscopvar(prog,dm,sp,dom,S.LF_deg,co);
+    [prog,P] = poslpivar(prog,dm,sp,dom,S.LF_deg,co);
     return
 end
 % The rule: per space, the identity basis on R^n, else the multiplier
@@ -325,7 +325,7 @@ for k = 1:numel(sp)
 end
 co = struct('psatz',S.LF_psatz,'sep',true);
 co.include = incl;                  % assigned apart: a cell in struct() builds a struct array
-[prog,P] = poscopvar(prog,dm,sp,dom,deg,co);
+[prog,P] = poslpivar(prog,dm,sp,dom,deg,co);
 end
 
 function [prog,P] = pos_row(prog,X,side,dom,stock)
@@ -334,17 +334,17 @@ function [prog,P] = pos_row(prog,X,side,dom,stock)
 % len_com (the storage row), the operator declared without degrees, from
 % the row; otherwise STOCK(PROG,X,SIDE).
 % INPUT  prog:  'struct', the LPI program, with settings;
-%        X:     'copvar' or 'cdopvar' object;
+%        X:     'opvar' or 'dopvar' object;
 %        side:  char, 'out' or 'in';
 %        dom:   the domain of the operator (tl.dom);
 %        stock: function handle, the storage of the branch of the dimension.
 % OUTPUT prog:  'struct', the program with the Gram matrices of P;
-%        P:     'cdopvar' object.
+%        P:     'dopvar' object.
 row = isfield(prog,'settings') && isfield(prog.settings,'lpi') && ...
       isfield(prog.settings.lpi,'pos') && isfield(prog.settings.lpi.pos,'len_com');
 if row
-    [sp,dm] = copvar_space_list(X,side);
-    [prog,P] = poscopvar(prog,dm,sp,dom);
+    [sp,dm] = opvar_space_list(X,side);
+    [prog,P] = poslpivar(prog,dm,sp,dom);
 else
     [prog,P] = stock(prog,X,side);
 end
@@ -353,7 +353,7 @@ end
 function c = cap_for(X,tv,tc)
 % C = CAP_FOR(X,TV,TC) lays the bounds TC, one per variable TV of T, over
 % the registry of X.
-% INPUT  X:   'copvar' or 'cdopvar' object, the target of a slack;
+% INPUT  X:   'opvar' or 'dopvar' object, the target of a slack;
 %        tv:  1 x nv 'cellstr', the variables of T (sorted);
 %        tc:  1 x nv double, the bounds.
 % OUTPUT c:   1 x numel(X.vars) double, the bounds of the variables of X;

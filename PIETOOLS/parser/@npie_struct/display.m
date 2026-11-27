@@ -247,9 +247,9 @@ for q=1:numel(used_r)
                 out_args = blk_disp.out_args;
                 is_named = ~blk_disp.expanded;
             end
-        elseif expand && isa(pie_op,'copvar') && isequal(size(pie_op.C),[1,1]) && ...
+        elseif expand && isa(pie_op,'opvar') && isequal(size(pie_op.C),[1,1]) && ...
                 isequal(pie_op.dim_in,1) && isequal(pie_op.dim_out,1) && isa(pie_op.C{1,1},'sopvar')
-            % A scalar 'copvar' with one 'sopvar' block, in its output
+            % A scalar 'opvar' with one 'sopvar' block, in its output
             % variables
             blk_disp = get_display(pie_op.C{1,1},x_name);
             is_defined = blk_disp.ok;
@@ -338,18 +338,18 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function is_zero_op = is_zero(obj)
-% IS_ZERO_OP = IS_ZERO(OBJ) returns true if the operator OBJ of a PIE, a
-% 'copvar', 'tensopmat' or 'polyopvar' object, or a block of such an
+% IS_ZERO_OP = IS_ZERO(OBJ) returns true if the operator OBJ of a PIE, an
+% 'opvar', 'tensopmat' or 'polyopvar' object, or a block of such an
 % operator, is empty or zero.
 %
 % INPUTS
-% - obj:    'copvar', 'tensopmat', 'polyopvar', 'tensopvar', 'sopvar' or
+% - obj:    'opvar', 'tensopmat', 'polyopvar', 'tensopvar', 'sopvar' or
 %           'intop' object, or an array of doubles;
 %
 % OUTPUTS
 % - is_zero_op: logical, true if all blocks of obj are empty or zero. A
 %           'tensopvar' is zero if every term has a zero factor;
-if isa(obj,'copvar')
+if isa(obj,'opvar')
     is_zero_op = all(cellfun(@is_zero,obj.C(:)));
 elseif isa(obj,'tensopmat')
     is_zero_op = all(cellfun(@is_zero,obj.ops(:)));

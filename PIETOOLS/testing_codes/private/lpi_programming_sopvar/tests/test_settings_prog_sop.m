@@ -1,7 +1,7 @@
 function test_settings_prog_sop
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TEST_SETTINGS_PROG_SOP tests the settings of an LPI program (LPIPROGRAM,
-% LPISETSETTINGS) and the domain that POSCOPVAR and LPIVAR_CDOPVAR read
+% LPISETSETTINGS) and the domain that POSLPIVAR and LPIVAR read
 % from the program, and errors at the first failed check:
 %   (1) LPIPROGRAM stores the settings given as its last input, a tier name
 %       or a structure, in each input form (vars and dom; vars, dummies and
@@ -11,10 +11,10 @@ function test_settings_prog_sop
 %   (2) LPISETSETTINGS sets a tier, a structure, and 'light' for []; an
 %       unknown tier name and a 'double' are refused;
 %   (3) on a program whose variables are declared out of sorted order, s2
-%       on [0,2] before s1 on [0,1], POSCOPVAR with DOM omitted builds the
+%       on [0,2] before s1 on [0,1], POSLPIVAR with DOM omitted builds the
 %       operator of the call with DOM given, on R^2 x L2[s1] x L2[s1,s2]
 %       (an ODE, 1-D and 2-D coupling), and not that of the swapped domain;
-%   (4) LPIVAR_CDOPVAR with DOM omitted, and with DOM and DEG omitted,
+%   (4) LPIVAR with DOM omitted, and with DOM and DEG omitted,
 %       builds the operator of the explicit call (DEG: the caps of 'light'
 %       block by block, [2 2 2] for L2[s1], 1 for L2[s1,s2]);
 %   (5) LPI_INEQ_SOP takes its degree defaults from prog.settings: on the
@@ -24,29 +24,29 @@ function test_settings_prog_sop
 %   (6) LPISOLVE without options passes prog.settings.sos_opts, and with a
 %       settings structure its sos_opts (an unknown solver name is reported
 %       by SOSSOLVE in both cases); with the tier options it solves;
-%   (7) POSCOPVAR without DEG builds, on R^2 x L2[s1] with lpi.pos in the
+%   (7) POSLPIVAR without DEG builds, on R^2 x L2[s1] with lpi.pos in the
 %       stock-field form of 'light' and of 'heavy' on 11/12/2026, the
 %       operator of the explicit specification of lpi.pos
 %       (the multiplier, lower and upper bases), and on R^2 x L2[s1] x
 %       L2[s1,s2] the multiplier and full-integral bases in every space
 %       (s1 separable, being owned by the 2-D space); with DEG omitted an
-%       OPTIONS.include is refused; LPIVAR_CDOPVAR without DEG on a 1-D
+%       OPTIONS.include is refused; LPIVAR without DEG on a 1-D
 %       program at 'heavy' builds the operator of lpi.var.deg{1} = [4 2 2];
 %   (8) EXEC_SOP_SETTINGS refuses a retired stock-format field (dd1) and
 %       settings_nd.LF_int with the identifier exec_sop_settings:retired;
 %       LPISETTINGS_STOCK_SOP('heavy') sets sop.slack = 'stock' and returns
 %       sop.stock with the former dd2 of the heavy level, {3,[2 2 3],[2 2 3]};
-%   (9) LPIVAR_CDOPVAR without DEG at 'heavy' (lpi.var.deg {[4 2 2],1,1})
+%   (9) LPIVAR without DEG at 'heavy' (lpi.var.deg {[4 2 2],1,1})
 %       on R x L2[s1] x L2[s1,s2]: the largest exponent of each variable
 %       in the left basis of a block is the cap of the entry for its output
 %       space, in the right basis that of its input space (L2[s1]: 4 left,
 %       2 right in s1 shared, 4 right in s1 input-only; L2[s1,s2]: 1); on
 %       R x L2[s1,s2] the operator of entry 2;
-%  (10) POSCOPVAR without DEG reads the storage row lpi.pos (len_com) of
+%  (10) POSLPIVAR without DEG reads the storage row lpi.pos (len_com) of
 %       every tier: on R^2 x L2[s1], L2[s1,s2], L2[s1,s2,s3] and R^2 x
 %       L2[s1] x L2[s1,s2], the basis operators (space, multi-index) and
 %       Gram sizes derived by hand from the tier files and the header of
-%       POSCOPVAR (6 tiers x 4 configurations);
+%       POSLPIVAR (6 tiers x 4 configurations);
 %  (11) on a row with lengths distinct per letter, direction and entry,
 %       the operator of each configuration equals that of the explicit
 %       DEG of the header, and a b with its theta- and s-lengths exchanged
@@ -158,43 +158,43 @@ end
 fprintf('  passed: (2) tier, structure and [] set; unknown tier and double refused\n');
 npass = npass+1;
 
-%% (3) POSCOPVAR: DOM from the program, by name
+%% (3) POSLPIVAR: DOM from the program, by name
 sp = {{},{'s1'},{'s1','s2'}};       dm = [2;1;1];
-[pA,PA] = poscopvar(p0,dm,sp,[0 1; 0 2],1);     % rows in sorted order s1, s2
-[pB,PB] = poscopvar(p0,dm,sp,1);
-[~,PC] = poscopvar(p0,dm,sp,[0 2; 0 1],1);      % the swapped domain
+[pA,PA] = poslpivar(p0,dm,sp,[0 1; 0 2],1);     % rows in sorted order s1, s2
+[pB,PB] = poslpivar(p0,dm,sp,1);
+[~,PC] = poslpivar(p0,dm,sp,[0 2; 0 1],1);      % the swapped domain
 if ~isequal(PA,PB) || ~isequal(pA.decvartable,pB.decvartable)
     error('test_settings_prog_sop: (3) DOM omitted builds another operator.');
 end
 if isequal(PB,PC)
     error('test_settings_prog_sop: (3) the swapped domain gives the same operator; the check is void.');
 end
-fprintf('  passed: (3) poscopvar on R^2 x L2[s1] x L2[s1,s2]: DOM omitted = given (%d names), swapped differs\n',...
+fprintf('  passed: (3) poslpivar on R^2 x L2[s1] x L2[s1,s2]: DOM omitted = given (%d names), swapped differs\n',...
         numel(pB.decvartable));
 npass = npass+1;
 
-%% (4) LPIVAR_CDOPVAR: DOM, and DOM and DEG, from the program
+%% (4) LPIVAR: DOM, and DOM and DEG, from the program
 dz = struct('out',[1;1],'in',[1;1]);    sz = {{'s1'},{'s1','s2'}};
-[~,ZA] = lpivar_cdopvar(p0,dz,sz,[0 1; 0 2],1);
-[~,ZB] = lpivar_cdopvar(p0,dz,sz,1);
-[~,ZC] = lpivar_cdopvar(p0,dz,sz);
+[~,ZA] = lpivar(p0,dz,sz,[0 1; 0 2],1);
+[~,ZB] = lpivar(p0,dz,sz,1);
+[~,ZC] = lpivar(p0,dz,sz);
 % DEG omitted at light: entry 1 ([2 2 2]) for L2[s1], entry 2 (1) for       % MMP, 11/12/2026
 % L2[s1,s2]; left caps from the output space, right from the input space    % MMP, 11/12/2026
 dgc = {[2 2 2], struct('mult',2,'int',[2 1],'out',2,'in',1); ...
        struct('mult',1,'int',[1 2],'out',1,'in',2), 1};                     % MMP, 11/12/2026
-[~,ZD] = lpivar_cdopvar(p0,dz,sz,[0 1; 0 2],dgc);                           % MMP, 11/12/2026
+[~,ZD] = lpivar(p0,dz,sz,[0 1; 0 2],dgc);                                   % MMP, 11/12/2026
 % if ~isequal(ZA,ZB) || ~isequal(ZA,ZC)                                     % MMP, 11/12/2026 (was)
 if ~isequal(ZA,ZB) || ~isequal(ZD,ZC)                                       % MMP, 11/12/2026
     error('test_settings_prog_sop: (4) DOM or DEG omitted builds another operator.');
 end
-fprintf('  passed: (4) lpivar_cdopvar: DOM omitted, and DOM and DEG omitted, = explicit\n');
+fprintf('  passed: (4) lpivar: DOM omitted, and DOM and DEG omitted, = explicit\n');
 npass = npass+1;
 
 %% (5) LPI_INEQ_SOP: degree defaults from prog.settings
 % Pt of TEST_LPI_INEQ_SOP on L2[0,1]: lower kernel 2 - s, upper 2 - t
 v1 = {'s1'};    d1 = [0 1];     ZL = {[0;1]};   ZR = {[0;1]};
 params = reshape({sparse(2,2),sparse([2 0;-1 0]),sparse([2 -1;0 0])},[3 1 1]);
-Pt = copvar({sopvar(params,struct('out',{v1},'in',{v1}),ZL,ZR,struct('out',d1,'in',d1),[1 1])});
+Pt = opvar({sopvar(params,struct('out',{v1},'in',{v1}),ZL,ZR,struct('out',d1,'in',d1),[1 1])});
 pL = lpiprogram(polynomial({'s1'}),[],d1);
 pS = lpiprogram(polynomial({'s1'}),[],d1,'stripped');
 [~,~,iL] = lpi_ineq_sop(pL,Pt);
@@ -227,8 +227,8 @@ end
 fprintf('  passed: (6) lpisolve: prog.settings.sos_opts and a settings structure passed; min g = %.1e\n',gv);
 npass = npass+1;
 
-%% (7) POSCOPVAR and LPIVAR_CDOPVAR without DEG: the program settings
-% lpi.pos in the stock-field form of 11/12/2026, which POSCOPVAR reads      % MMP, 11/23/2026
+%% (7) POSLPIVAR and LPIVAR without DEG: the program settings
+% lpi.pos in the stock-field form of 11/12/2026, which POSLPIVAR reads      % MMP, 11/23/2026
 % without len_com (the tiers hold the storage row since 11/18/2026)         % MMP, 11/23/2026
 pf = @(m) struct('mult',[m 0 0],'int',[1 1 1],'joint',[2 2 2],'sep',0);     % MMP, 11/23/2026
 o1 = light;     o1.lpi.pos = pf(1);         % 'light' on 11/12/2026         % MMP, 11/23/2026
@@ -243,10 +243,10 @@ for q = {q1, q2}
     Zi = struct('int',ps.int(1),'mult',ps.int(1),'joint',ps.joint(1));
     dx = {struct('int',0), {struct('int',ps.mult(1),'mult',0,'joint',ps.mult(1)),Zi,Zi}};
     ox = struct('sep',false,'include',{{[],[1;2;3]}});
-    [qa,Pa] = poscopvar(q{1},dm1,sp1);
-    [qb,Pb] = poscopvar(q{1},dm1,sp1,dx,ox);
+    [qa,Pa] = poslpivar(q{1},dm1,sp1);
+    [qb,Pb] = poslpivar(q{1},dm1,sp1,dx,ox);
     if ~isequaln(Pa,Pb) || ~isequaln(qa.decvartable,qb.decvartable)
-        error('test_settings_prog_sop: (7) poscopvar without DEG differs from the explicit lpi.pos (mult %d).',ps.mult(1));
+        error('test_settings_prog_sop: (7) poslpivar without DEG differs from the explicit lpi.pos (mult %d).',ps.mult(1));
     end
 end
 % the coupled spaces: s1 separable for the 1-D space too
@@ -260,23 +260,23 @@ dx = {struct('int',0), {struct('int',st2.mult(1),'mult',0,'joint',st2.mult(1)),Z
 ox = struct('sep',true(1,2));   ox.include = {[],[1;4],[1 1;4 4]};
 % [~,Pc] = poscopvar(p0,dm,sp);                                             % MMP, 11/23/2026 (was)
 % [~,Pd] = poscopvar(p0,dm,sp,dx,ox);                                       % MMP, 11/23/2026 (was)
-[~,Pc] = poscopvar(p0o,dm,sp);                                              % MMP, 11/23/2026
-[~,Pd] = poscopvar(p0o,dm,sp,dx,ox);                                        % MMP, 11/23/2026
+[~,Pc] = poslpivar(p0o,dm,sp);                                              % MMP, 11/23/2026
+[~,Pd] = poslpivar(p0o,dm,sp,dx,ox);                                        % MMP, 11/23/2026
 if ~isequaln(Pc,Pd)
     error('test_settings_prog_sop: (7) the coupled default differs from multiplier and full integral in every space.');
 end
 refused = 0;
-try,    poscopvar(q1,dm1,sp1,[],struct('include',{{[],[1;2]}}));   catch,  refused = 1;    end
+try,    poslpivar(q1,dm1,sp1,[],struct('include',{{[],[1;2]}}));   catch,  refused = 1;    end
 if ~refused
     error('test_settings_prog_sop: (7) OPTIONS.include with DEG omitted was accepted.');
 end
 dz1 = struct('out',[1;1],'in',[1;1]);   sz1 = {{},{'s1'}};
-[~,Za] = lpivar_cdopvar(q2,dz1,sz1);
-[~,Zb] = lpivar_cdopvar(q2,dz1,sz1,[4 2 2]);
+[~,Za] = lpivar(q2,dz1,sz1);
+[~,Zb] = lpivar(q2,dz1,sz1,[4 2 2]);
 if ~isequaln(Za,Zb)
-    error('test_settings_prog_sop: (7) lpivar_cdopvar without DEG differs from lpi.var.deg{1}.');
+    error('test_settings_prog_sop: (7) lpivar without DEG differs from lpi.var.deg{1}.');
 end
-fprintf('  passed: (7) poscopvar and lpivar_cdopvar without DEG: the settings at light and heavy, coupled spaces separable\n');
+fprintf('  passed: (7) poslpivar and lpivar without DEG: the settings at light and heavy, coupled spaces separable\n');
 npass = npass+1;
 
 %% (8) Retired fields refused; the stock-slack utility
@@ -296,14 +296,14 @@ end
 fprintf('  passed: (8) retired fields refused (2 of 2); the stock slack of heavy from LPISETTINGS_STOCK_SOP\n');
 npass = npass+1;
 
-%% (9) LPIVAR_CDOPVAR without DEG: the caps of each block from its two spaces
+%% (9) LPIVAR without DEG: the caps of each block from its two spaces
 % heavy: entry 1 [4 2 2] (mult = out = in = 4, int = [2 2]), entry 2 every
 % cap 1. Rows: block, side, its variables, their largest exponents.
 % h = lpiprogram(polynomial({'s1';'s2'}),[0 1; 0 2],'heavy');               % MMP, 11/23/2026 (was)
 hv = heavy;     hv.lpi.var.deg = {[4 2 2],1,1};     % 'heavy' on 11/12/2026 % MMP, 11/23/2026
 h = lpiprogram(polynomial({'s1';'s2'}),[0 1; 0 2],hv);                      % MMP, 11/23/2026
 sp3 = {{},{'s1'},{'s1','s2'}};      d3 = struct('out',[1;1;1],'in',[1;1;1]);
-[~,Zh] = lpivar_cdopvar(h,d3,sp3);
+[~,Zh] = lpivar(h,d3,sp3);
 want = {[2 2],'ZL',{'s1'},4;            [2 2],'ZR',{'s1'},2;
         [3 3],'ZL',{'s1','s2'},[1 1];   [3 3],'ZR',{'s1','s2'},[1 1];
         [2 3],'ZL',{'s1'},4;            [2 3],'ZR',{'s1','s2'},[1 1];
@@ -324,18 +324,18 @@ for k = 1:size(want,1)
 end
 % One dimension besides R^n: every block from that entry, as before
 dz2 = struct('out',[1;1],'in',[1;1]);   sz2 = {{},{'s1','s2'}};
-[~,Ze] = lpivar_cdopvar(h,dz2,sz2);
-[~,Zf] = lpivar_cdopvar(h,dz2,sz2,1);
+[~,Ze] = lpivar(h,dz2,sz2);
+[~,Zf] = lpivar(h,dz2,sz2,1);
 if ~isequal(Ze,Zf)
     error('test_settings_prog_sop: (9) on R x L2[s1,s2] the default differs from entry 2.');
 end
-fprintf('  passed: (9) lpivar_cdopvar without DEG: %d block sides capped by their own space; R x L2[s1,s2] = entry 2\n',size(want,1));
+fprintf('  passed: (9) lpivar without DEG: %d block sides capped by their own space; R x L2[s1,s2] = entry 2\n',size(want,1));
 npass = npass+1;
 
 % ---- MMP, 11/24/2026: begin of parts (10)-(13), the storage row ----
-%% (10) POSCOPVAR without DEG: the storage row of every tier
+%% (10) POSLPIVAR without DEG: the storage row of every tier
 % Per tier and configuration, the basis operators and Gram sizes that the
-% header of POSCOPVAR (DEG OMITTED) gives for the row of the tier file,
+% header of POSLPIVAR (DEG OMITTED) gives for the row of the tier file,
 % derived by hand. Rows: space; alpha_d per registry direction (1
 % multiplier, 2 lower, 3 upper, 4 full integral, 0 not owned); Gram size
 % m_k*|Z_b|, |Z_b| the product over owned directions of theta-length times
@@ -366,7 +366,7 @@ Eex = {[1 0 2; 2 1 2],  [1 1 1 1],  [1 1 1 1 1],  [1 0 0 2; 2 1 0 2; 3 1 1 1]};
 tiers = {'stripped',Est; 'light',Eli; 'custom',Eli; 'heavy',Ehe; 'veryheavy',Evh; 'extreme',Eex};
 for t = 1:size(tiers,1)
     for c = 1:size(cf,1)
-        [~,~,Qc,bl] = poscopvar(lpiprogram(cf{c,1},cf{c,2},tiers{t,1}),cf{c,3},cf{c,4});
+        [~,~,Qc,bl] = poslpivar(lpiprogram(cf{c,1},cf{c,2},tiers{t,1}),cf{c,3},cf{c,4});
         G = [bl,gram_sizes(Qc)];
         if ~isequal(G,tiers{t,2}{c})
             error('test_settings_prog_sop: (10) %s, configuration %d: rows %s, expected %s.', ...
@@ -374,7 +374,7 @@ for t = 1:size(tiers,1)
         end
     end
 end
-fprintf('  passed: (10) poscopvar without DEG: the storage rows of %d tiers, %d configurations\n', ...
+fprintf('  passed: (10) poslpivar without DEG: the storage rows of %d tiers, %d configurations\n', ...
         size(tiers,1),size(cf,1));
 npass = npass+1;
 
@@ -406,8 +406,8 @@ cs = {[1;1],   X1, [1 0 1; 2 1 2; 2 3 6; 2 2 12];
 pr0 = cell(1,4);    P0 = cell(1,4);
 for c = 1:4
     pr0{c} = lpiprogram(cf{c,1},cf{c,2},sS);
-    [qa,P0{c},Qa,ba] = poscopvar(pr0{c},cs{c,1},cf{c,4});
-    [qb,Pb,Qb,bb] = poscopvar(pr0{c},cs{c,1},cf{c,4},cs{c,2}{:});
+    [qa,P0{c},Qa,ba] = poslpivar(pr0{c},cs{c,1},cf{c,4});
+    [qb,Pb,Qb,bb] = poslpivar(pr0{c},cs{c,1},cf{c,4},cs{c,2}{:});
     if ~isequaln(P0{c},Pb) || ~isequaln(qa.decvartable,qb.decvartable) || ~isequal(Qa,Qb) || ~isequal(ba,bb)
         error('test_settings_prog_sop: (11) configuration %d: the row differs from the explicit DEG.',c);
     end
@@ -419,7 +419,7 @@ end
 % Control: b of R x L2[s1] with its theta- and s-lengths exchanged keeps the
 % Gram size and changes the operator, so the comparison separates int, mult
 Xs = X1;    Xs{1}{2}{2} = mk(1,2);
-[~,Ps] = poscopvar(pr0{1},[1;1],cf{1,4},Xs{:});
+[~,Ps] = poslpivar(pr0{1},[1;1],cf{1,4},Xs{:});
 if isequaln(P0{1},Ps)
     error('test_settings_prog_sop: (11) b with theta- and s-lengths exchanged builds the same operator.');
 end
@@ -441,7 +441,7 @@ vr = {@(p) setfield(p,'len_cross',{1,1,1}), 4, [1;1;1], ...
 Pv = cell(size(vr,1),1);
 for r = 1:size(vr,1)
     v = sS;     v.lpi.pos = vr{r,1}(S);     c = vr{r,2};
-    [~,Pv{r},Qv,bv] = poscopvar(lpiprogram(cf{c,1},cf{c,2},v),vr{r,3},cf{c,4});
+    [~,Pv{r},Qv,bv] = poslpivar(lpiprogram(cf{c,1},cf{c,2},v),vr{r,3},cf{c,4});
     if ~isequal([bv,gram_sizes(Qv)],vr{r,4})
         error('test_settings_prog_sop: (11) variant %d: rows %s, expected %s.',r, ...
               mat2str([bv,gram_sizes(Qv)]),mat2str(vr{r,4}));
@@ -449,15 +449,15 @@ for r = 1:size(vr,1)
 end
 % The code rows [1 2;2 1;3 2] spell the patterns of the words above
 v = sS;     v.lpi.pos.patterns = {'all',[1 2;2 1;3 2],'uniform'};
-[~,Pr] = poscopvar(lpiprogram(cf{2,1},cf{2,2},v),1,cf{2,4});
+[~,Pr] = poslpivar(lpiprogram(cf{2,1},cf{2,2},v),1,cf{2,4});
 % Both layouts in lpi.pos: len_com decides, the stock fields are not read
 v = sS;     v.lpi.pos.mult = [3 0 0];   v.lpi.pos.int = [2 2 2];
 v.lpi.pos.joint = [4 4 4];  v.lpi.pos.sep = 1;
-[~,Pt] = poscopvar(lpiprogram(cf{1,1},cf{1,2},v),[1;1],cf{1,4});
+[~,Pt] = poslpivar(lpiprogram(cf{1,1},cf{1,2},v),[1;1],cf{1,4});
 % DOM given, DEG omitted (the call of POS_ROW in EXEC_TOOLS_SOP) or empty
 dm4 = struct('vars',{{'s1','s2'}},'dom',[0 1;0 2]);
-[~,Pf1] = poscopvar(pr0{4},[1;1;1],cf{4,4},dm4);
-[~,Pf2] = poscopvar(pr0{4},[1;1;1],cf{4,4},dm4,[]);
+[~,Pf1] = poslpivar(pr0{4},[1;1;1],cf{4,4},dm4);
+[~,Pf2] = poslpivar(pr0{4},[1;1;1],cf{4,4},dm4,[]);
 eq = [isequaln(Pv{6},Pr),isequaln(Pt,P0{1}),isequaln(Pf1,P0{4}),isequaln(Pf2,P0{4})];
 if ~all(eq)
     error('test_settings_prog_sop: (11) words = rows, both layouts, DOM given: %s (1 = equal).',mat2str(eq));
@@ -471,12 +471,12 @@ bad = {@(p) setfield(p,'terms',{'psatz','none','none'}),      'carries no term';
 nref = 0;
 for r = 1:size(bad,1)
     v = sS;     v.lpi.pos = bad{r,1}(S);
-    try,    poscopvar(lpiprogram(cf{4,1},cf{4,2},v),[1;1;1],cf{4,4});
+    try,    poslpivar(lpiprogram(cf{4,1},cf{4,2},v),[1;1;1],cf{4,4});
     catch ME,   nref = nref + contains(ME.message,bad{r,2});
     end
 end
 for o = {struct('include',{{[],[1;2],[1 1]}}), struct('sep',true)}
-    try,    poscopvar(pr0{4},[1;1;1],cf{4,4},dm4,[],o{1});
+    try,    poslpivar(pr0{4},[1;1;1],cf{4,4},dm4,[],o{1});
     catch ME,   nref = nref + contains(ME.message,'OPTIONS may not set them');
     end
 end
@@ -498,7 +498,7 @@ evalc('PIE = initialize(convert(PDE));');
 sl = light;     sl.sop.verbose = false;
 evalc('[pe,~,ie] = PIETOOLS_stability_sop(PIE,sl,''P'');');
 pf = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,sl);
-[~,Ph] = poscopvar(pf,1,{{'s'}},{{mk(1,0),mk(1,1),mk(1,1)}},struct('sep',false,'include',{{[1;3;2]}}));
+[~,Ph] = poslpivar(pf,1,{{'s'}},{{mk(1,0),mk(1,1),mk(1,1)}},struct('sep',false,'include',{{[1;3;2]}}));
 if ~ie.certified || ~isequaln(pe.sop_pos{1},Ph)
     error('test_settings_prog_sop: (12) stability_sop at light: certified %d, storage of the row %d.', ...
           ie.certified,isequaln(pe.sop_pos{1},Ph));
@@ -513,7 +513,7 @@ v4 = polynomial({'s1';'s2';'s3';'s4'});     d4 = repmat([0 1],4,1);
 s4 = {{'s1','s2','s3','s4'}};   E4 = [1 1 1 1 1 1; 1 4 4 4 4 256];
 for o = {'the row of (11)','light'; sS,light}
     try
-        [~,~,Q4,b4] = poscopvar(lpiprogram(v4,d4,o{2}),1,s4);
+        [~,~,Q4,b4] = poslpivar(lpiprogram(v4,d4,o{2}),1,s4);
     catch ME
         error('test_settings_prog_sop: (13) %s on L2[s1,s2,s3,s4]: %s',o{1},ME.message);
     end
@@ -533,7 +533,7 @@ end
 
 function g = gram_sizes(Qc)                                                 % MMP, 11/24/2026
 % G = GRAM_SIZES(QC) the size of each diagonal block of the Gram matrix.    % MMP, 11/24/2026
-% INPUT  Qc: N_b x N_b cell, the Gram names of POSCOPVAR.                   % MMP, 11/24/2026
+% INPUT  Qc: N_b x N_b cell, the Gram names of POSLPIVAR.                   % MMP, 11/24/2026
 % OUTPUT g:  N_b x 1 double, the number of rows of block (b,b).             % MMP, 11/24/2026
 g = zeros(size(Qc,1),1);                                                    % MMP, 11/24/2026
 for b = 1:numel(g),     g(b) = size(Qc{b,b},1);     end                     % MMP, 11/24/2026

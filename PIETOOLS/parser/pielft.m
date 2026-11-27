@@ -54,7 +54,7 @@ function PIE_lft = pielft(PIE1,PIE2)
 % NOTES
 % - Only linear PIEs, of type 'pie_struct', are supported, and the PIEs
 %   cannot involve an algebraic constraint (K, Kw, Ku must be empty).
-% - The operators of PIE_LFT are 'copvar' objects, with one space for each
+% - The operators of PIE_LFT are 'opvar' objects, with one space for each
 %   of the spaces of PIE1, followed by those of PIE2, so that the state is
 %   v = [v1;v2], and the components of PIE_LFT.space are one for each of
 %   these spaces;
@@ -107,6 +107,8 @@ function PIE_lft = pielft(PIE1,PIE2)
 % MMP, 11/19/2026: Release comment pass (comment-only).
 % DJ, 11/20/2026: Match the spaces of a PIE without spatial variables to
 %                   those of a PIE with;
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 % % Right now, support only exactly two arguments.
 if nargin~=2

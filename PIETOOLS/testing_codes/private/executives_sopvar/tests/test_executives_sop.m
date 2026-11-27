@@ -117,7 +117,7 @@ for nm = {'Hinf_control','Hinf_estimator','H2_control','H2_estimator'}
     g = out{3};     info = out{end};
     ref = g_num;    if contains(nm{1},'H2'),    ref = h_num;    end
 %   n = check(n,info.certified && isa(out{2},'opvar') && g<=ref*(1+1e-3), ... % MMP, 11/04/2026 (was)
-    n = check(n,info.certified && isa(out{2},'copvar') && g<=ref*(1+1e-3), ...
+    n = check(n,info.certified && isa(out{2},'opvar') && g<=ref*(1+1e-3), ...
               sprintf('%s_sop: %s, gamma %.7g (open loop %.7g), gain class %s',nm{1},info.status,g,ref,class(out{2}))); % MMP, 11/04/2026
 end
 % ---- (b) the stock slack reproduces the stock
@@ -144,12 +144,12 @@ sts = st;   sts.eppos = 1e-4;   sts.eppos2 = 1e-6;    sts.epneg = 0;
 for fm = {'P','Pd','Q','Qd'}                                                % MMP, 10/28/2026
     [~,P,info] = PIETOOLS_stability_sop(PIEs,sts,fm{1});                    % MMP, 10/28/2026
 %   n = check(n,info.certified && isa(P,'opvar') && abs(info.maxre+pi^2/2)<=1e-3, ... % MMP, 11/04/2026 (was)
-    n = check(n,info.certified && isa(P,'copvar') && abs(info.maxre+pi^2/2)<=1e-3, ...
+    n = check(n,info.certified && isa(P,'opvar') && abs(info.maxre+pi^2/2)<=1e-3, ...
               sprintf('stability_sop %s: %s, max Re eig(A,T) %.5g',fm{1},info.status,info.maxre)); % MMP, 10/28/2026; MMP, 11/04/2026
 end
 [~,P,R,om,info] = PIETOOLS_well_posedness_sop(PIEs,sts);
 % n = check(n,info.certified && isa(P,'opvar') && isa(R,'opvar') && om==0, ... % MMP, 11/04/2026 (was)
-n = check(n,info.certified && isa(P,'copvar') && isa(R,'copvar') && om==0, ...
+n = check(n,info.certified && isa(P,'opvar') && isa(R,'opvar') && om==0, ...
           sprintf('well_posedness_sop: %s, omega %g',info.status,om));      % MMP, 11/04/2026
 % ---- (d) 2-D stability
 if ~quick
@@ -162,7 +162,7 @@ if ~quick
 %   [~,P,info] = PIETOOLS_stability_2D_sop(PIE3,st3);                       % MMP, 10/28/2026 (was)
     [~,P,info] = PIETOOLS_stability_sop(PIE3,st3,'P');                      % MMP, 10/28/2026
 %   n = check(n,info.certified && isa(P,'opvar2d'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026 (was); MMP, 10/28/2026
-    n = check(n,info.certified && isa(P,'copvar'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026
+    n = check(n,info.certified && isa(P,'opvar'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026
 end
 fprintf('test_executives_sop: %d checks passed\n',n);
 end

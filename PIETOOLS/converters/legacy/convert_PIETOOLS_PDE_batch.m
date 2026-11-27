@@ -33,7 +33,7 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %             the spatial variable and its dummy; default s1, s1_dum).
 %
 % OUTPUT
-%   PIE_out:  'pie_struct', initialized: the twelve 'copvar' operators on
+%   PIE_out:  'pie_struct', initialized: the twelve 'opvar' operators on
 %             R^nx x L2^(n0+n1+n2)[dom].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,6 +73,8 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %   a column slice of Tbigop; the dummy variable is the spatial variable
 %   with '_dum'; the PIE is initialized; the opvar code, the zero filling of
 %   DJ, 09/29/2021 included, is commented out; help and comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined parameters to zero.
@@ -358,7 +360,7 @@ R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,var1),var1);
 % end
 % MMP, 11/21/2026: END the opvars Phfop, Ptop, Tbigop and their slices, commented out
 
-% MMP, 11/21/2026: BEGIN the operators as 'copvar' containers
+% MMP, 11/21/2026: BEGIN the operators as 'opvar' containers
 % The dummy variable of the operators is VAR1 with '_dum'. A different
 % dummy (PDE.vars) is renamed in the kernels that hold it.
 vdum = pvar([var1.varname{1},'_dum']);
@@ -375,7 +377,7 @@ end
 rz = 1:nz;              ry = nz+(1:ny);         rx = nz+ny+(1:nx);
 cw = 1:nw;              cu = nw+(1:nu);         cx = nw+nu+(1:nx);
 ncR = nw+nu+nx+nrL1;
-pi4 = @(P,Q1,Q2,R,dims) pi4_copvar_sop(P,Q1,Q2,R,dims,var1,var2,X);
+pi4 = @(P,Q1,Q2,R,dims) pi4_opvar(P,Q1,Q2,R,dims,var1,var2,X);
 % Row slices of Apop: z and y have no PDE rows
 Az = pi4(Pb(rz,:),Q1b(rz,:),[],{[],[],[]},[nz ncR; 0 nrL2]);
 Ay = pi4(Pb(ry,:),Q1b(ry,:),[],{[],[],[]},[ny ncR; 0 nrL2]);
@@ -398,7 +400,7 @@ Aop   = mult_or_zero(Ax,Px,[nx nx; np np],pi4);
 TB1op = pi4(zeros(nx,nw),[],Q2f(:,cw),{[],[],[]},[nx nw; np 0]);
 TB2op = pi4(zeros(nx,nu),[],Q2f(:,cu),{[],[],[]},[nx nu; np 0]);
 Top   = pi4(eye(nx),zeros(nx,np),Q2f(:,cx),{R0f,R1f,R2f},[nx nx; np np]);
-% MMP, 11/21/2026: END the operators as 'copvar' containers
+% MMP, 11/21/2026: END the operators as 'opvar' containers
 
 %remove temporary opvars
 %clear Apop Phfop Tbigop;
@@ -409,26 +411,26 @@ PIE_out.T = Top;   PIE_out.Tw = TB1op;  PIE_out.Tu = TB2op;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
-% Spaces and maps from the copvar operators                                 % MMP, 11/21/2026
+% Spaces and maps from the opvar operators                                 % MMP, 11/21/2026
 PIE_out = initialize(PIE_out);                                              % MMP, 11/21/2026
 end
 
 
 % MMP, 11/21/2026: BEGIN new local function mult_or_zero
 function Pop = mult_or_zero(L,R,dims,pi4)
-% POP = MULT_OR_ZERO(L,R,DIMS,PI4) returns the product L*R of two 'copvar'
+% POP = MULT_OR_ZERO(L,R,DIMS,PI4) returns the product L*R of two 'opvar'
 % containers, or the zero operator of dimensions DIMS when the product has
 % no output or no input space (an empty channel, such as D11 with no
 % regulated output), which a product of containers does not represent.
-% INPUT  L, R:  'copvar' objects, the input spaces of L the output spaces
+% INPUT  L, R:  'opvar' objects, the input spaces of L the output spaces
 %               of R;
 %        dims:  2 x 2 'double', [q0 p0; q1 p1], the finite-dimensional and
 %               L2 dimensions of the output (column 1) and input (column 2)
 %               of the product;
-%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) the 'copvar' operator
+%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) the 'opvar' operator
 %               with blocks P, Q1, Q2, R = {R0,R1,R2} and dimensions DIMS,
 %               in the variables and domain of the PIE.
-% OUTPUT Pop:   'copvar' object.
+% OUTPUT Pop:   'opvar' object.
 if sum(dims(:,1))==0 || sum(dims(:,2))==0
     Pop = pi4(zeros(dims(1,1),dims(1,2)),[],[],{[],[],[]},dims);
 else

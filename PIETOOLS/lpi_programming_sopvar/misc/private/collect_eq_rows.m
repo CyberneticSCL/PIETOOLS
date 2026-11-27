@@ -61,7 +61,7 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 % parameters of inconsistent size or count, a name of P.Zd absent from
 % prog.decvartable, and OPTS other than 'symmetric' are errors.
 %
-% See also LPI_EQ_SDOPVAR, IMPOSE_EQ_ROWS, LPI_EQ_CDOPVAR.
+% See also LPI_EQ_SDOPVAR, IMPOSE_EQ_ROWS, LPI_EQ_DOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

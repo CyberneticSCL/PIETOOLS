@@ -12,7 +12,7 @@ function R = test_mixed_domain_pde(parts,names)
 %              operator applied by its kernels (apply_sopvar), exactly on
 %              polynomials. A system that must be rejected passes if the
 %              conversion errors with its keyword;
-%   'ops'      the 'copvar' operations on these PIE operators: A*T, T'*A,
+%   'ops'      the 'opvar' operations on these PIE operators: A*T, T'*A,
 %              T+A, T'*A+A'*T against sequential application, and T', A'
 %              against the inner product (integrated exactly);
 %   'exact'    the exact baselines of 'exec': stability margins, H-infinity
@@ -223,19 +223,19 @@ for rep=1:nrep
         Arow{b} = Fop(F{k},drop{b},vreg,dom);
     end
     wf = W(widx);
-    Txf = addc(apply_cop(T,xf),apply_cop(PIE.Tw,wf,nb));
-    Axf = addc(apply_cop(A,xf),apply_cop(PIE.Bw,wf,nb));
+    Txf = addc(apply_opvar(T,xf),apply_opvar(PIE.Tw,wf,nb));
+    Axf = addc(apply_opvar(A,xf),apply_opvar(PIE.Bw,wf,nb));
     for b=1:nb
         eT = max(eT,rel(Txf{b},Trow{b}));
         eA = max(eA,rel(Axf{b},Arow{b}));
     end
     if nz>0
         Zr = S.z(X,W);
-        Zx = addc(apply_cop(PIE.Cz,xf,nz),apply_cop(PIE.Dzw,wf,nz));
+        Zx = addc(apply_opvar(PIE.Cz,xf,nz),apply_opvar(PIE.Dzw,wf,nz));
         for j=1:nz, eZ = max(eZ,rel(Zx{j},Zr{j})); end
     end
     if hasK
-        Kxf = apply_cop(PIE.K,xf);
+        Kxf = apply_opvar(PIE.K,xf);
         for j=1:numel(Kxf), eK = max(eK,pmax(Kxf{j})/max(1,maxc(xf))); end
     end
     % pde2pie.x.C: one column per block (its state's space), diagonal
@@ -244,7 +244,7 @@ for rep=1:nrep
         v = cell(size(Cm.C,2),1);
         for kk=1:size(Cm.C,2), v{kk} = polynomial(zeros(Cm.dim_in(kk),1)); end
         v{b} = Dop(X{idx(b)},pvars,dmat(b,:));
-        y = apply_cop(Cm,v);
+        y = apply_opvar(Cm,v);
         eC = max(eC,rel(y{b},xf{b}));
     end
 end
@@ -260,8 +260,8 @@ for rep=1:nrep
     W = cell(1,numel(S.wvars));
     for j=1:numel(W), W{j} = randpoly(S.wvars{j},2,1); end
     wf = W(widx);
-    x = addc(apply_cop(T,xf),apply_cop(PIE.Tw,wf,nb));
-    Axf = addc(apply_cop(A,xf),apply_cop(PIE.Bw,wf,nb));
+    x = addc(apply_opvar(T,xf),apply_opvar(PIE.Tw,wf,nb));
+    Axf = addc(apply_opvar(A,xf),apply_opvar(PIE.Bw,wf,nb));
     X = cell(1,numel(S.svars));
     for b=1:nb, X{idx(b)} = x{b}; end
     bres = S.bc(X,W);
@@ -279,10 +279,10 @@ end
 
 
 %% ------------------------------------------------------------------------
-%% Layer 2: copvar operations
+%% Layer 2: opvar operations
 %% ------------------------------------------------------------------------
 function R = run_ops(names)
-% R = RUN_OPS(NAMES) checks the 'copvar' operations on the operators T, A
+% R = RUN_OPS(NAMES) checks the 'opvar' operations on the operators T, A
 % of each supported system (see the help of the file).
 %
 % INPUT
@@ -304,14 +304,14 @@ for i=1:numel(names)
         for rep=1:2
             rng(300+rep);
             f = rand_blocks(T,'in');  g = rand_blocks(T,'out');
-            Tf = apply_cop(T,f);  Af = apply_cop(A,f);  TtAf = apply_cop(Tt,Af);
-            eM  = max(eM, cmpc(apply_cop(AT,f),apply_cop(A,Tf)));
-            eMt = max(eMt,cmpc(apply_cop(TtA,f),TtAf));
-            eS  = max(eS, cmpc(apply_cop(TA,f),addc(Tf,Af)));
-            eL  = max(eL, cmpc(apply_cop(Lop,f),addc(TtAf,apply_cop(At,Tf))));
+            Tf = apply_opvar(T,f);  Af = apply_opvar(A,f);  TtAf = apply_opvar(Tt,Af);
+            eM  = max(eM, cmpc(apply_opvar(AT,f),apply_opvar(A,Tf)));
+            eMt = max(eMt,cmpc(apply_opvar(TtA,f),TtAf));
+            eS  = max(eS, cmpc(apply_opvar(TA,f),addc(Tf,Af)));
+            eL  = max(eL, cmpc(apply_opvar(Lop,f),addc(TtAf,apply_opvar(At,Tf))));
             i1 = ip(Tf,g,T,'out');  i2 = ip(Af,g,A,'out');
-            e1 = i1-ip(f,apply_cop(Tt,g),T,'in');
-            e2 = i2-ip(f,apply_cop(At,g),A,'in');
+            e1 = i1-ip(f,apply_opvar(Tt,g),T,'in');
+            e2 = i2-ip(f,apply_opvar(At,g),A,'in');
             eAdj = max(eAdj,max(abs([e1 e2]))/max([1,abs(i1),abs(i2)]));
         end
         r.status = ternary(all([eM eMt eAdj eS eL]<tol),'pass','FAIL');
@@ -947,12 +947,12 @@ if c, s = a; else, s = b; end
 end
 
 function tf = nonempty(P)
-% TF = NONEMPTY(P) is true for a 'copvar' with blocks.
-tf = ~isempty(P) && isa(P,'copvar') && ~isempty(P.C);
+% TF = NONEMPTY(P) is true for an 'opvar' with blocks.
+tf = ~isempty(P) && isa(P,'opvar') && ~isempty(P.C);
 end
 
-function y = apply_cop(P,v,M)
-% Y = APPLY_COP(P,V,M) applies the 'copvar' P to the cell V of 'polynomial'
+function y = apply_opvar(P,v,M)
+% Y = APPLY_OPVAR(P,V,M) applies the 'opvar' P to the cell V of 'polynomial'
 % blocks, each block by its kernels (apply_sopvar): y{i} = sum_j P.C{i,j}
 % v{j}. An absent operator gives M scalar zeros.
 if ~nonempty(P)
@@ -1040,7 +1040,7 @@ end
 
 function f = rand_blocks(P,side)
 % F = RAND_BLOCKS(P,SIDE) returns random 'polynomial' blocks on the input
-% ('in') or output ('out') spaces of the 'copvar' P.
+% ('in') or output ('out') spaces of the 'opvar' P.
 if strcmp(side,'in'), sp = P.space_in; dm = P.dim_in; else, sp = P.space_out; dm = P.dim_out; end
 f = cell(size(sp,1),1);
 for b=1:size(sp,1), f{b} = randpoly(P.vars(sp(b,:)),2,dm(b)); end

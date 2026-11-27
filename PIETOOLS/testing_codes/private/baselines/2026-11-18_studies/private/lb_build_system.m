@@ -68,7 +68,7 @@ else
 end
 if ~isempty(PIE)
     try,    sinfo.size = mat2str(PIE.T.dim(:,1)');                      % MMP, 11/17/2026
-    catch,  sinfo.size = sprintf('%d vars',PIE.dim);   end  % copvar.dim exists for two variables at most: the 3-D rows errored here, 11/17/2026
+    catch,  sinfo.size = sprintf('%d vars',PIE.dim);   end  % opvar.dim exists for two variables at most: the 3-D rows errored here, 11/17/2026
 end
 end
 

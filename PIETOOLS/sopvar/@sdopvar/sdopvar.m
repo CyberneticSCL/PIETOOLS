@@ -5,7 +5,7 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar
     %
     %   Pop: L_2^p[S1,S3] to L_2^q[S2,S3]
     %
-    % Elements of this class are intended to be included in a cdopvar container object.
+    % Elements of this class are intended to be included in a dopvar container object.
     %
     %   The operator has the form
     %         y(S2,S3)=sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3)

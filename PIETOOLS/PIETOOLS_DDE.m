@@ -76,6 +76,8 @@
 %   H-infinity gain tests (the dual appends 'd'); the DDE is initialized
 %   once; the direct conversion calls convert_PIETOOLS_DDE2PIE_legacy; the
 %   PIESIM initial condition is uinput.ic; help and comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 %
 close all; clear; %path(pathdef); 
 clc;
@@ -295,7 +297,7 @@ end
 
 
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
-% The container executives (PIETOOLS_*_sop) take the copvar PIE that both   % YP, DB, MMP, 11/21/2026
+% The container executives (PIETOOLS_*_sop) take the opvar PIE that both   % YP, DB, MMP, 11/21/2026
 % converters return; outputs as named below, then an info struct            % YP, DB, MMP, 11/21/2026
 if stability==1
 %   [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                    % YP, DB, MMP, 11/21/2026 (was)

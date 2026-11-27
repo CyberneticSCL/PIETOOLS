@@ -69,7 +69,7 @@ function R = bench_lpi_degree(nv,dlist,series,problem)
 %                settings_2d from SETTINGS_2D_STOCK('light') (LF_deg equal).
 %                Same degree families. Help to match.
 
-% The PDE and its PIE (copvar operators), and the PIE with opvar operators
+% The PDE and its PIE (opvar operators), and the PIE with opvar operators
 if nargin<4 || isempty(problem),    problem = 'stability';  end             % MMP, 11/06/2026
 pvar s1 s2
 % if nv==1                                                                  % MMP, 11/06/2026 (was)

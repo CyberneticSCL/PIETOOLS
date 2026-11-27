@@ -1,6 +1,6 @@
 function [Pop_x,Pop_w,Pop_u] = get_op(PDE,space_out)
 % [POP_X,POP_W,POP_U] = GET_OP(PDE,SPACE_OUT) returns the PI operators
-% defined by the free terms PDE, as 'copvar' objects acting on the states,
+% defined by the free terms PDE, as 'opvar' objects acting on the states,
 % exogenous inputs and controlled inputs,
 %   PDE = Pop_x*[x_1;...;x_n] + Pop_w*[w_1;...;w_m] + Pop_u*[u_1;...;u_k],
 % with x_j = PDE.x{j}, w_j = PDE.w{j}, u_j = PDE.u{j}.
@@ -26,10 +26,10 @@ function [Pop_x,Pop_w,Pop_u] = get_op(PDE,space_out)
 %               variables on which each free equation depends.
 %
 % OUTPUT
-% - Pop_x:      'copvar' object, one row per free equation of PDE, one
+% - Pop_x:      'opvar' object, one row per free equation of PDE, one
 %               column per state component in PDE.x;
-% - Pop_w:      'copvar' object for the components of PDE.w, [] if none;
-% - Pop_u:      'copvar' object for the components of PDE.u, [] if none;
+% - Pop_w:      'opvar' object for the components of PDE.w, [] if none;
+% - Pop_u:      'opvar' object for the components of PDE.u, [] if none;
 %
 % NOTES
 % - A free equation integrated over the full domain of s does not depend
@@ -195,7 +195,7 @@ for kk=1:numel(objs)
     end
     meta = struct('vars',{vnames_reg},'dom',dom_reg,'space_out',space_out_mask, ...
                   'space_in',space_in_mask,'dim_out',dim_out,'dim_in',dim_in);
-    Pops{kk} = copvar(blocks.(objs{kk}),meta);
+    Pops{kk} = opvar(blocks.(objs{kk}),meta);
 end
 [Pop_x,Pop_w,Pop_u] = Pops{:};
 

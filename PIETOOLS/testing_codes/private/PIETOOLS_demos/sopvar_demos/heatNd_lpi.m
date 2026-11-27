@@ -2,7 +2,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PROG,META] = HEATND_LPI(PIE,D,K,EP,OPTS) the UNSOLVED stability LPI of
 % Jagt & Peet, arXiv:2508.14840v4, Cor. 35, for a PIE from HEATND_PIE, on
-% the container path (copvar/cdopvar; any number of spatial variables):
+% the container path (opvar/dopvar; any number of spatial variables):
 %
 %   find P = c' Z_d (indefinite) and R, Q >= 0 with
 %   (15a)  P*T - ep^2 T*T - R = 0           (so P*T = T*P = ep^2 T*T + R),
@@ -35,7 +35,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 % - (15b) is X1 + kappa X2 + Q = 0, 'symmetric', X1 = P*A0 + (P*A0)*, X2 =
 %   P*T + (P*T)*: both self-adjoint for every decision value, and X2 = 2 P*T
 %   on (15a). X1, X2 do not depend on kappa, so a new kappa is one 'plus'
-%   and one 'lpi_eq_cdopvar' on a stored base (OPTS.base), and the SDP is
+%   and one 'lpi_eq_dopvar' on a stored base (OPTS.base), and the SDP is
 %   affine in kappa (HEATND_BISECT uses that).
 %
 % BASES (paper eqs. 13-14; mu(d) = d^2+4d+3 per direction)
@@ -43,7 +43,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %     multiplier s^a, a <= d                   (d+1),
 %     lower/upper s^a th^c, JOINT a + c <= d   ((d+1)(d+2)/2 each),
 %   Kronecker over directions, one decision variable each: mu(d)^N.
-%   'tensor': 'lpivar_cdopvar' degree d (a, c <= d separately), the stock
+%   'tensor': 'lpivar' degree d (a, c <= d separately), the stock
 %   'lpivar' convention of the Sec. 7.1 listing: ((d+1)+2(d+1)^2)^N.
 %   OPTS.Pmult = false drops the multiplier cells (paper Sec. 6.2 remark);
 %   MEASURED certified infeasible at 0.5 k* in 2-D, so the default keeps
@@ -59,11 +59,11 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %             joint cap adapted to the BC;
 %   'paper'   Z_{d'} of Cor. 35 exactly, d' = dp (joint cap a + c <= d'):
 %             Gram mu(d')^N before pruning;
-%   'tensor'  copquadvar scalar degree dp (a, c <= dp, no joint cap);
+%   'tensor'  opquadvar scalar degree dp (a, c <= dp, no joint cap);
 %   'balance' the listing's rule: lpi_ineq sizes the positive variable by
 %             'degbalance' of the operator cancelled; container analogue
 %             'eq_opts_sopvar' + '@sdopvar/degbalance' (dp unused).
-%   'custom'  OPTS.Rdeg and OPTS.Qdeg, copquadvar degree specs used as      % MMP, 10/08/2026
+%   'custom'  OPTS.Rdeg and OPTS.Qdeg, opquadvar degree specs used as      % MMP, 10/08/2026
 %             given (dp unused): R and Q sized from their targets by the    % MMP, 10/08/2026
 %             lift/weight rules of sopvar_lift_notes Sec. 7 (HEATND_TAILOR). % MMP, 10/08/2026
 % - OPTS.prune (default true): only the basis blocks that can reach the
@@ -74,7 +74,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   (OPTS.psatzon 'RQ' default, or 'Q'):
 %   'linear'  (default) the 2N normalised face generators (th_i-a_i)/L_i,
 %             (b_i-th_i)/L_i (OPTS.faces, N x 2 logical, default all) via
-%             poscopvar psatz = 2i+1 / 2i+2 (copquadvar face codes, MMP
+%             poslpivar psatz = 2i+1 / 2i+2 (opquadvar face codes, MMP
 %             09/27/2026; formerly the copy HEATND_POSW, bitwise the same
 %             SDPs): stock poslpivar_2d psatz = [3 4 5 6] (CC,
 %             09/23/2026) extended to N-D. MEASURED 2-D (review): dropping
@@ -83,7 +83,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %             ray) at k = 0, 0.1, 0.5 k*; psatz on Q only ('psatzon' 'Q')
 %             is certified INFEASIBLE there (Farkas rel. violation <= 9e-13),
 %             so psatz on R is needed for feasibility;
-%   'product' poscopvar psatz = 1, g = prod_i (th_i-a_i)(b_i-th_i): stock
+%   'product' poslpivar psatz = 1, g = prod_i (th_i-a_i)(b_i-th_i): stock
 %             lpi_ineq opts.psatz = 1 (complete in 1-D; certified
 %             infeasible at 0.5 k* in 2-D here, as for stock);
 %   'none'    Cor. 35 as printed (no Psatz term). MEASURED: certifies no
@@ -91,7 +91,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   'tensor'  the Markov-Lukacs tensor set: g_i = (th_i-a_i)(b_i-th_i)     % MMP, 10/08/2026
 %             alone in direction i and the product of all g_i, each at     % MMP, 10/08/2026
 %             'int' lowered by OPTS.psatz_offset in the directions it acts % MMP, 10/08/2026
-%             in (poscopvar_direct codes 2N+2+i and 1); in 1-D with offset % MMP, 10/08/2026
+%             in (poslpivar_direct codes 2N+2+i and 1); in 1-D with offset % MMP, 10/08/2026
 %             1 it is the 'product' pair. MEASURED 2-D DD x DN, d = 0,     % MMP, 10/08/2026
 %             R (1,1), Q (2,2) uncapped: faces at w-1 certify 12.336731 at % MMP, 10/08/2026
 %             nx 339209, the tensor set at w-1 12.326178 at nx 395785 in   % MMP, 10/08/2026
@@ -121,7 +121,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 % OUTPUT
 % - prog: SOSTOOLS/LPI program with 'eq' expressions only (no 'ineq'), so
 %         the pre-solve SDP is complete (HEATND_SDP), and the row record    % MMP, 11/02/2026
-%         sopeq of its equalities (LPI_EQ_CDOPVAR);                         % MMP, 11/02/2026
+%         sopeq of its equalities (LPI_EQ_DOPVAR);                         % MMP, 11/02/2026
 % - meta: N, r, d, k, kappa (= r + k, the only rate the SDP sees), ep, opts
 %         (resolved), kstar, lambda1 (= kappa*); t (stage wall times, s);
 %         mem (MB: MATLAB in use after the build, process PEAK working set
@@ -130,7 +130,7 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %         nP (decision variables of P), ndec (numel(prog.decvartable));
 %         sdp (m rows, Kf, Ks Gram sizes, nnzAt, nx); base.
 %
-% Cost: dominated by the R and Q declarations (copquadvar / int_semisep)
+% Cost: dominated by the R and Q declarations (opquadvar / int_semisep)
 % and the compositions P*T, P*A, whose rows scale with the decision count;
 % nothing is dense in the decision count (CLAUDE.md sec. 2). MEASURED 3-D
 % (bench, d = 0): base 55-63 s plus ~10 s per finalization, 3.8 GB, 2.7M
@@ -217,7 +217,7 @@ if isempty(opts.base)
         case 'paper',   [prog,P] = lpivar_Zd(prog,vars,dom,d,opts.Pmult);
         case 'tensor'
             if ~opts.Pmult, error('heatNd_lpi:Pmult','Pmult = false needs Pbasis ''paper''.'),  end
-            [prog,P] = lpivar_cdopvar(prog,1,{vars},dom,d);
+            [prog,P] = lpivar(prog,1,{vars},dom,d);
         otherwise,      error('heatNd_lpi:Pbasis','Pbasis is ''paper'' or ''tensor''.')
     end
     nP = numel(prog.decvartable);   t.P = toc(t0);
@@ -243,13 +243,13 @@ if isempty(opts.base)
     t0 = tic;
     switch opts.eq15a
         case 'full'     % every coefficient of every cell
-            prog = lpi_eq_cdopvar(prog,E1 - R);
+            prog = lpi_eq_dopvar(prog,E1 - R);
         case 'split'    % Sec. 7.1 listing form: P*T = T*P, then the
             % self-adjoint part; one cell per adjoint pair each ('symmetric'
             % is exact for the anti-self-adjoint PT - PT' too). Same affine
             % set as 'full', about half the rows.
-            prog = lpi_eq_cdopvar(prog,PT - PT','symmetric');
-            prog = lpi_eq_cdopvar(prog,E1 - R,'symmetric');
+            prog = lpi_eq_dopvar(prog,PT - PT','symmetric');
+            prog = lpi_eq_dopvar(prog,E1 - R,'symmetric');
         otherwise
             error('heatNd_lpi:eq15a','eq15a is ''split'' or ''full''.')
     end
@@ -270,7 +270,7 @@ kappa = [];
 if ~isempty(k)
     t0 = tic;
     kappa = pie.r + k;
-    prog = lpi_eq_cdopvar(prog,base.X1 + kappa*base.X2 + base.Q,'symmetric');
+    prog = lpi_eq_dopvar(prog,base.X1 + kappa*base.X2 + base.Q,'symmetric');
     t.eq15b = toc(t0);
 end
 
@@ -299,7 +299,7 @@ end
 function [prog,Z] = posvar(prog,X,vars,dom,opts,deg,usepsatz)
 % Z = Z* >= 0 on L2[vars] to cancel the 1x1 container X: base Gram term
 % plus (if USEPSATZ) the psatz terms of OPTS.psatz, at one degree and basis.
-% DEG: copquadvar degree spec, or [] for 'balance' (sized on X here).
+% DEG: opquadvar degree spec, or [] for 'balance' (sized on X here).
 N = numel(vars);
 po = struct();
 if strcmp(opts.RQ,'balance')
@@ -312,7 +312,7 @@ elseif opts.prune
     po.include = {eo.include};
     if isfield(eo,'sep'),   po.sep = eo.sep;    end
 end
-[prog,Z] = poscopvar(prog,1,vars,dom,deg,po);
+[prog,Z] = poslpivar(prog,1,vars,dom,deg,po);
 if ~usepsatz,   return,     end
 % The Psatz terms at 'int' reduced by OPTS.psatz_offset (0: as before).     % MMP, 10/08/2026
 % Empty when a product term would need 'int' < 0: omitted, as the           % MMP, 10/08/2026
@@ -324,13 +324,13 @@ switch opts.psatz
         if isempty(degp),   return,     end                                 % MMP, 10/08/2026
         pp = po;    pp.psatz = 1;
 %       [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pp);                      % MMP, 10/08/2026 (was)
-        [prog,Zg] = poscopvar(prog,1,vars,dom,degp,pp);                     % MMP, 10/08/2026
+        [prog,Zg] = poslpivar(prog,1,vars,dom,degp,pp);                     % MMP, 10/08/2026
         Z = Z + Zg;
     case 'linear'
         if isempty(degp),   return,     end     % no face term below w = 0  % MMP, 10/08/2026
         % OPTS.faces: N x 2 logical, face (i,1) at a_i, (i,2) at b_i.
         fc = opts.faces;    if isempty(fc),     fc = true(N,2);     end
-        % Face (i,e): poscopvar psatz 2i+1 (e=1) / 2i+2 (e=2), weight       % MMP, 09/27/2026
+        % Face (i,e): poslpivar psatz 2i+1 (e=1) / 2i+2 (e=2), weight       % MMP, 09/27/2026
         % (th_i-a_i)/L_i / (b_i-th_i)/L_i at theta; i indexes the SORTED    % MMP, 09/27/2026
         % registry, which vars = s1..sN is (heatNd_pie: N <= 9), as dom     % MMP, 09/27/2026
         % row order assumes too.                                            % MMP, 09/27/2026
@@ -345,7 +345,7 @@ switch opts.psatz
 %               [prog,Zg] = heatNd_posw(prog,1,vars,dom,deg,pg);            % MMP, 09/27/2026 (was)
                 pg = po;    pg.psatz = 2*i+e;                               % MMP, 09/27/2026
 %               [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pg);              % MMP, 09/27/2026 % MMP, 10/08/2026 (was)
-                [prog,Zg] = poscopvar(prog,1,vars,dom,degp,pg);             % MMP, 10/08/2026
+                [prog,Zg] = poslpivar(prog,1,vars,dom,degp,pg);             % MMP, 10/08/2026
 %               Z = Z + Zg;                                                 % MMP, 10/01/2026 (was)
                 terms{end+1} = Zg;                                          % MMP, 10/01/2026
             end
@@ -355,11 +355,11 @@ switch opts.psatz
         % Markov-Lukacs tensor set (sopvar_lift_notes Sec. 9): g_i =        % MMP, 10/08/2026
         % (th_i-a_i)(b_i-th_i) alone in direction i at 'int' lowered by the % MMP, 10/08/2026
         % offset in that direction only, and the product of all g_i at      % MMP, 10/08/2026
-        % 'int' lowered in every direction: poscopvar_direct codes 2N+2+i   % MMP, 10/08/2026
+        % 'int' lowered in every direction: poslpivar_direct codes 2N+2+i   % MMP, 10/08/2026
         % and 1 in one call. A 'subset' spec takes offset 0 only.           % MMP, 10/08/2026
         pt = po;    pt.psatz = [2*N+2+(1:N), 1];                            % MMP, 10/08/2026
         pt.psatz_offset = opts.psatz_offset*ones(1,N+1);                    % MMP, 10/08/2026
-        [prog,Zg] = poscopvar_direct(prog,1,vars,dom,deg,pt);               % MMP, 10/08/2026
+        [prog,Zg] = poslpivar_direct(prog,1,vars,dom,deg,pt);               % MMP, 10/08/2026
         Z = Z + Zg;                                                         % MMP, 10/08/2026
     otherwise
 %       error('heatNd_lpi:psatz','psatz is ''none'', ''product'' or ''linear''.') % MMP, 10/08/2026 (was)
@@ -395,8 +395,8 @@ end                                                                         % MM
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function deg = RQ_deg(pie,RQ,dp)
-% copquadvar degree spec of the R, Q basis on L2[s1..sN] ([] for 'balance',
-% sized per operator in POSVAR). copquadvar builds the exponent grid over
+% opquadvar degree spec of the R, Q basis on L2[s1..sN] ([] for 'balance',
+% sized per operator in POSVAR). opquadvar builds the exponent grid over
 % [th_1..th_N, s_1..s_N] ('int' caps the th_k, 'mult' the s_k, s_k zeroed in
 % a multiplier direction), so a Kronecker product of per-direction sets
 %   {th^a s^c : a <= ct_k, c <= cs_k, a + c <= cj_k}
@@ -438,7 +438,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [prog,Pop] = lpivar_Zd(prog,vars,dom,d,Pmult)
 % P = c' Z_d with the paper's joint-degree basis (eq. 13-14); the layout of
-% 'lpivar_cdopvar' (ZL = ZR = {(0:d)'} per variable, gamma over sorted
+% 'lpivar' (ZL = ZR = {(0:d)'} per variable, gamma over sorted
 % vars with direction 1 fastest, coefficient index row + NL*(col-1), ZL/ZR
 % Kronecker first variable slowest), with the joint cap a + c <= d in an
 % integral direction and right degree 0 in a multiplier direction
@@ -475,7 +475,7 @@ for g = 1:numel(pos)
 end
 dm = struct('in',dom,'out',dom);
 blk = sdopvar(struct('A',{A},'B',{B}),struct('in',{vars},'out',{vars}),Zd,ZL,ZR,dm,[1 1]);
-Pop = cdopvar({blk});
+Pop = dopvar({blk});
 end
 
 

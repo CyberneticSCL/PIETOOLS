@@ -45,7 +45,7 @@ function [DDF,DDF_min,PIE] = convert_PIETOOLS_NDS(NDS,out_type)
 %             Br2, Drv, Cv, Cvd); the minimal DDF or the PIE
 %             instead when out_type is 'ddf', 'ddf_min' or 'pie'.
 %   DDF_min:  'struct', the minimal DDF, with the fields of DDF.
-%   PIE:      'pie_struct', the PIE of the minimal DDF: 'copvar' operators
+%   PIE:      'pie_struct', the PIE of the minimal DDF: 'opvar' operators
 %             on R^nx x L2^nr[-1,0] in s1, nr the total dimension of the
 %             delay channels.
 
@@ -74,6 +74,8 @@ function [DDF,DDF_min,PIE] = convert_PIETOOLS_NDS(NDS,out_type)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding: DJ, 09/29/2022
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 %
 
 % Check that desired conversion makes sense.

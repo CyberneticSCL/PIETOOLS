@@ -34,10 +34,10 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % INPUTS:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIE: a linear PIE, as a pie_struct object
-% K : a copvar object, mapping the PIE state to the
+% K : an opvar object, mapping the PIE state to the
 %     actuator input u (controller) or the observed output y to the PIE
 %     state (observer); for type='dynamic', a struct with fields TK, AK,
-%     BK, CK, DK, the operators (copvar objects) of the
+%     BK, CK, DK, the operators (opvar objects) of the
 %     controller PIE, or a struct with such a field G
 % type: optional string input; 'controller' (default), 'observer' or
 %     'dynamic'
@@ -54,7 +54,7 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % OUTPUTS:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIEcl: an initialized pie_struct object, with the operators Tcl Twcl Acl
-%        B1cl C1cl D11cl C2cl D21cl, as copvar objects. For the controller,
+%        B1cl C1cl D11cl C2cl D21cl, as opvar objects. For the controller,
 %        the actuator input u is eliminated, so that Tu, B2, D12 and D22
 %        are zero. For the observer, the state is [x;xhat], and the
 %        observed output is eliminated. For the dynamic controller, the
@@ -88,6 +88,8 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % authorship, and a brief description of modifications
 %
 % Initial coding SS - 5/30/2021
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 if nargin==2
     type = 'controller';
@@ -107,7 +109,7 @@ if ~any(strcmp(type,{'controller','observer','dynamic'}))
     error('Third input to closedLoopPIE() must be "controller", "observer" or "dynamic"');
 end
 
-% The gain, as a copvar
+% The gain, as an opvar
 if strcmp(type,'dynamic')
     if ~isstruct(K)
         error('For type "dynamic", the second input to closedLoopPIE() should be a struct with fields TK, AK, BK, CK and DK');
@@ -117,12 +119,12 @@ if strcmp(type,'dynamic')
         if ~isfield(K,f{1})
             error('For type "dynamic", the second input to closedLoopPIE() should have a field %s',f{1});
         end
-        if ~isa(K.(f{1}),'copvar')
-            error('The controller operators should be copvar class objects');
+        if ~isa(K.(f{1}),'opvar')
+            error('The controller operators should be opvar class objects');
         end
     end
-elseif ~isa(K,'copvar')
-    error('Second input to closedLoopPIE() must be a copvar class object');
+elseif ~isa(K,'opvar')
+    error('Second input to closedLoopPIE() must be an opvar class object');
 end
 
 % Build controller closed-loop system by default

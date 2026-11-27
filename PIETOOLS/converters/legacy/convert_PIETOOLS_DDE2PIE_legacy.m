@@ -48,7 +48,7 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 %         zero.
 %
 % OUTPUT
-%   PIE:  'pie_struct', initialized: the twelve 'copvar' operators T, Tw,
+%   PIE:  'pie_struct', initialized: the twelve 'opvar' operators T, Tw,
 %         Tu, A, B1, B2, C1, D11, D12, C2, D21, D22 on R^nx x
 %         L2^((nx+nw+nu)*K)[-1,0], spatial variable s1 (dummy s1_dum).
 
@@ -85,6 +85,8 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 %   D12, D22 and Tu act on u, with nu columns, also when nu ~= nw; the
 %   spatial variable and domain are set in PIE.space and the PIE is
 %   initialized; help and comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 disp('WARNING: convert_PIETOOLS_DDE2PIE is no longer supported! Direct conversion of DDE to PIE is NOT recommended and may result in very large computation times!!! Please use minimize_PIETOOLS_DDE2PIE instead!')
 
@@ -156,32 +158,32 @@ for i = 1:nK
 end
 nxb=(nx+nw+nu)*nK; % number of infinite-dimensional states
 
-% MMP, 11/21/2026: BEGIN the operators as 'copvar' containers
+% MMP, 11/21/2026: BEGIN the operators as 'opvar' containers
 % Each operator [P, Q1; Q2, R]: R^p0 x L2^p1[s1] -> R^q0 x L2^q1[s1], R the % MMP, 11/21/2026
 % multiplier R0 plus the integrals of R1 on [-1,s1] and R2 on [s1,0], as a  % MMP, 11/21/2026
-% 'copvar' container; arguments P, Q1, Q2, {R0,R1,R2}, [q0 p0; q1 p1]; the  % MMP, 11/21/2026
+% 'opvar' container; arguments P, Q1, Q2, {R0,R1,R2}, [q0 p0; q1 p1]; the  % MMP, 11/21/2026
 % u channel has nu columns in D12, D22 and TB2                              % MMP, 11/21/2026
 I1 = [-1 0];                       % domain of s1                           % MMP, 11/21/2026
-Top   = pi4_copvar_sop(eye(nx),zeros(nx,nxb),Tb0,{zeros(nxb),Tba,Tbb},...
+Top   = pi4_opvar(eye(nx),zeros(nx,nxb),Tb0,{zeros(nxb),Tba,Tbb},...
                        [nx nx; nxb nxb],s1,s1_dum,I1);                      % MMP, 11/21/2026
-TB1op = pi4_copvar_sop(zeros(nx,nw),[],Tb1,{[],[],[]},...
+TB1op = pi4_opvar(zeros(nx,nw),[],Tb1,{[],[],[]},...
                        [nx nw; nxb 0],s1,s1_dum,I1);                        % MMP, 11/21/2026
-TB2op = pi4_copvar_sop(zeros(nx,nu),[],Tb2,{[],[],[]},...
+TB2op = pi4_opvar(zeros(nx,nu),[],Tb2,{[],[],[]},...
                        [nx nu; nxb 0],s1,s1_dum,I1);                        % MMP, 11/21/2026
-Aop   = pi4_copvar_sop(Ab0,Ab,zeros(nxb,nx),{Itau,zeros(nxb),zeros(nxb)},...
+Aop   = pi4_opvar(Ab0,Ab,zeros(nxb,nx),{Itau,zeros(nxb),zeros(nxb)},...
                        [nx nx; nxb nxb],s1,s1_dum,I1);                      % MMP, 11/21/2026
-C1op  = pi4_copvar_sop(Cb10,Cb11,[],{[],[],[]},...
+C1op  = pi4_opvar(Cb10,Cb11,[],{[],[],[]},...
                        [nz nx; 0 nxb],s1,s1_dum,I1);                        % MMP, 11/21/2026
-C2op  = pi4_copvar_sop(Cb20,Cb21,[],{[],[],[]},...
+C2op  = pi4_opvar(Cb20,Cb21,[],{[],[],[]},...
                        [ny nx; 0 nxb],s1,s1_dum,I1);                        % MMP, 11/21/2026
-B1op  = pi4_copvar_sop(Bb1,[],zeros(nxb,nw),{[],[],[]},...
+B1op  = pi4_opvar(Bb1,[],zeros(nxb,nw),{[],[],[]},...
                        [nx nw; nxb 0],s1,s1_dum,I1);                        % MMP, 11/21/2026
-B2op  = pi4_copvar_sop(Bb2,[],zeros(nxb,nu),{[],[],[]},...
+B2op  = pi4_opvar(Bb2,[],zeros(nxb,nu),{[],[],[]},...
                        [nx nu; nxb 0],s1,s1_dum,I1);                        % MMP, 11/21/2026
-D11op = pi4_copvar_sop(Db11,[],[],{[],[],[]},[nz nw; 0 0],s1,s1_dum,I1);    % MMP, 11/21/2026
-D12op = pi4_copvar_sop(Db12,[],[],{[],[],[]},[nz nu; 0 0],s1,s1_dum,I1);    % MMP, 11/21/2026
-D21op = pi4_copvar_sop(Db21,[],[],{[],[],[]},[ny nw; 0 0],s1,s1_dum,I1);    % MMP, 11/21/2026
-D22op = pi4_copvar_sop(Db22,[],[],{[],[],[]},[ny nu; 0 0],s1,s1_dum,I1);    % MMP, 11/21/2026
+D11op = pi4_opvar(Db11,[],[],{[],[],[]},[nz nw; 0 0],s1,s1_dum,I1);         % MMP, 11/21/2026
+D12op = pi4_opvar(Db12,[],[],{[],[],[]},[nz nu; 0 0],s1,s1_dum,I1);         % MMP, 11/21/2026
+D21op = pi4_opvar(Db21,[],[],{[],[],[]},[ny nw; 0 0],s1,s1_dum,I1);         % MMP, 11/21/2026
+D22op = pi4_opvar(Db22,[],[],{[],[],[]},[ny nu; 0 0],s1,s1_dum,I1);         % MMP, 11/21/2026
 % Former code:                                                              % MMP, 11/21/2026
 % opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;    % MMP, 11/21/2026 (was)
 % Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s1; Top.var2 = s1_dum; % MMP, 11/21/2026 (was)
@@ -281,7 +283,7 @@ D22op = pi4_copvar_sop(Db22,[],[],{[],[],[]},[ny nu; 0 0],s1,s1_dum,I1);    % MM
 % D22op.dim = [ny nw; 0 0];                                                 % MMP, 11/21/2026 (was)
 % TB1op.dim = [nx nw; nxb 0];                                               % MMP, 11/21/2026 (was)
 % TB2op.dim = [nx nw; nxb 0];                                               % MMP, 11/21/2026 (was)
-% MMP, 11/21/2026: END the operators as 'copvar' containers
+% MMP, 11/21/2026: END the operators as 'opvar' containers
 
 
 PIE = pie_struct();

@@ -36,7 +36,7 @@ for c = [1 39; 2 10]'
     t0 = tic; [nb, nops] = deal(0);
     for nm = {'T','Tw','Tu','A','Bw','Bu','Cz','Dzw','Dzu','Cy','Dyw','Dyu'}
         X = PIE.(nm{1});
-        if ~isa(X,'copvar') || sum(X.dim_out)==0 || sum(X.dim_in)==0, continue, end
+        if ~isa(X,'opvar') || sum(X.dim_out)==0 || sum(X.dim_in)==0, continue, end
         nops = nops + 1;
         [~,~,Y,nbk] = p0_apply(X, 3, 5, 1);
         nb = nb + nbk;

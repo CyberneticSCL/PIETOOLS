@@ -369,7 +369,7 @@ function ops = substitute_input(ops,input_map,in_idx,keep,inputs_w)
 % from wf.
 %
 % INPUT
-% - ops:        struct with fields x, w, u: the 'copvar' maps from xf,
+% - ops:        struct with fields x, w, u: the 'opvar' maps from xf,
 %               wf and uf to the state, with u [] if the PDE has no
 %               actuators; the columns of w are the inputs inputs_w;
 % - input_map:  struct with fields x, w, u: cells with the blocks Qx, Qw,
@@ -421,10 +421,10 @@ for i=1:nrows
 end
 % The maps from the blocks
 if ~isempty(ops.x)
-    ops.x = copvar(blocks.x);
+    ops.x = opvar(blocks.x);
 end
 if ~isempty(ops.u)
-    ops.u = copvar(blocks.u);
+    ops.u = opvar(blocks.u);
 end
 % Remove the column c from the operator of wf
 if isempty(keep)
@@ -434,7 +434,7 @@ else
     for i=find(all(cellfun(@isempty,W_keep),2))'
         W_keep{i,1} = mat2sopvar(zeros(ref_blks{i}.dims(1),inputs_w(keep(1)).dim),struct('in',{inputs_w(keep(1)).vars},'out',{ref_blks{i}.vars.out}),struct('in',inputs_w(keep(1)).dom,'out',ref_blks{i}.dom.out));
     end
-    ops.w = copvar(W_keep);
+    ops.w = opvar(W_keep);
 end
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

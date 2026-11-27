@@ -1,6 +1,6 @@
 function X = pielr_evalop(prog,X)                                           % CC, 09/23/2026
 % PIELR_EVALOP  Substitute a decision vector into ANY LPI decision object,
-% dispatching on its class: a 'cdopvar' or 'sdopvar' operator,
+% dispatching on its class: a 'dopvar' or 'sdopvar' operator,
 % or a bare dpvar (a scalar decision variable such as the l2gain gamma).
 %
 % WHY.  Verification has to push the candidate back through the real operators
@@ -12,7 +12,7 @@ function X = pielr_evalop(prog,X)                                           % CC
 % (pielr_evalgram's header).  One dispatcher keeps both dimensions on the fast
 % sparse path and keeps the two from drifting.
 %
-% An already-substituted object (copvar, sopvar, double, polynomial) passes
+% An already-substituted object (opvar, sopvar, double, polynomial) passes
 % through.
 %
 % CC, 11/22/2026: the dopvar and dopvar2d branches deleted (unreachable since
@@ -25,13 +25,13 @@ function X = pielr_evalop(prog,X)                                           % CC
 %   on since the 11/22/2026 entry (comment-only).
 
 % BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
-% no decision variable; a 'cdopvar' or 'sdopvar' is substituted by
+% no decision variable; a 'dopvar' or 'sdopvar' is substituted by
 % GETSOL_LPIVAR_SOP, which reads prog.solinfo.RRx against prog.decvartable --
 % the vector pielr_opcheck writes there before calling this.                % MMP, 11/26/2026
-if isa(X,'copvar') || isa(X,'sopvar')
+if isa(X,'opvar') || isa(X,'sopvar')
     return                                  % nothing to substitute
 end
-if isa(X,'cdopvar') || isa(X,'sdopvar')
+if isa(X,'dopvar') || isa(X,'sdopvar')
     X = getsol_lpivar_sop(prog,X);   return
 end
 % END CC, 11/08/2026

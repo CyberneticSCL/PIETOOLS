@@ -20,9 +20,9 @@ function PIE_out = npie2pie_struct(PIE_in)
 %                                      z = Cz*x + Dzw*w + Dzu*u,
 %                                      y = Cy*x + Dyw*w + Dyu*u,
 %                   Ku*u + Kw*w + K*x = 0,
-%               with all operators as 'copvar' objects, mapping between the
+%               with all operators as 'opvar' objects, mapping between the
 %               components of the state, inputs and outputs of PIE_in.space,
-%               each a separate space of the 'copvar'. The function spaces
+%               each a separate space of the 'opvar'. The function spaces
 %               and maps between the PDE and the PIE (space_pde, pie2pde,
 %               pde2pie) and PIE_in.misc are copied;
 %
@@ -84,12 +84,12 @@ for obj = obj_types
     end
 end
 
-% Convert the operators to 'copvar' objects, with a space for each component
+% Convert the operators to 'opvar' objects, with a space for each component
 ops = {'T','Tw','Tu','Bw','Bu','Dzw','Dzu','Dyw','Dyu','K','Kw','Ku'};
 for k=1:numel(ops)
     P = PIE_in.(ops{k});
     if size(P,1)>0 && size(P,2)>0
-        PIE_out.(ops{k}) = tensopmat2copvar(P);
+        PIE_out.(ops{k}) = tensopmat2opvar(P);
     end
 end
 
@@ -147,7 +147,7 @@ for k=1:size(polys,1)
     Pt.vars.in = vsort;
     Pt.dom.in = space.dom(idx,:);
     Pt.depmat.in = double(space.x.depmat(:,idx));
-    PIE_out.(polys{k,2}) = tensopmat2copvar(Pt);
+    PIE_out.(polys{k,2}) = tensopmat2opvar(Pt);
 end
 
 % Copy the maps between the PDE and the PIE, converting the operators
@@ -157,13 +157,13 @@ for obj = obj_types
         PIE_out.pde2pie.(obj{1}).(f{1}) = p2p.(f{1});
     end
     if isfield(p2p,'C') && isa(p2p.C,'tensopmat') && size(p2p.C,1)>0
-        PIE_out.pde2pie.(obj{1}).C = tensopmat2copvar(p2p.C);
+        PIE_out.pde2pie.(obj{1}).C = tensopmat2opvar(p2p.C);
     end
 end
 % The maps from PIE to PDE, each field of pie2pde
 for fname = {'X','T','Tw','Tu','W','U','Y','Z'}
     if isa(PIE_in.pie2pde.(fname{1}),'tensopmat') && size(PIE_in.pie2pde.(fname{1}),1)>0
-        PIE_out.pie2pde.(fname{1}) = tensopmat2copvar(PIE_in.pie2pde.(fname{1}));
+        PIE_out.pie2pde.(fname{1}) = tensopmat2opvar(PIE_in.pie2pde.(fname{1}));
     end
 end
 PIE_out.misc = PIE_in.misc;

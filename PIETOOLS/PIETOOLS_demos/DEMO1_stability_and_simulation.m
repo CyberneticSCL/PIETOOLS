@@ -63,6 +63,8 @@
 %   lpiprogram(pie.vars,pie.dom), P = poscopvar(prog,T,2) +
 %   1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place of poslpivar and
 %   lpi_ineq; the predefined test is lpiscript_sop; help text revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -126,8 +128,8 @@ prog = lpiprogram(pie.vars,pie.dom);                                        % YP
 
 % % Declare decision variables:
 % %   P: R x L2^2 --> R x L2^2,    P>0
-[prog,P] = poscopvar(prog,T,2);         % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
-P = P + 1e-4*eye_copvar_sop(P);         % enforce P>=1e-4                   % YP, DJ, MMP, 11/21/2026
+[prog,P] = poslpivar(prog,T,2);         % P on the output spaces of T       % YP, DJ, MMP, 11/21/2026
+P = P + 1e-4*eye_opvar(P);              % enforce P>=1e-4                   % YP, DJ, MMP, 11/21/2026
 
 % % Set inequality constraints:
 % %   A'*P*T + T'*P*A <= 0

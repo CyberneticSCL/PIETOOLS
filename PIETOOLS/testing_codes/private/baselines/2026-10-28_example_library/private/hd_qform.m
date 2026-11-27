@@ -65,7 +65,7 @@ tl = exec_tools_sop(PIE,st);
 Tm = PIE.T;  Am = PIE.A;                                                    % MMP, 11/26/2026
 Bw = PIE.B1; Cz = PIE.C1;  Dzw = PIE.D11;                                   % MMP, 11/26/2026
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
-[sp,dm] = copvar_space_list(Tm,'out');
+[sp,dm] = opvar_space_list(Tm,'out');
 % Degree caps of P*T, P the storage of the settings with its margin,
 % declared in a throwaway program
 prog0 = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
@@ -77,7 +77,7 @@ fprintf('##DEG P: %s | P*T: %s\n', dstr(dP), dstr(dQ));
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 [prog,gamv] = lpidecvar(prog,'gam');
 prog = lpi_ineq(prog,gamv);     prog = lpisetobj(prog,gamv);
-[prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,dQ);
+[prog,Qm] = lpivar(prog,dm,sp,tl.dom,dQ);
 fprintf('##Q  free coefficients %d\n', numel(prog.decvartable)-1);
 TQ = Tm'*Qm;
 [prog,Rm] = pos_sized(prog,TQ,struct(),LIMIT,'R',true);
@@ -100,9 +100,9 @@ function [prog,Pop] = pos_sized(prog,X,opts,LIMIT,lbl,build)
 % [PROG,POP] = POS_SIZED(PROG,X,OPTS,LIMIT,LBL,BUILD): the positive
 % operator LPI_INEQ_SOP declares for X >= 0 with OPTS (degrees and terms of
 % GET_LIFT_DEGS, bases pruned to the support of the diagonal blocks of X),
-% its Gram sizes printed; declared by POSCOPVAR_DIRECT, without an
+% its Gram sizes printed; declared by POSLPIVAR_DIRECT, without an
 % equality, when BUILD; an error when sum N^2 > LIMIT.
-[sp,dm] = copvar_space_list(X,'out');
+[sp,dm] = opvar_space_list(X,'out');
 dom = struct('vars',{X.vars},'dom',X.dom);
 [deg,terms] = get_lift_degs(X,opts);
 include = cell(1,numel(sp));
@@ -121,14 +121,14 @@ end
 popts = struct('psatz',terms.codes,'psatz_offset',terms.offsets);
 if any(~cellfun(@isempty,include)),     popts.include = include;    end
 eopts = popts;  eopts.estimate = true;
-[~,~,~,einfo] = poscopvar_direct(prog,dm,sp,dom,deg,eopts);
+[~,~,~,einfo] = poslpivar_direct(prog,dm,sp,dom,deg,eopts);
 nd = sum(einfo.N.^2);
 fprintf('##POS %-9s Gram blocks %s | sum N^2 %d | term codes %s\n', lbl, mat2str(einfo.N), nd, mat2str(terms.codes));
 if nd > LIMIT
     error('hd_qform:limit','%s: sum N^2 = %d exceeds %d; not built.',lbl,nd,LIMIT);
 end
 Pop = [];
-if build,   [prog,Pop] = poscopvar_direct(prog,dm,sp,dom,deg,popts);   end
+if build,   [prog,Pop] = poslpivar_direct(prog,dm,sp,dom,deg,popts);   end
 end
 
 

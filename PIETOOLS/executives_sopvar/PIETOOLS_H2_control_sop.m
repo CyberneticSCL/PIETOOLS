@@ -6,7 +6,7 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %       T x_t = A x + B1 w + B2 u,      z = C1 x + D12 u
 %
 % and a bound GAM on the H2 norm from w to z of the closed loop, by the LPI,
-% posed on 'cdopvar' operators and solved as an SDP that minimizes gam,
+% posed on 'dopvar' operators and solved as an SDP that minimizes gam,
 %
 %   P >= eppos I,  Z and W free,  gam >= trace(W),
 %   [-gam I, B1'; B1, (T*P)*A' + (A*P)*T' + (B2*Z)*T' + (T*Z')*B2'] <= 0,
@@ -20,8 +20,8 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in one spatial variable,
-%             initialized when its T is not yet a 'copvar' object; T, A,
-%             B1, B2, C1 and D12 'copvar' objects; Tw, Tu and D11 zero or
+%             initialized when its T is not yet an 'opvar' object; T, A,
+%             B1, B2, C1 and D12 'opvar' objects; Tw, Tu and D11 zero or
 %             absent; K empty (a constraint K x = 0 on the state, e.g.
 %             periodic BCs, is an error); its other operators are not
 %             used; a PIE in two or more variables is an error;
@@ -38,11 +38,11 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - K:        'copvar' object, the feedback gain from x to u ([] when the
+% - K:        'opvar' object, the feedback gain from x to u ([] when the
 %             solver returned no solution);
 % - gam:      double, the certified closed-loop bound; NaN when the solver
 %             returned no value;
-% - P, Z, W:  'copvar' objects, the solved P, Z and W;
+% - P, Z, W:  'opvar' objects, the solved P, Z and W;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
 %                          'unbounded', 'unknown' or 'residual' (cuADMM,
@@ -51,7 +51,7 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %                          'inaccurate';
 %               form ('ctrl'), gam, gam_lpi (equal to gam), nv;
 %               P, Z, W    as the outputs;
-%               G          'copvar' object, the gain K; inv  'struct', the
+%               G          'opvar' object, the gain K; inv  'struct', the
 %                          diagnostics of the computation of K (output INFO
 %                          of GETCONTROLLER_SOP, method 'qp': the field qp;
 %                          no inverse of P is formed);
@@ -94,7 +94,7 @@ if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_H2_control_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 label = 'H2_control_sop';
 
 % Complete the options of the executives and read the tools of the
@@ -109,12 +109,12 @@ if ~(PIE.Tu==0),    error('PIETOOLS_H2_control_sop:Tu','Inputs at the boundary a
 if ~(PIE.D11==0),   error('PIETOOLS_H2_control_sop:D11','Feedthrough D11 is not supported.');          end
 % A constraint K x = 0 on the state (e.g. periodic BCs) cannot be imposed
 % in this dual LPI, and a dual LPI without it is not sufficient
-if isa(PIE.K,'copvar') && size(PIE.K,1)>0
+if isa(PIE.K,'opvar') && size(PIE.K,1)>0
     error('PIETOOLS_H2_control_sop:K','PIEs with an algebraic constraint K are not supported.');
 end
 eppos = tl.eppos;
 
-% The PIE operators, 'copvar' objects, and the identity on w
+% The PIE operators, 'opvar' objects, and the identity on w
 Tm = PIE.T;     Am = PIE.A;
 Bw = PIE.B1;    Cz = PIE.C1;
 B2m = PIE.B2;   D12m = PIE.D12;
@@ -126,7 +126,7 @@ Iw = tl.ident(PIE.B1,2);
 cl = aux.classify;
 gam = cl.obj;
 
-% The solved P, Z, W, as 'copvar' objects, and the gain K, an
+% The solved P, Z, W, as 'opvar' objects, and the gain K, an
 % approximation of Z*P^{-1}
 K = [];     P = [];     Z = [];     W = [];     Gc = [];    iinv = [];
 try
@@ -152,7 +152,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam), Pm, Zm, Wm
-        %               ('cdopvar' P, Z, W), li (the info of the slack of
+        %               ('dopvar' P, Z, W), li (the info of the slack of
         %               the negativity constraint), form.
         % New program; record the equality rows when the dual is kept
         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);
@@ -162,13 +162,13 @@ end
         prog = lpi_ineq_sop(prog,gamv);
         prog = lpisetobj(prog,gamv);
         % P >= eppos I; Z free from the state to u; W free on the space of z
-        [spx,dmx] = copvar_space_list(Am,'out');
+        [spx,dmx] = opvar_space_list(Am,'out');
         [prog,Pm] = tl.storage(prog,Am,'out');
         Pm = Pm + tl.eye(1,eppos);
-        [spu,dmu] = copvar_space_list(B2m,'in');
-        [prog,Zm] = lpivar_cdopvar(prog,struct('out',dmu,'in',dmx),struct('out',{spu},'in',{spx}),tl.dom,tl.zdeg);
-        [spz,dmz] = copvar_space_list(Cz,'out');
-        [prog,Wm] = lpivar_cdopvar(prog,dmz,spz,tl.dom,tl.zdeg);
+        [spu,dmu] = opvar_space_list(B2m,'in');
+        [prog,Zm] = lpivar(prog,struct('out',dmu,'in',dmx),struct('out',{spu},'in',{spx}),tl.dom,tl.zdeg);
+        [spz,dmz] = opvar_space_list(Cz,'out');
+        [prog,Wm] = lpivar(prog,dmz,spz,tl.dom,tl.zdeg);
         % The negativity (Dneg) and positivity (Dpos) constraints
         Dneg = [-(gamv*Iw),  Bw';
                 Bw,          (Tm*Pm)*Am' + (Am*Pm)*Tm' + (B2m*Zm)*Tm' + (Tm*Zm')*B2m'];

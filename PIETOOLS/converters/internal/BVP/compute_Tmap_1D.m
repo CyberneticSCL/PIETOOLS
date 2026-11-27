@@ -36,7 +36,7 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 %           to compute Rops and Qops.Rp, e.g. 0:d for all;
 %
 % OUTPUT
-% All operators are 'copvar' objects, each a 1 x 1 container holding a
+% All operators are 'opvar' objects, each a 1 x 1 container holding a
 % single 'sopvar' block, so that every operator maps between just one
 % input and one output space (R^{p} or L2^{p}[a,b]). The spatial variable
 % is vars(1), and the dummy variable is <vars(1)>_dum, as 'sopvar' does
@@ -261,11 +261,11 @@ for j=1:d
 end
 
 
-% % % Declare the operators as 'copvar' objects, directly from their
+% % % Declare the operators as 'opvar' objects, directly from their
 % % % polynomial parameters. Each is a map between a single pair of spaces,
 % % % R^{p} or L2^{p}[a,b], so a single 'sopvar' block suffices.
 vname = char(var1.varname{1});
-mk = @(polys,q,pp,in_L2,out_L2) copvar({make_sopvar(polys,q,pp,vname,[a,b],in_L2,out_L2)});
+mk = @(polys,q,pp,in_L2,out_L2) opvar({make_sopvar(polys,q,pp,vname,[a,b],in_L2,out_L2)});
 
 % u = T0*v0 + T1*v1 + Tw*w. T1 has multiplier P0 and kernels
 % Pbar(s-theta)+T1(s,theta) on [a,s], T1(s,theta) on [s,b]

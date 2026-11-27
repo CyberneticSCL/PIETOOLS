@@ -10,7 +10,7 @@ function p0_f2(pass, which_src)
 % - <label>.mat: label; rec (source, class of PIE.T, number of variables,
 %   status, seconds, note); fix, one entry per nonempty operator of the 12
 %   (T, Tw, Tu, A, Bw, Bu, Cz, Dzw, Dzu, Cy, Dyw, Dyu) with
-%     name, X        the operator, a 'copvar';
+%     name, X        the operator, an 'opvar';
 %     seed, xin      the seed and the test functions (P0_APPLY, q = 3);
 %     pts, Y         points and outputs, Y{i} dim_out(i) x 3 x 5, computed
 %                    block by block with apply_sopvar (the sopvar definition);
@@ -70,7 +70,7 @@ for s = 1:size(src,1)
             f = p0_fixop(PIE.(ops{k}), ops{k}, label);
             if ~isempty(f),     fix(end+1) = f;     end                     %#ok<AGROW>
         end
-        if ~isempty(fix) && isa(fix(1).X,'copvar'),     rec.nv = numel(fix(1).X.vars);  end
+        if ~isempty(fix) && isa(fix(1).X,'opvar'),     rec.nv = numel(fix(1).X.vars);  end
         bad = arrayfun(@(f) ~isempty(f.err), fix);
         if any(bad)
             rec.status = 'op_error';
@@ -108,11 +108,11 @@ function f = p0_fixop(Xin, name, label)
 f = [];
 % BEGIN MMP, 11/26/2026: deleted: the branch for opvar and opvar2d inputs,
 % converted by op2copvar_sop (retired 11/26; the classes left the path on
-% 11/08). Once copvar is renamed opvar, containers would take that branch on
+% 11/08). Once opvar is renamed opvar, containers would take that branch on
 % the rename export only, and F2 would differ for a harness reason. The
 % output keeps the field legacy, always false.
 legacy = false;
-if isa(Xin,'copvar')
+if isa(Xin,'opvar')
     X = Xin;
 else
     return                                  % [] or a numeric placeholder

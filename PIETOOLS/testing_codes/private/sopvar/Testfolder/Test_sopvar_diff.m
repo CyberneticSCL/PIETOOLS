@@ -203,12 +203,12 @@ for k=1:size(cs,1)
     try,    DD = dP'*dP;    catch,  ok = false;     end
     [npass,nfail] = tally(ok && isz==all(cellfun(@nnz,DD.params(:))==0),npass,nfail,[nm,': D''*D']);
 end
-% Blocks of a copvar, as for the derivative of the operator T of a BVP
-Cb = copvar({c1,f1,f2});
+% Blocks of an opvar, as for the derivative of the operator T of a BVP
+Cb = opvar({c1,f1,f2});
 dCb = diff(Cb,'s1');
 ok = true;
 try,    DD = dCb'*dCb;  catch,  ok = false;     end
-[npass,nfail] = tally(ok && dCb==copvar({zc,c1,zc}),npass,nfail,'copvar blocks, d/ds1 and D''*D');
+[npass,nfail] = tally(ok && dCb==opvar({zc,c1,zc}),npass,nfail,'opvar blocks, d/ds1 and D''*D');
 % % % End of changes DJ (CC), 11/12/2026
 
 % % % Start of changes MMP, 11/13/2026: 'opvar' is retired, so the 1D opvar

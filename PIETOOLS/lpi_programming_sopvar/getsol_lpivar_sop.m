@@ -14,8 +14,8 @@ function Psol = getsol_lpivar_sop(prog,P)
 % with dsol(k) the entry of PROG.solinfo.RRx at the first row of
 % PROG.decvartable that holds the name P.Zd{k}, and 0 when no row does; a
 % name that no row holds keeps its rows of B_gam and remains a decision
-% variable. A 'cdopvar' container is treated block by block, its 'sopvar'
-% and [] blocks kept as they are. A 'sopvar' or 'copvar' P is returned
+% variable. A 'dopvar' container is treated block by block, its 'sopvar'
+% and [] blocks kept as they are. A 'sopvar' or 'opvar' P is returned
 % unchanged.
 %
 % INPUT
@@ -23,14 +23,14 @@ function Psol = getsol_lpivar_sop(prog,P)
 %           decvartable ('cellstr' or string array, the decision variable
 %           names) and solinfo.RRx ('double' vector, entry r the value of
 %           the r-th name of decvartable);
-% - P:      'sdopvar' or 'cdopvar' object, the decision operator; or a
-%           'sopvar' or 'copvar' object.
+% - P:      'sdopvar' or 'dopvar' object, the decision operator; or a
+%           'sopvar' or 'opvar' object.
 %
 % OUTPUT
 % - Psol:   for an 'sdopvar' P, a 'sopvar' object when PROG.decvartable
 %           holds every name of P.Zd, else an 'sdopvar' object whose
 %           decision variables are the names it does not hold; for a
-%           'cdopvar' P, likewise a 'copvar' or a 'cdopvar' object, with
+%           'dopvar' P, likewise an 'opvar' or a 'dopvar' object, with
 %           the spaces, dimensions and domains of P; for the other classes,
 %           as stated above.
 %
@@ -70,13 +70,13 @@ function Psol = getsol_lpivar_sop(prog,P)
 % Initial coding MMP, 09/29/2026
 
 % % % Fixed classes: nothing to substitute
-if isa(P,'sopvar') || isa(P,'copvar')
+if isa(P,'sopvar') || isa(P,'opvar')
     Psol = P;                                   % nothing to substitute
     return
-elseif ~isa(P,'sdopvar') && ~isa(P,'cdopvar')
+elseif ~isa(P,'sdopvar') && ~isa(P,'dopvar')
     error('getsol_lpivar_sop:badClass',...
-        ['No solution extraction for class ''%s''; expected sdopvar, cdopvar, '...
-         'sopvar or copvar.'],class(P))
+        ['No solution extraction for class ''%s''; expected sdopvar, dopvar, '...
+         'sopvar or opvar.'],class(P))
 end
 
 % % % Solved values, in decvartable order
@@ -98,7 +98,7 @@ if numel(RRx)<numel(dtab)
 end
 
 % % % One lookup for the whole operator, since every 'sdopvar' block of a
-% % % 'cdopvar' carries the container list P.Zd: the values d of the names
+% % % 'dopvar' carries the container list P.Zd: the values d of the names
 % % % found, 0 for the others, and the names Zk left as decision variables.
 Zd = P.Zd;
 if isstring(Zd),    Zd = cellstr(Zd);   end     % names may be strings
@@ -128,7 +128,7 @@ if isa(P,'sdopvar')
     return
 end
 
-% % % cdopvar: one block at a time. A 'sopvar' block and a [] (structurally
+% % % dopvar: one block at a time. A 'sopvar' block and a [] (structurally
 % % % zero) block hold no decision variable and are kept as they are.
 C = P.C;
 for k = 1:numel(C)
@@ -136,18 +136,18 @@ for k = 1:numel(C)
     if numel(C{k}.Zd)~=q        % O(1) guard; equal lists are a class invariant
         error('getsol_lpivar_sop:badBlockZd',...
             ['Block %d carries %d decision variables, the container %d: the container '...
-             'is not on one list (see cdopvar/verify).'],k,numel(C{k}.Zd),q)
+             'is not on one list (see dopvar/verify).'],k,numel(C{k}.Zd),q)
     end
     C{k} = subs_block(C{k},d,tf,Zk);
 end
-% The container on the metadata of P: a 'copvar' when every name was found,
-% else a 'cdopvar' on the names left
+% The container on the metadata of P: an 'opvar' when every name was found,
+% else a 'dopvar' on the names left
 meta = metadata(P);                             % validated when P was built
 if all(tf)
-    Psol = copvar(C,rmfield(meta,'Zd'));        % trusted form: the metadata of P is unchanged
+    Psol = opvar(C,rmfield(meta,'Zd'));         % trusted form: the metadata of P is unchanged
 else
     meta.Zd = Zk;                               % every sdopvar block got this array
-    Psol = cdopvar(C,meta);
+    Psol = dopvar(C,meta);
 end
 
 end

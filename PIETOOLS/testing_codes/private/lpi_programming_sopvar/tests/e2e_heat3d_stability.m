@@ -25,7 +25,7 @@ function out = e2e_heat3d_stability(kappa,opts)                             % MM
 %   (1) heatNd_solve returns the verdict +1: MOSEK OPTIMAL, rel_b =
 %       ||At'x - b||/||b|| <= 1e-6 on all rows, the least eigenvalue of the
 %       PSD blocks at least -1e-8 times the largest, x ~= 0; the extracted
-%       operators are 'copvar' objects;
+%       operators are 'opvar' objects;
 %   (2) at solinfo.RRx = RR*x*bscl (x the MOSEK point, RR and bscl from
 %       heatNd_sdp), the residual norms r_a of the (15a) rows and r_b of
 %       the (15b) rows satisfy sqrt(r_a^2 + r_b^2) = r_all to 1e-6
@@ -201,7 +201,7 @@ Ea1s = lpigetsol_sop(prog,Ea1);     Ea2s = lpigetsol_sop(prog,Ea2);     Ebs = lp
 E1s = lpigetsol_sop(prog,B.E1);     PTs = lpigetsol_sop(prog,PT);
 Ls = lpigetsol_sop(prog,B.X1 + meta.kappa*B.X2);
 t_extract = toc(t0);
-chk(all(cellfun(@(X) isa(X,'copvar'),{Ps,Rs,Qs,Ea1s,Ea2s,Ebs,E1s,PTs,Ls})),'(1) extracted operators not fixed')
+chk(all(cellfun(@(X) isa(X,'opvar'),{Ps,Rs,Qs,Ea1s,Ea2s,Ebs,E1s,PTs,Ls})),'(1) extracted operators not fixed')
 
 % (2) extraction against the SDP rows.
 na = B.prog.expr.num;

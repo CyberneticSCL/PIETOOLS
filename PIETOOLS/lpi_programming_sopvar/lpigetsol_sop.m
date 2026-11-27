@@ -2,27 +2,27 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DVAR_SOL = LPIGETSOL_SOP(PROG,DVAR) returns DVAR with each of its
 % decision variables replaced by its value in the solved LPI program PROG:
-% an 'sdopvar' or 'cdopvar' DVAR with every parameter evaluated at the
+% an 'sdopvar' or 'dopvar' DVAR with every parameter evaluated at the
 % solution; a cell that holds, at any depth, an object of class 'sopvar',
-% 'sdopvar', 'copvar' or 'cdopvar', element by element; and a 'dpvar',
+% 'sdopvar', 'opvar' or 'dopvar', element by element; and a 'dpvar',
 % char or other cell as a variable of the SOS program. A 'sopvar',
-% 'copvar', 'double' or 'polynomial' DVAR, or [], is returned unchanged.
+% 'opvar', 'double' or 'polynomial' DVAR, or [], is returned unchanged.
 %
 % INPUT
 % - prog:     'struct', a solved LPI program, with the fields
 %             solinfo.info, decvartable and solinfo.RRx;
-% - dvar:     'sdopvar' or 'cdopvar' object, a decision operator; a
-%             'sopvar' or 'copvar' object; a cell of objects of the classes
+% - dvar:     'sdopvar' or 'dopvar' object, a decision operator; a
+%             'sopvar' or 'opvar' object; a cell of objects of the classes
 %             listed here; or [], a 'double', 'polynomial', 'dpvar', char
 %             or 'cellstr' object.
 %
 % OUTPUT
-% - dvar_sol: DVAR at the solution: for an 'sdopvar' ('cdopvar') DVAR, a
-%             'sopvar' ('copvar') object, or an 'sdopvar' ('cdopvar')
+% - dvar_sol: DVAR at the solution: for an 'sdopvar' ('dopvar') DVAR, a
+%             'sopvar' ('opvar') object, or an 'sdopvar' ('dopvar')
 %             object on the names that prog.decvartable does not hold; for
 %             a cell, a cell of the same size; for [], 'double' and
 %             'polynomial', DVAR itself; for 'dpvar', char and a cell
-%             without a 'sopvar', 'sdopvar', 'copvar' or 'cdopvar' element,
+%             without a 'sopvar', 'sdopvar', 'opvar' or 'dopvar' element,
 %             its value in the SOS solution.
 %
 % NOTES
@@ -67,10 +67,10 @@ if ~isfield(prog,'solinfo') || ~isfield(prog.solinfo,'info') || isempty(prog.sol
     error('The specified LPI optimization program has not been solved; either ''lpisolve'' has not been run, or no solution was produced.')
 end
 
-if isa(dvar,'sdopvar') || isa(dvar,'cdopvar')
+if isa(dvar,'sdopvar') || isa(dvar,'dopvar')
     % Decision operator: its parameters at the solution
     dvar_sol = getsol_lpivar_sop(prog,dvar);
-elseif isa(dvar,'sopvar') || isa(dvar,'copvar')
+elseif isa(dvar,'sopvar') || isa(dvar,'opvar')
     dvar_sol = dvar;                            % fixed: nothing to substitute
 elseif iscell(dvar) && ~iscellstr(dvar) && any(cellfun(@hasnew,dvar(:)))
     % A cell holding an operator object: one element at a time, since the
@@ -87,7 +87,7 @@ else
     % Any other class
     error('lpigetsol_sop:badClass',...
         ['Variable of which to extract the solution should be specified as object of type '...
-         '''dpvar'', ''sdopvar'' or ''cdopvar'' (or a fixed sopvar, copvar, '...
+         '''dpvar'', ''sdopvar'' or ''dopvar'' (or a fixed sopvar, opvar, '...
          'polynomial or double); got ''%s''.'],class(dvar))
 end
 
@@ -96,9 +96,9 @@ end
 
 function tf = hasnew(x)
 % TF = HASNEW(X) returns true when X is, or is a cell holding at any depth,
-% a 'sopvar', 'sdopvar', 'copvar' or 'cdopvar' object.
+% a 'sopvar', 'sdopvar', 'opvar' or 'dopvar' object.
 % INPUT  x:  any value.
 % OUTPUT tf: logical.
-tf = isa(x,'sopvar') || isa(x,'sdopvar') || isa(x,'copvar') || isa(x,'cdopvar') ...
+tf = isa(x,'sopvar') || isa(x,'sdopvar') || isa(x,'opvar') || isa(x,'dopvar') ...
     || (iscell(x) && any(cellfun(@hasnew,x(:))));
 end

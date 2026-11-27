@@ -477,7 +477,7 @@ function val = ip(p,q,P,mask)
 % on its domains.
 % INPUT
 % - p, q:  'polynomial' column vectors of equal size;
-% - P:     'copvar' object, whose registry gives the variables and domains;
+% - P:     'opvar' object, whose registry gives the variables and domains;
 % - mask:  logical row, the variables of the registry to integrate over;
 % OUTPUT
 % - val:   'double' scalar.
@@ -522,7 +522,7 @@ function mx = opdiff(A,B)
 % MX = OPDIFF(A,B) returns the largest coefficient of A - B, or Inf if the
 % spaces, domains or dimensions of A and B differ.
 % INPUT
-% - A, B:  'copvar' objects;
+% - A, B:  'opvar' objects;
 % OUTPUT
 % - mx:    'double' scalar.
 if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom) || ~isequal(A.space_out,B.space_out) ...
@@ -546,13 +546,13 @@ function Q = permop(P,perm)
 % Q = PERMOP(P,PERM) returns P with its block rows and columns in the
 % order PERM.
 % INPUT
-% - P:     square 'copvar' object (as a block grid);
+% - P:     square 'opvar' object (as a block grid);
 % - perm:  permutation of 1:size(P.C,1);
 % OUTPUT
-% - Q:     'copvar' object.
+% - Q:     'opvar' object.
 meta = struct('vars',{P.vars},'dom',P.dom,'space_out',P.space_out(perm,:), ...
               'space_in',P.space_in(perm,:),'dim_out',P.dim_out(perm),'dim_in',P.dim_in(perm));
-Q = copvar(P.C(perm,perm),meta);
+Q = opvar(P.C(perm,perm),meta);
 end
 
 

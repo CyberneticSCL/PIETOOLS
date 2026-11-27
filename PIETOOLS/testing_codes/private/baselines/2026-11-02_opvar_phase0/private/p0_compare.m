@@ -8,7 +8,7 @@ function p0_compare(a, b)
 %   the number of rows whose m, or whose nx, ndv or Ks, differ, and every
 %   row whose status, result or shape differs;
 % - F4, per DEMO: the status, the largest relative difference of its
-%   numeric variables, the number of its object variables (copvar,
+%   numeric variables, the number of its object variables (opvar,
 %   pie_struct, ...) that differ (isequaln), and its numeric scalars that
 %   differ.
 % Relative difference: max|x-y| / max(1,max|x|), NaN = NaN counted equal;

@@ -29,7 +29,7 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % OPTS.like).
 %
 % INPUT
-% - P:     'cdopvar' or 'copvar' object, square (the same output and input
+% - P:     'dopvar' or 'opvar' object, square (the same output and input
 %          spaces), or an 'sdopvar' or 'sopvar' object from a space to
 %          itself (vars.out = vars.in);
 % - opts:  (optional) 'struct' with the optional fields
@@ -83,7 +83,7 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                          of the lower and upper basis operators, the
 %                          field cap_inc of each L2 entry of DEG; 'auto' is
 %                          Dmax_d - 1, floored at 0;
-%            like          'cdopvar' or 'copvar' object, or a cell of them,
+%            like          'dopvar' or 'opvar' object, or a cell of them,
 %                          with variables among those of P: their pooled
 %                          support is read instead of that of P, and DEG is
 %                          laid out over the spaces of P.
@@ -114,7 +114,7 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % every value of the decision operator; to size from the positive operator
 % of the LPI instead, pass it as OPTS.like.
 %
-% See also POSCOPVAR_DIRECT, LPI_INEQ_SOP, EQ_OPTS_SOPVAR,
+% See also POSLPIVAR_DIRECT, LPI_INEQ_SOP, EQ_OPTS_SOPVAR,
 %          GET_LPIVAR_DEGS_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -169,7 +169,7 @@ if isa(P,'sdopvar') || isa(P,'sopvar')
     if ~isequal(sort(P.vars.out),sort(P.vars.in))
         error("A single block must map a space to itself (vars.out = vars.in).")
     end
-elseif isa(P,'cdopvar') || isa(P,'copvar')
+elseif isa(P,'dopvar') || isa(P,'opvar')
     if ~isequal(P.space_out,P.space_in) || ~isequal(P.dim_out(:),P.dim_in(:))
         error("P must be square: the same spaces on both sides.")
     end
@@ -186,7 +186,7 @@ elseif isa(P,'cdopvar') || isa(P,'copvar')
     own = cell(1,Mo);
     for k = 1:Mo,   own{k} = reshape(find(P.space_out(k,:)),1,[]);   end
 else
-    error("P should be a 'cdopvar', 'copvar', 'sdopvar' or 'sopvar'.")
+    error("P should be a 'dopvar', 'opvar', 'sdopvar' or 'sopvar'.")
 end
 % Registry size, number of spaces, the R^q spaces
 nv = numel(vars);   M = numel(own);
@@ -207,8 +207,8 @@ if isfield(opts,'like') && ~isempty(opts.like)
     blocks = {};    bk = [];    bkp = [];   isRs = false(1,0);
     for j = 1:numel(Ls)
         L = Ls{j};      o = numel(isRs);
-        if ~(isa(L,'cdopvar') || isa(L,'copvar'))
-            error("opts.like should be a 'cdopvar' or 'copvar', or a cell of them.")
+        if ~(isa(L,'dopvar') || isa(L,'opvar'))
+            error("opts.like should be a 'dopvar' or 'opvar', or a cell of them.")
         end
         if ~all(ismember(reshape(L.vars,1,[]),vars))
             error("The variables of opts.like must be among those of P.")

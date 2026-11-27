@@ -49,7 +49,7 @@ PDE = initialize(eqs,true);
 assert(numel(PDE.BC)==2,'A static constraint is not a boundary condition.');
 %PDE.constraint_ID==1. The continuity equation is flagged in initialize.;
 PIE = convert(PDE,'pie');
-[~,dm] = copvar_space_list(PIE.K,'out');
+[~,dm] = opvar_space_list(PIE.K,'out');
 assert(isequal(dm(:)',1),'K must have a single row of size 1.');
 % The constraint is not an output of the PIE.
 assert(isempty(PIE.Cz) || isempty(PIE.Cz.C),'The constraint must not remain an output.');
@@ -82,7 +82,7 @@ eqs = [eqs; 0==diff(v2,s1)+diff(v3,s2)];
 %PDE.constraint_ID==1. The continuity equation is flagged in initialize.;
 PDE = initialize(eqs);
 PIE = convert(PDE,'pie');
-[~,dm] = copvar_space_list(PIE.K,'out');
+[~,dm] = opvar_space_list(PIE.K,'out');
 fprintf('K has %d block rows, of the sizes [%s].\n',numel(dm),num2str(dm(:)'));
 assert(~isempty(PIE.K) && numel(dm)>=1,'K must contain the continuity row.');
 display(PIE.K);

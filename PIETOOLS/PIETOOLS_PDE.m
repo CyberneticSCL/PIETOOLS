@@ -56,6 +56,8 @@ close all; clc; clear; clear stateNameGenerator
 %   Step 4b plots the PIESIM output fields primary and grid, in 2-D the
 %   states in s1 and in (s1,s2) at the middle node in s2; help and comments
 %   revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -114,7 +116,7 @@ settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or
 % PIETOOLS_auto_execute_sop                                                 % YP, MMP, DB, 11/21/2026
 
 % % --- Manually run desired executives ---
-% The container executives (PIETOOLS_*_sop) take the copvar PIE that        % YP, MMP, DB, 11/21/2026
+% The container executives (PIETOOLS_*_sop) take the opvar PIE that        % YP, MMP, DB, 11/21/2026
 % convert_PIETOOLS_PDE returns and return the outputs named, then an info   % YP, MMP, DB, 11/21/2026
 % struct; the third argument is the form ('Q', 'Qd': PIE2PDE forms; 'o',    % YP, MMP, DB, 11/21/2026
 % 'c': observability and controllability H2 norms).                         % YP, MMP, DB, 11/21/2026

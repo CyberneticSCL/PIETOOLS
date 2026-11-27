@@ -12,15 +12,15 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %
 % on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq_sop;
 % R and N the positive operators of the 'lf' and 'slack' settings of
-% lpisettings_sop(LEVEL) (poslpivar_settings_sop); Q free (lpivar_cdopvar at
+% lpisettings_sop(LEVEL) (poslpivar_settings_sop); Q free (lpivar at
 % the degrees get_lpivar_degs_sop reads off R); I_w, I_z from
-% eye_copvar_sop; the two equalities by lpi_eq_sop, the second
+% eye_opvar; the two equalities by lpi_eq_sop, the second
 % 'symmetric'. It solves the LPI with MOSEK, extracts gam, Q, R, N, K and
 % the two constraint operators with lpigetsol_sop, and checks them,
 % erroring at the first failed check:
 %   (1) MOSEK numerr 0 and pinf 0; rel_b = ||At'x - b||/||b|| <= 1e-6 at
 %       x = solinfo.RRx; the least eigenvalue of the Gram blocks at least
-%       -1e-8 times the largest; the extracted operators are 'copvar'
+%       -1e-8 times the largest; the extracted operators are 'opvar'
 %       objects;
 %   (2) for PLANT {'io1'} at 'light', gam equals the recorded bound of
 %       stock PIETOOLS_Hinf_gain on the same PIE and settings to 1e-4
@@ -66,7 +66,7 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 % A 2-D plant or Tw ~= 0 is an error ('hinf_gain_1d_sop:plant'); a failed
 % check errors with identifier 'hinf_gain_1d_sop:check'. Requires MOSEK.
 % gam_stock and shape_stock are recorded for PLANT {'io1'} at 'light', NaN
-% otherwise: the stock executive fails on PIEs with 'copvar' operators.
+% otherwise: the stock executive fails on PIEs with 'opvar' operators.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -174,11 +174,11 @@ t0 = tic;
 % and z
 % Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
 % Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw); % MMP, 11/07/2026 (was)
-Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026
+Tm = PIE.T;     Am = PIE.A;                 % 'opvar' since initialize     % MMP, 11/07/2026
 Bw = PIE.Bw;    Cz = PIE.Cz;    Dzw = PIE.Dzw;                              % MMP, 11/07/2026
 % [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
-[spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
-Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
+[spw,dmw] = opvar_space_list(Bw,'in');     [spz,dmz] = opvar_space_list(Cz,'out'); % MMP, 10/06/2026
+Iw = eye_opvar(dmw,spw,PIE.dom);   Iz = eye_opvar(dmz,spz,PIE.dom);
 % Program; gam >= 0 a decision variable, the objective
 % prog = lpiprogram_sop(Tm);                          % registry and dom of T % MMP, 11/04/2026 (was)
 prog = lpiprogram(PIE.vars,PIE.dom);                % variables of the PIE  % MMP, 11/04/2026
@@ -193,8 +193,8 @@ prog = lpisetobj(prog,gam);
 % [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
 % [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));          % MMP, 10/06/2026 (was)
 [prog,Rm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom); % R >= 0 % MMP, 10/06/2026
-[sp,dm] = copvar_space_list(Tm,'out');                                      % MMP, 10/06/2026
-[prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,get_lpivar_degs_sop(Rm));     % MMP, 10/06/2026
+[sp,dm] = opvar_space_list(Tm,'out');                                       % MMP, 10/06/2026
+[prog,Qm] = lpivar(prog,dm,sp,PIE.dom,get_lpivar_degs_sop(Rm));             % MMP, 10/06/2026
 E1 = Tm'*Qm - Rm;
 e0 = prog.expr.num;
 prog = lpi_eq_sop(prog,E1);                         % NOT symmetric (stock line 157)
@@ -253,7 +253,7 @@ Qs = lpigetsol_sop(prog,Qm);    Rs = lpigetsol_sop(prog,Rm);
 Ns = lpigetsol_sop(prog,Nm);    Ks = lpigetsol_sop(prog,Km);
 E1s = lpigetsol_sop(prog,E1);   E2s = lpigetsol_sop(prog,E2);
 t_extract = toc(t0);
-chk(all(cellfun(@(X) isa(X,'copvar'),{Qs,Rs,Ns,Ks,E1s,E2s})),'(1) extracted operators not fixed')
+chk(all(cellfun(@(X) isa(X,'opvar'),{Qs,Rs,Ns,Ks,E1s,E2s})),'(1) extracted operators not fixed')
 
 % (2) gamma against stock and the bisection bracket.
 fprintf('   gamma: container %.8f, stock %.8f (rel diff %.1e)\n',g,gam_s,abs(g-gam_s)/gam_s);

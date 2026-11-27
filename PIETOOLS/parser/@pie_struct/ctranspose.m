@@ -46,9 +46,11 @@ function out_pie = ctranspose(in_pie)
 % DJ, 10/29/2026: Update to new pie_struct structure (copvar operators, and
 %                   no dual for PIEs with an algebraic constraint);
 % MMP, 11/19/2026: Release comment pass (comment-only).
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%                   functions of the rename table; names only.
 
 
-% The operators are copvar objects, so the PIE must be initialized, and the
+% The operators are opvar objects, so the PIE must be initialized, and the
 % function spaces of the exogenous input w and regulated output z are
 % exchanged. 
 if ~in_pie.is_initialized

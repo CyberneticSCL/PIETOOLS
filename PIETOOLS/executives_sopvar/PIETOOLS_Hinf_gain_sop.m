@@ -5,7 +5,7 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %
 %       T x_t + Tw w_t = A x + B1 w,      z = C1 x + D11 w,
 %
-% by a KYP LPI on 'cdopvar' operators, solved as an SDP that minimizes gam.
+% by a KYP LPI on 'dopvar' operators, solved as an SDP that minimizes gam.
 % FORM selects the LPI; R is a positive operator (in 'Q' the generalized
 % storage T'*Q), Q a free operator:
 %
@@ -32,8 +32,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a PIE in any number of spatial
-%             variables, initialized when its T is not yet a 'copvar'
-%             object; T, Tw, A, B1, C1 and D11 'copvar' objects (Tw may be
+%             variables, initialized when its T is not yet an 'opvar'
+%             object; T, Tw, A, B1, C1 and D11 'opvar' objects (Tw may be
 %             absent), and K, Kw, Ku empty or without rows; its other
 %             operators are not used; in two or more variables, Tw and B1
 %             not both nonzero;
@@ -54,7 +54,7 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - R:        'copvar' object, the solved positive operator R ([] when the
+% - R:        'opvar' object, the solved positive operator R ([] when the
 %             solver returned no solution);
 % - gam:      double, the certified bound; with GAIN, GAIN when certified
 %             and Inf otherwise; NaN when the solver returned no value;
@@ -66,8 +66,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %                          'inaccurate';
 %               form, gam, gam_fixed, nv   the LPI posed, the bound, GAIN
 %                          ([] if none), the dimension;
-%               storage    'copvar' object, the solved R;
-%               K, N       'cdopvar' objects, the KYP operator and the slack;
+%               storage    'opvar' object, the solved R;
+%               K, N       'dopvar' objects, the KYP operator and the slack;
 %               gain_lb    double, in 1-D with settings.sop.witness the
 %                          largest gain of the Legendre discretization of
 %                          the PIE over the sampled frequencies (a lower
@@ -133,7 +133,7 @@ if nargin>=4 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_gain_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 label = ['Hinf_gain_sop ' form];
 
 % Complete the options of the executives and read the tools of the
@@ -150,13 +150,13 @@ end
 % The constraint K x = 0 on the state, if any (empty for most PIEs). The
 % % dual forms have no term for it: posed as the primal ones                % MMP, 11/21/2026 (was)
 % dual forms have no term for it: an error                                  % MMP, 11/21/2026
-Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;
+Kcon = PIE.K;   hasK = isa(Kcon,'opvar') && size(Kcon,1)>0;
 % PIEs with an algebraic constraint (K, Kw, Ku with rows) are not supported
-if any(cellfun(@(n) isa(PIE.(n),'copvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
+if any(cellfun(@(n) isa(PIE.(n),'opvar') && size(PIE.(n),1)>0,{'K','Kw','Ku'})) % DJ, 11/21/2026
     error('PIETOOLS_Hinf_gain_sop:algebraicConstraint','The H-infinity gain LPI is not supported for PIEs with algebraic constraints.');
 end
 % A constraint involving the input (Kw nonzero) is not supported; u is zero
-if hasK && isa(PIE.Kw,'copvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
+if hasK && isa(PIE.Kw,'opvar') && any(cellfun(@(B) ~isempty(B) && any(cellfun(@nnz,B.params(:))),PIE.Kw.C(:)))
     error('PIETOOLS_Hinf_gain_sop:constraintInputs','Algebraic constraints involving inputs are currently not supported.');
 end
 % if hasK && strcmp(form,'Qd'),   form = 'Q';     end                       % MMP, 11/21/2026 (was)
@@ -188,7 +188,7 @@ coercive = any(strcmp(form,{'P','Pd'}));
 dwbase = st.sop.dw_Q;   if coercive,    dwbase = st.sop.dw_P;   end
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 
-% The PIE operators, 'copvar' objects, and the identities on w and z
+% The PIE operators, 'opvar' objects, and the identities on w and z
 Tm = PIE.T;     Am = PIE.A;
 Bw = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
@@ -215,7 +215,7 @@ elseif certified,   gam = gfix;
 else,               gam = Inf;
 end
 
-% The solved R, as a 'copvar'
+% The solved R, as an 'opvar'
 Rsol = [];  R = [];
 try
     Rsol = getsol_lpivar_sop(prog,aux.Rm);
@@ -254,7 +254,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam, [] at a
-        %               fixed gain), Rm ('cdopvar' R), Km (the KYP
+        %               fixed gain), Rm ('dopvar' R), Km (the KYP
         %               operator), Nm (the slack), li (the info of the
         %               slack), wblk (the block of K that w enters), form.
         % New program; record the equality rows when the dual is kept
@@ -274,8 +274,8 @@ end
         % The KYP operator of FORM
         switch form
             case 'Q'
-                [sp,dm] = copvar_space_list(Tm,'out');
-                [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+                [sp,dm] = opvar_space_list(Tm,'out');
+                [prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
                 % The state block, with K'*Z + Z'*K if K is given
                 X33 = Am'*Qm + Qm'*Am;
@@ -286,8 +286,8 @@ end
                 wblk = 1;
             case 'Qd'
                 % R = T*Q; the dual KYP operator
-                [sp,dm] = copvar_space_list(Tm,'out');
-                [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+                [sp,dm] = opvar_space_list(Tm,'out');
+                [prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm*Qm-Rm);
                 Km = [-(gamv*Iz),   Dzw,        Cz*Qm;
                        Dzw',        -(gamv*Iw), Bw';

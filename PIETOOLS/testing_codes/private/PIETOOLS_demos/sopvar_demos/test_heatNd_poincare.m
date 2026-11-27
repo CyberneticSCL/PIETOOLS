@@ -78,7 +78,7 @@ R(end+1) = chk('(2a) swapped BC labels: I0 fails in (k) and (c)',0, ...
                ~Oa.I0ok && failed(Oa,'(k) T kernels') && failed(Oa,'(c) T*A_1 + '));  %#ok<AGROW>
 O = heatNd_poincare_ops(pie);
 Ob = O;     B = Ob.DT{1}.C{1,1};    prm = B.params;     prm = prm([1 3 2],:);  % (b) swap in s1
-Ob.DT{1} = copvar({sopvar(prm,B.vars,B.ZL,B.ZR,B.dom,B.dims)});
+Ob.DT{1} = opvar({sopvar(prm,B.vars,B.ZL,B.ZR,B.dom,B.dims)});
 Ob = heatNd_poincare_ops(pie,true,Ob);
 R(end+1) = chk('(2b) D_1T lower/upper swapped: I0 fails in (k), (c) and (q)',0, ...
                ~Ob.I0ok && failed(Ob,'(k) D_1T') && failed(Ob,'(c) T*A_1 + ') && failed(Ob,'(q) D_1T v'));  %#ok<AGROW>
@@ -278,7 +278,7 @@ r = min(eig((S+S')/2));
 end
 
 function amax = coefres(X,names,vals)
-% Largest kernel coefficient of the 1x1 'cdopvar' X at the decision values,
+% Largest kernel coefficient of the 1x1 'dopvar' X at the decision values,
 % relative to the no-cancellation scale max(|A| + |B||d|) (as TEST_HEATND_LPI).
 B = X.C{1};     zd = cellstr(string(B.Zd));
 [tf,loc] = ismember(zd(:),names(:));    d = zeros(numel(zd),1);    d(tf) = vals(loc(tf));
@@ -296,7 +296,7 @@ amax = amax/max(scale,eps);
 end
 
 function Y = subsd(X,names,vals)
-% Fixed operator X(d) of a 1x1 'cdopvar' (params = unvec(A + B'd), sdopvar.m).
+% Fixed operator X(d) of a 1x1 'dopvar' (params = unvec(A + B'd), sdopvar.m).
 B = X.C{1};     zd = cellstr(string(B.Zd));
 [tf,loc] = ismember(zd(:),names(:));    d = zeros(numel(zd),1);    d(tf) = vals(loc(tf));
 nL = prod(cellfun(@numel,B.ZL));    nR = prod(cellfun(@numel,B.ZR));
@@ -308,7 +308,7 @@ for g = 1:numel(prm)
     if ~isempty(Bg),    a = a + Bg'*d;  end
     prm{g} = reshape(full(a),m,n);
 end
-Y = copvar({sopvar(prm,B.vars,B.ZL,B.ZR,B.dom,B.dims)});
+Y = opvar({sopvar(prm,B.vars,B.ZL,B.ZR,B.dom,B.dims)});
 end
 
 function [X,w] = qgrid(dom,n)

@@ -33,7 +33,7 @@ function info = exec_info_sop(prog,aux,st,label)
 %             shape       'struct', the size of the SDP: ndv (decision
 %                         variables), Kf, Ks (PSD block sizes), m (rows),
 %                         nx (primal length);
-%             dual        'copvar' object, the dual kernel of the
+%             dual        'opvar' object, the dual kernel of the
 %                         negativity constraint ([] if not assembled);
 %             dual_norm1  double, its 1-norm (NaN if not assembled).
 %

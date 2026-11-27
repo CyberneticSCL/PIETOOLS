@@ -1,4 +1,4 @@
-% Test of int for 'sopvar' and 'copvar'. The result is compared with the
+% Test of int for 'sopvar' and 'opvar'. The result is compared with the
 % integral of the output of the operator, evaluated from the definition of
 % the class by 'apply_sopvar' and integrated with the 'polynomial' class;
 % the composition in 'int' itself is not used to determine the expected
@@ -119,28 +119,28 @@ for i=1:size(bad,1)
     assert(throws(f),"No error for %s.",bad{i,3})
 end
 
-%% copvar: spaces with different variables, per block
+%% opvar: spaces with different variables, per block
 spaces = struct('out',{{{},{'s1'},{'s1','s2'}}},'in',{{{'s1'},{'s1','s2'},{}}});
 dims = struct('out',[2;3;1],'in',[1;2;2]);
-Pop = rand_copvar(spaces,dims,dom1,1,1);
+Pop = rand_opvar(spaces,dims,dom1,1,1);
 % Full domain in a variable, also if some output spaces lack the variable,
 % and numeric limits in a variable not appearing in the operator. Limits
 % [a,s1] and [s1,b] are only allowed if s1 appears in all output spaces
 for v = {'s1','s2'}
-    check_copvar(Pop,v{1},[],dom1,tol);
+    check_opvar(Pop,v{1},[],dom1,tol);
 end
-check_copvar(Pop,'s3',[0.3,1.7],dom1,tol);
-check_copvar(Pop,{'s1','s2'},[],dom1,tol);
-check_copvar(Pop,{'s1','s3'},[dom1;0.3,1.7],dom1,tol);
+check_opvar(Pop,'s3',[0.3,1.7],dom1,tol);
+check_opvar(Pop,{'s1','s2'},[],dom1,tol);
+check_opvar(Pop,{'s1','s3'},[dom1;0.3,1.7],dom1,tol);
 assert(throws(@() int(Pop,'s1',[dom1(1),s1])),'Variable limit in space without s1 should be refused.')
 assert(throws(@() int(Pop,'s1',[0,1])),'Limits other than the domain should be refused for s1.')
 spaces = struct('out',{{{'s1'},{'s1','s2'}}},'in',{{{'s1'},{'s2'},{}}});
 dims = struct('out',[2;3],'in',[1;2;2]);
 occ = [true,true,false;true,false,true];
-Pop = rand_copvar(spaces,dims,dom1,1,1,occ);
-check_copvar(Pop,'s1',[dom1(1),s1],dom1,tol);
-check_copvar(Pop,'s1',[s1,dom1(2)],dom1,tol);
-check_copvar(Pop,{'s1','s2'},[s1,dom1(2);dom1(1),dom1(2)],dom1,tol);
+Pop = rand_opvar(spaces,dims,dom1,1,1,occ);
+check_opvar(Pop,'s1',[dom1(1),s1],dom1,tol);
+check_opvar(Pop,'s1',[s1,dom1(2)],dom1,tol);
+check_opvar(Pop,{'s1','s2'},[s1,dom1(2);dom1(1),dom1(2)],dom1,tol);
 Pint = int(Pop,{'s1','s2'},[s1,dom1(2);dom1(1),dom1(2)]);
 assert(all(cellfun(@isempty,Pint.C)==cellfun(@isempty,Pop.C),'all'),'Zero blocks should remain zero.')
 assert(throws(@() int(Pop,'s3',[0,s3])),'Variable limit in s3 should be refused.')
@@ -148,9 +148,9 @@ assert(throws(@() int(Pop,'s3',[0,s3])),'Variable limit in s3 should be refused.
 % scales Pop and keeps its metadata, and a variable limit is refused        % DJ (CC), 10/29/2026
 spaces = struct('out',{{{'s1'}}},'in',{{{'s1','s2'},{}}});                  % DJ (CC), 10/29/2026
 dims = struct('out',2,'in',[1;2]);                                          % DJ (CC), 10/29/2026
-Pop = rand_copvar(spaces,dims,dom1,1,1);                                    % DJ (CC), 10/29/2026
-check_copvar(Pop,'s2',[],dom1,tol);                                         % DJ (CC), 10/29/2026
-check_copvar(Pop,{'s2','s3'},[dom1;0.3,1.7],dom1,tol);                      % DJ (CC), 10/29/2026
+Pop = rand_opvar(spaces,dims,dom1,1,1);                                     % DJ (CC), 10/29/2026
+check_opvar(Pop,'s2',[],dom1,tol);                                          % DJ (CC), 10/29/2026
+check_opvar(Pop,{'s2','s3'},[dom1;0.3,1.7],dom1,tol);                       % DJ (CC), 10/29/2026
 Pint = int(Pop,'s2');                                                       % DJ (CC), 10/29/2026
 assert(isequal(Pint.vars,Pop.vars) && isequal(Pint.space_out,Pop.space_out),...
         'Metadata of Pop should be kept.')                                  % DJ (CC), 10/29/2026
@@ -161,14 +161,14 @@ disp('Test_int_sopvar passed.')
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function check_copvar(Pop,vars,dom,dom1,tol)
-% CHECK_COPVAR(POP,VARS,DOM,DOM1,TOL) checks int(Pop,vars,dom) block by
+function check_opvar(Pop,vars,dom,dom1,tol)
+% CHECK_OPVAR(POP,VARS,DOM,DOM1,TOL) checks int(Pop,vars,dom) block by
 % block: block (i,j) of the integral should be the integral of the output
 % of block (i,j) of Pop, with respect to the variables of the output space
 % i.
 %
 % INPUTS
-% - Pop:    M x N 'copvar';
+% - Pop:    M x N 'opvar';
 % - vars:   cellstr or char, the r variables of integration;
 % - dom:    r x 2 array of limits, or [] for the default domain; a single
 %           row is used for all variables;

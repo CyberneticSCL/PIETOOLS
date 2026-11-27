@@ -94,23 +94,23 @@ dom = PIE.dom;
 settings = lpisettings_sop('light');
 % margin on R, V: eppos on R^n (entry 1) and on L2[s] (entry 2)
 ep = [1e-4; 1e-6];
-%% Identity 'copvar' on the output spaces of an operator.
+%% Identity 'opvar' on the output spaces of an operator.
 % Used for the -gam*I blocks of the KYP operator, on the disturbance space w
 % (the output space of Bw') and on the output space z (of Cz).
-Iw = eye_copvar_sop(Bw');   % identity on w
-Iz = eye_copvar_sop(Cz);    % identity on z
+Iw = eye_opvar(Bw');        % identity on w
+Iz = eye_opvar(Cz);         % identity on z
 % ep*I on the state (weights per block: R^n -> ep(1), L2 -> ep(2)) used to
 % impose coercivity of the Lyapunov variables; for each block of the state
 % (the input of T), the variables spi{k} ({} = R^n, {s} = L2[s]) and the
 % dimension dmi(k).
-[spi,dmi] = copvar_space_list(T,'in');
+[spi,dmi] = opvar_space_list(T,'in');
 w = cellfun(@(c) ep(1+(~isempty(c))),spi);
 blk = arrayfun(@(k) w(k)*eye(dmi(k)),1:numel(spi),'UniformOutput',false);
-% mat2copvar_sop(M,DM,SP,DOM): turns the numeric matrix M (block structure DM)
-%   into a constant 'copvar' on the spaces SP over DOM (blocks: multiplication by
+% mat2opvar(M,DM,SP,DOM): turns the numeric matrix M (block structure DM)
+%   into a constant 'opvar' on the spaces SP over DOM (blocks: multiplication by
 %   the matrix on that space). Here M = blkdiag(ep*I) is the margin operator
 %   added to R and V so that they are >= ep*I, not just >= 0, in the raise loop.
-Ieps = mat2copvar_sop(blkdiag(blk{:}),dmi,spi,dom);
+Ieps = mat2opvar(blkdiag(blk{:}),dmi,spi,dom);
 
 %% raise the slack degree until a feasible solution is found
 % The raise count and the weight raise of the settings hold one entry per
@@ -126,15 +126,15 @@ prog.sopeq = {};
 prog = lpi_ineq_sop(prog,gamv);
 prog = lpisetobj(prog,gamv);
 % Lyapunov variables R, V >= eppos I on the state (the output space of
-% T'), with the degrees of the storage row of the settings (POSCOPVAR
+% T'), with the degrees of the storage row of the settings (POSLPIVAR
 % with DEG omitted)
-[prog,R] = poscopvar(prog,T');
+[prog,R] = poslpivar(prog,T');
 R = R + Ieps;
-[prog,V] = poscopvar(prog,T');
+[prog,V] = poslpivar(prog,T');
 V = V + Ieps;
 % get_lpivar_degs_sop(R): reads the monomial degrees actually used in the
 %   positive operator R (multiplier, integral kernels), returned in the
-%   format lpivar_cdopvar expects, so the free variables below get the
+%   format lpivar expects, so the free variables below get the
 %   same degrees as R (dQ from R for Q,Bn,Dn; dU from V for U,An,Cn).
 dQ = get_lpivar_degs_sop(R);
 dU = get_lpivar_degs_sop(V);
@@ -146,8 +146,8 @@ dU = get_lpivar_degs_sop(V);
 % the same shape: Q those of T (state -> state), U and An those of R
 % (state -> state), Bn those of Cy' (y -> state), Cn those of Bu'
 % (state -> u), Dn those of (Cy*Bu)' (y -> u).
-[prog,Q]  = lpivar_cdopvar(prog,T,dQ);
-[prog,U]  = lpivar_cdopvar(prog,R,dU);
+[prog,Q]  = lpivar(prog,T,dQ);
+[prog,U]  = lpivar(prog,R,dU);
 % controller variables (AK,BK,CK,DK) defined as:
 %  (assumes D22 = 0)
 %   An := Q'*(A + Bu*DK*Cy - Bu*CK)*U + S'*(BK*Cy - AK)*U
@@ -155,10 +155,10 @@ dU = get_lpivar_degs_sop(V);
 %   Cn := (DK*Cy - CK)*U
 %   Dn := DK
 % (AK,BK,CK,DK are recovered from the solution at the end).
-[prog,An] = lpivar_cdopvar(prog,R,dU);
-[prog,Bn] = lpivar_cdopvar(prog,Cy',dQ);
-[prog,Cn] = lpivar_cdopvar(prog,Bu',dU);
-[prog,Dn] = lpivar_cdopvar(prog,(Cy*Bu)',dQ);
+[prog,An] = lpivar(prog,R,dU);
+[prog,Bn] = lpivar(prog,Cy',dQ);
+[prog,Cn] = lpivar(prog,Bu',dU);
+[prog,Dn] = lpivar(prog,(Cy*Bu)',dQ);
 %% declare the operator equality and inequality constraints.
 Tc = T'*T;
 prog = lpi_eq_sop(prog,T'*Q - R);              % T'Q = R
@@ -217,7 +217,7 @@ CK = DK*Cy*sol.U - sol.Cn;
 BK = sol.Bn - sol.Q'*Bu*DK;
 AK = BK*Cy*sol.U + sol.Q'*(A*sol.U + Bu*sol.Cn) - sol.An;
 TK = T'*(sol.Q*sol.U - T);
-% Controller operators TK, AK, BK, CK, DK ('copvar' objects)
+% Controller operators TK, AK, BK, CK, DK ('opvar' objects)
 Kc = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
 
 

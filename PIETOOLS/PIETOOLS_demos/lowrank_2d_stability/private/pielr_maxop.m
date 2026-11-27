@@ -1,6 +1,6 @@
 function [m,npar] = pielr_maxop(X)                                          % CC, 09/23/2026
 % PIELR_MAXOP  max|coefficient| over EVERY parameter of a substituted
-% container operator ('copvar'), in any dimension, and NPAR the number of
+% container operator ('opvar'), in any dimension, and NPAR the number of
 % parameters visited.
 %
 % Every block and every parameter cell is visited, because a silently missed
@@ -15,7 +15,7 @@ function [m,npar] = pielr_maxop(X)                                          % CC
 % holding [] is structurally zero and has no parameters.  No enumeration
 % assert: the block cell and the parameter cells are walked whole, so a
 % block or multi-index cannot be skipped the way a hard-coded field list can.
-if isa(X,'copvar')
+if isa(X,'opvar')
     m = 0;  npar = 0;
     for i = 1:numel(X.C)
         B = X.C{i};
@@ -32,9 +32,9 @@ end
 % BEGIN MMP, 11/26/2026: deleted, CC 09/23/2026: the enumeration of the
 % properties of opvar and dopvar (4 properties, 6 leaves) and of opvar2d and
 % dopvar2d (16, 36), its leaf-count assert, and the local function mxc.
-% Those classes left the path (f83486c8); once cdopvar is renamed dopvar, a
+% Those classes left the path (f83486c8); once dopvar is renamed dopvar, a
 % dopvar would reach that enumeration and fail the assert. Any other class
 % is an input error.
-error('pielr_maxop:input','expected a copvar (a substituted container), got %s',class(X));
+error('pielr_maxop:input','expected an opvar (a substituted container), got %s',class(X));
 % END MMP, 11/26/2026
 end

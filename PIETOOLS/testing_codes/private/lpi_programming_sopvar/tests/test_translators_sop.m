@@ -1,22 +1,22 @@
 function R = test_translators_sop()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% R = TEST_TRANSLATORS_SOP() checks poslpivar_sop, poslpivar_settings_sop,
-% get_lpivar_degs_sop, trace_rn_sop and copvar_space_list in one spatial
+% R = TEST_TRANSLATORS_SOP() checks poslpivar_legacy, poslpivar_settings_sop,
+% get_lpivar_degs_sop, trace_rn_sop and opvar_space_list in one spatial
 % variable s1 on [0,1], against their definitions, and errors at the first
 % failed check:
 %   (i)   none since 11/08/2026: it compared the translators with the
 %         stock poslpivar and get_lpivar_degs on legacy inputs, retired;
 %   (ii)  each of 12 inputs built to fail raises an error, with the
-%         identifier expected where one is listed (poslpivar_sop:side,
+%         identifier expected where one is listed (poslpivar_legacy:side,
 %         :dim, :excludeRn, :excludeL2, :nargout;
 %         poslpivar_settings_sop:stock, :role; get_lpivar_degs_sop:class;
-%         trace_rn_sop:square; copvar_space_list:side);
+%         trace_rn_sop:square; opvar_space_list:side);
 %   (iii) on the container R x L2[s1], with lpisettings_stock_sop('custom'),
 %         override2 = 0 and the stock-field lpi.pos of 11/12/2026,
 %         poslpivar_settings_sop returns for the role
 %         'lf' the program and operator of the former stock-format
-%         dd1 = {1,[1 1 2],[1 1 2]}, sep 0 (poslpivar_sop), and for the
-%         role 'slack' those of its two poslpivar_sop terms summed;
+%         dd1 = {1,[1 1 2],[1 1 2]}, sep 0 (poslpivar_legacy), and for the
+%         role 'slack' those of its two poslpivar_legacy terms summed;
 %   (iv)  with the integral bases excluded (exclude [0 0 1 1]),
 %         get_lpivar_degs_sop returns 0 as third degree;
 %   (v)   at random decision values, trace_rn_sop equals the sum of the
@@ -113,7 +113,7 @@ pvar s1 s1_dum
 dom = [0 1];
 n = 0;
 
-% Deleted: (i) (MMP, 10/06/2026), poslpivar_sop, poslpivar_settings_sop,    % MMP, 11/08/2026
+% Deleted: (i) (MMP, 10/06/2026), poslpivar_legacy, poslpivar_settings_sop,    % MMP, 11/08/2026
 % get_lpivar_degs_sop and trace_rn_sop against POSLPIVAR, GET_LPIVAR_DEGS   % MMP, 11/08/2026
 % and LPIVAR on legacy inputs; all retired. Kept: the settings, used by     % MMP, 11/08/2026
 % (ii) and (iii).                                                           % MMP, 11/08/2026
@@ -126,24 +126,24 @@ st.lpi.pos = struct('mult',1,'int',1,'joint',2,'sep',0);  % 'lf' fields     % MM
 
 % % % (ii) errors
 % Containers: R^1 x L2[s1], L2[s1] -> R^2, one space over two variables
-Xm = eye_copvar_sop([1;1],{{},{'s1'}},dom);         % R^1 x L2[s1]
-Xr = rand_copvar(struct('out',{{{}}},'in',{{{'s1'}}}),struct('out',2,'in',1),dom,1,0.8);  % L2 -> R^2
-X2 = eye_copvar_sop(1,{{'s1','s2'}},[0 1;0 1]);     % one space over two variables
+Xm = eye_opvar([1;1],{{},{'s1'}},dom);              % R^1 x L2[s1]
+Xr = rand_opvar(struct('out',{{{}}},'in',{{{'s1'}}}),struct('out',2,'in',1),dom,1,0.8);   % L2 -> R^2
+X2 = eye_opvar(1,{{'s1','s2'}},[0 1;0 1]);          % one space over two variables
 pc = lpiprogram(s1,s1_dum,dom);
-E = { @() poslpivar_sop(pc,Xr,1,[]),                                   'poslpivar_sop:side'
+E = { @() poslpivar_legacy(pc,Xr,1,[]),                                   'poslpivar_legacy:side'
 %       @() poslpivar_sop(lpiprogram_sop({'s1','s2'},[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim' % MMP, 11/04/2026 (was)
-      @() poslpivar_sop(lpiprogram(polynomial({'s1';'s2'}),[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim' % MMP, 11/04/2026
-      @() poslpivar_sop(pc,Xm,1,struct('exclude',[1 0 0 0])),         'poslpivar_sop:excludeRn'
-      @() poslpivar_sop(pc,Xm,1,struct('exclude',[0 1 1 1])),         'poslpivar_sop:excludeL2'
-      @() nout3(pc,Xm),                                                'poslpivar_sop:nargout'
-      @() poslpivar_sop(pc,Xm,[1 2 3 4],[]),                           ''
-      @() poslpivar_sop(pc,Xm,1,7),                                    ''
+      @() poslpivar_legacy(lpiprogram(polynomial({'s1';'s2'}),[0 1;0 1]),X2,1,[]), 'poslpivar_legacy:dim' % MMP, 11/04/2026
+      @() poslpivar_legacy(pc,Xm,1,struct('exclude',[1 0 0 0])),         'poslpivar_legacy:excludeRn'
+      @() poslpivar_legacy(pc,Xm,1,struct('exclude',[0 1 1 1])),         'poslpivar_legacy:excludeL2'
+      @() nout3(pc,Xm),                                                'poslpivar_legacy:nargout'
+      @() poslpivar_legacy(pc,Xm,[1 2 3 4],[]),                           ''
+      @() poslpivar_legacy(pc,Xm,1,7),                                    ''
       @() poslpivar_settings_sop(pc,Xm,lpisettings_sop('custom'),'slack'), 'poslpivar_settings_sop:stock' % MMP, 11/12/2026
       @() poslpivar_settings_sop(pc,Xm,st,'other'),                    'poslpivar_settings_sop:role'
 %       @() get_lpivar_degs_sop(X2),                                     'get_lpivar_degs_sop:dim' % MMP, 11/08/2026 (was)
       @() get_lpivar_degs_sop(eye(2)),                                 'get_lpivar_degs_sop:class' % MMP, 11/08/2026
-      @() trace_rn_sop(rand_copvar(struct('out',{{{}}},'in',{{{}}}),struct('out',3,'in',2),dom,0,0.8)), 'trace_rn_sop:square'
-      @() copvar_space_list(Xm,'both'),                                'copvar_space_list:side' };
+      @() trace_rn_sop(rand_opvar(struct('out',{{{}}},'in',{{{}}}),struct('out',3,'in',2),dom,0,0.8)), 'trace_rn_sop:square'
+      @() opvar_space_list(Xm,'both'),                                'opvar_space_list:side' };
 % Each case raises an error, with the listed identifier where one is given
 for k = 1:size(E,1)
     id = errid(E{k,1});
@@ -159,7 +159,7 @@ end
 % % % (iii) poslpivar_settings_sop composition, container
 % % For each role, its two settings terms by poslpivar_sop, summed          % MMP, 11/12/2026 (was)
 % 'lf': the one term of the former dd1 of 'custom'; 'slack': the two        % MMP, 11/12/2026
-% terms of sop.stock by poslpivar_sop, summed                               % MMP, 11/12/2026
+% terms of sop.stock by poslpivar_legacy, summed                               % MMP, 11/12/2026
 for role = {'lf','slack'}
 %   if strcmp(role{1},'lf'),  f = {'dd1','options1','dd12','options12'};    % MMP, 11/12/2026 (was)
 %   else,                     f = {'dd2','options2','dd3','options3'};      % MMP, 11/12/2026 (was)
@@ -169,12 +169,12 @@ for role = {'lf','slack'}
 %   [pb,P2] = poslpivar_sop(pb,Xm,st.(f{3}),st.(f{4}),'out',dom);           % MMP, 11/12/2026 (was)
 %   [tf,where] = same_val_sop({pa,Pa},{pb,P1+P2},role{1});                  % MMP, 11/12/2026 (was)
     if strcmp(role{1},'lf')                                                 % MMP, 11/12/2026
-        [pb,Pb] = poslpivar_sop(pc,Xm,{1,[1 1 2],[1 1 2]}, ...
+        [pb,Pb] = poslpivar_legacy(pc,Xm,{1,[1 1 2],[1 1 2]}, ...
                                 struct('sep',0,'exclude',[0 0 0 0]),'out',dom); % MMP, 11/12/2026
     else                                                                    % MMP, 11/12/2026
         sk = st.sop.stock;                                                  % MMP, 11/12/2026
-        [pb,P1] = poslpivar_sop(pc,Xm,sk.dd2,sk.options2,'out',dom);        % MMP, 11/12/2026
-        [pb,P2] = poslpivar_sop(pb,Xm,sk.dd3,sk.options3,'out',dom);        % MMP, 11/12/2026
+        [pb,P1] = poslpivar_legacy(pc,Xm,sk.dd2,sk.options2,'out',dom);     % MMP, 11/12/2026
+        [pb,P2] = poslpivar_legacy(pb,Xm,sk.dd3,sk.options3,'out',dom);     % MMP, 11/12/2026
         Pb = P1+P2;                                                         % MMP, 11/12/2026
     end                                                                     % MMP, 11/12/2026
     [tf,where] = same_val_sop({pa,Pa},{pb,Pb},role{1});                     % MMP, 11/12/2026
@@ -186,7 +186,7 @@ end
 % get_lpivar_degs_sop with GET_LPIVAR_DEGS on the stock operators, and the  % MMP, 11/08/2026
 % stock side of the check below (MMP, 10/06/2026; GET_LPIVAR_DEGS and the   % MMP, 11/08/2026
 % opvar classes are retired).                                               % MMP, 11/08/2026
-[~,R0] = poslpivar_sop(pc,Xm,1,struct('exclude',[0 0 1 1]));      % no R1, R2: deg2 = 0
+[~,R0] = poslpivar_legacy(pc,Xm,1,struct('exclude',[0 0 1 1]));   % no R1, R2: deg2 = 0
 q0 = get_lpivar_degs_sop(R0);
 assert(q0(3)==0,'(iv) Z2, Z3 excluded: container %s (expected third degree 0)',mat2str(q0)) % MMP, 11/08/2026
 n = n+1;
@@ -194,16 +194,16 @@ n = n+1;
 % % % (v) trace against its definition
 % The five operators: free on R^3, free W on R^2 x L2[s1], Mz*W*Mz', and
 % two identities
-[pw,W3] = lpivar_cdopvar(pc,struct('out',3,'in',3),struct('out',{{{}}},'in',{{{}}}),dom,[1 1 1]);
-[pw,Wmx] = lpivar_cdopvar(pw,struct('out',[2;1],'in',[2;1]), ...
+[pw,W3] = lpivar(pc,struct('out',3,'in',3),struct('out',{{{}}},'in',{{{}}}),dom,[1 1 1]);
+[pw,Wmx] = lpivar(pw,struct('out',[2;1],'in',[2;1]), ...
                           struct('out',{{{},{'s1'}}},'in',{{{},{'s1'}}}),dom,[1 1 1]);
-Mz = rand_copvar(struct('out',{{{}}},'in',{{{},{'s1'}}}),struct('out',1,'in',[2;1]),dom,1,0.8);
-Xs = {W3, Wmx, (Mz*Wmx)*Mz', eye_copvar_sop([3;1],{{},{'s1'}},dom), eye_copvar_sop(2,{{'s1'}},dom)};
+Mz = rand_opvar(struct('out',{{{}}},'in',{{{},{'s1'}}}),struct('out',1,'in',[2;1]),dom,1,0.8);
+Xs = {W3, Wmx, (Mz*Wmx)*Mz', eye_opvar([3;1],{{},{'s1'}},dom), eye_opvar(2,{{'s1'}},dom)};
 for k = 1:numel(Xs)
     % trace_rn_sop, and the operator and its trace at random values
     X = Xs{k};
     tr = trace_rn_sop(X);
-    if isa(X,'cdopvar')
+    if isa(X,'dopvar')
         v = randn(numel(X.Zd),1);
         Xv = subs_dvar_sop(X,X.Zd,v);    trv = double(subs_dvar_sop(tr,X.Zd,v));
     else
@@ -219,7 +219,7 @@ for k = 1:numel(Xs)
     n = n+1;
 end
 
-% Deleted: (vi) (MMP, 10/06/2026), copvar_space_list on the 'copvar' of     % MMP, 11/08/2026
+% Deleted: (vi) (MMP, 10/06/2026), opvar_space_list on the 'opvar' of     % MMP, 11/08/2026
 % an 'opvar' (opvar2copvar) for each pattern of zero dimensions; the opvar  % MMP, 11/08/2026
 % classes are retired.                                                      % MMP, 11/08/2026
 
@@ -230,10 +230,10 @@ end
 
 
 function nout3(p,X)
-% NOUT3(P,X) calls poslpivar_sop(P,X,1,[]) with three outputs.
-% INPUT  p: 'struct', an LPI program; X: 'copvar' object.
+% NOUT3(P,X) calls poslpivar_legacy(P,X,1,[]) with three outputs.
+% INPUT  p: 'struct', an LPI program; X: 'opvar' object.
 % OUTPUT none.
-[~,~,~] = poslpivar_sop(p,X,1,[]);
+[~,~,~] = poslpivar_legacy(p,X,1,[]);
 end
 
 function id = errid(f)

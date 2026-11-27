@@ -29,7 +29,7 @@ function obj = subsasgn(obj,s,varargin)
 %   struct field, or made from a method of another class, COPIES the
 %   edited leaf on every assignment: MATLAB passes the block to this method
 %   as a shared temporary. P.C{i,j}.params{k}(r,c) = v is O(numel) of
-%   params{k}: 1.07 ms on the 22.9 MB params{1} in a copvar, a full copy
+%   params{k}: 1.07 ms on the 22.9 MB params{1} in an opvar, a full copy
 %   (1.1 ms), against 8 us without the overloads. The cell, struct and
 %   method cases were measured on 'sdopvar' blocks.
 % - For such an edit, extract, clear, edit, reinsert, which edits the

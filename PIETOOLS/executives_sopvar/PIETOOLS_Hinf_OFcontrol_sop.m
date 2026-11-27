@@ -27,16 +27,16 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %     AK = BK C2 U + Q'(A U + B2 Cn) - An.
 % No PI operator is inverted, and TK is not fixed to T: it is recovered from
 % the solution. Here, He(X) = X + X' and the lower triangle of Phi is its
-% adjoint. The operators are 'copvar' containers, so the PIE may be in any
+% adjoint. The operators are 'opvar' containers, so the PIE may be in any
 % number of variables (1-D, 2-D, ...).
 % While the solver returns UNKNOWN or INFEASIBLE, the program is rebuilt with
 % the degree of the negativity slack raised by one, up to settings.sop.max_raise
 % times.
 %
 % INPUT
-% - PIE:      'pie_struct' object, initialized when its T is not yet a
-%             'copvar' object, with T, A, B1, B2, C1, D11, D12, C2 and D21
-%             'copvar' objects, and D22 zero; Tw and Tu zero or absent (no
+% - PIE:      'pie_struct' object, initialized when its T is not yet an
+%             'opvar' object, with T, A, B1, B2, C1, D11, D12, C2 and D21
+%             'opvar' objects, and D22 zero; Tw and Tu zero or absent (no
 %             disturbance or input at the boundary), and no algebraic
 %             constraint K;
 % - settings: (optional) 'struct' of LPI settings:
@@ -58,7 +58,7 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - Kc:       'struct' with fields TK, AK, BK, CK, DK, the 'copvar' objects
+% - Kc:       'struct' with fields TK, AK, BK, CK, DK, the 'opvar' objects
 %             of the controller PIE above, and G, a 'struct' with the same
 %             five fields; [] when the solver returned no solution or the
 %             controller could not be recovered;
@@ -72,9 +72,9 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %               form ('OF'), gam, gam_fixed ([]), nv;
-%               sol        'struct' of the solved 'copvar' operators Q, U, An,
+%               sol        'struct' of the solved 'opvar' operators Q, U, An,
 %                          Bn, Cn, Dn, R and V;
-%               K          'cdopvar' object, the LPI operator Phi;
+%               K          'dopvar' object, the LPI operator Phi;
 %               dw, hist, slack, degrees, terms, shape, dual, dual_norm1
 %                          the last raise and the loop history, the slack
 %                          mode, its degrees and terms, the size of the SDP,
@@ -122,7 +122,7 @@ if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_OFcontrol_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = exec_pie_sop(PIE);                    % every operator a 'copvar' or 0
+PIE = exec_pie_sop(PIE);                    % every operator an 'opvar' or 0
 label = 'Hinf_OFcontrol_sop';
 
 % Complete the options of the executives and read the tools of the
@@ -136,14 +136,14 @@ end
 if ~(PIE.D22==0)
     error('PIETOOLS_Hinf_OFcontrol_sop:D22','The LPI is posed for D22 = 0 (the controller depends on y only through the state).');
 end
-if isa(PIE.K,'copvar') && size(PIE.K,1)>0
+if isa(PIE.K,'opvar') && size(PIE.K,1)>0
     error('PIETOOLS_Hinf_OFcontrol_sop:K','PIEs with an algebraic constraint K are not supported.');
 end
 eppos = tl.eppos;
 cmar = 0;   if isfield(st.sop,'coupling_margin') && ~isempty(st.sop.coupling_margin),  cmar = st.sop.coupling_margin;   end
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 
-% The PIE operators, 'copvar' objects, and the identities on w and z
+% The PIE operators, 'opvar' objects, and the identities on w and z
 Tm = PIE.T;     Am = PIE.A;
 Bw = PIE.B1;    Bu = PIE.B2;
 Cz = PIE.C1;    Dzw = PIE.D11;      Dzu = PIE.D12;
@@ -152,10 +152,10 @@ Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 
 % The spaces of the free operators, as lists of the variables of each space
 % (Q in -> out, U, An in -> in, Bn y -> in, Cn in -> u, Dn y -> u)
-[sp_in,dm_in]   = copvar_space_list(Tm,'in');
-[sp_out,dm_out] = copvar_space_list(Tm,'out');
-[sp_u,dm_u]     = copvar_space_list(Bu,'in');       % the actuator input u
-[sp_y,dm_y]     = copvar_space_list(Cy,'out');      % the observed output y
+[sp_in,dm_in]   = opvar_space_list(Tm,'in');
+[sp_out,dm_out] = opvar_space_list(Tm,'out');
+[sp_u,dm_u]     = opvar_space_list(Bu,'in');        % the actuator input u
+[sp_y,dm_y]     = opvar_space_list(Cy,'out');       % the observed output y
 
 % Build and solve, raising the slack degree while the solver returns
 % UNKNOWN or INFEASIBLE
@@ -179,7 +179,7 @@ try
     BK = sol.Bn - sol.Q'*Bu*DK;
     AK = BK*Cy*sol.U + sol.Q'*(Am*sol.U + Bu*sol.Cn) - sol.An;
     TK = Tm'*(sol.Q*sol.U - Tm);
-    % The controller, 'copvar' objects, also in the field G
+    % The controller, 'opvar' objects, also in the field G
     Kc = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
     Kc.G = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
 catch ME
@@ -201,7 +201,7 @@ end
         % INPUT  dw:    nonnegative integer, the raise of this pass.
         % OUTPUT prog:  'struct', the LPI program;
         %        aux:   'struct' with fields obj (the 'dpvar' gam), Q, U, An,
-        %               Bn, Cn, Dn, R, V ('cdopvar' objects), Km (the LPI
+        %               Bn, Cn, Dn, R, V ('dopvar' objects), Km (the LPI
         %               operator), Nm (the slack), li (the info of the
         %               slack), form.
         % New program; record the equality rows when the dual is kept
@@ -226,12 +226,12 @@ end
         dQ = get_lpivar_degs_sop(Rm);       dU = get_lpivar_degs_sop(Vm);
         % Q: in -> out, U and An: in -> in, Bn: y -> in, Cn: in -> u, Dn: y -> u
         sUo = {sp_in,dm_in,sp_in,dm_in};    sCn = {sp_u,dm_u,sp_in,dm_in};
-        [prog,Qm]  = lpivar_cdopvar(prog,struct('out',dm_out,'in',dm_in),struct('out',{sp_out},'in',{sp_in}),tl.dom,dQ);
-        [prog,Um]  = lpivar_cdopvar(prog,struct('out',sUo{2},'in',sUo{4}),struct('out',sUo(1),'in',sUo(3)),tl.dom,dU);
-        [prog,Anm] = lpivar_cdopvar(prog,struct('out',sUo{2},'in',sUo{4}),struct('out',sUo(1),'in',sUo(3)),tl.dom,dU);
-        [prog,Bnm] = lpivar_cdopvar(prog,struct('out',dm_in,'in',dm_y),struct('out',{sp_in},'in',{sp_y}),tl.dom,dQ);
-        [prog,Cnm] = lpivar_cdopvar(prog,struct('out',sCn{2},'in',sCn{4}),struct('out',sCn(1),'in',sCn(3)),tl.dom,dU);
-        [prog,Dnm] = lpivar_cdopvar(prog,struct('out',dm_u,'in',dm_y),struct('out',{sp_u},'in',{sp_y}),tl.dom,dQ);
+        [prog,Qm]  = lpivar(prog,struct('out',dm_out,'in',dm_in),struct('out',{sp_out},'in',{sp_in}),tl.dom,dQ);
+        [prog,Um]  = lpivar(prog,struct('out',sUo{2},'in',sUo{4}),struct('out',sUo(1),'in',sUo(3)),tl.dom,dU);
+        [prog,Anm] = lpivar(prog,struct('out',sUo{2},'in',sUo{4}),struct('out',sUo(1),'in',sUo(3)),tl.dom,dU);
+        [prog,Bnm] = lpivar(prog,struct('out',dm_in,'in',dm_y),struct('out',{sp_in},'in',{sp_y}),tl.dom,dQ);
+        [prog,Cnm] = lpivar(prog,struct('out',sCn{2},'in',sCn{4}),struct('out',sCn(1),'in',sCn(3)),tl.dom,dU);
+        [prog,Dnm] = lpivar(prog,struct('out',dm_u,'in',dm_y),struct('out',{sp_u},'in',{sp_y}),tl.dom,dQ);
         % The equalities T'Q = R and T'T U = V
         Tc = Tm'*Tm;
         prog = lpi_eq_sop(prog,Tm'*Qm-Rm);

@@ -12,13 +12,13 @@ function [prog,P] = poslpivar_settings_sop(prog,n,settings,role,varargin)
 %                 exclude of the integral bases; no P2;
 %   ROLE 'slack'  P1 of dd2 and options2, P2 of dd3 and options3, P2
 %                 omitted when override2 = 1, all in settings.sop.stock.
-% No constraint other than P1 >= 0 and P2 >= 0 is added. An X that is not a
-% 'copvar' or 'cdopvar' object is an error.
+% No constraint other than P1 >= 0 and P2 >= 0 is added. An X that is not an
+% 'opvar' or 'dopvar' object is an error.
 %
 % INPUT
 % - prog:      'struct', the LPI program to which the decision variables
 %              are added;
-% - X:         'copvar' or 'cdopvar' object whose SIDE spaces P maps, each
+% - X:         'opvar' or 'dopvar' object whose SIDE spaces P maps, each
 %              R^q or L2^m[s] in one spatial variable;
 % - settings:  'struct' of LPI settings with the fields of ROLE: lpi.pos
 %              ('lf': 'struct' with fields mult, int, joint, one entry per
@@ -42,13 +42,13 @@ function [prog,P] = poslpivar_settings_sop(prog,n,settings,role,varargin)
 % OUTPUT
 % - prog:      'struct', the program with the decision variables and Gram
 %              constraints of P1 and then of P2 added;
-% - P:         'cdopvar' object P1 + P2 (P1 when P2 is omitted).
+% - P:         'dopvar' object P1 + P2 (P1 when P2 is omitted).
 %
 % NOTES
 % ROLE 'slack' without settings.sop.stock is an error, as is a ROLE other
 % than 'lf' and 'slack'.
 %
-% See also POSLPIVAR_SOP, LPISETTINGS_SOP, LPI_EQ_SOP.
+% See also POSLPIVAR_LEGACY, LPISETTINGS_SOP, LPI_EQ_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -101,9 +101,9 @@ switch role
         error('poslpivar_settings_sop:role',"ROLE must be 'lf' or 'slack'.")
 end
 % P1; then, unless the override is 1, P2 and the sum P1 + P2
-[prog,P] = poslpivar_sop(prog,n,settings.(f{1}),settings.(f{2}),varargin{:});
+[prog,P] = poslpivar_legacy(prog,n,settings.(f{1}),settings.(f{2}),varargin{:});
 if settings.(f{3})~=1
-    [prog,P2] = poslpivar_sop(prog,n,settings.(f{4}),settings.(f{5}),varargin{:});
+    [prog,P2] = poslpivar_legacy(prog,n,settings.(f{4}),settings.(f{5}),varargin{:});
     P = P + P2;
 end
 end

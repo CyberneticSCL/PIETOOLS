@@ -17,7 +17,7 @@ function T = heatNd_validate(stage,vopts)
 %   '2d'  N = 2 (DD x DN, paper Ex. 2 / Table 1), d in VOPTS.ds, presets
 %         bench, listingL (the stock listing with linear generators, the
 %         only stock configuration found to reproduce a Table 1 row), heavy,
-%         listing, listingLT (listingL with the tensor 'lpivar_cdopvar' P);
+%         listing, listingLT (listingL with the tensor 'lpivar' P);
 %         VOPTS.presets (cellstr) restricts either list;
 %   '3d'  N = 3 (DD x DN x DN), bench, d = VOPTS.d (0): ONE bisection,
 %         resumable across runs (each <= 20 min): the k-affine SDP is saved

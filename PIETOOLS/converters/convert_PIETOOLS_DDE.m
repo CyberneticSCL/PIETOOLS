@@ -38,7 +38,7 @@ function [DDF,PIE] = convert_PIETOOLS_DDE(DDE,out_type)
 %   DDF:  'struct', the minimal DDF (fields tau, A0, B1, B2, C1, C2, D11,
 %         D12, D21, D22, Bv, D1v, D2v, and 1 x K cells Cr, Br1, Br2, Drv,
 %         Cv, Cvd); the PIE instead when out_type = 'pie'.
-%   PIE:  'pie_struct', the PIE of the DDF: 'copvar' operators on
+%   PIE:  'pie_struct', the PIE of the DDF: 'opvar' operators on
 %         R^nx x L2^nr[-1,0] in s1, nr the total dimension of the
 %         delay channels.
 
@@ -67,6 +67,8 @@ function [DDF,PIE] = convert_PIETOOLS_DDE(DDE,out_type)
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % Initial coding: DJ, 09/29/2022
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: help and comments revised.
+% MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
+%   functions of the rename table; names only.
 %
 
 % Check that desired conversion makes sense.

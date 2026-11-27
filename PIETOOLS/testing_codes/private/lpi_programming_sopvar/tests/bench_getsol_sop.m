@@ -7,13 +7,13 @@ function T = bench_getsol_sop(opts)
 % LPI is solved. With s1, ..., s_nv on [0,1] and m the component count
 % that gives about q decision variables, P is
 %   'lpivar'  for each nv in OPTS.nv and q in OPTS.q, a square decision
-%             operator on L2^m[s1,...,s_nv] from lpivar_cdopvar at degree
+%             operator on L2^m[s1,...,s_nv] from lpivar at degree
 %             OPTS.deg;
 %   'multi'   when OPTS.multi, for each nv and q = OPTS.q(end), a square
 %             decision operator on R^m x L2^m[s1,...,s_nv] from
-%             lpivar_cdopvar;
+%             lpivar;
 %   'gram'    for each nv in OPTS.gram_nv and q in OPTS.gram_q, a positive
-%             decision operator on L2^m[s1,...,s_nv] from poscopvar at
+%             decision operator on L2^m[s1,...,s_nv] from poslpivar at
 %             degree OPTS.deg, whose names appear twice in decvartable;
 % each call timed as the least of OPTS.reps wall times, with the
 % decvartable of the program ('own') and with that table extended by 2q
@@ -91,7 +91,7 @@ for k = 1:numel(fn),    if ~isfield(opts,fn{k}),    opts.(fn{k}) = dflt.(fn{k});
 V = {'s1','s2','s3'};
 T = struct();
 
-% % % 1. lpivar_cdopvar sweep over (nv, q), one square block.
+% % % 1. lpivar sweep over (nv, q), one square block.
 rows = {};
 for nv = opts.nv
     % Decision variables at one component
@@ -102,7 +102,7 @@ for nv = opts.nv
         % getsol measured
         m = max(1,round(sqrt(qt/q1)));
         prog = mkprog(vars,dom);
-        t0 = tic;   [prog,P] = lpivar_cdopvar(prog,m,{vars},dom,opts.deg);  tb = toc(t0);
+        t0 = tic;   [prog,P] = lpivar(prog,m,{vars},dom,opts.deg);  tb = toc(t0);
         rows(end+1,:) = measure(sprintf('lpivar nv=%d',nv),nv,prog,P,tb,opts.reps); %#ok<AGROW>
         print_row(rows(end,:));
         clear prog P
@@ -123,7 +123,7 @@ if opts.multi
         prog = mkprog(vars,dom);
         sp = {{},vars};
         t0 = tic;
-        [prog,P] = lpivar_cdopvar(prog,struct('out',[m;m],'in',[m;m]), ...
+        [prog,P] = lpivar(prog,struct('out',[m;m],'in',[m;m]), ...
                                   struct('out',{sp},'in',{sp}),dom,opts.deg);
         tb = toc(t0);
         rows(end+1,:) = measure(sprintf('2x2 multi nv=%d',nv),nv,prog,P,tb,opts.reps); %#ok<AGROW>
@@ -133,7 +133,7 @@ if opts.multi
     T.multi = cell2table(rows,'VariableNames',hdr());
 end
 
-% % % 3. Gram form (poscopvar): several nonzeros per variable, names
+% % % 3. Gram form (poslpivar): several nonzeros per variable, names
 % % % listed twice in decvartable. q ~ m^2 for a Gram of m*(basis) rows.
 rows = {};
 for nv = opts.gram_nv
@@ -141,14 +141,14 @@ for nv = opts.gram_nv
     vars = V(1:nv);     dom = repmat([0 1],nv,1);
     if isempty(opts.gram_q),    break,  end
     prog = mkprog(vars,dom);
-    [~,P1] = poscopvar(prog,1,{vars},dom,opts.deg);    q1 = numel(P1.Zd);
+    [~,P1] = poslpivar(prog,1,{vars},dom,opts.deg);    q1 = numel(P1.Zd);
     for qt = opts.gram_q
         % Component count for about qt variables; P declared (timed);
         % getsol measured
         m = max(1,round(sqrt(qt/q1)));
         prog = mkprog(vars,dom);
-        t0 = tic;   [prog,P] = poscopvar(prog,m,{vars},dom,opts.deg);   tb = toc(t0);
-        rows(end+1,:) = measure(sprintf('poscopvar nv=%d',nv),nv,prog,P,tb,opts.reps); %#ok<AGROW>
+        t0 = tic;   [prog,P] = poslpivar(prog,m,{vars},dom,opts.deg);   tb = toc(t0);
+        rows(end+1,:) = measure(sprintf('poslpivar nv=%d',nv),nv,prog,P,tb,opts.reps); %#ok<AGROW>
         print_row(rows(end,:));
         clear prog P
     end
@@ -186,7 +186,7 @@ function row = measure(lbl,nv,prog,P,tb,reps)
 % TotalMemAllocated.
 % INPUT  lbl: 'char', the row label; nv: 'double', the number of spatial
 %        variables; prog: 'struct', the LPI program that declares P; P:
-%        'cdopvar' object; tb: 'double', the declaration time (s); reps:
+%        'dopvar' object; tb: 'double', the declaration time (s); reps:
 %        'double'.
 % OUTPUT row: 1x12 'cell', the entries of the columns of HDR.
 % Random values per name; the extended, shuffled table
@@ -221,7 +221,7 @@ function [nnzB,ncell,MB] = op_size(P)
 % [NNZB,NCELL,MB] = OP_SIZE(P) returns the nonzeros and the number of the
 % B parameters of the 'sdopvar' blocks of P, and the memory of those
 % parameters and of P.Zd.
-% INPUT  P: 'cdopvar' object.
+% INPUT  P: 'dopvar' object.
 % OUTPUT nnzB, ncell: 'double'; MB: 'double', in MB.
 nnzB = 0;   ncell = 0;  by = 0;
 for k = 1:numel(P.C)
@@ -238,25 +238,25 @@ end
 
 function q = count_q(vars,dom,m,deg)
 % Q = COUNT_Q(VARS,DOM,M,DEG) returns the number of decision variables of
-% the square operator on L2^M[VARS] that lpivar_cdopvar declares at degree
+% the square operator on L2^M[VARS] that lpivar declares at degree
 % DEG.
 % INPUT  vars: 'cellstr', the variables; dom: nv x 2 'double'; m, deg:
 %        'double'.
 % OUTPUT q: 'double'.
 prog = mkprog(vars,dom);
-[~,P] = lpivar_cdopvar(prog,m,{vars},dom,deg);
+[~,P] = lpivar(prog,m,{vars},dom,deg);
 q = numel(P.Zd);
 end
 
 function q = count_q_multi(vars,dom,m,deg)
 % Q = COUNT_Q_MULTI(VARS,DOM,M,DEG) returns the number of decision
-% variables of the square operator on R^M x L2^M[VARS] that lpivar_cdopvar
+% variables of the square operator on R^M x L2^M[VARS] that lpivar
 % declares at degree DEG.
 % INPUT  vars: 'cellstr', the variables; dom: nv x 2 'double'; m, deg:
 %        'double'.
 % OUTPUT q: 'double'.
 prog = mkprog(vars,dom);    sp = {{},vars};
-[~,P] = lpivar_cdopvar(prog,struct('out',[m;m],'in',[m;m]),struct('out',{sp},'in',{sp}),dom,deg);
+[~,P] = lpivar(prog,struct('out',[m;m],'in',[m;m]),struct('out',{sp},'in',{sp}),dom,deg);
 q = numel(P.Zd);
 end
 

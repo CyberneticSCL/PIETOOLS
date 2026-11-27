@@ -2,7 +2,7 @@ function results = test_convert_PIETOOLS_PDE_periodic_higher_order()
 %TEST_CONVERT_PIETOOLS_PDE_PERIODIC_HIGHER_ORDER Solver-free FTC regressions.
 % Tests scalar, vector and mixed differentiability orders without assuming a
 % particular basis for the auxiliary moments, by the identities of the PIE
-% on the 'copvar' operators, see test_convert_PIETOOLS_PDE_periodic:
+% on the 'opvar' operators, see test_convert_PIETOOLS_PDE_periodic:
 %   K*xf = 0,   T*xf = [auxiliary states; PDE states],
 %   A*xf + B*inputs = [F*rhs; rhs].
 % No SDP solver is required.
@@ -273,7 +273,7 @@ end
 function q = apply_F(PIE, b, f)
 % The map xf_b = C_b*(derivative), applied to f
 Cb = PIE.pde2pie.x.C.C{b,b};
-tmp = pie_test_utils('apply', copvar({Cb}), {f});
+tmp = pie_test_utils('apply', opvar({Cb}), {f});
 q = tmp{1};
 end
 

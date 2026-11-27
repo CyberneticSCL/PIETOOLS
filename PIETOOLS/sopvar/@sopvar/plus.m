@@ -47,7 +47,7 @@ function C = plus(A,B)
 % is c*I, a matrix the multiplier of the block.
 if isa(A,'dpvar') || isa(B,'dpvar') || ...
         (isnumeric(A) && isscalar(A)) || (isnumeric(B) && isscalar(B))
-    C = dpvar_op_copvar('plus',A,B);
+    C = dpvar_op_opvar('plus',A,B);
     return
 end
 

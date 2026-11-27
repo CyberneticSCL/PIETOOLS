@@ -144,7 +144,7 @@ x1 = pde_var(s,[0,1]); x2 = pde_var(s,[0,1]);
 P = initialize(cv([diff(x1,t)==diff(x1,s,2)+x2; diff(x2,t)==diff(x2,s,2);
                    subs(x1,s,0)==0; subs(x1,s,1)==0; subs(x2,s,0)==0; subs(x2,s,1)==0]));
 C = P.pde2pie.x.C;  Cc = C.C;  Cc{1,2} = Cc{1,1};
-P.pde2pie.x.C = copvar(Cc,struct('vars',{C.vars},'dom',C.dom,'space_out',C.space_out,...
+P.pde2pie.x.C = opvar(Cc,struct('vars',{C.vars},'dom',C.dom,'space_out',C.space_out,...
                     'space_in',C.space_in,'dim_out',C.dim_out,'dim_in',C.dim_in));
 try
     expand_tderivatives(P,[2;1],true);
