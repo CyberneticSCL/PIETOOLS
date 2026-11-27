@@ -1,0 +1,7 @@
+cg_copvar_pd	1	1
+copvar2opvar	1	1
+opvar2copvar	26	7
+pie2copvar	5	4
+test_cg_copvar_nd	1	1
+test_copvar_kyp	1	1
+test_poscopvar_vs_poslpivar_2d	1	1

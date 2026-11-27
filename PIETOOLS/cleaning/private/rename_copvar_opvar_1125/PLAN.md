@@ -6,8 +6,11 @@ a list to functions with the cop/copvar suffix with a goal to remove these suffi
 the 2025 release naming conventions where possible"; then "Also applies to subroutines".
 
 Status: plan; decisions D1–D8 taken on 11/26 (Section 4). Phase 0 steps 1 (C1–C6), 2 and 3
-implemented, tested and committed on 11/26 (a67b402f, c341990e; `REVIEW_PHASE0.md`), not pushed; the
-H2 comment lines of step 1 and steps 4–5 remain; nothing renamed. Every count below was
+implemented, tested and committed on 11/26 (a67b402f, c341990e, records 8198c35d; `REVIEW_PHASE0.md`).
+The H2 comment pass of step 1 (done 11/26) committed 11/27 (1d9737e1); step 4 done on 11/26; step 5:
+origin unchanged at f75d2f6c. Case C8 (`tests_1d`) moved to `orphaned_file/private` on 11/26,
+committed 11/27 (3315e9f9). None pushed. Phase 1 dry run on an export, 11/26 (`phase1/README.md`):
+every check of step 3 passes; the checkout is not renamed. Every count below was
 measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
 subroutine table: `rename_table.tsv` (Section 6).
 
@@ -72,6 +75,10 @@ Further measurements:
   `pie2opvar`, `apply_opvar`) lie in private folders of `cleaning/` or `orphaned_file/`, off the
   path.
 - Branches: only origin/ndopvar moves (5 Declan commits on 11/25); origin/master last moved 08/19.
+- Rerun 11/26 on the tree after Phase 0 (8198c35d plus the H2 pass; `inventory/areas_1126.tsv`,
+  `callers_1126.txt`): toolbox 202 files, 1,594 lines, 661 code lines. converters 15 files
+  (`op2copvar_sop`, `pie2copvar` moved); PIESIM 1 file and PIETOOLS_demos 3 more files from header-log
+  lines of 11/26, which Phase 1 leaves as written. Rerun again on the base of Phase 1.
 
 ## 3. Hazards
 
@@ -211,16 +218,19 @@ class string inside, `isa(P,'copvar')`, changes. Correction of 11/25: `ncop` (`p
 **Phase 0 – preconditions (separate commits).**
 1. The changes approved in `REVIEW_PHASE0.md` (C1–C6, reviewed and decided 11/26). Then the H2
    comment lines: name a retired class "the 2025 `opvar` class" where the history matters, else
-   drop the mention. Header logs stay as written.
+   drop the mention. Header logs stay as written. Done 11/26, committed 11/27 (1d9737e1): 143 edits in 34 files,
+   comment-only (`REVIEW_PHASE0.md`, H2).
 2. The `poslpivar_sop` review of D3: done 11/26 (C7); its rename joins Phase 1.
 3. The D4 retirements.
 4. Check that no toolbox line names `opvar` or `dopvar` once comments are stripped, then rerun the
-   inventory scripts.
-5. No freeze (D7): merge origin, close MATLAB sessions, pause OneDrive.
+   inventory scripts. Done 11/26: `transl_mod.m:75–76` only (C1); inventory in Section 2.
+5. No freeze (D7): merge origin, close MATLAB sessions, pause OneDrive. 11/26: origin/ndopvar
+   unchanged at f75d2f6c, nothing to merge; MATLAB and OneDrive at the start of Phase 1.
 
 **Phase 1 – the rename (one commit, because of H4 and H5).**
 1. `git mv` the 98 files: `sopvar/@copvar/` → `sopvar/@opvar/` with `copvar.m` → `opvar.m`, the
-   same for `cdopvar`, and the function files per `rename_table.tsv`.
+   same for `cdopvar`, and the function files per `rename_table.tsv`. At the Phase 1 base: 97
+   (D4 retired two, C7 added `poslpivar_sop`).
 2. One script edits the live text files, in this order:
    - a. function and subroutine names, longest first (`poscopvar_direct` before `poscopvar`), in
      lower and upper case (`POSCOPVAR_DIRECT`);
@@ -229,6 +239,14 @@ class string inside, `isa(P,'copvar')`, changes. Correction of 11/25: `ncop` (`p
    - c. the class names in lower, upper and capitalized form (`copvar`, `COPVAR`, `Copvar`);
    - d. the article: "a copvar" → "an opvar";
    - e. the D1 log lines, on the 35 files classified existing before the rename.
+
+   Left as written, as records (H2 pass, 11/26): header-log entries (Section 1); `(was)` lines,
+   which quote the code of their date (27 live lines name a container; the map would turn
+   `test_heatNd_pie.m:258` into `isa(P,'opvar') || (isa(P,'opvar') && …)`); and the retired names
+   that hold a container token, in any case: `op2copvar_sop`, `pie2copvar`, `opvar2copvar`,
+   `copvar2opvar`, `opvar2d2copvar`, `cg_copvar_pd`, `Test_cg_copvar_nd`, `test_copvar_kyp`,
+   `test_poscopvar_vs_poslpivar_2d` (`inventory/comment_only_tokens_1126.tsv`). Checks 3a and 3c
+   allow these.
 3. Checks before the commit:
    - a. no `copvar` or `cdopvar` remains outside the records of Section 1;
    - b. code identity: in each .m file, the code without comments equals the map applied to the

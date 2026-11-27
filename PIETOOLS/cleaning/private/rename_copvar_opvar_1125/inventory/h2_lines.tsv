@@ -1,0 +1,439 @@
+toolbox	code	W	PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_input_check.m:547	elseif isa(PIE.T,'opvar2d')
+toolbox	comment	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:18	% T: a 4-PI operator ('opvar' object, or 'struct' of its kernels with
+toolbox	comment	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:58	%   its kernels as well as an 'opvar' (error message revised); the field
+toolbox	comment	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:63	%   once copvar is renamed opvar, stopped at T.Q1. Structs give the same
+toolbox	comment	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:72	% if ~isa(T,'opvar')                                                        % YP, MMP, 11/21/2026 (was)
+toolbox	comment	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:73	%     error("First argument must be a opvar class object");                 % YP, MMP, 11/21/2026 (was)
+toolbox	comment	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:74	% A struct of kernels or an opvar: the body reads only fields               % YP, MMP, 11/21/2026
+toolbox	code	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:75	if ~isa(T,'opvar') && ~isstruct(T)                                          % YP, MMP, 11/21/2026
+toolbox	code	W	PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:76	error("First argument must be a struct of kernels or an opvar object"); % YP, MMP, 11/21/2026
+toolbox	comment	W	PIETOOLS_demos/DEMO2_volterra_operator_norm.m:48	%   Top was an opvar, converted by OP2COPVAR_SOP, so the demo stopped
+toolbox	comment	W	PIETOOLS_demos/DEMO2_volterra_operator_norm.m:49	%   without the opvar class; T is the container the conversion returned.
+toolbox	comment	Z	PIETOOLS_demos/DEMO4_stability_parameter_bisection.m:53	%   of poslpivar and lpi_ineq; the predefined executive is lpiscript_sop;
+toolbox	comment	Z	PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:81	%   (sep = 1), lpivar and lpi_ineq; lpigetsol_sop reads the solution and
+toolbox	comment	Z	PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:76	%   lpi_ineq_sop, in place of poslpivar, lpivar and lpi_ineq; lpigetsol_sop
+toolbox	comment	Z	PIETOOLS_demos/DEMO8_H2norm.m:51	%   with the trace of C1*W*C1' by trace_rn_sop, in place of poslpivar,
+toolbox	comment	Z	PIETOOLS_demos/DEMO9_L2_gain_analysis.m:65	%   with its default options, in place of poslpivar and lpi_ineq with
+toolbox	comment	Z	PIETOOLS_demos/cuadmm/cuadmm_path.m:26	%      lpisolve or poslpivar for EVERY caller while present, so a leftover
+toolbox	comment	Z	PIETOOLS_demos/cuadmm/cuadmm_path.m:81	%     on the path and poslpivar resolved twice.
+toolbox	comment	Z	PIETOOLS_demos/cuadmm/cuadmm_path.m:97	% stab_mirror call, in place of the stock poslpivar, lpi_eq, poslpivar_2d and
+toolbox	comment	W	PIETOOLS_demos/cuadmm/cuadmm_path.m:98	% lpi_eq_2d, which leave with lpi_programming/ in the opvar removal.
+toolbox	comment	Z	PIETOOLS_demos/cuadmm/cuadmm_path.m:99	%need = {'poslpivar','lpi_eq','lpiprogram','lpisolve','sossolve', ...
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/pielr_path.m:31	%   "port or retire" the opvar2d certify code); they leave `own`, where
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/pielr_path.m:82	% opvar-path functions left the path (f83486c8, 433980d7) and asserting them
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m:89	%   class of T, tested the retired opvar2d classes and is dropped.
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m:166	% last resort, the class of T, tested the retired opvar2d classes)          % MMP, 11/09/2026
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/bm_resid.m:20	% changes, because a program built with lpivar interleaves them between the   % CC, 09/23/2026
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/bm_setup.m:9	%   stability program but NOT for a program built with lpivar, where the free
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:19	% - PIE:   'pie_struct' object of a 1-D PIE with 'copvar' (or 'opvar')
+toolbox	comment	WZ	PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:35	% CC, 09/23/2026: initial coding, on opvar/poslpivar/lpivar/lpi_eq/lpi_ineq
+toolbox	comment	WZ	PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:41	%   opvar, poslpivar, lpivar, lpi_eq and lpi_ineq left the path (f83486c8,
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:42	%   433980d7). The opvar body of 09/23/2026 and 09/24/2026 is deleted.
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:48	% BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:14	%          'opvar') operators T and C1;
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:28	% CC, 09/23/2026: initial coding, the psatz branch of lpi_ineq on opvar, with
+toolbox	comment	WZ	PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:31	% CC, 11/08/2026: rewritten on the container LPI layer.  opvar, poslpivar,
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:32	%   lpi_eq and degbalance left the path (f83486c8); the opvar body of
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:38	% BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:15	% - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'copvar' (or 'opvar',
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:16	%          'opvar2d') operators T and A;
+toolbox	comment	WZ	PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:31	% CC, 09/23/2026: initial coding, on opvar/poslpivar/lpi_eq (executive
+toolbox	comment	WZ	PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:35	%   opvar, poslpivar and lpi_eq left the path (f83486c8). The opvar body of
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:46	% BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026)
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evaldp.m:7	% dopvar, and duplicating it would let the two copies drift -- exactly the
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:3	% dispatching on its class: dopvar (1-D, 6 leaves), dopvar2d (2-D, 36 leaves),
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:8	% LPI substitutes Rop (Gram), Qop (a free lpivar operator) and gam (a scalar)
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:9	% before its residual can be formed.  opcheck_2d could reach only dopvar2d via
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:18	% CC, 11/22/2026: the dopvar and dopvar2d branches deleted (unreachable since
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:19	%   the opvar classes left the path, f83486c8; pielr_evalgram retired with
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:21	% MMP, 11/26/2026: the opvar and opvar2d tests of the pass-through deleted,
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:23	%   and once copvar is renamed opvar the containers return above anyway.
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:36	% if isa(X,'opvar') || isa(X,'opvar2d') || isa(X,'double') || isa(X,'polynomial') % MMP, 11/26/2026 (was)
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:43	% BEGIN CC, 11/22/2026: deleted, both CC 09/23/2026: the dopvar2d branch
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:44	% (pielr_evalgram, retired to orphaned_file/private/) and the 1-D dopvar
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:45	% branch (an opvar() filled leaf by leaf through pielr_evaldp). Their
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_fitw.m:9	%    coordinates, so with Kf > 0 (l2gain: gamma plus the free lpivar operator)
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_layout.m:8	% is true for the stability LPIs and FALSE for any program built with lpivar:
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_layout.m:14	%     x(102..144) poly  43 coordinates    free  (Qop, from lpivar)
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:44	% a free lpivar operator Qop and couples it by Top'*Qop = Rop, while
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:95	% build_stab_2d_st2 (opvar2d, poslpivar_2d, lpi_eq_2d) no longer runs; the
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:135	% BEGIN CC, 11/08/2026: container operators.  Deleted: the opvar2d branch
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:137	% opvar branch, both 09/23/2026; 'copvar' arithmetic serves 1-D and 2-D in one
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:154	% field assignment, NOT struct('Dop',Dop,...): with an opvar2d argument that
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:155	% call dispatches to opvar2d's own struct method and errors "Too many input
+toolbox	code	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:176	'a free lpivar Qop coupled by Top''*Qop = Rop), so it needs its own ' ...
+toolbox	code	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_lpi.m:271	if isa(PIE.T,'opvar2d') || isa(PIE.T,'dopvar2d'), d = 2; else, d = 1; end
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:10	% MMP, 11/26/2026: the branch for the opvar, dopvar, opvar2d and dopvar2d
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:33	% properties of opvar and dopvar (4 properties, 6 leaves) and of opvar2d and
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:34	% dopvar2d (16, 36), its leaf-count assert, and the local function mxc.
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:35	% Those classes left the path (f83486c8); once cdopvar is renamed dopvar, a
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:36	% dopvar would reach that enumeration and fail the assert. Any other class
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:4	% Generalises pielr_certify's local norm_pie, which requires opvar2d and
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:13	% MMP, 11/26/2026: the repackaging of a bare struct of opvar or opvar2d
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:26	% struct whose T and A are opvar or opvar2d objects into T, A, vars, dom and
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/pielr_norm_pie.m:27	% dim. Those classes left the path (f83486c8); once copvar is renamed opvar,
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/pielr_rawdata.m:18	%    lpivar in the program the free coordinates are interleaved between the
+toolbox	comment	W	PIETOOLS_demos/lowrank_2d_stability/private/restrict_solve.m:83	%          opvar2d gate of pielr_certify, both retired to orphaned_file/private/
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/private/restrict_solve.m:103	% with lpivar interleaves free coordinates BETWEEN the Gram blocks, and the
+toolbox	comment	Z	PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m:18	% psatz is OFF everywhere (LF_use_psatz = 0, eq_use_psatz = [0;0]): poslpivar's
+toolbox	comment	Z	PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:150	% [prog,P] = poslpivar(prog,Pdim,Pdeg,P_opts);                              % DB, MMP, 11/21/2026 (was)
+toolbox	comment	Z	PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:170	% [prog,Z] = lpivar(prog,Zdim,Zdeg);                                        % DB, MMP, 11/21/2026 (was)
+toolbox	comment	Z	PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:208	% [prog_alt,R1] = poslpivar(prog,Q.dim(:,1),Rdeg);                          % DB, MMP, 11/21/2026 (was)
+toolbox	comment	Z	PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:210	% [prog_alt,R2] = poslpivar(prog_alt,Q.dim(:,1),Rdeg-1,R_opts);             % DB, MMP, 11/21/2026 (was)
+toolbox	comment	W	converters/convert_PIETOOLS_DDF.m:71	%   the PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects;
+toolbox	comment	W	converters/convert_PIETOOLS_DDF.m:213	% opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;    % DJ, MMP, 11/21/2026 (was)
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_DDE2PIE_legacy.m:84	%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_DDE2PIE_legacy.m:186	% opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;    % MMP, 11/21/2026 (was)
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:70	%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects: each
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:74	%   with '_dum'; the PIE is initialized; the opvar code, the zero filling of
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:215	% MMP, 11/21/2026: BEGIN the opvar Apop, commented out
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:216	% %%% At this point, we can construct the primal dynamics opvar
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:217	% opvar Apop;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:225	% MMP, 11/21/2026: END the opvar Apop, commented out
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:303	% opvar Phfop;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:316	% opvar Tbigop
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_batch.m:327	% opvar Tbigop;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:77	%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects: each
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:81	%   the opvar code, the zero filling of DJ, 09/29/2021 included, is
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:169	% opvar Top Twop Tuop; %LHS opvars
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:176	% opvar Aop B1op B2op C1op C2op D11op D12op D21op D22op;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:263	% MMP, 11/21/2026: BEGIN the opvar construction of the operators, commented out
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:267	%     opvar Thatop Tvop;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:276	%     opvar Aop_ODE;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:284	%     opvar Vop_out;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:292	%     opvar Aop_PDE Bop_PDE;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:302	%     opvar TBVop;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:308	%     opvar TDop;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:325	%         opvar Bop_PDE_sliced;
+toolbox	comment	W	converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:356	% MMP, 11/21/2026: END the opvar construction of the operators, commented out
+toolbox	comment	Y	executives_sopvar/utility_functions/poslpivar_sop.m:55	% See also POSCOPVAR, POSLPIVAR_SETTINGS_SOP, COPVAR_SPACE_LIST.
+toolbox	comment	W	parser/@pde_struct/mtimes.m:55	% DJ, 11/25/2026: Remove multiplication with the retired 'opvar' class;
+toolbox	comment	W	parser/@pde_struct/pde_struct.m:86	% DJ, 11/25/2026: Drop the retired 'opvar' and 'opvar2d' classes from
+toolbox	comment	W	parser/@pie_struct/initialize.m:84	% DJ, 11/25/2026: Remove the conversion of the retired 'opvar' and
+toolbox	comment	W	parser/@pie_struct/initialize.m:85	%                   'opvar2d' classes;
+toolbox	comment	W	parser/@pie_struct/pie_struct.m:192	% DJ, 11/25/2026: Drop the retired 'opvar2d' class from InferiorClasses;
+toolbox	comment	W	parser/internal/terms2pde_struct.m:4	% retired 'opvar' class, so the conversion is no longer supported, and the
+toolbox	comment	W	parser/internal/terms2pde_struct.m:40	%                   retired 'opvar' class; the conversion (DJ, 06/30/2024),
+toolbox	comment	W	parser/piess.m:118	%                   'opvar' and 'opvar2d' operators moved to piess_opvar;
+toolbox	comment	W	parser/piess.m:120	% MMP, 11/22/2026: the branch for opvar and opvar2d operators without a
+toolbox	comment	W	parser/piess.m:122	%                   the opvar classes are retired).
+toolbox	comment	W	parser/piess.m:124	% DJ, 11/25/2026: Do not accept the retired 'opvar' and 'opvar2d' classes,
+toolbox	comment	W	parser/piess.m:176	%   elseif ~isa(Top,'opvar') && ~isa(Top,'opvar2d') && ~isa(Top,'polynomial') && ~isa(Top,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:182	%   elseif ~isa(Twop,'opvar') && ~isa(Twop,'opvar2d') && ~isa(Twop,'polynomial') && ~isa(Twop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:188	%   elseif ~isa(Tuop,'opvar') && ~isa(Tuop,'opvar2d') && ~isa(Tuop,'polynomial') && ~isa(Tuop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:202	%   elseif ~isa(Aop,'opvar') && ~isa(Aop,'opvar2d') && ~isa(Aop,'polynomial') && ~isa(Aop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:220	%   elseif ~isa(Bwop,'opvar') && ~isa(Bwop,'opvar2d') && ~isa(Bwop,'polynomial') && ~isa(Bwop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:226	%   elseif ~isa(Buop,'opvar') && ~isa(Buop,'opvar2d') && ~isa(Buop,'polynomial') && ~isa(Buop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:244	%   elseif ~isa(Czop,'opvar') && ~isa(Czop,'opvar2d') && ~isa(Czop,'polynomial') && ~isa(Czop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:250	%   elseif ~isa(Cyop,'opvar') && ~isa(Cyop,'opvar2d') && ~isa(Cyop,'polynomial') && ~isa(Cyop,'double')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:270	%   elseif isa(Dop,'opvar') || isa(Dop,'opvar2d') || isa(Dop,'double') || isa(Dop,'polynomial')  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:298	%   elseif ~(isa(Dzwop,'opvar') || isa(Dzwop,'opvar2d') || isa(Dzwop,'double') || isa(Dzwop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:304	%   elseif ~(isa(Dzuop,'opvar') || isa(Dzuop,'opvar2d') || isa(Dzuop,'double') || isa(Dzuop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:310	%   elseif ~(isa(Dywop,'opvar') || isa(Dywop,'opvar2d') || isa(Dywop,'double') || isa(Dywop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:316	%   elseif ~(isa(Dyuop,'opvar') || isa(Dyuop,'opvar2d') || isa(Dyuop,'double') || isa(Dyuop,'polynomial'))  % DJ (CC), 10/30/2026 (was)
+toolbox	comment	W	parser/piess.m:322	% opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)       % MMP, 11/22/2026
+toolbox	comment	W	parser/piess.m:327	% The construction from opvar operators that was here (DJ, 12/20/2024 -
+toolbox	comment	W	parser/piess.m:328	% 10/29/2026) was removed with the opvar classes. The PIE is now built from
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:6	% were a 'dopvar' object, acting as
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:12	% P:      cdopvar class object with the structure of a 'dopvar': at most
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:15	% fname:  char or string, the name of a 'dopvar' field: 'P', 'Q1', 'Q2',
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:43	%   alone, which is renamed to var1, as a 'dopvar' defines Q1 in var1.
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:46	%   components of a 'dopvar' are, also if no block of it has decision
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:49	%   component with zero rows or columns, as 'dopvar' does for a zero
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:52	%   'var1', 'var2' are s and s_dum, the default variables of a new 'dopvar'
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:104	% Without a variable, the default s of a new 'dopvar'
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar1d.m:154	% P:    cdopvar class object, opvar-like
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:7	% were a 'dopvar2d' object, with components
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:20	% P:      cdopvar class object with the structure of a 'dopvar2d': at most
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:23	% fname:  char or string, the name of a 'dopvar2d' field: 'R00', 'R0x',
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:52	%   variable in both spaces, sorted, so x before y as in 'dopvar2d'. A variable only in
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:53	%   the input space is integrated over its whole domain, and 'dopvar2d'
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:58	%   components of a 'dopvar2d' are, also if no block of it has decision
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:137	% A variable only in the input space keeps its own name in 'dopvar2d'
+toolbox	comment	W	sopvar/@cdopvar/getfield_opvar2d.m:165	% P:    cdopvar class object, opvar2d-like
+toolbox	comment	W	sopvar/@cdopvar/is_opvar1d.m:4	% of a 'dopvar' object,
+toolbox	comment	W	sopvar/@cdopvar/is_opvar1d.m:21	%   R^p after those of L2^q, which a 'dopvar' cannot represent, so that P
+toolbox	comment	W	sopvar/@cdopvar/is_opvar1d.m:22	%   is not opvar-like. The same holds for the block columns.
+toolbox	comment	W	sopvar/@cdopvar/is_opvar1d.m:55	% A 'dopvar' has a single spatial variable, s in [a,b]
+toolbox	comment	W	sopvar/@cdopvar/is_opvar2d.m:4	% has the structure of a 'dopvar2d' object,
+toolbox	comment	W	sopvar/@cdopvar/is_opvar2d.m:26	%   spaces of the 'dopvar2d'. A block row of a space before one of an
+toolbox	comment	W	sopvar/@cdopvar/is_opvar2d.m:28	%   components, which a 'dopvar2d' cannot represent, so that P is not
+toolbox	comment	W	sopvar/@cdopvar/is_opvar2d.m:29	%   opvar2d-like. The same holds for the block columns.
+toolbox	comment	W	sopvar/@cdopvar/is_opvar2d.m:62	% A 'dopvar2d' has two spatial variables, x and y
+toolbox	comment	W	sopvar/@cdopvar/numArgumentsFromSubscript.m:22	% so it counts 1. So does a read of a 'dopvar' or 'dopvar2d' field, P.Q1,
+toolbox	comment	W	sopvar/@cdopvar/numArgumentsFromSubscript.m:55	% So is a 'dopvar'/'dopvar2d' field, which 'subsref' serves as one value.
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:5	% as if P were a 'dopvar' object, acting as
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:12	% P:      cdopvar class object with the structure of a 'dopvar': at most
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:15	% fname:  char or string, the name of a 'dopvar' field: 'P', 'Q1', 'Q2',
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:34	% - The fields are those of 'dopvar2d' on the one variable x = s: P is
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:36	%   1-3, and each is set as that 'dopvar2d' field. A component on a space
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:40	%   's', on [0,1], as for a new 'dopvar'.
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar1d.m:81	% The 'dopvar2d' field on x = s; one variable for I, var1, var2
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar2d.m:6	% as if P were a 'dopvar2d' object, with the components Rij mapping the
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar2d.m:11	% P:      cdopvar class object with the structure of a 'dopvar2d': at most
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar2d.m:14	% fname:  char or string, the name of a 'dopvar2d' field: 'R00', ...,
+toolbox	comment	W	sopvar/@cdopvar/setfield_opvar2d.m:93	% P must have the spaces R, L2[x], L2[y], L2[x,y] of a 'dopvar2d'
+toolbox	comment	W	sopvar/@cdopvar/subsasgn.m:4	% builtin, except for the 'dopvar' and 'dopvar2d' field names described
+toolbox	comment	W	sopvar/@cdopvar/subsasgn.m:38	% The fields of a 'dopvar' (P, Q1, Q2, R) and of a 'dopvar2d' (R00 to
+toolbox	comment	W	sopvar/@cdopvar/subsasgn.m:94	% Support setting fields of a 'dopvar' (1D) or 'dopvar2d' (2D), which are
+toolbox	comment	W	sopvar/@cdopvar/subsasgn.m:107	% A shared field is set as for a 'dopvar' if P is opvar-like and the
+toolbox	comment	W	sopvar/@cdopvar/subsasgn.m:140	% Write the value into the blocks: 'dopvar' (1-D) or 'dopvar2d' (2-D)
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:13	% varargout: the slice, the value of a 'dopvar' or 'dopvar2d' field, or
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:19	% 'dopvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:31	% The fields of a 'dopvar' (P, Q1, Q2, R) and of a 'dopvar2d' (R00 to
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:35	% dim are read as for a 'dopvar' if P is opvar-like, and as for a
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:36	% 'dopvar2d' otherwise, so dim is 2 x 2 or 4 x 2. A comma list of such a field, P.R22{:}, is not served.
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:85	% Support extracting fields of a 'dopvar' (1D) or 'dopvar2d' (2D), which
+toolbox	comment	W	sopvar/@cdopvar/subsref.m:98	% A shared field is read as for a 'dopvar' if P is opvar-like
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:6	% were an 'opvar' object, acting as
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:12	% P:      copvar class object with the structure of an 'opvar': at most
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:15	% fname:  char or string, the name of an 'opvar' field: 'P', 'Q1', 'Q2',
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:41	%   which is renamed to var1, as an 'opvar' defines Q1 in var1.
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:43	%   component with zero rows or columns, as 'opvar' does for a zero
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:46	%   'var1', 'var2' are s and s_dum, the default variables of a new 'opvar'
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:98	% Without a variable, the default s of a new 'opvar'
+toolbox	comment	W	sopvar/@copvar/getfield_opvar1d.m:148	% P:    copvar class object, opvar-like
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:7	% were an 'opvar2d' object, with components
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:20	% P:      copvar class object with the structure of an 'opvar2d': at most
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:23	% fname:  char or string, the name of an 'opvar2d' field: 'R00', 'R0x',
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:52	%   'opvar2d'. A variable only in the input space is
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:53	%   integrated over its whole domain, and 'opvar2d' names it as var1, so
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:132	% A variable only in the input space keeps its own name in 'opvar2d'
+toolbox	comment	W	sopvar/@copvar/getfield_opvar2d.m:160	% P:    copvar class object, opvar2d-like
+toolbox	comment	X	sopvar/@copvar/inv.m:63	% See also SOPVAR/INV, GETCONTROLLER_SOP, GETOBSERVER_SOP, COPVAR2OPVAR.
+toolbox	comment	W	sopvar/@copvar/is_opvar1d.m:4	% of an 'opvar' object,
+toolbox	comment	W	sopvar/@copvar/is_opvar1d.m:21	%   R^p after those of L2^q, which an 'opvar' cannot represent, so that P
+toolbox	comment	W	sopvar/@copvar/is_opvar1d.m:22	%   is not opvar-like. The same holds for the block columns.
+toolbox	comment	W	sopvar/@copvar/is_opvar1d.m:54	% An 'opvar' has a single spatial variable, s in [a,b]
+toolbox	comment	W	sopvar/@copvar/is_opvar2d.m:4	% has the structure of an 'opvar2d' object,
+toolbox	comment	W	sopvar/@copvar/is_opvar2d.m:26	%   spaces of the 'opvar2d'. A block row of a space before one of an
+toolbox	comment	W	sopvar/@copvar/is_opvar2d.m:28	%   components, which an 'opvar2d' cannot represent, so that P is not
+toolbox	comment	W	sopvar/@copvar/is_opvar2d.m:29	%   opvar2d-like. The same holds for the block columns.
+toolbox	comment	W	sopvar/@copvar/is_opvar2d.m:61	% An 'opvar2d' has two spatial variables, x and y
+toolbox	comment	W	sopvar/@copvar/numArgumentsFromSubscript.m:22	% so it counts 1. So does a read of an 'opvar' or 'opvar2d' field, P.Q1,
+toolbox	comment	W	sopvar/@copvar/numArgumentsFromSubscript.m:55	% So is an 'opvar'/'opvar2d' field, which 'subsref' serves as one value.
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:5	% as if P were an 'opvar' object, acting as
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:12	% P:      copvar class object with the structure of an 'opvar': at most
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:15	% fname:  char or string, the name of an 'opvar' field: 'P', 'Q1', 'Q2',
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:34	% - The fields are those of 'opvar2d' on the one variable x = s: P is R00,
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:36	%   and each is set as that 'opvar2d' field. A component on a space of
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:40	%   's', on [0,1], as for a new 'opvar'.
+toolbox	comment	W	sopvar/@copvar/setfield_opvar1d.m:81	% The 'opvar2d' field on x = s; one variable for I, var1, var2
+toolbox	comment	W	sopvar/@copvar/setfield_opvar2d.m:6	% as if P were an 'opvar2d' object, with the components Rij mapping the
+toolbox	comment	W	sopvar/@copvar/setfield_opvar2d.m:11	% P:      copvar class object with the structure of an 'opvar2d': at most
+toolbox	comment	W	sopvar/@copvar/setfield_opvar2d.m:14	% fname:  char or string, the name of an 'opvar2d' field: 'R00', ...,
+toolbox	comment	W	sopvar/@copvar/setfield_opvar2d.m:93	% P must have the spaces R, L2[x], L2[y], L2[x,y] of an 'opvar2d'
+toolbox	comment	W	sopvar/@copvar/subsasgn.m:4	% builtin, except for the 'opvar' and 'opvar2d' field names described
+toolbox	comment	W	sopvar/@copvar/subsasgn.m:36	% The fields of an 'opvar' (P, Q1, Q2, R) and of an 'opvar2d' (R00 to R22),
+toolbox	comment	W	sopvar/@copvar/subsasgn.m:92	% Support setting fields of an 'opvar' (1D) or 'opvar2d' (2D), which are
+toolbox	comment	W	sopvar/@copvar/subsasgn.m:105	% A shared field is set as for an 'opvar' if P is opvar-like and the
+toolbox	comment	W	sopvar/@copvar/subsasgn.m:138	% Write the value into the blocks: 'opvar' (1-D) or 'opvar2d' (2-D)
+toolbox	comment	W	sopvar/@copvar/subsref.m:13	% varargout: the slice, the value of an 'opvar' or 'opvar2d' field, or
+toolbox	comment	W	sopvar/@copvar/subsref.m:19	% 'opvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
+toolbox	comment	W	sopvar/@copvar/subsref.m:31	% The fields of an 'opvar' (P, Q1, Q2, R) and of an 'opvar2d' (R00 to R22)
+toolbox	comment	W	sopvar/@copvar/subsref.m:35	% dim are read as for an 'opvar' if P is opvar-like, and as for an
+toolbox	comment	W	sopvar/@copvar/subsref.m:36	% 'opvar2d' otherwise, so dim is 2 x 2 or 4 x 2.
+toolbox	comment	W	sopvar/@copvar/subsref.m:85	% Support extracting fields of an 'opvar' (1D) or 'opvar2d' (2D), which
+toolbox	comment	W	sopvar/@copvar/subsref.m:98	% A shared field is read as for an 'opvar' if P is opvar-like
+toolbox	comment	W	sopvar/@sdopvar/sdopvar.m:144	% for an m-by-n decision opvar, A is size m*n-by-1, B is size nd-by-m*n.
+test	comment	W	testing_codes/private/PIESOS/Testfolder/Test_convert_PDE_nonlinear_varnames.m:20	%   retired opvar), and finds the first order state by name;
+test	code	WZ	testing_codes/private/PIETOOLS_demos/cuadmm/bl_suites.m:69	'EXACTLY against the banked baseline: a change to dpvar, opvar, poslpivar, ' ...
+test	code	Z	testing_codes/private/PIETOOLS_demos/cuadmm/bl_suites.m:70	'lpi_eq or lpivar that alters any assembled program changes one of these, ' ...
+test	comment	W	testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m:14	% (10/29/2026), which every stock executive rejects (Top.dim), and the opvar
+test	comment	Z	testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:12	%   stock PIETOOLS_PIE2PDEstability as of 2026-09-23 (poslpivar for P,
+test	comment	Z	testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:13	%   get_lpivar_degs and lpivar for Q, lpi_eq for T'*Q = P, lpi_ineq or a
+test	comment	Z	testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:14	%   poslpivar slack with lpi_eq for the negativity), which stops on Top.dim
+test	comment	W	testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:15	%   since convert returns copvar operators (3df33dcc, 10/29/2026); the opvar
+test	comment	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m:13	% HARNESS COST, NOT SDP COST.  Requesting poslpivar's THIRD output (Qmat) makes
+test	code	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m:20	[prog,P1op] = poslpivar(prog,Top.dim,st.dd1,st.options1);
+test	code	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m:23	[prog,P2op] = poslpivar(prog,Top.dim,st.dd12,st.options12);
+test	code	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m:27	Pop = Pop + mat2opvar(Imat,Pop.dim(:,2),PIE.vars,PIE.dom);
+test	code	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m:29	[prog,De1op] = poslpivar(prog,Dop.dim,st.dd2,st.options2);
+test	code	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/build_stab_st.m:32	[prog,De2op] = poslpivar(prog,Dop.dim,st.dd3,st.options3);
+test	comment	W	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/gate1d.m:13	% produce -- back through the real opvar operators, rebuilds
+test	comment	W	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/op2gal.m:9	% Gauss-Legendre discretisation of the QUADRATIC FORM of a square opvar, so
+test	comment	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/opcheck.m:6	%   Pop = poslpivar(Q1) + eppos*I  (positive whenever Q1 >= 0)
+test	comment	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/opcheck.m:7	%   Dop = T'PA + A'PT + epneg T'PT ,  Deop = poslpivar(Q2)+poslpivar(Q3)
+test	comment	W	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/restrict_solve_1d.m:11	% residual relP, plus per-block PSD) instead of opcheck_2d's 36-leaf opvar2d
+test	comment	W	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/restrict_solve_1d.m:12	% scan, because the operators here are opvar, not opvar2d.  The face
+test	code	Z	testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/run_regression_1d.m:136	ent = {'lpisolve','poslpivar','sossolve','lpiprogram','lpisettings','pde_var'};
+test	comment	Z	testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:47	%   'lpivar' convention of the Sec. 7.1 listing: ((d+1)+2(d+1)^2)^N.
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare_validate.m:58	%   2-D (opvar2d) T1: L2 none full 0.00165, dir1 1.0e-4, dir2 3.3e-4;
+test	comment	Z	testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_validate.m:15	%         and 'productT' (the same with the stock 'lpivar' P basis: the
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:23	%      (containers, read through their opvar / opvar2d fields), each
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:38	%   opvar-field accessors; a 'copvar' is not an 'opvar', so it went to the
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:40	% MMP, 11/26/2026: the 'opvar' test of STOCK_APPLY dropped: the class is
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:41	%   retired, and once copvar is renamed opvar it would send every container,
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:248	% Stock opvar (1-D) / opvar2d (2-D) PI operator on L2 applied by
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:249	% quadrature, from each class's own definition (opvar.m / opvar2d.m):
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:254	% if isa(P,'opvar')                                                         % MMP, 11/23/2026 (was)
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:255	% 'copvar' since the container port: 1-D by its opvar-field accessors       % MMP, 11/23/2026
+test	comment	W	testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:256	% if isa(P,'opvar') || (isa(P,'copvar') && is_opvar1d(P))                   % MMP, 11/26/2026 (was)
+test	comment	W	testing_codes/private/baselines/2026-10-28_example_library/private/lb_build_catalog.m:49	% Numeric fingerprints, not isequal on the opvar objects:
+test	comment	W	testing_codes/private/baselines/2026-10-28_example_library/private/lb_build_system.m:12	%   PIE:    the PIE (opvar or opvar2d based struct), [] if not converted
+test	comment	W	testing_codes/private/baselines/2026-10-28_example_library/private/lb_fp.m:2	% Fingerprint of a 1-D opvar: sum, sum of |.| and number of monomials of
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_build_catalog.m:49	% Numeric fingerprints, not isequal on the opvar objects:
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_build_system.m:12	%   PIE:    the PIE (opvar or opvar2d based struct), [] if not converted
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_fp.m:2	% Fingerprint of a 1-D opvar: sum, sum of |.| and number of monomials of
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_classes.m:4	% classes opvar, dopvar, opvar2d and dopvar2d also the first 5 file names.
+test	code	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_classes.m:39	if any(strcmp(ks{j},{'opvar','dopvar','opvar2d','dopvar2d'}))
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_compare.m:6	% - F2, per PIE: that of the operator outputs (container and opvar);
+test	code	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_compare.m:53	fprintf(fid,'\n== F2 (label, status a/b, outputs, opvar outputs)\n');
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:17	%     legacy         false; until 11/26/2026, true when the PIE held opvar
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:20	%                    apply_opvar on the opvar at the same points and
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:22	%     dump           []; until 11/26/2026, for legacy operators, the opvar
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:109	% BEGIN MMP, 11/26/2026: deleted: the branch for opvar and opvar2d inputs,
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:111	% 11/08). Once copvar is renamed opvar, containers would take that branch on
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:127	% MMP, 11/26/2026: deleted: for an opvar input, its fields as a plain
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_f2.m:134	% MMP, 11/26/2026: deleted: P0_APPLY_OPVAR, apply_opvar on an opvar input at
+test	comment	W	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_path.m:23	% may resolve to no file. f83486c8 retired apply_opvar with opvar/ and
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:22	% Constant operators and the free-variable dopvar: fits over (n,d)
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:23	grid_table(fid,T,'const','opvar','sopvar');
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:24	grid_table(fid,T,'dvarB','dopvar','sdopvar');
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:26	q_table(fid,T,'dvarQ','dopvar','sdopvar');
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:27	q_table(fid,T,'dvarN','dopvar','sdopvar');
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:28	q_table(fid,T,'dvarS','dopvar','sdopvar');
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/analyze_class_ops.m:31	fprintf(fid,'\n### inv\n\n| n | d | opvar t (s) | sopvar t (s) | ratio | opvar resid | sopvar resid |\n|---|---|---|---|---|---|---|\n');
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:3	% 'opvar' against 'sopvar', and of 'dopvar' against 'sdopvar', on the same
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:10	%         'const' opvar vs sopvar over (n,d), varargin = {nlist, dlist};
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:11	%         'dvarB' dopvar vs sdopvar, each coefficient its own decision
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:14	%         'dvarQ' dopvar vs sdopvar at fixed n, d, each coefficient one
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:32	% the opvar classes are retired (README.md in this folder).
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:50	% opvar vs sopvar over (n,d): two independent random operators per case
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:57	R = add(R,'const',n,d,0,0,ops{k,1},'opvar', @() ops{k,2}(A,B));
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:68	% dopvar vs sdopvar: D, E with disjoint decision variables, A/S constant
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:80	R = add(R,lbl,n,d,qq,nnzD,ops{k,1},'dopvar', @() ops{k,2}(D,E,A));
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:95	A = rand_opvar([0 0;n n],d,s,th,[0 1]);
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:98	R = add(R,'inv',n,d,0,0,'inv','opvar', @() inv(A));
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:116	R = [R; struct('part','check','op',ops{k,1},'cls','opvar/sopvar','agree',e)]; %#ok<AGROW>
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:129	R = [R; struct('part','check','op',ops{k,1},'cls','dopvar/sdopvar','agree',e)]; %#ok<AGROW>
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:136	% {name, opvar handle, sopvar handle}
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:151	% {name, dopvar handle (D,E,A), sdopvar handle (SD,SE,S)}
+test	comment	WZ	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:169	% Random 3-PI opvar on L2^n[0,1] (RAND_OPVAR) and its sopvar
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:171	A = rand_opvar([0 0;n n],d,s,th,[0 1]);
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:176	% Synthetic 3-PI dopvar on L2^n[0,1]: R0 with monomials s^0..s^d, R1 and R2
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:209	D = dopvar();
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:224	% The dopvar D at the decision values VALS of the names NM: an opvar
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_class_ops.m:225	P = opvar();    P.I = D.I;  P.var1 = D.var1;    P.var2 = D.var2;
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:22	%                         stock executive) on PIE2OPVAR(PIE): opvar, dopvar
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:23	%                         (opvar2d, dopvar2d) and lpi_programming; stability
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:72	% The PDE and its PIE (copvar operators), and the PIE with opvar operators
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:61	%                executive cannot run with opvar operators; this copy takes
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:71	% The input is the struct of PIE2OPVAR (opvar operators), not a pie_struct % MMP, 11/06/2026
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:123	% Declare an SOS program and initialize domain and opvar spaces
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:132	[prog, P1op] = poslpivar(prog, Top.dim,dd1,options1);
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:135	[prog, P2op] = poslpivar(prog, Top.dim,dd12,options12);
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:143	Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom);
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:171	[prog, De1op] = poslpivar(prog,Dop.dim,dd2,options2);
+test	code	Z	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:174	[prog, De2op] = poslpivar(prog,Dop.dim,dd3,options3);
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:15	%               Must contain at least opvar2d objects Top and Aop, as well 
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:25	%   Pop:        dopvar2d object defining the LF V(x)=<x,Pop*x>. Use
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:27	%   Qop:        dopvar2d object defining the right-hand side of the
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:47	%                executive cannot run with opvar2d operators; this copy
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:57	% The input is the struct of PIE2OPVAR (opvar2d operators), not a pie_struct % MMP, 11/06/2026
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:159	Iop = opvar2d(Ip,Pop.dim,PIE.dom,PIE.vars);
+test	comment	W	testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:8	%                           fixed, (b) nnz about 4q; dopvar and sdopvar;
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:37	sty = struct('dopvar',{{'o',[0 0.45 0.74]}},'sdopvar',{{'v',[0.20 0.63 0.17]}});
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:45	for c = ["dopvar","sdopvar"]
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:60	for c = ["dopvar","sdopvar"]
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:71	for c = ["dopvar","sdopvar"]
+test	code	W	testing_codes/private/baselines/2026-11-05_class_ops/private/plot_scaling.m:86	lab = struct('legacy','opvar/dopvar (legacy)','sop_stock','sopvar/sdopvar, stock SDP','sop','sopvar/sdopvar');
+test	comment	W	testing_codes/private/baselines/2026-11-17_tiers/private/lb_build_catalog.m:49	% Numeric fingerprints, not isequal on the opvar objects:
+test	comment	W	testing_codes/private/baselines/2026-11-17_tiers/private/lb_build_system.m:12	%   PIE:    the PIE (opvar or opvar2d based struct), [] if not converted
+test	comment	W	testing_codes/private/baselines/2026-11-17_tiers/private/lb_fp.m:2	% Fingerprint of a 1-D opvar: sum, sum of |.| and number of monomials of
+test	comment	W	testing_codes/private/baselines/2026-11-18_studies/private/lb_build_catalog.m:49	% Numeric fingerprints, not isequal on the opvar objects:
+test	comment	W	testing_codes/private/baselines/2026-11-18_studies/private/lb_build_system.m:12	%   PIE:    the PIE (opvar or opvar2d based struct), [] if not converted
+test	comment	W	testing_codes/private/baselines/2026-11-18_studies/private/lb_fp.m:2	% Fingerprint of a 1-D opvar: sum, sum of |.| and number of monomials of
+test	comment	W	testing_codes/private/converters/tests/pie_test_utils.m:19	% DB, 11/08/2026: Do not use sopvar2opvar and the 'opvar' class, which have
+test	comment	W	testing_codes/private/converters/tests/pie_test_utils.m:21	%                 directly (single spatial variable); replaces the 'opvar' interface of the
+test	comment	W	testing_codes/private/converters/tests/pie_test_utils.m:107	% Fields of the 'opvar' of a sopvar block of a single variable, as a struct:
+test	comment	Z	testing_codes/private/executives_sopvar/tests/test_executives_sop.m:64	%                their first poslpivar call (Top.dim), so the test ended
+test	comment	W	testing_codes/private/executives_sopvar/tests/test_executives_sop.m:119	%   n = check(n,info.certified && isa(out{2},'opvar') && g<=ref*(1+1e-3), ... % MMP, 11/04/2026 (was)
+test	comment	W	testing_codes/private/executives_sopvar/tests/test_executives_sop.m:146	%   n = check(n,info.certified && isa(P,'opvar') && abs(info.maxre+pi^2/2)<=1e-3, ... % MMP, 11/04/2026 (was)
+test	comment	W	testing_codes/private/executives_sopvar/tests/test_executives_sop.m:151	% n = check(n,info.certified && isa(P,'opvar') && isa(R,'opvar') && om==0, ... % MMP, 11/04/2026 (was)
+test	comment	W	testing_codes/private/executives_sopvar/tests/test_executives_sop.m:164	%   n = check(n,info.certified && isa(P,'opvar2d'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026 (was); MMP, 10/28/2026
+test	comment	W	testing_codes/private/lpi_programming_sopvar/misc/subs_dvar_sop.m:68	%                it for dopvar/dopvar2d/dpvar only.
+test	comment	W	testing_codes/private/lpi_programming_sopvar/misc/subs_dvar_sop.m:75	% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the opvar classes,
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:9	%   'lpivar'  for each nv in OPTS.nv and q in OPTS.q, a square decision
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:32	% - T:      'struct' with 'table' fields lpivar, multi and gram, columns
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:78	%                legacy_cap and the output table legacy: it timed LPIVAR,
+test	code	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:106	rows(end+1,:) = measure(sprintf('lpivar nv=%d',nv),nv,prog,P,tb,opts.reps); %#ok<AGROW>
+test	code	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:111	if ~isempty(rows),  T.lpivar = cell2table(rows,'VariableNames',hdr());  end
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:160	% against GETSOL_LPIVAR on a 'dopvar' of LPIVAR and LPIGETSOL on a 'dpvar'  % MMP, 11/08/2026
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:167	% H = HDR() returns the column names of the tables lpivar, multi and gram.
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m:174	% PRINT_ROW(R) prints one row of the tables lpivar, multi and gram.
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:132	%                its first poslpivar call (Top.dim) and opvar2copvar errors.
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:175	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:176	% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw); % MMP, 11/07/2026 (was)
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:93	%                  stock PIETOOLS_Hinf_gain fails at its first poslpivar call
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:94	%                  (Top.dim) and opvar2copvar errors.
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:143	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:144	% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);                    % MMP, 11/07/2026 (was)
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:145	% Dzw = opvar2copvar(PIE.Dzw);                                              % MMP, 11/07/2026 (was)
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:39	%       'opvar' classes, now retired.
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:93	% MMP, 11/08/2026: The comparisons with the opvar classes (09/29/2026)
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:95	%                OPVAR2COPVAR(MAT2OPVAR(...)), which (b) already checks by
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:97	%                FIX_DOPVAR and EV_DP, used only by (d). The opvar classes
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:98	%                and MAT2OPVAR are retired (cleaning/private). Help: (b),
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:275	% opvar2copvar(mat2opvar(...)) (MMP, 09/29/2026); both are checked by       % MMP, 11/08/2026
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:276	% their action above, and mat2opvar is retired.                             % MMP, 11/08/2026
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:453	% 'opvar' objects against the container results, and mat2opvar against      % MMP, 11/08/2026
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:454	% mat2copvar_sop on a 'dpvar' matrix; the opvar classes are retired.        % MMP, 11/08/2026
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_endtoend_sop.m:74	%                (maintainer: tests that need the retired opvar2d, "move to
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_endtoend_sop.m:76	%                opvar2d. 'all' runs E1, E2 and E4; 'E3' errors with the
+test	code	W	testing_codes/private/lpi_programming_sopvar/tests/test_endtoend_sop.m:98	'is in cleaning/private/ since 11/09/2026: it needs the retired opvar2d.']) % MMP, 11/09/2026
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:151	%                  'copvar' operators, on which opvar2copvar errors.
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:156	% MMP, 11/08/2026: part (iii) (09/29/2026) without the opvar classes: [],
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:159	%                  for them (the object itself, or SOSGETSOL); the 'opvar',
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:160	%                  'dopvar', 'dopvar2d' and 'opvar2d' objects and the
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:162	%                  program holds a named 'dpvar' instead of a 'dopvar2d'.
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:163	%                  LPIGETSOL, GETSOL_LPIVAR, POSLPIVAR, LPIVAR and the opvar
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:696	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:697	% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw); % MMP, 11/07/2026 (was)
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:778	% [prog,P1] = poslpivar(prog,[1 1],2);                % dopvar              % MMP, 11/08/2026 (was)
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:779	% [prog,Q1] = lpivar(prog,[1 1;1 1],2);               % dopvar              % MMP, 11/08/2026 (was)
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:784	% solved; the fixed opvar of P1
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:788	% BEGIN MMP, 11/08/2026: the opvar classes, LPIGETSOL and GETSOL_LPIVAR are
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:790	% dopvar2d P2 = lpivar(prog2,...) with its class check and P2sol =
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:791	% lpigetsol(prog2,P2); the 'opvar' and 'dopvar' entries of the table below;
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:26	%   (5) none since 11/08/2026: it checked a 'dopvar' with the option 'foo'
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:80	% MMP, 11/08/2026: The cases of the opvar classes (09/29/2026) deleted: the
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:81	%                'dopvar' and 'dopvar2d' of LPIVAR in (1) and (2), the
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:85	%                identifier lpi_eq_sop:class. LPIVAR, LPI_EQ and the opvar
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:100	% [p1,Pd1] = lpivar(p1,[1 1;1 1],[2 2 2]);                                  % MMP, 11/08/2026 (was)
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:106	% [p2,Pd2] = lpivar(p2,[0 0;0 0;0 0;1 1],1);                                % MMP, 11/08/2026 (was)
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:114	% assert(isa(Pd2,'dopvar2d'),'lpivar on a 2-D program did not give a dopvar2d') % MMP, 11/08/2026 (was)
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:132	% Rows of the table until 11/08/2026: the opvar cases, retired, and the     % MMP, 11/08/2026
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:209	% Deleted: (5), lpi_eq_sop against LPI_EQ on a 'dopvar' with the unknown    % MMP, 11/08/2026
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m:25	%       'dopvar' of POSLPIVAR, all three retired;
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m:88	% MMP, 11/08/2026: Part (5), lpi_ineq_sop against LPI_INEQ on a 'dopvar' of
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m:89	%                POSLPIVAR (10/08/2026), deleted: the three are retired
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m:196	% Deleted: lpi_ineq_sop against LPI_INEQ on a positive 'dopvar' of          % MMP, 11/08/2026
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m:197	% POSLPIVAR on a 1-D program (MMP, 10/08/2026); all three are retired.      % MMP, 11/08/2026
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_tier1_fixes_sop.m:66	%                into an 'opvar' with 'dpvar' fields, and lpigetsol_sop and
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_tier1_fixes_sop.m:67	%                LPIGETSOL on a random 'opvar' (RAND_OPVAR). The opvar
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_tier1_fixes_sop.m:139	% 'opvar' with 'dpvar' fields and LPIGETSOL on a random 'opvar'; the opvar  % MMP, 11/08/2026
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:8	%         stock poslpivar and get_lpivar_degs on legacy inputs, retired;
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:27	%   (vi)  none since 11/08/2026: it built its operators as 'opvar'
+test	comment	X	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:28	%         objects (opvar2copvar), retired.
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:82	%                built its operators as opvars. POSLPIVAR, GET_LPIVAR_DEGS,
+test	comment	WZ	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:83	%                LPIVAR and the opvar classes are retired (cleaning/
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:116	% get_lpivar_degs_sop and trace_rn_sop against POSLPIVAR, GET_LPIVAR_DEGS   % MMP, 11/08/2026
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:117	% and LPIVAR on legacy inputs; all retired. Kept: the settings, used by     % MMP, 11/08/2026
+test	comment	Z	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:155	% Deleted: cases 6 and 7 against the messages of POSLPIVAR (MMP,            % MMP, 11/08/2026
+test	comment	W	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:187	% opvar classes are retired).                                               % MMP, 11/08/2026
+test	comment	WX	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:222	% an 'opvar' (opvar2copvar) for each pattern of zero dimensions; the opvar  % MMP, 11/08/2026
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:8	% terms, stacked derivatives, non-output variables, and the 1D opvar 'diff'
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:19	% MMP, 11/13/2026: The last section compared with the 1D 'opvar' diff(P,s,'pure'),
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:21	%   'opvar opP'. It now compares with the Leibniz rule for a lower and an
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:212	% % % Start of changes MMP, 11/13/2026: 'opvar' is retired, so the 1D opvar
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:214	% %% Independent implementation: 1D opvar diff(P,s,'pure')
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:218	%     opvar opP;
+test	comment	W	testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:228	%     [npass,nfail] = tally(err<tol,npass,nfail,'vs opvar diff pure');
+test	comment	X	testing_codes/private/sopvar/Testfolder/rand_copvar.m:40	% See also RAND_CDOPVAR, RAND_SOPVAR, COPVAR, OPVAR2COPVAR.
+test	comment	X	testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:40	%                  operators, on which opvar2copvar errors.
+test	comment	X	testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:103	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+test	comment	W	testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_eq_opts_2D.m:11	% is opvar2d's R22{i,j} cell for cell (opvar2d2sopvar copies the 3-way split
+test	comment	Y	testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_pos2d.m:16	%   tested degree map; test_poscopvar_vs_poslpivar_2d.m:60-66).
+test	code	Y	testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_pos2d.m:28	error('cx_stability:psatz','poslpivar_2d psatz=%g has no poscopvar form (0/1 only).',pz)
+test	comment	Z	testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/pi_dpvar_eval.m:7	% 'poslpivar' against those returned by 'possopvar'.

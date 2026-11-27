@@ -1,0 +1,138 @@
+PIESIM/PIESIM_routines/PIESIM_Setup/transl_mod.m:63	log	%   once copvar is renamed opvar, stopped at T.Q1. Structs give the same
+PIETOOLS_demos/DEMO1_stability_and_simulation.m:63	log	%   lpiprogram(pie.vars,pie.dom), P = poscopvar(prog,T,2) +
+PIETOOLS_demos/DEMO1_stability_and_simulation.m:64	log	%   1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place of poslpivar and
+PIETOOLS_demos/DEMO2_volterra_operator_norm.m:46	log	%   PI4_COPVAR_SOP from its kernel R1 = 1, and LPIPROGRAM takes its
+PIETOOLS_demos/DEMO2_volterra_operator_norm.m:48	log	%   Top was an opvar, converted by OP2COPVAR_SOP, so the demo stopped
+PIETOOLS_demos/DEMO4_stability_parameter_bisection.m:52	log	%   poscopvar(prog,T,2) + 1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:78	log	%   by lpiprogram(PIE.vars,PIE.dom), P = poscopvar(prog,T,4,popts) with
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:80	log	%   lpivar_cdopvar(prog,C2',4) and lpi_ineq_sop, in place of poslpivar
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:74	log	%   by lpiprogram(PIE.vars,PIE.dom), P = poscopvar(prog,T',4) +
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:75	log	%   1e-3*eye_copvar_sop(P), Z = lpivar_cdopvar(prog,B2',2) and
+PIETOOLS_demos/DEMO7_observer_based_control.m:84	log	%   converted to copvar objects by op2copvar_sop; the estimator output zhat
+PIETOOLS_demos/DEMO7_observer_based_control.m:85	log	%   is the first output of C1, selected by a copvar matrix; PIESIM takes
+PIETOOLS_demos/DEMO7_observer_based_control.m:88	log	% MMP, 11/26/2026: the call of op2copvar_sop on L and K deleted: lpiscript_sop
+PIETOOLS_demos/DEMO7_observer_based_control.m:89	log	%   returns containers, which op2copvar_sop returned unchanged, and the
+PIETOOLS_demos/DEMO7_observer_based_control.m:90	log	%   function is retired. "Converted to copvar objects by op2copvar_sop" in
+PIETOOLS_demos/DEMO7_observer_based_control.m:144	was	% Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers % MMP, 11/26/2026 (was)
+PIETOOLS_demos/DEMO8_H2norm.m:50	log	%   lpiprogram(PIE.vars,PIE.dom), W = poscopvar(prog,T',3) and lpi_ineq_sop,
+PIETOOLS_demos/DEMO9_L2_gain_analysis.m:64	log	%   lpiprogram(PIE.vars,PIE.dom), P = poscopvar(prog,T,1) and lpi_ineq_sop
+PIETOOLS_demos/lowrank_2d_stability/private/pielr_evaldp.m:22	log	%   describe the container once cdopvar is renamed dopvar (comment-only).
+PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:23	log	%   and once copvar is renamed opvar the containers return above anyway.
+PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:27	log	% BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
+PIETOOLS_demos/lowrank_2d_stability/private/pielr_maxop.m:13	log	% BEGIN CC, 11/08/2026: a 'copvar' (substituted container): the largest
+PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m:33	log	%   measured, so that it does not describe the renamed poscopvar (comment-only).
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:73	log	%   'copvar' operators: the spaces of P, Z and the identities are read from
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:74	log	%   T, C2, B1, C1 by copvar_space_list and declared on dom by poscopvar
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:75	log	%   (multiplier term only), lpivar_cdopvar and eye_copvar_sop; D21 is put on
+converters/convert_PIETOOLS_DDF.m:71	log	%   the PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects;
+converters/legacy/convert_PIETOOLS_DDE2PIE_legacy.m:84	log	%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects;
+converters/legacy/convert_PIETOOLS_PDE_batch.m:70	log	%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects: each
+converters/legacy/convert_PIETOOLS_PDE_terms_legacy.m:77	log	%   PIE are 'copvar' containers of 'sopvar' blocks, not 'opvar' objects: each
+parser/@pde_struct/mtimes.m:50	log	% DJ, 11/22/2026: Add multiplication with 'sopvar' and 'copvar' objects;
+parser/@pde_struct/pde_struct.m:85	log	% DJ, 11/22/2026: Make 'sopvar' and 'copvar' inferior, for C*PDE;
+parser/@pie_struct/ctranspose.m:46	log	% DJ, 10/29/2026: Update to new pie_struct structure (copvar operators, and
+parser/@pie_struct/expand_tderivatives.m:85	log	% DJ, 10/29/2026: Update to new pie_struct structure (expansion of copvar
+parser/@pie_struct/horzcat.m:76	log	% DJ, 10/29/2026: Update to new pie_struct structure (copvar operators,
+parser/@pie_struct/initialize.m:77	log	%                   to copvar, spaces and maps between PDE and PIE checked;
+parser/@pie_struct/vertcat.m:77	log	% DJ, 10/29/2026: Update to new pie_struct structure (copvar operators,
+parser/piess.m:116	log	% DJ (CC), 10/30/2026: Build the PIE from 'copvar' operators, the type of
+parser/piess.m:121	log	%                   copvar operator removed (maintainer, 11/22/2026;
+parser/piess.m:123	log	% DJ, 11/23/2026: Pass the variables of all copvar operators to the PIE;
+parser/piess.m:125	log	%                   and ask for 'copvar' operators in the error messages;
+parser/piess.m:128	log	%                   they still read correctly once copvar is renamed opvar
+testing_codes/private/PIETOOLS_demos/cuadmm/bl_cases.m:31	log	%   since the stock ones reject a copvar PIE (3df33dcc). The container SDPs
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_io1.m:6	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_io2.m:17	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab1.m:8	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab2.m:16	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE. pz sets
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_syn1.m:11	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m:25	log	%   rename copvar -> opvar (comment-only).
+testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:15	log	%   since convert returns copvar operators (3df33dcc, 10/29/2026); the opvar
+testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:19	log	%   'P' in two or more variables. Operators are cdopvar / copvar; out.Deop is
+testing_codes/private/PIETOOLS_demos/cuadmm/private/stab_mirror.m:61	was	% [prog,Qop] = lpivar_cdopvar(prog,Top,st.lpi.var.deg{min(tl.nv,end)});     % CC, 11/18/2026 (was); CC, 11/17/2026
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:146	log	%   poscopvar psatz = 2i+1 / 2i+2, the option copquadvar gained today, not
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:155	log	%   of terms). Same program; see @cdopvar/plus_batch.
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:157	log	%   poscopvar_direct's single-direction quadratic codes), to test it against
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:165	log	%   LPI_EQ_CDOPVAR, which lists the equations each equality drops as
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:326	was	%       [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pp);                      % MMP, 10/08/2026 (was)
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_lpi.m:347	was	%               [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pg);              % MMP, 09/27/2026 % MMP, 10/08/2026 (was)
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare.m:128	log	% MMP, 09/27/2026 (library face codes): 'faces' now uses poscopvar psatz =
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare.m:129	log	%   2i+1 / 2i+2, the option copquadvar gained today, not the copy
+testing_codes/private/PIETOOLS_demos/sopvar_demos/heatNd_poincare.m:136	log	% MMP, 11/10/2026: R.shape.ndup, from the row record of LPI_EQ_CDOPVAR
+testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_lpi.m:50	log	% MMP, 09/27/2026 (library face codes): (6) runs test_copquadvar_faces, the
+testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_lpi.m:51	log	%   test of copquadvar's new face codes that the benchmark now uses, in
+testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:36	log	% MMP, 11/23/2026: (g) applies a 1-D 'copvar' (convert returns containers
+testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:38	log	%   opvar-field accessors; a 'copvar' is not an 'opvar', so it went to the
+testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:41	log	%   retired, and once copvar is renamed opvar it would send every container,
+testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:258	was	% if isa(P,'opvar') || (isa(P,'copvar') && is_opvar1d(P))                   % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:62	was	% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:63	was	% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:60	log	%                pie_struct now holds 'copvar' operators, so the stock
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:46	log	%                The pie_struct now holds 'copvar' operators, so the stock
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:62	was	% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:63	was	% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:62	was	% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:63	was	% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:32	log	%                   executives stop on the copvar PIEs the converters
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:32	log	%                   executives stop on the copvar PIEs the converters
+testing_codes/private/converters/tests/test_convert_PIETOOLS_PDE_periodic.m:14	log	% DB, 11/07/2026: Rewritten for the 'copvar' PIEs of the converter. The tests
+testing_codes/private/converters/tests/test_convert_PIETOOLS_PDE_periodic_higher_order.m:10	log	% DB, 11/07/2026: Rewritten for the 'copvar' PIEs of the converter, as for
+testing_codes/private/executives_sopvar/tests/test_executives_sop.m:59	log	% MMP, 11/04/2026: The gains and solved operators are checked as 'copvar'
+testing_codes/private/executives_sopvar/tests/test_executives_sop.m:62	log	%                executives: the PIEs hold 'copvar' operators, on which the
+testing_codes/private/lpi_programming_sopvar/tests/bench_lpi_eq_sop.m:87	was	%     [~,P1] = lpivar_cdopvar(lpiprogram_sop(vars,D),1,{vars},D,dg(N));     % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/bench_lpi_eq_sop.m:93	was	%         [prog,P] = lpivar_cdopvar(lpiprogram_sop(vars,D),n,{vars},D,dg(N)); % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/e2e_heat3d_stability.m:125	log	% MMP, 11/02/2026: Check (2) with the rows lpi_eq_cdopvar no longer writes
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:99	log	%                -> get_lpivar_degs_sop, cx_space_list -> copvar_space_list,
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:130	log	%                PIE operators are used directly: PIEs hold 'copvar'
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:132	log	%                its first poslpivar call (Top.dim) and opvar2copvar errors.
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:133	log	%                Check (3) counts the rows lpi_eq_cdopvar does not write
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:175	was	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:176	was	% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw); % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:194	was	% [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));          % MMP, 10/06/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:213	was	% [prog,Nm] = poscopvar(prog,dmk,spk,PIE.dom,deg,co);                       % MMP, 10/06/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/e2e_hinf_gain_1d.m:216	was	%     [prog,N2] = poscopvar(prog,dmk,spk,PIE.dom,deg,co);                   % MMP, 10/06/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:81	log	%                  get_lpivar_degs_sop, copvar_space_list, so the test runs
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:92	log	%                  used directly: PIEs hold 'copvar' operators, on which the
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:94	log	%                  (Top.dim) and opvar2copvar errors.
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:143	was	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:144	was	% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);                    % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m:145	was	% Dzw = opvar2copvar(PIE.Dzw);                                              % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:94	log	%                deleted: in (b), MAT2COPVAR_SOP and EYE_COPVAR_SOP against
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:95	log	%                OPVAR2COPVAR(MAT2OPVAR(...)), which (b) already checks by
+testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m:104	log	%                summand is scalar*I since 921aed59 (11/17/2026, copvar
+testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:139	log	%                  get_lpivar_degs_sop, copvar_space_list, so the test runs
+testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:151	log	%                  'copvar' operators, on which opvar2copvar errors.
+testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:698	was	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:699	was	% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw); % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:715	was	% [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));          % MMP, 10/06/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m:77	log	%                read from the operators of 'poscopvar' (lpi_ineq_sop).
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:96	log	% MMP, 11/12/2026: Parts (7) and (8): the degrees of POSCOPVAR and
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:97	log	%   LPIVAR_CDOPVAR from the program settings when DEG is omitted, the
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:102	log	%   LPIVAR_CDOPVAR defaults per block, no longer the largest space).
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:105	log	%   POSCOPVAR reads without len_com; the tiers hold the storage row since
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:107	log	%   storage-row branch of POSCOPVAR. Help to match. Part (9) runs on the
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:111	log	% MMP, 11/24/2026: Parts (10)-(13) check the storage-row branch of POSCOPVAR
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:261	was	% [~,Pc] = poscopvar(p0,dm,sp);                                             % MMP, 11/23/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m:262	was	% [~,Pd] = poscopvar(p0,dm,sp,dx,ox);                                       % MMP, 11/23/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:134	was	%       @() poslpivar_sop(lpiprogram_sop({'s1','s2'},[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim' % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:160	was	% % For each role, its two settings terms by poslpivar_sop, summed          % MMP, 11/12/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:168	was	%   [pb,P1] = poslpivar_sop(pc,Xm,st.(f{1}),st.(f{2}),'out',dom);           % MMP, 11/12/2026 (was)
+testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:169	was	%   [pb,P2] = poslpivar_sop(pb,Xm,st.(f{3}),st.(f{4}),'out',dom);           % MMP, 11/12/2026 (was)
+testing_codes/private/sopvar/Testfolder/Test_dopvar.m:48	log	% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+testing_codes/private/sopvar/Testfolder/Test_dopvar.m:49	log	%                  mdopvar -> cdopvar, with every file and function named after
+testing_codes/private/sopvar/Testfolder/Test_dopvar.m:51	log	%                  Test_mdopvar -> Test_cdopvar, Test_mopvar -> Test_copvar.
+testing_codes/private/sopvar/Testfolder/Test_opvar.m:55	log	% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+testing_codes/private/sopvar/Testfolder/Test_opvar.m:56	log	%                  mdopvar -> cdopvar, with every file and function named after
+testing_codes/private/sopvar/Testfolder/Test_opvar.m:58	log	%                  Test_mopvar -> Test_copvar. File was 'Test_mopvar.m'.
+testing_codes/private/sopvar/Testfolder/Test_qp_opvar_nd.m:35	log	% AT, 10/28/2026: eye_copvar_sop for the identity, warnings in place of the
+testing_codes/private/sopvar/Testfolder/rand_dopvar.m:57	log	% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+testing_codes/private/sopvar/Testfolder/rand_dopvar.m:58	log	%                  mdopvar -> cdopvar, with every file and function named after
+testing_codes/private/sopvar/Testfolder/rand_dopvar.m:60	log	%                  rand_mdopvar -> rand_cdopvar, rand_mopvar -> rand_copvar.
+testing_codes/private/sopvar/Testfolder/rand_opvar.m:69	log	% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+testing_codes/private/sopvar/Testfolder/rand_opvar.m:70	log	%                  mdopvar -> cdopvar, with every file and function named after
+testing_codes/private/sopvar/Testfolder/rand_opvar.m:72	log	%                  rand_mopvar -> rand_copvar. File was 'rand_mopvar.m'.
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:25	log	%                  T, A (copvar) and P, Q, D, N (cdopvar), so a solved
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:34	log	%                  cx_space_list -> copvar_space_list, so the transcription
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:39	log	% MMP, 11/07/2026: T and A are used directly: PIEs hold 'copvar'
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:40	log	%                  operators, on which opvar2copvar errors.
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:103	was	% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)

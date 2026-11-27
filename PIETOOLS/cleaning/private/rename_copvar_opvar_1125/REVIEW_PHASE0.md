@@ -234,3 +234,83 @@ asserts one PIETOOLS tree on the path).
 - Old-class code after Phase 0 (`inventory/h1scan.pl`): 23 lines, all decided to stay –
   `transl_mod.m:70–71` (C1), `bl_suites.m:69` (C6b), `p0_classes.m`, `p0_compare.m` (C6c), the
   class-ops record (C6d, 18).
+
+## H2 comment pass, 11/26/2026 (maintainer: "commit them and continue to rest of phase 0")
+
+Rule (PLAN.md, Phase 0 step 1): a comment that names a retired 2025 class names it "the 2025 `opvar`
+class" where the history matters, else drops it; header logs stay as written. Scan
+`inventory/h2scan.pl` over the live .m files (all but `cleaning/`, `orphaned_file/`, `SOSTOOLS400/`)
+at 8198c35d: 439 lines, 238 toolbox lines in 58 files and 201 test lines in 55 files. A line counts
+when it names `opvar`, `dopvar`, `opvar2d` or `dopvar2d` as a word (W), holds a retired name with a
+container token (X), names `poscopvar` beside `poslpivar` (Y), or names a 2025 function whose name a
+container function takes (Z: `poslpivar`, `lpivar`, `mat2opvar`, `rand_opvar`).
+
+Edited (`inventory/h2_edits.txt`, applied by `h2_apply.pl`, which checks every old line before it
+writes): 143 blocks in 34 files, +160 −128 lines.
+- `@copvar`, `@cdopvar`, 18 files, 101 lines: the emulated fields are "the 1-D field layout" and "the
+  2-D field layout", as in the C5 messages. The first mention in each help reads "a 2025 'opvar'
+  object" ('opvar2d', 'dopvar', 'dopvar2d'), later ones "the 2025 class"; "opvar-like" reads "with
+  the 1-D field layout".
+- `sdopvar.m:144`: "decision opvar" reads "decision operator".
+- `parser/piess.m` (2025 file, Declan): the three lines on the construction from 2025 opvar operators
+  that was removed; after the map they would have read "the branch for opvar operators without an
+  opvar one". One log line.
+- Low-rank package, 6 files: the three 1-D builders drop "(or 'opvar')" from the help of PIE
+  (containers only since 11/08); the help of `pielr_evalop` names the classes it dispatches on since
+  11/22; `pielr_evaldp` reads "a 2025 dopvar"; `set2d_deg` names the 2025 poslpivar in its psatz
+  remark, which was measured on it.
+- Test code, 8 files: `bl_sop`, `test_heatNd_pie` (help of (g) and of STOCK_APPLY), `pie_test_utils`
+  (SOPVAR2STRUCT), `test_getsol_sop` (a clause on P1 left from the deletion of 11/08 dropped),
+  `test_lpi_eq_sop` (5), `test_translators_sop` (vi), `Test_sopvar_diff` (its help names the
+  Leibniz-rule check of 11/13 in place of the retired 1D opvar diff), `pi_dpvar_eval`.
+
+Annotation: comment-only, as D1 and the release comment pass of 11/19. One log line in each file with
+a header log (`piess`, the low-rank files, the test files; `pielr_evaldp` and `bl_sop` get their
+first); no markers, no `(was)` lines; nothing in the new release files (`@copvar`, `@cdopvar`,
+`sdopvar`).
+
+Kept as written: `inventory/h2residue.pl` labels each of the 362 lines the scan still finds
+(`h2_residue.tsv`); none is unlabelled. After the C8 move: 349 lines, the 13 `tests_1d` lines gone,
+every other count unchanged.
+
+| Label | Lines | Reason |
+|---|---:|---|
+| log | 100 | header logs stay as written |
+| baseline | 75 | dated baseline folders: harness records (C6b–d) |
+| dated | 58 | a comment with a date marker, or inside a dated BEGIN … END note |
+| was | 40 | quoted old code |
+| qualified | 36 | names the class as retired, stock, legacy or 2025 (24 of them written by this pass) |
+| tests_1d | 13 | case C8 below (moved; 0 after the move) |
+| generic | 11 | `lpivar` as the declaration of a free LPI variable; after the rename it names the function the code calls |
+| code | 9 | decided H1 code (C6b, C6c), the two dead 2-D fallbacks below, labels of test cases |
+| name2d | 7 | names only `opvar2d` or `dopvar2d`, which no container takes |
+| reviewed | 5 | `transl_mod.m:18` (C1); `cuadmm_path.m:26` (a shadow named poslpivar also shadows the renamed one), `:81` (a measurement dated 2026-09-25), `:98–99` (a dated note, commented-out code) |
+| retired | 4 | retired names with a container token, which Phase 1 leaves (PLAN.md, Phase 1) |
+| design | 3 | `transl_mod.m:74–76`, written for the `opvar` of after the rename (C1) |
+| quoted | 1 | commented-out old code |
+
+Unchanged and dead, outside the pass: `PIESIM_input_check.m:547` (`elseif isa(PIE.T,'opvar2d')`, YP)
+and the last fallback of `pie_dim` in `pielr_lpi.m:271` test the retired 2-D classes; the rename does
+not touch either.
+
+Checks: `codeident.sh` OK on all 34 files (code with comments removed equals HEAD); parse check
+(mtree, checkcode syntax identifiers), 34 files, 0 errors; the marker of `piess.m:326` at column 77.
+Step 4 (`h1scan.pl`): toolbox code naming `opvar` or `dopvar` is `transl_mod.m:75–76` only (C1); test
+code holds 21 such lines, all decided (C6b–d). Inventory rerun: PLAN.md, Section 2.
+
+## C8 – `testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d` (26 files; moved)
+
+Built on the 2025 interface: `build_stab_st.m` calls `poslpivar(prog,Top.dim,…)`,
+`mat2opvar(Imat,…)` and `lpi_eq`; `gate1d.m` and `opcheck.m` call `lpigetsol`;
+`run_regression_1d.m:136` asserts that `poslpivar` resolves. These left the path with f83486c8
+(11/08), so the folder stops at its first call; only comments of the low-rank package mention it.
+After the rename its `poslpivar` calls reach the container function and, with D6, the migration
+error, and its 13 comment lines name the 2025 classes without qualification. Proposal: move it to
+`orphaned_file/private` at the same path, as C3 and C4. Alternative: leave it and qualify the 13
+lines.
+
+Decision (maintainer, 11/26/2026): "Move it". Moved with `mv` to
+`orphaned_file/private/testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/tests_1d/`, files
+unchanged; entries in `orphaned_file/private/README.md` (11/26 section) and `testing_codes/README.md`
+(after the 11/09 move-out note). No live file calls the suite; the comments of four package files and
+`BENCH.md` that cite it are left as written.

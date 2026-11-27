@@ -1,0 +1,1 @@
+mode apply: 265 live .m files changed, 2213 lines; tokens mapped 2580 (79 kinds), retired kept 21; article 137; realigned 93; record lines with a name 138; D1 lines 32; existing without a log 0; UNKNOWN 0

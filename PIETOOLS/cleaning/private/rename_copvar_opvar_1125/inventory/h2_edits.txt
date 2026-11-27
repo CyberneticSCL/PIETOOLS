@@ -1,0 +1,468 @@
+# H2 comment pass, 11/26/2026: each block replaces line N of a file. "- " gives the current line
+# exactly, "+ " the new line or lines. Applied by h2_apply.pl, which checks every "- " line first.
+# Container class files (@copvar, @cdopvar): new release files, so no log line and no markers.
+@@ sopvar/@copvar/getfield_opvar1d.m:6
+- % were an 'opvar' object, acting as
++ % were a 2025 'opvar' object, acting as
+@@ sopvar/@copvar/getfield_opvar1d.m:12
+- % P:      copvar class object with the structure of an 'opvar': at most
++ % P:      copvar class object with the 1-D field layout: at most
+@@ sopvar/@copvar/getfield_opvar1d.m:15
+- % fname:  char or string, the name of an 'opvar' field: 'P', 'Q1', 'Q2',
++ % fname:  char or string, a field name of the 1-D layout: 'P', 'Q1', 'Q2',
+@@ sopvar/@copvar/getfield_opvar1d.m:41
+- %   which is renamed to var1, as an 'opvar' defines Q1 in var1.
++ %   which is renamed to var1, as the 2025 class defines Q1 in var1.
+@@ sopvar/@copvar/getfield_opvar1d.m:43
+- %   component with zero rows or columns, as 'opvar' does for a zero
++ %   component with zero rows or columns, as the 2025 class does for a zero
+@@ sopvar/@copvar/getfield_opvar1d.m:46
+- %   'var1', 'var2' are s and s_dum, the default variables of a new 'opvar'
++ %   'var1', 'var2' are s and s_dum, the defaults of the 2025 class
+@@ sopvar/@copvar/getfield_opvar1d.m:98
+-         % Without a variable, the default s of a new 'opvar'
++         % Without a variable, the default s of the 2025 class
+@@ sopvar/@copvar/getfield_opvar1d.m:148
+- % P:    copvar class object, opvar-like
++ % P:    copvar class object with the 1-D field layout
+@@ sopvar/@cdopvar/getfield_opvar1d.m:6
+- % were a 'dopvar' object, acting as
++ % were a 2025 'dopvar' object, acting as
+@@ sopvar/@cdopvar/getfield_opvar1d.m:12
+- % P:      cdopvar class object with the structure of a 'dopvar': at most
++ % P:      cdopvar class object with the 1-D field layout: at most
+@@ sopvar/@cdopvar/getfield_opvar1d.m:15
+- % fname:  char or string, the name of a 'dopvar' field: 'P', 'Q1', 'Q2',
++ % fname:  char or string, a field name of the 1-D layout: 'P', 'Q1', 'Q2',
+@@ sopvar/@cdopvar/getfield_opvar1d.m:43
+- %   alone, which is renamed to var1, as a 'dopvar' defines Q1 in var1.
++ %   alone, which is renamed to var1, as the 2025 class defines Q1 in var1.
+@@ sopvar/@cdopvar/getfield_opvar1d.m:46
+- %   components of a 'dopvar' are, also if no block of it has decision
++ %   components of the 2025 class are, also if no block of it has decision
+@@ sopvar/@cdopvar/getfield_opvar1d.m:49
+- %   component with zero rows or columns, as 'dopvar' does for a zero
++ %   component with zero rows or columns, as the 2025 class does for a zero
+@@ sopvar/@cdopvar/getfield_opvar1d.m:52
+- %   'var1', 'var2' are s and s_dum, the default variables of a new 'dopvar'
++ %   'var1', 'var2' are s and s_dum, the defaults of the 2025 class
+@@ sopvar/@cdopvar/getfield_opvar1d.m:104
+-         % Without a variable, the default s of a new 'dopvar'
++         % Without a variable, the default s of the 2025 class
+@@ sopvar/@cdopvar/getfield_opvar1d.m:154
+- % P:    cdopvar class object, opvar-like
++ % P:    cdopvar class object with the 1-D field layout
+@@ sopvar/@copvar/getfield_opvar2d.m:7
+- % were an 'opvar2d' object, with components
++ % were a 2025 'opvar2d' object, with components
+@@ sopvar/@copvar/getfield_opvar2d.m:20
+- % P:      copvar class object with the structure of an 'opvar2d': at most
++ % P:      copvar class object with the 2-D field layout: at most
+@@ sopvar/@copvar/getfield_opvar2d.m:23
+- % fname:  char or string, the name of an 'opvar2d' field: 'R00', 'R0x',
++ % fname:  char or string, a field name of the 2-D layout: 'R00', 'R0x',
+@@ sopvar/@copvar/getfield_opvar2d.m:52
+- %   'opvar2d'. A variable only in the input space is
++ %   the 2025 class. A variable only in the input space is
+@@ sopvar/@copvar/getfield_opvar2d.m:53
+- %   integrated over its whole domain, and 'opvar2d' names it as var1, so
++ %   integrated over its whole domain, and the 2025 class names it as var1, so
+@@ sopvar/@copvar/getfield_opvar2d.m:132
+-         % A variable only in the input space keeps its own name in 'opvar2d'
++         % A variable only in the input space keeps its own name in the 2025 class
+@@ sopvar/@copvar/getfield_opvar2d.m:160
+- % P:    copvar class object, opvar2d-like
++ % P:    copvar class object with the 2-D field layout
+@@ sopvar/@cdopvar/getfield_opvar2d.m:7
+- % were a 'dopvar2d' object, with components
++ % were a 2025 'dopvar2d' object, with components
+@@ sopvar/@cdopvar/getfield_opvar2d.m:20
+- % P:      cdopvar class object with the structure of a 'dopvar2d': at most
++ % P:      cdopvar class object with the 2-D field layout: at most
+@@ sopvar/@cdopvar/getfield_opvar2d.m:23
+- % fname:  char or string, the name of a 'dopvar2d' field: 'R00', 'R0x',
++ % fname:  char or string, a field name of the 2-D layout: 'R00', 'R0x',
+@@ sopvar/@cdopvar/getfield_opvar2d.m:52
+- %   variable in both spaces, sorted, so x before y as in 'dopvar2d'. A variable only in
++ %   variable in both spaces, sorted, so x before y as in the 2025 class. A variable only in
+@@ sopvar/@cdopvar/getfield_opvar2d.m:53
+- %   the input space is integrated over its whole domain, and 'dopvar2d'
++ %   the input space is integrated over its whole domain, and the 2025 class
+@@ sopvar/@cdopvar/getfield_opvar2d.m:58
+- %   components of a 'dopvar2d' are, also if no block of it has decision
++ %   components of the 2025 class are, also if no block of it has decision
+@@ sopvar/@cdopvar/getfield_opvar2d.m:137
+-         % A variable only in the input space keeps its own name in 'dopvar2d'
++         % A variable only in the input space keeps its own name in the 2025 class
+@@ sopvar/@cdopvar/getfield_opvar2d.m:165
+- % P:    cdopvar class object, opvar2d-like
++ % P:    cdopvar class object with the 2-D field layout
+@@ sopvar/@copvar/is_opvar1d.m:4
+- % of an 'opvar' object,
++ % of a 2025 'opvar' object (the 1-D field layout),
+@@ sopvar/@copvar/is_opvar1d.m:21
+- %   R^p after those of L2^q, which an 'opvar' cannot represent, so that P
++ %   R^p after those of L2^q, which the 2025 class cannot represent, so that P
+@@ sopvar/@copvar/is_opvar1d.m:22
+- %   is not opvar-like. The same holds for the block columns.
++ %   lacks the 1-D field layout. The same holds for the block columns.
+@@ sopvar/@copvar/is_opvar1d.m:54
+- % An 'opvar' has a single spatial variable, s in [a,b]
++ % The 1-D field layout has a single spatial variable, s in [a,b]
+@@ sopvar/@cdopvar/is_opvar1d.m:4
+- % of a 'dopvar' object,
++ % of a 2025 'dopvar' object (the 1-D field layout),
+@@ sopvar/@cdopvar/is_opvar1d.m:21
+- %   R^p after those of L2^q, which a 'dopvar' cannot represent, so that P
++ %   R^p after those of L2^q, which the 2025 class cannot represent, so that P
+@@ sopvar/@cdopvar/is_opvar1d.m:22
+- %   is not opvar-like. The same holds for the block columns.
++ %   lacks the 1-D field layout. The same holds for the block columns.
+@@ sopvar/@cdopvar/is_opvar1d.m:55
+- % A 'dopvar' has a single spatial variable, s in [a,b]
++ % The 1-D field layout has a single spatial variable, s in [a,b]
+@@ sopvar/@copvar/is_opvar2d.m:4
+- % has the structure of an 'opvar2d' object,
++ % has the structure of a 2025 'opvar2d' object (the 2-D field layout),
+@@ sopvar/@copvar/is_opvar2d.m:26
+- %   spaces of the 'opvar2d'. A block row of a space before one of an
++ %   spaces of the 2-D field layout. A block row of a space before one of an
+@@ sopvar/@copvar/is_opvar2d.m:28
+- %   components, which an 'opvar2d' cannot represent, so that P is not
++ %   components, which the 2025 class cannot represent, so that P lacks the
+@@ sopvar/@copvar/is_opvar2d.m:29
+- %   opvar2d-like. The same holds for the block columns.
++ %   2-D field layout. The same holds for the block columns.
+@@ sopvar/@copvar/is_opvar2d.m:61
+- % An 'opvar2d' has two spatial variables, x and y
++ % The 2-D field layout has two spatial variables, x and y
+@@ sopvar/@cdopvar/is_opvar2d.m:4
+- % has the structure of a 'dopvar2d' object,
++ % has the structure of a 2025 'dopvar2d' object (the 2-D field layout),
+@@ sopvar/@cdopvar/is_opvar2d.m:26
+- %   spaces of the 'dopvar2d'. A block row of a space before one of an
++ %   spaces of the 2-D field layout. A block row of a space before one of an
+@@ sopvar/@cdopvar/is_opvar2d.m:28
+- %   components, which a 'dopvar2d' cannot represent, so that P is not
++ %   components, which the 2025 class cannot represent, so that P lacks the
+@@ sopvar/@cdopvar/is_opvar2d.m:29
+- %   opvar2d-like. The same holds for the block columns.
++ %   2-D field layout. The same holds for the block columns.
+@@ sopvar/@cdopvar/is_opvar2d.m:62
+- % A 'dopvar2d' has two spatial variables, x and y
++ % The 2-D field layout has two spatial variables, x and y
+@@ sopvar/@copvar/numArgumentsFromSubscript.m:22
+- % so it counts 1. So does a read of an 'opvar' or 'opvar2d' field, P.Q1,
++ % so it counts 1. So does a read of a field of the 1-D or 2-D layout, P.Q1,
+@@ sopvar/@copvar/numArgumentsFromSubscript.m:55
+- % So is an 'opvar'/'opvar2d' field, which 'subsref' serves as one value.
++ % So is a field of the 1-D or 2-D layout, which 'subsref' serves as one value.
+@@ sopvar/@cdopvar/numArgumentsFromSubscript.m:22
+- % so it counts 1. So does a read of a 'dopvar' or 'dopvar2d' field, P.Q1,
++ % so it counts 1. So does a read of a field of the 1-D or 2-D layout, P.Q1,
+@@ sopvar/@cdopvar/numArgumentsFromSubscript.m:55
+- % So is a 'dopvar'/'dopvar2d' field, which 'subsref' serves as one value.
++ % So is a field of the 1-D or 2-D layout, which 'subsref' serves as one value.
+@@ sopvar/@copvar/setfield_opvar1d.m:5
+- % as if P were an 'opvar' object, acting as
++ % as if P were a 2025 'opvar' object, acting as
+@@ sopvar/@copvar/setfield_opvar1d.m:12
+- % P:      copvar class object with the structure of an 'opvar': at most
++ % P:      copvar class object with the 1-D field layout: at most
+@@ sopvar/@copvar/setfield_opvar1d.m:15
+- % fname:  char or string, the name of an 'opvar' field: 'P', 'Q1', 'Q2',
++ % fname:  char or string, a field name of the 1-D layout: 'P', 'Q1', 'Q2',
+@@ sopvar/@copvar/setfield_opvar1d.m:34
+- % - The fields are those of 'opvar2d' on the one variable x = s: P is R00,
++ % - The fields are those of the 2-D layout on the one variable x = s: P is R00,
+@@ sopvar/@copvar/setfield_opvar1d.m:36
+- %   and each is set as that 'opvar2d' field. A component on a space of
++ %   and each is set as that field of the 2-D layout. A component on a space of
+@@ sopvar/@copvar/setfield_opvar1d.m:40
+- %   's', on [0,1], as for a new 'opvar'.
++ %   's', on [0,1], as in the 2025 class.
+@@ sopvar/@copvar/setfield_opvar1d.m:81
+- % The 'opvar2d' field on x = s; one variable for I, var1, var2
++ % The field of the 2-D layout on x = s; one variable for I, var1, var2
+@@ sopvar/@cdopvar/setfield_opvar1d.m:5
+- % as if P were a 'dopvar' object, acting as
++ % as if P were a 2025 'dopvar' object, acting as
+@@ sopvar/@cdopvar/setfield_opvar1d.m:12
+- % P:      cdopvar class object with the structure of a 'dopvar': at most
++ % P:      cdopvar class object with the 1-D field layout: at most
+@@ sopvar/@cdopvar/setfield_opvar1d.m:15
+- % fname:  char or string, the name of a 'dopvar' field: 'P', 'Q1', 'Q2',
++ % fname:  char or string, a field name of the 1-D layout: 'P', 'Q1', 'Q2',
+@@ sopvar/@cdopvar/setfield_opvar1d.m:34
+- % - The fields are those of 'dopvar2d' on the one variable x = s: P is
++ % - The fields are those of the 2-D layout on the one variable x = s: P is
+@@ sopvar/@cdopvar/setfield_opvar1d.m:36
+- %   1-3, and each is set as that 'dopvar2d' field. A component on a space
++ %   1-3, and each is set as that field of the 2-D layout. A component on a space
+@@ sopvar/@cdopvar/setfield_opvar1d.m:40
+- %   's', on [0,1], as for a new 'dopvar'.
++ %   's', on [0,1], as in the 2025 class.
+@@ sopvar/@cdopvar/setfield_opvar1d.m:81
+- % The 'dopvar2d' field on x = s; one variable for I, var1, var2
++ % The field of the 2-D layout on x = s; one variable for I, var1, var2
+@@ sopvar/@copvar/setfield_opvar2d.m:6
+- % as if P were an 'opvar2d' object, with the components Rij mapping the
++ % as if P were a 2025 'opvar2d' object, with the components Rij mapping the
+@@ sopvar/@copvar/setfield_opvar2d.m:11
+- % P:      copvar class object with the structure of an 'opvar2d': at most
++ % P:      copvar class object with the 2-D field layout: at most
+@@ sopvar/@copvar/setfield_opvar2d.m:14
+- % fname:  char or string, the name of an 'opvar2d' field: 'R00', ...,
++ % fname:  char or string, a field name of the 2-D layout: 'R00', ...,
+@@ sopvar/@copvar/setfield_opvar2d.m:93
+- % P must have the spaces R, L2[x], L2[y], L2[x,y] of an 'opvar2d'
++ % P must have the spaces R, L2[x], L2[y], L2[x,y] of the 2-D layout
+@@ sopvar/@cdopvar/setfield_opvar2d.m:6
+- % as if P were a 'dopvar2d' object, with the components Rij mapping the
++ % as if P were a 2025 'dopvar2d' object, with the components Rij mapping the
+@@ sopvar/@cdopvar/setfield_opvar2d.m:11
+- % P:      cdopvar class object with the structure of a 'dopvar2d': at most
++ % P:      cdopvar class object with the 2-D field layout: at most
+@@ sopvar/@cdopvar/setfield_opvar2d.m:14
+- % fname:  char or string, the name of a 'dopvar2d' field: 'R00', ...,
++ % fname:  char or string, a field name of the 2-D layout: 'R00', ...,
+@@ sopvar/@cdopvar/setfield_opvar2d.m:93
+- % P must have the spaces R, L2[x], L2[y], L2[x,y] of a 'dopvar2d'
++ % P must have the spaces R, L2[x], L2[y], L2[x,y] of the 2-D layout
+@@ sopvar/@copvar/subsasgn.m:4
+- % builtin, except for the 'opvar' and 'opvar2d' field names described
++ % builtin, except for the field names of the 1-D and 2-D layouts described
+@@ sopvar/@copvar/subsasgn.m:36
+- % The fields of an 'opvar' (P, Q1, Q2, R) and of an 'opvar2d' (R00 to R22),
++ % The fields of the 2025 'opvar' (P, Q1, Q2, R) and 'opvar2d' (R00 to R22),
+@@ sopvar/@copvar/subsasgn.m:92
+- % Support setting fields of an 'opvar' (1D) or 'opvar2d' (2D), which are
++ % Support setting fields of the 1-D or 2-D layout, which are
+@@ sopvar/@copvar/subsasgn.m:105
+-     % A shared field is set as for an 'opvar' if P is opvar-like and the
++     % A shared field is set as in the 1-D layout if P has it and the
+@@ sopvar/@copvar/subsasgn.m:138
+-     % Write the value into the blocks: 'opvar' (1-D) or 'opvar2d' (2-D)
++     % Write the value into the blocks: 1-D or 2-D
+@@ sopvar/@cdopvar/subsasgn.m:4
+- % builtin, except for the 'dopvar' and 'dopvar2d' field names described
++ % builtin, except for the field names of the 1-D and 2-D layouts described
+@@ sopvar/@cdopvar/subsasgn.m:38
+- % The fields of a 'dopvar' (P, Q1, Q2, R) and of a 'dopvar2d' (R00 to
++ % The fields of the 2025 'dopvar' (P, Q1, Q2, R) and 'dopvar2d' (R00 to
+@@ sopvar/@cdopvar/subsasgn.m:94
+- % Support setting fields of a 'dopvar' (1D) or 'dopvar2d' (2D), which are
++ % Support setting fields of the 1-D or 2-D layout, which are
+@@ sopvar/@cdopvar/subsasgn.m:107
+-     % A shared field is set as for a 'dopvar' if P is opvar-like and the
++     % A shared field is set as in the 1-D layout if P has it and the
+@@ sopvar/@cdopvar/subsasgn.m:140
+-     % Write the value into the blocks: 'dopvar' (1-D) or 'dopvar2d' (2-D)
++     % Write the value into the blocks: 1-D or 2-D
+@@ sopvar/@copvar/subsref.m:13
+- % varargout: the slice, the value of an 'opvar' or 'opvar2d' field, or
++ % varargout: the slice, the value of a field of the 1-D or 2-D layout, or
+@@ sopvar/@copvar/subsref.m:18
+- % Paren indexing counts COMPONENTS over the concatenated spaces, as for an
++ % Paren indexing counts COMPONENTS over the concatenated spaces, as for a
+@@ sopvar/@copvar/subsref.m:19
+- % 'opvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
++ % 2025 'opvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
+@@ sopvar/@copvar/subsref.m:31
+- % The fields of an 'opvar' (P, Q1, Q2, R) and of an 'opvar2d' (R00 to R22)
++ % The fields of the 2025 'opvar' (P, Q1, Q2, R) and 'opvar2d' (R00 to R22)
+@@ sopvar/@copvar/subsref.m:35
+- % dim are read as for an 'opvar' if P is opvar-like, and as for an
++ % dim are read as in the 1-D layout if P has it, and as in the
+@@ sopvar/@copvar/subsref.m:36
+- % 'opvar2d' otherwise, so dim is 2 x 2 or 4 x 2.
++ % 2-D layout otherwise, so dim is 2 x 2 or 4 x 2.
+@@ sopvar/@copvar/subsref.m:85
+- % Support extracting fields of an 'opvar' (1D) or 'opvar2d' (2D), which
++ % Support extracting fields of the 1-D or 2-D layout, which
+@@ sopvar/@copvar/subsref.m:98
+-     % A shared field is read as for an 'opvar' if P is opvar-like
++     % A shared field is read as in the 1-D layout if P has it
+@@ sopvar/@cdopvar/subsref.m:13
+- % varargout: the slice, the value of a 'dopvar' or 'dopvar2d' field, or
++ % varargout: the slice, the value of a field of the 1-D or 2-D layout, or
+@@ sopvar/@cdopvar/subsref.m:19
+- % 'dopvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
++ % 2025 'dopvar', not blocks: P(I,J) is a container, and a block is P.C{i,j}.
+@@ sopvar/@cdopvar/subsref.m:31
+- % The fields of a 'dopvar' (P, Q1, Q2, R) and of a 'dopvar2d' (R00 to
++ % The fields of the 2025 'dopvar' (P, Q1, Q2, R) and 'dopvar2d' (R00 to
+@@ sopvar/@cdopvar/subsref.m:35
+- % dim are read as for a 'dopvar' if P is opvar-like, and as for a
++ % dim are read as in the 1-D layout if P has it, and as in the
+@@ sopvar/@cdopvar/subsref.m:36
+- % 'dopvar2d' otherwise, so dim is 2 x 2 or 4 x 2. A comma list of such a field, P.R22{:}, is not served.
++ % 2-D layout otherwise, so dim is 2 x 2 or 4 x 2. A comma list of such a field, P.R22{:}, is not served.
+@@ sopvar/@cdopvar/subsref.m:85
+- % Support extracting fields of a 'dopvar' (1D) or 'dopvar2d' (2D), which
++ % Support extracting fields of the 1-D or 2-D layout, which
+@@ sopvar/@cdopvar/subsref.m:98
+-     % A shared field is read as for a 'dopvar' if P is opvar-like
++     % A shared field is read as in the 1-D layout if P has it
+# sdopvar: new release file; "decision opvar" is the generic decision operator.
+@@ sopvar/@sdopvar/sdopvar.m:144
+-         % for an m-by-n decision opvar, A is size m*n-by-1, B is size nd-by-m*n.
++         % for an m-by-n decision operator, A is size m*n-by-1, B is size nd-by-m*n.
+# piess.m: a 2025 file (Declan); one log line, no markers (comment-only, as D1).
+@@ parser/piess.m:125
+- %                   and ask for 'copvar' operators in the error messages;
++ %                   and ask for 'copvar' operators in the error messages;
++ % MMP, 11/26/2026: two comments on the removed construction from operators
++ %                   of the 2025 'opvar' class name that class as such, so that
++ %                   they still read correctly once copvar is renamed opvar
++ %                   (comment-only);
+@@ parser/piess.m:322
+- % opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)       % MMP, 11/22/2026
++ % 2025 opvar operators without a copvar one, DJ (CC), 10/30/2026, removed)  % MMP, 11/22/2026
+@@ parser/piess.m:327
+- % The construction from opvar operators that was here (DJ, 12/20/2024 -
++ % The construction from 2025 opvar operators that was here (DJ, 12/20/2024 -
+@@ parser/piess.m:328
+- % 10/29/2026) was removed with the opvar classes. The PIE is now built from
++ % 10/29/2026) was removed with the 2025 opvar classes. The PIE is now built from
+# Low-rank package (not a release folder; files carry developer logs): one log line each.
+@@ PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m:18
+- % psatz is OFF everywhere (LF_use_psatz = 0, eq_use_psatz = [0;0]): poslpivar's
++ % psatz is OFF everywhere (LF_use_psatz = 0, eq_use_psatz = [0;0]): in the 2025
+@@ PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m:19
+- % psatz=1 REPLACES the plain term rather than adding to it, and enabling it
++ % poslpivar, psatz=1 REPLACES the plain term rather than adding to it, and enabling it
+@@ PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m:31
+- %   same values.
++ %   same values.
++ % MMP, 11/26/2026: the psatz remark names the 2025 poslpivar, on which it was
++ %   measured, so that it does not describe the renamed poscopvar (comment-only).
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:19
+- % - PIE:   'pie_struct' object of a 1-D PIE with 'copvar' (or 'opvar')
++ % - PIE:   'pie_struct' object of a 1-D PIE with 'copvar'
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:46
+- %   gets the light tier's row at every tier.
++ %   gets the light tier's row at every tier.
++ % MMP, 11/26/2026: "(or 'opvar')" dropped from the help of PIE: the build takes
++ %   containers only since the 11/08/2026 entry (comment-only).
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:13
+- % - PIE:   'pie_struct' object of the 1-D PIE above, with 'copvar' (or
++ % - PIE:   'pie_struct' object of the 1-D PIE above, with 'copvar'
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:14
+- %          'opvar') operators T and C1;
++ %          operators T and C1;
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:36
+- %   one weight degree lower: the program differs from the 09/23/2026 one.
++ %   one weight degree lower: the program differs from the 09/23/2026 one.
++ % MMP, 11/26/2026: "(or 'opvar')" dropped from the help of PIE: the build takes
++ %   containers only since the 11/08/2026 entry (comment-only).
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:15
+- % - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'copvar' (or 'opvar',
++ % - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'copvar'
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:16
+- %          'opvar2d') operators T and A;
++ %          operators T and A;
+@@ PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:44
+- %   Gram 22 -> 20 on lib-beam-eb at heavy, 11 -> 10 at pielr_settings(3,1)).
++ %   Gram 22 -> 20 on lib-beam-eb at heavy, 11 -> 10 at pielr_settings(3,1)).
++ % MMP, 11/26/2026: "(or 'opvar', 'opvar2d')" dropped from the help of PIE: the
++ %   build takes containers only since the 11/08/2026 entry (comment-only).
+@@ PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:3
+- % dispatching on its class: dopvar (1-D, 6 leaves), dopvar2d (2-D, 36 leaves),
++ % dispatching on its class: a 'cdopvar' or 'sdopvar' operator,
+@@ PIETOOLS_demos/lowrank_2d_stability/private/pielr_evalop.m:23
+- %   and once copvar is renamed opvar the containers return above anyway.
++ %   and once copvar is renamed opvar the containers return above anyway.
++ % MMP, 11/26/2026: the first help line names the classes the code dispatches
++ %   on since the 11/22/2026 entry (comment-only).
+@@ PIETOOLS_demos/lowrank_2d_stability/private/pielr_evaldp.m:7
+- % dopvar, and duplicating it would let the two copies drift -- exactly the
++ % 2025 dopvar, and duplicating it would let the two copies drift -- exactly the
+@@ PIETOOLS_demos/lowrank_2d_stability/private/pielr_evaldp.m:19
+- % ~q dimension (CLAUDE.md section 2).
++ % ~q dimension (CLAUDE.md section 2).
++ %
++ % MMP, 11/26/2026: "a dopvar" above reads "a 2025 dopvar", so that it does not
++ %   describe the container once cdopvar is renamed dopvar (comment-only).
+# Test code (testing_codes/private, off the path): one log line each.
+@@ testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m:14
+- % (10/29/2026), which every stock executive rejects (Top.dim), and the opvar
++ % (10/29/2026), which every stock executive rejects (Top.dim), and the 2025
+@@ testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m:15
+- % removal retires executives/. The names in bl_cases stay the case labels.
++ % opvar removal retires executives/. The names in bl_cases stay the case labels.
+@@ testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m:22
+- % (bl_expect.tsv, results/2026-09-24) do not carry over.
++ % (bl_expect.tsv, results/2026-09-24) do not carry over.
++ %
++ % MMP, 11/26/2026: "the opvar removal" reads "the 2025 opvar removal", for the
++ %   rename copvar -> opvar (comment-only).
+@@ testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:23
+- %      (containers, read through their opvar / opvar2d fields), each
++ %      (containers, read through their 1-D / 2-D layout fields), each
+@@ testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:42
+- %   2-D and 3-D ones included, to the 1-D branch.
++ %   2-D and 3-D ones included, to the 1-D branch.
++ % MMP, 11/26/2026: the help of (g) and of STOCK_APPLY names the 1-D and 2-D
++ %   field layouts and the 2025 classes that define them (comment-only).
+@@ testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:248
+- % Stock opvar (1-D) / opvar2d (2-D) PI operator on L2 applied by
++ % PI operator on L2 in the 1-D or 2-D field layout, applied by
+@@ testing_codes/private/PIETOOLS_demos/sopvar_demos/test_heatNd_pie.m:249
+- % quadrature, from each class's own definition (opvar.m / opvar2d.m):
++ % quadrature, from the definitions of the 2025 opvar and opvar2d classes:
+@@ testing_codes/private/converters/tests/pie_test_utils.m:23
+- %                 longer has;
++ %                 longer has;
++ % MMP, 11/26/2026: the help of SOPVAR2STRUCT names the 1-D field layout of
++ %                 the 2025 'opvar' class (comment-only);
+@@ testing_codes/private/converters/tests/pie_test_utils.m:107
+- % Fields of the 'opvar' of a sopvar block of a single variable, as a struct:
++ % Fields of a sopvar block of a single variable in the 1-D field layout of
+@@ testing_codes/private/converters/tests/pie_test_utils.m:108
+- % dim, I, var1, var2, P, Q1, Q2 and R.R0, R.R1, R.R2 (as in sopvar2opvar)
++ % the 2025 'opvar' class, as a struct: dim, I, var1, var2, P, Q1, Q2 and
++ % R.R0, R.R1, R.R2
+@@ testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:168
+- %                  unchanged.
++ %                  unchanged.
++ % MMP, 11/26/2026: a clause on P1, left from the deletion of 11/08/2026,
++ %                  dropped (comment-only).
+@@ testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m:784
+- % solved; the fixed opvar of P1
++ % solved.
+@@ testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:26
+- %   (5) none since 11/08/2026: it checked a 'dopvar' with the option 'foo'
++ %   (5) none since 11/08/2026: it checked a 2025 'dopvar' with the option 'foo'
+@@ testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m:89
+- %                lines removed; code unchanged.
++ %                lines removed; code unchanged.
++ % MMP, 11/26/2026: help (5) reads "a 2025 'dopvar'" (comment-only).
+@@ testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:27
+- %   (vi)  none since 11/08/2026: it built its operators as 'opvar'
++ %   (vi)  none since 11/08/2026: it built its operators as 2025 'opvar'
+@@ testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m:104
+- %                which 'lf' errored. Help to match.
++ %                which 'lf' errored. Help to match.
++ % MMP, 11/26/2026: help (vi) reads "2025 'opvar' objects" (comment-only).
+@@ testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:8
+- % terms, stacked derivatives, non-output variables, and the 1D opvar 'diff'
++ % terms, stacked derivatives, non-output variables, and the Leibniz rule for
+@@ testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:9
+- % with option 'pure' as an independent implementation of the same Leibniz
++ % a lower and an upper integral, evaluated with 'polynomial' calculus only,
+@@ testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:10
+- % rule.
++ % as an independent implementation.
+@@ testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:24
+- %   from the same random kernels R1, R2;
++ %   from the same random kernels R1, R2;
++ % MMP, 11/26/2026: the help names the Leibniz-rule check of the 11/13/2026
++ %   entry in place of the retired 1D 'opvar' diff (comment-only).
+@@ testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/pi_dpvar_eval.m:7
+- % 'poslpivar' against those returned by 'possopvar'.
++ % the 2025 'poslpivar' against those returned by 'possopvar'.
+@@ testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/pi_dpvar_eval.m:17
+- % MP, 08/22/2026: Initial coding
++ % MP, 08/22/2026: Initial coding
++ % MMP, 11/26/2026: the help names the 2025 poslpivar (comment-only).
