@@ -19,6 +19,9 @@ function Pop = mat2opvar(Mat,dims,spaces,dom,options)
 % matrix multiplier (R0), and L2^p[s] -> R^q the integral
 % int MAT_ij x(s) ds (Q1), which OPTIONS.mult_only refuses.
 %
+% A PIETOOLS 2025 call MAT2OPVAR(PMAT,PDIM,VARS,DOM), PDIM the n x 2
+% dimensions of a 2025 'opvar', stops with an error that names this form.
+%
 % INPUT
 % - Mat:     sum(q) x sum(p) 'double' or 'dpvar', constant in space (a
 %            dpvar in a spatial variable is an error);
@@ -80,6 +83,23 @@ function Pop = mat2opvar(Mat,dims,spaces,dom,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026
+
+% A PIETOOLS 2025 call, MAT2OPVAR(PMAT,PDIM,VARS,DOM), passes the n x 2
+% dimensions PDIM of a 2025 'opvar', then optionally the variable pair
+% VARS = [s,s_dum] (a 'polynomial' or 'cellstr', or the domain in its
+% place) and DOM. This function needs DOM, and with two or more counts one
+% entry of SPACES per count, so each such call fails further down; stop it
+% here with the form that replaces it. Not caught: a scalar PDIM (2025:
+% R^n -> R^n) with a pair [s,t] of names not ending in '_dum' and a 1 x 2
+% DOM, which is also a valid call here, a multiplier on L2^n[s,t]
+if nargin<4 || (isnumeric(dims) && numel(dims)>1 && (isa(spaces,'polynomial') ...
+        || ischar(spaces) || iscellstr(spaces) || (isnumeric(spaces) && ~isempty(spaces)))) %#ok<ISCLSTR> a 2025 VARS is never a string
+    error('mat2opvar:call2025',"MAT2OPVAR(MAT,DIMS,SPACES,DOM) needs four inputs and, "...
+          +"with two or more counts, one entry of SPACES per count; "...
+          +"MAT2OPVAR(PMAT,PDIM,VARS,DOM) of PIETOOLS 2025 is not supported. "...
+          +"Example: mat2opvar(M,struct('out',[m0;m1],'in',[n0;n1]),{{},{'s'}},[a b]), "...
+          +"M constant in space ('double' or 'dpvar') (help mat2opvar).")
+end
 
 % Options; the container metadata of the spaces; the blocks of Mat
 if nargin<5 || isempty(options),    options = struct();     end

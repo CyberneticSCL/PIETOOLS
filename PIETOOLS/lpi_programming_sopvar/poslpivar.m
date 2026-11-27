@@ -33,6 +33,9 @@ function [prog,Pop,Qcell,basis_list] = poslpivar(prog,dims,spaces,dom,deg,option
 % domain of X, so that X'*Pop*X is defined. For the input spaces of X,
 % pass X'.
 %
+% A PIETOOLS 2025 call POSLPIVAR(PROG,N,D,OPTIONS), N the dimensions of a
+% 2025 'opvar', stops with an error that names these two forms.
+%
 % INPUT
 % - prog:        'struct', the LPI program;
 % - dims:        double, M x 1 positive integers, dims(k) = m_k the number
@@ -160,6 +163,26 @@ function [prog,Pop,Qcell,basis_list] = poslpivar(prog,dims,spaces,dom,deg,option
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/21/2026
+
+% A PIETOOLS 2025 call, POSLPIVAR(PROG,N,D,OPTIONS), passes the dimensions
+% N of a 2025 'opvar', then nothing or the degrees D (a number, a cell of
+% numbers, [] or the 2-D 'struct' with fields dx, dy, d2) where this
+% function takes SPACES. Each such call fails further down (SPACES missing,
+% or refused by parse_opvar_spaces, which reads [] as ONE space); stop it
+% here with the forms that replace it. Tests on the inputs only: O(number
+% of spaces), nothing in the decision variables
+if isnumeric(dims) && ~isempty(dims) && (nargin==2 ...
+        || (isempty(spaces) && numel(dims)>1) ...
+        || (isnumeric(spaces) && ~isempty(spaces)) ...
+        || (isstruct(spaces) && ~isfield(spaces,'out')) ...
+        || (iscell(spaces) && any(cellfun(@(c) isnumeric(c) && ~isempty(c),spaces(:)))))
+    error('poslpivar:call2025',"POSLPIVAR(PROG,N,D,OPTIONS) of PIETOOLS 2025 is not "...
+          +"supported. Declare P on the output spaces of an 'opvar' T as "...
+          +"[prog,P] = poslpivar(prog,T,deg,options), e.g. T = PIE.T, or by counts "...
+          +"and spaces as poslpivar(prog,[n0;n1],{{},{'s'}},[a b],deg,options); deg "...
+          +"is a scalar, a 'struct' with fields int, mult and joint, or omitted for "...
+          +"the program settings (help poslpivar).")
+end
 
 % Check the inputs
 % DOM omitted: the 4th input is DEG (a scalar, a 'struct' without field

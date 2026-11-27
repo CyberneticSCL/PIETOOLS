@@ -26,6 +26,9 @@ function [prog,Pop] = lpivar(prog,dims,spaces,dom,deg,options)
 % output spaces, the input spaces and the domain of the 'opvar' or
 % 'dopvar' object X, so that Pop has the shape of X.
 %
+% A PIETOOLS 2025 call LPIVAR(PROG,N,D,OPTS), N the dimensions of a 2025
+% 'opvar', stops with an error that names these two forms.
+%
 % INPUT
 % - prog:    'struct', the LPI program, with the field decvartable;
 % - dims:    'struct' with fields out (M x 1 'double', the counts q_i) and,
@@ -116,6 +119,26 @@ function [prog,Pop] = lpivar(prog,dims,spaces,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+
+% A PIETOOLS 2025 call, LPIVAR(PROG,N,D,OPTS), passes the 2 x 2 (4 x 2 in
+% 2-D) dimensions N of a 2025 'opvar', then nothing or the degrees D (a
+% number, a 1 x 3 array, [] or the 2-D 'struct' with fields dx, dy, d2)
+% where this function takes SPACES. Each such call fails further down
+% (SPACES missing, or refused by parse_opvar_spaces, which reads [] as ONE
+% space); stop it here with the forms that replace it. Tests on the inputs
+% only: O(number of spaces), nothing in the decision variables
+if isnumeric(dims) && ~isempty(dims) && (nargin==2 ...
+        || (isempty(spaces) && numel(dims)>1) ...
+        || (isnumeric(spaces) && ~isempty(spaces)) ...
+        || (isstruct(spaces) && ~isfield(spaces,'out')) ...
+        || (iscell(spaces) && any(cellfun(@(c) isnumeric(c) && ~isempty(c),spaces(:)))))
+    error('lpivar:call2025',"LPIVAR(PROG,N,D,OPTS) of PIETOOLS 2025 is not supported. "...
+          +"Declare Z with the spaces of an 'opvar' X as [prog,Z] = "...
+          +"lpivar(prog,X,deg,options), or by counts and spaces as lpivar(prog,"...
+          +"struct('out',[m0;m1],'in',[n0;n1]),{{},{'s'}},[a b],deg,options); deg is "...
+          +"a scalar, a 1 x 3 array [d1 d2 d3], a 'struct' with fields mult, int, out "...
+          +"and in, or omitted for the program settings (help lpivar).")
+end
 
 % Defaults of the optional inputs; PROG must be an LPI program
 % DOM omitted: the 4th input, if any, is DEG (a scalar, 1 x 3, a 'struct'
