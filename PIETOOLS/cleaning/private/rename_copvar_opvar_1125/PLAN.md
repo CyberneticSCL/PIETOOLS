@@ -11,7 +11,7 @@ The H2 comment pass of step 1 (done 11/26) committed 11/27 (1d9737e1); step 4 do
 origin unchanged at f75d2f6c. Case C8 (`tests_1d`) moved to `orphaned_file/private` on 11/26,
 committed 11/27 (3315e9f9). Phase 1 dry run on an export, 11/26, and applied to the checkout,
 11/27 (`phase1/README.md`): every check of step 3 passes on both; committed 11/27 (ae2b95c1).
-None pushed. Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
+Phase 1b committed 11/27 (abfb0e83, `phase1b/README.md`). None pushed. Every count below was measured at f75d2f6c (local = origin/ndopvar). Scripts and raw outputs: `inventory/`. Function and
 subroutine table: `rename_table.tsv` (Section 6).
 
 ## 1. Scope
@@ -261,7 +261,8 @@ class string inside, `isa(P,'copvar')`, changes. Correction of 11/25: `ncop` (`p
 **Phase 1b – 2025 call forms (D6, separate commit).** In `poslpivar`, `lpivar` and `mat2opvar`,
 detect the 2025 argument forms of H3 and raise an error that gives the new call. The detection
 tests the number and types of the arguments once per call. The files are new in this release, so
-no log line and no markers (D1); a comment states what is detected and why.
+no log line and no markers (D1); a comment states what is detected and why. Done 11/27 (abfb0e83):
+31 calls in the 2025 forms stop, 23 current-form outputs unchanged (`phase1b/README.md`).
 
 **Phase 2 – documentation.**
 - `testing_codes/README.md`, `.claude/agents/pietools-applications.md`, and the class table in

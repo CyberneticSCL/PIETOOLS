@@ -1,0 +1,44 @@
+d6_time.m, 11/27/2026 04:46, four runs alternating the trees: C:\wt1127\pre1b (export of
+6135b775, before Phase 1b) and the checkout (Phase 1b applied, = abfb0e83). Median of 7 calls
+after one warm-up call; the detection alone with timeit.
+
+tree C:\wt1127\pre1b
+detection alone,  2 spaces:   3.83 us
+detection alone,  4 spaces:   5.08 us
+detection alone,  8 spaces:   8.36 us
+detection alone, 16 spaces:  14.90 us
+poslpivar 1-D  median    14.16 ms  (min     5.24, max   102.24)
+lpivar 1-D     median     3.33 ms  (min     1.80, max    33.20)
+poslpivar 2-D  median    26.59 ms  (min    24.72, max    40.11)
+lpivar 2-D     median     6.71 ms  (min     5.81, max     6.98)
+mat2opvar 2-D  median     1.37 ms  (min     1.00, max    10.29)
+tree C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS
+detection alone,  2 spaces:   3.65 us
+detection alone,  4 spaces:   5.14 us
+detection alone,  8 spaces:   8.35 us
+detection alone, 16 spaces:  15.01 us
+poslpivar 1-D  median    14.35 ms  (min     6.64, max   101.05)
+lpivar 1-D     median     4.40 ms  (min     2.00, max    30.91)
+poslpivar 2-D  median    32.39 ms  (min    27.26, max    46.30)
+lpivar 2-D     median     7.36 ms  (min     6.32, max     9.06)
+mat2opvar 2-D  median     1.62 ms  (min     1.05, max    10.59)
+tree C:\wt1127\pre1b
+detection alone,  2 spaces:   3.75 us
+detection alone,  4 spaces:   5.15 us
+detection alone,  8 spaces:   8.27 us
+detection alone, 16 spaces:  14.26 us
+poslpivar 1-D  median    14.89 ms  (min     5.38, max    97.24)
+lpivar 1-D     median     3.32 ms  (min     1.82, max    26.24)
+poslpivar 2-D  median    29.23 ms  (min    26.23, max    43.83)
+lpivar 2-D     median     7.13 ms  (min     6.40, max     9.32)
+mat2opvar 2-D  median     1.56 ms  (min     1.10, max    11.35)
+tree C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS
+detection alone,  2 spaces:   3.56 us
+detection alone,  4 spaces:   4.87 us
+detection alone,  8 spaces:   7.87 us
+detection alone, 16 spaces:  14.66 us
+poslpivar 1-D  median    13.22 ms  (min     5.10, max    90.10)
+lpivar 1-D     median     3.02 ms  (min     1.85, max    26.72)
+poslpivar 2-D  median    26.81 ms  (min    25.15, max    32.27)
+lpivar 2-D     median     6.52 ms  (min     6.14, max     7.49)
+mat2opvar 2-D  median     1.65 ms  (min     1.07, max    10.43)

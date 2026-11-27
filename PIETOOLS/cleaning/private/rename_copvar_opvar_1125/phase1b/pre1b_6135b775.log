@@ -1,0 +1,57 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\converters\legacy\2D] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+Toolbox "hysdel:2.0.6:pcwin64" added to the Matlab path.
+Toolbox "mptdoc:3.0.4:all" added to the Matlab path.
+Toolbox "fourier:1.0:pcwin64" added to the Matlab path.
+Toolbox "sedumi:1.3:pcwin64" added to the Matlab path.
+Toolbox "cddmex:1.0.1:pcwin64" added to the Matlab path.
+Toolbox "yalmip:R20230609:all" added to the Matlab path.
+Toolbox "glpkmex:1.0:pcwin64" added to the Matlab path.
+poslpivar            C:\wt1127\pre1b\lpi_programming_sopvar\poslpivar.m
+lpivar               C:\wt1127\pre1b\lpi_programming_sopvar\lpivar.m
+mat2opvar            C:\wt1127\pre1b\sopvar\constructors\mat2opvar.m
+lpiprogram           C:\wt1127\pre1b\lpi_programming_sopvar\lpiprogram.m
+lpidecvar            C:\wt1127\pre1b\lpi_programming_sopvar\lpidecvar.m
+parse_opvar_spaces   C:\wt1127\pre1b\sopvar\misc\conventions\parse_opvar_spaces.m
+poslpivar_direct     C:\wt1127\pre1b\lpi_programming_sopvar\misc\poslpivar_direct.m
+test_call2025_sop    C:\Users\mpeet\AppData\Local\Temp\claude\363c499c6332a503\874c85cb-c18d-4876-bea3-39cdd053e21f\scratchpad\d6\tests\test_call2025_sop.m
+opvar: C:\wt1127\pre1b\sopvar\@opvar\opvar.m
+dopvar: C:\wt1127\pre1b\sopvar\@dopvar\dopvar.m
+test time 1.7 s
+ 1  poslpivar(prog,[1;2])                          MATLAB:minrhs          Not enough input arguments.
+ 2  poslpivar(prog,[1 1;2 2])                      MATLAB:minrhs          Not enough input arguments.
+ 3  poslpivar(prog,[1;2],2)                                               Spaces should be specified as a cell of 'cellstr' objects.
+ 4  poslpivar(prog,[1;2],[1 2 3])                                         Spaces should be specified as a cell of 'cellstr' objects.
+ 5  poslpivar(prog,[1;2],[])                                              Dimensions should have one entry per space: 1 output and 1 input.
+ 6  poslpivar(prog,[1;2],{1,[1 1 2],[1 1 2]})                             Space 1 should be a 'cellstr' of variable names; an empty one is the finite-dimensional space R^q.
+ 7  poslpivar(prog,[1 1;2 2],{...},options)                               Space 1 should be a 'cellstr' of variable names; an empty one is the finite-dimensional space R^q.
+ 8  poslpivar(prog,[1;2],2,options)                                       Spaces should be specified as a cell of 'cellstr' objects.
+ 9  poslpivar(prog2,[1;2;2;1])                     MATLAB:minrhs          Not enough input arguments.
+10  poslpivar(prog2,[1;2;2;1],d2d)                                        A 'struct' spaces argument needs a field 'out'.
+11  poslpivar(prog2,[1;2;2;1],d2d,options)                                A 'struct' spaces argument needs a field 'out'.
+12  lpivar(prog,[1 1;2 2])                         MATLAB:minrhs          Not enough input arguments.
+13  lpivar(prog,[1 1;2 2],2)                                              Spaces should be specified as a cell of 'cellstr' objects.
+14  lpivar(prog,[1 1;2 2],[1 2 3])                                        Spaces should be specified as a cell of 'cellstr' objects.
+15  lpivar(prog,[1 1;2 2],[])                                             Dimensions should have one entry per space: 1 output and 1 input.
+16  lpivar(prog,[1 1;2 2],[1 2 3],opts)                                   Spaces should be specified as a cell of 'cellstr' objects.
+17  lpivar(prog2,[1 1;2 2;0 0;1 1])                MATLAB:minrhs          Not enough input arguments.
+18  lpivar(prog2,[1 1;2 2;0 0;1 1],d2d)                                   A 'struct' spaces argument needs a field 'out'.
+19  lpivar(prog2,[1 1;2 2;0 0;1 1],d2d,opts)                              A 'struct' spaces argument needs a field 'out'.
+20  mat2opvar(M,[1 1;2 2])                         MATLAB:minrhs          Not enough input arguments.
+21  mat2opvar(M,[1;2])                             MATLAB:minrhs          Not enough input arguments.
+22  mat2opvar(M,[1 1;2 2],[s,s_dum])               MATLAB:minrhs          Not enough input arguments.
+23  mat2opvar(M,[1 1;2 2],{'s','s_dum'})           MATLAB:minrhs          Not enough input arguments.
+24  mat2opvar(M,[1 1;2 2],[0 1])                   MATLAB:minrhs          Not enough input arguments.
+25  mat2opvar(M,[1 1;2 2],[s,s_dum],[0 1])                                Dimensions should have one entry per space: 1 output and 1 input.
+26  mat2opvar(M,[1 1;2 2],{'s','s_dum'},[0 1])                            Dimensions should have one entry per space: 1 output and 1 input.
+27  mat2opvar(M,[1 1;2 2],[0 1],[s,s_dum])                                Spaces should be specified as a cell of 'cellstr' objects.
+28  mat2opvar(M,[1;2],[s,s_dum],[0 1])                                    Dimensions should have one entry per space: 1 output and 1 input.
+29  mat2opvar(s*M,[1 1;2 2],[s,s_dum],[0 1])                              Dimensions should have one entry per space: 1 output and 1 input.
+30  mat2opvar(g*M,[1 1;2 2],[s,s_dum],[0 1])                              Dimensions should have one entry per space: 1 output and 1 input.
+31  mat2opvar(M,[1 1;2 2;0 0;0 0],vars2d,dom2d)                           Dimensions should have one entry per space: 1 output and 1 input.
