@@ -1,0 +1,211 @@
+PIETOOLS_demos/DEMO1_stability_and_simulation.m:64	log	%   1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place of poslpivar and
+PIETOOLS_demos/DEMO1_stability_and_simulation.m:65	log	%   lpi_ineq; the predefined test is lpiscript_sop; help text revised.
+PIETOOLS_demos/DEMO2_volterra_operator_norm.m:44	log	%   of Top; LPIPROGRAM_SOP, which read them off T, is retired.
+PIETOOLS_demos/DEMO2_volterra_operator_norm.m:46	log	%   PI4_COPVAR_SOP from its kernel R1 = 1, and LPIPROGRAM takes its
+PIETOOLS_demos/DEMO2_volterra_operator_norm.m:48	log	%   Top was an opvar, converted by OP2COPVAR_SOP, so the demo stopped
+PIETOOLS_demos/DEMO3_poincare_inequality.m:70	log	%   of H2op and imposed by lpi_ineq_sop, which allows the inequality to fail
+PIETOOLS_demos/DEMO3_poincare_inequality.m:71	log	%   outside [a,b] by default; the solution is read by lpigetsol_sop; help
+PIETOOLS_demos/DEMO4_stability_parameter_bisection.m:52	log	%   poscopvar(prog,T,2) + 1e-4*eye_copvar_sop(P) and lpi_ineq_sop, in place
+PIETOOLS_demos/DEMO4_stability_parameter_bisection.m:53	log	%   of poslpivar and lpi_ineq; the predefined executive is lpiscript_sop;
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:80	log	%   lpivar_cdopvar(prog,C2',4) and lpi_ineq_sop, in place of poslpivar
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:81	log	%   (sep = 1), lpivar and lpi_ineq; lpigetsol_sop reads the solution and
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:82	log	%   getObserver_sop computes L by quadratic programming; the estimator is
+PIETOOLS_demos/DEMO5_Hinf_optimal_estimator.m:83	log	%   a pie_struct; the predefined alternative is lpiscript_sop; PIESIM takes
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:75	log	%   1e-3*eye_copvar_sop(P), Z = lpivar_cdopvar(prog,B2',2) and
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:76	log	%   lpi_ineq_sop, in place of poslpivar, lpivar and lpi_ineq; lpigetsol_sop
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:77	log	%   reads the solution and getController_sop computes K; the closed loop is
+PIETOOLS_demos/DEMO6_Hinf_optimal_control.m:78	log	%   a pie_struct; the predefined alternative is lpiscript_sop; PIESIM takes
+PIETOOLS_demos/DEMO7_observer_based_control.m:83	log	%   by lpiscript_sop with the settings lpisettings_sop('heavy') and
+PIETOOLS_demos/DEMO7_observer_based_control.m:84	log	%   converted to copvar objects by op2copvar_sop; the estimator output zhat
+PIETOOLS_demos/DEMO7_observer_based_control.m:88	log	% MMP, 11/26/2026: the call of op2copvar_sop on L and K deleted: lpiscript_sop
+PIETOOLS_demos/DEMO7_observer_based_control.m:89	log	%   returns containers, which op2copvar_sop returned unchanged, and the
+PIETOOLS_demos/DEMO7_observer_based_control.m:90	log	%   function is retired. "Converted to copvar objects by op2copvar_sop" in
+PIETOOLS_demos/DEMO7_observer_based_control.m:146	was	% Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers % MMP, 11/26/2026 (was)
+PIETOOLS_demos/DEMO8_H2norm.m:50	log	%   lpiprogram(PIE.vars,PIE.dom), W = poscopvar(prog,T',3) and lpi_ineq_sop,
+PIETOOLS_demos/DEMO8_H2norm.m:51	log	%   with the trace of C1*W*C1' by trace_rn_sop, in place of poslpivar,
+PIETOOLS_demos/DEMO8_H2norm.m:52	log	%   lpi_ineq and trace(Aux.P); lpigetsol_sop reads the solution; help text
+PIETOOLS_demos/DEMO9_L2_gain_analysis.m:64	log	%   lpiprogram(PIE.vars,PIE.dom), P = poscopvar(prog,T,1) and lpi_ineq_sop
+PIETOOLS_demos/DEMO9_L2_gain_analysis.m:66	log	%   opts.psatz = 2; lpigetsol_sop reads the solution; the predefined
+PIETOOLS_demos/DEMO9_L2_gain_analysis.m:67	log	%   executive is lpiscript_sop; help text revised.
+PIETOOLS_demos/cuadmm/cuadmm_settings.m:28	log	% CC, 11/08/2026: S from lpisettings_sop(base), the container tier of that
+PIETOOLS_demos/cuadmm/cuadmm_settings.m:38	log	%   from LPISETTINGS_STOCK_SOP(base): the stock slack left the tiers
+PIETOOLS_demos/cuadmm/cuadmm_settings.m:43	log	%   1e-2 through S.eppos, copied by EXEC_SOP_SETTINGS. Comment only.
+PIETOOLS_demos/cuadmm/heat2d_compare.m:28	log	% CC, 11/08/2026: settings from lpisettings_sop('light').settings_2d in place
+PIETOOLS_demos/cuadmm/heat2d_compare.m:38	log	%   (c3bfac42) poses the form 'P' LPI of PIETOOLS_stability_sop with the
+PIETOOLS_demos/cuadmm/heat2d_compare.m:150	was	% st = lpisettings_sop('light');  st = st.settings_2d;                      % MMP, 11/17/2026 (was)
+PIETOOLS_demos/lowrank_2d_stability/pielr_path.m:87	was	%         'lpisettings_sop','monomials','sortrows_integerTable'};           % MMP, 11/08/2026 (was)
+PIETOOLS_demos/lowrank_2d_stability/pielr_settings.m:102	log	%   1e-2 through S.eppos, copied by EXEC_SOP_SETTINGS. Comment only.
+PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m:91	log	%   LPISETTINGS_STOCK_SOP (the tier plus sop.stock): the builders pose the
+PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m:176	was	%   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_sop('light'); end % CC, 11/17/2026 (was); CC, 11/08/2026
+PIETOOLS_demos/lowrank_2d_stability/pielr_solve.m:180	was	%   opts.settings = lpisettings_sop(char(opts.settings));                   % CC, 11/17/2026 (was); CC, 11/08/2026
+PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:40	log	%   'Q'/'Qd' assemble of PIETOOLS_Hinf_gain_sop with the stock slack branch;
+PIETOOLS_demos/lowrank_2d_stability/private/build_l2gain_1d.m:44	log	%   the executives since 11/12/2026: since 11/17/2026 EXEC_TOOLS_SOP takes
+PIETOOLS_demos/lowrank_2d_stability/private/build_poincare_1d.m:34	log	%   LPI_INEQ_SOP (lift degree from the support, weight degree raised by
+PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:34	log	%   'P'/'Pd' assemble of PIETOOLS_stability_sop with the stock slack branch;
+PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:37	log	% MMP, 11/09/2026: c = 2 in 1-D too, as PIETOOLS_stability_sop poses the
+PIETOOLS_demos/lowrank_2d_stability/private/build_stab_1d.m:41	log	%   PIETOOLS_stability_sop since 11/12/2026. Since 11/17/2026 EXEC_TOOLS_SOP
+PIETOOLS_demos/lowrank_2d_stability/set2d_deg.m:38	was	% s2d = lpisettings_sop('light');   s2d = s2d.settings_2d;                  % MMP, 11/17/2026 (was)
+PIETOOLS_demos/snippets_from_manual/GettingStarted.m:40	log	%   lpiscript_sop; help text, license and authors added.
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m:62	log	%   lpiscript_sop runs the executives, with lpisettings_sop('heavy') for
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch6_PIESIM.m:49	log	%   start from x(0) = [1,1]; lpiscript_sop computes the controller; help
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:75	log	%   (multiplier term only), lpivar_cdopvar and eye_copvar_sop; D21 is put on
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:76	log	%   the registry of Z; lpi_ineq_sop with like = P, dD = 2 and lpi_eq_sop
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:77	log	%   replace lpi_ineq (psatz = 1) and lpi_eq; getsol_lpivar_sop,
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:78	log	%   lpigetsol_sop and getObserver_sop read the solution and the gain; help
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:80	log	% MMP, 11/23/2026: getObserver_sop called with method 'inv', as the comment
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch7_LPI_Programming.m:250	was	% Lval = getObserver_sop(Pval,Zval);                                        % MMP, 11/23/2026 (was); DB, MMP, 11/21/2026
+PIETOOLS_examples/examples_PDE_library_PIETOOLS.m:141	log	%   executive runs through PIETOOLS_auto_execute_sop; the forms of the tests
+executives/PIETOOLS_stability.m:314	was	%               prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026 (was)
+executives/PIETOOLS_stability.m:316	was	%                   prog = lpi_ineq_sop(prog,Pm,o);                         % MMP, 11/21/2026 (was)
+executives/PIETOOLS_stability.m:319	was	%                   prog = lpi_ineq_sop(prog,Pm - min(eppos(min(2,end):end))*(Tm'*Tm),o); % MMP, 11/21/2026 (was)
+testing_codes/private/PIETOOLS_demos/cuadmm/bl_big.m:30	log	% CC, 11/08/2026: lpisettings_sop('heavy') in place of the stock
+testing_codes/private/PIETOOLS_demos/cuadmm/bl_cases.m:30	log	%   builders run the container executive of the same LPI (private/bl_sop),
+testing_codes/private/PIETOOLS_demos/cuadmm/bl_scale.m:26	log	% CC, 11/08/2026: lpisettings_sop('heavy') in place of the stock
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_io1.m:6	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_io2.m:17	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab1.m:8	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab2.m:16	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE. pz sets
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_stab2.m:18	log	%   'stock' slack; its default slack (lpi_ineq_sop, psatz 'auto') already holds
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_b_syn1.m:11	log	%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_settings.m:4	log	%   after 'unknown' or 'infeasible' (lpi_solve_loop_sop), so the dumped SDP
+testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_settings.m:7	log	% CC, 11/08/2026: lpisettings_sop(NAME), the container tier, in place of the
+testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench.m:46	log	% CC, 11/17/2026: set_eppos takes a named tier from LPISETTINGS_STOCK_SOP
+testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench.m:249	was	% if ischar(st) || isstring(st), st = lpisettings_sop(char(st)); end        % CC, 11/17/2026 (was); CC, 11/08/2026
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:62	was	% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:63	was	% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_exec.m:52	was	%   if strcmp(fn,'PIETOOLS_stability_sop')                                  % Phase 0, 11/02/2026 (was)
+testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_path.m:22	log	% MMP, 11/08/2026: apply_opvar, convert_PIETOOLS_PDE_sopvar and pie2opvar
+testing_codes/private/baselines/2026-11-02_opvar_phase0/private/p0_path.m:54	was	%           'convert_PIETOOLS_PDE_sopvar','pie2opvar'}))                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:66	log	%                with its stock slack (LPISETTINGS_STOCK_SOP; options2,
+testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:68	log	%                retired options1; 2-D lpisettings_sop('light') with
+testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:129	was	%               if strcmp(problem,'of'),    fh = @() PIETOOLS_Hinf_OFcontrol_sop(PIE,stk); % MMP, 11/06/2026 (was)
+testing_codes/private/baselines/2026-11-05_class_ops/private/bench_lpi_degree.m:130	was	%               else,                       fh = @() PIETOOLS_stability_sop(PIE,stk,'P'); % MMP, 11/06/2026 (was)
+testing_codes/private/baselines/2026-11-17_tiers/ab/head_light_tier.m:72	log	%                and from copies in settings_sopvar/private (removed) on
+testing_codes/private/baselines/2026-11-17_tiers/ab/head_light_tier.m:83	log	%                sop.eppos_stab are removed, and EXEC_SOP_SETTINGS sets the
+testing_codes/private/baselines/2026-11-17_tiers/ab/head_light_tier.m:88	log	% MMP, 11/10/2026: st.lpi.ineq, the degree options of LPI_INEQ_SOP (dD 1,
+testing_codes/private/baselines/2026-11-17_tiers/ab/head_light_tier.m:98	log	%                options3, dd3) leaves for LPISETTINGS_STOCK_SOP
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:62	was	% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:63	was	% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/ex_search.m:152	was	%   if ~isempty(st.S),  stm = strjoin(st_diff(lpisettings_sop(row.tier,0,'','mosek'),st.S,'st'),' ');  end % MMP, 11/21/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:62	was	% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:63	was	% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/lb_exec.m:91	was	%   if strcmp(fn,'PIETOOLS_stability_sop')                                  % MMP, 11/18/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:31	log	%                   (PIETOOLS_*_sop) and lpisettings_sop: the stock
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:34	log	%                   exist; the H2 control LPI is PIETOOLS_H2_control_sop.
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:285	was	%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/18/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:290	was	%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/18/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:31	log	%                   (PIETOOLS_*_sop) and lpisettings_sop: the stock
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:34	log	%                   exist; the H2 control LPI is PIETOOLS_H2_control_sop.
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:288	was	%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/18/2026 (was)
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:293	was	%   [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/18/2026 (was)
+testing_codes/private/executives/tests/test_executives.m:55	log	%                (PIETOOLS_stability_sop, PIETOOLS_Hinf_gain_sop and
+testing_codes/private/executives/tests/test_executives.m:56	log	%                PIETOOLS_H2_norm_sop with a form, in place of the removed
+testing_codes/private/executives/tests/test_executives.m:66	log	% MMP, 11/08/2026: Settings lpisettings_sop('light') (was the stock
+testing_codes/private/executives/tests/test_executives.m:69	log	%                lpisettings_sop; code unchanged.
+testing_codes/private/executives/tests/test_executives.m:71	log	%                LPISETTINGS_STOCK_SOP (sop.stock): it left the tiers (phase 2
+testing_codes/private/executives/tests/test_executives.m:99	was	%     [~,~,g,info] = feval(['PIETOOLS_' nm{1} '_sop'],PIE,st);              % MMP, 10/28/2026 (was)
+testing_codes/private/executives/tests/test_executives.m:136	was	% [~,~,g,~,~,info] = PIETOOLS_H2_norm_c_sop(PIE,st2);                      % MMP, 10/28/2026 (was)
+testing_codes/private/executives/tests/test_executives.m:138	was	% n = check(n,info.certified && abs(g-gs)<=1e-4*gs,sprintf('H2_norm_c_sop stock slack %.8g vs stock %.8g',g,gs)); % MMP, 10/28/2026 (was)
+testing_codes/private/executives/tests/test_executives.m:143	was	%     [~,P,info] = feval(['PIETOOLS_' nm{1} '_sop'],PIEs,sts);              % MMP, 10/28/2026 (was)
+testing_codes/private/executives/tests/test_executives.m:162	was	%   [~,P,info] = PIETOOLS_stability_2D_sop(PIE3,st3);                       % MMP, 10/28/2026 (was)
+testing_codes/private/executives/tests/test_executives.m:164	was	%   n = check(n,info.certified && isa(P,'opvar2d'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026 (was); MMP, 10/28/2026
+testing_codes/private/lpi_programming/misc/subs_dvar.m:73	log	%                running lpigetsol_sop, and the cost by reference to
+testing_codes/private/lpi_programming/misc/subs_dvar.m:74	log	%                getsol_lpivar_sop and lpigetsol.
+testing_codes/private/lpi_programming/misc/subs_dvar.m:76	log	%                retired 11/08/2026 and no longer accepted by LPIGETSOL_SOP,
+testing_codes/private/lpi_programming/tests/bench_lpi_eq.m:69	log	% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP is
+testing_codes/private/lpi_programming/tests/bench_lpi_eq.m:87	was	%     [~,P1] = lpivar_cdopvar(lpiprogram_sop(vars,D),1,{vars},D,dg(N));     % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/bench_lpi_eq.m:93	was	%         [prog,P] = lpivar_cdopvar(lpiprogram_sop(vars,D),n,{vars},D,dg(N)); % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/e2e_heat3d_stability.m:107	log	% MMP, 10/21/2026: moved from examples/heat3d_stability_sop.m to
+testing_codes/private/lpi_programming/tests/e2e_heat3d_stability.m:109	log	%                the heatNd benchmark functions and opcheck_sop, not an
+testing_codes/private/lpi_programming/tests/e2e_heat3d_stability.m:124	was	% function out = heat3d_stability_sop(kappa,opts)                           % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:98	log	% MMP, 10/06/2026: cx_hinf_lf -> poslpivar_settings_sop ('lf'), cx_hinf_qdeg
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:99	log	%                -> get_lpivar_degs_sop, cx_space_list -> copvar_space_list,
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:100	log	%                and the re-typed cx_hinf_slack block -> poslpivar_settings_sop
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:102	log	%                (lpi_programming_sopvar); programs unchanged (126-program
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:108	log	% MMP, 10/21/2026: moved from examples/hinf_gain_1d_sop.m to
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:110	log	%                helpers (cx_exec, opcheck_sop), not an example of standard
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:111	log	%                usage; examples/hinf_gain_1d_sop.m is now that. Code
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:125	was	% function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:126	log	% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:137	log	% MMP, 11/08/2026: gam >= 0 by LPI_INEQ_SOP, which imposes a 'dpvar' by
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:141	log	%                lpi_ineq_sop and lpisettings_sop (the settings cx_settings
+testing_codes/private/lpi_programming/tests/e2e_hinf_gain_1d.m:183	was	% prog = lpiprogram_sop(Tm);                          % registry and dom of T % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/e2e_stability_1d.m:82	log	% MMP, 10/21/2026: moved from examples/stability_1d_sop.m to
+testing_codes/private/lpi_programming/tests/e2e_stability_1d.m:84	log	%                helpers (cx_exec, opcheck_sop), not an example of standard
+testing_codes/private/lpi_programming/tests/e2e_stability_1d.m:85	log	%                usage; examples/stability_1d_sop.m is now that. Code
+testing_codes/private/lpi_programming/tests/e2e_stability_1d.m:97	was	% function out = stability_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/e2e_stability_1d.m:98	log	% MMP, 11/07/2026: The coefficient checks of (2) count the rows lpi_eq_sop
+testing_codes/private/lpi_programming/tests/e2e_stability_1d.m:105	log	%                lpisettings_sop, the settings cx_settings returns since
+testing_codes/private/lpi_programming/tests/private/dup_res.m:51	log	%                was 'heat3d_stability_sop:check', the test's own.
+testing_codes/private/lpi_programming/tests/private/dup_res.m:77	was	%       assert(all(row>0),'heat3d_stability_sop:check','(2) a dropped equation refers to no written row') % MMP, 11/07/2026 (was)
+testing_codes/private/lpi_programming/tests/private/opcheck.m:82	log	%                (hinf_gain_1d_sop, stability_1d_sop, stability_2d_sop,
+testing_codes/private/lpi_programming/tests/private/opcheck.m:83	log	%                heat3d_stability_sop); generalizes the local helpers of
+testing_codes/private/lpi_programming/tests/private/opcheck.m:84	log	%                tests/test_getsol_sop (part ii) to R^n x L2 containers,
+testing_codes/private/lpi_programming/tests/test_dpvar_hinf_chain.m:79	log	%                  cx_hinf_slack -> library poslpivar_settings_sop ('lf';
+testing_codes/private/lpi_programming/tests/test_dpvar_hinf_chain.m:81	log	%                  get_lpivar_degs_sop, copvar_space_list, so the test runs
+testing_codes/private/lpi_programming/tests/test_dpvar_hinf_chain.m:82	log	%                  on the library translators (lpi_programming_sopvar);
+testing_codes/private/lpi_programming/tests/test_dpvar_hinf_chain.m:95	log	% MMP, 11/08/2026: gam >= 0 by LPI_INEQ_SOP and gamma by LPIGETSOL_SOP,
+testing_codes/private/lpi_programming/tests/test_dpvar_hinf_chain.m:100	log	%                  lpi_ineq_sop and lpisettings_sop with the code, a (was)
+testing_codes/private/lpi_programming/tests/test_dpvar_ops.m:94	log	%                deleted: in (b), MAT2COPVAR_SOP and EYE_COPVAR_SOP against
+testing_codes/private/lpi_programming/tests/test_endtoend.m:61	log	% MMP, 10/21/2026: E1-E4 moved from examples/ (hinf_gain_1d_sop,
+testing_codes/private/lpi_programming/tests/test_endtoend.m:62	log	%                stability_1d_sop, stability_2d_sop, heat3d_stability_sop)
+testing_codes/private/lpi_programming/tests/test_endtoend.m:90	was	%       case 'E1',  R.E1 = hinf_gain_1d_sop();                              % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/test_endtoend.m:91	was	%       case 'E2',  R.E2 = stability_1d_sop();                              % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/test_endtoend.m:92	was	%       case 'E3',  R.E3 = stability_2d_sop();                              % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/test_endtoend.m:93	was	%       case 'E4',  R.E4 = heat3d_stability_sop();                          % MMP, 10/21/2026 (was)
+testing_codes/private/lpi_programming/tests/test_getsol.m:137	log	%                  cx_hinf_slack -> library poslpivar_settings_sop ('lf';
+testing_codes/private/lpi_programming/tests/test_getsol.m:139	log	%                  get_lpivar_degs_sop, copvar_space_list, so the test runs
+testing_codes/private/lpi_programming/tests/test_getsol.m:140	log	%                  on the library translators (lpi_programming_sopvar);
+testing_codes/private/lpi_programming/tests/test_getsol.m:152	log	% MMP, 11/08/2026: part (iv) imposes gam >= 0 by LPI_INEQ_SOP and reads
+testing_codes/private/lpi_programming/tests/test_getsol.m:153	log	%                  gamma by LPIGETSOL_SOP, which reduce to SOSINEQ and
+testing_codes/private/lpi_programming/tests/test_getsol.m:166	log	%                  lpisettings_sop with cx_settings, a (was) comment line
+testing_codes/private/lpi_programming/tests/test_lpi_eq.m:77	log	% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+testing_codes/private/lpi_programming/tests/test_lpi_eq.m:83	log	%                case is checked against SOSEQ, which lpi_eq_sop calls for
+testing_codes/private/lpi_programming/tests/test_lpi_eq.m:85	log	%                identifier lpi_eq_sop:class. LPIVAR, LPI_EQ and the opvar
+testing_codes/private/lpi_programming/tests/test_lpi_eq.m:98	was	% p1 = lpiprogram_sop(s,th,[0 1]);                                          % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_eq.m:104	was	% p2 = lpiprogram_sop([s1;s2],[th1;th2],[0 1;0 2]);                         % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_eq.m:109	was	% p3 = lpiprogram_sop(v3,D3);                                               % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:77	log	%                read from the operators of 'poscopvar' (lpi_ineq_sop).
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:85	log	% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:88	log	% MMP, 11/08/2026: Part (5), lpi_ineq_sop against LPI_INEQ on a 'dopvar' of
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:90	log	%                (cleaning/private), and the branch of lpi_ineq_sop it
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:91	log	%                exercised now raises lpi_ineq_sop:class.
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:93	log	%                the weight floor wmin (lpi_ineq_sop, get_lift_degs). Part
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:112	was	% prog = lpiprogram_sop(Pt);                                                % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:130	was	%     prog = lpiprogram_sop(vars,dom);                                      % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:163	was	% prog = lpiprogram_sop(pie2.vars,pie2.dom);                                % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:177	was	% prog = lpiprogram_sop(Pt);                                                % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_lpi_ineq.m:236	was	% prog = lpiprogram_sop(pie1.vars,pie1.dom);                                % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_settings_prog.m:98	log	%   retired stock-format fields and LPISETTINGS_STOCK_SOP (phase 2 of the
+testing_codes/private/lpi_programming/tests/test_tier1_fixes.m:62	log	% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+testing_codes/private/lpi_programming/tests/test_tier1_fixes.m:66	log	%                into an 'opvar' with 'dpvar' fields, and lpigetsol_sop and
+testing_codes/private/lpi_programming/tests/test_tier1_fixes.m:69	log	%                lpigetsol_sop rejects them. The local function MAXC, used
+testing_codes/private/lpi_programming/tests/test_tier1_fixes.m:142	was	% prog = lpiprogram_sop({'s'},[0 1]);                                       % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_translators.m:70	log	% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+testing_codes/private/lpi_programming/tests/test_translators.m:73	log	% MMP, 11/08/2026: Settings from lpisettings_sop (was the stock lpisettings,
+testing_codes/private/lpi_programming/tests/test_translators.m:76	log	% MMP, 11/08/2026: (iv) Z2, Z3 excluded: GET_LPIVAR_DEGS_SOP now returns
+testing_codes/private/lpi_programming/tests/test_translators.m:87	log	% MMP, 11/08/2026: (ii) case 10 passes a double to GET_LPIVAR_DEGS_SOP and
+testing_codes/private/lpi_programming/tests/test_translators.m:99	log	%                (LPISETTINGS_STOCK_SOP). override1 and the 'lf' psatz term
+testing_codes/private/lpi_programming/tests/test_translators.m:121	was	% st = lpisettings_sop('custom');                                           % MMP, 11/12/2026 (was); MMP, 11/08/2026
+testing_codes/private/lpi_programming/tests/test_translators.m:134	was	%       @() poslpivar_sop(lpiprogram_sop({'s1','s2'},[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim' % MMP, 11/04/2026 (was)
+testing_codes/private/lpi_programming/tests/test_translators.m:143	was	%       @() get_lpivar_degs_sop(X2),                                     'get_lpivar_degs_sop:dim' % MMP, 11/08/2026 (was)
+testing_codes/private/lpi_programming/tests/test_translators.m:160	was	% % For each role, its two settings terms by poslpivar_sop, summed          % MMP, 11/12/2026 (was)
+testing_codes/private/lpi_programming/tests/test_translators.m:168	was	%   [pb,P1] = poslpivar_sop(pc,Xm,st.(f{1}),st.(f{2}),'out',dom);           % MMP, 11/12/2026 (was)
+testing_codes/private/lpi_programming/tests/test_translators.m:169	was	%   [pb,P2] = poslpivar_sop(pb,Xm,st.(f{3}),st.(f{4}),'out',dom);           % MMP, 11/12/2026 (was)
+testing_codes/private/lpi_programming/tests/test_translators.m:170	was	%   [tf,where] = same_val_sop({pa,Pa},{pb,P1+P2},role{1});                  % MMP, 11/12/2026 (was)
+testing_codes/private/sopvar/Testfolder/Test_qp_opvar_nd.m:35	log	% AT, 10/28/2026: eye_copvar_sop for the identity, warnings in place of the
+testing_codes/private/sopvar/Testfolder/Test_sopvar_diff.m:23	log	%   no code with diff or apply_sopvar. The operator is built with int2sopvar
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:27	log	%                  (lpi_programming_sopvar/tests/test_getsol_sop). Empty in
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:32	log	%                  poslpivar_settings_sop ('lf', 'slack'),
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:33	log	%                  cx_stability_lpivar_degs -> get_lpivar_degs_sop,
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:35	log	%                  runs on the library translators (lpi_programming_sopvar);
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:38	log	%                  library routine get_lpivar_degs_sop.
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:41	log	% MMP, 11/08/2026: Default settings from lpisettings_sop('heavy') (was the
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:46	log	% MMP, 11/09/2026: eppos2 read as EXEC_SOP_SETTINGS sets it: the L2 margin
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:48	log	%                  settings_sopvar tiers set eppos only since 11/09/2026, so
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:49	log	%                  an ST from lpisettings_sop stopped at st.eppos2
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:50	log	%                  (e2e_stability_1d, test_getsol_sop part ii). The value is
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_PIE2PDEstability.m:57	log	%                  from lpi.pos and N from sop.stock (POSLPIVAR_SETTINGS_SOP),
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_settings.m:9	log	% MMP, 11/08/2026: lpisettings_sop(NAME) (was the stock lpisettings(NAME),
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_settings.m:12	log	%                (LPISETTINGS_STOCK_SOP), which left the tiers on 11/12/2026
+testing_codes/private/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_settings.m:14	log	%                read (POSLPIVAR_SETTINGS_SOP, role 'slack'); sop.slack stays

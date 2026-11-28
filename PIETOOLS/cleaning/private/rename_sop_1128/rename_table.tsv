@@ -1,0 +1,72 @@
+current	kind	location	new_name	2025_counterpart	toolbox_f/l	doc_f/l	tests_f/l	note
+PIETOOLS_H2_control_sop	function	executives_sopvar/PIETOOLS_H2_control_sop.m	PIETOOLS_H2_control	executives/PIETOOLS_H2_control.m	5/13	1/1	12/15	
+PIETOOLS_H2_estimator_sop	function	executives_sopvar/PIETOOLS_H2_estimator_sop.m	PIETOOLS_H2_estimator	executives/PIETOOLS_H2_estimator.m	5/14	0/0	12/13	
+PIETOOLS_H2_norm_sop	function	executives_sopvar/PIETOOLS_H2_norm_sop.m	PIETOOLS_H2_norm	-	5/20	1/1	23/49	2025: H2_norm_o, _c, _o_coercive, _c_coercive = forms o, c, oco, cco
+PIETOOLS_Hinf_OFcontrol_sop	function	executives_sopvar/PIETOOLS_Hinf_OFcontrol_sop.m	PIETOOLS_Hinf_OFcontrol	-	1/6	0/0	2/3	new in this release
+PIETOOLS_Hinf_control_sop	function	executives_sopvar/PIETOOLS_Hinf_control_sop.m	PIETOOLS_Hinf_control	executives/PIETOOLS_Hinf_control.m	6/12	1/1	14/16	
+PIETOOLS_Hinf_estimator_sop	function	executives_sopvar/PIETOOLS_Hinf_estimator_sop.m	PIETOOLS_Hinf_estimator	executives/PIETOOLS_Hinf_estimator.m	6/13	0/0	12/15	
+PIETOOLS_Hinf_gain_sop	function	executives_sopvar/PIETOOLS_Hinf_gain_sop.m	PIETOOLS_Hinf_gain	executives/PIETOOLS_Hinf_gain.m	8/30	1/1	40/93	2025 same name = form Q; also _coercive, _dual, _dual_coercive = P, Qd, Pd
+PIETOOLS_auto_execute_sop	function	executives_sopvar/PIETOOLS_auto_execute_sop.m	PIETOOLS_auto_execute	executives/PIETOOLS_auto_execute.m	3/5	0/0	13/14	
+PIETOOLS_stability_sop	function	executives_sopvar/PIETOOLS_stability_sop.m	PIETOOLS_stability	-	8/28	1/2	41/93	2025: four executives PDEstability(_dual), PIE2PDEstability(_dual) = forms P, Pd, Q, Qd
+PIETOOLS_well_posedness_sop	function	executives_sopvar/PIETOOLS_well_posedness_sop.m	PIETOOLS_well_posedness	executives/PIETOOLS_well_posedness.m	3/8	0/0	3/6	
+bench_getsol_sop	test	testing_codes/private/lpi_programming_sopvar/tests/bench_getsol_sop.m	bench_getsol	-	0/0	0/0	2/4	
+bench_lpi_eq_sop	test	testing_codes/private/lpi_programming_sopvar/tests/bench_lpi_eq_sop.m	bench_lpi_eq	-	0/0	0/0	1/3	
+bl_sop	test	testing_codes/private/PIETOOLS_demos/cuadmm/private/bl_sop.m	bl_sop	-	0/0	0/0	7/13	keep: test helper, the sop variant of a suite
+eq_opts_sopvar	function	lpi_programming_sopvar/misc/eq_opts_sopvar.m	get_eq_opts	-	2/3	1/1	8/15	2025 had get_eq_opts_2D (executives/2D/utility); serves dopvar and sdopvar
+exec_info_sop	function	executives_sopvar/utility_functions/exec_info_sop.m	exec_info	-	10/11	0/0	2/2	
+exec_kmult_sop	function	executives_sopvar/utility_functions/exec_kmult_sop.m	exec_kmult	-	5/8	0/0	0/0	
+exec_pie_sop	function	executives_sopvar/utility_functions/exec_pie_sop.m	exec_pie	-	14/19	0/0	3/4	
+exec_sop_settings	function	executives_sopvar/utility_functions/exec_sop_settings.m	exec_sop_settings	-	14/23	0/0	6/10	keep: names the settings field st.sop
+exec_tools_sop	function	executives_sopvar/utility_functions/exec_tools_sop.m	exec_tools	-	15/23	0/0	6/13	
+getController_sop	function	executives_sopvar/utility_functions/getController_sop.m	getController	executives/utility_functions/getController.m	6/12	1/1	2/6	2025 third input tol (numeric); now opts (struct)
+getObserver_sop	function	executives_sopvar/utility_functions/getObserver_sop.m	getObserver	executives/utility_functions/getObserver.m	5/15	1/1	1/5	2025 third input tol (numeric); now opts (struct)
+get_lpivar_degs_sop	function	executives_sopvar/utility_functions/get_lpivar_degs_sop.m	get_lpivar_degs	executives/utility_functions/get_lpivar_degs.m	8/18	0/0	10/27	
+getsol_lpivar_sop	function	lpi_programming_sopvar/getsol_lpivar_sop.m	getsol_lpivar	lpi_programming/getsol_lpivar.m	18/37	1/1	6/38	
+lb_full_sop	test	testing_codes/private/baselines/2026-10-28_example_library/private/lb_full_sop.m	lb_full_sop	-	0/0	0/0	8/20	keep: dated baseline helper; lb_full exists beside it
+lb_full_sop	test	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_full_sop.m	lb_full_sop	-	0/0	0/0	8/20	keep: dated baseline helper; lb_full exists beside it
+lb_full_sop	test	testing_codes/private/baselines/2026-11-17_tiers/private/lb_full_sop.m	lb_full_sop	-	0/0	0/0	8/20	keep: dated baseline helper; lb_full exists beside it
+lb_full_sop	test	testing_codes/private/baselines/2026-11-18_studies/private/lb_full_sop.m	lb_full_sop	-	0/0	0/0	8/20	keep: dated baseline helper; lb_full exists beside it
+lb_sop_plan	test	testing_codes/private/baselines/2026-10-28_example_library/private/lb_sop_plan.m	lb_sop_plan	-	0/0	0/0	4/8	keep: dated baseline helper (records)
+lb_sop_plan	test	testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_sop_plan.m	lb_sop_plan	-	0/0	0/0	4/8	keep: dated baseline helper (records)
+lb_sop_plan	test	testing_codes/private/baselines/2026-11-17_tiers/private/lb_sop_plan.m	lb_sop_plan	-	0/0	0/0	4/8	keep: dated baseline helper (records)
+lb_sop_plan	test	testing_codes/private/baselines/2026-11-18_studies/private/lb_sop_plan.m	lb_sop_plan	-	0/0	0/0	4/8	keep: dated baseline helper (records)
+lpi_classify_sop	function	lpi_programming_sopvar/misc/lpi_classify_sop.m	lpi_classify	-	2/3	1/1	4/4	
+lpi_eq_sop	function	lpi_programming_sopvar/lpi_eq_sop.m	lpi_eq	lpi_programming/lpi_eq.m	18/44	1/1	11/44	
+lpi_ineq_sop	function	lpi_programming_sopvar/lpi_ineq_sop.m	lpi_ineq	lpi_programming/lpi_ineq.m	31/84	2/2	22/71	2025 opts.psatz 0/1, opts.pure, opts.sep; now term sets, no pure/sep
+lpi_shape_sop	function	lpi_programming_sopvar/misc/lpi_shape_sop.m	lpi_shape	-	2/3	0/0	2/2	
+lpi_solve_loop_sop	function	executives_sopvar/utility_functions/lpi_solve_loop_sop.m	lpi_solve_loop	-	10/11	1/1	5/5	
+lpigetdual_sop	function	lpi_programming_sopvar/misc/lpigetdual_sop.m	lpigetdual	-	2/7	1/1	0/0	
+lpigetsol_sop	function	lpi_programming_sopvar/lpigetsol_sop.m	lpigetsol	lpi_programming/lpigetsol.m	14/30	1/1	9/59	
+lpiscript_sop	function	lpi_programming_sopvar/lpiscript_sop.m	lpiscript	lpi_programming/lpiscript.m	11/32	1/5	1/7	
+lpisettings_sop	function	settings_sopvar/lpisettings_sop.m	lpisettings	settings/lpisettings.m	108/242	1/1	80/173	
+lpisettings_stock_sop	function	settings_sopvar/lpisettings_stock_sop.m	lpisettings_stock	-	4/6	0/0	7/9	
+on_registry_sop	function	sopvar/misc/on_registry_sop.m	on_registry	-	8/11	0/0	0/0	
+opcheck_sop	test	testing_codes/private/lpi_programming_sopvar/tests/private/opcheck_sop.m	opcheck	-	0/0	0/0	4/33	
+pie_disc_sop	function	executives_sopvar/utility_functions/pie_disc_sop.m	pie_disc	-	2/11	2/2	1/4	
+pie_witness_sop	function	executives_sopvar/utility_functions/pie_witness_sop.m	pie_witness	-	5/8	2/2	2/9	
+poslpivar_settings_2d_sop	function	executives_sopvar/utility_functions/poslpivar_settings_2d_sop.m	poslpivar_settings_2d	-	2/16	0/0	4/7	
+poslpivar_settings_sop	function	executives_sopvar/utility_functions/poslpivar_settings_sop.m	poslpivar_settings	-	2/6	0/0	5/24	C7 of the container rename: named in this pass
+same_val_sop	test	testing_codes/private/lpi_programming_sopvar/tests/private/same_val_sop.m	same_val	-	0/0	0/0	3/8	
+settings_2d_sop	function	executives_sopvar/utility_functions/settings_2d_sop.m	settings_2d	-	3/6	0/0	0/0	
+settings_sopvar_custom	function	settings_sopvar/settings_sopvar_custom.m	settings_PIETOOLS_custom	settings/settings_PIETOOLS_custom.m	2/3	0/0	0/0	
+settings_sopvar_extreme	function	settings_sopvar/settings_sopvar_extreme.m	settings_PIETOOLS_extreme	settings/settings_PIETOOLS_extreme.m	2/3	0/0	0/0	
+settings_sopvar_heavy	function	settings_sopvar/settings_sopvar_heavy.m	settings_PIETOOLS_heavy	settings/settings_PIETOOLS_heavy.m	2/3	0/0	0/0	
+settings_sopvar_light	function	settings_sopvar/settings_sopvar_light.m	settings_PIETOOLS_light	settings/settings_PIETOOLS_light.m	2/3	0/0	2/2	
+settings_sopvar_stripped	function	settings_sopvar/settings_sopvar_stripped.m	settings_PIETOOLS_stripped	settings/settings_PIETOOLS_stripped.m	2/3	0/0	2/2	
+settings_sopvar_veryheavy	function	settings_sopvar/settings_sopvar_veryheavy.m	settings_PIETOOLS_veryheavy	settings/settings_PIETOOLS_veryheavy.m	2/3	0/0	0/0	
+subs_dvar_sop	test	testing_codes/private/lpi_programming_sopvar/misc/subs_dvar_sop.m	subs_dvar	-	0/0	0/0	6/29	
+test_call2025_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_call2025_sop.m	test_call2025	-	0/0	0/0	2/5	
+test_dpvar_hinf_chain_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_hinf_chain_sop.m	test_dpvar_hinf_chain	-	0/0	0/0	3/11	
+test_dpvar_ops_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_dpvar_ops_sop.m	test_dpvar_ops	-	0/0	0/0	3/9	
+test_endtoend_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_endtoend_sop.m	test_endtoend	-	0/0	0/0	2/7	
+test_executives_sop	test	testing_codes/private/executives_sopvar/tests/test_executives_sop.m	test_executives	-	0/0	0/0	3/12	
+test_getsol_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_getsol_sop.m	test_getsol	-	0/0	0/0	5/10	
+test_lpi_eq_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_eq_sop.m	test_lpi_eq	-	0/0	0/0	2/7	
+test_lpi_ineq_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_lpi_ineq_sop.m	test_lpi_ineq	-	0/0	0/0	2/16	
+test_settings_prog_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_settings_prog_sop.m	test_settings_prog	-	0/0	0/0	1/29	
+test_tier1_fixes_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_tier1_fixes_sop.m	test_tier1_fixes	-	0/0	0/0	2/5	
+test_translators_sop	test	testing_codes/private/lpi_programming_sopvar/tests/test_translators_sop.m	test_translators	-	0/0	0/0	2/7	
+trace_rn_sop	function	executives_sopvar/utility_functions/trace_rn_sop.m	trace_rn	-	5/15	0/0	3/12	
+executives_sopvar	folder	executives_sopvar/ (and testing_codes/private/ where present)	executives	executives/	0/0	2/3	5/36	retired 2025 folder of the same name in cleaning/private/ (off the path)
+lpi_programming_sopvar	folder	lpi_programming_sopvar/ (and testing_codes/private/ where present)	lpi_programming	lpi_programming/	0/0	2/3	13/60	retired 2025 folder of the same name in cleaning/private/ (off the path)
+settings_sopvar	folder	settings_sopvar/ (and testing_codes/private/ where present)	settings	settings/	0/0	0/0	15/23	retired 2025 folder of the same name in cleaning/private/ (off the path)

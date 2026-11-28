@@ -1,0 +1,353 @@
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:90	settings	settings = PIESOS_settings();
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:238	settings	settings.LF.mon_deg = 2;                % degree of the kernels of V
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:239	settings	settings.LF.exclude = [0;0;0];          % allow integral terms in V
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:240	settings	settings.LF.sep = true;                 % separable kernels in V
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:241	settings	settings.sos.mon_deg = [NaN,NaN,6];     % degree of the derivative constraint
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:242	settings	settings.sos.psatz = [0,0,1];           % psatz multipliers in the constraints
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:294	settings	settings.LF.mon_deg = 0;                % constant kernel of V
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:295	settings	settings.sos.psatz = [0,0,0];           % no psatz multipliers
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:319	settings	settings.LF.mon_deg = 1;                % degree of the kernels of V
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:320	settings	settings.sos.mon_deg = [1,1,3];         % degrees of the SOS constraints
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:321	settings	settings.sos.psatz = [0,0,0];           % no psatz multipliers
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:401	settings	settings = PIESOS_settings('light');    % lower degrees than the default
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:430	settings	settings.LF.mon_deg = 2;                % degree of the kernels of V
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:431	settings	settings.mult.dist_deg = [1,1];         % multipliers p1, p2 in both conditions
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:432	settings	settings.mult.mon_deg = [2,2];          % degree of the kernels of p1, p2
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:433	settings	settings.sos.psatz = [0,0,1];           % psatz multipliers in the constraints
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:434	settings	settings.simplify = false;              % solver stalls (numerr=2) if simplified
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:473	settings	settings.LF.C = 4.5;                    % C fixed, not minimized
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:474	settings	settings.mult.mon_deg = [1,1];          % degree of the kernels of p2
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:475	settings	settings.sos.otype = 3;                 % pointwise and tensor products
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:476	settings	settings.sos.intmat = 'all';            % all regions of integration
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:477	settings	settings.sos.psatz = [0,0,0];           % no psatz multipliers
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:481	settings	settings.sos.mon_deg = {NaN,NaN,mon_deg_sos3};
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:528	settings	settings = PIESOS_settings(lower(sttngs));
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:535	settings	PIESOS_stability_global(PIE,lambda,LF_form,settings);
+PIESOS/demos_and_examples/examples_PDE_library_PIESOS.m:537	settings	PIESOS_stability_local(PIE,rad,alpha,lambda,LF_form,settings);
+PIESOS/executives/PIESOS_settings.m:1	settings	function settings = PIESOS_settings(preset)
+PIESOS/executives/PIESOS_settings.m:170	settings	settings.LF.dist_deg = 1;
+PIESOS/executives/PIESOS_settings.m:171	settings	settings.LF.mon_deg = 3;
+PIESOS/executives/PIESOS_settings.m:172	settings	settings.LF.exclude = 'auto';
+PIESOS/executives/PIESOS_settings.m:173	settings	settings.LF.sep = false;
+PIESOS/executives/PIESOS_settings.m:174	settings	settings.LF.psatz = 0;
+PIESOS/executives/PIESOS_settings.m:175	settings	settings.LF.otype = 1;
+PIESOS/executives/PIESOS_settings.m:176	settings	settings.LF.intmat = 'full';
+PIESOS/executives/PIESOS_settings.m:177	settings	settings.LF.eppos = 1;
+PIESOS/executives/PIESOS_settings.m:178	settings	settings.LF.C = [];
+PIESOS/executives/PIESOS_settings.m:179	settings	settings.LF.lower = 'u';        % lower bound in u=T*x, or in x_pde
+PIESOS/executives/PIESOS_settings.m:182	settings	settings.mult.dist_deg = [0,1];
+PIESOS/executives/PIESOS_settings.m:183	settings	settings.mult.mon_deg = [3,3];
+PIESOS/executives/PIESOS_settings.m:184	settings	settings.mult.psatz = [0,0];
+PIESOS/executives/PIESOS_settings.m:185	settings	settings.mult.exclude = [1;0;0];
+PIESOS/executives/PIESOS_settings.m:186	settings	settings.mult.otype = 1;
+PIESOS/executives/PIESOS_settings.m:187	settings	settings.mult.intmat = 'full';
+PIESOS/executives/PIESOS_settings.m:190	settings	settings.sos.use_ineq = true;
+PIESOS/executives/PIESOS_settings.m:191	settings	settings.sos.mon_deg = [3,3,4];
+PIESOS/executives/PIESOS_settings.m:192	settings	settings.sos.psatz = [1,1,1];
+PIESOS/executives/PIESOS_settings.m:193	settings	settings.sos.exclude = [1;0;0];
+PIESOS/executives/PIESOS_settings.m:194	settings	settings.sos.otype = 'auto';
+PIESOS/executives/PIESOS_settings.m:195	settings	settings.sos.intmat = 'full';
+PIESOS/executives/PIESOS_settings.m:198	settings	settings.solver = '';
+PIESOS/executives/PIESOS_settings.m:199	settings	settings.simplify = true;
+PIESOS/executives/PIESOS_settings.m:200	settings	settings.tol_feas = 0.1;
+PIESOS/executives/PIESOS_settings.m:201	settings	settings.verbose = true;
+PIESOS/executives/PIESOS_settings.m:206	settings	settings.LF.mon_deg = 2;
+PIESOS/executives/PIESOS_settings.m:207	settings	settings.mult.mon_deg = [2,2];
+PIESOS/executives/PIESOS_settings.m:208	settings	settings.sos.mon_deg = [2,2,3];
+PIESOS/executives/PIESOS_settings.m:212	settings	settings.LF.mon_deg = 4;
+PIESOS/executives/PIESOS_settings.m:213	settings	settings.mult.mon_deg = [4,4];
+PIESOS/executives/PIESOS_settings.m:214	settings	settings.sos.mon_deg = [4,4,5];
+PIESOS/executives/PIESOS_stability_global.m:1	settings	function [prog_sol,info] = PIESOS_stability_global(PIE,lambda,LF_form,settings)
+PIESOS/executives/PIESOS_stability_global.m:111	settings	if nargin<4 || isempty(settings)
+PIESOS/executives/PIESOS_stability_global.m:112	settings	settings = PIESOS_settings();
+PIESOS/executives/PIESOS_stability_global.m:114	settings	check_opts(settings,'PIESOS_stability_global',PIESOS_settings());
+PIESOS/executives/PIESOS_stability_global.m:123	settings	LF = settings.LF;
+PIESOS/executives/PIESOS_stability_global.m:145	settings	if LF.dist_deg>1 && settings.verbose
+PIESOS/executives/PIESOS_stability_global.m:203	settings	if settings.verbose
+PIESOS/executives/PIESOS_stability_global.m:224	settings	sos = settings.sos;
+PIESOS/executives/PIESOS_stability_global.m:264	settings	if settings.verbose
+PIESOS/executives/PIESOS_stability_global.m:269	settings	sol_opts.simplify = settings.simplify;
+PIESOS/executives/PIESOS_stability_global.m:270	settings	if ~isempty(settings.solver)
+PIESOS/executives/PIESOS_stability_global.m:271	settings	sol_opts.solver = settings.solver;
+PIESOS/executives/PIESOS_stability_global.m:278	settings	feasible = ~(sinfo.pinf || sinfo.dinf || sinfo.numerr || (min_C && abs(sinfo.feasratio-1)>settings.tol_feas));
+PIESOS/executives/PIESOS_stability_global.m:293	settings	if settings.verbose
+PIESOS/executives/PIESOS_stability_local.m:1	settings	function [prog_sol,info] = PIESOS_stability_local(PIE,r,alpha,lambda,LF_form,settings)
+PIESOS/executives/PIESOS_stability_local.m:133	settings	if nargin<6 || isempty(settings)
+PIESOS/executives/PIESOS_stability_local.m:134	settings	settings = PIESOS_settings();
+PIESOS/executives/PIESOS_stability_local.m:136	settings	check_opts(settings,'PIESOS_stability_local',PIESOS_settings());
+PIESOS/executives/PIESOS_stability_local.m:148	settings	LF = settings.LF;
+PIESOS/executives/PIESOS_stability_local.m:207	settings	if LF.dist_deg>1 && settings.mult.dist_deg(1)==0
+PIESOS/executives/PIESOS_stability_local.m:210	settings	if strcmp(states,'pie') && ~settings.sos.use_ineq
+PIESOS/executives/PIESOS_stability_local.m:265	settings	if settings.verbose
+PIESOS/executives/PIESOS_stability_local.m:283	settings	mult = settings.mult;
+PIESOS/executives/PIESOS_stability_local.m:304	settings	sos = settings.sos;
+PIESOS/executives/PIESOS_stability_local.m:352	settings	if settings.verbose
+PIESOS/executives/PIESOS_stability_local.m:357	settings	sol_opts.simplify = settings.simplify;
+PIESOS/executives/PIESOS_stability_local.m:358	settings	if ~isempty(settings.solver)
+PIESOS/executives/PIESOS_stability_local.m:359	settings	sol_opts.solver = settings.solver;
+PIESOS/executives/PIESOS_stability_local.m:366	settings	feasible = ~(sinfo.pinf || sinfo.dinf || sinfo.numerr || (isempty(C_set) && abs(sinfo.feasratio-1)>settings.tol_feas));
+PIESOS/executives/PIESOS_stability_local.m:384	settings	if settings.verbose
+PIESOS/executives/PIESOS_sublevel.m:1	settings	function [prog_sol,info] = PIESOS_sublevel(V,g,h,settings)
+PIESOS/executives/PIESOS_sublevel.m:99	settings	if nargin<4 || isempty(settings)
+PIESOS/executives/PIESOS_sublevel.m:100	settings	settings = PIESOS_settings();
+PIESOS/executives/PIESOS_sublevel.m:102	settings	check_opts(settings,'PIESOS_sublevel',PIESOS_settings());
+PIESOS/executives/PIESOS_sublevel.m:139	settings	sos_opts.otype = settings.sos.otype;
+PIESOS/executives/PIESOS_sublevel.m:141	settings	if isfield(settings.sos,'intmat')
+PIESOS/executives/PIESOS_sublevel.m:142	settings	sos_opts.intmat = settings.sos.intmat;
+PIESOS/executives/PIESOS_sublevel.m:144	settings	if settings.sos.psatz(3)>0
+PIESOS/executives/PIESOS_sublevel.m:145	settings	sos_opts.psatz = settings.sos.psatz(3);
+PIESOS/executives/PIESOS_sublevel.m:147	settings	sos_opts.degs = max(settings.sos.mon_deg(3),settings.LF.mon_deg+2);     % NaN ignored by max
+PIESOS/executives/PIESOS_sublevel.m:147	settings	sos_opts.degs = max(settings.sos.mon_deg(3),settings.LF.mon_deg+2);     % NaN ignored by max
+PIESOS/executives/PIESOS_sublevel.m:148	settings	sol_opts.simplify = settings.simplify;
+PIESOS/executives/PIESOS_sublevel.m:149	settings	if ~isempty(settings.solver)
+PIESOS/executives/PIESOS_sublevel.m:150	settings	sol_opts.solver = settings.solver;
+PIESOS/executives/PIESOS_sublevel.m:175	settings	if sinfo.pinf || sinfo.dinf || sinfo.numerr || abs(sinfo.feasratio-1)>settings.tol_feas
+PIESOS/executives/PIESOS_sublevel.m:184	settings	if settings.verbose
+PIESOS/executives/PIESOS_sublevel.m:196	settings	if settings.verbose
+PIETOOLS_DDE.m:257	settings	settings = lpisettings_sop('light');  % tiers of the container executives   % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:274	settings	settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
+PIETOOLS_DDE.m:275	settings	settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
+PIETOOLS_DDE.m:276	settings	settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function 
+PIETOOLS_DDE.m:278	settings	if exist('st','var'),   settings = st;  end                                 % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:304	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:308	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:312	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,Hinf_gain_form); % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:316	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,[Hinf_gain_form 'd']); % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:320	settings	[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:324	settings	[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:328	settings	[prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'o');        % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:332	settings	[prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'c');        % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:336	settings	[prog, K, gamma, P, Z] = PIETOOLS_H2_control_sop(PIE,settings);         % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDE.m:340	settings	[prog, L, gamma, P, Z] = PIETOOLS_H2_estimator_sop(PIE,settings);       % YP, DB, MMP, 11/21/2026
+PIETOOLS_DDF.m:247	settings	settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/21/2026
+PIETOOLS_DDF.m:264	settings	settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
+PIETOOLS_DDF.m:265	settings	settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
+PIETOOLS_DDF.m:266	settings	settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function %%% Default Setttings: %%%%%%
+PIETOOLS_DDF.m:268	settings	if exist('st','var'),   settings = st;  end                                 % MMP, 11/21/2026
+PIETOOLS_DDF.m:314	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % MMP, 11/21/2026
+PIETOOLS_DDF.m:318	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % MMP, 11/21/2026
+PIETOOLS_DDF.m:322	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,Hinf_gain_form); % MMP, 11/21/2026
+PIETOOLS_DDF.m:326	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,[Hinf_gain_form 'd']); % MMP, 11/21/2026
+PIETOOLS_DDF.m:332	settings	if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/21/2026
+PIETOOLS_DDF.m:332	settings	if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/21/2026
+PIETOOLS_DDF.m:335	settings	[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/21/2026
+PIETOOLS_DDF.m:341	settings	if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/21/2026
+PIETOOLS_DDF.m:341	settings	if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/21/2026
+PIETOOLS_DDF.m:343	settings	[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/21/2026
+PIETOOLS_PDE.m:106	settings	settings = lpisettings_sop('heavy');  % tiers of the container executives   % YP, MMP, DB, 11/21/2026
+PIETOOLS_PDE.m:107	settings	settings.eppos = 1e-2;                % Positivity of Lyapunov Function with respect to real-valued states
+PIETOOLS_PDE.m:108	settings	settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
+PIETOOLS_PDE.m:109	settings	settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+PIETOOLS_PDE.m:112	settings	settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or 'sdpt3'
+PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m:94	settings	settings = lpisettings_sop('light');
+PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m:119	settings	max_raise = settings.sop.max_raise;  max_raise = max_raise(min(nvp,end));
+PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m:120	settings	dw_Q      = settings.sop.dw_Q;          dw_Q = dw_Q(min(nvp,end));
+PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m:123	settings	prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),dom,settings);
+PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m:182	settings	o = struct('like',R,'dw',dw_Q+max_raise,'margin',settings.sop.margin,'cap',[]);
+PIETOOLS_demos/DEMO13_Hinf_OFcontrol.m:186	settings	prog = lpisolve(prog,settings.sos_opts);
+PIETOOLS_demos/DEMO7_observer_based_control.m:134	settings	settings = lpisettings_sop('heavy');                                        % YP, DJ, MMP, 11/21/2026
+PIETOOLS_demos/DEMO7_observer_based_control.m:136	settings	[prog_k, Kval, gam_co_val] = lpiscript_sop(PIE,'hinf-controller',settings); % YP, DJ, MMP, 11/21/2026
+PIETOOLS_demos/DEMO7_observer_based_control.m:138	settings	[prog_l, Lval, gam_ob_val] = lpiscript_sop(PIE,'hinf-observer',settings);   % YP, DJ, MMP, 11/21/2026
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m:168	settings	settings = lpisettings_sop('heavy');  % heavy: more expensive, less conservative % YP, DJ, DB, MMP, 11/21/2026
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m:170	settings	lpiscript_sop(PIE,'stability',settings);                                    % YP, DJ, DB, MMP, 11/21/2026
+PIETOOLS_demos/snippets_from_manual/PIETOOLS_Code_Illustrations_Ch2_Introduction.m:175	settings	[~,~, gam] = lpiscript_sop(PIE,'l2gain',settings);                          % YP, DJ, DB, MMP, 11/21/2026
+executives_sopvar/PIETOOLS_H2_control_sop.m:1	settings	function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
+executives_sopvar/PIETOOLS_H2_control_sop.m:93	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_H2_control_sop.m:93	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_H2_control_sop.m:103	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_H2_estimator_sop.m:1	settings	function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
+executives_sopvar/PIETOOLS_H2_estimator_sop.m:103	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_H2_estimator_sop.m:103	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_H2_estimator_sop.m:113	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_H2_norm_sop.m:1	settings	function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
+executives_sopvar/PIETOOLS_H2_norm_sop.m:117	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_H2_norm_sop.m:117	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_H2_norm_sop.m:128	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_Hinf_OFcontrol_sop.m:1	settings	function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
+executives_sopvar/PIETOOLS_Hinf_OFcontrol_sop.m:120	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_OFcontrol_sop.m:120	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_OFcontrol_sop.m:130	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_Hinf_control_sop.m:1	settings	function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
+executives_sopvar/PIETOOLS_Hinf_control_sop.m:97	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_control_sop.m:97	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_control_sop.m:107	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_Hinf_estimator_sop.m:1	settings	function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
+executives_sopvar/PIETOOLS_Hinf_estimator_sop.m:115	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_estimator_sop.m:115	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_estimator_sop.m:116	settings	if nargin>=3 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
+executives_sopvar/PIETOOLS_Hinf_estimator_sop.m:126	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_Hinf_gain_sop.m:1	settings	function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
+executives_sopvar/PIETOOLS_Hinf_gain_sop.m:130	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_gain_sop.m:130	settings	if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end
+executives_sopvar/PIETOOLS_Hinf_gain_sop.m:132	settings	if nargin>=4 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
+executives_sopvar/PIETOOLS_Hinf_gain_sop.m:141	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_auto_execute_sop.m:175	settings	settings = lpisettings_sop(sttngs);
+executives_sopvar/PIETOOLS_stability_sop.m:1	settings	function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
+executives_sopvar/PIETOOLS_stability_sop.m:151	settings	if nargin<2 || isempty(settings)
+executives_sopvar/PIETOOLS_stability_sop.m:153	settings	settings = lpisettings_sop('light');
+executives_sopvar/PIETOOLS_stability_sop.m:154	settings	settings.sos_opts.simplify = 1;
+executives_sopvar/PIETOOLS_stability_sop.m:156	settings	settings = lpisettings_sop('heavy');
+executives_sopvar/PIETOOLS_stability_sop.m:160	settings	if fe,  settings.epneg = 1e-5;  end
+executives_sopvar/PIETOOLS_stability_sop.m:166	settings	st = exec_sop_settings(settings);
+executives_sopvar/PIETOOLS_well_posedness_sop.m:1	settings	function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
+executives_sopvar/PIETOOLS_well_posedness_sop.m:91	settings	if nargin<2 || isempty(settings)
+executives_sopvar/PIETOOLS_well_posedness_sop.m:92	settings	settings = lpisettings_sop('heavy');
+executives_sopvar/PIETOOLS_well_posedness_sop.m:93	settings	settings.sos_opts.simplify = 1;
+executives_sopvar/PIETOOLS_well_posedness_sop.m:94	settings	settings.eppos = 1e-2;  settings.eppos2 = 1e-2;   settings.epneg = 0;
+executives_sopvar/PIETOOLS_well_posedness_sop.m:94	settings	settings.eppos = 1e-2;  settings.eppos2 = 1e-2;   settings.epneg = 0;
+executives_sopvar/PIETOOLS_well_posedness_sop.m:94	settings	settings.eppos = 1e-2;  settings.eppos2 = 1e-2;   settings.epneg = 0;
+executives_sopvar/PIETOOLS_well_posedness_sop.m:97	settings	st = exec_sop_settings(settings);
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:1	settings	function [prog,P] = poslpivar_settings_sop(prog,n,settings,role,varargin)
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:88	settings	ps = settings.lpi.pos;  b = ps.int(1);  j = ps.joint(1);
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:89	settings	settings = struct('dd1',{{ps.mult(1),[b b j],[b b j]}}, ...
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:94	settings	if ~isfield(settings,'sop') || ~isfield(settings.sop,'stock')
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:94	settings	if ~isfield(settings,'sop') || ~isfield(settings.sop,'stock')
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:98	settings	settings = settings.sop.stock;
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:98	settings	settings = settings.sop.stock;
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:104	settings	[prog,P] = poslpivar_legacy(prog,n,settings.(f{1}),settings.(f{2}),varargin{:});
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:104	settings	[prog,P] = poslpivar_legacy(prog,n,settings.(f{1}),settings.(f{2}),varargin{:});
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:105	settings	if settings.(f{3})~=1
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:106	settings	[prog,P2] = poslpivar_legacy(prog,n,settings.(f{4}),settings.(f{5}),varargin{:});
+executives_sopvar/utility_functions/poslpivar_settings_sop.m:106	settings	[prog,P2] = poslpivar_legacy(prog,n,settings.(f{4}),settings.(f{5}),varargin{:});
+executives_sopvar/utility_functions/settings2possopvar.m:1	settings	function out = settings2possopvar(settings)
+executives_sopvar/utility_functions/settings2possopvar.m:107	settings	if ~isa(settings,'struct')
+executives_sopvar/utility_functions/settings2possopvar.m:110	settings	is2D = isfield(settings,'is2D') && ~isempty(settings.is2D) && settings.is2D;
+executives_sopvar/utility_functions/settings2possopvar.m:110	settings	is2D = isfield(settings,'is2D') && ~isempty(settings.is2D) && settings.is2D;
+executives_sopvar/utility_functions/settings2possopvar.m:110	settings	is2D = isfield(settings,'is2D') && ~isempty(settings.is2D) && settings.is2D;
+executives_sopvar/utility_functions/settings2possopvar.m:119	settings	out = conv_2d(settings,out);
+executives_sopvar/utility_functions/settings2possopvar.m:121	settings	out = conv_1d(settings,out);
+executives_sopvar/utility_functions/settings2possopvar.m:126	settings	out.eppos = getfielddef(settings,'eppos',[]);
+executives_sopvar/utility_functions/settings2possopvar.m:127	settings	out.epneg = getfielddef(settings,'epneg',[]);
+executives_sopvar/utility_functions/settings2possopvar.m:129	settings	out.use_sosineq = getfielddef(settings,'use_sosineq', ...
+executives_sopvar/utility_functions/settings2possopvar.m:130	settings	getfielddef(settings,'sosineq_on',[]));
+lpi_programming_sopvar/lpisetsettings.m:1	settings	function prog = lpisetsettings(prog,settings)
+lpi_programming_sopvar/lpisetsettings.m:55	settings	if nargin<2 || isempty(settings)
+lpi_programming_sopvar/lpisetsettings.m:56	settings	settings = lpisettings_sop();
+lpi_programming_sopvar/lpisetsettings.m:57	settings	elseif ischar(settings) || isstring(settings)
+lpi_programming_sopvar/lpisetsettings.m:57	settings	elseif ischar(settings) || isstring(settings)
+lpi_programming_sopvar/lpisetsettings.m:58	settings	settings = lpisettings_sop(char(settings));
+lpi_programming_sopvar/lpisetsettings.m:58	settings	settings = lpisettings_sop(char(settings));
+lpi_programming_sopvar/lpisetsettings.m:59	settings	elseif ~isa(settings,'struct')
+lpi_programming_sopvar/lpisetsettings.m:63	settings	prog.settings = settings;
+testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench_cases.m:123	settings	function C = add(C,name,family,lpi,settings,tier,load,note)
+testing_codes/private/PIETOOLS_demos/lowrank_2d_stability/pielr_bench_cases.m:124	settings	C(end+1) = struct('name',name,'family',family,'lpi',lpi,'settings',settings, ...
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_build.m:31	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_build.m:37	PIETOOLS_Hinf_gain	cases = {'stock P stripped',            @() PIETOOLS_Hinf_gain(PIE,S0);
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_l1v.m:23	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:55	settings	function qform(PIE,settings,like)
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:60	settings	st = exec_sop_settings(settings);
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_qform.m:79	lpi_ineq	prog = lpi_ineq(prog,gamv);     prog = lpisetobj(prog,gamv);
+testing_codes/private/baselines/2026-10-28_example_library/private/hd_solve.m:20	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-10-28_example_library/private/lb_diag.m:41	lpisettings	pr('DDE19 renamed, stock light', lb_exec('PIETOOLS_Hinf_control', PIE, lpisettings('light',0,'','mosek')));
+testing_codes/private/baselines/2026-10-28_example_library/private/lb_run.m:152	lpisettings	S0 = lpisettings(tier,0,'','mosek');
+testing_codes/private/baselines/2026-10-28_example_library/private/lb_settings_check.m:13	lpisettings	for k = 1:numel(tiers), S{k} = lpisettings(tiers{k},0,'','mosek'); end
+testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_diag.m:41	lpisettings	pr('DDE19 renamed, stock light', lb_exec('PIETOOLS_Hinf_control', PIE, lpisettings('light',0,'','mosek')));
+testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_run.m:152	lpisettings	S0 = lpisettings(tier,0,'','mosek');
+testing_codes/private/baselines/2026-11-02_opvar_phase0/private/lb_settings_check.m:13	lpisettings	for k = 1:numel(tiers), S{k} = lpisettings(tiers{k},0,'','mosek'); end
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:68	settings	function [prog, P] = legacy_PDEstability(PIE, settings)                     % MMP, 11/06/2026
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:85	settings	[prog, P] = legacy_PDEstability_2D(PIE,settings);                   % MMP, 11/06/2026
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:94	settings_PIETOOLS_heavy	settings_PIETOOLS_heavy;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:95	settings	settings.sos_opts.simplify = 1; % Use psimplify
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:96	settings	settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:97	settings	settings.eppos2 = 1*1e-6;   % Positivity of Lyapunov Function with respect to spatially distributed states
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:98	settings	settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:101	settings	dd1 = settings.dd1;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:102	settings	dd12 = settings.dd12;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:103	settings	sos_opts = settings.sos_opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:104	settings	options1 = settings.options1;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:105	settings	options12 = settings.options12;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:106	settings	override1 = settings.override1;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:107	settings	eppos = settings.eppos;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:108	settings	epneg = settings.epneg;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:109	settings	eppos2 = settings.eppos2;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:110	settings	sosineq_on = settings.sosineq_on;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:112	settings	opts = settings.opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:114	settings	override2 = settings.override2;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:115	settings	options2 = settings.options2;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:116	settings	options3 = settings.options3;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:117	settings	dd2 = settings.dd2;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:118	settings	dd3 = settings.dd3;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:167	lpi_ineq	prog = lpi_ineq(prog,-Dop,opts);
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:179	lpi_eq	prog = lpi_eq(prog,Dop+Deop,'symmetric'); %Dop=-Deop
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability.m:187	getsol_lpivar	P = getsol_lpivar(prog,Pop);
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:5	settings	function [prog, Pop, Qop, solve_val] = legacy_PDEstability_2D(PIE,settings) % MMP, 11/06/2026
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:67	settings	settings = settings_PIETOOLS_light_2D;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:68	settings	settings.sos_opts.simplify = 1;         % Use psimplify
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:69	settings	settings.eppos = 1e-2*ones(4,1);    % Positivity of Lyapunov Function
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:70	settings	settings.epneg = 0*1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:71	settings	elseif ~isfield(settings,'is2D') || ~settings.is2D
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:71	settings	elseif ~isfield(settings,'is2D') || ~settings.is2D
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:73	settings	sos_opts = settings.sos_opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:74	settings	settings = settings.settings_2d;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:74	settings	settings = settings.settings_2d;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:75	settings	settings.sos_opts = sos_opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:79	settings	if ~isfield(settings,'sos_opts')
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:87	settings	sos_opts = settings.sos_opts; 
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:91	settings	if ~isfield(settings,'eppos')
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:94	settings	eppos = settings.eppos;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:99	settings	if ~isfield(settings,'epneg')
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:102	settings	epneg = settings.epneg;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:106	settings	LF_deg = settings.LF_deg;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:107	settings	LF_opts = settings.LF_opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:110	settings	LF_use_psatz = settings.LF_use_psatz;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:111	settings	LF_deg_psatz = extract_psatz_deg(settings.LF_deg_psatz,LF_use_psatz);
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:112	settings	LF_opts_psatz = extract_psatz_opts(settings.LF_opts_psatz,LF_use_psatz);
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:115	settings	use_lpi_ineq = settings.use_sosineq;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:117	settings	ineq_opts = settings.ineq_opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:119	settings	eq_opts = settings.eq_opts;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:120	settings	eq_deg = settings.eq_deg;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:122	settings	eq_use_psatz = settings.eq_use_psatz;
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:123	settings	eq_deg_psatz = extract_psatz_deg(settings.eq_deg_psatz,eq_use_psatz);
+testing_codes/private/baselines/2026-11-05_class_ops/private/legacy_PDEstability_2D.m:124	settings	eq_opts_psatz = extract_psatz_opts(settings.eq_opts_psatz,eq_use_psatz);
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_build.m:31	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_build.m:37	PIETOOLS_Hinf_gain	cases = {'stock P stripped',            @() PIETOOLS_Hinf_gain(PIE,S0);
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_l1v.m:23	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:55	settings	function qform(PIE,settings,like)
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:60	settings	st = exec_sop_settings(settings);
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_qform.m:79	lpi_ineq	prog = lpi_ineq(prog,gamv);     prog = lpisetobj(prog,gamv);
+testing_codes/private/baselines/2026-11-17_tiers/private/hd_solve.m:20	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-11-17_tiers/private/lb_diag.m:41	lpisettings	pr('DDE19 renamed, stock light', lb_exec('PIETOOLS_Hinf_control', PIE, lpisettings('light',0,'','mosek')));
+testing_codes/private/baselines/2026-11-17_tiers/private/lb_run.m:153	lpisettings	S0 = lpisettings(tier,0,'','mosek');
+testing_codes/private/baselines/2026-11-17_tiers/private/lb_settings_check.m:13	lpisettings	for k = 1:numel(tiers), S{k} = lpisettings(tiers{k},0,'','mosek'); end
+testing_codes/private/baselines/2026-11-18_studies/private/hd_build.m:31	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-11-18_studies/private/hd_build.m:37	PIETOOLS_Hinf_gain	cases = {'stock P stripped',            @() PIETOOLS_Hinf_gain(PIE,S0);
+testing_codes/private/baselines/2026-11-18_studies/private/hd_l1v.m:23	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:55	settings	function qform(PIE,settings,like)
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:60	settings	st = exec_sop_settings(settings);
+testing_codes/private/baselines/2026-11-18_studies/private/hd_qform.m:79	lpi_ineq	prog = lpi_ineq(prog,gamv);     prog = lpisetobj(prog,gamv);
+testing_codes/private/baselines/2026-11-18_studies/private/hd_solve.m:20	lpisettings	S0 = lpisettings('stripped',0,'','mosek');
+testing_codes/private/baselines/2026-11-18_studies/private/lb_diag.m:41	lpisettings	pr('DDE19 renamed, stock light', lb_exec('PIETOOLS_Hinf_control', PIE, lpisettings('light',0,'','mosek')));
+testing_codes/private/baselines/2026-11-18_studies/private/lb_run.m:158	lpisettings	S0 = lpisettings(tier,0,'','mosek');
+testing_codes/private/baselines/2026-11-18_studies/private/lb_settings_check.m:13	lpisettings	for k = 1:numel(tiers), S{k} = lpisettings(tiers{k},0,'','mosek'); end
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:233	settings	settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:250	settings	settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:251	settings	settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:252	settings	settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function 
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:255	settings	if exist('st','var'),   settings = st;  end                                 % MMP, 11/18/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:256	settings	settings.sop.verbose = true;   % verification copy
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:286	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % MMP, 11/18/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:291	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % MMP, 11/18/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:295	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:299	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:303	settings	[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:307	settings	[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:311	settings	[prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'o');        % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:315	settings	[prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'c');        % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:319	settings	[prog, K, gamma, P, Z] = PIETOOLS_H2_control_sop(PIE,settings);         % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_B.m:323	settings	[prog, L, gamma, P, Z] = PIETOOLS_H2_estimator_sop(PIE,settings);       % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:236	settings	settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:253	settings	settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:254	settings	settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:255	settings	settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function 
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:258	settings	if exist('st','var'),   settings = st;  end                                 % MMP, 11/18/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:259	settings	settings.sop.verbose = true;   % verification copy
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:289	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % MMP, 11/18/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:294	settings	[prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % MMP, 11/18/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:298	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:302	settings	[prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:306	settings	[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:310	settings	[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:314	settings	[prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'o');        % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:318	settings	[prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'c');        % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:322	settings	[prog, K, gamma, P, Z] = PIETOOLS_H2_control_sop(PIE,settings);         % MMP, 11/04/2026
+testing_codes/private/baselines/2026-11-18_studies/private/vda/vda_E.m:326	settings	[prog, L, gamma, P, Z] = PIETOOLS_H2_estimator_sop(PIE,settings);       % MMP, 11/04/2026
