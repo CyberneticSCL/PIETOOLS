@@ -1,0 +1,2 @@
+T1	lps_test_lpi_ineq_sop	testing_codes/private/lpi_programming_sopvar/tests	test_lpi_ineq_sop	testing_codes/private
+D	demo01	PIETOOLS_demos	DEMO1_stability_and_simulation; d3_ws(getenv('D3_WS'))	

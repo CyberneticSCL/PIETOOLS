@@ -1,0 +1,19 @@
+demo01.mat: 0 differing leaves
+demo02.mat: 0 differing leaves
+demo03.mat: 0 differing leaves
+demo04.mat: 0 differing leaves
+demo05.mat: 0 differing leaves
+demo06.mat: 0 differing leaves
+demo07.mat: 0 differing leaves
+demo08.mat: 0 differing leaves
+demo09.mat: 0 differing leaves
+demo10.mat: 0 differing leaves
+demo11.mat: 0 differing leaves
+demo12.mat: 0 differing leaves
+demo13.mat: 3 differing leaves
+   (1).info_cl(1).hist(1).t_build: numeric, max|diff| 0.434
+   (1).info_cl(1).hist(1).t_solve: numeric, max|diff| 0.603
+   (1).info_cl(1).witness(1).t: numeric, max|diff| 0.19
+demo14.mat: 0 differing leaves
+demo15.mat: 0 differing leaves
+total differing leaves: 3 in 15 files

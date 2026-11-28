@@ -7,7 +7,10 @@ for a later pass (its PLAN.md, Section 8). Maintainer, 11/28/2026, on that secti
 now".
 
 Status: decisions E1–E4 taken on 11/28 (Section 5). Phases 0 and 1 done: the rename committed as
-fe6d3530 (`phase1/README.md`). Inventory at 91ea628e (= origin/ndopvar). Table:
+fe6d3530 (`phase1/README.md`); Phase 1b 0d02ac08 (`phase1b/README.md`); Phase 2 182a2c49
+(`phase2/README.md`); Phase 3 run 11/28: 56 rows, every SDP equal bit for bit, F1/F2 differences
+0 (`phase3/README.md`); announcement drafted (`ANNOUNCEMENT.md`). Inventory at 91ea628e (=
+origin/ndopvar). Table:
 `rename_table.tsv`; scripts and raw outputs: `inventory/`.
 
 ## 1. Scope

@@ -1,0 +1,60 @@
+row                              status o/n    SDPs o/n  verdict
+lps_test_lpi_ineq_sop            OK/OK         4/4       IDENTICAL
+demo01                           OK/OK         1/1       IDENTICAL
+cv_test_get_op                   OK/-          0/0       in one run only
+cv_test_parser_bug_reproducers   OK/-          0/0       in one run only
+cv_test_parser_edge_cases        OK/-          0/0       in one run only
+snip_ch3                         OK/-          0/0       in one run only
+snip_ch5                         OK/-          0/0       in one run only
+snip_ch7                         OK/-          1/0       in one run only
+sop_test_executives_sop          OK/-          19/0      in one run only
+lps_test_translators_sop         OK/-          0/0       in one run only
+lps_test_dpvar_ops_sop           OK/-          0/0       in one run only
+lps_test_settings_prog_sop       OK/-          2/0       in one run only
+lps_test_lpi_eq_sop              OK/-          0/0       in one run only
+lps_test_getsol_sop              OK/-          2/0       in one run only
+lps_test_endtoend_sop            OK/-          2/0       in one run only
+lps_test_tier1_fixes_sop         OK/-          0/0       in one run only
+lps_test_dpvar_hinf_chain_sop    OK/-          1/0       in one run only
+lps_e2e_stability_1d             OK/-          1/0       in one run only
+lps_e2e_hinf_gain_1d             OK/-          1/0       in one run only
+lps_test_call2025_sop            OK/-          0/0       in one run only
+cls_Test_opvar                   OK/-          0/0       in one run only
+cls_Test_dopvar                  OK/-          0/0       in one run only
+cls_Test_qp_opvar_nd             OK/-          0/0       in one run only
+sv_Test_int2sopvar               OK/-          0/0       in one run only
+sv_Test_int_sopvar               OK/-          0/0       in one run only
+sv_Test_mat2sopvar               OK/-          0/0       in one run only
+sv_Test_sopvar_diff              OK/-          0/0       in one run only
+sv_test_compose_sopvar           OK/-          0/0       in one run only
+sv_test_subs_sopvar              OK/-          0/0       in one run only
+hnd_test_pie                     OK/-          0/0       in one run only
+ROOT_PIETOOLS_FI                 OK/-          1/0       in one run only
+FI_test_examples_FI_library      OK/-          15/0      in one run only
+PIESOS_DEMO2                     OK/-          1/0       in one run only
+pz_Test_get_ineq_opts            OK/-          3/0       in one run only
+pz_Test_tensopvar_int_weights    OK/-          0/0       in one run only
+pz_Test_PIESOS_sublevel          OK/-          9/0       in one run only
+pz_Test_piesos_tensor_gram       OK/-          22/0      in one run only
+pz_Test_piesos_quadvar           OK/-          0/0       in one run only
+demo02                           OK/-          1/0       in one run only
+demo03                           OK/-          1/0       in one run only
+demo04                           OK/-          8/0       in one run only
+demo05                           OK/-          1/0       in one run only
+demo06                           OK/-          1/0       in one run only
+demo07                           OK/-          3/0       in one run only
+demo08                           OK/-          1/0       in one run only
+demo09                           OK/-          1/0       in one run only
+demo10                           OK/-          1/0       in one run only
+demo11                           OK/-          1/0       in one run only
+demo12                           OK/-          1/0       in one run only
+demo13                           OK/-          2/0       in one run only
+demo14                           OK/-          1/0       in one run only
+demo15                           OK/-          1/0       in one run only
+P0_F1                            OK/-          0/0       in one run only
+P0_F2                            OK/-          0/0       in one run only
+e2e_heat3d                       OK/-          1/0       in one run only
+sv_test_sopvar_kron              OK/-          0/0       in one run only
+
+rows in both runs: 2; identical SDP sequences (or none): 2; status differs: 0
+SDPs identical bit for bit (A, b, c, K, x, y): 5, in 10 records

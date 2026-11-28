@@ -1,0 +1,25 @@
+2026-11-28 03:13:59 start out_after T1 attempt 1 (0 of 19 done)
+2026-11-28 03:19:18 end out_after T1 exit 0
+2026-11-28 03:19:18 start out_after D attempt 1 (0 of 15 done)
+2026-11-28 03:23:58 end out_after D exit 0
+2026-11-28 03:23:58 done out_after T1 D
+2026-11-28 03:23:58 start out_ctrl T1 attempt 1 (0 of 1 done)
+2026-11-28 03:24:20 end out_ctrl T1 exit 0
+2026-11-28 03:24:20 start out_ctrl D attempt 1 (0 of 1 done)
+2026-11-28 03:24:58 end out_ctrl D exit 0
+2026-11-28 03:24:58 done out_ctrl T1 D
+2026-11-28 03:27:00 waiting 3780 s for 04:30
+2026-11-28 03:51:41 start out_after T2 attempt 1 (0 of 19 done)
+2026-11-28 03:58:25 end out_after T2 exit 0
+2026-11-28 03:58:25 start out_after P attempt 1 (0 of 2 done)
+2026-11-28 03:58:38 end out_after P exit 0
+2026-11-28 03:58:38 start out_after X attempt 1 (0 of 1 done)
+2026-11-28 04:12:51 end out_after X exit 0
+2026-11-28 04:12:51 done out_after T2 P X
+2026-11-28 04:12:51 finish: start
+2026-11-28 04:14:31 finish: all done
+2026-11-28 04:15:13 start out_after P attempt 1 (0 of 2 done)
+2026-11-28 04:20:38 end out_after P exit 0
+2026-11-28 04:20:38 done out_after P
+2026-11-28 04:20:39 finish: start
+2026-11-28 04:21:57 finish: all done
