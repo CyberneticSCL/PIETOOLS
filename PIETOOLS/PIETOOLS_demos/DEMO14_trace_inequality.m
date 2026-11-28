@@ -103,7 +103,7 @@ prob = lpiprogram(H0op.vars,H0op.dom);
 
 % % Set inequality constraints:
 % %   gam*(H0op'*H0op + H1op'*H1op) - E0op'*E0op - E1op'*E1op >= 0
-prob = lpi_ineq_sop(prob,gam*(H0op'*H0op + H1op'*H1op) - E0op'*E0op - E1op'*E1op,struct('dD',2,'dw',2));
+prob = lpi_ineq(prob,gam*(H0op'*H0op + H1op'*H1op) - E0op'*E0op - E1op'*E1op,struct('dD',2,'dw',2));
 
 % % Set objective function:
 % %   min gam
@@ -111,7 +111,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-trace_constant = double(lpigetsol_sop(prob,gam));
+trace_constant = double(lpigetsol(prob,gam));
 
 
 echo off

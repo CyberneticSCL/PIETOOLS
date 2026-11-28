@@ -43,9 +43,9 @@ for i = 1:height(F)
     % the form map and test parameter of ex_search (row_pie)
     for a = {'LB_ST_HOOK','LB_FORM_MAP','LB_LAST'},  if isappdata(0,a{1}),  rmappdata(0,a{1});  end,  end
     if any(strcmp(form,{'P','Pd'}))
-        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability','PIETOOLS_Hinf_gain'}}));
     elseif any(strcmp(form,{'oco','cco'}))
-        setappdata(0,'LB_FORM_MAP',struct('o','oco','c','cco','only','PIETOOLS_H2_norm_sop'));
+        setappdata(0,'LB_FORM_MAP',struct('o','oco','c','cco','only','PIETOOLS_H2_norm'));
     elseif contains(form,'>')
         ab = strsplit(form,'>');    setappdata(0,'LB_FORM_MAP',struct(ab{1},ab{2}));
     end

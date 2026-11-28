@@ -14,7 +14,7 @@ function st = bl_settings(name)
 %   stab2_rd_psz90 (0.9 lam*) infeasible at this first pass. The tier's raise,
 %   off here (max_raise 0), certifies it at the old program.
 % st = lpisettings(name);                                                   % CC, 11/08/2026 (was)
-st = lpisettings_sop(name);                                                 % CC, 11/08/2026
+st = lpisettings(name);                                                     % CC, 11/08/2026
 st.sos_opts.solver   = 'mosek';
 st.sos_opts.simplify = false;
 st.sop.max_raise = 0;   st.sop.max_raise_feas = 0;                          % CC, 11/07/2026

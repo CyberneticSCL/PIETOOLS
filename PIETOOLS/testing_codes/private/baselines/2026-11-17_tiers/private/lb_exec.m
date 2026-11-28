@@ -6,7 +6,7 @@ function r = lb_exec(exec, PIE, S)
 %   exec:   name of the executive, e.g. 'PIETOOLS_PIE2PDEstability'; with
 %           the prefix 'sop:', its _sop equivalent (table below)
 %   PIE:    the PIE
-%   S:      settings struct from lpisettings (lpisettings_sop for 'sop:')
+%   S:      settings struct from lpisettings (lpisettings for 'sop:')
 %
 % OUTPUT
 %   r:  struct with fields
@@ -33,23 +33,23 @@ t0 = tic;
 gam = NaN;
 r.called = exec;
 if startsWith(exec,'sop:')
-    % sopvar path: the _sop executive and form PIETOOLS_auto_execute_sop
-    % uses for this stock executive; S from lpisettings_sop
-    M = {'PIETOOLS_PIE2PDEstability',      'PIETOOLS_stability_sop',      {'Q'};
-         'PIETOOLS_PIE2PDEstability_dual', 'PIETOOLS_stability_sop',      {'Qd'};
-         'PIETOOLS_Hinf_gain',             'PIETOOLS_Hinf_gain_sop',      {'Q'};
-         'PIETOOLS_Hinf_gain_dual',        'PIETOOLS_Hinf_gain_sop',      {'Qd'};
-         'PIETOOLS_H2_norm_o',             'PIETOOLS_H2_norm_sop',        {'o'};
-         'PIETOOLS_H2_norm_c',             'PIETOOLS_H2_norm_sop',        {'c'};
-         'PIETOOLS_Hinf_estimator',        'PIETOOLS_Hinf_estimator_sop', {};
-         'PIETOOLS_Hinf_control',          'PIETOOLS_Hinf_control_sop',   {};
-         'PIETOOLS_H2_estimator',          'PIETOOLS_H2_estimator_sop',   {};
-         'PIETOOLS_H2_control',            'PIETOOLS_H2_control_sop',     {}};
+    % sopvar path: the _sop executive and form PIETOOLS_auto_execute
+    % uses for this stock executive; S from lpisettings
+    M = {'PIETOOLS_PIE2PDEstability',      'PIETOOLS_stability',      {'Q'};
+         'PIETOOLS_PIE2PDEstability_dual', 'PIETOOLS_stability',      {'Qd'};
+         'PIETOOLS_Hinf_gain',             'PIETOOLS_Hinf_gain',      {'Q'};
+         'PIETOOLS_Hinf_gain_dual',        'PIETOOLS_Hinf_gain',      {'Qd'};
+         'PIETOOLS_H2_norm_o',             'PIETOOLS_H2_norm',        {'o'};
+         'PIETOOLS_H2_norm_c',             'PIETOOLS_H2_norm',        {'c'};
+         'PIETOOLS_Hinf_estimator',        'PIETOOLS_Hinf_estimator', {};
+         'PIETOOLS_Hinf_control',          'PIETOOLS_Hinf_control',   {};
+         'PIETOOLS_H2_estimator',          'PIETOOLS_H2_estimator',   {};
+         'PIETOOLS_H2_control',            'PIETOOLS_H2_control',     {}};
     j = find(strcmp(M(:,1),exec(5:end)),1);
     if isempty(j), error('lb_exec:sop','No _sop executive for %s.',exec(5:end)); end
     fn = M{j,2};  args = M{j,3};
     r.called = strjoin([{fn},args],'/');
-    if strcmp(fn,'PIETOOLS_stability_sop')
+    if strcmp(fn,'PIETOOLS_stability')
         prog = feval(fn, PIE, S, args{:});
     else
         [prog,~,gam] = feval(fn, PIE, S, args{:});

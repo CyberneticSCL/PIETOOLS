@@ -4,7 +4,7 @@ function eq_opts = cx_stability_eq_opts_2D(Qm,eq_opts,ztol)
 % counterpart of  eq_opts = get_eq_opts_2D(clean_opvar(Qop,ztol),eq_opts,ztol)
 % (PIETOOLS_stability_2D.m:174,191; get_eq_opts_2D.m:117-155), which prunes
 % the negativity slack from the zero structure of Qop. No container version
-% exists; eq_opts_sopvar is deliberately weaker (a nested, larger cone).
+% exists; get_eq_opts is deliberately weaker (a nested, larger cone).
 %
 % Scope: QM a 1x1 'dopvar' on L2[s1,s2] (a PIE whose state is purely 2-D
 % distributed). Its one sdopvar block has a 3x3 gamma cell over (s1,s2) that

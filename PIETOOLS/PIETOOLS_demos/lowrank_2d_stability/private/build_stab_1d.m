@@ -1,6 +1,6 @@
 function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC, 09/23/2026
 % [PROG,H] = BUILD_STAB_1D(PIE,ST,DUAL) assembles, without solving, the
-% direct-form stability LPI of PIETOOLS_stability_sop, form 'P' (DUAL false)
+% direct-form stability LPI of PIETOOLS_stability, form 'P' (DUAL false)
 % or 'Pd' (DUAL true), with the stock negativity slack:
 %
 %   'P'   P >= eppos I,   T'*P*A + A'*P*T + c*epneg*T'*P*T + N = 0,   N >= 0;
@@ -8,13 +8,13 @@ function [prog,H] = build_stab_1d(PIE,st,dual)                              % CC
 %
 % with c = 2 in every dimension, P the positive storage operator and N the
 % slack. The slack is the stock one (degrees dd2, dd3 and
-% the psatz flag override2), never the sized slack of LPI_INEQ_SOP, so the
+% the psatz flag override2), never the sized slack of LPI_INEQ, so the
 % settings decide the program.
 %
 % INPUT
 % - PIE:   'pie_struct' object of a 1-D or 2-D PIE with 'opvar'
 %          operators T and A;
-% - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
+% - st:    'struct' of LPI settings as returned by lpisettings: dd1,
 %          dd12, options1, options12, override1 (storage), dd2, dd3,
 %          options2, options3, override2 (slack), eppos, eppos2, epneg, and in
 %          2-D settings_2d; sosineq_on, if present, must be 0;
@@ -53,18 +53,18 @@ if isfield(st,'sosineq_on') && st.sosineq_on
           'sosineq_on=1 has no slack operator; the operator gate needs the equality route.');
 end
 % Container PIE, completed settings, and the storage/slack builders of this
-% dimension, exactly as PIETOOLS_stability_sop prepares them
-PIE = exec_pie_sop(PIE);
+% dimension, exactly as PIETOOLS_stability prepares them
+PIE = exec_pie(PIE);
 st  = exec_sop_settings(st);
-tl  = exec_tools_sop(PIE,st);    st.sop = tl.sop;
+tl  = exec_tools(PIE,st);    st.sop = tl.sop;
 eppos = tl.eppos;   epneg = tl.epneg;
 if ~isempty(st.sop.eppos_stab),  eppos(:) = st.sop.eppos_stab;  end
 % epfac = 1;  if tl.nv>=2,  epfac = 2;  end   % 2 epneg in 2-D, as the 2-D LPI % MMP, 11/09/2026 (was)
-epfac = 2;          % 2 epneg in every dimension, as PIETOOLS_stability_sop % MMP, 11/09/2026
+epfac = 2;          % 2 epneg in every dimension, as PIETOOLS_stability % MMP, 11/09/2026
 Tm = PIE.T;     Am = PIE.A;
 % Storage P on the output side of T ('P') or its input side ('Pd'), plus margin
 % prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                   % CC, 11/17/2026 (was)
-% The storage reads prog.settings.lpi.pos (POS_ROW of EXEC_TOOLS_SOP):      % CC, 11/17/2026
+% The storage reads prog.settings.lpi.pos (POS_ROW of EXEC_TOOLS):      % CC, 11/17/2026
 % without ST every tier gets the light row; ST as in the executive          % CC, 11/17/2026
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);                  % CC, 11/17/2026
 if ~dual
@@ -80,7 +80,7 @@ else
 end
 % Dm <= 0 through the stock slack: Dm + N = 0 with N >= 0 of dd2/dd3/override2
 [prog,Nm] = tl.slack(prog,Dm);
-prog = lpi_eq_sop(prog,Dm+Nm,'symmetric');
+prog = lpi_eq(prog,Dm+Nm,'symmetric');
 % Handles for the operator gate (pielr_lpi stab_resid)
 H.Top = Tm;     H.Aop = Am;     H.Pop = Pm;
 H.Dop = Dm;     H.Deop = Nm;

@@ -65,6 +65,8 @@
 %   lpi_ineq; the predefined test is lpiscript_sop; help text revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -134,7 +136,7 @@ P = P + 1e-4*eye_opvar(P);              % enforce P>=1e-4                   % YP
 % % Set inequality constraints:
 % %   A'*P*T + T'*P*A <= 0
 Q = A'*P*T + T'*P*A;
-prog = lpi_ineq_sop(prog,-Q);        % by default, allow Q>=0 outside domain % YP, DJ, MMP, 11/21/2026
+prog = lpi_ineq(prog,-Q);            % by default, allow Q>=0 outside domain % YP, DJ, MMP, 11/21/2026
 
 % % Solve and retrieve the solution
 % solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver         % DJ, 05/18/2025
@@ -142,7 +144,7 @@ solve_opts.simplify = true;     % simplify SDP before solving
 prog = lpisolve(prog,solve_opts);
 
 % % Alternatively, uncomment to use pre-defined stability test
-% lpiscript_sop(pie,'stability','light')                                    % YP, DJ, MMP, 11/21/2026
+% lpiscript(pie,'stability','light')                                    % YP, DJ, MMP, 11/21/2026
 
 
 echo off

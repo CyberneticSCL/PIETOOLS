@@ -18,7 +18,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Laplace_Beltrami_Edge(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) recommended settings (lpisettings_sop
+% - st:         (optional) recommended settings (lpisettings
 %               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
@@ -106,7 +106,7 @@ PDE_t = [diff(v,'t')==sig*diff(v,s1,2)-subs(diff(u,s2),s2,1)+lam*v;
 
 % Example-specific settings (second output only): the light tier, with
 if nargout>1
-    st = lpisettings_sop('light');
+    st = lpisettings('light');
     st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
     st.lpi.ineq.cap_inc = 'auto';   % slack integral bases: theta+s <= Dmax-1
 end

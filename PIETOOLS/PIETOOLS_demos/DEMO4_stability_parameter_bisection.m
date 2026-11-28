@@ -54,6 +54,8 @@
 %   help text revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
@@ -99,7 +101,7 @@ for iter = 1:n_iters
     % % Set inequality constraints:
     % %   A'*P*T + T'*P*A <= 0
     Q = A'*P*T + T'*P*A;
-    prog = lpi_ineq_sop(prog,-Q);    % by default, allow Q>=0 outside domain % DJ, MMP, 11/21/2026
+    prog = lpi_ineq(prog,-Q);        % by default, allow Q>=0 outside domain % DJ, MMP, 11/21/2026
     
     % % Solve and retrieve the solution
     % solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver     % DJ, 05/18/2025
@@ -108,7 +110,7 @@ for iter = 1:n_iters
     prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive
-    % prog = lpiscript_sop(PIE,'stability',settings);                       % DJ, MMP, 11/21/2026
+    % prog = lpiscript(PIE,'stability',settings);                       % DJ, MMP, 11/21/2026
 
     % Check if the system is stable
     is_pinf = prog.solinfo.info.pinf;       % is primal feasible?

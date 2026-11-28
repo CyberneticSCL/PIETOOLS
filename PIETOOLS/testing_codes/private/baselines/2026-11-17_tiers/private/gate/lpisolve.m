@@ -15,7 +15,7 @@ mcap = Inf;     if isappdata(0,'LB_M_CAP'),     mcap = getappdata(0,'LB_M_CAP');
 if ndv > cap || m > mcap
     error('lb:size','LB_SIZE ndv=%d m=%d above the gate (ndv %g, m %g): not solved',ndv,m,cap,mcap);
 end
-% The repository body (lpi_programming_sopvar/lpisolve.m, MMP 11/12/2026).
+% The repository body (lpi_programming/lpisolve.m, MMP 11/12/2026).
 if nargin<2 || isempty(opts)
     opts = [];
     if isfield(prog,'settings') && isfield(prog.settings,'sos_opts'),   opts = prog.settings.sos_opts;  end

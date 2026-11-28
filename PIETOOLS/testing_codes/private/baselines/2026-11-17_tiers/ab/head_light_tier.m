@@ -1,7 +1,7 @@
 function st = head_light_tier()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ST = SETTINGS_SOPVAR_LIGHT() returns the settings of the 'light' tier of
-% LPISETTINGS_SOP, its default tier: the degrees and options from which the
+% ST = SETTINGS_PIETOOLS_LIGHT() returns the settings of the 'light' tier of
+% LPISETTINGS, its default tier: the degrees and options from which the
 % container executives build the positive operator P of an LPI, the
 % margins of P, and the options of the executives. In one and two spatial
 % variables the degrees are those of the stock light level.
@@ -28,13 +28,13 @@ function st = head_light_tier()
 %                         witness, N_cheb, nfreq;
 %           lpi           'struct' with fields pos and var, the positive and
 %                         free operators of the LPIs, and ineq, the degree
-%                         options of LPI_INEQ_SOP: dD, dw, wmin.
+%                         options of LPI_INEQ: dD, dw, wmin.
 %         The body gives the value of each field and what it does.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - settings_sopvar_light
+% PIETOOLS - settings_PIETOOLS_light
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -108,7 +108,7 @@ function st = head_light_tier()
 % stock-format override1 = 1, options1, options12, dd1 = {1, [1 1 2], [1 1 2]}
 % and dd12 (unread), now entry 1 of pos; ddZ = [2 2 2], now entry 1 of var;
 % the 'stock' slack (sosineq_on, override2, options2, dd2, options3, dd3),
-% now LPISETTINGS_STOCK_SOP; and section 4 of 10/29/2026, settings_nd =
+% now LPISETTINGS_STOCK; and section 4 of 10/29/2026, settings_nd =
 % struct('LF_int',1,'LF_mult',0), now entry 3.
 % A vector holds the entries for 1, 2, and 3 or more spatial variables.
 % P = Z'*Q*Z, Q >= 0, on each space (POSLPIVAR): on R^n the identity
@@ -117,7 +117,7 @@ function st = head_light_tier()
 % in one variable the lower and upper integrals, or with sep = 1 one
 % integral over the whole interval; in two or more one full integral,
 % separable in every direction. The executives read entries 1 and 3
-% (POSLPIVAR_SETTINGS_SOP, EXEC_TOOLS_SOP; two variables: settings_2d,
+% (POSLPIVAR_SETTINGS, EXEC_TOOLS; two variables: settings_2d,
 % section 2), POSLPIVAR without DEG the entry of each space.
 st.lpi.pos = struct('mult',[1 0 0],'int',[1 1 1],'joint',[2 2 2],'sep',0);
 % Z, the free operator of the synthesis LPIs (LPIVAR): one degree
@@ -131,7 +131,7 @@ st.lpi.var = struct('deg',{{[2 2 2],1,1}});
 
 %% 2. PIEs in two spatial variables (x,y): st.settings_2d
 % P = P0 + P1 + ..., each term Z'*Q*Z with Q >= 0
-% (POSLPIVAR_SETTINGS_2D_SOP, role 'lf'), Z built from the 16 bases
+% (POSLPIVAR_SETTINGS_2D, role 'lf'), Z built from the 16 bases
 % [R^n; Zx^o, Zx^a, Zx^b; Zy^o, Zy^a, Zy^b; Z2^oo, Z2^ao, Z2^bo, Z2^oa,
 % Z2^ob, Z2^aa, Z2^ba, Z2^ab, Z2^bb]: o the multiplier, a the lower and b
 % the upper integral, in x for the first index and in y for the second;
@@ -168,7 +168,7 @@ s2.LF_opts_psatz = {struct('psatz',1,'sep',zeros(1,6),'exclude',zeros(1,16)), ..
                     struct('psatz',2,'sep',zeros(1,6),'exclude',zeros(1,16))};
 s2.LF_deg_psatz  = {s2.LF_deg, s2.LF_deg};
 % Free operator of the synthesis LPIs: twice the degrees of P, of which only
-% the largest entry is read (EXEC_TOOLS_SOP); Zop_opts is read by no
+% the largest entry is read (EXEC_TOOLS); Zop_opts is read by no
 % container executive.
 twice = @(c) cellfun(@(d) 2*d, c, 'UniformOutput', false);
 s2.Zop_deg  = struct('dx',{twice(dx)},'dy',{twice(dy)},'d2',{twice(d2)});
@@ -205,7 +205,7 @@ st.settings_2d = s2;
 % each LPI that imposes one, stability and well-posedness included; epneg:
 % the decay rate. EXEC_SOP_SETTINGS sets from these the fields each
 % dimension reads (eppos2, settings_2d.eppos and epneg, settings_nd.eppos);
-% such a field, set here, takes precedence. LPISETTINGS_SOP overwrites
+% such a field, set here, takes precedence. LPISETTINGS overwrites
 % epneg and simplify with its inputs, and the solver when it is given one.
 st.eppos = 1e-4;    st.epneg = 0;
 st.sos_opts = struct('simplify',0);
@@ -214,10 +214,10 @@ st.sos_opts = struct('simplify',0);
 % A vector holds the entries for 1, 2, and 3 or more spatial variables; a
 % scalar serves every dimension. The slack of each negativity constraint
 % -D >= 0 has a weight degree, raised by dw over the rule of GET_LIFT_DEGS,
-% and the degree loop LPI_SOLVE_LOOP_SOP rebuilds the LPI with the weight
+% and the degree loop LPI_SOLVE_LOOP rebuilds the LPI with the weight
 % one higher after UNKNOWN or INFEASIBLE, up to max_raise times.
 st.sop = struct( ...
-    'slack','like', ...             'like': slack sized from P (LPI_INEQ_SOP); 'stock': LPISETTINGS_STOCK_SOP
+    'slack','like', ...             'like': slack sized from P (LPI_INEQ); 'stock': LPISETTINGS_STOCK
     'dw_feas',[0 1 1], ...          weight raise in stability and well-posedness
     'dw_P',[2 2 1], ...             weight raise in coercive gains and norms, and synthesis
     'dw_Q',1, ...                   weight raise in the Q (non-coercive) forms
@@ -231,12 +231,12 @@ st.sop = struct( ...
     'nfreq',240);                   % its number of frequencies
 % END MMP, 11/09/2026
 
-%% 5. Options of LPI_INEQ_SOP: st.lpi.ineq                                  % MMP, 11/12/2026; MMP, 11/10/2026
+%% 5. Options of LPI_INEQ: st.lpi.ineq                                  % MMP, 11/12/2026; MMP, 11/10/2026
 % The certificate of P >= 0 in a hand-written LPI: lift degree Dmin + dD    % MMP, 11/10/2026
 % and weight degree reach + dw over the support of P (GET_LIFT_DEGS), at    % MMP, 11/10/2026
 % least wmin when read from P itself (no opts.like). wmin 2: with dw alone  % MMP, 11/10/2026
 % the Poincare LPI of DEMO3 is 22% above 1/pi, at w = 2 within 2e-5         % MMP, 11/10/2026
 % (README). A vector holds the entries for 1, 2, and 3 or more variables;   % MMP, 11/10/2026
-% a call that sets dw and not wmin gets no floor (LPI_INEQ_SOP).            % MMP, 11/10/2026
+% a call that sets dw and not wmin gets no floor (LPI_INEQ).            % MMP, 11/10/2026
 st.lpi.ineq = struct('dD',1,'dw',1,'wmin',[2 2 0]);                         % MMP, 11/10/2026
 end

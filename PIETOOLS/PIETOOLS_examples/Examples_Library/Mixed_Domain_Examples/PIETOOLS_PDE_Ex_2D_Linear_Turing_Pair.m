@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Linear_Turing_Pair(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -112,7 +112,7 @@ end
 % the 16-basis construction of the 'light' level (settings_2d), and no      % MMP, 11/22/2026
 % slack weight raise of the feasibility passes on the spaces in one         % MMP, 11/22/2026
 % and two variables                                                         % MMP, 11/22/2026
-st = lpisettings_sop('light');
+st = lpisettings('light');
 st.settings_2d = settings_2d_stock('light');
 st.sop.dw_feas = [0 0 1];                                                   % MMP, 11/22/2026
 

@@ -21,7 +21,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params) %
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -68,6 +68,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params) %
 % MMP, 11/22/2026: st with the upper-integral basis operator at s-length 1,
 %   the smallest storage found that certifies both stability tests under an
 %   acceptance that also bounds the residual of the solve.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -141,7 +143,7 @@ end
 % Example-specific settings                                                 % MMP, 11/21/2026
 % (light tier; upper-integral basis operator at s-length 1;                 % MMP, 11/22/2026
 % slack lift degree at its minimum Dmin)                                    % MMP, 11/22/2026
-st = lpisettings_sop('light');                                              % MMP, 11/21/2026
+st = lpisettings('light');                                                  % MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/22/2026
 

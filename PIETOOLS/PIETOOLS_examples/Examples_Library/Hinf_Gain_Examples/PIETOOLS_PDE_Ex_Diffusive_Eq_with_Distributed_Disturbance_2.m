@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Distur
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -63,6 +63,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Distur
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: third output st, the
 %   recommended settings of the H-infinity gain test; Hinf_gain_form = 'Q'
 %   set in the base workspace; help revised, license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance_2(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -145,7 +147,7 @@ end
 
 % Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; slack lift degree at its minimum Dmin)
-st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st = lpisettings('stripped');                                               % MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
 
 end

@@ -53,6 +53,8 @@
 %   revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 
 % Clear the workspace and figures; print each line as it runs
@@ -100,11 +102,11 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % DJ
 % %   gam >= trace(C1 W C1*)
 % Operator inequality Dop<=0
 Dop =  A*W*T'+T*W*A'+B1*B1';
-prog = lpi_ineq_sop(prog,-Dop);                                             % DJ, MMP, 11/21/2026
+prog = lpi_ineq(prog,-Dop);                                                 % DJ, MMP, 11/21/2026
 % Scalar inequality gam >= trace(C1 W C1*)
 Aux = C1*W*C1';
-traceVal = trace_rn_sop(Aux);                                               % DJ, MMP, 11/21/2026
-prog = lpi_ineq_sop(prog, gam-traceVal);                                    % DJ, MMP, 11/21/2026
+traceVal = trace_rn(Aux);                                                   % DJ, MMP, 11/21/2026
+prog = lpi_ineq(prog, gam-traceVal);                                        % DJ, MMP, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -113,8 +115,8 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
-gamd = sqrt(double(lpigetsol_sop(prog_sol,gam)));                           % DJ, MMP, 11/21/2026
-Wc = lpigetsol_sop(prog_sol,W);                                             % DJ, MMP, 11/21/2026
+gamd = sqrt(double(lpigetsol(prog_sol,gam)));                               % DJ, MMP, 11/21/2026
+Wc = lpigetsol(prog_sol,W);                                                 % DJ, MMP, 11/21/2026
 
 
 echo off

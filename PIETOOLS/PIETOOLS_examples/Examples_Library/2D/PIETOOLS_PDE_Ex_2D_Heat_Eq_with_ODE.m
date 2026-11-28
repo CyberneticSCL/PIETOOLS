@@ -60,6 +60,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params)      % MM
 %   the recommended settings of the stability test; stability_form = 'Q'
 %   set in the base workspace; help revised (OUTPUT lists no PDE_b, which
 %   is not returned), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params)        % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -140,7 +142,7 @@ PDE_t = [diff(x1,'t')==(A+B*K)*x1 +B*subs(x2,[s1;s2],[0;0]);
 % (second output only; light tier; slack lift degree at its minimum Dmin;
 % Q of degree 0)
 if nargout>1                                                                % MMP, 11/21/2026
-    st = lpisettings_sop('light');                                          % MMP, 11/21/2026
+    st = lpisettings('light');                                              % MMP, 11/21/2026
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/21/2026
     st.sop.deg_Q{2} = 0;                                                    % MMP, 11/21/2026
 end                                                                         % MMP, 11/21/2026

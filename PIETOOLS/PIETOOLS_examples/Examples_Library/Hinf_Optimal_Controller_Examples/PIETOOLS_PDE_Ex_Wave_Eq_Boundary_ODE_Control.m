@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params) %
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system declared with 
 %               pde_var input format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -63,6 +63,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params) %
 %   recommended settings of the H-infinity optimal controller synthesis;
 %   help revised (order of the regulated outputs corrected to the code),
 %   license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -134,7 +136,7 @@ end
 % (veryheavy tier; 1-D storage with upper-integral s-length 2 and
 % theta-lengths 3, 4, 4 (multiplier, upper, lower integral); free
 % operators of degree 3 in the multiplier and 6 in the integral kernels)
-st = lpisettings_sop('veryheavy');                                          % MMP, 11/21/2026
+st = lpisettings('veryheavy');                                              % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [3;4;4];                                            % MMP, 11/21/2026
 st.lpi.var.deg{1} = [3 6 6];                                                % MMP, 11/21/2026

@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Road_Field_Berestycki(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -108,7 +108,7 @@ PDE_t = [diff(r,'t')==Dr*diff(r,s1,2)+nu*subs(f,s2,0)-mu*r;
 % Example-specific settings: the light tier, with the 1-D storage from the
 % multiplier only (s-lengths 0 of both integrals) and the 2-D storage with
 % theta-lengths [1 1] (multiplier) and [1 2] (integral)
-st = lpisettings_sop('light');
+st = lpisettings('light');
 st.lpi.pos.len_inc{1} = 0;
 st.lpi.pos.len_com{1} = 0;
 st.lpi.pos.len_sos{2} = [1 1;1 2;0 0];

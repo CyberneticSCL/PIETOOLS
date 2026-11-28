@@ -7,7 +7,7 @@
 %   PIE  = 2D heat equation below
 %   st   = 2D PIETOOLS settings below
 %   LPI  = A.build(PIE,st), A = pielr_lpi('stability'): the form 'P' LPI of
-%          PIETOOLS_stability_sop with the stock slack
+%          PIETOOLS_stability with the stock slack
 %
 % PDE:
 %   x_t = x_s1s1 + x_s2s2 + lam*x,    (s1,s2) in [0,1]^2, x in R^n

@@ -125,7 +125,7 @@ switch tag
         setappdata(0,'LB_ST_HOOK',@hook_blockst);
     case {'G45P','G46P','G47P'}   % 2-D gains, exact 0.11101 / 0.17110 / 0.20668, in form 'P'
         ids = {['PDE:',tag(2:3)]};  tiers = {'light'};
-        setappdata(0,'LB_FORM_MAP',struct('Q','P','only','PIETOOLS_Hinf_gain_sop'));
+        setappdata(0,'LB_FORM_MAP',struct('Q','P','only','PIETOOLS_Hinf_gain'));
     case {'D1Ppde','D1Ppdeh'}   % D on the 1-D PDE stability rows (D100: 'P' wherever it certifies):
                                 % light (heavy: 'h'), 'Q'->'P', 'Qd'->'Pd'; controls L1ctl, H1ctl
         S = load(fullfile(here,'catalog.mat'));
@@ -145,7 +145,7 @@ switch tag
         ids = {S.C(contains({S.C.exec},'Hinf_gain')).key};  tiers = {'light'};
         if tag(end)=='h',  tiers = {'heavy'};  end
         if startsWith(tag,'GallP')
-            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain_sop'));
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain'));
         end
     case {'B1c0','B1c1','B1c2','B1c3'}   % B1 candidates on every catalog row in two variables
         S = load(fullfile(here,'catalog.mat'));     ids = {S.C([S.C.dim]==2).key};  tiers = {'light'};
@@ -208,7 +208,7 @@ switch tag
         if endsWith(tag,'d0'),  setappdata(0,'LB_ST_HOOK',@hook_dD0);  end
         if contains(tag,'P')
             setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
-                'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+                'only',{{'PIETOOLS_stability','PIETOOLS_Hinf_gain'}}));
         end
     case 'STOCK2D'      % the New Posopvar session (11/19): PDE 65 certified on 11/17 in 'P'
                         % with the stock 2-D storage (2,102,408 variables, 740 s); PDE 39
@@ -229,7 +229,7 @@ switch tag
         ids = {'PDE:8','PDE:8/stability_dual'};  tiers = {'stripped','light','heavy'};
         opts.tiers2d = {};
         if strcmp(tag,'D8P')
-            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability_sop'}}));
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability'}}));
         end
     case {'TQ2ctl','TQ2011'}  % tier pattern (PHASE_C.md section 6): the two-variable stability
                         % rows at light in 'Q', as is and with deg_Q{2} = [0 1 1], the most
@@ -248,7 +248,7 @@ switch tag
             tiers = {'heavy'};
         else
             ids = {'PDE:45','PDE:46','PDE:47','PDE:71'};  tiers = {'light'};
-            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain_sop'));
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain'));
         end
         if endsWith(tag,'cap')
             setappdata(0,'LB_ST_HOOK',@(S,~,~) setfield(S,'lpi',setfield(S.lpi,'ineq',setfield(S.lpi.ineq,'cap_inc','auto'))));
@@ -265,13 +265,13 @@ switch tag
                         % len_com{1} = 0 (49% of the tuned stability rows), len_inc{1} = 0 (32%)
         ids = lib1;  opts.tiers2d = {};  tiers = {'stripped'};
         setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
-            'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+            'only',{{'PIETOOLS_stability','PIETOOLS_Hinf_gain'}}));
         if strcmp(tag,'T1Pc0'),  setappdata(0,'LB_ST_HOOK',@(S,~,~) hook_len1(S,'len_com'));
         else,  setappdata(0,'LB_ST_HOOK',@(S,~,~) hook_len1(S,'len_inc'));  end
     case 'X2HPd0'       % H-infinity gains 45-47: light 'P' 0.4-0.9% above exact, heavy 'P' exact
         ids = {'PDE:45','PDE:46','PDE:47'};  tiers = {'heavy'};
         setappdata(0,'LB_ST_HOOK',@hook_dD0);
-        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain_sop'));
+        setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only','PIETOOLS_Hinf_gain'));
     case 'XVP8'         % DDE08: 'P' reaches 3.5471558 at heavy, 'Q' [8 6 6] 3.9144165
         ids = {'DDE:DDE08'};  tiers = {'veryheavy'};  opts.tiers2d = {};
         setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd'));
@@ -304,7 +304,7 @@ switch tag
         if endsWith(tag,'d0'),  tiers = {'stripped','light'};  setappdata(0,'LB_ST_HOOK',@hook_dD0);  end
         if contains(tag,'P')
             setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
-                'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+                'only',{{'PIETOOLS_stability','PIETOOLS_Hinf_gain'}}));
         end
     case {'TRADE1','TRADE2'}    % trades between storage and slack (ex_search), from
                                 % the final settings of the knob search; 1-D, 2-D rows
@@ -724,7 +724,7 @@ end
 function S = hook_ext(S,~,dD0)
 % C: the 1-D entries of stripped in extreme (storage row, Q, free
 % operator), and with dD0 the lift raise 0
-T = settings_sopvar_stripped();
+T = settings_PIETOOLS_stripped();
 for f = fieldnames(T.lpi.pos)'
     v = T.lpi.pos.(f{1});
     if iscell(v),  S.lpi.pos.(f{1}){1} = v{1};  end
@@ -770,17 +770,17 @@ end
 
 function S = hook_plan(~,~,exec)
 % EXV: the planned settings of the row (phaseC_plan.csv), from
-% lpisettings_sop(tier) and the statements, and the form of this executive
+% lpisettings(tier) and the statements, and the form of this executive
 % call: stability_form for the stability tests, Hinf_gain_form for the gain
 key = getappdata(0,'LB_ROW_KEY');  plan = getappdata(0,'EXV_PLAN');  p = plan(key);
-st = lpisettings_sop(p.tier,0,'','mosek'); %#ok<NASGU>
+st = lpisettings(p.tier,0,'','mosek'); %#ok<NASGU>
 if ~isempty(p.stm),  eval(p.stm);  end
 S = st;
 if isappdata(0,'LB_FORM_MAP'),  rmappdata(0,'LB_FORM_MAP');  end
 if contains(exec,'stability') && ~isempty(p.sf)
     setappdata(0,'LB_FORM_MAP',struct('Q',p.sf,'Qd',[p.sf 'd']));
 elseif contains(exec,'Hinf_gain') && ~isempty(p.gf)
-    setappdata(0,'LB_FORM_MAP',struct('Q',p.gf,'Qd',[p.gf 'd'],'only','PIETOOLS_Hinf_gain_sop'));
+    setappdata(0,'LB_FORM_MAP',struct('Q',p.gf,'Qd',[p.gf 'd'],'only','PIETOOLS_Hinf_gain'));
 end
 end
 function S = hook_blockst(S,~,~)

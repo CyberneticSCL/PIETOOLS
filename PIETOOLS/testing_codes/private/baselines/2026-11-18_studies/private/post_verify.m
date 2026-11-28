@@ -1,7 +1,7 @@
 function [ok,r2,pre] = post_verify(PIE,S,form,prog,info,delta)
 % [OK,R2,PRE] = POST_VERIFY(PIE,S,FORM,PROG,INFO,DELTA) checks a solve of
-% PIETOOLS_stability_sop or PIETOOLS_H2_norm_sop a posteriori: the storage
-% operators of the solve are fixed at their values (getsol_lpivar_sop on the
+% PIETOOLS_stability or PIETOOLS_H2_norm a posteriori: the storage
+% operators of the solve are fixed at their values (getsol_lpivar on the
 % operators the executive returns in info.aux) and only the slacks are
 % sought (maintainer, 11/21/2026: "fix the storage output of the previous
 % result and just find the slack"; "All we need is the storage operator
@@ -76,10 +76,10 @@ if ~any(strcmp(form,{'P','Pd','FP','Q','Qd','FQ'}))
 end
 aux = info.aux;     nv = info.nv;
 direct = strcmp(form,'Q') || (nv>=2 && any(strcmp(form,{'Qd','FQ'})));
-PIEc = exec_pie_sop(PIE);
-st = exec_sop_settings(S);  tl = exec_tools_sop(PIEc,st);  st.sop = tl.sop;
-Pn = getsol_lpivar_sop(prog,aux.Pm);
-Dn = getsol_lpivar_sop(prog,aux.Dm);
+PIEc = exec_pie(PIE);
+st = exec_sop_settings(S);  tl = exec_tools(PIEc,st);  st.sop = tl.sop;
+Pn = getsol_lpivar(prog,aux.Pm);
+Dn = getsol_lpivar(prog,aux.Dm);
 Tm = PIEc.T;    if direct && strcmp(form,'Qd'),  Tm = Tm';  end     % 'Qd' direct: the pair (T',A')
 ep = info.eppos;    e2 = min(ep(min(2,end):end));
 pre = '';
@@ -106,7 +106,7 @@ if direct
     tg0 = {tpos};
     if isfield(aux,'lip') && ~isempty(aux.lip)
         op0 = {struct('like_li',aux.lip,'ref',aux.Pm)};
-        Rp = tpos - getsol_lpivar_sop(prog,aux.Npm);   % its residual in the solve
+        Rp = tpos - getsol_lpivar(prog,aux.Npm);       % its residual in the solve
         if aux.lip.margin>0,  Rp = Rp + aux.lip.margin*aux.lip.eD;  end
         tmax = maxabs_opvar(tpos);
         zt0 = min(maxabs_opvar(Rp) + 1e-12*tmax, 1e-7*tmax);        % as ztol for -D below
@@ -129,8 +129,8 @@ end
 % does above 1e-7 of the largest |D| (the tolerance of the gate): an
 % inaccurate solve (case NDS11, max|R| 1.4e-4 of max|D|) would otherwise
 % admit zeroing a part of D that matters
-Nn = getsol_lpivar_sop(prog,aux.Nm);
-Rn = -getsol_lpivar_sop(prog,aux.Dm) - Nn;
+Nn = getsol_lpivar(prog,aux.Nm);
+Rn = -getsol_lpivar(prog,aux.Dm) - Nn;
 if isfield(aux.li,'margin') && aux.li.margin>0,  Rn = Rn + aux.li.margin*aux.li.eD;  end
 rmax = maxabs_opvar(Rn);   dmax = maxabs_opvar(Dn);
 ztol = min(rmax + 1e-12*dmax, 1e-7*dmax);
@@ -200,14 +200,14 @@ end
 end
 
 function [ok,r,pre] = stage2h2(PIE,S,prog,info)
-% PIETOOLS_H2_norm_sop, form 'c': R, Q, W and gam fixed (getsol).
+% PIETOOLS_H2_norm, form 'c': R, Q, W and gam fixed (getsol).
 aux = info.aux;     gv = aux.obj;
-Rn = getsol_lpivar_sop(prog,aux.Rm);    Qn = getsol_lpivar_sop(prog,aux.Qm);    Wn = getsol_lpivar_sop(prog,aux.Wm);
+Rn = getsol_lpivar(prog,aux.Rm);    Qn = getsol_lpivar(prog,aux.Qm);    Wn = getsol_lpivar(prog,aux.Wm);
 dtab = prog.decvartable;    if isstring(dtab),  dtab = cellstr(dtab);  end
 gn = prog.solinfo.RRx(find(strcmp(dtab,gv.dvarname{1}),1));
-PIEc = exec_pie_sop(PIE);
-st = exec_sop_settings(S);  tl = exec_tools_sop(PIEc,st);  st.sop = tl.sop;
-tr = trace_rn_sop(Wn);
+PIEc = exec_pie(PIE);
+st = exec_sop_settings(S);  tl = exec_tools(PIEc,st);  st.sop = tl.sop;
+tr = trace_rn(Wn);
 if isa(tr,'dpvar'),  trn = full(tr.C(1));  else,  trn = double(tr);  end
 gc = max(gn,trn);
 Iw = tl.ident(PIEc.B1,2);
@@ -230,28 +230,28 @@ pre = sprintf('%s; gam %.8g; trace W %.8g; slack entries %s',att,gn,trn,mat2str(
 end
 
 function [r,li] = slackonly(PIEc,S,tg,op)
-% A program of slacks only: tg{k} >= 0 with the options op{k} (lpi_ineq_sop),
+% A program of slacks only: tg{k} >= 0 with the options op{k} (lpi_ineq),
 % or, when op{k} has the field like_li, the slack recorded in like_li rebuilt
 % exactly (slack_like); solved.
-st = exec_sop_settings(S);  tl = exec_tools_sop(PIEc,st);  st.sop = tl.sop;
+st = exec_sop_settings(S);  tl = exec_tools(PIEc,st);  st.sop = tl.sop;
 prog = lpiprogram(PIEc.vars(:,1),PIEc.vars(:,2),PIEc.dom,st);
 li = cell(size(tg));
 for k = 1:numel(tg)
     if isfield(op{k},'like_li'),  [prog,li{k}] = slack_like(prog,tg{k},op{k});
-    else,                         [prog,~,li{k}] = lpi_ineq_sop(prog,tg{k},op{k});
+    else,                         [prog,~,li{k}] = lpi_ineq(prog,tg{k},op{k});
     end
 end
 prog = lpisolve(prog,st.sos_opts);
-cl = lpi_classify_sop(prog,[]);
+cl = lpi_classify(prog,[]);
 r = solrec(prog);   r.exst = cl.status;     r.eta = cl.eta;
 end
 
 function [prog,li] = slack_like(prog,P,o)
 % [PROG,LI] = SLACK_LIKE(PROG,P,O) the slack of the solve on the target P:
-% the positive operator of lpi_ineq_sop with the degree specification, the
+% the positive operator of lpi_ineq with the degree specification, the
 % terms and the kept basis operators (li.include, its pruning) that O.like_li
 % records, on the spaces of O.ref (the operator of the solve), and the same
-% margin; P - Pop == 0 imposed, as lpi_ineq_sop does, with its residue rows
+% margin; P - Pop == 0 imposed, as lpi_ineq does, with its residue rows
 % zeroed (zero_unreached; LI.drop the largest value zeroed, LI.ndec the
 % number of slack variables of this rebuild).
 li = o.like_li;   ref = P;   if isfield(o,'ref') && ~isempty(o.ref),  ref = o.ref;  end
@@ -265,7 +265,7 @@ if ~isempty(li.include) && any(~cellfun(@isempty,li.include)),  popts.include = 
 [prog,Pop] = poslpivar_direct(prog,dm,sp,dom,li.deg,popts);
 if li.margin>0,  P = P + li.margin*li.eD;  end
 [E,li.drop] = zero_unreached(P - Pop);
-prog = lpi_eq_sop(prog,E,'symmetric');
+prog = lpi_eq(prog,E,'symmetric');
 li.ndec = 0;                        % every 'sdopvar' block holds the one list of the container
 for k = 1:numel(Pop.C),  if isa(Pop.C{k},'sdopvar'),  li.ndec = numel(Pop.C{k}.Zd);  break,  end,  end
 end

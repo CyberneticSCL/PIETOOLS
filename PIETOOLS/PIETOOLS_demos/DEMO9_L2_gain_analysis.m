@@ -67,6 +67,8 @@
 %   executive is lpiscript_sop; help text revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures; print each line as it runs
 clc; clear; close all; clear stateNameGenerator
@@ -143,7 +145,7 @@ prog = lpiprogram(PIE.vars,PIE.dom);                                        % YP
 Q = [-gam,        D',      (P*B)'*T;
      D,           -gam,    C;
      T'*(P*B),    C',     (P*A)'*T+T'*(P*A)];
-prog = lpi_ineq_sop(prog,-Q);                                               % YP, DJ, MMP, 11/21/2026
+prog = lpi_ineq(prog,-Q);                                                   % YP, DJ, MMP, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -152,10 +154,10 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variable
-gam_val = double(lpigetsol_sop(prog_sol,gam));                              % YP, DJ, MMP, 11/21/2026
+gam_val = double(lpigetsol(prog_sol,gam));                                  % YP, DJ, MMP, 11/21/2026
 
 % % Alternatively, uncomment to use pre-defined executive
-% [prog, ~, gam_val] = lpiscript_sop(PIE,'l2gain','stripped');              % YP, DJ, MMP, 11/21/2026
+% [prog, ~, gam_val] = lpiscript(PIE,'l2gain','stripped');              % YP, DJ, MMP, 11/21/2026
 
 
 echo off

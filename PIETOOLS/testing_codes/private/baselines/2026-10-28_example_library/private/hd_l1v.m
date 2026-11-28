@@ -1,9 +1,9 @@
 function hd_l1v()
 % HD_L1V, 10/28/2026: build-only check of the one-variable-space
-% translation (poslpivar_settings_2d_sop, working tree) against stock, on
+% translation (poslpivar_settings_2d, working tree) against stock, on
 % the 2-D stability LPI of PDE 42 (R^n, L2[s1], L2[s2], L2[s1,s2]) and PDE
 % 43 (L2[s1], L2[s1,s2]): stock PIETOOLS_PIE2PDEstability (-> _2D) against
-% PIETOOLS_stability_sop 'Q' (posed as 'P' in 2-D) with the stock slack, on
+% PIETOOLS_stability 'Q' (posed as 'P' in 2-D) with the stock slack, on
 % the same settings_2d:
 %   'stock stripped'   lpisettings stripped unchanged (all caps x = theta);
 %   'asym caps'        the same with LF_deg and eq_deg dx{2}, dx{3}, dy{2},
@@ -15,7 +15,7 @@ addpath(lbdir);     lb_setup();
 addpath(fullfile(here,'shadow'),'-begin');
 w = which('Sedumi2Mosek','-all');
 assert(startsWith(w{1},fullfile(here,'shadow')),'hd_l1v: shadow Sedumi2Mosek is not first on the path');
-fprintf('translator: %s\n', which('poslpivar_settings_2d_sop'));
+fprintf('translator: %s\n', which('poslpivar_settings_2d'));
 global HD_FP
 S = load(fullfile(lbdir,'catalog.mat'));    C = S.C;
 cat_of = @(k) C(find(strcmp({C.key},k),1));
@@ -32,11 +32,11 @@ for id = {'PDE:42','PDE:43'}
     fprintf('%s T.dim %s\n', id{1}, mat2str(PIE.T.dim));
     for k = 1:size(sets,1)
         Ss = sets{k,2};
-        Sp = lpisettings_sop('stripped',0,'','mosek');
+        Sp = lpisettings('stripped',0,'','mosek');
         Sp.settings_2d = Ss.settings_2d;    Sp.sos_opts = Ss.sos_opts;
         Sp.sop.slack = 'stock';     Sp.sop.max_raise = 0;
         cases = {'stock', @() PIETOOLS_PDEstability(PIE,Ss);       % P form (_2D); PIE2PDEstability_2D is the Q form
-                 'sop',   @() PIETOOLS_stability_sop(PIE,Sp,'Q')};
+                 'sop',   @() PIETOOLS_stability(PIE,Sp,'Q')};
         for c = 1:2
             HD_FP = [];     t0 = tic;
             lbl = sprintf('%s %s %s', id{1}, sets{k,1}, cases{c,1});

@@ -23,14 +23,14 @@
 %
 % Then, using K = Z*P^{-1}, the closed-loop system with u = K*v satisfies
 %   ||z||_{L2}/||w||_{L2} <= gam
-% We manually declare this LPI here; the commented call to lpiscript_sop
+% We manually declare this LPI here; the commented call to lpiscript
 % after the closed-loop construction solves it with the predefined
 % 'hinf-controller' executive instead.
 % We simulate the open loop and closed loop response of the PDE for various
 % initial conditions using PIESIM.
 %
 % The script displays the PDE (lam = 5), solves the LPI with P >= 1e-3*I,
-% computes K from the solved P and Z (getController_sop), builds the
+% computes K from the solved P and Z (getController), builds the
 % closed-loop PIE PIE_CL, simulates the open and closed loop from
 % x(0,s) = sin(pi*s/2) with w(t) = sin(pi*t)/t, and plots the state,
 % output and control effort. Workspace: gam_val, Pval, Zval, Kval,
@@ -80,6 +80,8 @@
 %   and regulated as cells; help text revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -134,7 +136,7 @@ P = P + 1e-3*eye_opvar(P);                                                  % YP
 Q = [-gam*eye(2),       D11,    (C1*P+D12*Z)*(T');
      D11',              -gam,   B1';
      T*(C1*P+D12*Z)',   B1,     (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
-prog = lpi_ineq_sop(prog,-Q);                                               % YP, DJ, MMP, 11/21/2026
+prog = lpi_ineq(prog,-Q);                                                   % YP, DJ, MMP, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -143,11 +145,11 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
-gam_val = double(lpigetsol_sop(prog_sol,gam));                              % YP, DJ, MMP, 11/21/2026
-Pval = lpigetsol_sop(prog_sol,P);                                           % YP, DJ, MMP, 11/21/2026
-Zval = lpigetsol_sop(prog_sol,Z);                                           % YP, DJ, MMP, 11/21/2026
+gam_val = double(lpigetsol(prog_sol,gam));                                  % YP, DJ, MMP, 11/21/2026
+Pval = lpigetsol(prog_sol,P);                                               % YP, DJ, MMP, 11/21/2026
+Zval = lpigetsol(prog_sol,Z);                                               % YP, DJ, MMP, 11/21/2026
 % Build the optimal control operator K.
-[Kval,~,~] = getController_sop(Pval,Zval);                                  % YP, DJ, MMP, 11/21/2026
+[Kval,~,~] = getController(Pval,Zval);                                      % YP, DJ, MMP, 11/21/2026
 
 % % Construct the closed-loop PIE system
 %   d/dt T*v(t,s) = (A + B2*K)*v(t,s) + B1*w(t,s);
@@ -158,7 +160,7 @@ PIE_CL.Cz = C1+D12*Kval;     PIE_CL.Dzw = D11;                              % YP
 PIE_CL = initialize(PIE_CL);                                                % YP, DJ, MMP, 11/21/2026
 
 % % Alternatively, uncomment to use pre-defined functions
-% [prog, Kval, gam_val] = lpiscript_sop(PIE,'hinf-controller','heavy');     % YP, DJ, MMP, 11/21/2026
+% [prog, Kval, gam_val] = lpiscript(PIE,'hinf-controller','heavy');     % YP, DJ, MMP, 11/21/2026
 % PIE_CL = closedLoopPIE(PIE,Kval);
 
 

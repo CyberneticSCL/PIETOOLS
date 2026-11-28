@@ -5,7 +5,7 @@ function [prog,H] = build_poincare_1d(PIE,st,~)                            % CC,
 %
 % for the PIE of x_t = x_ss on [a,b] with x(a) = x(b) = 0 and output
 % z = x_s, where H2 = T maps x_ss to x and H1 = C1 maps x_ss to x_s; sqrt(gam)
-% bounds the Poincare constant. The inequality is posed by LPI_INEQ_SOP: the
+% bounds the Poincare constant. The inequality is posed by LPI_INEQ: the
 % lift degree read from the support of the target, the weight degree raised
 % by ST.poincare.dbump, and the psatz term ('auto') or none.
 %
@@ -21,7 +21,7 @@ function [prog,H] = build_poincare_1d(PIE,st,~)                            % CC,
 % - H:     'struct' with fields H1, H2 ('opvar'), gam ('dpvar', or 'double'
 %          with ST.gamfix), Deop ('dopvar', the positive operator Pop with
 %          P - Pop = 0), De2op ([]), psatz, dw (the weight-degree raise
-%          passed to LPI_INEQ_SOP), li ('struct', its info: degrees, terms),
+%          passed to LPI_INEQ), li ('struct', its info: degrees, terms),
 %          st, PIE.
 %
 % CHANGE LOG
@@ -45,7 +45,7 @@ if isfield(st,'poincare') && ~isempty(st.poincare)
     fn = fieldnames(st.poincare);
     for i = 1:numel(fn),  pc.(fn{i}) = st.poincare.(fn{i});  end
 end
-PIE  = exec_pie_sop(PIE);
+PIE  = exec_pie(PIE);
 H2op = PIE.T;       % (H2op*x_ss) = x
 H1op = PIE.C1;      % (H1op*x_ss) = x_s
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
@@ -60,10 +60,10 @@ P = gam*(H1op'*H1op) - H2op'*H2op;
 % weight plus the (s-a)(b-s) term one weight degree lower, the interval
 % Positivstellensatz form; 'none' the base weight alone, under which the
 % LPI is infeasible for every degree and gam (proved 09/28/2026; BENCH.md).
-dw = 1 + pc.dbump;                     % lpi_ineq_sop's default weight raise is 1
+dw = 1 + pc.dbump;                     % lpi_ineq's default weight raise is 1
 o  = struct('dw',dw);
 if pc.psatz,  o.psatz = 'auto';  else,  o.psatz = 'none';  end
-[prog,Pop,li] = lpi_ineq_sop(prog,P,o);
+[prog,Pop,li] = lpi_ineq(prog,P,o);
 if ~(isfield(st,'gamfix') && ~isempty(st.gamfix))
     prog = lpisetobj(prog,gam);
 end

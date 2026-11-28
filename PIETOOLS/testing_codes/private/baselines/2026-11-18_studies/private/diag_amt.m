@@ -22,7 +22,7 @@ function diag_amt(jobs, tag, ndvcap)
 %
 % INPUT
 %   jobs:   cell array of rows {key, form, tier, mods, variant, param}:
-%           key as in catalog.mat; form 'Q' or 'P'; tier of lpisettings_sop;
+%           key as in catalog.mat; form 'Q' or 'P'; tier of lpisettings;
 %           mods MATLAB statements on st ('' for none); variant 'A', 'A0' or
 %           'AmT'; param the library parameter ([] for the default)
 %   tag:    results_<TAG>.csv in this folder; a job already in it is skipped
@@ -76,12 +76,12 @@ for i = 1:numel(jobs)
             otherwise    % 'AsT<c>': A - c*T, the shift c of a sweep
                 if startsWith(variant,'AsT'),  PIE.A = PIE.A - str2double(variant(4:end))*PIE.T;  end
         end
-        S = lpisettings_sop(tier,0,'','mosek');
+        S = lpisettings(tier,0,'','mosek');
         if ~isempty(mods),  eval(strrep(mods,'st.','S.'));  end
         if strcmp(form,'P')
-            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability_sop'}}));
+            setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd','only',{{'PIETOOLS_stability'}}));
         elseif any(strcmp(form,{'Qd','Pd'}))       % the dual test in that form
-            setappdata(0,'LB_FORM_MAP',struct('Q',form,'only',{{'PIETOOLS_stability_sop'}}));
+            setappdata(0,'LB_FORM_MAP',struct('Q',form,'only',{{'PIETOOLS_stability'}}));
         elseif isappdata(0,'LB_FORM_MAP'),  rmappdata(0,'LB_FORM_MAP');
         end
         r = lb_exec('sop:PIETOOLS_PIE2PDEstability', PIE, S);

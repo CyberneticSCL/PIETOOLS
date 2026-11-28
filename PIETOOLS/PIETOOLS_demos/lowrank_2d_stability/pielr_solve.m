@@ -174,12 +174,12 @@ end                                                                         % MM
 if isempty(opts.settings)
 %   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings('light'); end % CC, 11/08/2026 (was)
 %   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_sop('light'); end % CC, 11/17/2026 (was); CC, 11/08/2026
-    if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_stock_sop('light'); end % CC, 11/17/2026
+    if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_stock('light'); end % CC, 11/17/2026
 elseif ischar(opts.settings) || isstring(opts.settings)
 %   opts.settings = lpisettings(char(opts.settings));                       % CC, 11/08/2026 (was)
 %   opts.settings = lpisettings_sop(char(opts.settings));                   % CC, 11/17/2026 (was); CC, 11/08/2026
     % the tier plus sop.stock, which the builders' stock slack reads        % CC, 11/17/2026
-    opts.settings = lpisettings_stock_sop(char(opts.settings));             % CC, 11/17/2026
+    opts.settings = lpisettings_stock(char(opts.settings));                 % CC, 11/17/2026
 end
 
 notes = {};

@@ -83,7 +83,7 @@ for n = ns                                                                  % CC
                                       subs(x,s,0)==0; subs(x,s,1)==0]));    % CC, 09/27/2026
         end                                                                 % CC, 09/27/2026 (b)
 %       stg = lpisettings('heavy');                                         % CC, 11/08/2026 (was)
-        stg = lpisettings_sop('heavy');                                     % CC, 11/08/2026
+        stg = lpisettings('heavy');                                         % CC, 11/08/2026
         stg.sos_opts.solver='mosek'; stg.sos_opts.simplify=false;
         t0=tic; evalc('out = stab_mirror(PIE,stg);'); tb=toc(t0);
         S = sdpshape(out.prog);

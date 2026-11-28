@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -63,6 +63,8 @@ function [PDE_t,st] = PIETOOLS_PDDE_Ex(GUI,params)                          % MM
 %   the base workspace; the delays tau are set before params is evaluated,
 %   so params can change them; the unused pvar s t removed; help corrected
 %   (states x2, x3, output over [0,pi]), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDDE_Ex(GUI,params)                           % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -111,7 +113,7 @@ PDE_t=[PDE1;PDE2;PDE3;BC1;BC2;BC3;BC4;output];
 
 % Example-specific settings                                                 % MMP, 11/21/2026
 % (light tier; slack lift degree at its minimum Dmin)
-st = lpisettings_sop('light');                                              % MMP, 11/21/2026
+st = lpisettings('light');                                                  % MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026
 
 

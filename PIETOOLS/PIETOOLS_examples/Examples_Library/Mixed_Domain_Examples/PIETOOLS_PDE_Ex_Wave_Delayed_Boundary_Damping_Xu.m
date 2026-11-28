@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Delayed_Boundary_Damping_Xu(GUI,param
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -114,7 +114,7 @@ PDE_t = [diff(e,'t')==diff(v,s1);
 % its minimum Dmin, the 2-D slack with the plain term only (psatz 'none'),
 % Q of degree 0, and up to 2 raises in one or two variables, each raising
 % the degree of Q (raise_Q 'deg')
-st = lpisettings_sop('light');
+st = lpisettings('light');
 st.lpi.ineq.dD = 0;
 st.lpi.ineq.psatz{2} = 'none';
 st.sop.deg_Q{2} = 0;

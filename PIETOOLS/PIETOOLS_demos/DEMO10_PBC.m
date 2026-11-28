@@ -89,7 +89,7 @@ P = P + 1e-4*eye_opvar(T);
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
 % all x(s,t) : Kx(s,t)=0, a <= s <= b
 Q = A'*P*T + T'*P*A + 2*alpha*T'*P*T + X*K + K'*X';
-prog = lpi_ineq_sop(prog,-Q);
+prog = lpi_ineq(prog,-Q);
 % Solve the LPI
 prog = lpisolve(prog);
 
@@ -98,8 +98,8 @@ info = prog.solinfo.info;
 assert(~info.pinf && ~info.dinf && info.numerr==0 && abs(info.feasratio-1)<0.1, ...
     'No stability certificate; inspect prog.solinfo.info.');
 % Extract the solved operators and print the certified decay rate
-Psol = getsol_lpivar_sop(prog,P);
-Xsol = getsol_lpivar_sop(prog,X);
+Psol = getsol_lpivar(prog,P);
+Xsol = getsol_lpivar(prog,X);
 fprintf('\nCertified mean-free decay rate alpha = %.4f (analytical limit %.4f).\n', ...
     alpha,pi^2-lam);
 %[1] D. Jagt, S. Chernyshenko, and M. Peet. Representation and stability analysis of 1D PDEs

@@ -82,6 +82,8 @@
 %   y lies in L2[s1], so Z*Ej failed. The manual needs the same change.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator;
@@ -180,8 +182,8 @@ Zdeg = 2;                                                                   % DB
 
 
 %% 7.3 Imposing Constraints
-% % lpi_ineq_sop
-% We impose negativity Q<=0 using lpi_ineq_sop:
+% % lpi_ineq
+% We impose negativity Q<=0 using lpi_ineq:
 % Iw = eye(size(B1,2));       Iz = eye(size(C1,1));                         % DB, MMP, 11/21/2026 (was)
 % Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21)'*T;                       % DB, MMP, 11/21/2026 (was)
 %      -D11,              -gam*Iz,  C1;                                     % DB, MMP, 11/21/2026 (was)
@@ -193,18 +195,18 @@ Zdeg = 2;                                                                   % DB
 [Iz_sp,Iz_dm] = opvar_space_list(C1,'out');                                 % DB, MMP, 11/21/2026
 Iw = eye_opvar(Iw_dm,Iw_sp,dom);                                            % DB, MMP, 11/21/2026
 Iz = eye_opvar(Iz_dm,Iz_sp,dom);                                            % DB, MMP, 11/21/2026
-D21r = on_registry_sop(D21,Z);      % D21 on the registry of Z              % DB, MMP, 11/21/2026
+D21r = on_registry(D21,Z);          % D21 on the registry of Z              % DB, MMP, 11/21/2026
 Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21r)'*T;                        % DB, MMP, 11/21/2026
      -D11,              -gam*Iz,  C1;                                       % DB, MMP, 11/21/2026
      -T'*(P*B1+Z*D21r), C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];             % DB, MMP, 11/21/2026
-% "lpi_ineq_sop" declares a positive slack, with monomial degrees read from % DB, MMP, 11/21/2026
+% "lpi_ineq" declares a positive slack, with monomial degrees read from % DB, MMP, 11/21/2026
 % the support of Q (lift degree and weight degree raised by dD, dw = 1)     % DB, MMP, 11/21/2026
 clear Q_opts                                                                % DB, MMP, 11/21/2026
 Q_opts.like = P;    Q_opts.dD = 2;                                          % DB, MMP, 11/21/2026
-prog = lpi_ineq_sop(prog,-Q,Q_opts);                                        % DB, MMP, 11/21/2026
+prog = lpi_ineq(prog,-Q,Q_opts);                                            % DB, MMP, 11/21/2026
 
-% % lpi_eq_sop
-% Alternatively, we could impose negativity Q<=0 manually using lpi_eq_sop,
+% % lpi_eq
+% Alternatively, we could impose negativity Q<=0 manually using lpi_eq,
 % with positive slacks R1 (degree Rdeg) and R2 (degree Rdeg-1, psatz 1):
 % Rdeg = 3;                                                                 % DB, MMP, 11/21/2026 (was)
 % [prog_alt,R1] = poslpivar(prog,Q.dim(:,1),Rdeg);                          % DB, MMP, 11/21/2026 (was)
@@ -216,7 +218,7 @@ Rdeg = 3;                                                                   % DB
 [prog_alt,R1] = poslpivar(prog,Q_dm,Q_sp,dom,Rdeg);                         % DB, MMP, 11/21/2026
 R_opts.psatz = 1;                                                           % DB, MMP, 11/21/2026
 [prog_alt,R2] = poslpivar(prog_alt,Q_dm,Q_sp,dom,Rdeg-1,R_opts);            % DB, MMP, 11/21/2026
-prog_alt = lpi_eq_sop(prog_alt,Q+R1+R2,'symmetric');                        % DB, MMP, 11/21/2026
+prog_alt = lpi_eq(prog_alt,Q+R1+R2,'symmetric');                            % DB, MMP, 11/21/2026
 
 
 %% 7.4 Defining an Objective Function
@@ -239,22 +241,22 @@ prog_sol = lpisolve(prog,solve_opts);
 % gam_val = lpigetsol(prog_sol,gam)                                         % DB, MMP, 11/21/2026 (was)
 % Pval = lpigetsol(prog_sol,P);                                             % DB, MMP, 11/21/2026 (was)
 % Zval = lpigetsol(prog_sol,Z);                                             % DB, MMP, 11/21/2026 (was)
-gam_val = double(lpigetsol_sop(prog_sol,gam))                               % DB, MMP, 11/21/2026
-Pval = getsol_lpivar_sop(prog_sol,P);                                       % DB, MMP, 11/21/2026
-Zval = getsol_lpivar_sop(prog_sol,Z);                                       % DB, MMP, 11/21/2026
+gam_val = double(lpigetsol(prog_sol,gam))                                   % DB, MMP, 11/21/2026
+Pval = getsol_lpivar(prog_sol,P);                                           % DB, MMP, 11/21/2026
+Zval = getsol_lpivar(prog_sol,Z);                                           % DB, MMP, 11/21/2026
 
-% % 7.6.1 getObserver_sop
+% % 7.6.1 getObserver
 % Compute the (optimal) observer gain operator L=P^{-1}*Z
 % Lval = getObserver(Pval,Zval);                                            % DB, MMP, 11/21/2026 (was)
 % P is separable (a multiplier plus eppos*I), so P^{-1}*Z is computed exactly % DB, MMP, 11/21/2026
 % Lval = getObserver_sop(Pval,Zval);                                        % MMP, 11/23/2026 (was); DB, MMP, 11/21/2026
 % y lies in L2[s1]: method 'inv'; the default 'qp' needs y in R^ny          % MMP, 11/23/2026
-Lval = getObserver_sop(Pval,Zval,struct('method','inv'));                   % MMP, 11/23/2026
+Lval = getObserver(Pval,Zval,struct('method','inv'));                       % MMP, 11/23/2026
 
-% % 7.6.2 getController_sop
+% % 7.6.2 getController
 % Compute the (optimal) controller gain operator K=Z*P^{-1} 
 % (not relevant here)
-%Kval = getController_sop(Pval,Zval);
+%Kval = getController(Pval,Zval);
 
 % % 7.6.3
 % Construct the closed-loop PIE representation of the system using the

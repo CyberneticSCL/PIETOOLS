@@ -514,13 +514,13 @@ switch index
         prog = lpiprogram([s1;s2],[],[0 1; tmin b-tmin]);
         [prog,C] = lpidecvar(prog,'C');
         if isempty(dg)
-            prog = lpi_ineq_sop(prog,C*(Qx + Qs) - QE);
+            prog = lpi_ineq(prog,C*(Qx + Qs) - QE);
         else
-            prog = lpi_ineq_sop(prog,C*(Qx + Qs) - QE,dg);
+            prog = lpi_ineq(prog,C*(Qx + Qs) - QE,dg);
         end
         prog = lpisetobj(prog,C);
         prog = lpisolve(prog);
-        Csol = double(lpigetsol_sop(prog,C));
+        Csol = double(lpigetsol(prog,C));
 
         % sharp value: C(t) is largest at the end of the t-interval, so the result is C(tmin)
         sharp = 1/(tanh(tmin) + tanh(b-tmin));
@@ -717,13 +717,13 @@ switch index
         prog = lpiprogram(B.vars,B.dom);
         [prog,C] = lpidecvar(prog,'C');
         if isempty(dg)
-            prog = lpi_ineq_sop(prog,C*(P'*P) - H1'*H1);
+            prog = lpi_ineq(prog,C*(P'*P) - H1'*H1);
         else
-            prog = lpi_ineq_sop(prog,C*(P'*P) - H1'*H1,dg);
+            prog = lpi_ineq(prog,C*(P'*P) - H1'*H1,dg);
         end
         prog = lpisetobj(prog,C);
         prog = lpisolve(prog);
-        Csol = double(lpigetsol_sop(prog,C));
+        Csol = double(lpigetsol(prog,C));
 
         % sharp value and the eigenvalue: lambda = -||u_s||^2/||u_ss||^2, so the largest one is lambda = -C
         sharp = (b/(2*pi))^2;
@@ -791,7 +791,7 @@ function Csol = solve_min(dom,ineq,dg)
 % - ineq: function handle, C -> the operator ineq(C), affine in the
 %         scalar decision variable C;
 % - dg:   'struct' with fields dD, dw (the degrees passed to
-%         lpi_ineq_sop), or [] for the default degrees.
+%         lpi_ineq), or [] for the default degrees.
 % OUTPUT
 % - Csol: 'double', the solved value of C.
 pvar s1 s1_dum
@@ -800,19 +800,19 @@ pvar s1 s1_dum
 prog = lpiprogram([s1,s1_dum],dom);
 [prog,C] = lpidecvar(prog,'C');
 if isempty(dg)
-    prog = lpi_ineq_sop(prog,ineq(C));
+    prog = lpi_ineq(prog,ineq(C));
 else
-    prog = lpi_ineq_sop(prog,ineq(C),dg);
+    prog = lpi_ineq(prog,ineq(C),dg);
 end
 prog = lpisetobj(prog,C);
 prog = lpisolve(prog);
-Csol = double(lpigetsol_sop(prog,C));
+Csol = double(lpigetsol(prog,C));
 end
 
 function dg = degrees(opts,dD,dw)
 % DG = DEGREES(OPTS,DD,DW) returns the certificate degrees: the user's
 % values if specified, else the defaults dD, dw of the example (empty: the
-% default degrees of lpi_ineq_sop).
+% default degrees of lpi_ineq).
 % INPUT
 % - opts: 'struct' of options, fields dD and dw ([] if not specified);
 % - dD, dw: 'double' scalars or [], the defaults of the example.

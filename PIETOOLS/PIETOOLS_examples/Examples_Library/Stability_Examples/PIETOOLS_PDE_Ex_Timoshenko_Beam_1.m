@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params)   % DB
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % DB, MMP, 11/21/2026
 %               for the tests this file names                               % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -74,6 +74,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params)   % DB
 %   in both formats; new output st, the recommended settings of the
 %   stability test; stability_form = 'P' set in the base workspace; help
 %   and comments revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params)    % DB, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -157,7 +159,7 @@ end
 % Example-specific settings                                                 % DB, MMP, 11/21/2026
 % (stripped tier; 1-D storage from the multiplier only, theta-length 1,
 % both integral s-lengths 0; slack lift degree at its minimum Dmin)
-st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
+st = lpisettings('stripped');                                               % DB, MMP, 11/21/2026
 st.lpi.pos.len_inc{1} = 0;                                                  % DB, MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 0;                                                  % DB, MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [1;2;2];                                            % DB, MMP, 11/21/2026

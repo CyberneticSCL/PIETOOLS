@@ -15,7 +15,7 @@
 %
 %  LPI SOLVER SETTINGS: The first set of commands in the header specify default settings for the
 %  Matlab environment and the LPI solver. This includes the settings of a
-%  tier, lpisettings_sop('light'), replaced by the settings st of the
+%  tier, lpisettings('light'), replaced by the settings st of the
 %  library example when it sets them, and a declaration for how strictly the Lyapunov
 %  inequalities are enforced. If you are not solving an LPI, you may ignore
 %  all of these commands.
@@ -78,6 +78,8 @@
 %   PIESIM initial condition is uinput.ic; help and comments revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 %
 close all; clear; %path(pathdef); 
 clc;
@@ -236,7 +238,7 @@ if strcmp(simulate,'on')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Computational Complexity Toggles
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Choose the tier of lpisettings_sop below:
+% Choose the tier of lpisettings below:
 %
 % 'veryheavy' is for difficult problems which require complex
 % Lyapunov/storage functions.
@@ -254,7 +256,7 @@ if strcmp(simulate,'on')
 
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
 % settings = lpisettings('light');                                          % YP, DB, MMP, 11/21/2026 (was)
-settings = lpisettings_sop('light');  % tiers of the container executives   % YP, DB, MMP, 11/21/2026
+settings = lpisettings('light');      % tiers of the container executives   % YP, DB, MMP, 11/21/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -297,47 +299,47 @@ end
 
 
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
-% The container executives (PIETOOLS_*_sop) take the opvar PIE that both   % YP, DB, MMP, 11/21/2026
+% The container executives (PIETOOLS_*) take the opvar PIE that both   % YP, DB, MMP, 11/21/2026
 % converters return; outputs as named below, then an info struct            % YP, DB, MMP, 11/21/2026
 if stability==1
 %   [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                    % YP, DB, MMP, 11/21/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % YP, DB, MMP, 11/21/2026
+    [prog, P] = PIETOOLS_stability(PIE,settings,stability_form);            % YP, DB, MMP, 11/21/2026
 end
 if stability_dual==1
 %   [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);               % YP, DB, MMP, 11/21/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % YP, DB, MMP, 11/21/2026
+    [prog, P] = PIETOOLS_stability(PIE,settings,[stability_form 'd']);      % YP, DB, MMP, 11/21/2026
 end
 if Hinf_gain==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % YP, DB, MMP, 11/21/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,Hinf_gain_form); % YP, DB, MMP, 11/21/2026
+    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings,Hinf_gain_form); % YP, DB, MMP, 11/21/2026
 end
 if Hinf_gain_dual==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);               % YP, DB, MMP, 11/21/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,[Hinf_gain_form 'd']); % YP, DB, MMP, 11/21/2026
+    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings,[Hinf_gain_form 'd']); % YP, DB, MMP, 11/21/2026
 end
 if Hinf_control==1
 %   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % YP, DB, MMP, 11/21/2026 (was)
-    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % YP, DB, MMP, 11/21/2026
+    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % YP, DB, MMP, 11/21/2026
 end
 if Hinf_estimator==1
 %   [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % YP, DB, MMP, 11/21/2026 (was)
-    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % YP, DB, MMP, 11/21/2026
+    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % YP, DB, MMP, 11/21/2026
 end
 if H2_norm==1
 %   [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,settings);              % YP, DB, MMP, 11/21/2026 (was)
-    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'o');        % YP, DB, MMP, 11/21/2026
+    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm(PIE,settings,'o');            % YP, DB, MMP, 11/21/2026
 end
 if H2_norm_dual==1
 %   [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,settings);              % YP, DB, MMP, 11/21/2026 (was)
-    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'c');        % YP, DB, MMP, 11/21/2026
+    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm(PIE,settings,'c');            % YP, DB, MMP, 11/21/2026
 end
 if H2_control==1
 %   [prog, K, gamma, P, Z] = PIETOOLS_H2_controller(PIE,settings);          % YP, DB, MMP, 11/21/2026 (was)
-    [prog, K, gamma, P, Z] = PIETOOLS_H2_control_sop(PIE,settings);         % YP, DB, MMP, 11/21/2026
+    [prog, K, gamma, P, Z] = PIETOOLS_H2_control(PIE,settings);             % YP, DB, MMP, 11/21/2026
 end
 if H2_estimator==1
 %   [prog, L, gamma, P, Z] = PIETOOLS_H2_estimator(PIE,settings);           % YP, DB, MMP, 11/21/2026 (was)
-    [prog, L, gamma, P, Z] = PIETOOLS_H2_estimator_sop(PIE,settings);       % YP, DB, MMP, 11/21/2026
+    [prog, L, gamma, P, Z] = PIETOOLS_H2_estimator(PIE,settings);           % YP, DB, MMP, 11/21/2026
 end
 
 

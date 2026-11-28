@@ -24,7 +24,7 @@
   DDE.D12=[0;0;.1];                                                        % MMP, 11/19/2026
  % st: example-specific settings (11/19/2026); closed-loop gain            % MMP, 11/19/2026
  %     1.963986, 265 decision variables (stripped as it is: 1,252)         % MMP, 11/19/2026
- st = lpisettings_sop('stripped');                                         % MMP, 11/19/2026
+ st = lpisettings('stripped');                                             % MMP, 11/19/2026
  st.lpi.pos.len_inc{1} = 0;                                                % MMP, 11/19/2026
  st.lpi.pos.len_com{1} = 0;                                                % MMP, 11/19/2026
  st.lpi.pos.len_sos{1} = [1;2;2];                                          % MMP, 11/19/2026

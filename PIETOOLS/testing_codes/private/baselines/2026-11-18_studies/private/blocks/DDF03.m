@@ -65,7 +65,7 @@ end
 % st: example-specific settings (11/19/2026); closed-loop gain              % MMP, 11/19/2026
 %     0.439636, 4,673 decision variables (heavy as it is: 0.440633 at       % MMP, 11/19/2026
 %     8,465)                                                                % MMP, 11/19/2026
-st = lpisettings_sop('heavy');                                              % MMP, 11/19/2026
+st = lpisettings('heavy');                                                  % MMP, 11/19/2026
 st.lpi.pos.len_sos{1} = [4;2;2];                                            % MMP, 11/19/2026
 st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/19/2026
 st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/19/2026

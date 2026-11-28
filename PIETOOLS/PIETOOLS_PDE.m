@@ -58,6 +58,8 @@ close all; clc; clear; clear stateNameGenerator
 %   revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -103,7 +105,7 @@ PIE = convert_PIETOOLS_PDE(PDE);
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
 % settings = lpisettings('heavy');                                          % YP, MMP, DB, 11/21/2026 (was)
-settings = lpisettings_sop('heavy');  % tiers of the container executives   % YP, MMP, DB, 11/21/2026
+settings = lpisettings('heavy');      % tiers of the container executives   % YP, MMP, DB, 11/21/2026
 settings.eppos = 1e-2;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -113,35 +115,35 @@ settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
 % PIETOOLS_auto_execute                                                     % YP, MMP, DB, 11/21/2026 (was)
-% PIETOOLS_auto_execute_sop                                                 % YP, MMP, DB, 11/21/2026
+% PIETOOLS_auto_execute                                                 % YP, MMP, DB, 11/21/2026
 
 % % --- Manually run desired executives ---
-% The container executives (PIETOOLS_*_sop) take the opvar PIE that        % YP, MMP, DB, 11/21/2026
+% The container executives (PIETOOLS_*) take the opvar PIE that        % YP, MMP, DB, 11/21/2026
 % convert_PIETOOLS_PDE returns and return the outputs named, then an info   % YP, MMP, DB, 11/21/2026
 % struct; the third argument is the form ('Q', 'Qd': PIE2PDE forms; 'o',    % YP, MMP, DB, 11/21/2026
 % 'c': observability and controllability H2 norms).                         % YP, MMP, DB, 11/21/2026
 % [prog,P] = lpiscript(PIE,'hinf-observer',settings);                       % YP, MMP, DB, 11/21/2026 (was)
-% [prog,P] = lpiscript_sop(PIE,'hinf-observer',settings);                   % YP, MMP, DB, 11/21/2026
+% [prog,P] = lpiscript(PIE,'hinf-observer',settings);                   % YP, MMP, DB, 11/21/2026
 % [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                      % YP, MMP, DB, 11/21/2026 (was)
-% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                     % YP, MMP, DB, 11/21/2026
+% [prog, P] = PIETOOLS_stability(PIE,settings,'Q');                     % YP, MMP, DB, 11/21/2026
 % [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);                 % YP, MMP, DB, 11/21/2026 (was)
-% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                    % YP, MMP, DB, 11/21/2026
+% [prog, P] = PIETOOLS_stability(PIE,settings,'Qd');                    % YP, MMP, DB, 11/21/2026
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                      % YP, MMP, DB, 11/21/2026 (was)
-% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');              % YP, MMP, DB, 11/21/2026
+% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings,'Q');              % YP, MMP, DB, 11/21/2026
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);                 % YP, MMP, DB, 11/21/2026 (was)
-% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');             % YP, MMP, DB, 11/21/2026
+% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings,'Qd');             % YP, MMP, DB, 11/21/2026
 % [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);     % YP, MMP, DB, 11/21/2026 (was)
-% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings); % YP, MMP, DB, 11/21/2026
 % [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings); % YP, MMP, DB, 11/21/2026 (was)
-% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings); % YP, MMP, DB, 11/21/2026
 % [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);                     % YP, MMP, DB, 11/21/2026 (was)
-% [prog, Wo, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'o');               % YP, MMP, DB, 11/21/2026
+% [prog, Wo, gamma] = PIETOOLS_H2_norm(PIE,settings,'o');               % YP, MMP, DB, 11/21/2026
 % [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);                     % YP, MMP, DB, 11/21/2026 (was)
-% [prog, Wc, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'c');               % YP, MMP, DB, 11/21/2026
+% [prog, Wc, gamma] = PIETOOLS_H2_norm(PIE,settings,'c');               % YP, MMP, DB, 11/21/2026
 % [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,settings);    % YP, MMP, DB, 11/21/2026 (was)
-% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,settings); % YP, MMP, DB, 11/21/2026
 % [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,settings); % YP, MMP, DB, 11/21/2026 (was)
-% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator_sop(PIE,settings); % YP, MMP, DB, 11/21/2026
+% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,settings); % YP, MMP, DB, 11/21/2026
 
 % % Construct the closed-loop PIE representation, if applicable
 if exist('K_control','var')

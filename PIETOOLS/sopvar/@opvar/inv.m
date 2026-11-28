@@ -60,7 +60,7 @@ function [Pinv,info] = inv(P,opts)
 % rational, so the inverse is a polynomial approximation; info.relrms and
 % info.d give its fit residual and degree.
 %
-% See also SOPVAR/INV, GETCONTROLLER_SOP, GETOBSERVER_SOP, COPVAR2OPVAR.
+% See also SOPVAR/INV, GETCONTROLLER, GETOBSERVER, COPVAR2OPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

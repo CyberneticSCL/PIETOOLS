@@ -53,7 +53,7 @@ function [deg,report] = degbalance_core(P,opts)
 % contribute. Per-monomial pruning does not follow from the same argument,
 % so the degrees here are a matching rule, not a minimal one.
 %
-% See also DEGBALANCE, EQ_OPTS_SOPVAR, POSSOPVAR, SETTINGS2POSSOPVAR.
+% See also DEGBALANCE, GET_EQ_OPTS, POSSOPVAR, SETTINGS2POSSOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

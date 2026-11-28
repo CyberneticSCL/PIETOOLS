@@ -11,7 +11,7 @@ function lb_diag()
 %      the eq fields) against stock stripped (0.25218, unknown), and the
 %      default slack ('like') at light with dw_P raised from 2 to 4. That
 %      second test is void: form 'Q' reads dw_Q, not dw_P
-%      (PIETOOLS_Hinf_gain_sop, dwbase), and the program was unchanged.
+%      (PIETOOLS_Hinf_gain, dwbase), and the program was unchanged.
 here = fileparts(mfilename('fullpath'));
 lb_setup();
 S = load(fullfile(here,'catalog.mat'));  C = S.C;
@@ -39,7 +39,7 @@ try
     sys = initialize_PIETOOLS_DDE(sys);  PIE = convert_PIETOOLS_DDE(sys,'pie');
     fprintf('DDE19 renamed: C1 %s | D11 %s | D12 %s\n', mat2str(PIE.C1.dim), mat2str(PIE.D11.dim), mat2str(PIE.D12.dim));
     pr('DDE19 renamed, stock light', lb_exec('PIETOOLS_Hinf_control', PIE, lpisettings('light',0,'','mosek')));
-    pr('DDE19 renamed, sop light', lb_exec('sop:PIETOOLS_Hinf_control', PIE, lpisettings_sop('light',0,'','mosek')));
+    pr('DDE19 renamed, sop light', lb_exec('sop:PIETOOLS_Hinf_control', PIE, lpisettings('light',0,'','mosek')));
 catch ME
     fprintf('DDE19 renamed: %s (%s)\n', ME.message, ME.stack(1).name);
 end
@@ -57,7 +57,7 @@ end
 % 3. PDE 45: stock slack at the stripped 2-D degrees, then 'like' at dw_P 4
 PIE = lb_build_system(cat_of('PDE:45'), [], true);
 try
-    St = lpisettings_sop('light',0,'','mosek');
+    St = lpisettings('light',0,'','mosek');
     St.settings_2d = settings_PIETOOLS_stripped_2D();
     St.sop.slack = 'stock';     St.sop.max_raise = 0;
     pr('PDE45 sop, stock slack, stripped 2D', lb_exec('sop:PIETOOLS_Hinf_gain', PIE, St));
@@ -65,7 +65,7 @@ catch ME
     fprintf('PDE45 stock slack: %s (%s)\n', ME.message, ME.stack(1).name);
 end
 try
-    St = lpisettings_sop('light',0,'','mosek');
+    St = lpisettings('light',0,'','mosek');
     St.sop.dw_P = 4;            St.sop.max_raise = 0;
     pr('PDE45 sop, like slack, dw_P 4', lb_exec('sop:PIETOOLS_Hinf_gain', PIE, St));
 catch ME

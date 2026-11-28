@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Delayed_Robin_Boundary_Nicaise(GUI,pa
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -108,7 +108,7 @@ PDE_t = [diff(u,'t')==diff(u,s1,2);
 % at its minimum Dmin, the 2-D slack with the plain term only (psatz
 % 'none'), the slack integral bases capped at theta+s <= Dmax-1, and Q of
 % degree 2 in the multiplier and 1 in the integral kernels
-st = lpisettings_sop('stripped');
+st = lpisettings('stripped');
 st.lpi.ineq.dD = 0;
 st.lpi.ineq.psatz{2} = 'none';
 st.lpi.ineq.cap_inc = 'auto';

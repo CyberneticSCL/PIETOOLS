@@ -31,7 +31,7 @@ function lb_run(ids, tiers, opts)
 %                     {'DDE:DDE16@veryheavy'} (default {})
 %       .path       - 'stock' (default): the stock executives with
 %                     lpisettings; 'sop': the _sop executives with
-%                     lpisettings_sop (lb_exec maps each stock executive
+%                     lpisettings (lb_exec maps each stock executive
 %                     to its _sop form). Each path has its own results,
 %                     started and PAUSE files.
 %
@@ -74,7 +74,7 @@ for k = 1:numel(fn)
 end
 order1 = {'extreme','stripped','light','heavy','veryheavy','custom'};
 order2 = {'extreme','stripped','light','custom','heavy','veryheavy'};
-% settings_sopvar: custom is light, not a tier step between light and heavy
+% settings: custom is light, not a tier step between light and heavy
 if strcmp(opts.path,'sop'), order2 = order1; end
 if ischar(tiers) && strcmp(tiers,'all'), tiers = order1; end
 tiers = cellstr(tiers);
@@ -148,7 +148,7 @@ for t = 1:numel(tt)
         else
             try
                 if strcmp(opts.path,'sop')
-                    S0 = lpisettings_sop(tier,0,'','mosek');
+                    S0 = lpisettings(tier,0,'','mosek');
                 else
                     S0 = lpisettings(tier,0,'','mosek');
                 end

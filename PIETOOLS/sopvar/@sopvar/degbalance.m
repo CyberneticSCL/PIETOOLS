@@ -21,7 +21,7 @@ function [deg,report] = degbalance(P,opts)
 % - report: 'struct' with fields 'lines' (what was decided) and 'maxdeg'
 %           (per-block maximal degrees read off P);
 %
-% See also DEGBALANCE_CORE, EQ_OPTS_SOPVAR, POSSOPVAR.
+% See also DEGBALANCE_CORE, GET_EQ_OPTS, POSSOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 

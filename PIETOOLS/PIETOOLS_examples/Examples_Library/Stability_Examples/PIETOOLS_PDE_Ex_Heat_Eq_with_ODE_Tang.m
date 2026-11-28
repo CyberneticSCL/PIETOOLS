@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params) % 
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % DB, MMP, 11/21/2026
 %               for the tests this file names                               % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -64,6 +64,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params) % 
 %   the help states the BCs x(0) = -xo, x(1) = k*xo; new output st, the
 %   recommended settings of the stability test; stability_form = 'Q' set
 %   in the base workspace; help and comments revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params) % DB, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -152,7 +154,7 @@ end
 % (stripped tier; slack lift degree at its minimum Dmin; slack integral
 % bases capped at total degree theta+s <= Dmax-1; Q of degree 2 in the
 % multiplier and 1 in the integral kernels)
-st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
+st = lpisettings('stripped');                                               % DB, MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % DB, MMP, 11/21/2026
 st.lpi.ineq.cap_inc = 'auto';                                               % DB, MMP, 11/21/2026
 st.sop.deg_Q{1} = [2 1 1];                                                  % DB, MMP, 11/21/2026

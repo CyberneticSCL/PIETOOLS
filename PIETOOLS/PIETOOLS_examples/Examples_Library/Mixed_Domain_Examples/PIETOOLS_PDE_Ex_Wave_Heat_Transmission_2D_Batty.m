@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Heat_Transmission_2D_Batty(GUI,params
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -106,7 +106,7 @@ PDE_t = [diff(u,'t')==v;
 
 
 % Example-specific settings: the light tier
-st = lpisettings_sop('light');
+st = lpisettings('light');
 
 % No GUI representation of this system
 if GUI~=0

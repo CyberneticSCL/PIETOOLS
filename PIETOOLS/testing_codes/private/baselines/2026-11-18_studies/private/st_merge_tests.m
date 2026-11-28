@@ -24,11 +24,11 @@ cd(R);  pietools_path_update;
 % The helpers of the tests are off the path with the rest of
 % testing_codes/private: rand_opvar, rand_dopvar (Testfolder); rand_sopvar,
 % rand_sdopvar (Testfolder/sdopvar); pi_poly_grid (sdopvar/claude_tests);
-% cx_plant (claude_tests/cx_exec); subs_dvar_sop (lpi_programming_sopvar/misc)
+% cx_plant (claude_tests/cx_exec); subs_dvar (lpi_programming/misc)
 TF = fullfile(R,'testing_codes','private','sopvar','Testfolder');
 addpath(TF,fullfile(TF,'sdopvar'),fullfile(TF,'sdopvar','claude_tests'), ...
         fullfile(TF,'sdopvar','claude_tests','cx_exec'), ...
-        fullfile(R,'testing_codes','private','lpi_programming_sopvar','misc'));
+        fullfile(R,'testing_codes','private','lpi_programming','misc'));
 % One resolution of the container class, inside the main checkout
 w = strrep(which('opvar'),'\','/');    fprintf('## opvar resolves to %s\n',w);
 if ~startsWith(w,R),  error('st_merge_tests:path','opvar outside the main checkout');  end
@@ -36,8 +36,8 @@ tests = {'sopvar/Testfolder','Test_opvar';
          'sopvar/Testfolder','Test_dopvar';
          'sopvar/Testfolder','Test_int2sopvar';
          'sopvar/Testfolder','Test_qp_opvar_nd';
-         'lpi_programming_sopvar/tests','test_dpvar_ops_sop';
-         'lpi_programming_sopvar/tests','test_getsol_sop'};
+         'lpi_programming/tests','test_dpvar_ops';
+         'lpi_programming/tests','test_getsol'};
 for k = 1:size(tests,1)
     rng(0);     % the Test_* scripts draw random operators without a seed
     run_item(fullfile(R,'testing_codes','private',tests{k,1},[tests{k,2},'.m']),['TEST ',tests{k,2}]);

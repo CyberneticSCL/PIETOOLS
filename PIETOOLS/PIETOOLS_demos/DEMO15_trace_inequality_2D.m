@@ -149,9 +149,9 @@ prob = lpiprogram(H0op.vars,H0op.dom);
 P = gam*(H0op'*H0op + H1op'*H1op + H2op'*H2op) ...
     - E1op'*E1op - E2op'*E2op - E3op'*E3op - E4op'*E4op;
 if strcmp(option,'int')
-    prob = lpi_ineq_sop(prob,P,struct('dD',0,'dw',1));
+    prob = lpi_ineq(prob,P,struct('dD',0,'dw',1));
 else
-    prob = lpi_ineq_sop(prob,P,struct('dD',1,'dw',1));
+    prob = lpi_ineq(prob,P,struct('dD',1,'dw',1));
 end
 
 % % Set objective function:
@@ -160,7 +160,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-trace_constant = double(lpigetsol_sop(prob,gam));
+trace_constant = double(lpigetsol(prob,gam));
 
 
 echo off

@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the stability tests                                     % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -69,6 +69,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % M
 %   system is stable for lam < 9.7946; new output st, the recommended
 %   settings of the stability tests; stability_form = 'Q' set in the base
 %   workspace; help and comments revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -172,7 +174,7 @@ PDE_t.BC{2}.term{1}.C = eye(2);
 % Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; Q of degree 2 in the multiplier and 1 in the integral
 % kernels)
-st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st = lpisettings('stripped');                                               % MMP, 11/21/2026
 st.sop.deg_Q{1} = [2 1 1];                                                  % MMP, 11/21/2026
 
 if GUI

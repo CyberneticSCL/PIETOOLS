@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -71,6 +71,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance
 %   value (dD = 0 removed): the smallest setting found that certifies the
 %   gain bound under an acceptance that also bounds the residual of the
 %   solve.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -151,7 +153,7 @@ end
 % alone: both integral basis operators at s-length 0, theta-length          % MMP, 11/22/2026
 % 2 for the multiplier; slack lift degree one above its minimum             % MMP, 11/22/2026
 % Dmin)                                                                     % MMP, 11/22/2026
-st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st = lpisettings('stripped');                                               % MMP, 11/21/2026
 st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/22/2026
 st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [2;1;1];                                            % MMP, 11/21/2026

@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params)  % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -80,6 +80,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params)  % MM
 %   recommended settings of the stability test; stability_form = 'Q' set in
 %   the base workspace; help revised (OUTPUT lists no PDE_b, which is not
 %   returned), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params)   % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -185,7 +187,7 @@ PDE_t = [diff(x1,'t')==subs(diff(x2,s),s,1);
 
                                 
 % Example-specific settings: the light tier                                 % MMP, 11/21/2026
-st = lpisettings_sop('light');                                              % MMP, 11/21/2026
+st = lpisettings('light');                                                  % MMP, 11/21/2026
 
 % No GUI representation of this system
 if GUI~=0

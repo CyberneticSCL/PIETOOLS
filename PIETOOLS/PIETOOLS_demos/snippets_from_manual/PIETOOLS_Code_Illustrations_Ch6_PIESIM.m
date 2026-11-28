@@ -8,7 +8,7 @@
 %         solution 10*cos(pi*s1)*cos(pi*s2)*exp(-t);
 %  6.4.4  a DDE with delays 1 and 2, without control;
 %  6.4.5  the PIE of that DDE in closed loop with an H-infinity optimal
-%         state feedback (lpiscript_sop, light settings).
+%         state feedback (lpiscript, light settings).
 % Each block plots the numerical solution, next to the exact solution
 % where one is known; the commented saveas lines export the figures.
 
@@ -48,6 +48,8 @@
 %   final.primary, the outputs in regulated{1}; the DDE and its closed loop
 %   start from x(0) = [1,1]; lpiscript_sop computes the controller; help
 %   text revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures
 clc; clear; close all; clear stateNameGenerator
@@ -353,7 +355,7 @@ xlabel('$t$','FontSize',14,'Interpreter','latex');
 % Synthesize an optimal controller for the DDE in PIE representation
 PIE = convert_PIETOOLS_DDE(DDE,'pie');
 %   [~, K, gam] = lpiscript(PIE,'hinf-controller','light');                 % YP, VJ, DJ, MMP, 11/21/2026 (was)
-[~, K, gam] = lpiscript_sop(PIE,'hinf-controller','light');                 % YP, VJ, DJ, MMP, 11/21/2026
+[~, K, gam] = lpiscript(PIE,'hinf-controller','light');                     % YP, VJ, DJ, MMP, 11/21/2026
 PIE_CL = closedLoopPIE(PIE,K);
 % Declare discretization and temporal integration options
 opts.plot = 'yes';

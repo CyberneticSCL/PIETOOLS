@@ -21,7 +21,7 @@
 % The script simulates the open loop with PIESIM from zero initial state
 % with u = 0 and w(t) = sin(5t)exp(-t) and plots phi2 and r; converts the
 % system to a PIE and runs the stability, L2-gain and H-infinity
-% state-feedback executives (lpiscript_sop); then simulates the closed
+% state-feedback executives (lpiscript); then simulates the closed
 % loop with the computed gain K and plots it against the open loop.
 % Workspace: odepde, PIE, the bounds gam (open loop) and gam_CL (closed
 % loop), Kval, PIE_CL, and the open- and closed-loop solutions.
@@ -61,6 +61,8 @@
 %   states and outputs in solution.timedep.primary{2} and regulated{1};
 %   lpiscript_sop runs the executives, with lpisettings_sop('heavy') for
 %   stability and the L2-gain; help text revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace
 clear
@@ -165,20 +167,20 @@ PIE = convert(odepde,'pie');
 
 % Verify stability of the system by runnig the stability executive.
 % settings = lpisettings('heavy');    % use heavy settings: more expensive but less conservative % YP, DJ, DB, MMP, 11/21/2026 (was)
-settings = lpisettings_sop('heavy');  % heavy: more expensive, less conservative % YP, DJ, DB, MMP, 11/21/2026
+settings = lpisettings('heavy');      % heavy: more expensive, less conservative % YP, DJ, DB, MMP, 11/21/2026
 %   lpiscript(PIE,'stability',settings);                                    % YP, DJ, DB, MMP, 11/21/2026 (was)
-lpiscript_sop(PIE,'stability',settings);                                    % YP, DJ, DB, MMP, 11/21/2026
+lpiscript(PIE,'stability',settings);                                        % YP, DJ, DB, MMP, 11/21/2026
 
 % Compute an upper bound gam on the H_infty norm or L2-gain of the system,
 % so that ||z(.)||_{L2} <= gam*||w(.)||_{L2}.
 %   [~,~, gam] = lpiscript(PIE,'l2gain',settings);                          % YP, DJ, DB, MMP, 11/21/2026 (was)
-[~,~, gam] = lpiscript_sop(PIE,'l2gain',settings);                          % YP, DJ, DB, MMP, 11/21/2026
+[~,~, gam] = lpiscript(PIE,'l2gain',settings);                              % YP, DJ, DB, MMP, 11/21/2026
 
 % Compute a feedback gain operator K that minimizes the H_infty norm of the
 % closed-loop system with state feedback u = K*v, for fundamental (PIE)
 % state v.
 %   [~, Kval, gam_CL] = lpiscript(PIE,'hinf-controller','light');           % YP, DJ, DB, MMP, 11/21/2026 (was)
-[~, Kval, gam_CL] = lpiscript_sop(PIE,'hinf-controller','light');           % YP, DJ, DB, MMP, 11/21/2026
+[~, Kval, gam_CL] = lpiscript(PIE,'hinf-controller','light');               % YP, DJ, DB, MMP, 11/21/2026
 
 % Now, we construct the closed-loop system using the controller obtained by
 % solving the above LPI and then re-runs the simulations to see if there

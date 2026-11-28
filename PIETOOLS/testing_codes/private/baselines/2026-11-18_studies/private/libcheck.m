@@ -3,7 +3,7 @@ function libcheck(casefile, outfile)
 % examples_PDE_library_PIETOOLS runs it after the answer 'y', without its
 % prompts: the example file called as the library calls it (the output st
 % collected), the PDE initialized and converted, the example settings put in
-% the base workspace as 'settings', and PIETOOLS_auto_execute_sop run on the
+% the base workspace as 'settings', and PIETOOLS_auto_execute run on the
 % executives the example file flags (with the forms it names,
 % stability_form and Hinf_gain_form). It checks the wiring of the
 % example-specific settings of 11/19/2026 from the example file to the
@@ -20,7 +20,7 @@ function libcheck(casefile, outfile)
 %     as process_inputs of the library resets them.
 %   - An example file without the output st leaves 'settings' unset, so
 %     the auto-executor would ask for a tier; such cases are run with
-%     lpisettings_sop('light') and reported as 'no st'.
+%     lpisettings('light') and reported as 'no st'.
 % MMP, 11/19/2026.
 here = fileparts(mfilename('fullpath'));
 T = readtable(casefile,'Delimiter',',','TextType','char');
@@ -68,14 +68,14 @@ for i = 1:height(T)
         o = cell(1,max(nout,1));  [o{:}] = feval(fn,args{:});
         PDE_t = o{1};  st = [];
         if nout >= 2 && isstruct(o{end}) && isfield(o{end},'lpi'),  st = o{end};  end
-        if isempty(st),  st = lpisettings_sop('light');  src = 'no st';  end
+        if isempty(st),  st = lpisettings('light');  src = 'no st';  end
         PDE = initialize_PIETOOLS_PDE(PDE_t,true);
         PIE = convert_PIETOOLS_PDE(PDE);
         assignin('base','PIE',PIE);  assignin('base','settings',st);
         % the flags the example set, read before the run: the executive
         % stores the gain and the H2 norm under the names of their flags
         on = flags(cellfun(@(f) isequal(evalin('base',f),1), flags));
-        evalin('base','PIETOOLS_auto_execute_sop');
+        evalin('base','PIETOOLS_auto_execute');
         for f = on
             [status, val, ndv, m] = readout(f{1}, outs, vals, progs);
             line(outfile, cs, fn, f{1}, status, val, ndv, m, toc(t0), src, note);

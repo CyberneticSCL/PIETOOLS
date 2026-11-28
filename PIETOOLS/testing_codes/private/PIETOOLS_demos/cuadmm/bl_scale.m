@@ -61,7 +61,7 @@ for n = NS
         PIE = initialize(convert([diff(x,t,1)==diff(x,s,2)+0.5*pi^2*x; ...
                                   subs(x,s,0)==0; subs(x,s,1)==0]));
 %       st = lpisettings('heavy');                                          % CC, 11/08/2026 (was)
-        st = lpisettings_sop('heavy');                                      % CC, 11/08/2026
+        st = lpisettings('heavy');                                          % CC, 11/08/2026
         st.sos_opts.solver='mosek'; st.sos_opts.simplify=false;
         tb = tic;  evalc('out = stab_mirror(PIE,st);');  row.t_build = toc(tb);
 

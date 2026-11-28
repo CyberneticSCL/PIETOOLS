@@ -72,6 +72,8 @@
 %   text revised.
 % MMP, 11/22/2026: help names example 1 of examples_FI_library_PIETOOLS,
 %   which computes c^2, and PIETOOLS_FI.m;
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace; print each line as it runs
 clc; clear; clear stateNameGenerator;
@@ -108,7 +110,7 @@ prob = lpiprogram(H2op.vars,H2op.dom);
 % % Set inequality constraints:
 % %   gam*H1op'*H1op' - H2op'*H2op >= 0
 % % (by default, this is allowed to fail outside of [a,b])
-prob = lpi_ineq_sop(prob,gam*(H1op'*H1op)-H2op'*H2op);                      % DJ, MMP, AT, 11/21/2026
+prob = lpi_ineq(prob,gam*(H1op'*H1op)-H2op'*H2op);                          % DJ, MMP, AT, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -116,7 +118,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-poincare_constant = sqrt(double(lpigetsol_sop(prob,gam)));                  % DJ, MMP, AT, 11/21/2026
+poincare_constant = sqrt(double(lpigetsol(prob,gam)));                      % DJ, MMP, AT, 11/21/2026
 
 
 echo off

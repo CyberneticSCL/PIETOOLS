@@ -13,7 +13,7 @@ opts = struct('reltol',1e-3,'maxsolves',14);
 fprintf('@@AB git %s\n', info.git);
 for k = 1:numel(keys)
     c = C(strcmp({C.key},keys{k}));   c.exec = ['sop:',c.exec];
-    S0 = lpisettings_sop('light',0,'','mosek');
+    S0 = lpisettings('light',0,'','mosek');
     S0.lpi.var = struct('deg',{{[4 2 2],1,1}});
     t0 = tic;
     try

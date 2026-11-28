@@ -37,7 +37,7 @@ function ex_search(startsfile, tag, opts)
 %                        note
 %   exs_state/<key>.mat  the state of a row, so a stopped session resumes it
 %   exs_<TAG>_final.csv  one line per finished row: key, form, tier, the st
-%                        statements (from lpisettings_sop(tier)), start and
+%                        statements (from lpisettings(tier)), start and
 %                        final decision variables and m, builds, reason
 %
 % NOTES
@@ -150,7 +150,7 @@ for i = 1:numel(keys)
     [Sf,cf,pth,cd] = final_choice(st);                                      % MMP, 11/21/2026
     stm = '';
 %   if ~isempty(st.S),  stm = strjoin(st_diff(lpisettings_sop(row.tier,0,'','mosek'),st.S,'st'),' ');  end % MMP, 11/21/2026 (was)
-    if ~isempty(Sf),  stm = strjoin(st_diff(lpisettings_sop(row.tier,0,'','mosek'),Sf,'st'),' ');  end % MMP, 11/21/2026
+    if ~isempty(Sf),  stm = strjoin(st_diff(lpisettings(row.tier,0,'','mosek'),Sf,'st'),' ');  end % MMP, 11/21/2026
     fid = fopen(finf,'a');
 %   fprintf(fid,'%s,%s,%s,"%s",%d,%d,%d,%d,%d,"%s"\n',key,row.form,row.tier,stm, ... % MMP, 11/21/2026 (was)
 %       st.cost0(1),st.cost0(2),st.cost(1),st.cost(2),st.nbuild,st.reason); % MMP, 11/21/2026 (was)
@@ -184,7 +184,7 @@ if st.alt == 0
         if datetime('now') >= tstop,  save(sf,'st');  return,  end
         row = alts(a);  row.exec = c.exec;
         [PIE,~] = row_pie(c,row);
-        S = lpisettings_sop(row.tier,0,'','mosek');
+        S = lpisettings(row.tier,0,'','mosek');
 %       S = apply_mods(S,row.mods,c.key);                                   % MMP, 11/21/2026 (was)
         if strcmp(strtrim(row.mods),'examplest')                            % MMP, 11/21/2026
             S = example_st(c);              % the st of the example file    % MMP, 11/21/2026
@@ -267,9 +267,9 @@ function [PIE,v] = row_pie(c,row)
 for a = {'LB_ST_HOOK','LB_FORM_MAP'},  if isappdata(0,a{1}),  rmappdata(0,a{1});  end,  end
 if any(strcmp(row.form,{'P','Pd'}))
     setappdata(0,'LB_FORM_MAP',struct('Q','P','Qd','Pd', ...
-        'only',{{'PIETOOLS_stability_sop','PIETOOLS_Hinf_gain_sop'}}));
+        'only',{{'PIETOOLS_stability','PIETOOLS_Hinf_gain'}}));
 elseif any(strcmp(row.form,{'oco','cco'}))
-    setappdata(0,'LB_FORM_MAP',struct('o','oco','c','cco','only','PIETOOLS_H2_norm_sop'));
+    setappdata(0,'LB_FORM_MAP',struct('o','oco','c','cco','only','PIETOOLS_H2_norm'));
 elseif contains(row.form,'>')       % the executive of the row in another form, e.g.
     ab = strsplit(row.form,'>');    % 'Qd>Q': a dual row tested in the primal form
     setappdata(0,'LB_FORM_MAP',struct(ab{1},ab{2}));
@@ -336,7 +336,7 @@ ok = false;     note = '';
 L = getappdata(0,'LB_LAST');
 frm = '';   if ~isempty(L.form),  frm = L.form{1};  end
 numer = any(strcmp(r.exst,{'optimal','inaccurate','unknown'})) && isequal(r.pinf,0) && isequal(r.dinf,0);
-can = strcmp(L.fn,'PIETOOLS_stability_sop') || (strcmp(L.fn,'PIETOOLS_H2_norm_sop') && strcmp(frm,'c'));
+can = strcmp(L.fn,'PIETOOLS_stability') || (strcmp(L.fn,'PIETOOLS_H2_norm') && strcmp(frm,'c'));
 if ~numer || ~can,  return,  end
 % The check is a verification, not a candidate: the size gate of the
 % descent (just below the current size) does not apply to its programs
@@ -389,7 +389,7 @@ else,         [outs{:}] = feval(c.fn,0,{});
 end
 S = outs{end};
 if isempty(S) || ~isstruct(S) || ~isfield(S,'lpi')
-    error('ex_search:examplest','%s returns no settings (its last output is not an lpisettings_sop structure).',c.fn);
+    error('ex_search:examplest','%s returns no settings (its last output is not an lpisettings structure).',c.fn);
 end
 end
 
@@ -591,7 +591,7 @@ for p = parts
     s = p{1};  if isempty(s),  continue,  end
     switch s
         case 'stripped1d'
-            Tt = settings_sopvar_stripped();
+            Tt = settings_PIETOOLS_stripped();
             for f = fieldnames(Tt.lpi.pos)'
                 vv = Tt.lpi.pos.(f{1});
                 if iscell(vv),  st.lpi.pos.(f{1}){1} = vv{1};  end

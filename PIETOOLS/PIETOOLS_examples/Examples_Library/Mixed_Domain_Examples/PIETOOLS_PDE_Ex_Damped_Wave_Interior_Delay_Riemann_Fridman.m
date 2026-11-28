@@ -19,7 +19,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Riemann_Fridma
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) recommended settings (lpisettings_sop
+% - st:         (optional) recommended settings (lpisettings
 %               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
@@ -110,7 +110,7 @@ PDE_t = [diff(e,'t')==diff(v,s1);
 
 % Example-specific settings (second output only): the light tier, with
 if nargout>1
-    st = lpisettings_sop('light');
+    st = lpisettings('light');
     st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
     st.sop.deg_Q{2} = [1 2 2];      % Q of degree 1 (multiplier), 2 (integrals)
     st.lpi.ineq.psatz{2} = 'none';  % 2-D slack with the plain term only

@@ -7,8 +7,8 @@ function hd_build()
 %   2. sop P form     stock slack, stock stripped settings_2d and sos_opts
 %   3. stock Q form   PIETOOLS_Hinf_gain_2D_non_coercive, stripped
 %   4. sop Q form     stock slack, as 2
-%   5. sop P form     'like' slack, lpisettings_sop light
-%   6. sop P form     'like' slack, lpisettings_sop stripped
+%   5. sop P form     'like' slack, lpisettings light
+%   6. sop P form     'like' slack, lpisettings stripped
 here = fileparts(mfilename('fullpath'));
 lbdir = fullfile(fileparts(here),'library_baseline');
 addpath(lbdir);     lb_setup();
@@ -29,17 +29,17 @@ fprintf('T.R22 nonzero cells %s\n', mat2str(cellfun(nzc,PIE.T.R22)));
 fprintf('A.R22 nonzero cells %s\n', mat2str(cellfun(nzc,PIE.A.R22)));
 
 S0 = lpisettings('stripped',0,'','mosek');
-Sp = lpisettings_sop('stripped',0,'','mosek');
+Sp = lpisettings('stripped',0,'','mosek');
 Sp.settings_2d = S0.settings_2d;    Sp.sos_opts = S0.sos_opts;
 Sp.sop.slack = 'stock';     Sp.sop.max_raise = 0;
-L  = lpisettings_sop('light',0,'','mosek');
-St = lpisettings_sop('stripped',0,'','mosek');
+L  = lpisettings('light',0,'','mosek');
+St = lpisettings('stripped',0,'','mosek');
 cases = {'stock P stripped',            @() PIETOOLS_Hinf_gain(PIE,S0);
-         'sop P stock-slack stripped',  @() PIETOOLS_Hinf_gain_sop(PIE,Sp,'P');
+         'sop P stock-slack stripped',  @() PIETOOLS_Hinf_gain(PIE,Sp,'P');
          'stock Q stripped',            @() PIETOOLS_Hinf_gain_2D_non_coercive(PIE,S0);
-         'sop Q stock-slack stripped',  @() PIETOOLS_Hinf_gain_sop(PIE,Sp,'Q');
-         'sop P like light',            @() PIETOOLS_Hinf_gain_sop(PIE,L,'P');
-         'sop P like stripped',         @() PIETOOLS_Hinf_gain_sop(PIE,St,'P')};
+         'sop Q stock-slack stripped',  @() PIETOOLS_Hinf_gain(PIE,Sp,'Q');
+         'sop P like light',            @() PIETOOLS_Hinf_gain(PIE,L,'P');
+         'sop P like stripped',         @() PIETOOLS_Hinf_gain(PIE,St,'P')};
 for k = 1:size(cases,1)
     HD_FP = [];     t0 = tic;
     try

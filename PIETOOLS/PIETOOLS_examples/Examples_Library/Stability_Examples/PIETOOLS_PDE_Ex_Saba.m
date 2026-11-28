@@ -22,7 +22,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)          % MM
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the test this file names, by case                       % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -64,6 +64,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)          % MM
 %   in place of 2.048; new output st, the recommended settings of the
 %   stability test by case; stability_form = 'P' set in the base
 %   workspace; help and comments revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params)           % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -148,7 +150,7 @@ end
 % 4.2: multiplier only, theta-length 1, slack lift degree at its minimum
 % Dmin; 4.3, 4.5: slack lift degree Dmin; 4.4: upper-integral s-length 1,
 % theta-lengths 2, 1, 1 (multiplier, upper, lower integral), Dmin)
-st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st = lpisettings('stripped');                                               % MMP, 11/21/2026
 if index==4 || index==4.1                                                   % MMP, 11/21/2026
     st.lpi.pos.len_inc{1} = 1;                                              % MMP, 11/21/2026
     st.lpi.pos.len_com{1} = 1;                                              % MMP, 11/21/2026

@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Heat_Edge_Cascade_Variable_Coeff(GUI,param
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -103,7 +103,7 @@ PDE_t = [diff(x1,'t')==(1+s1)*diff(x1,s1,2)+r1*x1;
 
 % Example-specific settings: the light tier, with the slack integral bases
 % capped at total degree theta+s <= Dmax-1
-st = lpisettings_sop('light');
+st = lpisettings('light');
 st.lpi.ineq.cap_inc = 'auto';
 
 % No GUI representation of this system

@@ -247,7 +247,7 @@ function st = set_eppos(c,ep)                                              % CC,
 st = c.settings;
 % if ischar(st) || isstring(st), st = lpisettings(char(st)); end            % CC, 11/08/2026 (was)
 % if ischar(st) || isstring(st), st = lpisettings_sop(char(st)); end        % CC, 11/17/2026 (was); CC, 11/08/2026
-if ischar(st) || isstring(st), st = lpisettings_stock_sop(char(st)); end    % CC, 11/17/2026
+if ischar(st) || isstring(st), st = lpisettings_stock(char(st)); end        % CC, 11/17/2026
 if isempty(ep) || ~startsWith(c.lpi,'stability'), return, end
 if isfield(st,'eppos') && numel(st.eppos) == 4
     st.eppos = ep*ones(4,1);              % 2-D: [R, L2x, L2y, L2xy]

@@ -1,5 +1,5 @@
 function st = cx_settings(name,solver)
-% ST = CX_SETTINGS(NAME,SOLVER) is lpisettings_sop(NAME) with the solver set
+% ST = CX_SETTINGS(NAME,SOLVER) is lpisettings(NAME) with the solver set
 % and simplification off, as the baseline suite's bl_settings does (which is
 % in a private/ folder and so not callable from here). SOLVER defaults to
 % 'mosek', the baseline's; use 'sedumi' in 2-D, where Mosek reports
@@ -20,8 +20,8 @@ function st = cx_settings(name,solver)
 %                'lf' errors.
 if nargin<2 || isempty(solver),     solver = 'mosek';   end
 % st = lpisettings(name);                                                   % MMP, 11/08/2026 (was)
-st = lpisettings_sop(name);                                                 % MMP, 11/08/2026
-[~,st.sop.stock] = lpisettings_stock_sop(name);     % the stock slack       % MMP, 11/12/2026
+st = lpisettings(name);                                                     % MMP, 11/08/2026
+[~,st.sop.stock] = lpisettings_stock(name);         % the stock slack       % MMP, 11/12/2026
 % lpi.pos of role 'lf': mult, int, joint of each tier on 11/12/2026         % MMP, 11/23/2026
 f = struct('stripped',[1 1 2],'light',[1 1 2],'custom',[1 1 2], ...
            'heavy',[2 1 2],'veryheavy',[3 3 6],'extreme',[1 -1 0]);         % MMP, 11/23/2026

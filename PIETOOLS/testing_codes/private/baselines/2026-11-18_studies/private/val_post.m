@@ -19,7 +19,7 @@ setappdata(0,'LB_NDV_CAP',2e6);   setappdata(0,'LB_M_CAP',45000);
 for a = {'LB_ST_HOOK','LB_FORM_MAP','LB_ROW_KEY','LB_LAST'}
     if isappdata(0,a{1}),  rmappdata(0,a{1});  end
 end
-fprintf('## VAL_POST %s %s\n## %s\n## %s\n',part,char(datetime('now')),which('PIETOOLS_stability_sop'),which('sossolve'));
+fprintf('## VAL_POST %s %s\n## %s\n## %s\n',part,char(datetime('now')),which('PIETOOLS_stability'),which('sossolve'));
 if strcmp(part,'b')
     sf = fullfile(here,'valpost_starts.csv');
     fid = fopen(sf,'w');  fprintf(fid,'key,kind,form,tier,mods,best\n');
@@ -39,10 +39,10 @@ for i = 1:size(J,1)
     fprintf('\n##### VAL %s %s %s %s [%s]  %s\n',id,key,form,tier,mods,char(datetime('now')));
     c = Cat(find(strcmp({Cat.key},key),1));
     PIE = lb_build_system(c,[],true);
-    S = lpisettings_sop(tier,0,'','mosek');
+    S = lpisettings(tier,0,'','mosek');
     eval([strrep(mods,'st.','S.'),';']);
-    base = 'Q';  tgt = 'PIETOOLS_stability_sop';
-    if strcmp(form,'c'),  base = 'c';  tgt = 'PIETOOLS_H2_norm_sop';  end
+    base = 'Q';  tgt = 'PIETOOLS_stability';
+    if strcmp(form,'c'),  base = 'c';  tgt = 'PIETOOLS_H2_norm';  end
     setappdata(0,'LB_FORM_MAP',struct(base,form,'only',tgt));
     setappdata(0,'LB_KEEP_LAST',true);
     r1 = lb_exec(['sop:',ex],PIE,S);

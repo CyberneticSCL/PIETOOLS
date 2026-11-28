@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -107,7 +107,7 @@ PDE_t = [diff(x1,'t')==diff(x1,s1,2)+diff(x1,s2,2)+r*x1-subs(x2,s3,tau);
 
 
 % Example-specific settings: the light tier
-st = lpisettings_sop('light');
+st = lpisettings('light');
 
 % No GUI representation of this system
 if GUI~=0

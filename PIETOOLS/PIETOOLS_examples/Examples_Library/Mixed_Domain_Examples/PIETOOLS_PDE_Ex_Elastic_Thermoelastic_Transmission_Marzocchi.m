@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Elastic_Thermoelastic_Transmission_Marzocc
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -117,7 +117,7 @@ PDE_t = [diff(e1,'t')==diff(pp,s1);
 % the lower-integral basis operator only (multiplier theta-length 0,
 % upper-integral s-length 0), theta-length 1; slack lift degree at its
 % minimum Dmin
-st = lpisettings_sop('stripped');
+st = lpisettings('stripped');
 st.lpi.pos.len_com{1} = 0;
 st.lpi.pos.len_sos{1} = [0;2;1];
 st.lpi.ineq.dD = 0;

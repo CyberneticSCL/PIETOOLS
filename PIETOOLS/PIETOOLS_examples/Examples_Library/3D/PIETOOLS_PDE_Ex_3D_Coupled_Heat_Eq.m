@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               stability test of this example.
 %
 % %---------------------------------------------------------------------% %
@@ -105,7 +105,7 @@ PDE_t = [diff(x1,'t')==C1*(diff(x1,s1,2)+diff(x1,s2,2)+diff(x1,s3,2)) + lam*x2;
 
 
 % Example-specific settings: the stripped tier
-st = lpisettings_sop('stripped');
+st = lpisettings('stripped');
 
 % No GUI representation of this system
 if GUI~=0

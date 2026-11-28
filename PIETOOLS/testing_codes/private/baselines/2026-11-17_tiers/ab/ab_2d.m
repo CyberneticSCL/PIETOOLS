@@ -27,7 +27,7 @@ fprintf('@@AB git %s\n', info.git);
 PIE = lb_build_system(c, [], true);
 for v = 1:numel(V)
     try
-        S0 = V{v}.f(lpisettings_sop('light',0,'','mosek'));
+        S0 = V{v}.f(lpisettings('light',0,'','mosek'));
         r = lb_exec(c.exec, PIE, S0);
         fprintf('@@AB %-20s %-8s %-10s ndv=%-8d m=%-6d nx=%-8d fr=%7.3f pinf=%d dinf=%d numerr=%d iter=%d %.1fs\n', ...
             V{v}.name, c.key, r.status, r.ndec, r.m, r.nx, r.fr, r.pinf, r.dinf, r.numerr, r.iter, r.sec);

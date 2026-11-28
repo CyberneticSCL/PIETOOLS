@@ -1,7 +1,7 @@
 function s = p0_infonote(info)
 % S = P0_INFONOTE(INFO) returns the part of a container executive's info
 % struct that Phase 0 records per row, as text: the classifier status, the
-% SDP shape from lpi_shape_sop (equality rows m, PSD block sides Ks, primal
+% SDP shape from lpi_shape (equality rows m, PSD block sides Ks, primal
 % length nx, decision variables ndv), and the numerical witness (maxre for
 % stability, gain or h2 otherwise, NaN when absent).
 s = '';

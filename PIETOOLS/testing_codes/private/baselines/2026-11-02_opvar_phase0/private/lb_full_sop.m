@@ -1,14 +1,14 @@
 function lb_full_sop(tiers, ids, stopat)
 % LB_FULL_SOP(TIERS, IDS) runs the library baseline on the sopvar path:
 % each catalog row through the _sop executive and form that
-% PIETOOLS_auto_execute_sop uses for its stock executive, with
-% lpisettings_sop(tier,0,'','mosek'), into results_sop.csv, one tier at a
+% PIETOOLS_auto_execute uses for its stock executive, with
+% lpisettings(tier,0,'','mosek'), into results_sop.csv, one tier at a
 % time in the order given.
 %
 % INPUT
-%   tiers:  optional cellstr of settings_sopvar tiers (default {'light',
+%   tiers:  optional cellstr of settings tiers (default {'light',
 %           'heavy','veryheavy','stripped'}: the default tier first;
-%           custom is light in settings_sopvar and is not run)
+%           custom is light in settings and is not run)
 %   ids:    optional catalog selection as in lb_run (default 'all')
 %   stopat: optional date-time string; no row starts after it (lb_run)
 %

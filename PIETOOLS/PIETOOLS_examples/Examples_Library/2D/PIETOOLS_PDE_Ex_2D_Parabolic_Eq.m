@@ -59,6 +59,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params)          % MM
 %   the recommended settings of the stability test; stability_form = 'Q'
 %   set in the base workspace; help revised (OUTPUT lists no PDE_b, which
 %   is not returned), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params)            % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -125,7 +127,7 @@ PDE_t = [diff(x,'t')==a*x +b1*diff(x,s1) +b2*diff(x,s2) +c1*diff(x,s1,2) +c2*dif
 % Q of degree 1 in the multiplier, 0 in the integrals; slack integral
 % bases capped at total degree theta+s <= Dmax-1)
 if nargout>1                                                                % MMP, 11/21/2026
-    st = lpisettings_sop('light');                                          % MMP, 11/21/2026
+    st = lpisettings('light');                                              % MMP, 11/21/2026
     st.lpi.ineq.dD = 0;                                                     % MMP, 11/21/2026
     st.sop.deg_Q{2} = [1 0 0];                                              % MMP, 11/21/2026
     st.lpi.ineq.cap_inc = 'auto';                                           % MMP, 11/21/2026

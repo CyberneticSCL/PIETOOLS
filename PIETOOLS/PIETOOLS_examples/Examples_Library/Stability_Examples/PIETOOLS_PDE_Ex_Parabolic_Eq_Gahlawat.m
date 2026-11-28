@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params) % 
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % DB, MMP, 11/21/2026
 %               for the tests this file names                               % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -70,6 +70,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params) % 
 %   comments revised.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params) % DB, MMP, 11/21/2026 (was)
 % DJ, 11/21/2026: c computed after params, so an override of lam applies;
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -147,7 +149,7 @@ end
 % Example-specific settings                                                 % DB, MMP, 11/21/2026
 % (light tier; slack integral bases capped at total degree theta+s <=
 % Dmax-1)
-st = lpisettings_sop('light');                                              % DB, MMP, 11/21/2026
+st = lpisettings('light');                                                  % DB, MMP, 11/21/2026
 st.lpi.ineq.cap_inc = 'auto';                                               % DB, MMP, 11/21/2026
 
 end

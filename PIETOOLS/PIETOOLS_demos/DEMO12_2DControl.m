@@ -21,7 +21,7 @@
 %       (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0
 % where P is a positive operator, and Z is a free operator declared using
 % `lpivar`. A feedback law K is then reconstructed from Z = K*P
-% using `getController_sop`.
+% using `getController`.
 %
 % The PIE that `convert` returns is a 'pie_struct' whose operators are
 % 'opvar' objects. The LPI program is declared on PIE.vars and
@@ -89,7 +89,7 @@ P = P + 1e-4*eye_opvar(P);              % enforce P>=1e-4
 %% Dual LPI: (A*P+B*Z)*T' + T*(A*P+B*Z)' + 2*alpha*T*P*T' <= 0.
 APBZ = A*P+B*Z;
 Q = APBZ*T'+T*APBZ'+2*alpha*T*P*T';
-prog = lpi_ineq_sop(prog,-Q,struct('dD',2,'dw',2));  % like: P, inferred
+prog = lpi_ineq(prog,-Q,struct('dD',2,'dw',2));      % like: P, inferred
 % Solve; stop if the solver reports infeasibility or a numerical error
 prog = lpisolve(prog);
 info = prog.solinfo.info;
@@ -97,13 +97,13 @@ assert(~info.pinf && ~info.dinf && info.numerr==0 && abs(info.feasratio-1)<0.1, 
     'No control certificate; inspect prog.solinfo.info.');
 
 %% Extract the Lyapunov and auxiliary PI operators.
-Psol = getsol_lpivar_sop(prog,P);
-Zsol = getsol_lpivar_sop(prog,Z);
+Psol = getsol_lpivar(prog,P);
+Zsol = getsol_lpivar(prog,Z);
 fprintf('\nState-feedback LPI feasible for alpha = %.3f; Psol and Zsol extracted.\n',alpha);
 
 
 %% Controller reconstruction using quadratic programming
-[Ksop,Kop,info] = getController_sop(Psol,Zsol, struct('method', 'qp'));
+[Ksop,Kop,info] = getController(Psol,Zsol, struct('method', 'qp'));
 % Residual err = Z - K*P, a map L2 -> R^ne: ||err||^2 is the 2-norm of the
 % ne x ne matrix err*err'
 err = Zsol - Ksop*Psol; norm_err = err*err';

@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,para
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -61,6 +61,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,para
 %   recommended settings of the H-infinity optimal controller synthesis;
 %   help revised (regulated output z corrected to the one the code sets),
 %   license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -108,7 +110,7 @@ end
 % slack lift degree at its minimum Dmin; free operators of degree 1 in the
 % multiplier and 6, 2 in the integral kernels (output, integration
 % variable); no slack weight raise of the synthesis LPI)
-st = lpisettings_sop('veryheavy');                                          % MMP, 11/21/2026
+st = lpisettings('veryheavy');                                              % MMP, 11/21/2026
 st.lpi.pos.len_inc{1} = 2;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 3;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [4;4;3];                                            % MMP, 11/21/2026

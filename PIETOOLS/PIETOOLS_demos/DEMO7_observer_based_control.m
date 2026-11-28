@@ -39,7 +39,7 @@
 %
 % The script displays the PDE (lam = 5), computes K and L with the
 % predefined 'hinf-controller' and 'hinf-observer' executives
-% (lpiscript_sop, heavy settings), takes the LFT of the PIE with the
+% (lpiscript, heavy settings), takes the LFT of the PIE with the
 % estimator (PIE_CL; zhat is the first output of C1), simulates the open
 % and closed loop from v(0,s) = -10*s, vhat(0,s) = 0 with w(t) = 10*exp(-t),
 % and plots the states, outputs and control effort. Workspace: Kval, Lval,
@@ -91,6 +91,8 @@
 %   the entry of 11/21/2026 no longer holds.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -131,11 +133,11 @@ C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 % % Use the predefined Hinf control and estimator functions.
 % settings = lpisettings('heavy');                                          % YP, DJ, MMP, 11/21/2026 (was)
-settings = lpisettings_sop('heavy');                                        % YP, DJ, MMP, 11/21/2026
+settings = lpisettings('heavy');                                            % YP, DJ, MMP, 11/21/2026
 %   [prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings); % YP, DJ, MMP, 11/21/2026 (was)
-[prog_k, Kval, gam_co_val] = lpiscript_sop(PIE,'hinf-controller',settings); % YP, DJ, MMP, 11/21/2026
+[prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings); % YP, DJ, MMP, 11/21/2026
 %   [prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);   % YP, DJ, MMP, 11/21/2026 (was)
-[prog_l, Lval, gam_ob_val] = lpiscript_sop(PIE,'hinf-observer',settings);   % YP, DJ, MMP, 11/21/2026
+[prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);       % YP, DJ, MMP, 11/21/2026
 
 % % Construct the closed-loop PIE system
 % Declare Luenberger estimator with input y and output u
@@ -144,7 +146,7 @@ settings = lpisettings_sop('heavy');                                        % YP
 %               u(t) = K*vhat(t);
 % and take LFT with PIE
 % Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers % MMP, 11/26/2026 (was)
-% Lval and Kval are containers as lpiscript_sop returns them                % MMP, 11/26/2026
+% Lval and Kval are containers as lpiscript returns them                % MMP, 11/26/2026
 Sel = mat2opvar([1,0],struct('out',1,'in',2),struct('out',{{{}}},'in',{{{}}}),struct('vars',{C1.vars},'dom',C1.dom));        % first output % YP, DJ, MMP, 11/21/2026
 %   PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});                      % YP, DJ, MMP, 11/21/2026 (was)
 PIE_est = piess(T,A+Lval*C2,-Lval,{Sel*C1;Kval});                           % YP, DJ, MMP, 11/21/2026

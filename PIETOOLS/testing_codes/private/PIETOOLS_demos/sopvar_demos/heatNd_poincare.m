@@ -39,7 +39,7 @@ function R = heatNd_poincare(pie,spec,popts)
 % direction, no joint cap), multi-indices
 %   L2      all-integral only, {2,3}^N: LOSSLESS IN EXACT ARITHMETIC - the
 %           target has no multiplier cell, and a PSD block whose diagonal
-%           reaches only zero cells is zero ('eq_opts_sopvar' argument).
+%           reaches only zero cells is zero ('get_eq_opts' argument).
 %           Not numerically: with the delta indices included, the delta
 %           blocks (diagonal ~4e-7, not 0) carry delta x integral cross
 %           blocks ~sqrt(tolerance), which inflates certified values ~0.1%
@@ -50,7 +50,7 @@ function R = heatNd_poincare(pie,spec,popts)
 %   energy  all-integral plus one delta in a direction of sel: A_i*A_i =
 %           I (x) T_ihat^2 has the identity in s_i, so all-integral alone
 %           would leave its multiplier cell uncovered (0 = b ~= 0).
-% Both are the 'eq_opts_sopvar' support rule on the target (R.include_eqopts
+% Both are the 'get_eq_opts' support rule on the target (R.include_eqopts
 % records the comparison). Generators SPEC.gen: 'none'; 'product' ('poslpivar'
 % psatz = 1, prod_i (th_i-a_i)(b_i-th_i)); 'faces' (the 2N linear face
 % weights (th_i-a_i)/L_i, (b_i-th_i)/L_i by 'poslpivar' psatz = 2i+1 /
@@ -99,7 +99,7 @@ function R = heatNd_poincare(pie,spec,popts)
 %          lams(1), G, Q0, Q1 and RR, for semantic checks of a certificate),
 %          verbose (true).
 % OUTPUT struct R: spec, N, bc, dom, mu (exact for this sel), lambda1, include,
-%   include_eqopts (true if equal to 'eq_opts_sopvar's), sep (its sep),
+%   include_eqopts (true if equal to 'get_eq_opts's), sep (its sep),
 %   shape (m, nx, Kf, Ks, nnz, zero_rows, uncovered: zero rows of At with b
 %   ~= 0 at some lam, ndup: the equations LPI_EQ_DOPVAR leaves out as
 %   multiples of a written one, so m + ndup is the number of nonzero
@@ -241,7 +241,7 @@ switch spec.form
 end
 t.target = toc(t0);
 % % % Multi-indices: all-integral, plus one delta in a direction of sel for
-% the energy form (header); compared with the eq_opts_sopvar rule.
+% the energy form (header); compared with the get_eq_opts rule.
 Ib = dec2bin(0:2^N-1,N)-'0'+2;                  % all-integral, entries {2,3}
 Iinc = Ib;
 if strcmp(spec.form,'energy')
@@ -249,7 +249,7 @@ if strcmp(spec.form,'energy')
         Ii = Ib;    Ii(:,i) = 1;    Iinc = [Iinc; unique(Ii,'rows')];   %#ok<AGROW>
     end
 end
-[eo,~] = eq_opts_sopvar(Q0.C{1,1} + Q1.C{1,1});
+[eo,~] = get_eq_opts(Q0.C{1,1} + Q1.C{1,1});
 inc_eq = isequal(sortrows(Iinc),sortrows(eo.include));
 % % % Program and positive variable (one; shared by the three builds).
 t0 = tic;

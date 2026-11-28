@@ -35,13 +35,13 @@ PDE_t = PIETOOLS_PDE_Ex_2D_Delayed_Heat_Eq_Fridman(0,{sprintf('tau=%.12g*1.03472
 PDE = initialize_PIETOOLS_PDE(PDE_t,true);
 PIE = initialize(convert(PDE,{'pie','silent'}));
 fprintf('@@ A3 pie %.0f s, dim %d\n',toc(t0),PIE.dim);
-st = lpisettings_sop('light');
+st = lpisettings('light');
 st.sos_opts.solver = 'mosek';   st.sop.verbose = true;
 st.lpi.ineq.psatz = {'auto','faces1','faces1'};
 st.sop.cap_delta = [NaN NaN cd3];   st.sop.max_raise_Q(3) = 0;   st.lpi.ineq.cap_inc = capinc;
 st.lpi.ineq.dD = dD;   st.sop.deg_Q{3} = degQ3;
 t1 = tic;       % sossolve prints the MOSEK log into the session log
-[prog,~,info] = PIETOOLS_stability_sop(PIE,st,form);
+[prog,~,info] = PIETOOLS_stability(PIE,st,form);
 fprintf('@@ A3 form %s\n',form);
 ts = toc(t1);
 sh = struct('ndv',NaN,'m',NaN);   if isfield(info,'shape'),  sh = info.shape;  end

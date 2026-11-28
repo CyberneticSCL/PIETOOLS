@@ -48,6 +48,8 @@
 %   Top was an opvar, converted by OP2COPVAR_SOP, so the demo stopped
 %   without the opvar class; T is the container the conversion returned.
 % DJ, 11/23/2026: Declare T using `get_op`;
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -76,7 +78,7 @@ prob = lpiprogram([s1,s1_dum],[a,b]);                                       % MM
 
 % % Set inequality constraints
 % %   Top'*Top-gam <= 0
-prob = lpi_ineq_sop(prob,gam-T'*T);       % lpi_ineq_sop(prob,Q) enforces Q>=0  % DJ (CC), 10/30/2026
+prob = lpi_ineq(prob,gam-T'*T);           % lpi_ineq(prob,Q) enforces Q>=0  % DJ (CC), 10/30/2026
 
 % % Set objective function:
 % %   min gam
@@ -84,7 +86,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-operator_norm = sqrt(double(lpigetsol_sop(prob,gam)));                      % DJ (CC), 10/30/2026
+operator_norm = sqrt(double(lpigetsol(prob,gam)));                          % DJ (CC), 10/30/2026
 
 
 echo off

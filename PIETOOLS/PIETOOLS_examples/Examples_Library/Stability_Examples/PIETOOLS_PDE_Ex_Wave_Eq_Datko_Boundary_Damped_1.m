@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % DB, MMP, 11/21/2026
 %               for the tests this file names                               % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -65,6 +65,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,
 %   format, commented out); new output st, the recommended settings of the
 %   dual stability test; stability_form = 'P' set in the base workspace;
 %   help and comments revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params) % DB, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -146,7 +148,7 @@ end
 % (stripped tier; 1-D storage without the upper-integral basis operator,
 % s-length 0, and theta-lengths 1 (multiplier), 1 (lower integral); slack
 % lift degree at its minimum Dmin)
-st = lpisettings_sop('stripped');                                           % DB, MMP, 11/21/2026
+st = lpisettings('stripped');                                               % DB, MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 0;                                                  % DB, MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [1;2;1];                                            % DB, MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % DB, MMP, 11/21/2026

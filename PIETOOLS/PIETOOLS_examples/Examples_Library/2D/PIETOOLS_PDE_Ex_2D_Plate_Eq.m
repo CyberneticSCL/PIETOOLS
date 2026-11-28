@@ -16,7 +16,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Plate_Eq(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure); the file
+% - st:         recommended settings (lpisettings structure); the file
 %               sets no executive flag.
 %
 % %---------------------------------------------------------------------% %
@@ -91,7 +91,7 @@ PDE_t = [diff(u,'t')==[0,1;0,0]*u - [0,0;1,0]*(diff(u,s1,4)+2*diff(u,[s1;s2],[2;
          subs(u,s2,1)==0;     subs(diff(u,s2),s2,1)==0];
 
 % Example-specific settings: the light tier
-st = lpisettings_sop('light');
+st = lpisettings('light');
 
 % No GUI representation of this system
 if GUI~=0

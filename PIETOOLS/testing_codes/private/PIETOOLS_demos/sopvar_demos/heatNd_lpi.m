@@ -62,12 +62,12 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   'tensor'  opquadvar scalar degree dp (a, c <= dp, no joint cap);
 %   'balance' the listing's rule: lpi_ineq sizes the positive variable by
 %             'degbalance' of the operator cancelled; container analogue
-%             'eq_opts_sopvar' + '@sdopvar/degbalance' (dp unused).
+%             'get_eq_opts' + '@sdopvar/degbalance' (dp unused).
 %   'custom'  OPTS.Rdeg and OPTS.Qdeg, opquadvar degree specs used as      % MMP, 10/08/2026
 %             given (dp unused): R and Q sized from their targets by the    % MMP, 10/08/2026
 %             lift/weight rules of sopvar_lift_notes Sec. 7 (HEATND_TAILOR). % MMP, 10/08/2026
 % - OPTS.prune (default true): only the basis blocks that can reach the
-%   support of the cancelled operator ('eq_opts_sopvar'; lossless by its
+%   support of the cancelled operator ('get_eq_opts'; lossless by its
 %   argument); 'balance' always prunes, as lpi_ineq excludes zero blocks.
 % - OPTS.psatz, terms added at the SAME degree (stock eq_deg_psatz = eq_deg;
 %   -1 destroys certificates, memory psatz-generators-2d), to R and/or Q
@@ -303,12 +303,12 @@ function [prog,Z] = posvar(prog,X,vars,dom,opts,deg,usepsatz)
 N = numel(vars);
 po = struct();
 if strcmp(opts.RQ,'balance')
-    [eo,~] = eq_opts_sopvar(X.C{1,1});
+    [eo,~] = get_eq_opts(X.C{1,1});
     deg = {degbalance(X.C{1,1},eo)};            % one struct per kept block
     po.include = {eo.include};
     if isfield(eo,'sep'),   po.sep = eo.sep;    end
 elseif opts.prune
-    [eo,~] = eq_opts_sopvar(X.C{1,1});
+    [eo,~] = get_eq_opts(X.C{1,1});
     po.include = {eo.include};
     if isfield(eo,'sep'),   po.sep = eo.sep;    end
 end

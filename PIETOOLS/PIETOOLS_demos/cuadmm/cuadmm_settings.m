@@ -171,7 +171,7 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 %   tier   0,1,2,3 (default 1)
 %   dim    1 or 2 (default 1)
 % OUTPUT
-%   S      lpisettings_sop struct with the tier applied, plus S.cuadmm (solver
+%   S      lpisettings struct with the tier applied, plus S.cuadmm (solver
 %          options, budget, form, bisection rule), S.poincare, and the
 %          provenance fields S.tier, S.tier_base, S.tier_Dup, S.dim.
 
@@ -188,7 +188,7 @@ switch tier
     case 3, base = 'heavy';     Dup = 2;  psatz = 1;
 end
 % S = lpisettings(base);                                                    % CC, 11/08/2026 (was)
-S = lpisettings_sop(base);                                                  % CC, 11/08/2026
+S = lpisettings(base);                                                      % CC, 11/08/2026
 
 % sossolve would otherwise overwrite At/b/K/c with the sospsimplify-reduced
 % system (sossolve.m:256-262), so the dumped SDP would not be the one solved.
@@ -206,8 +206,8 @@ if isfield(S,'settings_2d'), S.settings_2d.eppos = 1e-2*ones(4,1); end
 
 % ---- negativity psatz and the Dup bump on the slack -- as pielr_settings
 % The stock slack left the tiers on 11/12/2026: it starts from that of the  % MMP, 11/12/2026
-% base tier (LPISETTINGS_STOCK_SOP), in sop.stock, which tl.slack reads     % MMP, 11/12/2026
-[~,S.sop.stock] = lpisettings_stock_sop(base);                              % MMP, 11/12/2026
+% base tier (LPISETTINGS_STOCK), in sop.stock, which tl.slack reads     % MMP, 11/12/2026
+[~,S.sop.stock] = lpisettings_stock(base);                                  % MMP, 11/12/2026
 % S.override2 = double(~psatz);          % 1 means OFF: the flag is inverted % MMP, 11/12/2026 (was)
 S.sop.stock.override2 = double(~psatz);  % 1 means OFF: the flag is inverted % MMP, 11/12/2026
 n1 = 1;  n2 = 1;  n3 = 1;              % the 1-D light/heavy base orders

@@ -49,13 +49,13 @@ V = {0,   [],    1, 1, 'faces1'      % control: 475,404 / 33,025
      1,   [],    1, 1, 'auto'};
 for v = 1:size(V,1)
     [cd3,ci,dD,dq,ps] = V{v,:};
-    st = lpisettings_sop('light');   st.sos_opts.solver = 'mosek';
+    st = lpisettings('light');   st.sos_opts.solver = 'mosek';
     st.lpi.ineq.psatz = {'auto','faces1',ps};   st.lpi.ineq.cap_inc = ci;   st.lpi.ineq.dD = dD;
     st.sop.cap_delta = [NaN NaN cd3];   st.sop.deg_Q{3} = dq;   st.sop.max_raise_Q(3) = 0;
     tag = sprintf('cd=%g capinc=%s dD=%d degQ3=%d psatz3=%s',cd3,mat2str(ci),dD,dq,ps);
     t1 = tic;
     try
-        PIETOOLS_stability_sop(PIE,st,'Q');
+        PIETOOLS_stability(PIE,st,'Q');
         fprintf('@@ A2 %s: returned without the size error (%.0f s)\n',tag,toc(t1));
     catch ME
         tok = regexp(ME.message,'LB_SIZE ndv=(\d+) m=(\d+) ineq=(\d+)','tokens','once');

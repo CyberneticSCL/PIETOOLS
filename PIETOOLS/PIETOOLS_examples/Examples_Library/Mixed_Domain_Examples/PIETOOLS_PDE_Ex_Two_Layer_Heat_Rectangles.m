@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Two_Layer_Heat_Rectangles(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -108,7 +108,7 @@ PDE_t = [diff(u1,'t')==k1*diff(u1,s1,2)+k1*diff(u1,s2,2)+lam*u1;
 
 % Example-specific settings: the extreme tier, with Q of degree 0 in the
 % multiplier and 1 in the integral kernels
-st = lpisettings_sop('extreme');
+st = lpisettings('extreme');
 st.sop.deg_Q{2} = [0 1 1];
 
 % No GUI representation of this system

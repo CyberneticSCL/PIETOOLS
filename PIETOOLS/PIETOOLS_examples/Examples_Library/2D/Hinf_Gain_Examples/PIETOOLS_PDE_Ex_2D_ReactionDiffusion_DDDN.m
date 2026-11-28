@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params) % MM
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -68,6 +68,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params) % MM
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
 %   recommended settings of the H-infinity gain test; Hinf_gain_form = 'P'
 %   set in the base workspace; help revised, license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params)  % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -136,7 +138,7 @@ PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+w;
 % (heavy tier; storage on the 2-D space with theta-lengths [2 2] for the
 % multiplier and [1 0] for the integral, so no integral in s2; slack
 % weight raise of the gain LPI 1)
-st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st = lpisettings('heavy');                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{2} = [2 2;1 0;0 0];                                      % MMP, 11/21/2026
 st.sop.dw_P = 1;                                                            % MMP, 11/21/2026
 

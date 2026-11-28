@@ -1,6 +1,6 @@
 function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC, 09/23/2026
 % [PROG,H] = BUILD_L2GAIN_1D(PIE,ST,DUAL) assembles, without solving, the KYP
-% LPI of PIETOOLS_Hinf_gain_sop, form 'Q' (DUAL false) or 'Qd' (DUAL true),
+% LPI of PIETOOLS_Hinf_gain, form 'Q' (DUAL false) or 'Qd' (DUAL true),
 % with the stock negativity slack, for the L2 gain gam from w to z of the PIE
 %
 %       T x_t = A x + B1 w,      z = C1 x + D11 w:
@@ -18,7 +18,7 @@ function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC
 % INPUT
 % - PIE:   'pie_struct' object of a 1-D PIE with 'opvar'
 %          operators T, A, B1, C1, D11 and Tw = 0;
-% - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
+% - st:    'struct' of LPI settings as returned by lpisettings: dd1,
 %          dd12, options1, options12, override1 (storage), dd2, dd3,
 %          options2, options3, override2 (slack); sosineq_on, if present,
 %          must be 0; gamfix (optional) 'double', a fixed gain;
@@ -54,7 +54,7 @@ if nargin<3 || isempty(dual), dual = false; end
 % a different LPI with a different residual: refuse rather than mis-adapt
 if ~(PIE.Tw==0)
     error('build_l2gain_1d:Tw', ...
-        ['PIE.Tw is nonzero (disturbance at the boundary): PIETOOLS_Hinf_gain_sop ' ...
+        ['PIE.Tw is nonzero (disturbance at the boundary): PIETOOLS_Hinf_gain ' ...
          'poses form ''P'' there, a different LPI than this builder.']);
 end
 % The operator gate needs the equality route: sosineq_on poses no slack N
@@ -63,42 +63,42 @@ if isfield(st,'sosineq_on') && st.sosineq_on
           'sosineq_on=1 has no slack operator; the operator gate needs the equality route.');
 end
 % Container PIE, completed settings, storage/slack builders, plant operators
-PIE = exec_pie_sop(PIE);
+PIE = exec_pie(PIE);
 st  = exec_sop_settings(st);
-tl  = exec_tools_sop(PIE,st);    st.sop = tl.sop;
+tl  = exec_tools(PIE,st);    st.sop = tl.sop;
 Tm  = PIE.T;     Am = PIE.A;
 Bw  = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
 Iw  = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 % gam: a decision variable with gam >= 0 and min gam, or the fixed number
 % prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                   % CC, 11/17/2026 (was)
-% The storage reads prog.settings.lpi.pos (POS_ROW of EXEC_TOOLS_SOP):      % CC, 11/17/2026
+% The storage reads prog.settings.lpi.pos (POS_ROW of EXEC_TOOLS):      % CC, 11/17/2026
 % without ST every tier gets the light row; ST as in the executive          % CC, 11/17/2026
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom,st);                  % CC, 11/17/2026
 if isfield(st,'gamfix') && ~isempty(st.gamfix)
     gamv = st.gamfix;
 else
     [prog,gamv] = lpidecvar(prog,'gam');
-    prog = lpi_ineq_sop(prog,gamv);
+    prog = lpi_ineq(prog,gamv);
     prog = lpisetobj(prog,gamv);
 end
 % Storage R >= 0 (no margin in the 'Q' forms), Q free, coupling T'Q = R (or TQ = R)
 [prog,Rm] = tl.storage(prog,Tm,'out');
 [sp,dm] = opvar_space_list(Tm,'out');
-[prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
+[prog,Qm] = lpivar(prog,dm,sp,tl.dom,get_lpivar_degs(Rm));
 if ~dual
-    prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
+    prog = lpi_eq(prog,Tm'*Qm-Rm);
     Km = [-(gamv*Iw),   Dzw',       Bw'*Qm;
            Dzw,         -(gamv*Iz), Cz;
            Qm'*Bw,      Cz',        Am'*Qm + Qm'*Am];
 else
-    prog = lpi_eq_sop(prog,Tm*Qm-Rm);
+    prog = lpi_eq(prog,Tm*Qm-Rm);
     Km = [-(gamv*Iz),   Dzw,        Cz*Qm;
            Dzw',        -(gamv*Iw), Bw';
            Qm'*Cz',     Bw,         Qm'*Am' + Am*Qm];
 end
 % Km <= 0 through the stock slack: Km + N = 0 with N >= 0 of dd2/dd3/override2
 [prog,Nm] = tl.slack(prog,Km);
-prog = lpi_eq_sop(prog,Nm+Km,'symmetric');
+prog = lpi_eq(prog,Nm+Km,'symmetric');
 % Handles for the operator gate (pielr_lpi l2g_resid)
 H.Top = Tm;     H.Aop = Am;     H.Bwop = Bw;    H.Czop = Cz;    H.Dzwop = Dzw;
 H.Iw = Iw;      H.Iz = Iz;      H.Rop = Rm;     H.Qop = Qm;

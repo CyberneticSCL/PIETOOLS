@@ -26,13 +26,13 @@ function X = pielr_evalop(prog,X)                                           % CC
 
 % BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
 % no decision variable; a 'dopvar' or 'sdopvar' is substituted by
-% GETSOL_LPIVAR_SOP, which reads prog.solinfo.RRx against prog.decvartable --
+% GETSOL_LPIVAR, which reads prog.solinfo.RRx against prog.decvartable --
 % the vector pielr_opcheck writes there before calling this.                % MMP, 11/26/2026
 if isa(X,'opvar') || isa(X,'sopvar')
     return                                  % nothing to substitute
 end
 if isa(X,'dopvar') || isa(X,'sdopvar')
-    X = getsol_lpivar_sop(prog,X);   return
+    X = getsol_lpivar(prog,X);   return
 end
 % END CC, 11/08/2026
 % if isa(X,'opvar') || isa(X,'opvar2d') || isa(X,'double') || isa(X,'polynomial') % MMP, 11/26/2026 (was)

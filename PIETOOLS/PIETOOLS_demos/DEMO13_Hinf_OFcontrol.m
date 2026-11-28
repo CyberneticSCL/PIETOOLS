@@ -27,7 +27,7 @@
 % variables, with no operator inverse.
 %    Then, we
 %  - bound the H-infinity norm of the closed loop with the analysis
-%    executive PIETOOLS_Hinf_gain_sop, applied to the PIE of the closed loop,
+%    executive PIETOOLS_Hinf_gain, applied to the PIE of the closed loop,
 %    and report the bound only when the solver certifies it and it is not
 %    below the numerical gain of the closed loop,
 % -  and simulate the closed-loop dynamics using PIESIM.
@@ -91,7 +91,7 @@ dom = PIE.dom;
 %% Synthesize the controller
 % The positivity margins eppos of the operators R and V of the LPI are taken
 % small: the free operators Q and U rescale R and V.
-settings = lpisettings_sop('light');
+settings = lpisettings('light');
 % margin on R, V: eppos on R^n (entry 1) and on L2[s] (entry 2)
 ep = [1e-4; 1e-6];
 %% Identity 'opvar' on the output spaces of an operator.
@@ -123,7 +123,7 @@ dw_Q      = settings.sop.dw_Q;          dw_Q = dw_Q(min(nvp,end));
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),dom,settings);
 prog.sopeq = {};
 [prog,gamv] = lpidecvar(prog,'gam');           % gam >= 0, minimized
-prog = lpi_ineq_sop(prog,gamv);
+prog = lpi_ineq(prog,gamv);
 prog = lpisetobj(prog,gamv);
 % Lyapunov variables R, V >= eppos I on the state (the output space of
 % T'), with the degrees of the storage row of the settings (POSLPIVAR
@@ -132,12 +132,12 @@ prog = lpisetobj(prog,gamv);
 R = R + Ieps;
 [prog,V] = poslpivar(prog,T');
 V = V + Ieps;
-% get_lpivar_degs_sop(R): reads the monomial degrees actually used in the
+% get_lpivar_degs(R): reads the monomial degrees actually used in the
 %   positive operator R (multiplier, integral kernels), returned in the
 %   format lpivar expects, so the free variables below get the
 %   same degrees as R (dQ from R for Q,Bn,Dn; dU from V for U,An,Cn).
-dQ = get_lpivar_degs_sop(R);
-dU = get_lpivar_degs_sop(V);
+dQ = get_lpivar_degs(R);
+dU = get_lpivar_degs(V);
 %% indefinite operator variables Q,U,An,Bn,Cn,Dn.
 % Lyapunov variables:  Q_cl = [Q S; S S], for functional <x,Rx>==<x,T*Qx>.
 %  Define U := (Q − S)^{-1}, such that V = T U. The congruence transform
@@ -161,8 +161,8 @@ dU = get_lpivar_degs_sop(V);
 [prog,Dn] = lpivar(prog,(Cy*Bu)',dQ);
 %% declare the operator equality and inequality constraints.
 Tc = T'*T;
-prog = lpi_eq_sop(prog,T'*Q - R);              % T'Q = R
-prog = lpi_eq_sop(prog,Tc*U - V);              % T'T U = V
+prog = lpi_eq(prog,T'*Q - R);                  % T'Q = R
+prog = lpi_eq(prog,Tc*U - V);                  % T'T U = V
 % KYP operator blocks
 P11 = Q'*A + Bn*Cy;           P11 = P11 + P11';
 P12 = An + (A + Bu*Dn*Cy)'*T;
@@ -180,8 +180,8 @@ Cp = [R, Tc;
          Tc', V];                          % coupling [R T'T; T'T V] >= 0
 % Slack options: degrees like R, weight raise dw_Q + dw, margin of the settings
 o = struct('like',R,'dw',dw_Q+max_raise,'margin',settings.sop.margin,'cap',[]);
-prog = lpi_ineq_sop(prog,-Km,o);               % Km <= 0
-prog = lpi_ineq_sop(prog,Cp,o);                % Cp >= 0
+prog = lpi_ineq(prog,-Km,o);                   % Km <= 0
+prog = lpi_ineq(prog,Cp,o);                    % Cp >= 0
 % Solve with the solver options of the settings
 prog = lpisolve(prog,settings.sos_opts);
 
@@ -196,7 +196,7 @@ end      % 1: dual infeasible
 if isfield(si,'numerr')
     nerr = double(si.numerr);
 end      % 1: inaccurate, 2: failed
-gam = double(lpigetsol_sop(prog,gamv));
+gam = double(lpigetsol(prog,gamv));
 ok = pinf~=1 && dinf~=1 && nerr<=1;            % optimal or inaccurate
 % gam is a bound only when the solver certified it: warn otherwise; print gam
 if ~ok
@@ -204,12 +204,12 @@ if ~ok
 end
 fprintf('Hinf_OFcontrol_demo13: gam = %.8g (certified: %d, dw = %d)\n',gam,ok,dw_Q+max_raise);
 %% controller structure with the solved variables   
-% getsol_lpivar_sop(prog,X) needs the operator variable X itself, not its name,
+% getsol_lpivar(prog,X) needs the operator variable X itself, not its name,
 % so the variables are listed next to their names.
 sol_vars  = {Q, U, An, Bn, Cn, Dn, R, V};
 sol_names = {'Q','U','An','Bn','Cn','Dn','R','V'};
 for k = 1:numel(sol_vars)
-    sol.(sol_names{k}) = getsol_lpivar_sop(prog,sol_vars{k});
+    sol.(sol_names{k}) = getsol_lpivar(prog,sol_vars{k});
 end
 % The controller from the change of variables, with no inverse
 DK = sol.Dn;
@@ -223,12 +223,12 @@ Kc = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
 
 %% Certify the H-infinity norm of the closed loop
 % The closed loop of the plant and the controller is a PIE with state [x; xK].
-% Its L2-gain is bounded with the KYP LPI of PIETOOLS_Hinf_gain_sop, in the form
+% Its L2-gain is bounded with the KYP LPI of PIETOOLS_Hinf_gain, in the form
 % 'Q', for which the storage functional is <Qcl x, Tcl x>. The controller
 % operators carry factors of T, so the storage is declared with higher
 % degrees than the default.
 PIEcl = closedLoopPIE(PIE,Kc,'dynamic');
-settings_an = lpisettings_sop('light');
+settings_an = lpisettings('light');
 % storage degrees in one variable (multiplier 4; integrals 6, 6 in total),
 % as lengths of the storage row, entry 1 (one variable): d1 = d2 = 7,
 % d3 = [5;7;7], theta + s <= 6
@@ -237,7 +237,7 @@ settings_an.lpi.pos.len_sos{1} = [5;7;7];   settings_an.lpi.pos.cap{1} = 6;
 settings_an.eppos = 1e-6;   settings_an.eppos2 = 1e-6;
 % The witness (on by default) is the gain of the discretized closed loop, a
 % lower bound on it: a value below it is no bound, whatever the status
-[~,~,gam_cl,info_cl] = PIETOOLS_Hinf_gain_sop(PIEcl,settings_an,'Q');
+[~,~,gam_cl,info_cl] = PIETOOLS_Hinf_gain(PIEcl,settings_an,'Q');
 cert_cl = info_cl.certified && ~(info_cl.gap<0);
 if cert_cl
     fprintf('The H-infinity norm of the closed loop is bounded by %.4f.\n',gam_cl);

@@ -93,7 +93,7 @@ end
 function [prog,H] = stab_build(PIE,st,dual)
 % BEGIN CC, 11/08/2026: one container builder for 1-D and 2-D.
 % build_stab_2d_st2 (opvar2d, poslpivar_2d, lpi_eq_2d) no longer runs; the
-% container builder dispatches by dimension through exec_tools_sop.  A bare
+% container builder dispatches by dimension through exec_tools.  A bare
 % 2-D settings struct (set2d_deg, heat2d_compare in PIETOOLS_demos/cuadmm) is
 % wrapped as the settings_2d field of the container 'light' settings, so
 % callers keep passing what they passed before.
@@ -109,7 +109,7 @@ if pie_dim(PIE)==2 && ~isfield(st,'settings_2d') && ~isfield(st,'LF_deg')   % MM
     st.settings_2d = settings_2d_stock(lev);                                % MMP, 11/17/2026
 end                                                                         % MMP, 11/17/2026
 if pie_dim(PIE)==2 && ~isfield(st,'settings_2d')
-    S2 = lpisettings_sop('light');
+    S2 = lpisettings('light');
 %   S2.settings_2d = stab_2d_settings(st);                                  % MMP, 11/09/2026 (was)
     % the 2-D settings: a 1-D settings struct carries them under            % MMP, 11/09/2026
     % .settings_2d (lpisettings' convention, and t1d_set's); a bare struct is % MMP, 11/09/2026

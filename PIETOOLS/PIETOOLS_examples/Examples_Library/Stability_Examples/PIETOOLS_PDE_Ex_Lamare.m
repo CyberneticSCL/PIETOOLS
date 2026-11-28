@@ -22,7 +22,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)        % MM
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the test this file names, by case                       % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -61,6 +61,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)        % MM
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: new output st, the
 %   recommended settings of the stability test by case; stability_form =
 %   'P' set in the base workspace; help and comments revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params)         % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -168,7 +170,7 @@ PDE_t.BC{1}.term{2}.C = [on0, -Gm2; zer12', -Gm4];
 % (stripped tier with the 1-D storage from the multiplier only, both
 % integral s-lengths 0, and the slack lift degree at its minimum Dmin; for
 % 2.2 and 2.4 the multiplier theta-length 1)
-st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st = lpisettings('stripped');                                               % MMP, 11/21/2026
 st.lpi.pos.len_inc{1} = 0;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 0;                                                  % MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % MMP, 11/21/2026

@@ -6,7 +6,7 @@ function st_patch(rows)
 % INPUT
 % - rows: n x 4 'cell' {tag, sfx, key, tier}: the ex_search tag and
 %         opts.statedir of the run, the catalog key, the tier the example
-%         file starts from (lpisettings_sop(tier)).
+%         file starts from (lpisettings(tier)).
 % OUTPUT
 % Prints KEY | TIER | statements from the tier | statements from the start.
 % The final settings of a row are those of exs_<tag>_final.csv: the end of
@@ -25,7 +25,7 @@ for i = 1:size(rows,1)
     L0 = load(fullfile(here,['exs_state',sfx],[strrep(strrep(key,':','_'),'/','_'),'.mat']));
     st = L0.st;     S = st.S;
     if isfield(st,'Sdir') && ~isempty(st.Sdir) && st.costdir(1)==F.ndv(j),  S = st.Sdir;  end
-    L = st_diff(lpisettings_sop(tier,0,'','mosek'),S,'st');
+    L = st_diff(lpisettings(tier,0,'','mosek'),S,'st');
     L = L(~startsWith(L,'st.sos_opts.solver'));
     L0 = st_diff(st.S0,S,'st');     L0 = L0(~startsWith(L0,'st.sos_opts.solver'));
     fprintf('%s | %s | %d variables | from the tier: %s | from the start: %s\n',key,tier,F.ndv(j), ...

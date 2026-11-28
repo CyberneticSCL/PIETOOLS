@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,pa
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -68,6 +68,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,pa
 %   set in the base workspace; the warning that SeDuMi requires the
 %   veryheavy settings removed; help revised (stated gain 15.147 corrected
 %   to 23.706, attained at frequency 0), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -150,7 +152,7 @@ end
 % Example-specific settings                                                 % MMP, 11/21/2026
 % (stripped tier; 1-D storage with the basis operators a (multiplier) and
 % b (upper integral) only, pattern 'separable')
-st = lpisettings_sop('stripped');                                           % MMP, 11/21/2026
+st = lpisettings('stripped');                                               % MMP, 11/21/2026
 st.lpi.pos.patterns{1} = 'separable';                                       % MMP, 11/21/2026
 
 end

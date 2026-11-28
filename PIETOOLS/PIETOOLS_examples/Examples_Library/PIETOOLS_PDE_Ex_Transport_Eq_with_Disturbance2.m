@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system using the pde_var
 %               structure.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -62,6 +62,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %   the form 'c' the dual test certified the bound at no setting tried
 %   under an acceptance that also bounds the residual of the solve. st: the
 %   smallest storage found that certifies both tests.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -102,7 +104,7 @@ PDE_t=initialize(pde);
 % (no multiplier basis operator; s-lengths 3 (lower integral) and           % MMP, 11/22/2026
 % 2 (upper integral), theta-lengths 2; slack lift degree at its             % MMP, 11/22/2026
 % minimum Dmin)                                                             % MMP, 11/22/2026
-st = lpisettings_sop('veryheavy');                                          % MMP, 11/21/2026
+st = lpisettings('veryheavy');                                              % MMP, 11/21/2026
 st.lpi.pos.len_inc{1} = 3;                                                  % MMP, 11/22/2026
 st.lpi.pos.len_com{1} = 2;                                                  % MMP, 11/22/2026
 st.lpi.pos.len_sos{1} = [0;2;2];                                            % MMP, 11/22/2026

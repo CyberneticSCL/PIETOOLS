@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GU
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -63,6 +63,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GU
 %   recommended settings of the H-infinity optimal estimator synthesis;
 %   help revised (disturbance term corrected to the w(t) of the code),
 %   license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -147,7 +149,7 @@ end
 % free operators of degree 0 in the multiplier and 0, 2 in the integral
 % kernels (output, integration variable); no slack weight raise of the
 % synthesis LPI)
-st = lpisettings_sop('extreme');                                            % MMP, 11/21/2026
+st = lpisettings('extreme');                                                % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [1;0;0];                                            % MMP, 11/21/2026
 st.lpi.var.deg{1} = [0 2 0];                                                % MMP, 11/21/2026
 st.sop.dw_P = 0;                                                            % MMP, 11/21/2026

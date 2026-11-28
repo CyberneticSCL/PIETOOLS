@@ -18,7 +18,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Damped_Wave_Interior_Delay_Fridman(GUI,pa
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) recommended settings (lpisettings_sop
+% - st:         (optional) recommended settings (lpisettings
 %               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
@@ -118,7 +118,7 @@ PDE_t = [diff(z,'t')==v;
 % Example-specific settings (second output only): the light tier, with      % MMP, 11/22/2026
 % the changes below                                                         % MMP, 11/22/2026
 if nargout>1
-    st = lpisettings_sop('light');
+    st = lpisettings('light');
     st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
 %   st.sop.deg_Q{2} = [2 1 1];      % Q of degree 2 (multiplier), 1 (integrals) % MMP, 11/22/2026 (was)
     st.sop.deg_Q{2} = [1 1 1];      % Q of degree 1 in every direction      % MMP, 11/22/2026

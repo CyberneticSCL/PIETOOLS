@@ -18,10 +18,10 @@ function R = test_mixed_domain_pde(parts,names)
 %   'exact'    the exact baselines of 'exec': stability margins, H-infinity
 %              gains and H2 norms from separation of variables, each
 %              checked against the collocation model MIXED_DOMAIN_COLLOC;
-%   'exec'     PIETOOLS_stability_sop ('P') at 0.9 and 1.1 times each exact
-%              margin (certify / must not certify), PIETOOLS_Hinf_gain_sop
-%              ('Q', 'P') against the exact gains, and PIETOOLS_H2_norm_sop ('o',
-%              'oco') against the exact H2 norms; lpisettings_sop('light'),
+%   'exec'     PIETOOLS_stability ('P') at 0.9 and 1.1 times each exact
+%              margin (certify / must not certify), PIETOOLS_Hinf_gain
+%              ('Q', 'P') against the exact gains, and PIETOOLS_H2_norm ('o',
+%              'oco') against the exact H2 norms; lpisettings('light'),
 %              MOSEK when installed. About 1 h;
 %   'piesim'   PIESIM (BDF4, N = 16) against the exact solutions of the
 %              PIESIM 2-D library examples 8-11, the collocation model, and
@@ -537,10 +537,10 @@ end
 %% Layer 3: executives
 %% ------------------------------------------------------------------------
 function R = run_exec(names)
-% R = RUN_EXEC(NAMES) runs PIETOOLS_stability_sop ('P') on each system at
-% 0.9 and 1.1 times its exact margin, PIETOOLS_Hinf_gain_sop ('Q', 'P') on
-% the H-infinity systems, and PIETOOLS_H2_norm_sop ('o', 'oco') on three
-% scalar-input systems, at lpisettings_sop('light'). A stable PIE must be
+% R = RUN_EXEC(NAMES) runs PIETOOLS_stability ('P') on each system at
+% 0.9 and 1.1 times its exact margin, PIETOOLS_Hinf_gain ('Q', 'P') on
+% the H-infinity systems, and PIETOOLS_H2_norm ('o', 'oco') on three
+% scalar-input systems, at lpisettings('light'). A stable PIE must be
 % certified, an unstable one must not; a certified gain or H2 norm must lie
 % in [g*, 1.05 g*] (below the exact value g* is unsound).
 %
@@ -591,7 +591,7 @@ if nargin>=1 && ~isempty(names)
     C = C(ismember(C(:,1),names),:);
 end
 % Settings: light tier, MOSEK when installed, quiet
-st = lpisettings_sop('light');
+st = lpisettings('light');
 if ~isempty(which('mosekopt')), st.sos_opts.solver = 'mosek'; end
 st.sop.verbose = false;
 R = struct('part',{},'name',{},'status',{},'detail',{});
@@ -602,7 +602,7 @@ for i=1:size(C,1)
         PIE = initialize(convert(S.PDE,{'pie','silent'}));
         t0 = tic;
         if strcmp(C{i,3},'stab')
-            [~,~,info] = PIETOOLS_stability_sop(PIE,st,'P');
+            [~,~,info] = PIETOOLS_stability(PIE,st,'P');
             if info.certified && ~C{i,4}
                 r.status = 'FAIL';  vd = 'UNSOUND: unstable PIE certified';
             elseif ~info.certified && C{i,4}
@@ -612,10 +612,10 @@ for i=1:size(C,1)
             end
         else
             switch C{i,3}
-                case 'hinf',    [~,~,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,st,'Q');
-                case 'hinfP',   [~,~,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,st,'P');
-                case 'h2o',     [~,~,gam,~,~,info] = PIETOOLS_H2_norm_sop(PIE,st,'o');
-                case 'h2oco',   [~,~,gam,~,~,info] = PIETOOLS_H2_norm_sop(PIE,st,'oco');
+                case 'hinf',    [~,~,gam,info] = PIETOOLS_Hinf_gain(PIE,st,'Q');
+                case 'hinfP',   [~,~,gam,info] = PIETOOLS_Hinf_gain(PIE,st,'P');
+                case 'h2o',     [~,~,gam,~,~,info] = PIETOOLS_H2_norm(PIE,st,'o');
+                case 'h2oco',   [~,~,gam,~,~,info] = PIETOOLS_H2_norm(PIE,st,'oco');
             end
             gap = gam/C{i,4}-1;
             if info.certified && gap<-1e-6

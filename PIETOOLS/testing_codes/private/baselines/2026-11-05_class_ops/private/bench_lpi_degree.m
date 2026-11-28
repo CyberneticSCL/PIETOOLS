@@ -10,7 +10,7 @@ function R = bench_lpi_degree(nv,dlist,series,problem)
 %     x_t = sum_{i<=NV} x_{s_i s_i} + lam x   on [0,1]^NV, x = 0 on the boundary
 % (lam = pi^2/2 for NV = 1 and pi^2 for NV = 2, both stable).
 % PROBLEM 'of': the H-infinity dynamic output feedback LPI of
-% PIETOOLS_HINF_OFCONTROL_SOP for
+% PIETOOLS_HINF_OFCONTROL for
 %     x_t = sum_{i<=NV} x_{s_i s_i} + lam x + w1 + u,  x = 0 on the boundary,
 %     z = [int x; u],  y = int x + w2
 % (lam = 12 for NV = 1, as in DEMO12, and 24 for NV = 2; both unstable).
@@ -40,8 +40,8 @@ function R = bench_lpi_degree(nv,dlist,series,problem)
 %   1-D: sosineq_on = 0, dd1 = dd12 = {d,[d d 2d],[d d 2d]},
 %        dd2 = {d+1,[d+2 d+2 2d+2],..}, dd3 = {d,[d+1 d+1 2d+1],..},
 %        ddZ = [2d 2d 2d]; equal to the retired lpisettings('veryheavy') at
-%        d = 3; the rest from lpisettings_stock_sop('veryheavy').
-%   2-D: lpisettings_sop('light') with settings_2d_stock('light'), every
+%        d = 3; the rest from lpisettings_stock('veryheavy').
+%   2-D: lpisettings('light') with settings_2d_stock('light'), every
 %        degree in settings_2d.LF_deg multiplied by d (light at d = 1); the
 %        negativity by lpi_ineq.
 % Container options: one pass (max_raise = max_raise_feas = 0), no witness,
@@ -128,8 +128,8 @@ for d = dlist
             otherwise
 %               if strcmp(problem,'of'),    fh = @() PIETOOLS_Hinf_OFcontrol_sop(PIE,stk); % MMP, 11/06/2026 (was)
 %               else,                       fh = @() PIETOOLS_stability_sop(PIE,stk,'P'); % MMP, 11/06/2026 (was)
-                if strcmp(problem,'of'),    fh = @() call_exec(@PIETOOLS_Hinf_OFcontrol_sop,4,PIE,stk); % MMP, 11/06/2026
-                else,                       fh = @() call_exec(@PIETOOLS_stability_sop,3,PIE,stk,'P'); % MMP, 11/06/2026
+                if strcmp(problem,'of'),    fh = @() call_exec(@PIETOOLS_Hinf_OFcontrol,4,PIE,stk); % MMP, 11/06/2026
+                else,                       fh = @() call_exec(@PIETOOLS_stability,3,PIE,stk,'P'); % MMP, 11/06/2026
                 end
         end
         row = run_one(fh);
@@ -158,7 +158,7 @@ try
         t0 = tic;   [prog,info] = fh();     t = toc(t0);    % no evalc: R2025b crashes on evalc around handles in a loop % MMP, 11/06/2026
         tt(end+1) = t;  ts(end+1) = prog.solinfo.info.cpusec; %#ok<AGROW>
         % Build and LPISOLVE times of the passes (one pass at max_raise = 0), % MMP, 11/06/2026
-        % timed by LPI_SOLVE_LOOP_SOP: what the executive spent before and in % MMP, 11/06/2026
+        % timed by LPI_SOLVE_LOOP: what the executive spent before and in % MMP, 11/06/2026
         % the solver call, apart from the work after it                     % MMP, 11/06/2026
         b = NaN;    l = NaN;                                                % MMP, 11/06/2026
         if isstruct(info) && isfield(info,'hist') && ~isempty(info.hist)    % MMP, 11/06/2026
@@ -180,7 +180,7 @@ try
     else,               row.status = 'optimal';
     end
     try
-        S = lpi_shape_sop(prog);
+        S = lpi_shape(prog);
         row.ndv = S.ndv;    row.m = S.m;    row.Ks = mat2str(S.Ks);    row.sumKs2 = sum(S.Ks.^2);
     catch
     end
@@ -203,7 +203,7 @@ if nv==1
 %   st = lpisettings('veryheavy');                                          % MMP, 11/23/2026 (was)
     % LPISETTINGS retired: the tier with its stock slack, whose options2,   % MMP, 11/23/2026
     % options3, override2 equal the retired ones, and the retired options1  % MMP, 11/23/2026
-    [st,sk] = lpisettings_stock_sop('veryheavy');                           % MMP, 11/23/2026
+    [st,sk] = lpisettings_stock('veryheavy');                               % MMP, 11/23/2026
     st.options1 = struct('sep',0,'exclude',[0 0 0 0]);                      % MMP, 11/23/2026
     st.override2 = sk.override2;    st.options2 = sk.options2;              % MMP, 11/23/2026
     st.options3 = sk.options3;                                              % MMP, 11/23/2026
@@ -215,7 +215,7 @@ if nv==1
     st.ddZ  = [2*d 2*d 2*d];
 else
 %   st = lpisettings('light');                                              % MMP, 11/23/2026 (was)
-    st = lpisettings_sop('light');                                          % MMP, 11/23/2026
+    st = lpisettings('light');                                              % MMP, 11/23/2026
     st.settings_2d = settings_2d_stock('light');    % LF_deg as retired     % MMP, 11/23/2026
     st.settings_2d.LF_deg = scale_deg(st.settings_2d.LF_deg,d);
 end

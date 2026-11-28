@@ -20,7 +20,7 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % DB
 %               format.
 % - PDE_b:      PDE structure defining the example system in the batch
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % DB, MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % DB, MMP, 11/21/2026
 %               for the dual stability test                                 % DB, MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -78,6 +78,8 @@ function [PDE_t,PDE_b,st] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)   % DB
 %   st, the recommended settings of the dual stability test;
 %   stability_form = 'Q' set in the base workspace; help and comments
 %   revised.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)    % DB, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -226,7 +228,7 @@ PDE_t.BC{5}.term{1}.C = [1,-1];
 
 % Example-specific settings                                                 % DB, MMP, 11/21/2026
 % (veryheavy tier; slack lift degree at its minimum Dmin)
-st = lpisettings_sop('veryheavy');                                          % DB, MMP, 11/21/2026
+st = lpisettings('veryheavy');                                              % DB, MMP, 11/21/2026
 st.lpi.ineq.dD = 0;                                                         % DB, MMP, 11/21/2026
 
 if GUI

@@ -18,7 +18,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % DJ
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         (optional) recommended settings (lpisettings_sop            % DJ, MMP, 11/21/2026
+% - st:         (optional) recommended settings (lpisettings            % DJ, MMP, 11/21/2026
 %               structure) for the stability test of this example,          % DJ, MMP, 11/21/2026
 %               returned only when requested (nargout > 1).                 % DJ, MMP, 11/21/2026
 %
@@ -75,6 +75,8 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params) % DJ
 %   optional second output st, the recommended settings of the stability
 %   test; stability_form = 'Q' set in the base workspace; help revised
 %   (OUTPUT lists no PDE_b, which is not returned), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params)   % DJ, MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -158,7 +160,7 @@ PDE_t = [diff(x1,'t')==c*diff(x1,s1,2)+a0*x1-a1*subs(x2,s2,tau);
 % Q of degree 1 in the multiplier, 2 in the integrals; slack integral
 % bases capped at total degree theta+s <= Dmax-1)
 if nargout>1                                                                % DJ, MMP, 11/21/2026
-    st = lpisettings_sop('light');                                          % DJ, MMP, 11/21/2026
+    st = lpisettings('light');                                              % DJ, MMP, 11/21/2026
     st.lpi.ineq.dD = 0;                                                     % DJ, MMP, 11/21/2026
     st.sop.deg_Q{2} = [1 2 2];                                              % DJ, MMP, 11/21/2026
     st.lpi.ineq.cap_inc = 'auto';                                           % DJ, MMP, 11/21/2026

@@ -23,10 +23,10 @@ if strcmp(tree,'new')
     V{end+1} = struct('name','V2 psatz none',     'f',@(s) setfield(s,'lpi',setfield(s.lpi,'ineq',setfield(s.lpi.ineq,'psatz',{{'none','faces1','auto'}}))));
     V{end+1} = struct('name','V3 psatz faces',    'f',@(s) setfield(s,'lpi',setfield(s.lpi,'ineq',setfield(s.lpi.ineq,'psatz',{{'faces','faces1','auto'}}))));
     V{end+1} = struct('name','V3b psatz product', 'f',@(s) setfield(s,'lpi',setfield(s.lpi,'ineq',setfield(s.lpi.ineq,'psatz',{{'product','faces1','auto'}}))));
-    V{end+1} = struct('name','V10 heavy tier',    'f',@(s) lpisettings_sop('heavy',0,'','mosek'));
+    V{end+1} = struct('name','V10 heavy tier',    'f',@(s) lpisettings('heavy',0,'','mosek'));
 else
     V{end+1} = struct('name','V1 mult 2',         'f',@(s) setfield(s,'lpi',setfield(s.lpi,'pos',setfield(s.lpi.pos,'mult',[2 0 0]))));
-    V{end+1} = struct('name','V10 heavy tier',    'f',@(s) lpisettings_sop('heavy',0,'','mosek'));
+    V{end+1} = struct('name','V10 heavy tier',    'f',@(s) lpisettings('heavy',0,'','mosek'));
 end
 fprintf('@@AB git %s\n', info.git);
 for v = 1:numel(V)
@@ -34,7 +34,7 @@ for v = 1:numel(V)
         c = C(strcmp({C.key},cases{k,1}));   c.exec = ['sop:',c.exec];
         tau = cases{k,2};
         try
-            S0 = V{v}.f(lpisettings_sop('light',0,'','mosek'));
+            S0 = V{v}.f(lpisettings('light',0,'','mosek'));
             PIE = lb_build_system(c, tau, true);
             r = lb_exec(c.exec, PIE, S0);
             fprintf('@@AB %-20s %-10s tau=%-8g %-10s ndv=%-7d m=%-6d nx=%-7d fr=%6.3f pinf=%d dinf=%d numerr=%d %.1fs\n', ...

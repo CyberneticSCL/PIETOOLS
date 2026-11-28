@@ -1,0 +1,82 @@
+function prog = lpi_eq_sdopvar(prog,P,opts)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROG = LPI_EQ_SDOPVAR(PROG,P,OPTS) adds to the LPI program PROG the
+% equality constraints P == 0 for the 'sdopvar' decision operator
+%
+%   (P x)(s) = sum_gamma int_{s'} K_gamma(s,s') I_gamma(s-s') x(s') ds',
+%   K_gamma(s,s') = kron(I_m,ZL(s))'*C_gamma(d)*kron(I_n,ZR(s')),
+%   vec(C_gamma(d)) = A_gamma + B_gamma'*d,
+%
+% gamma in {1,2,3}^n3 over the n3 variables common to the input and output
+% spaces (1 a multiplier, a factor delta(s_k-s_k'); 2 a lower and 3 an
+% upper integral), m x n = P.dims, d the decision variables P.Zd: for every
+% parameter cell gamma, the equations A_gamma(c) + B_gamma(:,c)'*d = 0 at
+% each position c of C_gamma that the canonical multiplier form allows
+% (the columns whose ZR monomial has degree 0 in every multiplier
+% direction of gamma), all-zero equations omitted. In canonical multiplier
+% form, which every 'sdopvar' object has, these equations hold exactly
+% when P is the zero operator. Of each set of these equations that are
+% multiples of one another (to 1e-12 of the largest coefficient), only
+% one is written; equations without a decision variable are all written.
+%
+% INPUT
+% - prog:   'struct', an LPI program whose prog.decvartable holds every
+%           name of P.Zd;
+% - P:      'sdopvar' object; an empty or all-zero parameter adds no
+%           equation;
+% - opts:   (optional) 'char', 'symmetric' for a P that is self-adjoint for
+%           every value of d: of each pair of parameter cells mapped to each
+%           other by exchanging lower (2) and upper (3) integrals in every
+%           direction, only the one of lower linear index is constrained
+%           (default []: every cell).
+%
+% OUTPUT
+% - prog:   'struct', PROG with the equations appended to prog.expr as
+%           'eq' entries, in the order of the parameter cells and, within a
+%           cell, of the positions c.
+%
+% NOTES
+% P of a class other than 'sdopvar' (a 'sopvar', 'polynomial' or 'double'
+% included), P not in canonical multiplier form, a name of P.Zd absent from
+% prog.decvartable, and OPTS other than 'symmetric' are errors. To impose
+% P == Q, call LPI_EQ_SDOPVAR(PROG,P-Q).
+%
+% See also LPI_EQ, LPI_EQ_DOPVAR, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ,
+%          SDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - lpi_eq_sdopvar
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding MMP, 08/28/2026
+
+% Collect the equations of P, then append them to the program
+if nargin<3,    opts = [];      end
+% The equations of P, every name of P.Zd checked against prog
+Eq = collect_eq_rows(prog,P,opts,false);
+% Appended to prog.expr
+prog = impose_eq_rows(prog,Eq);
+
+end

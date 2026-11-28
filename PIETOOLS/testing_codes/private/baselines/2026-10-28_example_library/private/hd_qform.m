@@ -1,13 +1,13 @@
 function hd_qform()
 % HD_QFORM, 10/28/2026: build-only probe, PDE 45 (2-D H-infinity gain), of
 % the PIE2PDE (Q) form sized to contain the PDE2PDE (P) form, against the P
-% form, at lpisettings_sop stripped and light:
-%   P form   PIETOOLS_Hinf_gain_sop 'P' (P + eppos I, KYP slack 'like' P);
+% form, at lpisettings stripped and light:
+%   P form   PIETOOLS_Hinf_gain 'P' (P + eppos I, KYP slack 'like' P);
 %   Q form   Q free with the degree caps of P*T (P the storage operator of
 %            the settings plus eppos I); R >= 0 sized from the support of
-%            T'*Q (the rule of LPI_INEQ_SOP for a target read from itself,
+%            T'*Q (the rule of LPI_INEQ for a target read from itself,
 %            so R can equal T'*Q for every Q of that basis); T'*Q == R in
-%            every coefficient, as PIETOOLS_Hinf_gain_sop imposes it; KYP
+%            every coefficient, as PIETOOLS_Hinf_gain imposes it; KYP
 %            slack 'like' R with weight degree max(dw_Q, dw_P).
 % Every program goes to the shadow Sedumi2Mosek, which records it and stops
 % before MOSEK. A positive operator with sum N^2 above LIMIT is reported,
@@ -25,8 +25,8 @@ PIE = lb_build_system(C(find(strcmp({C.key},'PDE:45'),1)), [], true);
 % Q form with the KYP slack 'like' P, the P form's own rule, which contains
 % the P form's slack since K is the same operator when Q = P*T.
 for tier = {'stripped','light'}
-    St = lpisettings_sop(tier{1},0,'','mosek');
-%   record(sprintf('%s P form',tier{1}), @() PIETOOLS_Hinf_gain_sop(PIE,St,'P'));
+    St = lpisettings(tier{1},0,'','mosek');
+%   record(sprintf('%s P form',tier{1}), @() PIETOOLS_Hinf_gain(PIE,St,'P'));
     record(sprintf('%s Q form, slack like P',tier{1}), @() qform(PIE,St,'P'));
 end
 end
@@ -58,7 +58,7 @@ function qform(PIE,settings,like)
 % from P with dw_P, as the P form does.
 LIMIT = 1e7;
 st = exec_sop_settings(settings);
-tl = exec_tools_sop(PIE,st);
+tl = exec_tools(PIE,st);
 % Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/26/2026 (was)
 % Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/26/2026 (was)
 % containers as they are; op2copvar_sop returned them unchanged             % MMP, 11/26/2026
@@ -71,7 +71,7 @@ Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 prog0 = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 [~,P0] = tl.storage(prog0,Tm,'out');
 Pm = P0 + tl.eye(1,tl.eppos);
-dP = get_lpivar_degs_sop(Pm);   dQ = get_lpivar_degs_sop(Pm*Tm);
+dP = get_lpivar_degs(Pm);   dQ = get_lpivar_degs(Pm*Tm);
 fprintf('##DEG P: %s | P*T: %s\n', dstr(dP), dstr(dQ));
 % gam >= 0 as the objective; Q free; R >= 0 with T'*Q == R; the KYP slack
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
@@ -81,7 +81,7 @@ prog = lpi_ineq(prog,gamv);     prog = lpisetobj(prog,gamv);
 fprintf('##Q  free coefficients %d\n', numel(prog.decvartable)-1);
 TQ = Tm'*Qm;
 [prog,Rm] = pos_sized(prog,TQ,struct(),LIMIT,'R',true);
-prog = lpi_eq_sop(prog,TQ-Rm);
+prog = lpi_eq(prog,TQ-Rm);
 Km = [-(gamv*Iw),   Dzw',       Bw'*Qm;
        Dzw,         -(gamv*Iz), Cz;
        Qm'*Bw,      Cz',        Am'*Qm + Qm'*Am];
@@ -91,14 +91,14 @@ else
     o = struct('like',Rm,'dw',max(st.sop.dw_Q,st.sop.dw_P),'margin',st.sop.margin);
 end
 pos_sized(prog,-Km,o,LIMIT,'KYP slack',false);        % size check only
-prog = lpi_ineq_sop(prog,-Km,o);
+prog = lpi_ineq(prog,-Km,o);
 lpisolve(prog,st.sos_opts);
 end
 
 
 function [prog,Pop] = pos_sized(prog,X,opts,LIMIT,lbl,build)
 % [PROG,POP] = POS_SIZED(PROG,X,OPTS,LIMIT,LBL,BUILD): the positive
-% operator LPI_INEQ_SOP declares for X >= 0 with OPTS (degrees and terms of
+% operator LPI_INEQ declares for X >= 0 with OPTS (degrees and terms of
 % GET_LIFT_DEGS, bases pruned to the support of the diagonal blocks of X),
 % its Gram sizes printed; declared by POSLPIVAR_DIRECT, without an
 % equality, when BUILD; an error when sum N^2 > LIMIT.
@@ -108,7 +108,7 @@ dom = struct('vars',{X.vars},'dom',X.dom);
 include = cell(1,numel(sp));
 for k = 1:numel(sp)
     if isempty(sp{k}) || isempty(X.C{k,k}),    continue,   end
-    eo = eq_opts_sopvar(X.C{k,k});      inc = eo.include;
+    eo = get_eq_opts(X.C{k,k});      inc = eo.include;
     for t = 1:size(inc,2)               % full-integral index 4 -> 2 and 3
         r = inc(:,t)==4;
         if any(r)

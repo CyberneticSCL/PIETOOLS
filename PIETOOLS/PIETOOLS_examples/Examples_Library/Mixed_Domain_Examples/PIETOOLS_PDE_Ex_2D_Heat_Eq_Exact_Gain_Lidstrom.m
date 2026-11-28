@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_Heat_Eq_Exact_Gain_Lidstrom(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         recommended settings (lpisettings_sop structure) for the
+% - st:         recommended settings (lpisettings structure) for the
 %               test this file names.
 %
 % %---------------------------------------------------------------------% %
@@ -102,7 +102,7 @@ PDE_t = [diff(x,'t')==diff(x,s1,2)+diff(x,s2,2)+w;
 % space from the basis operators aa and bb only ('uniform'), s-lengths
 % [2 1] of the integral b and theta-lengths [1 1] of a and b; slack weight
 % degree 1 in the directions a space does not own (wcross)
-st = lpisettings_sop('light');
+st = lpisettings('light');
 st.lpi.pos.len_com{2} = [2 1];
 st.lpi.pos.len_sos{2} = [1 1;1 1;0 0];
 st.lpi.pos.patterns{2} = 'uniform';

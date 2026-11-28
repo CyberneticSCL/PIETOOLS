@@ -29,13 +29,13 @@
 %
 % Then, using L = P^{-1}*Z, the L2 gain satisfies 
 %   ||ztilde||_{L2}/||w||_{L2} <= gam
-% We manually declare this LPI here; the commented call to lpiscript_sop
+% We manually declare this LPI here; the commented call to lpiscript
 % after the closed-loop construction solves it with the predefined
 % 'hinf-observer' executive instead.
 % We simulate the PDE state x and estimated state xhat using PIESIM.
 %
 % The script displays the PDE, solves the LPI, computes L from the solved
-% P and Z by quadratic programming (getObserver_sop), takes the LFT of the
+% P and Z by quadratic programming (getObserver), takes the LFT of the
 % PIE with the estimator (PIE_CL), simulates it from v(0,s) = -10*s,
 % vhat(0,s) = 0 with w(t) = 2*sin(pi*t), and plots the true and estimated
 % state and output. Workspace: gam_val, Pval, Zval, Lval, PIE_CL,
@@ -85,6 +85,8 @@
 %   and regulated as cells; help text revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 
 % Clear the workspace and figures; print each line as it runs
 clear; clc; close all; clear stateNameGenerator
@@ -138,7 +140,7 @@ popts.sep = 0;                  % lower and upper kernels independent
 Q = [-gam,              -D11',        -(P*B1+Z*D21)'*T;
      -D11,              -gam,         C1;
      -T'*(P*B1+Z*D21),  C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
-prog = lpi_ineq_sop(prog,-Q);                                               % YP, DJ, MMP, 11/21/2026
+prog = lpi_ineq(prog,-Q);                                                   % YP, DJ, MMP, 11/21/2026
 
 % % Set objective function:
 % %   min gam
@@ -147,12 +149,12 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
-gam_val = double(lpigetsol_sop(prog_sol,gam));                              % YP, DJ, MMP, 11/21/2026
-Pval = lpigetsol_sop(prog_sol,P);                                           % YP, DJ, MMP, 11/21/2026
-Zval = lpigetsol_sop(prog_sol,Z);                                           % YP, DJ, MMP, 11/21/2026
+gam_val = double(lpigetsol(prog_sol,gam));                                  % YP, DJ, MMP, 11/21/2026
+Pval = lpigetsol(prog_sol,P);                                               % YP, DJ, MMP, 11/21/2026
+Zval = lpigetsol(prog_sol,Z);                                               % YP, DJ, MMP, 11/21/2026
 % Build optimal observer operator L
 opts.method='qp';                                                           % YP, DJ, MMP, 11/21/2026
-[Lval,~,~] = getObserver_sop(Pval,Zval,opts);                               % YP, DJ, MMP, 11/21/2026
+[Lval,~,~] = getObserver(Pval,Zval,opts);                                   % YP, DJ, MMP, 11/21/2026
 
 % % Construct the closed-loop PIE system
 % Declare Luenberger estimator with input y
@@ -165,7 +167,7 @@ PIE_est = initialize(PIE_est);                                              % YP
 PIE_CL = pielft(PIE,PIE_est);
 
 % % Alternatively, uncomment to use pre-defined functions
-% [prog, Lval, gam_val] = lpiscript_sop(PIE,'hinf-observer','heavy');       % YP, DJ, MMP, 11/21/2026
+% [prog, Lval, gam_val] = lpiscript(PIE,'hinf-observer','heavy');       % YP, DJ, MMP, 11/21/2026
 % PIE_CL = closedLoopPIE(PIE,Lval,'observer');
 
 

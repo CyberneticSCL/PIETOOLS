@@ -16,7 +16,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,par
 %
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the pde_var structure.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -56,6 +56,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,par
 %   recommended settings of the H2 optimal controller synthesis; help
 %   revised (control term s*u added to the PDE, as in the code), license
 %   added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -89,7 +91,7 @@ end
 % 3, 2, 1 (multiplier, upper, lower integral); free operators of degree 1
 % in the multiplier and 2 in the integral kernels; slack weight raise of
 % the synthesis LPI 1)                                                      % MMP, 11/21/2026
-st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st = lpisettings('heavy');                                                  % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/21/2026
 st.lpi.var.deg{1} = [1 2 2];                                                % MMP, 11/21/2026

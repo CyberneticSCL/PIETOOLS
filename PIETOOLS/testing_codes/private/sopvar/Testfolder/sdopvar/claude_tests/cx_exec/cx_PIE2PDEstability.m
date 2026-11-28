@@ -77,8 +77,8 @@ if PIE.dim==2                                       % stock lines 60-68
 end
 if nargin<2                                         % stock lines 73-79
 %   st = settings_PIETOOLS_heavy;                                           % MMP, 11/08/2026 (was)
-    st = lpisettings_sop('heavy');                                          % MMP, 11/08/2026
-    [~,st.sop.stock] = lpisettings_stock_sop('heavy');  % the stock slack   % MMP, 11/12/2026
+    st = lpisettings('heavy');                                              % MMP, 11/08/2026
+    [~,st.sop.stock] = lpisettings_stock('heavy');      % the stock slack   % MMP, 11/12/2026
     st.lpi.pos = struct('mult',2,'int',1,'joint',2,'sep',0);  % 'lf' fields % MMP, 11/23/2026
     st.sos_opts.simplify = 1;
     st.eppos = 1e-4;    st.eppos2 = 1e-6;   st.epneg = 0;
@@ -87,10 +87,10 @@ end
 % override1 = st.override1;   epneg = st.epneg;   eppos2 = st.eppos2;      % MMP, 11/09/2026 (was)
 % override1 = st.override1;   epneg = st.epneg;                             % MMP, 11/12/2026 (was); MMP, 11/09/2026
 % The degree fields above were read and never used (P and N come from       % MMP, 11/12/2026
-% POSLPIVAR_SETTINGS_SOP, which reads lpi.pos and sop.stock since           % MMP, 11/12/2026
+% POSLPIVAR_SETTINGS, which reads lpi.pos and sop.stock since           % MMP, 11/12/2026
 % 11/12/2026, when they left the settings)                                  % MMP, 11/12/2026
 epneg = st.epneg;                                                           % MMP, 11/12/2026
-% The L2 margin, else the one margin of the settings_sopvar tiers           % MMP, 11/09/2026
+% The L2 margin, else the one margin of the settings tiers           % MMP, 11/09/2026
 if isfield(st,'eppos2') && ~isempty(st.eppos2),  eppos2 = st.eppos2;  else,  eppos2 = st.eppos;  end % MMP, 11/09/2026
 % if st.sosineq_on                                    % stock lines 148-150 % MMP, 11/12/2026 (was)
 %     error('cx_stability:gap',['sosineq_on=1 needs lpi_ineq, which has no container '... % MMP, 11/12/2026 (was)
@@ -110,13 +110,13 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);        % line 105
 %     [prog,P2m] = cx_stability_pos(prog,Tm,'in',PIE.dom,dd12,options12);   % MMP, 10/06/2026 (was)
 %     Pm = Pm + P2m;                                                        % MMP, 10/06/2026 (was)
 % end                                                                       % MMP, 10/06/2026 (was)
-[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','in',PIE.dom);           % MMP, 10/06/2026
+[prog,Pm] = poslpivar_settings(prog,Tm,st,'lf','in',PIE.dom);               % MMP, 10/06/2026
 Pm = Pm + eppos2*Tm'*Tm;                            % stock association (eppos2*T')*T
 
 % Q free with T'*Q = P, lines 123-125. Q has T's shape (Top.dim).
 % Qdeg = cx_stability_lpivar_degs(Pm);                                      % MMP, 10/06/2026 (was)
 % [spO,dmO] = cx_space_list(Tm,'out');    [spI,dmI] = cx_space_list(Tm,'in'); % MMP, 10/06/2026 (was)
-Qdeg = get_lpivar_degs_sop(Pm);                                             % MMP, 10/06/2026
+Qdeg = get_lpivar_degs(Pm);                                                 % MMP, 10/06/2026
 [spO,dmO] = opvar_space_list(Tm,'out');    [spI,dmI] = opvar_space_list(Tm,'in'); % MMP, 10/06/2026
 [prog,Qm] = lpivar(prog,struct('out',dmO,'in',dmI), ...
                            struct('out',{spO},'in',{spI}),PIE.dom,Qdeg);
@@ -134,7 +134,7 @@ end
 %     [prog,N2m] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd3,options3);    % MMP, 10/06/2026 (was)
 %     Nm = Nm + N2m;                                                        % MMP, 10/06/2026 (was)
 % end                                                                       % MMP, 10/06/2026 (was)
-[prog,Nm] = poslpivar_settings_sop(prog,Dm,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+[prog,Nm] = poslpivar_settings(prog,Dm,st,'slack','out',PIE.dom);           % MMP, 10/06/2026
 prog = lpi_eq_dopvar(prog,Dm+Nm,'symmetric');
 % Operators the two lpi_eq relations constrain, for operator-level checks   % MMP, 09/29/2026
 ops = struct('T',Tm,'A',Am,'P',Pm,'Q',Qm,'D',Dm,'N',Nm);                    % MMP, 09/29/2026

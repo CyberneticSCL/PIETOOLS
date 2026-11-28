@@ -17,7 +17,7 @@ function [PDE_t, st] = PIETOOLS_PDE_Ex_Transport_Edge_Diffusion(GUI,params)
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based
 %               format.
-% - st:         (optional) recommended settings (lpisettings_sop
+% - st:         (optional) recommended settings (lpisettings
 %               structure) for the stability test of this example.
 %
 % %---------------------------------------------------------------------% %
@@ -99,7 +99,7 @@ PDE_t = [diff(x1,'t')==-diff(x1,s1);
 
 % Example-specific settings (second output only): the light tier, with
 if nargout>1
-    st = lpisettings_sop('light');
+    st = lpisettings('light');
     st.lpi.ineq.dD = 0;             % slack lift degree at its minimum Dmin
     st.sop.deg_Q{2} = 2;            % Q of degree 2
     st.lpi.ineq.wcross = 1;         % slack weight 1 in non-owned directions

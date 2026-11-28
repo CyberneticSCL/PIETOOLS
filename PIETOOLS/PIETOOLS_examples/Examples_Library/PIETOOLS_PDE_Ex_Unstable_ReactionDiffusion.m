@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params) % M
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -62,6 +62,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params) % M
 %   2025 code loaded the GUI file of the Euler-Bernoulli beam example);
 %   help revised (OUTPUT lists no PDE_b, which is not returned; no
 %   parameter can be set), license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function       [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -97,7 +99,7 @@ end
 % (heavy tier; 1-D storage with upper-integral s-length 1 and theta-lengths
 % 3, 2, 1 (multiplier, upper, lower integral); free operators of degree 2;
 % no slack weight raise of the synthesis LPI)                               % MMP, 11/21/2026
-st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st = lpisettings('heavy');                                                  % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/21/2026
 st.lpi.var.deg{1} = [2 2 2];                                                % MMP, 11/21/2026

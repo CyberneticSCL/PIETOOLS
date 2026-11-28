@@ -16,7 +16,7 @@
 %
 %  LPI SOLVER SETTINGS: The first set of commands in the header specify default settings for the
 %  Matlab environment and the LPI solver. This includes the settings of a
-%  tier, lpisettings_sop('light'), replaced by the settings st of the
+%  tier, lpisettings('light'), replaced by the settings st of the
 %  library example when it sets them, and a declaration for how strictly the Lyapunov
 %  inequalities are enforced. If you are not solving an LPI, you may ignore
 %  all of these commands.
@@ -82,6 +82,8 @@
 %   comments revised.
 % MMP, 11/27/2026: copvar, cdopvar renamed opvar, dopvar, with the
 %   functions of the rename table; names only.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 %
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
@@ -227,7 +229,7 @@ examples_NDSDDF_library_PIETOOLS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Computational Complexity Toggles
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Choose the tier of lpisettings_sop below:
+% Choose the tier of lpisettings below:
 %
 % 'veryheavy' is for difficult problems which require complex
 % Lyapunov/storage functions.
@@ -244,7 +246,7 @@ examples_NDSDDF_library_PIETOOLS
 % No sosineq_on: no executive reads it                                      % MMP, 11/21/2026
 % sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint % MMP, 11/21/2026 (was)
 % settings = lpisettings('light');                                          % MMP, 11/21/2026 (was)
-settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/21/2026
+settings = lpisettings('light');      % tiers of the container executives   % MMP, 11/21/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -307,23 +309,23 @@ end
 %%%%%%%%%%% Calling the Executives %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
-% The container executives (PIETOOLS_*_sop) take the opvar PIE of the      % MMP, 11/21/2026
+% The container executives (PIETOOLS_*) take the opvar PIE of the      % MMP, 11/21/2026
 % conversion above; outputs as named below, then an info struct             % MMP, 11/21/2026
 if stability==1
 %   [prog, P] = PIETOOLS_stability(PIE,settings);                           % MMP, 11/21/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,stability_form);        % MMP, 11/21/2026
+    [prog, P] = PIETOOLS_stability(PIE,settings,stability_form);            % MMP, 11/21/2026
 end
 if stability_dual==1
 %   [prog, P] = PIETOOLS_stability_dual(PIE,settings);                      % MMP, 11/21/2026 (was)
-    [prog, P] = PIETOOLS_stability_sop(PIE,settings,[stability_form 'd']);  % MMP, 11/21/2026
+    [prog, P] = PIETOOLS_stability(PIE,settings,[stability_form 'd']);      % MMP, 11/21/2026
 end
 if Hinf_gain==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/21/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,Hinf_gain_form); % MMP, 11/21/2026
+    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings,Hinf_gain_form); % MMP, 11/21/2026
 end
 if Hinf_gain_dual==1
 %   [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);               % MMP, 11/21/2026 (was)
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,[Hinf_gain_form 'd']); % MMP, 11/21/2026
+    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings,[Hinf_gain_form 'd']); % MMP, 11/21/2026
 end
 if Hinf_control==1
 %   settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP % MMP, 11/21/2026 (was)
@@ -332,7 +334,7 @@ if Hinf_control==1
     if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/21/2026
 
 %   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/21/2026 (was)
-    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/21/2026
+    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/21/2026
 end
 if Hinf_estimator==1
 %   settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP % MMP, 11/21/2026 (was)
@@ -340,7 +342,7 @@ if Hinf_estimator==1
     % P separable for the synthesis; a storage row (len_com) takes no sep   % MMP, 11/21/2026
     if ~isfield(settings.lpi.pos,'len_com'), settings.lpi.pos.sep = 1; end  % MMP, 11/21/2026
 %   [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % MMP, 11/21/2026 (was)
-    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/21/2026
+    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % MMP, 11/21/2026
 end
 
 

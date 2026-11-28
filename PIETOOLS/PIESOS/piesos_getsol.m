@@ -89,7 +89,7 @@ elseif isa(dvar,'dpvar') || ischar(dvar)
 elseif isa(dvar,'sdopvar')
     % A PI operator with decision variables, e.g. a factor of c*x for a
     % 'dpvar' c
-    dvar_sol = getsol_lpivar_sop(prog,dvar);
+    dvar_sol = getsol_lpivar(prog,dvar);
 elseif isa(dvar,'intop')
     % The variable is a functional operator
     % Solve the kernels, and declare the functional in terms of these

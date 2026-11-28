@@ -1,0 +1,264 @@
+function [opts,report] = get_eq_opts(Dop,opts,ztol)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [OPTS,REPORT] = GET_EQ_OPTS(DOP,OPTS,ZTOL) sets the options sep (the
+% separable directions) and include (the kept basis operators) of a
+% positive operator Deop declared to satisfy DOP + Deop = 0, from the
+% support of DOP. With n3 the number of variables common to the input and
+% output of DOP, gamma over its 3^n3 parameter
+% cells (gamma_k = 1 multiplier, 2 lower integral, 3 upper integral), and
+% a cell nonzero when an entry of its coefficients (for an 'sdopvar', of A
+% or of a row of B) exceeds ZTOL in magnitude:
+%   - direction k is separable when DOP has a nonzero cell and, for every
+%     gamma with gamma_k = 2, the cells gamma and gamma + e_k differ by at
+%     most ZTOL in every entry;
+%   - a basis operator alpha, alpha_k in {1,2,3}, or {1,4} in a separable
+%     direction, is kept when DOP is nonzero on a cell of
+%
+%         reach(alpha) = R_1 x ... x R_n3,
+%         R_k = {1} for alpha_k = 1,   R_k = {2,3} otherwise,
+%
+%     and alpha = (1,...,1) is kept when none is.
+% A direction with OPTS.sep true is separable without the test, and an
+% OPTS.include of rows alpha restricts the kept rows to its own (to its
+% first row when none remains).
+%
+% INPUT
+% - Dop:     'sopvar' or 'sdopvar' object with 3^n3 parameter cells;
+% - opts:    (optional) 'struct' of options of the positive operator
+%            (default struct()); read are sep ('logical', scalar or 1 x n3)
+%            and include (a
+%            'double' array of rows alpha with n3 columns; an include of
+%            another form is replaced);
+% - ztol:    (optional) 'double', the largest magnitude counted as zero
+%            (default 1e-12).
+%
+% OUTPUT
+% - opts:    'struct', OPTS with the fields include ('double', the kept
+%            rows alpha, n3 columns, in the order of the enumeration of
+%            every alpha, direction 1 fastest) and sep (1 x n3 'logical',
+%            the separable directions);
+% - report:  'struct' with fields lines ('cellstr', one sentence per
+%            decision), nkept and ndropped ('double', the numbers of kept
+%            and dropped basis operators) and support (1 x 3^n3 'logical',
+%            true on the nonzero cells of DOP, in linear cell order,
+%            direction 1 fastest).
+%
+% See also POSSOPVAR, SETTINGS2POSSOPVAR, LPI_EQ_SDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - get_eq_opts
+%
+% Copyright (C)2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding MMP, 09/21/2026
+
+% Defaults: OPTS struct(), ZTOL 1e-12; DOP an 'sopvar' or 'sdopvar'
+if nargin<2 || isempty(opts)
+    opts = struct();
+end
+if nargin<3 || isempty(ztol)
+    ztol = 1e-12;
+end
+if ~isa(Dop,'sopvar') && ~isa(Dop,'sdopvar')
+    error("The operator should be an 'sopvar' or 'sdopvar' object.")
+end
+
+% Empty report
+report = struct('lines',{{}},'nkept',0,'ndropped',0,'support',[]);
+
+% % % Support of Dop over its parameter cells. A cell of an 'sdopvar' counts
+% as zero only when neither the constant part nor any row of the decision
+% part has an entry above the tolerance, i.e. when the coefficient vanishes
+% for EVERY value of the decision variables.
+% The number of parameter cells of Dop, n3 from the cell count 3^n3; then
+% the support, cell by cell
+if isa(Dop,'sdopvar'), ncell = numel(Dop.params.A); else, ncell = numel(Dop.params); end
+n3 = round(log(ncell)/log(3));
+if 3^n3 ~= ncell
+    error("The parameter cell count %d is not a power of 3.",ncell)
+end
+sup = false(1,ncell);
+for k = 1:ncell
+    sup(k) = cellmax(Dop,k) > ztol;
+end
+report.support = sup;
+% A zero DOP, reported
+if ~any(sup)
+    report.lines{end+1} = ['Dop is identically zero; every basis operator ' ...
+        'is dropped except the multiplier, which is kept so the result ' ...
+        'remains a declarable operator.'];
+end
+
+% % % Directions in which Dop is already separable: the gamma_k=2 and
+% gamma_k=3 cells agree for every setting of the other indices.
+% The directions OPTS.sep marks are separable without the test
+sepv = false(1,n3);
+if isfield(opts,'sep') && ~isempty(opts.sep)
+    sepv = logical(reshape(opts.sep,1,[]));
+    if isscalar(sepv), sepv = repmat(sepv,1,n3); end
+end
+% Every other direction: each gamma_k = 2 cell against its gamma_k = 3
+% partner; separable when all agree and DOP is nonzero
+for kdir = 1:n3
+    if sepv(kdir), continue, end
+    ok = true;
+    for k = 1:ncell
+        g = gamma_of_cell(k,n3);
+        if g(kdir)~=2, continue, end
+        g3 = g;  g3(kdir) = 3;
+        % The largest magnitude of the difference between cell k and the
+        % cell of g3: cells of an 'sopvar' share one ZL/ZR, so they are
+        % directly comparable; for an 'sdopvar' the larger of the A and B
+        % differences
+        k2 = cell_of_gamma(g3);
+        if isa(Dop,'sdopvar')
+            dk = max(absmax(getA(Dop,k)-getA(Dop,k2)), absmax(getB(Dop,k)-getB(Dop,k2)));
+        else
+            dk = absmax(getP(Dop,k)-getP(Dop,k2));
+        end
+        if dk > ztol
+            ok = false;  break
+        end
+    end
+    if ok && any(sup)
+        sepv(kdir) = true;
+        report.lines{end+1} = sprintf(['direction %d: Dop has equal lower ' ...
+            'and upper kernels, so it is declared separable -- one ' ...
+            'full-domain integral in place of two Volterra ones.'],kdir);
+    end
+end
+
+% % % Candidate blocks, and the cells each diagonal can reach.
+% The admissible multi-indices alpha_all: {1,2,3} in an ordinary direction
+% and {1,4} in a separable one, direction 1 varying fastest
+vals = cell(1,n3);
+for k = 1:n3
+    if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
+end
+alpha_all = multiindex_grid(vals);
+keep = false(size(alpha_all,1),1);
+for r = 1:size(alpha_all,1)
+    cells = reach(alpha_all(r,:),n3);
+    keep(r) = any(sup(cells));
+end
+
+% A degenerate all-zero target would leave nothing declarable; keep the
+% all-multiplier block so the caller still gets a valid operator.
+if ~any(keep)
+    keep(1) = true;
+end
+
+% The kept rows, within the rows of a caller OPTS.include
+incl = alpha_all(keep,:);
+if isfield(opts,'include') && ~isempty(opts.include) ...
+        && size(opts.include,2)==n3
+    % Never widen a restriction the caller already asked for.
+    incl = incl(ismember(incl,opts.include,'rows'),:);
+    if isempty(incl), incl = opts.include(1,:); end
+end
+
+% The options and the counts of the report
+opts.include = incl;
+opts.sep = sepv;
+report.nkept = size(incl,1);
+report.ndropped = size(alpha_all,1) - size(incl,1);
+report.lines{end+1} = sprintf(['kept %d of %d basis operators; %d dropped ' ...
+    'because Dop is zero on every cell their diagonal can reach.'], ...
+    report.nkept,size(alpha_all,1),report.ndropped);
+
+end
+
+
+%%
+function C = reach(a,n3)
+% C = REACH(A,N3) returns the linear cell indices the diagonal of block A
+% can populate, reach(a) = prod_k ({1} if a_k==1 else {2,3}): adjoining
+% sends a lower integral to an upper one, so an integral direction reaches
+% both Volterra cells and a multiplier direction only the delta cell;
+% alpha_k = 4, the full-domain integral, is an integral in this respect.
+% INPUT  a:  1 x n3 'double', the multi-index alpha;
+%        n3: 'double', the number of variables.
+% OUTPUT C:  'double' column of linear cell indices.
+% Per direction {1} or {2,3}
+sets = cell(1,n3);
+for k = 1:n3
+    if a(k)==1
+        sets{k} = 1;
+    else
+        sets{k} = [2 3];
+    end
+end
+% The product set, direction 1 fastest, as linear cell indices (column).
+C = cell_of_gamma(multiindex_grid(sets));
+end
+
+
+%%
+function m = cellmax(P,k)
+% M = CELLMAX(P,K) returns the largest magnitude in cell K, over the
+% constant part and every row of the decision part.
+% INPUT  P: 'sopvar' or 'sdopvar' object; k: 'double', a cell index.
+% OUTPUT m: 'double', 0 for a cell beyond the last.
+m = 0;
+if isa(P,'sdopvar')
+    if k<=numel(P.params.A)
+        m = max(m,absmax(P.params.A{k}));
+        m = max(m,absmax(P.params.B{k}));
+    end
+else
+    if k<=numel(P.params)
+        m = absmax(P.params{k});
+    end
+end
+end
+
+
+function X = getA(P,k)
+% X = GETA(P,K) returns the constant part A of cell K of an 'sdopvar', 0
+% beyond the last cell.
+% INPUT  P: 'sdopvar' object; k: 'double', a cell index.
+% OUTPUT X: 'double' matrix, or 0.
+if k<=numel(P.params.A), X = P.params.A{k}; else, X = 0; end
+end
+function X = getB(P,k)
+% X = GETB(P,K) returns the decision part B of cell K of an 'sdopvar', 0
+% beyond the last cell.
+% INPUT  P: 'sdopvar' object; k: 'double', a cell index.
+% OUTPUT X: 'double' matrix, or 0.
+if k<=numel(P.params.B), X = P.params.B{k}; else, X = 0; end
+end
+function X = getP(P,k)
+% X = GETP(P,K) returns cell K of an 'sopvar', 0 beyond the last cell.
+% INPUT  P: 'sopvar' object; k: 'double', a cell index.
+% OUTPUT X: 'double' matrix, or 0.
+if k<=numel(P.params), X = P.params{k}; else, X = 0; end
+end
+
+function m = absmax(X)
+% M = ABSMAX(X) returns the largest magnitude of the entries of X, 0 for an
+% empty or zero X.
+% INPUT  X: 'double' matrix, full or sparse.
+% OUTPUT m: 'double', full.
+if isempty(X), m = 0; else, m = full(max(abs([nonzeros(X);0]))); end
+end

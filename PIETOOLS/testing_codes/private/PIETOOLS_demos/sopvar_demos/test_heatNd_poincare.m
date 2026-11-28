@@ -19,7 +19,7 @@ function R = test_heatNd_poincare()
 %      2^(N-1) c_p^N, faces 2^(N-1) [c^N + 2N(d+1) c^(N-1)], Gram
 %      (2(d+1)^2)^N; energy faces 1-D 24 [10], 2-D full 920 [96], per
 %      direction 844 [80] (stock, measured); At identical at 3 lam and b
-%      affine (<= 1e-12); the multi-indices equal 'eq_opts_sopvar''s
+%      affine (<= 1e-12); the multi-indices equal 'get_eq_opts''s
 %      support rule;
 %  (4) 'op' and 'grad' targets give the same SDP (At equal, b to 1e-12);
 %  (5) values, 'objective' mode (one SDP + a fixed-lam re-certification):

@@ -18,7 +18,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -71,6 +71,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,
 %   recommended settings of the H-infinity optimal estimator synthesis;
 %   help revised, its outputs y1, y2 corrected to the integrals the code
 %   takes; license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -155,7 +157,7 @@ PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+Cw*w1;
 
 
 % Example-specific settings: the heavy tier                                 % MMP, 11/21/2026
-st = lpisettings_sop('heavy');                                              % MMP, 11/21/2026
+st = lpisettings('heavy');                                                  % MMP, 11/21/2026
 
 % No GUI representation of this system
 if GUI~=0

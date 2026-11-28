@@ -36,7 +36,7 @@ for i = 1:numel(jobs)
     if ~isempty(post),  c.setter = post;  v = 1;  end     % lb_build_system runs sprintf(setter,v)
     try
         PIE = lb_build_system(c, v, true);
-        S = lpisettings_sop(tier,0,'','mosek');
+        S = lpisettings(tier,0,'','mosek');
         r = lb_exec(['sop:',c.exec], PIE, S);
     catch ME
         note = strrep(strrep(ME.message,',',';'),newline,' ');  r.status = 'error';

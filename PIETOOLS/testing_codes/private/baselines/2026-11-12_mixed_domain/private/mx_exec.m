@@ -1,13 +1,13 @@
 function R = mx_exec(cases,tier)
-% R = MX_EXEC(CASES,TIER) runs PIETOOLS_stability_sop or
-% PIETOOLS_Hinf_gain_sop on systems of MX_SYS, on the tree set by
+% R = MX_EXEC(CASES,TIER) runs PIETOOLS_stability or
+% PIETOOLS_Hinf_gain on systems of MX_SYS, on the tree set by
 % MX_FROZEN_PATH, and prints one line per case (parsed by MX_ROWS2CSV.AWK).
 % INPUT
 % - cases:  n x 5 cell, one row per case: system name (MX_SYS), 'struct' of
 %           parameters, 'stab' or 'hinf', the form, and the expected value
 %           (true/false, stable or not, for 'stab'; the exact gain for
 %           'hinf');
-% - tier:   (optional) char, the lpisettings_sop tier (default 'light').
+% - tier:   (optional) char, the lpisettings tier (default 'light').
 % OUTPUT
 % - R:      n x 1 struct array: status, certified, gam, gap, verdict
 %           ('pass', 'conservative', 'not certified', 'UNSOUND', 'ERROR'),
@@ -26,17 +26,17 @@ for i=1:size(cases,1)
     try
         S = mx_sys(cases{i,1},cases{i,2});
         evalc('PIE = initialize(convert(S.PDE));');
-        st = lpisettings_sop(tier);
+        st = lpisettings(tier);
         if any(strcmp(getappdata(0,'mx_tree'),{'t2','t3'}))
-            st.lpi.ineq.psatz = 'corners';  % opt-in corner rows (live lpi_ineq_sop)
+            st.lpi.ineq.psatz = 'corners';  % opt-in corner rows (live lpi_ineq)
         end
         t0 = tic;
         switch cases{i,3}
             case 'stab'
-                [~,~,info] = PIETOOLS_stability_sop(PIE,st,cases{i,4});
+                [~,~,info] = PIETOOLS_stability(PIE,st,cases{i,4});
                 gam = NaN;
             case 'hinf'
-                [~,~,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,st,cases{i,4});
+                [~,~,gam,info] = PIETOOLS_Hinf_gain(PIE,st,cases{i,4});
         end
         R(i).t = toc(t0);
         R(i).status = info.status;  R(i).certified = info.certified;  R(i).gam = gam;

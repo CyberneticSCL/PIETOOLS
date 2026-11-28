@@ -17,7 +17,7 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GU
 % OUTPUT
 % - PDE_t:      PDE structure defining the example system in the term-based 
 %               format.
-% - st:         example-specific settings (lpisettings_sop structure)       % MMP, 11/21/2026
+% - st:         example-specific settings (lpisettings structure)       % MMP, 11/21/2026
 %               for the tests this file names                               % MMP, 11/21/2026
 %
 % %---------------------------------------------------------------------% %
@@ -61,6 +61,8 @@ function [PDE_t,st] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GU
 % MMP, 11/21/2026: Changes since PIETOOLS 2025: second output st, the
 %   recommended settings of the H-infinity optimal controller synthesis;
 %   help revised, license added.
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 % function [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,params) % MMP, 11/21/2026 (was)
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -107,7 +109,7 @@ end
 % 3, 2, 1 (multiplier, upper, lower integral); slack integral bases capped
 % at total degree theta+s <= Dmax-1; free operators of degree 0 in the
 % multiplier and 2 in the integral kernels)
-st = lpisettings_sop('light');                                              % MMP, 11/21/2026
+st = lpisettings('light');                                                  % MMP, 11/21/2026
 st.lpi.pos.len_com{1} = 1;                                                  % MMP, 11/21/2026
 st.lpi.pos.len_sos{1} = [3;2;1];                                            % MMP, 11/21/2026
 st.lpi.ineq.cap_inc = 'auto';                                               % MMP, 11/21/2026

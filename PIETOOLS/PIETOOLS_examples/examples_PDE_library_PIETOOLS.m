@@ -142,6 +142,8 @@
 %   are reset with the flags; the 2-D message names st; table of contents
 %   (test, form, stability notion of each case), help and license revised.
 % DJ (CC), 11/23/2026: Error for an index of no example;
+% MMP, 11/28/2026: _sop dropped from the names of the executives, LPI
+%   and settings functions (2025 names where they exist); names only.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1506,7 +1508,7 @@ if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
     if exist('st','var'),  assignin('base','settings',st);                  % DB, MMP, DJ, 11/21/2026
     else,  evalin('base','clear settings');  end  % no st: run asks a tier  % DB, MMP, DJ, 11/21/2026
 %   evalin('base','PIETOOLS_auto_execute');                                 % DB, MMP, DJ, 11/21/2026 (was)
-    evalin('base','PIETOOLS_auto_execute_sop');                             % DB, MMP, DJ, 11/21/2026
+    evalin('base','PIETOOLS_auto_execute');                                 % DB, MMP, DJ, 11/21/2026
 elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
     return
 else
@@ -1518,7 +1520,7 @@ else
         if exist('st','var'),  assignin('base','settings',st);              % DB, MMP, DJ, 11/21/2026
         else,  evalin('base','clear settings');  end                        % DB, MMP, DJ, 11/21/2026
 %       evalin('base','PIETOOLS_auto_execute');                             % DB, MMP, DJ, 11/21/2026 (was)
-        evalin('base','PIETOOLS_auto_execute_sop');                         % DB, MMP, DJ, 11/21/2026
+        evalin('base','PIETOOLS_auto_execute');                             % DB, MMP, DJ, 11/21/2026
     elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
         return
     else

@@ -1,13 +1,13 @@
 function B = mx_bisect(sys,par,base,lo,hi,nstep,tier)
 % B = MX_BISECT(SYS,PAR,BASE,LO,HI,NSTEP,TIER) bisects the reach of
-% PIETOOLS_stability_sop ('P') in one parameter of a system of MX_SYS.
+% PIETOOLS_stability ('P') in one parameter of a system of MX_SYS.
 % INPUT
 % - sys:    char, the system name;
 % - par:    char, the parameter bisected;
 % - base:   'struct', the other parameters;
 % - lo, hi: double, a certified and an uncertified value of PAR;
 % - nstep:  integer, the number of bisection steps;
-% - tier:   char, the lpisettings_sop tier.
+% - tier:   char, the lpisettings tier.
 % OUTPUT
 % - B:      'struct' with fields lo, hi (the final bracket) and rec (the
 %           MX_EXEC record of each step); one BISECT line per step.

@@ -90,7 +90,7 @@ prob = lpiprogram(H0op.vars,H0op.dom);
 
 % % Set inequality constraint:
 % %   gam*(H1'H1 + H2'H2) - H0'H0 - X*K - K'*X' >= 0
-prob = lpi_ineq_sop(prob,gam*(H1op'*H1op+H2op'*H2op)-H0op'*H0op-X*Kop-Kop'*X');
+prob = lpi_ineq(prob,gam*(H1op'*H1op+H2op'*H2op)-H0op'*H0op-X*Kop-Kop'*X');
 
 % % Set objective function:
 % %   min gam
@@ -98,7 +98,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-poincare_constant = sqrt(double(lpigetsol_sop(prob,gam)));
+poincare_constant = sqrt(double(lpigetsol(prob,gam)));
 
 echo off
 

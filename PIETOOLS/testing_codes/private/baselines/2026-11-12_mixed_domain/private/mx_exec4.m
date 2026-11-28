@@ -3,7 +3,7 @@ function R = mx_exec4(cases,tier)
 % the catalogue of the test (MX_SYS lacks S26).
 % INPUT
 % - cases:  n x 5 cell as in MX_EXEC2;
-% - tier:   (optional) char, the lpisettings_sop tier (default 'light').
+% - tier:   (optional) char, the lpisettings tier (default 'light').
 % OUTPUT
 % - R:      n x 1 struct array as in MX_EXEC.
 
@@ -18,19 +18,19 @@ for i=1:size(cases,1)
     try
         S = mixed_domain_systems(cases{i,1},cases{i,2});
         PIE = initialize(convert(S.PDE,{'pie','silent'}));
-        st = lpisettings_sop(tier);
+        st = lpisettings(tier);
         if any(strcmp(getappdata(0,'mx_tree'),{'t2','t3'}))
-            st.lpi.ineq.psatz = 'corners';  % opt-in corner rows (live lpi_ineq_sop)
+            st.lpi.ineq.psatz = 'corners';  % opt-in corner rows (live lpi_ineq)
         end
         t0 = tic;
         switch cases{i,3}
             case 'stab'
-                [~,~,info] = PIETOOLS_stability_sop(PIE,st,cases{i,4});
+                [~,~,info] = PIETOOLS_stability(PIE,st,cases{i,4});
                 gam = NaN;
             case 'hinf'
-                [~,~,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,st,cases{i,4});
+                [~,~,gam,info] = PIETOOLS_Hinf_gain(PIE,st,cases{i,4});
             case 'h2'
-                [~,~,gam,~,~,info] = PIETOOLS_H2_norm_sop(PIE,st,cases{i,4});
+                [~,~,gam,~,~,info] = PIETOOLS_H2_norm(PIE,st,cases{i,4});
         end
         R(i).t = toc(t0);
         R(i).status = info.status;  R(i).certified = info.certified;  R(i).gam = gam;

@@ -1,5 +1,5 @@
 function out = stab_mirror(PIE,st)
-% stab_mirror -- PIETOOLS_stability_sop in form 'Q' (the PIE2PDE form), built as
+% stab_mirror -- PIETOOLS_stability in form 'Q' (the PIE2PDE form), built as
 % that executive builds its first pass but NOT solved, RETURNING the operators.
 % bl_scale and bl_big need the SDP's shape before deciding to solve (Mosek's
 % dense Schur complement), and the executive solves internally.
@@ -34,9 +34,9 @@ function out = stab_mirror(PIE,st)
 
 if ~isa(PIE,'pie_struct'), error('stab_mirror:type','PIE must be a pie_struct'); end
 % CC, 11/07/2026 (start): the executive's setup, then its 'Q' assemble at dw 0
-PIE = exec_pie_sop(PIE);                    % every operator an opvar
+PIE = exec_pie(PIE);                        % every operator an opvar
 st  = exec_sop_settings(st);                % container options completed
-tl  = exec_tools_sop(PIE,st);   st.sop = tl.sop;
+tl  = exec_tools(PIE,st);   st.sop = tl.sop;
 % if tl.nv~=1, error('stab_mirror:nv','1-D only: %d variables pose ''Q'' as ''P''',tl.nv); end % CC, 11/17/2026 (was)
 if tl.nv~=1, error('stab_mirror:nv','1-D only (checked in 1-D): %d variables',tl.nv); end % CC, 11/17/2026
 % dwbase = st.sop.dw_Q;                       % weight raise of the 'like' slack % CC, 11/17/2026 (was)
@@ -55,18 +55,18 @@ if st.sop.keepdual, prog.sopeq = {};    end
 % [prog,Pop] = tl.storage(prog,Top,'in');
 % Pop = Pop + eppos(2)*(Top'*Top);
 % [spO,dmO] = opvar_space_list(Top,'out');   [spI,dmI] = opvar_space_list(Top,'in');
-% [prog,Qop] = lpivar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pop));
-% prog = lpi_eq_sop(prog,Top'*Qop - Pop);
+% [prog,Qop] = lpivar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs(Pop));
+% prog = lpi_eq(prog,Top'*Qop - Pop);
 % Q free with the shape of T; T'*Q self-adjoint, P its symmetric part
 % [prog,Qop] = lpivar_cdopvar(prog,Top,st.lpi.var.deg{min(tl.nv,end)});     % CC, 11/18/2026 (was); CC, 11/17/2026
 qdeg = st.sop.deg_Q;    if isempty(qdeg),   qdeg = st.lpi.var.deg;  end     % CC, 11/18/2026
 if ~iscell(qdeg),   qdeg = {qdeg};  end                                     % CC, 11/18/2026
 [prog,Qop] = lpivar(prog,Top,qdeg{min(tl.nv,end)});                         % CC, 11/18/2026
-prog = lpi_eq_sop(prog,Top'*Qop - Qop'*Top);
+prog = lpi_eq(prog,Top'*Qop - Qop'*Top);
 Pop = 0.5*(Top'*Qop + Qop'*Top);
 % P >= eppos2*T'*T, by a slack sized from its own support
 o = struct('dw',dwbase,'margin',st.sop.margin,'cap',tl.capfor(Pop));
-prog = lpi_ineq_sop(prog,Pop - min(eppos(min(2,end):end))*(Top'*Top),o);
+prog = lpi_ineq(prog,Pop - min(eppos(min(2,end):end))*(Top'*Top),o);
 % CC, 11/17/2026 (end)
 % A'*Q + Q'*A + 2*epneg*P <= 0, by the slack the settings select
 Dop = Aop'*Qop + Qop'*Aop;
@@ -74,11 +74,11 @@ Dop = Aop'*Qop + Qop'*Aop;
 if epneg~=0,    Dop = Dop + 2*epneg*Pop;    end                             % MMP, 11/09/2026
 if strcmp(st.sop.slack,'stock')
     [prog,Deop] = tl.slack(prog,Dop);
-    prog = lpi_eq_sop(prog,Dop+Deop,'symmetric');
+    prog = lpi_eq(prog,Dop+Deop,'symmetric');
 else
 %   o = struct('like',Pop,'dw',dwbase,'margin',st.sop.margin,'cap',tl.capfor(Dop)); % CC, 11/17/2026 (was)
     o = struct('dw',dwbase,'margin',st.sop.margin,'cap',tl.capfor(Dop));    % CC, 11/17/2026
-    [prog,Deop] = lpi_ineq_sop(prog,-Dop,o);
+    [prog,Deop] = lpi_ineq(prog,-Dop,o);
 end
 % CC, 11/07/2026 (end)
 
