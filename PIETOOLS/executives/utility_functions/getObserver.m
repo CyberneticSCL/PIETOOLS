@@ -40,6 +40,8 @@ function [L,Lop,info] = getObserver(P,Z,opts)
 %                        'backslash'), qp_lambda (>= 0, Tikhonov term),
 %                        qp_verbose; each unset one at the default of the
 %                        quadratic program.
+%           A number, the TOL of the PIETOOLS 2025 call getObserver(P,Z,
+%           tol), stops with the identifier getObserver:call2025.
 %
 % OUTPUT
 % - L:      'opvar' object, R^ny -> R^k x L2^m[s];
@@ -87,6 +89,15 @@ function [L,Lop,info] = getObserver(P,Z,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Default options
+% A number is the TOL of the PIETOOLS 2025 call getObserver(P,Z,tol), which
+% isfield below would ignore: stop with the current call
+if nargin>=3 && isnumeric(opts) && ~isempty(opts)
+    error('getObserver:call2025',['getObserver(P,Z,TOL) is the call of ' ...
+        'PIETOOLS 2025; the third input is now a struct of options. Call ' ...
+        '[L,Lop,info] = getObserver(P,Z) for the method ''qp'', or ' ...
+        'getObserver(P,Z,struct(''method'',''inv'')) for L = P^{-1}*Z; ' ...
+        'no coefficient of L is truncated.']);
+end
 if nargin<3,    opts = struct();    end
 % The method: 'qp' (default) or 'inv'
 method = 'qp';

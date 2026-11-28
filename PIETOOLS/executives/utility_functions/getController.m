@@ -42,6 +42,8 @@ function [K,Kop,info] = getController(P,Z,opts)
 %                        'backslash'), qp_lambda (>= 0, Tikhonov term),
 %                        qp_verbose; each unset one at the default of the
 %                        quadratic program.
+%           A number, the TOL of the PIETOOLS 2025 call getController(P,Z,
+%           tol), stops with the identifier getController:call2025.
 %
 % OUTPUT
 % - K:      'opvar' object, R^k x L2^m[s] -> R^nu;
@@ -88,6 +90,15 @@ function [K,Kop,info] = getController(P,Z,opts)
 % Initial coding MMP, 10/09/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% A number is the TOL of the PIETOOLS 2025 call getController(P,Z,tol), which
+% isfield below would ignore: stop with the current call
+if nargin>=3 && isnumeric(opts) && ~isempty(opts)
+    error('getController:call2025',['getController(P,Z,TOL) is the call of ' ...
+        'PIETOOLS 2025; the third input is now a struct of options. Call ' ...
+        '[K,Kop,info] = getController(P,Z) for the method ''qp'', or ' ...
+        'getController(P,Z,struct(''method'',''inv'')) for K = Z*P^{-1}; ' ...
+        'no coefficient of K is truncated.']);
+end
 % Default options
 if nargin<3,    opts = struct();    end
 % The method: 'qp' (default) or 'inv'

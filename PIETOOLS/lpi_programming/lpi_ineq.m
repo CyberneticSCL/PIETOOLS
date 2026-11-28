@@ -125,7 +125,11 @@ function [prog,Pop,info] = lpi_ineq(prog,P,opts)
 %                          given (default []: none); the terms keep their
 %                          offsets, which lower the bound where the weight
 %                          of a term acts;
-%          for a 'dpvar' or 'polynomial' P, OPTS is not used.
+%          for a 'dpvar' or 'polynomial' P, OPTS is not used. The fields
+%          pure and sep of PIETOOLS 2025 stop with the identifier
+%          lpi_ineq:call2025. A number in psatz is read as term codes:
+%          the PIETOOLS 2025 psatz = 1 (the plain and the psatz term) is
+%          'auto' here, and psatz = 1 poses the box product alone.
 %
 % OUTPUT
 % - prog:  'struct', the program with the Gram matrices of Pop declared
@@ -199,6 +203,15 @@ if nargin<2
     error("Not enough input arguments.")
 end
 if nargin<3,    opts = [];  end
+% opts.pure (no multiplier) and opts.sep (separable kernels) of PIETOOLS 2025
+% are not read below, so a 2025 call would run with both ignored: stop
+if isstruct(opts) && any(isfield(opts,{'pure','sep'}))
+    error('lpi_ineq:call2025',['opts.pure and opts.sep are options of ' ...
+        'lpi_ineq in PIETOOLS 2025, not read in this release: the basis ' ...
+        'operators of the certificate follow from the support of P and the ' ...
+        'tier of the settings (lpi.pos, lpi.ineq), its terms from ' ...
+        'opts.psatz. Remove both fields; see the help of lpi_ineq.']);
+end
 
 % % % Not a container: 'dpvar', 'polynomial' as an SOS inequality; others
 % an error
