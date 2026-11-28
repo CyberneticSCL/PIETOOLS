@@ -1,0 +1,21 @@
+case	run	status	certified	gam	seconds	error
+distributed	Hinf_gain Q	optimal	1	0.18248168	2.8	
+distributed	Hinf_gain P	optimal	1	0.18248066	0.6	
+distributed	Hinf_gain Qd	optimal	1	0.18248329	0.4	
+distributed	Hinf_gain Pd	infeasible	0	NaN	0.4	
+distributed	H2_norm c	optimal	1	0.28774368	0.6	
+distributed	H2_norm o	unknown	0	0.0012317229	0.8	
+distributed	H2_norm cco	infeasible	0	1.0406841	0.5	
+distributed	H2_norm oco	optimal	1	7.309944e-05	0.1	
+distributed	Hinf_control	infeasible	0	NaN	0.3	
+distributed	H2_control	infeasible	0	NaN	0.3	
+finite	Hinf_gain Q	optimal	1	0.033310667	0.3	
+finite	Hinf_gain P	optimal	1	0.03331102	0.2	
+finite	Hinf_gain Qd	optimal	1	0.033310846	0.2	
+finite	Hinf_gain Pd	optimal	1	0.033313368	0.2	
+finite	H2_norm c	optimal	1	0.052428229	0.2	
+finite	H2_norm o	optimal	1	0.052428372	0.2	
+finite	H2_norm cco	optimal	1	0.052396853	0.1	
+finite	H2_norm oco	optimal	1	0.052393641	0.1	
+finite	Hinf_control	optimal	1	0.032866021	0.4	
+finite	H2_control	optimal	1	0.052219933	0.3	

@@ -47,3 +47,50 @@ under `cleaning/private/settings_1116/`.
 ## Skipped
 
 The manual drafts (maintainer). `PIETOOLS_2025_User_Manual.pdf` describes the 2025 classes (H9).
+
+## Follow-up, 11/27/2026: the stock path in the agent file
+
+Maintainer, on the four mentions left above: "Yes, update it". The file named code retired on
+11/08 (`executives/`, `lpi_programming/`, `settings/`, now under `cleaning/private/`) in more
+places than four; each now names what is on the path:
+
+- description: "(stock or container path)" -> "of executives_sopvar"; `lpi_programming*` ->
+  `lpi_programming_sopvar`.
+- Step 5: the stock executives and `lpiscript` dropped; `lpiscript_sop`, whose help maps each name
+  to an executive and form; `executives_sopvar/README.md` (moved to `orphaned_file/claude` by
+  010e8bd0) replaced by the help of each executive; the stability dispatch stated by the forms of
+  `PIETOOLS_stability_sop` ('stability' of `lpiscript_sop` = 'Q'; default form 'P'); settings by
+  the tiers of `lpisettings_sop`, with the rule of 11/19 that an example names its settings and
+  executive form; the dual-form note measured again (below).
+- Step 7: `getController`, `getObserver` dropped; the methods 'qp' and 'inv' of the `_sop`
+  versions, as their help states.
+- Running MATLAB: `which -all lpiscript` -> `which -all opvar` (a PIETOOLS 2025 installation
+  shadows the container class) and `which -all lpiscript_sop`; `convert` lists two files, the
+  methods of `pde_struct` and of the legacy `sys`, so "resolve once" was wrong for it.
+- "Size b mismatch": the comparison with the stock routine dropped.
+
+Not changed: `claude_tests/` in "Writing scripts" (no such folder on the path).
+
+Measurement (`dualw_check.m`, `dualw_1127.tsv`): 1-D reaction-diffusion, lam = pi^2/2,
+Dirichlet, u(t) entering uniformly, z = [int x; u], tier light; w(s,t) entering the PDE directly,
+or w(t) through s(1-s).
+
+| run | w(s,t) | w(t) |
+|---|---|---|
+| `PIETOOLS_Hinf_gain_sop` 'Q' | optimal 0.18248168 | optimal 0.033310667 |
+| 'P' | optimal 0.18248066 | optimal 0.03331102 |
+| 'Qd' | optimal 0.18248329 | optimal 0.033310846 |
+| 'Pd' | infeasible | optimal 0.033313368 |
+| `PIETOOLS_H2_norm_sop` 'c' | optimal 0.28774368 | optimal 0.052428229 |
+| 'o' | unknown 1.2e-3 (floor) | optimal 0.052428372 |
+| 'cco' | infeasible | optimal 0.052396853 |
+| 'oco' | optimal 7.3e-5 (floor) | optimal 0.052393641 |
+| `PIETOOLS_Hinf_control_sop` | infeasible | optimal 0.032866021 |
+| `PIETOOLS_H2_control_sop` | infeasible | optimal 0.052219933 |
+
+The w(t) column equals the 1-D table of the moved `executives_sopvar/README.md` (10/2026, column
+'like') to 5 or more digits, which identifies its names: `Hinf_gain_dual` = 'Qd',
+`Hinf_gain_dual_coercive` = 'Pd', `H2_norm_c_coercive` = 'cco', `H2_norm_o_coercive` = 'oco'. Its
+note listed `Hinf_gain_dual` among the dual forms that fail for a distributed w, with no 1-D row
+for it (the evidence was the 2-D row, INFEASIBLE at `max_raise` 0); in 1-D, 'Qd' certifies. 2-D
+not measured again.
