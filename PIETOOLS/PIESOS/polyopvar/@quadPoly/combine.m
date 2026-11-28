@@ -42,7 +42,7 @@ function obj = combine(obj)
 % authorship, and a brief description of modifications
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% SS, 02/11/2026: Initial coding;
+% SS, DJ, 11/25/2026: Initial coding;
 
     % ---------- normalize empties ----------
     if isempty(obj.Zs), obj.Zs = {}; end
@@ -107,15 +107,25 @@ function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
 % variable unique and sorted, and drops variables with only degree 0.
 %
 % INPUTS
-% - Z:      1 x k cell of exponent vectors, one per variable;
+% - Z:      1 x k cell of exponent vectors, one per variable; an empty
+%           vector counts as [0] (constant), as in basisSize;
 % - names:  1 x k cellstr of variable names, or empty; unnamed ('')
 %           variables are sorted last;
 %
 % OUTPUTS
 % - Z_new, names_new: sorted-by-name variables, degrees unique/sorted;
-% - mapFull:  prod_i numel(Z{i}) x 1 array, the new full tensor index of
-%             each old one (1 if Z is empty);
+% - mapFull:  basisSize(Z) x 1 array, the new full tensor index of each
+%             old one (1 if Z is empty);
 % - d_new:    integer, the size of the new tensor basis.
+%
+% NOTES
+% - Full tensor indices are in kron order, last variable fastest: the
+%   subscripts subs (1 x k) have index 1 + sum_i (subs(i)-1)*stride(i),
+%   stride(i) = prod(sizes(i+1:end)), or equivalently idx_k for
+%   idx_i = (idx_{i-1}-1)*sizes(i) + subs(i), idx_0 = 1. The maps below
+%   are built for all subscripts at once, adding the variables one at a
+%   time, each as the fastest: a column over subs(i) plus a row over
+%   subs(1:i-1), reshaped to a column.
 
     % No variables => basis size 1
     if isempty(Z)
@@ -127,6 +137,9 @@ function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
     end
 
     k = numel(Z);
+    % Empty exponent vectors as the constant [0], so that the maps have
+    % basisSize(Z) entries, as C has rows/columns
+    Z(cellfun(@isempty,Z)) = {0};
 
     % Ensure names exist
     if isempty(names)
@@ -147,26 +160,22 @@ function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
     nsrt = names(perm);
 
     sizes_srt = cellfun(@numel, Zsrt);
-    d_srt = prod(sizes_srt);
 
-    % Map old full index -> sorted-order full index
-    % Step: old subs (in old order) -> subs in sorted order -> new linear index
+    % Map old full index -> sorted-order full index, for all indices at
+    % once (NOTES): old variable i is sorted variable iperm(i), so its
+    % subscript enters with the sorted stride
     sizes_old = cellfun(@numel, Z);
-
-    mapPerm = zeros(prod(sizes_old), 1);
-    if isempty(mapPerm)  % if any size is 0 (shouldn't happen), treat as constant-only
-        Z_new = {};
-        names_new = {};
-        mapFull = 1;
-        d_new = 1;
-        return;
+    iperm(perm) = 1:k;
+    strides_srt = ones(1,k);
+    for i = k-1:-1:1
+        strides_srt(i) = strides_srt(i+1)*sizes_srt(i+1);
     end
-
-    for idx = 1:prod(sizes_old)
-        subs_old = lin2subv(idx, sizes_old);      % 1×k, old order
-        subs_srt = subs_old(perm);                % reorder to sorted variable order
-        mapPerm(idx) = subv2lin(subs_srt, sizes_srt);
+    mapPerm = 0;
+    for i = 1:k
+        offsets = (0:sizes_old(i)-1)'*strides_srt(iperm(i));
+        mapPerm = reshape(offsets + mapPerm(:)', [], 1);
     end
+    mapPerm = mapPerm + 1;
 
     % --------- (B) Unique degrees within each variable (in sorted order) ----------
     Z_new = cell(1,k);
@@ -190,15 +199,12 @@ function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
 
     d_new = prod(sizes_new);
 
-    % Map sorted full index -> reduced full index
-    mapDedup = zeros(d_srt, 1);
-    for idx = 1:d_srt
-        subs = lin2subv(idx, sizes_srt); % subs in sorted order
-        subs2 = zeros(1,k);
-        for i = 1:k
-            subs2(i) = posMap{i}(subs(i));
-        end
-        mapDedup(idx) = subv2lin(subs2, sizes_new);
+    % Map sorted full index -> reduced full index, for all indices at once
+    % (NOTES, recursive form): sorted subscript j of variable i becomes
+    % posMap{i}(j), in the reduced sizes
+    mapDedup = 1;
+    for i = 1:k
+        mapDedup = reshape(posMap{i} + (mapDedup(:)'-1)*sizes_new(i), [], 1);
     end
 
     % --------- (C) Compose maps: old -> sorted -> dedup -----------
@@ -223,48 +229,8 @@ function [Z_new, names_new, mapFull, d_new] = combine_one_side(Z, names)
 end
 
 % ======================================================================
-% Index helpers (kron order, last dimension varies fastest)
+% Helper: size of the tensor basis
 % ======================================================================
-function subs = lin2subv(idx, dims)
-% SUBS = LIN2SUBV(IDX,DIMS) returns the subscripts of the linear index IDX
-% in an array of size DIMS, the last dimension varying fastest.
-%
-% INPUTS
-% - idx:    positive integer;
-% - dims:   1 x k array of positive integers;
-%
-% OUTPUTS
-% - subs:   1 x k array of subscripts.
-    k = numel(dims);
-    subs = zeros(1,k);
-    r = idx - 1;
-    for i = 1:k-1
-        stride = prod(dims(i+1:end));
-        subs(i) = floor(r / stride) + 1;
-        r = r - (subs(i)-1)*stride;
-    end
-    subs(k) = r + 1;
-end
-
-function idx = subv2lin(subs, dims)
-% IDX = SUBV2LIN(SUBS,DIMS) returns the linear index of the subscripts
-% SUBS in an array of size DIMS, the last dimension varying fastest.
-%
-% INPUTS
-% - subs:   1 x k array of subscripts;
-% - dims:   1 x k array of positive integers;
-%
-% OUTPUTS
-% - idx:    positive integer.
-    k = numel(dims);
-    idx = 1;
-    for i = 1:k-1
-        stride = prod(dims(i+1:end));
-        idx = idx + (subs(i)-1)*stride;
-    end
-    idx = idx + (subs(k)-1);
-end
-
 function d = basisSize(Zcell)
 % D = BASISSIZE(ZCELL) returns the number of monomials of the tensor
 % product basis defined by the exponent vectors in ZCELL (an empty
