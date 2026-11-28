@@ -20,6 +20,22 @@ new names. The records below keep the names of their date. Renamed here: `Test_c
 `int2opvar`, `opquadvar`. Since abfb0e83 a call of `poslpivar`, `lpivar` or `mat2opvar` in its
 2025 form stops with an error (`private/lpi_programming_sopvar/tests/test_call2025_sop.m`).
 
+## Names since 11/28/2026
+
+On 11/28/2026 (fe6d3530) the functions with the suffix `_sop` lost it, taking the 2025 name where
+one exists, and the folders `executives_sopvar`, `lpi_programming_sopvar`, `settings_sopvar`
+became `executives`, `lpi_programming`, `settings`
+(`cleaning/private/rename_sop_1128/rename_table.tsv`). Here `private/executives_sopvar/` and
+`private/lpi_programming_sopvar/` became `private/executives/` and `private/lpi_programming/`, and
+each test named after a function followed it (`test_lpi_ineq_sop` is now `test_lpi_ineq`,
+`test_call2025_sop` is now `test_call2025`, ...); the dated baselines keep `lb_full_sop`,
+`lb_sop_plan` and `bl_sop`. The records below keep the names of their date. The scripts of the
+dated baselines call the stock functions of 2025 by name (`lpisettings`, `PIETOOLS_Hinf_gain`,
+`lpi_ineq`, `lpi_eq`, `getsol_lpivar`, `settings_PIETOOLS_heavy`); since 11/28 these names
+resolve to the live functions unless the retired folders of `cleaning/private/` precede them on
+the path. Since 0d02ac08 the 21 executives of PIETOOLS 2025 whose LPI became a form stop with the
+call of this release (`private/executives/tests/test_retired2025.m`).
+
 ## Off the path
 
 `pietools_path_update` adds `genpath` of `PIETOOLS/`, and `genpath` skips every folder named

@@ -10,6 +10,14 @@ Names: on 11/27/2026 (ae2b95c1) the containers `copvar` and `cdopvar` were renam
 date, and the files in `private/` were not renamed: a `copvar` there is today's `opvar`, an
 `opvar` there the retired class of 2025.
 
+Names since 11/28/2026: the functions with the suffix `_sop` lost it (2025 names where they
+exist), and the live folders `executives_sopvar`, `lpi_programming_sopvar`, `settings_sopvar`
+became `executives`, `lpi_programming`, `settings` (`private/rename_sop_1128/rename_table.tsv`),
+the names of the retired 2025 folders `private/executives/`, `private/lpi_programming/`,
+`private/settings/` below. In an entry below, a `_sop` function or a `_sopvar` folder is today's
+name without the suffix; `executives/`, `lpi_programming/` or `settings/` in an entry dated
+before 11/28 is the retired 2025 folder.
+
 The moved files sit in `private/`, which `genpath` (and so `pietools_path_update`) skips with
 everything below it; MATLAB never searches the subfolders of a private folder. None of them is on
 the MATLAB path, which matters: `dead_code/` holds an older `rand_sdopvar.m` that would otherwise

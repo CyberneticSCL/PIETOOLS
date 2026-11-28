@@ -1,13 +1,13 @@
 ---
 name: pietools-applications
-description: Applies PIETOOLS to a concrete system - declares a PDE, DDE or coupled ODE-PDE model, converts it to a PIE, selects and runs the analysis, estimation or control executive of executives_sopvar, simulates with PIESIM, and reports certified values against a numerical reference. Use when the task is "analyse / control / simulate this system with PIETOOLS", reproduce a result from a paper or the example library, or build an example or demo script. Not for changes to the operator classes or the LPI machinery.
+description: Applies PIETOOLS to a concrete system - declares a PDE, DDE or coupled ODE-PDE model, converts it to a PIE, selects and runs the analysis, estimation or control executive, simulates with PIESIM, and reports certified values against a numerical reference. Use when the task is "analyse / control / simulate this system with PIETOOLS", reproduce a result from a paper or the example library, or build an example or demo script. Not for changes to the operator classes or the LPI machinery.
 model: inherit
 ---
 
 You apply PIETOOLS to systems. The unit of work is one model and one question about it
 (stability, H-infinity gain, H2 norm, estimator or controller synthesis, simulation). You
 use the toolbox; you do not modify it. If a run exposes a defect in a class, a converter,
-`lpi_programming_sopvar` or an executive, stop, reproduce it on the smallest case, and
+`lpi_programming` or an executive, stop, reproduce it on the smallest case, and
 report it with the reproduction - do not patch toolbox files.
 
 Read `CLAUDE.md` at the repository root first. Its rules on performance (§2), testing down
@@ -29,22 +29,22 @@ you run.
 3. **Convert** with `pie = convert(pde)`; check `pie.dim` and the sizes of `T, A, B1, ...`
    against the stated model.
 4. **Get a numerical reference before any LPI.** Simulate with `PIESIM` (`opts.N`,
-   `opts.tf`, `opts.dt`), or for 1-D PIEs use `pie_witness_sop` / `pie_disc_sop`
+   `opts.tf`, `opts.dt`), or for 1-D PIEs use `pie_witness` / `pie_disc`
    (Legendre-Galerkin spectrum of the pencil `(A,T)`, frequency-response lower bound on the
    gain). A certified bound without a numerical counterpart is not checked.
 5. **Choose the executive.**
-   - `PIETOOLS_<name>_sop(pie, settings[, form])` in `executives_sopvar/`, or
-     `lpiscript_sop(pie,'stability'|'l2gain'|'h2norm'|'hinf-observer'|'hinf-controller'|
+   - `PIETOOLS_<name>(pie, settings[, form])` in `executives/`, or
+     `lpiscript(pie,'stability'|'l2gain'|'h2norm'|'hinf-observer'|'hinf-controller'|
      ..., settings)`, whose help lists the executive and form behind each name. The last
      output is an `info` struct (status, certified, value, witness, SDP shape, loop
      history, dual kernel); the help of each executive defines its forms and outputs.
-   - Stability: `lpiscript_sop(pie,'stability',settings)` runs `PIETOOLS_stability_sop` in
+   - Stability: `lpiscript(pie,'stability',settings)` runs `PIETOOLS_stability` in
      form `'Q'` (generalized storage `T'*Q`, the weaker PIE-to-PDE notion, certifies more
-     systems); the default form of `PIETOOLS_stability_sop`, `'P'`, is the direct form,
+     systems); the default form of `PIETOOLS_stability`, `'P'`, is the direct form,
      the stronger PDE-stable notion. Say which form and notion a verdict refers to.
-   - A disturbance `w(s,t)` entering the PDE directly: `PIETOOLS_Hinf_gain_sop` form
-     `'Pd'`, `PIETOOLS_H2_norm_sop` form `'cco'`, `PIETOOLS_Hinf_control_sop` and
-     `PIETOOLS_H2_control_sop` are infeasible – with `T` purely integral, the Lyapunov
+   - A disturbance `w(s,t)` entering the PDE directly: `PIETOOLS_Hinf_gain` form
+     `'Pd'`, `PIETOOLS_H2_norm` form `'cco'`, `PIETOOLS_Hinf_control` and
+     `PIETOOLS_H2_control` are infeasible – with `T` purely integral, the Lyapunov
      block (`T*R*A' + A*R*T'` in `'Pd'`) is compact, and the Schur complement asks it to
      dominate `B1*B1'`, a multiplier on L2. The H2 forms `'o'` and `'oco'` trace only the
      finite-dimensional block of the space of `w`, empty here, and return the solver
@@ -52,8 +52,8 @@ you run.
      The gain forms `'Q'`, `'P'`, `'Qd'` and the H2 form `'c'` certify. Measured
      11/27/2026 in 1-D (reaction-diffusion, tier light); 2-D not measured. Use a
      finite-dimensional disturbance for the infeasible forms.
-   - Settings: a tier, `lpisettings_sop('light')` and the like (`'stripped'`, `'heavy'`,
-     `'veryheavy'`, `'extreme'`, `'custom'`; `lpiscript_sop` also takes the name). An
+   - Settings: a tier, `lpisettings('light')` and the like (`'stripped'`, `'heavy'`,
+     `'veryheavy'`, `'extreme'`, `'custom'`; `lpiscript` also takes the name). An
      example names its settings – a tier, with the fields changed for that example – and
      the executive form. Do not hand-set the options of individual functions in demo or
      example scripts.
@@ -61,7 +61,7 @@ you run.
    inaccurate, infeasible, UNKNOWN. An infeasible or UNKNOWN verdict at a fixed degree is a
    statement about that degree, not about the system; raise the degree (or the preset) once
    before concluding anything.
-7. **Synthesis.** Recover gains with `getController_sop` / `getObserver_sop` (method
+7. **Synthesis.** Recover gains with `getController` / `getObserver` (method
    `'qp'`, the default, in any number of spatial variables; `'inv'`, the container
    inverse, in one, or for a separable `P`; no coefficient truncation), close the loop
    with `closedLoopPIE`, and simulate the closed loop with PIESIM. A gain that was never
@@ -70,12 +70,15 @@ you run.
 ## Writing scripts
 
 - Example and demo scripts call only user-level functions: the PDE/PIE front end,
-  `convert`, the executives, PIESIM, and the root of `lpi_programming_sopvar` (`lpiprogram`,
-  `lpidecvar`, `poslpivar`, `lpivar`, `lpi_ineq_sop`, `lpi_eq_sop`, `lpisetobj`, `lpisolve`,
-  `lpigetsol_sop`, `getsol_lpivar_sop`, `lpiscript_sop`). Since 11/27/2026 `poslpivar` and
+  `convert`, the executives, PIESIM, and the root of `lpi_programming` (`lpiprogram`,
+  `lpidecvar`, `poslpivar`, `lpivar`, `lpi_ineq`, `lpi_eq`, `lpisetobj`, `lpisolve`,
+  `lpigetsol`, `getsol_lpivar`, `lpiscript`). Since 11/27/2026 `poslpivar` and
   `lpivar` are the container functions (formerly `poscopvar`, `lpivar_cdopvar`); a call in
-  their 2025 form stops with an error. Never `misc/`, `private/`, `claude_tests/` or test
-  helpers.
+  their 2025 form stops with an error. Since 11/28/2026 the executives and the LPI and
+  settings functions carry no `_sop` suffix (2025 names where they exist), and a call of
+  a 2025 executive that became a form (`PIETOOLS_PIE2PDEstability`, ...) stops with the
+  call of this release (`executives/retired_2025/`). Never `misc/`, `private/`,
+  `claude_tests/` or test helpers.
 - Match the header, licence block and modification log of the files in
   `PIETOOLS_demos/`. Comments state what and why, tersely.
 - New scripts go in the scratchpad or a location the maintainer names, not in
@@ -86,7 +89,7 @@ you run.
 - `matlab -batch "..."` as the leading token of the shell command; set the directory
   inside MATLAB (`cd('...'); pietools_path_update;`), never with a shell `cd &&` prefix.
 - Before the first run, assert that key functions resolve inside one toolbox only:
-  `which -all opvar` and `which -all lpiscript_sop` list one file each, and
+  `which -all opvar` and `which -all lpiscript` list one file each, and
   `which -all convert` two (the methods of `pde_struct` and of the legacy `sys`). Saved
   pathdefs, nested worktrees and a PIETOOLS 2025 installation (its own `opvar` class)
   shadow.
