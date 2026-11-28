@@ -1,0 +1,41 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\harness\sol] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\inhom] 
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\sopvar\psatz_faces_results\mixed_domain\harness\qform] 
+executives/utility_functions/getController.m                   mtree errors 0; checkcode 0: 
+executives/utility_functions/getObserver.m                     mtree errors 0; checkcode 0: 
+lpi_programming/lpi_ineq.m                                     mtree errors 0; checkcode 0: 
+testing_codes/private/executives/tests/test_retired2025.m      mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_2D_c.m                mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_2D_c_non_coercive.m   mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_2D_o.m                mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_2D_o_non_coercive.m   mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_c.m                   mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_c_coercive.m          mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_o.m                   mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_H2_norm_o_coercive.m          mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_estimator_2D.m           mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_gain_2D.m                mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_gain_2D_non_coercive.m   mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_gain_coercive.m          mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_gain_dual.m              mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_gain_dual_2D.m           mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_Hinf_gain_dual_coercive.m     mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_PDEstability.m                mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_PDEstability_dual.m           mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_PIE2PDEstability.m            mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_PIE2PDEstability_dual.m       mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_stability_2D.m                mtree errors 0; checkcode 0: 
+executives/retired_2025/PIETOOLS_stability_dual_2D.m           mtree errors 0; checkcode 0: 
+  passed: (1) 21 executives of PIETOOLS 2025 stop with the call of this release
+  passed: (2) getController, getObserver: a numeric third input stops; [] and a struct pass the guard
+  passed: (3) lpi_ineq: opts.pure, opts.sep stop; opts.psatz = 'none' runs
+  (4) psatz 0      codes 0        Gram 18         ndec 324
+  (4) psatz 1      codes 1        Gram 18         ndec 324
+  (4) psatz [0 1]  codes [0 1]    Gram [18 18]    ndec 648
+  (4) psatz 'none' codes 0        Gram 18         ndec 324
+  (4) psatz 'auto' codes [0 1]    Gram [18 12]    ndec 468
+test_retired2025: 27 checks passed
